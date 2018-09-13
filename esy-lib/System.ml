@@ -18,8 +18,6 @@ module Platform = struct
 
   let pp fmt v = Fmt.string fmt (show v)
 
-  let toString = show
-
   let host =
     let uname () =
       let ic = Unix.open_process_in "uname" in
@@ -59,8 +57,6 @@ module Arch = struct
     | Unknown -> "unknown"
 
   let pp fmt v = Fmt.string fmt (show v)
-
-  let toString = show
 
   let host =
     let uname () =

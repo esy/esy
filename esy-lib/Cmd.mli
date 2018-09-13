@@ -41,12 +41,8 @@ val getToolAndLine : t -> string * string array
 val getTool : t -> string
 val getArgs : t -> string list
 
-val pp : Format.formatter -> t -> unit
-val show : t -> string
-val toString : t -> string
-
-val equal : t -> t -> bool
-val compare : t -> t -> int
+include S.PRINTABLE with type t := t
+include S.COMPARABLE with type t := t
 
 val resolveInvocation : string list -> t -> (t, [> `Msg of string ]) result
 (** TODO: remove away, use resolveInvocation instead *)
@@ -60,3 +56,5 @@ val toBosCmd : t -> Bos.Cmd.t
 val ofBosCmd : Bos.Cmd.t -> (t, [> `Msg of string ]) result
 
 val ofListExn : string list -> t
+
+val of_yojson : ?errorMsg:string -> t Json.decoder

@@ -1,18 +1,13 @@
-type t = {
-  name: string;
-  spec: VersionSpec.t;
-} [@@deriving (eq, ord)]
+include Metadata.Req
 
-let toString {name; spec} =
-  name ^ "@" ^ (VersionSpec.toString spec)
-
-let show = toString
+let show {name; spec} =
+  name ^ "@" ^ (VersionSpec.show spec)
 
 let to_yojson req =
-  `String (toString req)
+  `String (show req)
 
 let pp fmt req =
-  Fmt.fmt "%s" fmt (toString req)
+  Fmt.fmt "%s" fmt (show req)
 
 let matches ~name ~version req =
   name = req.name && VersionSpec.matches ~version req.spec
@@ -127,186 +122,186 @@ let%test_module "parsing" = (module struct
     "name@git+https://some/repo",
     {
       name = "name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "name.dot@git+https://some/repo",
     {
       name = "name.dot";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "name-dash@git+https://some/repo",
     {
       name = "name-dash";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "name_underscore@git+https://some/repo",
     {
       name = "name_underscore";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "@opam/name@git+https://some/repo",
     {
       name = "@opam/name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "@scope/name@git+https://some/repo",
     {
       name = "@scope/name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "@scope-dash/name@git+https://some/repo",
     {
       name = "@scope-dash/name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "@scope.dot/name@git+https://some/repo",
     {
       name = "@scope.dot/name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
     "@scope_underscore/name@git+https://some/repo",
     {
       name = "@scope_underscore/name";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
 
     "pkg@git://github.com/yarnpkg/example-yarn-package.git",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "git://github.com/yarnpkg/example-yarn-package.git";
         ref = None;
         manifest = None;
-      });
+      }));
     };
 
     "pkg@git+https://some/repo",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = None;
         manifest = None;
-      });
+      }));
     };
 
     "pkg@git+https://some/repo#ref",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Git {
+      spec = VersionSpec.Source (Orig (SourceSpec.Git {
         remote = "https://some/repo";
         ref = Some "ref";
         manifest = None;
-      });
+      }));
     };
 
     "pkg@https://some/url#abc123",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Archive {
+      spec = VersionSpec.Source (Orig (SourceSpec.Archive {
         url = "https://some/url";
         checksum = Some (Checksum.Sha1, "abc123");
-      });
+      }));
     };
 
     "pkg@http://some/url#abc123",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Archive {
+      spec = VersionSpec.Source (Orig (SourceSpec.Archive {
         url = "http://some/url";
         checksum = Some (Checksum.Sha1, "abc123");
-      });
+      }));
     };
 
     "pkg@http://some/url#sha1:abc123",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Archive {
+      spec = VersionSpec.Source (Orig (SourceSpec.Archive {
         url = "http://some/url";
         checksum = Some (Checksum.Sha1, "abc123");
-      });
+      }));
     };
 
     "pkg@http://some/url#md5:abc123",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.Archive {
+      spec = VersionSpec.Source (Orig (SourceSpec.Archive {
         url = "http://some/url";
         checksum = Some (Checksum.Md5, "abc123");
-      });
+      }));
     };
 
     "pkg@file:./some/file",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.LocalPath {
+      spec = VersionSpec.Source (Orig (SourceSpec.LocalPath {
         path = Path.v "some/file";
         manifest = None;
-      });
+      }));
     };
 
     "pkg@link:./some/file",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.LocalPathLink {
+      spec = VersionSpec.Source (Orig (SourceSpec.LocalPathLink {
         path = Path.v "some/file";
         manifest = None;
-      });
+      }));
     };
     "pkg@link:../reason-wall-demo",
     {
       name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.LocalPathLink {
+      spec = VersionSpec.Source (Orig (SourceSpec.LocalPathLink {
         path = Path.v "../reason-wall-demo";
         manifest = None;
-      });
+      }));
     };
 
     "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
     {
       name = "eslint";
       spec = VersionSpec.Source (
-        SourceSpec.Git {
+        Orig (SourceSpec.Git {
           remote = "https://github.com/eslint/eslint.git";
           ref = Some "9d6223040316456557e0a2383afd96be90d28c5a";
           manifest = None;
-        });
+        }));
     };
 
     (* npm *)

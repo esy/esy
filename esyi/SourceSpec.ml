@@ -1,50 +1,25 @@
 module MS = SandboxSpec.ManifestSpec
 
-type t =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t option;
-    }
-  | Git of {
-      remote : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | NoSource
-  [@@deriving (eq, ord)]
+include Metadata.SourceSpec
 
-let toString = function
+let showOrig = function
   | Github {user; repo; ref = None; manifest = None;} ->
     Printf.sprintf "github:%s/%s" user repo
   | Github {user; repo; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s" user repo (MS.toString manifest)
+    Printf.sprintf "github:%s/%s:%s" user repo (MS.show manifest)
   | Github {user; repo; ref = Some ref; manifest = None} ->
     Printf.sprintf "github:%s/%s#%s" user repo ref
   | Github {user; repo; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.toString manifest) ref
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.show manifest) ref
 
   | Git {remote; ref = None; manifest = None;} ->
     Printf.sprintf "git:%s" remote
   | Git {remote; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s" remote (MS.toString manifest)
+    Printf.sprintf "git:%s:%s" remote (MS.show manifest)
   | Git {remote; ref = Some ref; manifest = None} ->
     Printf.sprintf "git:%s#%s" remote ref
   | Git {remote; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "git:%s:%s#%s" remote (MS.toString manifest) ref
+    Printf.sprintf "git:%s:%s#%s" remote (MS.show manifest) ref
 
   | Archive {url; checksum = Some checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
@@ -52,79 +27,105 @@ let toString = function
     Printf.sprintf "archive:%s" url
 
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.toString path)
+    Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (MS.show manifest)
 
   | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.toString path)
+    Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (MS.show manifest)
 
   | NoSource -> "no-source:"
 
-let to_yojson src = `String (toString src)
+let show = function
+  | Orig sourceSpec -> showOrig sourceSpec
+  | Override {sourceSpec; _} -> "override:" ^ showOrig sourceSpec
+
+let to_yojson src = `String (show src)
 
 let pp fmt spec =
-  Fmt.pf fmt "%s" (toString spec)
+  Fmt.pf fmt "%s" (show spec)
 
-let matches ~source spec =
+let matches ~(source : Source.t) (spec : t) =
   let eqManifestName = [%derive.eq: MS.t option] in
-  match spec, source with
-  | LocalPath {path = p1; manifest = m1},
-    Source.LocalPath {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
-  | LocalPath {path = p1; manifest = m1},
-    Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
-  | LocalPath _, _ -> false
+  let matchesOrig source spec =
+    match spec, source with
+    | LocalPath {path = p1; manifest = m1},
+      Source.LocalPath {path = p2; manifest = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
+    | LocalPath {path = p1; manifest = m1},
+      Source.LocalPathLink {path = p2; manifest = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
+    | LocalPath _, _ -> false
 
-  | LocalPathLink {path = p1; manifest = m1},
-    Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
-  | LocalPathLink _, _ -> false
+    | LocalPathLink {path = p1; manifest = m1},
+      Source.LocalPathLink {path = p2; manifest = m2} ->
+      Path.equal p1 p2 && eqManifestName m1 m2
+    | LocalPathLink _, _ -> false
 
-  | Github ({ref = Some specRef; manifest = m1; _} as spec), Source.Github src ->
-    String.(
-      equal src.user spec.user
-      && equal src.repo spec.repo
-      && equal src.commit specRef
-    ) && eqManifestName src.manifest m1
-  | Github ({ref = None; _} as spec), Source.Github src ->
-    String.(
-      equal spec.user src.user
-      && equal spec.repo src.repo
-    ) && eqManifestName spec.manifest src.manifest
-  | Github _, _ -> false
+    | Github ({ref = Some specRef; manifest = m1; _} as spec),
+      Source.Github src ->
+      String.(
+        equal src.user spec.user
+        && equal src.repo spec.repo
+        && equal src.commit specRef
+      ) && eqManifestName src.manifest m1
+    | Github ({ref = None; _} as spec),
+      Source.Github src ->
+      String.(
+        equal spec.user src.user
+        && equal spec.repo src.repo
+      ) && eqManifestName spec.manifest src.manifest
+    | Github _, _ -> false
 
-  | Git ({ref = Some specRef; _} as spec), Source.Git src ->
-    String.(
-      equal spec.remote src.remote
-      && equal specRef src.commit
-    ) && eqManifestName spec.manifest src.manifest
-  | Git ({ref = None; _} as spec), Source.Git src ->
-    String.(equal spec.remote src.remote)
-    && eqManifestName spec.manifest src.manifest
-  | Git _, _ -> false
+    | Git ({ref = Some specRef; _} as spec),
+      Source.Git src ->
+      String.(
+        equal spec.remote src.remote
+        && equal specRef src.commit
+      ) && eqManifestName spec.manifest src.manifest
+    | Git ({ref = None; _} as spec),
+      Source.Git src ->
+      String.(equal spec.remote src.remote)
+      && eqManifestName spec.manifest src.manifest
+    | Git _, _ -> false
 
-  | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
-    String.equal url1 url2
-  | Archive _, _ -> false
+    | Archive {url = url1; _},
+      Source.Archive {url = url2; _}  ->
+      String.equal url1 url2
+    | Archive _, _ -> false
 
-  | NoSource, _ -> false
+    | NoSource, _ -> false
+  in
+  match source, spec with
+  | Source.Orig source, Orig sourceSpec ->
+    matchesOrig source sourceSpec
+  | Source.Override {source; override = sourceOverride},
+    Override {sourceSpec; override = sourceSpecOverride} ->
+    Metadata.SourceOverride.equal sourceOverride sourceSpecOverride
+    && matchesOrig source sourceSpec
+  | Source.Override _, Orig _ -> false
+  | Source.Orig _, Override _ -> false
 
 let ofSource (source : Source.t) =
+  let aux (source : Source.source) =
+    match source with
+    | Archive {url; checksum} -> Archive {url; checksum = Some checksum}
+    | Git {remote; commit; manifest;} ->
+      Git {remote; ref =  Some commit; manifest;}
+    | Github {user; repo; commit; manifest;} ->
+      Github {user; repo; ref = Some commit; manifest;}
+    | LocalPath {path; manifest;} ->
+      LocalPath {path; manifest;}
+    | LocalPathLink {path; manifest;} ->
+      LocalPathLink {path; manifest;}
+    | NoSource ->
+      NoSource
+  in
   match source with
-  | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
-  | Source.Git {remote; commit; manifest;} ->
-    Git {remote; ref =  Some commit; manifest;}
-  | Source.Github {user; repo; commit; manifest;} ->
-    Github {user; repo; ref = Some commit; manifest;}
-  | Source.LocalPath {path; manifest;} ->
-    LocalPath {path; manifest;}
-  | Source.LocalPathLink {path; manifest;} ->
-    LocalPathLink {path; manifest;}
-  | Source.NoSource -> NoSource
+  | Orig source -> Orig (aux source)
+  | Override {source; override} -> Override {sourceSpec = aux source; override}
 
 module Parse = struct
   include Parse
@@ -217,7 +218,7 @@ module Parse = struct
     let make path manifest = LocalPathLink { path; manifest; } in
     pathLike "link:" make
 
-  let source =
+  let origSourceSpec =
     let source = Parse.(
       github
       <|> git
@@ -233,12 +234,16 @@ module Parse = struct
     | '/' -> pathWithoutProto makePath
     | _ -> source
 
+  let sourceSpec =
+    let%bind sourceSpec = origSourceSpec in
+    return (Orig sourceSpec)
+
 end
 
-let parser = Parse.source
+let parser: t Parse.t = Parse.sourceSpec
 
 let parse =
-  Parse.(parse source)
+  Parse.(parse parser)
 
 let%test_module "parsing" = (module struct
 
@@ -248,328 +253,405 @@ let%test_module "parsing" = (module struct
   let%test "github:user/repo" =
     expectParses
       "github:user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+      (Orig (Github {user = "user"; repo = "repo"; ref = None; manifest = None}))
 
   let%test "github:user/repo.git" =
     expectParses
       "github:user/repo.git"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+      (Orig (Github {user = "user"; repo = "repo"; ref = None; manifest = None}))
 
   let%test "github:user/repo#ref" =
     expectParses
       "github:user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+      (Orig (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None}))
 
   let%test "github:user/repo:lwt.opam#ref" =
     expectParses
       "github:user/repo:lwt.opam#ref"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "github:user/repo:lwt.opam" =
     expectParses
       "github:user/repo:lwt.opam"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         ref = None;
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "gh:user/repo" =
     expectParses
       "gh:user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = None;
+      }))
 
   let%test "gh:user/repo#ref" =
     expectParses
       "gh:user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = None;
+      }))
 
   let%test "gh:user/repo:lwt.opam#ref" =
     expectParses
       "gh:user/repo:lwt.opam#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = Some (MS.ofStringExn "lwt.opam")})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = Some (MS.ofStringExn "lwt.opam");
+      }))
 
   let%test "gh:user/repo:lwt.opam" =
     expectParses
       "gh:user/repo:lwt.opam"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = Some (MS.ofStringExn "lwt.opam")})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = Some (MS.ofStringExn "lwt.opam");
+      }))
 
   let%test "git+https://example.com/repo.git" =
     expectParses
       "git+https://example.com/repo.git"
-      (Git {remote = "https://example.com/repo.git"; ref = None; manifest = None})
+      (Orig (Git {
+        remote = "https://example.com/repo.git";
+        ref = None;
+        manifest = None;
+      }))
 
   let%test "git+https://example.com/repo.git#ref" =
     expectParses
       "git+https://example.com/repo.git#ref"
-      (Git {remote = "https://example.com/repo.git"; ref = Some "ref"; manifest = None})
+      (Orig (Git {
+        remote = "https://example.com/repo.git";
+        ref = Some "ref";
+        manifest = None;
+      }))
 
   let%test "git+https://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git+https://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "https://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (MS.ofStringExn "lwt.opam")})
+        manifest = Some (MS.ofStringExn "lwt.opam");
+      }))
 
   let%test "git+https://example.com/repo.git:lwt.opam" =
     expectParses
       "git+https://example.com/repo.git:lwt.opam"
-      (Git {
+      (Orig (Git {
         remote = "https://example.com/repo.git";
         ref = None;
         manifest = Some (MS.ofStringExn "lwt.opam")
-      })
+      }))
 
   let%test "git+http://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git+http://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "http://example.com/repo.git";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git+ftp://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git+ftp://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "ftp://example.com/repo.git";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git+ssh://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git+ssh://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "ssh://example.com/repo.git";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git+rsync://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git+rsync://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "rsync://example.com/repo.git";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git://example.com/repo.git" =
     expectParses
       "git://example.com/repo.git"
-      (Git {remote = "git://example.com/repo.git"; ref = None; manifest = None;})
+      (Orig (Git {
+        remote = "git://example.com/repo.git";
+        ref = None;
+        manifest = None;
+      }))
 
   let%test "git://example.com/repo.git#ref" =
     expectParses
       "git://example.com/repo.git#ref"
-      (Git {remote = "git://example.com/repo.git"; ref = Some "ref"; manifest = None;})
+      (Orig (Git {
+        remote = "git://example.com/repo.git";
+        ref = Some "ref";
+        manifest = None;
+      }))
 
   let%test "git://example.com/repo.git:lwt.opam#ref" =
     expectParses
       "git://example.com/repo.git:lwt.opam#ref"
-      (Git {
+      (Orig (Git {
         remote = "git://example.com/repo.git";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git://github.com/yarnpkg/example-yarn-package.git" =
     expectParses
       "git://github.com/yarnpkg/example-yarn-package.git"
-      (Git {
+      (Orig (Git {
         remote = "git://github.com/yarnpkg/example-yarn-package.git";
         ref = None;
         manifest = None;
-      })
+      }))
 
   let%test "user/repo" =
     expectParses
       "user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = None;
+      }))
 
   let%test "user/repo#ref" =
     expectParses
       "user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = None;
+      }))
 
   let%test "user/repo:lwt.opam#ref" =
     expectParses
       "user/repo:lwt.opam#ref"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         ref = Some "ref";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "user/repo:lwt.opam" =
     expectParses
       "user/repo:lwt.opam"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         ref = None;
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "https://example.com/pkg.tgz" =
     expectParses
       "https://example.com/pkg.tgz"
-      (Archive {url = "https://example.com/pkg.tgz"; checksum = None})
+      (Orig (Archive {url = "https://example.com/pkg.tgz"; checksum = None}))
 
   let%test "https://example.com/pkg.tgz#abc123" =
     expectParses
       "https://example.com/pkg.tgz#abc123"
-      (Archive {url = "https://example.com/pkg.tgz"; checksum = Some (Sha1, "abc123")})
+      (Orig (Archive {
+        url = "https://example.com/pkg.tgz";
+        checksum = Some (Sha1, "abc123");
+      }))
 
   let%test "http://example.com/pkg.tgz" =
     expectParses
       "http://example.com/pkg.tgz"
-      (Archive {url = "http://example.com/pkg.tgz"; checksum = None})
+      (Orig (Archive {url = "http://example.com/pkg.tgz"; checksum = None}))
 
   let%test "http://example.com/pkg.tgz#abc123" =
     expectParses
       "http://example.com/pkg.tgz#abc123"
-      (Archive {url = "http://example.com/pkg.tgz"; checksum = Some (Sha1, "abc123")})
+      (Orig (Archive {
+        url = "http://example.com/pkg.tgz";
+        checksum = Some (Sha1, "abc123");
+      }))
 
   let%test "link:/some/path" =
     expectParses
       "link:/some/path"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPathLink {path = Path.v "/some/path"; manifest = None;}))
 
   let%test "link:/some/path/opam" =
     expectParses
       "link:/some/path/opam"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "opam");})
+      (Orig (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "opam");
+      }))
 
   let%test "link:/some/path/lwt.opam" =
     expectParses
       "link:/some/path/lwt.opam"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "lwt.opam");})
+      (Orig (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "lwt.opam");
+      }))
 
   let%test "link:/some/path/package.json" =
     expectParses
       "link:/some/path/package.json"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "package.json");})
+      (Orig (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "package.json");
+      }))
 
   let%test "file:/some/path" =
     expectParses
       "file:/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPath {
+        path = Path.v "/some/path";
+        manifest = None;
+      }))
 
   let%test "file:/some/path/opam" =
     expectParses
       "file:/some/path/opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "opam");})
+      (Orig (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "opam");
+      }))
 
   let%test "file:/some/path/lwt.opam" =
     expectParses
       "file:/some/path/lwt.opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "lwt.opam");})
+      (Orig (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "lwt.opam");
+      }))
 
   let%test "file:/some/path/package.json" =
     expectParses
       "file:/some/path/package.json"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "package.json");
-      })
+      }))
 
   let%test "path:/some/path" =
     expectParses
       "path:/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPath {path = Path.v "/some/path"; manifest = None;}))
 
   let%test "path:/some/path/opam" =
     expectParses
       "path:/some/path/opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "opam");
-      })
+      }))
 
   let%test "path:/some/path/lwt.opam" =
     expectParses
       "path:/some/path/lwt.opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "path:/some/path/package.json" =
     expectParses
       "path:/some/path/package.json"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "package.json");
-      })
+      }))
 
   let%test "/some/path" =
     expectParses
       "/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPath {
+        path = Path.v "/some/path";
+        manifest = None;
+      }))
 
   let%test "/some/path/opam" =
     expectParses
       "/some/path/opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (MS.ofStringExn "opam");})
+      (Orig (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (MS.ofStringExn "opam");
+      }))
 
   let%test "/some/path/lwt.opam" =
     expectParses
       "/some/path/lwt.opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "/some/path/package.json" =
     expectParses
       "/some/path/package.json"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "package.json");
-      })
+      }))
 
   let%test "./some/path" =
     expectParses
       "./some/path"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "some/path";
         manifest = None;
-      })
+      }))
 
   let%test "./some/path/opam" =
     expectParses
       "./some/path/opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "some/path";
         manifest = Some (MS.ofStringExn "opam");
-      })
+      }))
 
   let%test "./some/path/lwt.opam" =
     expectParses
       "./some/path/lwt.opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "some/path";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "./some/path/package.json" =
     expectParses
       "./some/path/package.json"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "some/path";
         manifest = Some (MS.ofStringExn "package.json");
-      })
+      }))
 
 end)
 

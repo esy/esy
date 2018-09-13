@@ -18,7 +18,7 @@ module Record : sig
 
   type t = {
     name: string;
-    version: Version.t;
+    version: string;
     source: Source.t * Source.t list;
     files : Package.File.t list;
     opam : Opam.t option;
@@ -32,10 +32,17 @@ module Record : sig
 end
 
 module Id : sig
-  type t = string * Version.t
+  type t
 
-  module Map : Map.S with type key := t
-  module Set : Set.S with type elt := t
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+  val make : name:string -> source:Source.t -> unit -> t
+  val ofRecord : Record.t -> t
+
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
 end
 
 (**
@@ -46,8 +53,6 @@ type t
 val root : t -> Record.t option
 val dependencies : Record.t -> t -> Record.Set.t
 val records : t -> Record.Set.t
-
-val equal : t -> t -> bool
 
 val empty : t
 

@@ -3,35 +3,11 @@
  * concrete source Source.t.
  *)
 
-type t =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t option;
-    }
-  | Git of {
-      remote : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | NoSource
+include module type of Metadata.SourceSpec
 
-val toString : t -> string
+include S.PRINTABLE with type t := t
+
 val to_yojson : t -> [> `String of string ]
-val pp : t Fmt.t
 val ofSource : Source.t -> t
 val equal : t -> t -> bool
 val compare : t -> t -> int

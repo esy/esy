@@ -17,18 +17,6 @@ module Dep : sig
   val matches : name : string -> version : Version.t -> t -> bool
 end
 
-module Resolutions : sig
-  type t
-
-  val empty : t
-  val find : t -> string -> Version.t option
-
-  val entries : t -> (string * Version.t) list
-
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
-end
-
 module Dependencies : sig
   type t =
     | OpamFormula of Dep.t disj conj
@@ -38,7 +26,7 @@ module Dependencies : sig
   val show : t -> string
 
   val toApproximateRequests : t -> Req.t list
-  val applyResolutions : Resolutions.t -> t -> t
+  val applyResolutions : PackageJson.Resolutions.t -> t -> t
 end
 
 module File : sig
@@ -69,8 +57,8 @@ module OpamOverride : sig
   end
 
   type t = {
-    build : PackageJson.Command.t list option;
-    install : PackageJson.Command.t list option;
+    build : Metadata.CommandList.t option;
+    install : Metadata.CommandList.t option;
     dependencies : PackageJson.Dependencies.t;
     peerDependencies : PackageJson.Dependencies.t;
     exportedEnv : PackageJson.ExportedEnv.t;

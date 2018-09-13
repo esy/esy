@@ -5,11 +5,9 @@ module ManifestSpec = struct
   | OpamAggregated of string list
   [@@deriving ord, eq]
 
-  let toString = function
+  let show = function
     | Esy fname | Opam fname -> fname
     | OpamAggregated fnames -> String.concat "," fnames
-
-  let show = toString
 
   let pp fmt manifest =
     match manifest with
@@ -98,7 +96,7 @@ let name spec =
   | OpamAggregated _ -> "opam"
   | Opam "opam" -> "opam"
   | Esy "package.json" | Esy "esy.json" -> "default"
-  | Opam fname | Esy fname -> Path.(toString (remExt (v fname)))
+  | Opam fname | Esy fname -> Path.(show (remExt (v fname)))
 
 let isDefault spec =
   match spec.manifest with
@@ -180,7 +178,6 @@ let pp fmt spec =
   ManifestSpec.pp fmt spec.manifest
 
 let show spec = Format.asprintf "%a" pp spec
-let toString spec = Format.asprintf "%a" pp spec
 
 module Set = Set.Make(struct
   type nonrec t = t

@@ -3,16 +3,11 @@
  * concrete version Version.t.
  *)
 
-type t =
-  | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
-  | Opam of OpamPackageVersion.Formula.DNF.t
-  | Source of SourceSpec.t
+include module type of Metadata.VersionSpec
 
-val pp : t Fmt.t
-val toString : t -> string
 val to_yojson : t -> [> `String of string ]
 
+include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
 
 val parserNpm : t Parse.t

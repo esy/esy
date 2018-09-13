@@ -48,7 +48,7 @@ module Dependency = struct
 end
 
 type t = {
-  spec : SandboxSpec.t;
+  spec : EsyInstall.SandboxSpec.t;
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
@@ -116,7 +116,7 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
+let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
 
   let manifestInfo = ref Path.Set.empty in
@@ -129,8 +129,8 @@ let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
     EsyBuildPackage.Config.make
       ~storePath:cfg.storePath
       ~projectPath:spec.path
-      ~localStorePath:(SandboxSpec.storePath spec)
-      ~buildPath:(SandboxSpec.buildPath spec)
+      ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
+      ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
       ()
   ) in
 
@@ -256,16 +256,20 @@ let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
       if asRoot
       then
         let%bind m = Manifest.ofSandboxSpec spec in
-        return (Some m, false, path, SandboxSpec.nodeModulesPath spec)
+        return (Some m, false, path, EsyInstall.SandboxSpec.nodeModulesPath spec)
       else
         let%bind forceTransient, sourcePath, manifestFilename =
           let pathToEsyLink = Path.(path / "_esylink") in
           if%bind Fs.exists pathToEsyLink
           then
-            let%bind link = EsyLinkFile.ofFile pathToEsyLink in
-            return (true, link.EsyLinkFile.path, link.manifest)
+            let%bind link = EsyInstall.EsyLinkFile.ofFile pathToEsyLink in
+            match link.EsyInstall.EsyLinkFile.source with
+            | Manifest.Source.LocalPathLink {path; _} ->
+              return (true, path, link.manifest)
+            | _ ->
+              return (false, path, link.manifest)
           else
-            return (false, path, None)
+            return (true, path, None)
         in
         let%bind m = Manifest.ofDir
           ?name
@@ -309,7 +313,7 @@ let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
 
           let pkg = {
             Package.
-            id = Path.toString path;
+            id = Path.show path;
             name = Manifest.name manifest;
             version = Manifest.version manifest;
             build = {build with sourceType};

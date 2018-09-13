@@ -98,6 +98,21 @@ module Layout = struct
   let pp =
     Fmt.(list ~sep:(unit "@\n") pp_installation)
 
+  let sourcePathOfRecord record =
+    let ofSource (source : Source.source) =
+      match source with
+      | Archive _
+      | Git _
+      | Github _
+      | LocalPath _
+      | NoSource -> None
+      | LocalPathLink {path; manifest = _;} -> Some path
+    in
+    let main, _ = record.Record.source in
+    match main with
+    | Source.Orig source
+    | Source.Override {source; override = _} -> ofSource source
+
   let ofSolution ~nodeModulesPath (sol : Solution.t) =
     match Solution.root sol with
     | None -> []
@@ -149,14 +164,9 @@ module Layout = struct
           markAsOccupied here (this::breadcrumb) record;
           let path = Path.(path // v record.Record.name) in
           let sourcePath =
-            let main, _ = record.Record.source in
-            match main with
-            | Source.Archive _
-            | Source.Git _
-            | Source.Github _
-            | Source.LocalPath _
-            | Source.NoSource -> path
-            | Source.LocalPathLink {path; manifest = _;} -> path
+            match sourcePathOfRecord record with
+            | None -> path
+            | Some path -> path
           in
           let installation = {
             path;
@@ -230,30 +240,28 @@ module Layout = struct
 
   let%test_module "Layout" = (module struct
 
-    let parseVersionExn v =
-      match SemverVersion.Version.parse v with
-      | Ok v -> v
-      | Error msg -> failwith msg
-
-    let r name version = ({
+    let r name version =
+      let source = Source.Orig (LocalPath {path = Path.v version; manifest = None;}) in
+      ({
       Record.
       name;
-      version = Version.Npm (parseVersionExn version);
-      source = Source.NoSource, [];
+      version = version;
+      source = source, [];
       files = [];
       opam = None;
     } : Record.t)
 
     let id name version =
-      let version = version ^ ".0.0" in
-      let version = Version.Npm (parseVersionExn version) in
-      ((name, version) : Solution.Id.t)
+      Solution.Id.make
+        ~name
+        ~source:(Source.Orig (LocalPath {path = Path.v version; manifest = None;}))
+        ()
 
     let expect layout expectation =
       let convert =
         let f (installation : installation) =
           Format.asprintf "%a" Record.pp installation.record,
-          Path.toString installation.path
+          Path.show installation.path
         in
         List.map ~f layout
       in
@@ -273,8 +281,8 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
       ]
 
     let%test "simple2" =
@@ -286,8 +294,8 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
       ]
 
     let%test "simple3" =
@@ -300,9 +308,9 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "c@1.0.0", "./node_modules/c";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "c@1", "./node_modules/c";
       ]
 
     let%test "conflict" =
@@ -315,9 +323,9 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "a@2.0.0", "./node_modules/b/node_modules/a";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "a@2", "./node_modules/b/node_modules/a";
       ]
 
     let%test "conflict2" =
@@ -331,10 +339,10 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "a@2.0.0", "./node_modules/b/node_modules/a";
-        "shared@1.0.0", "./node_modules/shared";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "a@2", "./node_modules/b/node_modules/a";
+        "shared@1", "./node_modules/shared";
       ]
 
     let%test "conflict3" =
@@ -349,11 +357,11 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "shared@1.0.0", "./node_modules/a/node_modules/shared";
-        "b@1.0.0", "./node_modules/b";
-        "a@2.0.0", "./node_modules/b/node_modules/a";
-        "shared@2.0.0", "./node_modules/shared";
+        "a@1", "./node_modules/a";
+        "shared@1", "./node_modules/a/node_modules/shared";
+        "b@1", "./node_modules/b";
+        "a@2", "./node_modules/b/node_modules/a";
+        "shared@2", "./node_modules/shared";
       ]
 
     let%test "conflict4" =
@@ -367,10 +375,10 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "c@1.0.0", "./node_modules/a/node_modules/c";
-        "b@1.0.0", "./node_modules/b";
-        "c@2.0.0", "./node_modules/c";
+        "a@1", "./node_modules/a";
+        "c@1", "./node_modules/a/node_modules/c";
+        "b@1", "./node_modules/b";
+        "c@2", "./node_modules/c";
       ]
 
     let%test "nested" =
@@ -384,10 +392,10 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "c@1.0.0", "./node_modules/c";
-        "d@1.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "c@1", "./node_modules/c";
+        "d@1", "./node_modules/d";
       ]
 
     let%test "nested conflict" =
@@ -402,11 +410,11 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "c@1.0.0", "./node_modules/a/node_modules/c";
-        "b@1.0.0", "./node_modules/b";
-        "c@2.0.0", "./node_modules/c";
-        "d@1.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "c@1", "./node_modules/a/node_modules/c";
+        "b@1", "./node_modules/b";
+        "c@2", "./node_modules/c";
+        "d@1", "./node_modules/d";
       ]
 
     let%test "nested conflict 2" =
@@ -422,12 +430,12 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "c@1.0.0", "./node_modules/a/node_modules/c";
-        "d@1.0.0", "./node_modules/a/node_modules/d";
-        "b@1.0.0", "./node_modules/b";
-        "c@2.0.0", "./node_modules/c";
-        "d@2.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "c@1", "./node_modules/a/node_modules/c";
+        "d@1", "./node_modules/a/node_modules/d";
+        "b@1", "./node_modules/b";
+        "c@2", "./node_modules/c";
+        "d@2", "./node_modules/d";
       ]
 
     let%test "nested conflict 3" =
@@ -441,10 +449,10 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "d@1.0.0", "./node_modules/b/node_modules/d";
-        "d@2.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "d@1", "./node_modules/b/node_modules/d";
+        "d@2", "./node_modules/d";
       ]
 
     let%test "nested conflict 4" =
@@ -459,11 +467,11 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "c@1.0.0", "./node_modules/a/node_modules/c";
-        "b@1.0.0", "./node_modules/b";
-        "c@2.0.0", "./node_modules/c";
-        "d@1.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "c@1", "./node_modules/a/node_modules/c";
+        "b@1", "./node_modules/b";
+        "c@2", "./node_modules/c";
+        "d@1", "./node_modules/d";
       ]
 
     let%test "nested conflict 5" =
@@ -479,12 +487,12 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "c@1.0.0", "./node_modules/a/node_modules/c";
-        "d@1.0.0", "./node_modules/a/node_modules/d";
-        "b@1.0.0", "./node_modules/b";
-        "c@2.0.0", "./node_modules/c";
-        "d@2.0.0", "./node_modules/d";
+        "a@1", "./node_modules/a";
+        "c@1", "./node_modules/a/node_modules/c";
+        "d@1", "./node_modules/a/node_modules/d";
+        "b@1", "./node_modules/b";
+        "c@2", "./node_modules/c";
+        "d@2", "./node_modules/d";
       ]
 
     let%test "nested conflict 6" =
@@ -498,10 +506,10 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "browserify@1.0.0", "./node_modules/browserify";
-        "punycode@1.0.0", "./node_modules/punycode";
-        "url@1.0.0", "./node_modules/url";
-        "punycode@2.0.0", "./node_modules/url/node_modules/punycode";
+        "browserify@1", "./node_modules/browserify";
+        "punycode@1", "./node_modules/punycode";
+        "url@1", "./node_modules/url";
+        "punycode@2", "./node_modules/url/node_modules/punycode";
       ]
 
     let%test "loop 1" =
@@ -513,8 +521,8 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
       ]
 
     let%test "loop 2" =
@@ -527,9 +535,9 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "c@1.0.0", "./node_modules/c";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "c@1", "./node_modules/c";
       ]
 
     let%test "loop 3" =
@@ -542,9 +550,9 @@ module Layout = struct
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") sol in
       expect layout [
-        "a@1.0.0", "./node_modules/a";
-        "b@1.0.0", "./node_modules/b";
-        "c@1.0.0", "./node_modules/c";
+        "a@1", "./node_modules/a";
+        "b@1", "./node_modules/b";
+        "c@1", "./node_modules/c";
       ]
 
   end)
@@ -583,7 +591,7 @@ let runLifecycleScript ~installation ~name script =
     let script =
       Printf.sprintf
         "cd %s && %s"
-        (Filename.quote (Path.toString installation.path))
+        (Filename.quote (Path.show installation.path))
         script
     in
     (* TODO(windows): use cmd here *)
@@ -692,8 +700,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
           Printf.sprintf
             "inconsistent state: no dist were fetched for %s@%s at %s"
             record.Record.name
-            (Version.toString record.Record.version)
-            (Path.toString path)
+            record.Record.version
+            (Path.show path)
         in
         failwith msg
     in

@@ -6,24 +6,11 @@ module BuildType : module type of EsyBuildPackage.BuildType
 module SourceType : module type of EsyBuildPackage.SourceType
 
 module Source : module type of EsyInstall.Source
-module Command : module type of EsyInstall.PackageJson.Command
-module CommandList : module type of EsyInstall.PackageJson.CommandList
+module Command : module type of EsyInstall.Metadata.Command
+module CommandList : module type of EsyInstall.Metadata.CommandList
 module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
-
-module Scripts : sig
-  type t = script StringMap.t
-  and script = { command : Command.t; }
-  val empty : t
-  val find : string -> t -> script option
-end
-
-module Env : sig
-  type t = item list
-  and item = { name : string; value : string; }
-  val empty : t
-  val show : t -> string
-  val to_yojson : t Json.encoder
-end
+module Env : module type of EsyInstall.PackageJson.Env
+module Scripts : module type of EsyInstall.PackageJson.Scripts
 
 (**
  * Release configuration.
@@ -145,10 +132,10 @@ include MANIFEST
  *)
 val ofDir :
   ?name:string
-  -> ?manifest:SandboxSpec.ManifestSpec.t
+  -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
-val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

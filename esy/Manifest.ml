@@ -8,47 +8,16 @@ module BuildType = struct
     | _ -> Error "expected false, true or \"_build\""
 end
 
+module SandboxSpec = EsyInstall.SandboxSpec
 module PackageJson = EsyInstall.PackageJson
+module Metadata = EsyInstall.Metadata
 module Source = EsyInstall.Source
 module SourceType = EsyBuildPackage.SourceType
-module Command = PackageJson.Command
-module CommandList = PackageJson.CommandList
+module Command = Metadata.Command
+module CommandList = Metadata.CommandList
 module ExportedEnv = PackageJson.ExportedEnv
-
-module Env = struct
-
-  [@@@ocaml.warning "-32"]
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let empty = []
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String value ->
-        Ok ({name = k; value;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-
-  let to_yojson env =
-    let items =
-      let f {name; value} = name, `String value in
-      List.map ~f env
-    in
-    `Assoc items
-end
+module Env = PackageJson.Env
+module Scripts = PackageJson.Scripts
 
 module Build = struct
 
@@ -107,37 +76,6 @@ module Release = struct
     releasedBinaries: string list;
     deleteFromBinaryRelease: (string list [@default []]);
   } [@@deriving (of_yojson { strict = false })]
-end
-
-module Scripts = struct
-
-  [@@@ocaml.warning "-32"]
-  type script = {
-    command : Command.t;
-  }
-  [@@deriving (eq, ord)]
-
-  type t =
-    script StringMap.t
-    [@@deriving (eq, ord)]
-
-  let empty = StringMap.empty
-
-  let of_yojson =
-    let script (json: Json.t) =
-      match CommandList.of_yojson json with
-      | Ok command ->
-        begin match command with
-        | None
-        | Some [] -> Error "empty command"
-        | Some [command] -> Ok {command;}
-        | Some _ -> Error "multiple script commands are not supported"
-        end
-      | Error err -> Error err
-    in
-    Json.Parse.stringMap script
-
-  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
 end
 
 module type MANIFEST = sig
@@ -489,7 +427,7 @@ end = struct
     let open RunAsync.Syntax in
     let%bind opam =
       let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
       let opam = OpamFile.OPAM.read_from_string ~filename data in
       let opam = OpamFormatUpgrade.opam_file ~filename opam in
       return opam
@@ -502,7 +440,7 @@ end = struct
         return {
           EsyInstall.EsyOpamFile.
           override = None;
-          source = Source.LocalPath {path; manifest = None;};
+          source = Orig (LocalPath {path; manifest = None;});
         }
     in
     return (Installed {opam; info; name})
@@ -544,7 +482,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
-          Build.EsyCommands (Some build)
+          Build.EsyCommands build
         | Some {EsyInstall.Package.OpamOverride. build = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
@@ -560,7 +498,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
-          Build.EsyCommands (Some install)
+          Build.EsyCommands install
         | Some {EsyInstall.Package.OpamOverride. install = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
@@ -636,10 +574,10 @@ module EsyOrOpamManifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
-  val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+  val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
     ?name:string
-    -> ?manifest:SandboxSpec.ManifestSpec.t
+    -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
 

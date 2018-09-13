@@ -52,7 +52,7 @@ module TestCommandExpr = struct
 
   let commandsEqual = [%derive.eq: string list list]
   let checkCommandsEqual commands expectation =
-    let commands = List.map (List.map Sandbox.Value.toString) commands in
+    let commands = List.map (List.map Sandbox.Value.show) commands in
     commandsEqual commands expectation
 
   let dep = Sandbox.Package.{
@@ -61,8 +61,8 @@ module TestCommandExpr = struct
     version = "1.0.0";
     build = {
       Manifest.Build.
-      buildCommands = EsyCommands None;
-      installCommands = EsyCommands None;
+      buildCommands = EsyCommands [];
+      installCommands = EsyCommands [];
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
@@ -96,13 +96,13 @@ module TestCommandExpr = struct
     version = "1.0.0";
     build = {
       Manifest.Build.
-      buildCommands = EsyCommands (Some [
+      buildCommands = EsyCommands [
         Manifest.Command.Unparsed "cp ./hello #{self.bin}";
         Manifest.Command.Unparsed "cp ./hello2 #{pkg.bin}";
-      ]);
-      installCommands = EsyCommands (Some [
+      ];
+      installCommands = EsyCommands [
         Manifest.Command.Parsed ["cp"; "./man"; "#{self.man}"]
-      ]);
+      ];
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
@@ -142,12 +142,12 @@ module TestCommandExpr = struct
       pkg with
       build = {
         pkg.build with
-        buildCommands = EsyCommands (Some [
+        buildCommands = EsyCommands [
           Manifest.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
-        ]);
-        installCommands = EsyCommands (Some [
+        ];
+        installCommands = EsyCommands [
           Manifest.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
-        ]);
+        ];
         buildType = Manifest.BuildType.InSource;
       }
     } in

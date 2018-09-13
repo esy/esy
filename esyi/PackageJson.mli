@@ -1,38 +1,26 @@
-module Command : sig
-  type t =
-    | Parsed of string list
-    | Unparsed of string
+module Scripts : sig
+  type t = script StringMap.t
+  and script = { command : Metadata.Command.t; }
+  val empty : t
+  val find : string -> t -> script option
 
-  include S.COMPARABLE with type t := t
-  include S.JSONABLE with type t := t
-  include S.PRINTABLE with type t := t
+  val of_yojson : t Json.decoder
 end
 
-module CommandList : sig
-
-  type t = Command.t list option
-
-  include S.COMPARABLE with type t := t
-  include S.JSONABLE with type t := t
-  include S.PRINTABLE with type t := t
+module Env : sig
+  include module type of Metadata.Env
 
   val empty : t
+  val show : t -> string
+
+  include S.JSONABLE with type t := t
 end
 
 module ExportedEnv : sig
-  type t = item list
-
-  and item = {
-    name : string;
-    value : string;
-    scope : scope;
-    exclusive : bool;
-  }
-
-  and scope = Local | Global
+  include module type of Metadata.ExportedEnv
 
   val empty : t
-  
+
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
@@ -40,7 +28,8 @@ module ExportedEnv : sig
 end
 
 module Dependencies : sig
-  type t = Req.t list
+  include module type of Metadata.Dependencies
+
   val empty : t
 
   val override : t -> t -> t
@@ -57,6 +46,17 @@ module EsyPackageJson : sig
     _dependenciesForNewEsyInstaller : Dependencies.t option;
   }
   val of_yojson : t Json.decoder
+end
+
+module Resolutions : sig
+  include module type of Metadata.Resolutions
+
+  val empty : t
+  val find : t -> string -> Version.t option
+
+  val entries : t -> (string * Version.t) list
+
+  include S.JSONABLE with type t := t
 end
 
 type t = {

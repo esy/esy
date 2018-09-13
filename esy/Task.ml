@@ -86,7 +86,7 @@ let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
     match Sandbox.Environment.find name env with
-    | Some v -> Some (Sandbox.Value.toString v)
+    | Some v -> Some (Sandbox.Value.show v)
     | None -> None
   in
 
@@ -109,13 +109,9 @@ let renderEsyCommands ~env scope commands =
       return (List.map ~f:Sandbox.Value.v args)
   in
 
-  match commands with
-  | None -> Ok []
-  | Some commands ->
-    begin match Result.List.map ~f:renderCommand commands with
-    | Ok commands -> Ok commands
-    | Error err -> Error err
-    end
+  match Result.List.map ~f:renderCommand commands with
+  | Ok commands -> Ok commands
+  | Error err -> Error err
 
 let renderOpamCommands opamEnv commands =
   let open Run.Syntax in
@@ -131,7 +127,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
   let commands =
     let f path =
       let path = Path.addExt ".in" path in
-      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.toString path)]
+      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.show path)]
     in
     List.map ~f substs
   in
@@ -152,7 +148,7 @@ let renderOpamPatchesToCommands opamEnv patches =
     let%bind filtered = Result.List.map ~f:evalFilter patches in
 
     let toCommand (path, _) =
-      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.toString path] in
+      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.show path] in
       List.map ~f:Sandbox.Value.v cmd
     in
 
@@ -298,7 +294,7 @@ let ofSandbox
          * the version of distribution of vcs commit sha *)
         let source =
           match pkg.source with
-          | Some source -> Manifest.Source.toString source
+          | Some source -> Manifest.Source.show source
           | None -> ""
         in
 

@@ -414,6 +414,7 @@ async function initialize(
 module.exports = {
   getPackageDirectoryPath,
   getPackageHttpArchivePath,
+  getPackageArchiveHash,
   getPackageArchivePath,
   definePackage,
   definePackageOfFixture,

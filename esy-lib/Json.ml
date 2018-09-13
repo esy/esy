@@ -1,4 +1,5 @@
 type t = Yojson.Safe.json
+type json = t
 
 type 'a encoder = 'a -> t
 type 'a decoder = t -> ('a, string) result
@@ -25,7 +26,14 @@ let mergeAssoc items update =
   let result = StringMap.mergeOverride items update in
   StringMap.bindings result
 
-module Parse = struct
+module Encode = struct
+
+  let string x = `String x
+  let list encode xs =
+    `List (List.map ~f:encode xs)
+end
+
+module Decode = struct
 
   let string (json : t) =
     match json with
@@ -37,7 +45,7 @@ module Parse = struct
     | `Assoc v -> Ok v
     | _ -> Error "expected object"
 
-  let field ~name (json : t) =
+  let extractField ~name (json : t) =
     match json with
     | `Assoc items ->
       begin match List.find_opt ~f:(fun (k, _v) -> k = name) items with
@@ -46,7 +54,7 @@ module Parse = struct
       end
     | _ -> Error "expected object"
 
-  let fieldOpt ~name (json : t) =
+  let extractFieldOpt ~name (json : t) =
     match json with
     | `Assoc items ->
       begin match List.find_opt ~f:(fun (k, _v) -> k = name) items with
@@ -55,14 +63,18 @@ module Parse = struct
       end
     | _ -> Error "expected object"
 
-  let fieldWith ~name parse json =
-    match field ~name json with
+  let field ~name parse json =
+    match extractField ~name json with
     | Ok v -> parse v
     | Error err -> Error err
 
-  let fieldOptWith ~name parse json =
-    match fieldOpt ~name json with
-    | Ok (Some v) -> parse v
+  let fieldOpt ~name parse json =
+    match extractFieldOpt ~name json with
+    | Ok (Some v) ->
+      begin match parse v with
+      | Ok v -> Ok (Some v)
+      | Error err -> Error err
+      end
     | Ok None -> Ok None
     | Error err -> Error err
 
@@ -91,21 +103,115 @@ module Parse = struct
       List.fold_left ~f ~init:(Ok StringMap.empty) items
     | _ -> Error errorMsg
 
-  let cmd ?(errorMsg="expected a string or an array of strings") (json : t) =
-    let ofList = function
-    | [] -> Error "a command cannot be empty"
-    | cmd::args -> Ok (Cmd.(v cmd |> addArgs args))
-    in
+  let return v _json = Ok v
+
+  let map f decoder json =
+    match decoder json with
+    | Ok v -> Ok (f v)
+    | Error err -> Error err
+
+  let app f decoder json =
+    match f json with
+    | Ok f ->
+      begin match decoder json with
+      | Ok v -> Ok (f v)
+      | Error err -> Error err
+      end
+    | Error err -> Error err
+
+  let (<$>) = map
+  let (<*>) = app
+
+end
+
+module Edit = struct
+
+  type t = (loc, string) result
+
+  and loc =
+    | AtRoot of fields
+    | AtAssoc of {
+        up : loc;
+        left : fields;
+        current : field;
+        right : fields;
+      }
+
+  and fields = field list
+  and field = string * json
+
+  let ofJson json =
     match json with
-    | `List cmd ->
-      begin match list string (`List cmd) with
-      | Ok cmd -> ofList cmd
-      | Error _ -> Error errorMsg
-      end
-    | `String cmd ->
-      begin match ShellSplit.split cmd with
-      | Ok argv -> ofList argv
-      | Error _ -> Error errorMsg
-      end
-    | _ -> Error errorMsg
+    | `Assoc fields -> Ok (AtRoot fields)
+    | _ -> Error "expected object at root"
+
+  let diff name fields =
+    let rec diff' left right =
+      match right with
+      | [] -> (left, (name, `Assoc []), right)
+      | (n, v)::right ->
+        if n = name
+        then (left, (n, v), right)
+        else diff' ((n, v)::left) right
+    in
+    diff' [] fields
+
+  let get name editor =
+    let open Result.Syntax in
+    let%bind editor = editor in
+    match editor with
+    | AtRoot fields ->
+      let left, current, right = diff name fields in
+      Ok (AtAssoc {left; current; right; up = editor})
+    | AtAssoc {current = (_k, json); _} ->
+      let%bind fields = Decode.assoc json in
+      let left, current, right = diff name fields in
+      Ok (AtAssoc {left; current; right; up = editor})
+
+  let update v editor =
+    let open Result.Syntax in
+    let%bind editor = editor in
+    match editor with
+    | AtRoot _ -> Error "can't update root"
+    | AtAssoc loc ->
+      let k, _ = loc.current in
+      Ok (AtAssoc {loc with current = k, v;})
+
+  let build editor =
+    match editor with
+    | AtRoot fields -> fields
+    | AtAssoc loc ->
+      let fields =
+        let f right field = field::right in
+        List.fold_left ~f ~init:(loc.current::loc.right) loc.left
+      in
+      fields
+
+  let up editor =
+    let open Result.Syntax in
+    let%bind editor = editor in
+    match editor with
+    | AtRoot _ -> Error "can't go up from the root"
+    | AtAssoc {up = AtRoot _; _} -> Ok (AtRoot (build editor))
+    | AtAssoc {up = AtAssoc up; _} ->
+      let k, _ = up.current in
+      let v = `Assoc (build editor) in
+      Ok (AtAssoc {up with current = k, v;})
+
+  let set name v editor =
+    editor |> get name |> update v |> up
+
+  let commit editor =
+    let open Result.Syntax in
+    let%bind editor = editor in
+    let rec commit' editor =
+      match editor with
+      | AtRoot fields -> Ok (`Assoc fields)
+      | AtAssoc {up = AtRoot _; _} -> commit' (AtRoot (build editor))
+      | AtAssoc {up = AtAssoc up; _} ->
+        let k, _ = up.current in
+        let v = `Assoc (build editor) in
+        commit' (AtAssoc {up with current = k, v;})
+    in
+    commit' editor
 end

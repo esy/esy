@@ -1,57 +1,34 @@
 module MS = SandboxSpec.ManifestSpec
 
-type t =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t;
-    }
-  | Git of {
-      remote : string;
-      commit : string;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      commit : string;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
-    }
-  | NoSource
-  [@@deriving (ord, eq)]
+include Metadata.Source
 
-let toString = function
+let showOrig = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.toString manifest) commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.show manifest) commit
   | Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote (MS.toString manifest) commit
+    Printf.sprintf "git:%s:%s#%s" remote (MS.show manifest) commit
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.toString path)
+    Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (MS.show manifest)
   | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.toString path)
+    Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (MS.show manifest)
   | NoSource -> "no-source:"
 
-let show = toString
+let show = function
+  | Orig source -> showOrig source
+  | Override {source; _} -> "override:" ^ showOrig source
 
 let pp fmt src =
-  Fmt.pf fmt "%s" (toString src)
+  Fmt.pf fmt "%s" (show src)
 
 module Parse = struct
   include Parse
@@ -121,10 +98,13 @@ module Parse = struct
     let%bind () = ignore (string "no-source:") in
     return NoSource
 
-  let parser = github <|> git <|> archive <|> path <|> link <|> noSource
+  let origSource = github <|> git <|> archive <|> path <|> link <|> noSource
+  let source =
+    let%bind source = origSource in
+    return (Orig source)
 end
 
-let parser = Parse.parser
+let parser = Parse.source
 let parse = Parse.(parse parser)
 
 let%test_module "parsing" = (module struct
@@ -135,110 +115,226 @@ let%test_module "parsing" = (module struct
   let%test "github:user/repo#commit" =
     expectParses
       "github:user/repo#commit"
-      (Github {user = "user"; repo = "repo"; commit = "commit"; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        commit = "commit";
+        manifest = None;
+      }))
 
   let%test "github:user/repo/lwt.opam#commit" =
     expectParses
       "github:user/repo:lwt.opam#commit"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         commit = "commit";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "gh:user/repo#commit" =
     expectParses
       "gh:user/repo#commit"
-      (Github {user = "user"; repo = "repo"; commit = "commit"; manifest = None})
+      (Orig (Github {
+        user = "user";
+        repo = "repo";
+        commit = "commit";
+        manifest = None;
+      }))
 
   let%test "gh:user/repo:lwt.opam#commit" =
     expectParses
       "gh:user/repo:lwt.opam#commit"
-      (Github {
+      (Orig (Github {
         user = "user";
         repo = "repo";
         commit = "commit";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git:http://example.com/repo#commit" =
     expectParses
       "git:http://example.com/repo#commit"
-      (Git {remote = "http://example.com/repo"; commit = "commit"; manifest = None})
+      (Orig (Git {
+        remote = "http://example.com/repo";
+        commit = "commit";
+        manifest = None;
+      }))
 
   let%test "git:http://example.com/repo:lwt.opam#commit" =
     expectParses
       "git:http://example.com/repo:lwt.opam#commit"
-      (Git {
+      (Orig (Git {
         remote = "http://example.com/repo";
         commit = "commit";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "git:git://example.com/repo:lwt.opam#commit" =
     expectParses
       "git:git://example.com/repo:lwt.opam#commit"
-      (Git {
+      (Orig (Git {
         remote = "git://example.com/repo";
         commit = "commit";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "archive:http://example.com#abc123" =
     expectParses
       "archive:http://example.com#abc123"
-      (Archive {url = "http://example.com"; checksum = Checksum.Sha1, "abc123";})
+      (Orig (Archive {
+        url = "http://example.com";
+        checksum = Checksum.Sha1, "abc123";
+      }))
 
   let%test "archive:https://example.com#abc123" =
     expectParses
       "archive:https://example.com#abc123"
-      (Archive {url = "https://example.com"; checksum = Checksum.Sha1, "abc123";})
+      (Orig (Archive {
+        url = "https://example.com";
+        checksum = Checksum.Sha1, "abc123";
+      }))
 
   let%test "archive:https://example.com#md5:abc123" =
     expectParses
       "archive:https://example.com#md5:abc123"
-      (Archive {url = "https://example.com"; checksum = Checksum.Md5, "abc123";})
+      (Orig (Archive {
+        url = "https://example.com";
+        checksum = Checksum.Md5, "abc123";
+      }))
 
   let%test "path:/some/path" =
     expectParses
       "path:/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPath {path = Path.v "/some/path"; manifest = None;}))
 
   let%test "path:/some/path/lwt.opam" =
     expectParses
       "path:/some/path/lwt.opam"
-      (LocalPath {
+      (Orig (LocalPath {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "link:/some/path" =
     expectParses
       "link:/some/path"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = None;})
+      (Orig (LocalPathLink {path = Path.v "/some/path"; manifest = None;}))
 
   let%test "link:/some/path/lwt.opam" =
     expectParses
       "link:/some/path/lwt.opam"
-      (LocalPathLink {
+      (Orig (LocalPathLink {
         path = Path.v "/some/path";
         manifest = Some (MS.ofStringExn "lwt.opam");
-      })
+      }))
 
   let%test "no-source:" =
     expectParses
       "no-source:"
-      NoSource
+      (Orig NoSource)
 
 end)
 
+module Override = struct
+  include Metadata.SourceOverride
+
+  let empty = {
+    name = None;
+    version = None;
+    build = None;
+    install = None;
+  }
+
+  let to_yojson (override : Metadata.SourceOverride.t) =
+    let fields = [] in
+    let fields =
+      match override.name with
+      | None -> fields
+      | Some name -> ("name", `String name)::fields
+    in
+    let fields =
+      match override.version with
+      | None -> fields
+      | Some version -> ("version", `String version)::fields
+    in
+    let fields =
+      match override.build with
+      | None -> fields
+      | Some commands -> ("build", Metadata.CommandList.to_yojson commands)::fields
+    in
+    let fields =
+      match override.install with
+      | None -> fields
+      | Some commands -> ("install", Metadata.CommandList.to_yojson commands)::fields
+    in
+    `Assoc fields
+
+  let of_yojson =
+    let make name version build install =
+      {name; version; build; install}
+    in
+    Json.Decode.(
+      return make
+      <*> fieldOpt ~name:"name" string
+      <*> fieldOpt ~name:"version" string
+      <*> fieldOpt ~name:"build" Metadata.CommandList.of_yojson
+      <*> fieldOpt ~name:"install" Metadata.CommandList.of_yojson
+    )
+
+  let%test "Override.of_yojson" =
+    let json = Yojson.Safe.from_string {|{}|} in
+    of_yojson json = Ok {
+      name = None;
+      version = None;
+      install = None;
+      build = None;
+    }
+
+  let%test "Override.of_yojson" =
+    let json = Yojson.Safe.from_string {|{build: []}|} in
+    of_yojson json = Ok {
+      name = None;
+      version = None;
+      install = None;
+      build = Some [];
+    }
+
+end
+
+let manifest (source : source) =
+  match source with
+  | Archive _
+  | NoSource -> None
+  | Git {manifest;_}
+  | Github {manifest;_}
+  | LocalPath {manifest;_}
+  | LocalPathLink {manifest;_} -> manifest
+
+let source_to_yojson source = `String (showOrig source)
+let source_of_yojson = function
+  | `String string -> Parse.(parse origSource) string
+  | _ -> Error "expected string"
+
 let to_yojson v =
-  `String (toString v)
+  match v with
+  | Orig source -> source_to_yojson source
+  | Override {source; override} ->
+    `Assoc [
+      "source", source_to_yojson source;
+      "override", Override.to_yojson override;
+    ]
 
 let of_yojson json =
+  let open Result.Syntax in
   match json with
-  | `String string -> parse string
+  | `String _ ->
+    let%bind source = source_of_yojson json in
+    return (Orig source)
+  | `Assoc _ ->
+    let%bind source = Json.Decode.(field ~name:"source" source_of_yojson) json in
+    let%bind override = Json.Decode.(field ~name:"override") Override.of_yojson json in
+    return (Override {source; override})
   | _ -> Error "expected string"
 
 module Map = Map.Make(struct

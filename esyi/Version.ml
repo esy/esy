@@ -1,19 +1,13 @@
-type t =
-  | Npm of SemverVersion.Version.t
-  | Opam of OpamPackageVersion.Version.t
-  | Source of Source.t
-  [@@deriving (ord, eq)]
+include Metadata.Version
 
-let toString v =
+let show v =
   match v with
-  | Npm t -> SemverVersion.Version.toString(t)
-  | Opam v -> "opam:" ^ OpamPackageVersion.Version.toString(v)
-  | Source src -> (Source.toString src)
-
-let show = toString
+  | Npm t -> SemverVersion.Version.show t
+  | Opam v -> "opam:" ^ OpamPackageVersion.Version.show v
+  | Source src -> Source.show src
 
 let pp fmt v =
-  Fmt.fmt "%s" fmt (toString v)
+  Fmt.fmt "%s" fmt (show v)
 
 module Parse = struct
   include Parse
@@ -74,13 +68,13 @@ let%test_module "parsing" = (module struct
     expectParses
       parse
       "no-source:"
-      (Source Source.NoSource)
+      (Source (Orig NoSource))
 
   let%test "no-source:" =
     expectParses
       (parse ~tryAsOpam:true)
       "no-source:"
-      (Source Source.NoSource)
+      (Source (Orig NoSource))
 end)
 
 let parseExn v =
@@ -88,18 +82,12 @@ let parseExn v =
   | Ok v -> v
   | Error err -> failwith err
 
-let to_yojson v = `String (toString v)
+let to_yojson v = `String (show v)
 
 let of_yojson json =
   let open Result.Syntax in
-  let%bind v = Json.Parse.string json in
+  let%bind v = Json.Decode.string json in
   parse v
-
-let toNpmVersion v =
-  match v with
-  | Npm v -> SemverVersion.Version.toString(v)
-  | Opam t -> OpamPackageVersion.Version.toString(t)
-  | Source src -> Source.toString src
 
 module Map = Map.Make(struct
   type nonrec t = t

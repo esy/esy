@@ -20,7 +20,7 @@ let%test "curl download simple file" =
             (* We need to normalize the path on Windows - file:///E:/.../ won't work! *)
             (* The normalize gives us a path of the form file:///cygdrive/e/.../ which does. *)
             (* This won't impact HTTP requests though - just our test using the local file system *)
-            let url = EsyBash.normalizePathForCygwin (Path.toString(fileToCurl)) in
+            let url = EsyBash.normalizePathForCygwin (Path.show(fileToCurl)) in
 
             match url with
             | Error _ -> Lwt.return false
