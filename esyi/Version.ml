@@ -2,9 +2,9 @@ include Metadata.Version
 
 let toString v =
   match v with
-  | Npm t -> SemverVersion.Version.toString(t)
-  | Opam v -> "opam:" ^ OpamPackageVersion.Version.toString(v)
-  | Source src -> (Source.toString src)
+  | Npm t -> SemverVersion.Version.show t
+  | Opam v -> "opam:" ^ OpamPackageVersion.Version.show v
+  | Source src -> Source.show src
 
 let show = toString
 
@@ -99,9 +99,9 @@ let of_yojson json =
 
 let toNpmVersion v =
   match v with
-  | Npm v -> SemverVersion.Version.toString(v)
-  | Opam t -> OpamPackageVersion.Version.toString(t)
-  | Source src -> Source.toString src
+  | Npm v -> SemverVersion.Version.show v
+  | Opam t -> OpamPackageVersion.Version.show t
+  | Source src -> Source.show src
 
 module Map = Map.Make(struct
   type nonrec t = t

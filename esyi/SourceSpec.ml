@@ -6,20 +6,20 @@ let toStringOrig = function
   | Github {user; repo; ref = None; manifest = None;} ->
     Printf.sprintf "github:%s/%s" user repo
   | Github {user; repo; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s" user repo (MS.toString manifest)
+    Printf.sprintf "github:%s/%s:%s" user repo (MS.show manifest)
   | Github {user; repo; ref = Some ref; manifest = None} ->
     Printf.sprintf "github:%s/%s#%s" user repo ref
   | Github {user; repo; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.toString manifest) ref
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.show manifest) ref
 
   | Git {remote; ref = None; manifest = None;} ->
     Printf.sprintf "git:%s" remote
   | Git {remote; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s" remote (MS.toString manifest)
+    Printf.sprintf "git:%s:%s" remote (MS.show manifest)
   | Git {remote; ref = Some ref; manifest = None} ->
     Printf.sprintf "git:%s#%s" remote ref
   | Git {remote; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "git:%s:%s#%s" remote (MS.toString manifest) ref
+    Printf.sprintf "git:%s:%s#%s" remote (MS.show manifest) ref
 
   | Archive {url; checksum = Some checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
@@ -27,25 +27,25 @@ let toStringOrig = function
     Printf.sprintf "archive:%s" url
 
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.toString path)
+    Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (MS.show manifest)
 
   | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.toString path)
+    Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (MS.show manifest)
 
   | NoSource -> "no-source:"
 
-let toString = function
+let show = function
   | Orig sourceSpec -> toStringOrig sourceSpec
   | Override {sourceSpec; _} -> "override:" ^ toStringOrig sourceSpec
 
-let to_yojson src = `String (toString src)
+let to_yojson src = `String (show src)
 
 let pp fmt spec =
-  Fmt.pf fmt "%s" (toString spec)
+  Fmt.pf fmt "%s" (show spec)
 
 let matches ~(source : Source.t) (spec : t) =
   let eqManifestName = [%derive.eq: MS.t option] in

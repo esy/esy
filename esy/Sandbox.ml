@@ -309,7 +309,7 @@ let make ~(cfg : Config.t) (spec : SandboxSpec.t) =
 
           let pkg = {
             Package.
-            id = Path.toString path;
+            id = Path.show path;
             name = Manifest.name manifest;
             version = Manifest.version manifest;
             build = {build with sourceType};

@@ -23,7 +23,7 @@ module EsyRuntime = struct
           Printf.sprintf
           "unable to resolve %s from %s"
           req
-          (Path.toString currentDirname)
+          (Path.show currentDirname)
         in
         RunAsync.error msg
       | Error (`Msg err) -> RunAsync.error err
@@ -307,8 +307,8 @@ module SandboxInfo = struct
 
   let cachePath (cfg : Config.t) (spec : SandboxSpec.t) =
     let hash = [
-      Path.toString cfg.storePath;
-      Path.toString spec.path;
+      Path.show cfg.storePath;
+      Path.show spec.path;
       cfg.esyVersion
     ]
       |> String.concat "$$"
@@ -329,7 +329,7 @@ module SandboxInfo = struct
         in
         let cachePath = cachePath cfg info.spec in
         let%bind () = Fs.createDir (Path.parent cachePath) in
-        Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString cachePath) f
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.show cachePath) f
       in
 
       let%bind () =
@@ -341,7 +341,7 @@ module SandboxInfo = struct
               let%lwt () = Lwt_io.flush oc in
               return ()
             in
-            Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
+            Lwt_io.with_file ~mode:Lwt_io.Output (Path.show filename) f
           in
           let sandboxBin = Path.(info.spec.path / "node_modules" / ".cache" / "_esy" / "build" / "bin") in
           let%bind () = Fs.createDir sandboxBin in
@@ -396,7 +396,7 @@ module SandboxInfo = struct
         then return None
         else return (Some info)
       in
-      try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.toString cachePath) f
+      try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.show cachePath) f
       with | Unix.Unix_error _ -> return None
     in Perf.measureLwt ~label:"reading sandbox info cache" f
 
@@ -467,7 +467,7 @@ module SandboxInfo = struct
       | Some task ->
         Sandbox.Path.(Task.installPath task / "lib")
         |> Sandbox.Path.toPath sandbox.Sandbox.buildConfig
-        |> Path.toString
+        |> Path.show
       | None -> ""
     in
     let env =
@@ -532,7 +532,7 @@ module SandboxInfo = struct
       let env =
         `CustomEnv Astring.String.Map.(
           empty |>
-          add "OCAMLPATH" (Path.toString ocamlpath)
+          add "OCAMLPATH" (Path.show ocamlpath)
       ) in
       let cmd = Cmd.(
         v (p ocamlfind)
@@ -604,7 +604,7 @@ let withBuildTaskByPath
     let findByPath (task : Task.t) =
       let pkg = Task.pkg task in
       Path.Set.mem packagePath pkg.originPath
-      || String.equal (Path.toString packagePath) pkg.id
+      || String.equal (Path.show packagePath) pkg.id
     in
     begin match Task.Graph.find ~f:findByPath info.task with
     | None -> errorf "No package found at %a" Path.pp packagePath
@@ -987,7 +987,7 @@ let lsModules copts only () =
       Path.ofString (meta.location ^ Path.dirSep ^ meta.archive) |> function
       | Ok archive ->
         if%bind Fs.exists archive then begin
-          let archive = Path.toString archive in
+          let archive = Path.show archive in
           let%bind lines =
             SandboxInfo.modules ~ocamlobjinfo archive
           in
@@ -1134,12 +1134,12 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
           let constr =
             match record.Solution.Record.version with
             | Version.Npm version ->
-              SemverVersion.Formula.DNF.toString
+              SemverVersion.Formula.DNF.show
                 (SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
-              Version.toString record.Solution.Record.version
+              Version.show record.Solution.Record.version
           in
           name, `String constr
         | None -> assert false
@@ -1337,7 +1337,7 @@ let gc (copts : CommonOptions.t) dryRun (roots : Path.t list) () =
   let perform path =
     if dryRun
     then (
-      print_endline (Path.toString path);
+      print_endline (Path.show path);
       return ()
     ) else Fs.rmPath path
   in

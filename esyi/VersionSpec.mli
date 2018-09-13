@@ -5,10 +5,9 @@
 
 include module type of Metadata.VersionSpec
 
-val pp : t Fmt.t
-val toString : t -> string
 val to_yojson : t -> [> `String of string ]
 
+include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
 
 val parserNpm : t Parse.t

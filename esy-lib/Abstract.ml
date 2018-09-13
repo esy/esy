@@ -38,7 +38,6 @@ module String = struct
     let v v = v
     let render = Core.render
 
-    let toString v = v
     let show v = v
     let pp = Fmt.string
 

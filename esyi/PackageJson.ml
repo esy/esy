@@ -2,8 +2,6 @@ module Command = struct
 
   include Metadata.Command
 
-  let toString = show
-
   let of_yojson (json : Json.t) =
     match json with
     | `String command -> Ok (Unparsed command)
@@ -26,8 +24,6 @@ module CommandList = struct
   include Metadata.CommandList
 
   let empty = None
-
-  let toString = show
 
   let of_yojson (json : Json.t) =
     let open Result.Syntax in
@@ -131,8 +127,6 @@ module ExportedEnv = struct
     [@@deriving of_yojson]
   end
 
-  let toString = show
-
   let empty = []
 
   let of_yojson = function
@@ -213,7 +207,7 @@ module Resolutions = struct
 
   let to_yojson v =
     let items =
-      let f k v items = (k, (`String (Version.toString v)))::items in
+      let f k v items = (k, (`String (Version.show v)))::items in
       StringMap.fold f v []
     in
     `Assoc items

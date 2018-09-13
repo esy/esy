@@ -22,8 +22,8 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Version.toString record.version in
-  let source = Source.toString source in
+  let version = Version.show record.version in
+  let source = Source.show source in
   match record.opam with
   | None ->
     Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
@@ -156,7 +156,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       let addResolvedFieldToPackageJson filename =
         match%bind Fs.readJsonFile filename with
         | `Assoc items ->
-          let json = `Assoc (("_esy.source", `String (Source.toString source))::items) in
+          let json = `Assoc (("_esy.source", `String (Source.show source))::items) in
           let data = Yojson.Safe.pretty_to_string json in
           Fs.writeFile ~data filename
         | _ -> error "invalid package.json"

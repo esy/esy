@@ -10,7 +10,7 @@ type t = string * string list
   [@@deriving (eq, ord)]
 
 let v tool = tool, []
-let p = Path.toString
+let p = Path.show
 
 let addArg arg (tool, args) =
   let args = arg::args in
@@ -126,7 +126,7 @@ let resolveCmd path cmd =
     | x::xs ->
       begin match find x with
       | Ok (Some (x)) ->
-        Ok (Path.toString x)
+        Ok (Path.show x)
       | Ok None
       | Error _ -> resolve xs
       end

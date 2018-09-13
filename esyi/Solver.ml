@@ -543,7 +543,7 @@ let solveDependenciesNaively
 
   let lookupDependencies, addDependencies =
     let solved = Hashtbl.create 100 in
-    let key pkg = pkg.Package.name ^ "." ^ (Version.toString pkg.Package.version) in
+    let key pkg = pkg.Package.name ^ "." ^ (Version.show pkg.Package.version) in
     let lookup pkg =
       Hashtbl.find_opt solved (key pkg)
     in

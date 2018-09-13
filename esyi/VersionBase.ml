@@ -374,7 +374,6 @@ let%test_module "Formula" = (module struct
       | Some v -> Ok v
       | None -> Error "not a version"
     let parseExn = int_of_string
-    let toString = string_of_int
   end
 
   module C = Constraint.Make(Version)

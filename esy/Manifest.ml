@@ -425,7 +425,7 @@ end = struct
     let open RunAsync.Syntax in
     let%bind opam =
       let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
       let opam = OpamFile.OPAM.read_from_string ~filename data in
       let opam = OpamFormatUpgrade.opam_file ~filename opam in
       return opam

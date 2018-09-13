@@ -80,7 +80,7 @@ module Id = struct
     | None -> Error "invalid id"
 
   let to_yojson (name, version) =
-    `String (name ^ "@" ^ Version.toString version)
+    `String (name ^ "@" ^ Version.show version)
 
   let of_yojson = function
     | `String v -> parse v
@@ -109,7 +109,7 @@ module Id = struct
     let to_yojson v_to_yojson map =
       let items =
         let f (name, version) v items =
-          let k = name ^ "@" ^ Version.toString version in
+          let k = name ^ "@" ^ Version.show version in
           (k, v_to_yojson v)::items
         in
         fold f map []
@@ -258,7 +258,7 @@ module LockfileV1 = struct
     in
     let hashResolutions ~resolutions digest =
       let f digest (key, version) =
-      Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.toString version)
+      Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.show version)
       in
       List.fold_left
         ~f ~init:digest
