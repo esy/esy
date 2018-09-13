@@ -25,7 +25,7 @@ let mergeAssoc items update =
   let result = StringMap.mergeOverride items update in
   StringMap.bindings result
 
-module Parse = struct
+module Decode = struct
 
   let string (json : t) =
     match json with

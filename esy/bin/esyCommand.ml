@@ -1161,13 +1161,13 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
         let%bind json =
           RunAsync.ofStringError (
             let open Result.Syntax in
-            let%bind items = Json.Parse.assoc json in
+            let%bind items = Json.Decode.assoc json in
             let%bind items =
               let f (key, json) =
                 if key = keyToUpdate
                 then
                     let%bind dependencies =
-                      Json.Parse.assoc json in
+                      Json.Decode.assoc json in
                     let dependencies =
                       Json.mergeAssoc dependencies
                         addedDependencies in

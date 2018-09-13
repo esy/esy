@@ -23,7 +23,7 @@ module Record = struct
         let%bind source = Source.of_yojson json in
         return (source, [])
       | `List _ ->
-        begin match%bind Json.Parse.list Source.of_yojson json with
+        begin match%bind Json.Decode.list Source.of_yojson json with
         | main::mirrors -> return (main, mirrors)
         | [] -> error "expected a non empty array or a string"
         end

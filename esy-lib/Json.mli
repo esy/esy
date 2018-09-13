@@ -13,7 +13,7 @@ val mergeAssoc : (string * t) list -> (string * t) list -> (string * t) list
 val parseJsonWith : ('a -> ('b, string) result) -> 'a -> 'b Run.t
 val parseStringWith : (t -> ('b, string) result) -> string -> ('b, Run.error) result
 
-module Parse : sig
+module Decode : sig
   val string : t -> (string, string) result
   val assoc : t -> ((string * t) list, string) result
   val field : name:string -> t -> (t, string) result

@@ -6,7 +6,7 @@ module Command = struct
     match json with
     | `String command -> Ok (Unparsed command)
     | `List command ->
-      begin match Json.Parse.(list string (`List command)) with
+      begin match Json.Decode.(list string (`List command)) with
       | Ok args -> Ok (Parsed args)
       | Error err -> Error err
       end
@@ -31,7 +31,7 @@ module CommandList = struct
       match json with
       | `Null -> Ok []
       | `List commands ->
-        Json.Parse.list Command.of_yojson (`List commands)
+        Json.Decode.list Command.of_yojson (`List commands)
       | `String command ->
         let%bind command = Command.of_yojson (`String command) in
         Ok [command]
@@ -74,7 +74,7 @@ module Scripts = struct
         end
       | Error err -> Error err
     in
-    Json.Parse.stringMap script
+    Json.Decode.stringMap script
 
   let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
 end
@@ -165,9 +165,9 @@ module Dependencies = struct
 
   let of_yojson json =
     let open Result.Syntax in
-    let%bind items = Json.Parse.assoc json in
+    let%bind items = Json.Decode.assoc json in
     let f deps (name, json) =
-      let%bind spec = Json.Parse.string json in
+      let%bind spec = Json.Decode.string json in
       let%bind req = Req.parse (name ^ "@" ^ spec) in
       return (req::deps)
     in
