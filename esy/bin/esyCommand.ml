@@ -1130,18 +1130,19 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
     let addedDependencies =
       let f {Req. name; _} =
         match StringMap.find name records with
-        | Some record ->
-          let constr =
-            match record.Solution.Record.version with
-            | Version.Npm version ->
-              SemverVersion.Formula.DNF.show
-                (SemverVersion.caretRangeOfVersion version)
-            | Version.Opam version ->
-              OpamPackage.Version.to_string version
-            | Version.Source _ ->
-              Version.show record.Solution.Record.version
-          in
-          name, `String constr
+        | Some _record ->
+          failwith "TODO"
+          (* let constr = *)
+          (*   match record.Solution.Record.version with *)
+          (*   | Version.Npm version -> *)
+          (*     SemverVersion.Formula.DNF.show *)
+          (*       (SemverVersion.caretRangeOfVersion version) *)
+          (*   | Version.Opam version -> *)
+          (*     OpamPackage.Version.to_string version *)
+          (*   | Version.Source _ -> *)
+          (*     Version.show record.Solution.Record.version *)
+          (* in *)
+          (* name, `String constr *)
         | None -> assert false
       in
       List.map ~f reqs
