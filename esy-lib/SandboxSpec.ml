@@ -5,11 +5,9 @@ module ManifestSpec = struct
   | OpamAggregated of string list
   [@@deriving ord, eq]
 
-  let toString = function
+  let show = function
     | Esy fname | Opam fname -> fname
     | OpamAggregated fnames -> String.concat "," fnames
-
-  let show = toString
 
   let pp fmt manifest =
     match manifest with

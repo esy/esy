@@ -2,7 +2,7 @@ module MS = SandboxSpec.ManifestSpec
 
 include Metadata.SourceSpec
 
-let toStringOrig = function
+let showOrig = function
   | Github {user; repo; ref = None; manifest = None;} ->
     Printf.sprintf "github:%s/%s" user repo
   | Github {user; repo; ref = None; manifest = Some manifest;} ->
@@ -39,8 +39,8 @@ let toStringOrig = function
   | NoSource -> "no-source:"
 
 let show = function
-  | Orig sourceSpec -> toStringOrig sourceSpec
-  | Override {sourceSpec; _} -> "override:" ^ toStringOrig sourceSpec
+  | Orig sourceSpec -> showOrig sourceSpec
+  | Override {sourceSpec; _} -> "override:" ^ showOrig sourceSpec
 
 let to_yojson src = `String (show src)
 

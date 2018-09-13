@@ -139,10 +139,8 @@ module Constraint = struct
         then matchesSimple ~version constr
         else false
 
-    let toString c =
+    let show c =
       Format.asprintf "%a" pp c
-
-    let show = toString
 
     let rec map ~f constr =
       match constr with
@@ -240,8 +238,6 @@ module Formula = struct
       let show f =
         Format.asprintf "%a" pp f
 
-      let toString = show
-
       let rec map ~f formulas =
         let mapConj (formulas) =
           (List.map ~f:(Constraint.map ~f) formulas)
@@ -281,8 +277,6 @@ module Formula = struct
 
       let show f =
         Format.asprintf "%a" pp f
-
-      let toString = show
 
       let matches ~version (formulas) =
         let matchesDisj (formulas) =

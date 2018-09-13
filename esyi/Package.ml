@@ -145,8 +145,6 @@ module OpamOverride = struct
     opam: (Opam.t [@default Opam.empty]);
   } [@@deriving (yojson, eq, ord, show)]
 
-  let toString = show
-
   let empty =
     {
       build = PackageJson.CommandList.empty;

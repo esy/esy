@@ -43,12 +43,10 @@ let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
 
-let toString (tool, args) =
+let show (tool, args) =
   let tool = Filename.quote tool in
   let args = List.rev_map ~f:Filename.quote args in
   StringLabels.concat ~sep:" " (tool::args)
-
-let show = toString
 
 let pp ppf (tool, args) =
   match args with

@@ -2,7 +2,7 @@ module MS = SandboxSpec.ManifestSpec
 
 include Metadata.Source
 
-let toStringOrig = function
+let showOrig = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
@@ -24,8 +24,8 @@ let toStringOrig = function
   | NoSource -> "no-source:"
 
 let show = function
-  | Orig source -> toStringOrig source
-  | Override {source; _} -> "override:" ^ toStringOrig source
+  | Orig source -> showOrig source
+  | Override {source; _} -> "override:" ^ showOrig source
 
 let pp fmt src =
   Fmt.pf fmt "%s" (show src)

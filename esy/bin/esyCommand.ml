@@ -898,7 +898,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
     )
   in
   match%bind Task.Graph.fold ~f ~init:(return None) info.task with
-  | Some tree -> return (print_endline (TermTree.toString tree))
+  | Some tree -> return (print_endline (TermTree.render tree))
   | None -> return ()
 
 let formatPackageInfo ~built:(built : bool)  (task : Task.t) =

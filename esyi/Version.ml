@@ -1,15 +1,13 @@
 include Metadata.Version
 
-let toString v =
+let show v =
   match v with
   | Npm t -> SemverVersion.Version.show t
   | Opam v -> "opam:" ^ OpamPackageVersion.Version.show v
   | Source src -> Source.show src
 
-let show = toString
-
 let pp fmt v =
-  Fmt.fmt "%s" fmt (toString v)
+  Fmt.fmt "%s" fmt (show v)
 
 module Parse = struct
   include Parse
@@ -90,7 +88,7 @@ let mapPath ~f (version : t) =
   | Opam _ -> version
   | Source source -> Source (Source.mapPath ~f source)
 
-let to_yojson v = `String (toString v)
+let to_yojson v = `String (show v)
 
 let of_yojson json =
   let open Result.Syntax in
