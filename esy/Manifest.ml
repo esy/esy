@@ -8,6 +8,7 @@ module BuildType = struct
     | _ -> Error "expected false, true or \"_build\""
 end
 
+module SandboxSpec = EsyInstall.SandboxSpec
 module PackageJson = EsyInstall.PackageJson
 module Metadata = EsyInstall.Metadata
 module Source = EsyInstall.Source
@@ -573,10 +574,10 @@ module EsyOrOpamManifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
-  val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+  val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
     ?name:string
-    -> ?manifest:SandboxSpec.ManifestSpec.t
+    -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
 
