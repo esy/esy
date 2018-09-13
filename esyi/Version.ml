@@ -82,12 +82,6 @@ let parseExn v =
   | Ok v -> v
   | Error err -> failwith err
 
-let mapPath ~f (version : t) =
-  match version with
-  | Npm _
-  | Opam _ -> version
-  | Source source -> Source (Source.mapPath ~f source)
-
 let to_yojson v = `String (show v)
 
 let of_yojson json =

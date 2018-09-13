@@ -312,20 +312,6 @@ let of_yojson json =
     return (Override {source = origSource; override})
   | _ -> Error "expected string"
 
-let mapPath ~f source =
-  let mapPath' (source : source) =
-    match source with
-    | Archive _
-    | Git _
-    | Github _
-    | NoSource -> source
-    | LocalPathLink p -> LocalPathLink {p with path = f p.path;}
-    | LocalPath p -> LocalPath {p with path = f p.path;}
-  in
-  match source with
-  | Orig source -> Orig (mapPath' source)
-  | Override p -> Override { p with source = mapPath' p.source; }
-
 module Map = Map.Make(struct
   type nonrec t = t
   let compare = compare
