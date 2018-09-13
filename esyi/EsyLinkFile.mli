@@ -2,19 +2,18 @@
 
   Format for _esylink file.
 
-  Such files are used for `link:` dependencies to signify that dependency
-  sources are in a specified location.
+  Such files are used for to communicate info about sources from installer to
+  builder.
 
  *)
 
 type t = {
 
-  (** Path to source tree. *)
-  path : Path.t;
+  source : Source.source;
 
-  (** Optional manifest. If no specified then manifest resolution will be
-      performed. *)
   manifest : SandboxSpec.ManifestSpec.t option;
+
+  override : Source.Override.t;
 }
 
 val ofFile : Path.t -> t RunAsync.t

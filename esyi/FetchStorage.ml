@@ -268,19 +268,29 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
   let {Dist. tarballPath; source; _} = dist in
-  match source, tarballPath with
 
-  | Orig Source.LocalPathLink {path = orig; manifest;}, _ ->
-    let%bind () = Fs.createDir path in
-    let%bind () =
-      let link = EsyLinkFile.{path = orig; manifest;} in
-      EsyLinkFile.toFile link Path.(path / "_esylink")
+
+  let%bind () =
+    Fs.createDir path
+  in
+  let%bind () =
+    match tarballPath with
+    | Some tarballPath ->
+      Tarball.unpack ~dst:path tarballPath
+    | None ->
+      return ()
+  in
+  let%bind () =
+    let source, override, manifest =
+      match source with
+      | Orig source -> source, Source.Override.empty, Source.manifest source
+      | Override {source; override} -> source, override, Source.manifest source
     in
-    return ()
-
-  | _, Some tarballPath ->
-    let%bind () = Fs.createDir path in
-    let%bind () = Tarball.unpack ~dst:path tarballPath in
-    return ()
-  | _, None ->
-    return ()
+    let link = EsyLinkFile.{
+      source;
+      manifest;
+      override;
+    } in
+    EsyLinkFile.toFile link Path.(path / "_esylink")
+  in
+  return ()

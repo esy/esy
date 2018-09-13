@@ -239,6 +239,13 @@ end)
 module Override = struct
   include Metadata.SourceOverride
 
+  let empty = {
+    name = None;
+    version = None;
+    build = None;
+    install = None;
+  }
+
   let to_yojson (override : Metadata.SourceOverride.t) =
     let fields = [] in
     let fields =
@@ -295,24 +302,39 @@ module Override = struct
 
 end
 
+let manifest (source : source) =
+  match source with
+  | Archive _
+  | NoSource -> None
+  | Git {manifest;_}
+  | Github {manifest;_}
+  | LocalPath {manifest;_}
+  | LocalPathLink {manifest;_} -> manifest
+
+let source_to_yojson source = `String (showOrig source)
+let source_of_yojson = function
+  | `String string -> Parse.(parse origSource) string
+  | _ -> Error "expected string"
+
 let to_yojson v =
   match v with
-  | Orig source -> `String (showOrig source)
+  | Orig source -> source_to_yojson source
   | Override {source; override} ->
     `Assoc [
-      "source", `String (showOrig source);
+      "source", source_to_yojson source;
       "override", Override.to_yojson override;
     ]
 
 let of_yojson json =
   let open Result.Syntax in
   match json with
-  | `String string -> parse string
+  | `String _ ->
+    let%bind source = source_of_yojson json in
+    return (Orig source)
   | `Assoc _ ->
-    let%bind origSource = Json.Decode.(field ~name:"source" string) json in
-    let%bind origSource = Parse.(parse origSource) origSource in
+    let%bind source = Json.Decode.(field ~name:"source" source_of_yojson) json in
     let%bind override = Json.Decode.(field ~name:"override") Override.of_yojson json in
-    return (Override {source = origSource; override})
+    return (Override {source; override})
   | _ -> Error "expected string"
 
 module Map = Map.Make(struct

@@ -263,9 +263,13 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           if%bind Fs.exists pathToEsyLink
           then
             let%bind link = EsyInstall.EsyLinkFile.ofFile pathToEsyLink in
-            return (true, link.EsyInstall.EsyLinkFile.path, link.manifest)
+            match link.EsyInstall.EsyLinkFile.source with
+            | Manifest.Source.LocalPathLink {path; _} ->
+              return (true, path, link.manifest)
+            | _ ->
+              return (false, path, link.manifest)
           else
-            return (false, path, None)
+            return (true, path, None)
         in
         let%bind m = Manifest.ofDir
           ?name
