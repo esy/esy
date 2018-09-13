@@ -85,6 +85,10 @@ export type TestSandbox = {
     },
     fixture: Fixture,
   ) => Promise<void>,
+  getPackageHttpArchivePath: (name: string, version: string) => Promise<string>,
+  getPackageArchiveHash: (name: string, version: string) => Promise<string>,
+  getPackageArchivePath: (name: string, version: string) => Promise<string>,
+  layoutFixture: (...fixture: Fixture) => Promise<void>,
 };
 
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
@@ -157,6 +161,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     esy,
     npm,
     runJavaScriptInNodeAndReturnJson,
+    layoutFixture: async (...fixture) => {
+      await FixtureUtils.initialize(projectPath, fixture);
+    },
     defineNpmPackage: (pkg, options) =>
       NpmRegistryMock.definePackage(npmRegistry, pkg, options),
     defineNpmPackageOfFixture: (fixture: Fixture) =>
@@ -166,6 +173,12 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     defineOpamPackage: spec => OpamRegistryMock.defineOpamPackage(opamRegistry, spec),
     defineOpamPackageOfFixture: (spec, fixture: Fixture) =>
       OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
+    getPackageHttpArchivePath: (name, version) =>
+      NpmRegistryMock.getPackageHttpArchivePath(npmRegistry, name, version),
+    getPackageArchivePath: (name, version) =>
+      NpmRegistryMock.getPackageArchivePath(npmRegistry, name, version),
+    getPackageArchiveHash: (name, version) =>
+      NpmRegistryMock.getPackageArchiveHash(npmRegistry, name, version),
   };
 }
 
