@@ -241,7 +241,7 @@ let package ~(resolution : Resolution.t) resolver =
         in
         return (Ok pkg)
       | Source.NoSource -> error "no source"
-      | Source.Archive _ -> error "not implemented"
+      | Source.Archive _ -> error "cannot resolve archive source: not implemented"
     in
 
     match resolution.version with

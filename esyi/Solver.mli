@@ -10,10 +10,9 @@ end
 
 (** Solver *)
 type t = private {
-  cfg: Config.t;
+  sandbox : Sandbox.t;
   resolver: Resolver.t;
   universe: Universe.t;
-  resolutions : PackageJson.Resolutions.t;
 }
 
 (**
@@ -23,9 +22,8 @@ type t = private {
  *)
 (** Make new solver *)
 val make :
-  cfg:Config.t
-  -> ?resolver:Resolver.t
-  -> resolutions:PackageJson.Resolutions.t
+  ?resolver:Resolver.t
+  -> Sandbox.t
   -> unit
   -> t RunAsync.t
 

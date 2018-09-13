@@ -7,10 +7,9 @@ module Strategy = struct
 end
 
 type t = {
-  cfg : Config.t;
+  sandbox : Sandbox.t;
   resolver : Resolver.t;
   universe : Universe.t;
-  resolutions : Resolutions.t;
 }
 
 module Explanation = struct
@@ -211,27 +210,31 @@ let solutionRecordOfPkg ~solver (pkg : Package.t) =
   return {
     Solution.Record.
     name = pkg.name;
-    version = pkg.version;
+    version = Version.show pkg.version;
     source;
     files;
     opam;
   }
 
-let make ~cfg ?resolver ~resolutions () =
+let make ?resolver (sandbox : Sandbox.t) () =
   let open RunAsync.Syntax in
   let%bind resolver =
     match resolver with
-    | None -> Resolver.make ~cfg ()
+    | None -> Resolver.make ~cfg:sandbox.cfg ()
     | Some resolver -> return resolver
   in
   let universe = ref Universe.empty in
-  return {cfg; resolver; universe = !universe; resolutions}
+  return {
+    sandbox;
+    resolver;
+    universe = !universe;
+  }
 
 let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let universe = ref solver.universe in
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving esy packages" () in
+  let report, finish = solver.sandbox.cfg.createProgressReporter ~name:"resolving esy packages" () in
 
   let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -254,7 +257,7 @@ let add ~(dependencies : Dependencies.t) solver =
 
   and addDependencies (dependencies : Dependencies.t) =
     let dependencies =
-      Dependencies.applyResolutions solver.resolutions dependencies
+      Dependencies.applyResolutions solver.sandbox.resolutions dependencies
     in
 
     match dependencies with
@@ -365,9 +368,9 @@ let solveDependencies ~installed ~strategy dependencies solver =
 
   let runSolver filenameIn filenameOut =
     let cmd = Cmd.(
-      solver.cfg.Config.esySolveCmd
+      solver.sandbox.cfg.Config.esySolveCmd
       % ("--strategy=" ^ strategy)
-      % ("--timeout=" ^ string_of_float(solver.cfg.solveTimeout))
+      % ("--timeout=" ^ string_of_float(solver.sandbox.cfg.solveTimeout))
       % p filenameIn
       % p filenameOut
     ) in
@@ -433,7 +436,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         return filename
       in
       let filenameOut = Path.(path / "out.cudf") in
-      let report, finish = solver.cfg.createProgressReporter ~name:"solving esy constraints" () in
+      let report, finish = solver.sandbox.cfg.createProgressReporter ~name:"solving esy constraints" () in
       let%lwt () = report "running solver" in
       let%bind () = runSolver filenameIn filenameOut in
       let%lwt () = finish () in
@@ -485,7 +488,7 @@ let solveDependenciesNaively
   (solver : t) =
   let open RunAsync.Syntax in
 
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
+  let report, finish = solver.sandbox.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
 
   let installed =
     let tbl = Hashtbl.create 100 in
@@ -555,7 +558,7 @@ let solveDependenciesNaively
 
   let solveDependencies dependencies =
     let dependencies =
-      Dependencies.applyResolutions solver.resolutions dependencies
+      Dependencies.applyResolutions solver.sandbox.resolutions dependencies
     in
     let reqs =
       match dependencies with
@@ -624,9 +627,16 @@ let solveDependenciesNaively
             | Some deps -> deps
             | None -> assert false
           in
-          let res =
-            let deps = List.map ~f:(fun pkg -> (pkg.Package.name, pkg.Package.version)) deps in
-            Package.Map.add pkg deps res
+          let%bind res =
+            let%bind deps =
+              deps
+              |> List.map
+                  ~f:(fun pkg ->
+                    let%bind record = solutionRecordOfPkg ~solver pkg in
+                    return (Solution.Id.ofRecord record))
+              |> RunAsync.List.joinAll
+            in
+            return (Package.Map.add pkg deps res)
           in
           aux res (rest @ deps)
         end
@@ -717,7 +727,7 @@ let solve (sandbox : Sandbox.t) =
 
   let%bind solver, dependencies =
     let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg:sandbox.cfg () in
-    let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
+    let%bind solver = make ~resolver sandbox () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
   in

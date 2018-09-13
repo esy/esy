@@ -3,13 +3,13 @@ module String = Astring.String
 module Dist = struct
   type t = {
     name : string;
-    version : Version.t;
+    version : string;
     source : Source.t;
     tarballPath : Path.t option;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name Version.pp dist.version
+    Fmt.pf fmt "%s@%s" dist.name dist.version
 end
 
 let cacheId source (record : Solution.Record.t) =
@@ -22,13 +22,16 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Version.show record.version in
+  (* TODO: make sure we include override here *)
+  let version = record.version in
   let source = Source.show source in
+  let id = Solution.Id.(show (ofRecord record)) in
   match record.opam with
   | None ->
-    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
+    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [id; source])
   | Some opam ->
     let h = hash [
+      id;
       source;
       opam.opam
       |> Package.Opam.OpamFile.to_yojson
@@ -45,17 +48,20 @@ let cacheId source (record : Solution.Record.t) =
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
 
-  let doFetch path (source : Source.t) =
-    let origSource =
-      match source with
-      | Source.Orig source
-      | Source.Override {source; _} -> source
-    in
-    match origSource with
+  let doFetch path (source : Source.source) =
+    match source with
 
-    | Source.LocalPath _ ->
-      let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
-      failwith msg
+    | Source.LocalPath { path = srcPath; manifest = _; } ->
+      let%bind names = Fs.listDir srcPath in
+      let copy name =
+        let src = Path.(srcPath / name) in
+        let dst = Path.(path / name) in
+        Fs.copyPath ~src ~dst
+      in
+      let%bind () =
+        RunAsync.List.waitAll (List.map ~f:copy names)
+      in
+      return `Done
 
     | Source.LocalPathLink _ ->
       (* this case is handled separately *)
@@ -153,21 +159,46 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
     in
 
     let%bind () =
-      let addResolvedFieldToPackageJson filename =
-        match%bind Fs.readJsonFile filename with
-        | `Assoc items ->
-          let json = `Assoc (("_esy.source", `String (Source.show source))::items) in
-          let data = Yojson.Safe.pretty_to_string json in
-          Fs.writeFile ~data filename
-        | _ -> error "invalid package.json"
+
+      let applyOverride source editor =
+        match source with
+        | Source.Orig _ -> editor
+        | Source.Override {override; source = _} ->
+          Json.Edit.(
+            editor
+            |> get "esy"
+            |> (fun this -> match override.build with
+               | Some commands ->
+                 this
+                 |> set "build" Json.Encode.((list (list string)) commands)
+               | None -> this)
+            |> (fun this -> match override.install with
+               | Some commands ->
+                 this
+                 |> set "install" Json.Encode.((list (list string)) commands)
+               | None -> this)
+            |> up
+          )
+      in
+
+      let commitPackageJson filename =
+        let%bind json = Fs.readJsonFile filename in
+        let%bind json = RunAsync.ofStringError Json.Edit.(
+          ofJson json
+          |> set "_esy.source" (Source.to_yojson source)
+          |> applyOverride source
+          |> commit
+        ) in
+        let data = Yojson.Safe.pretty_to_string json in
+        Fs.writeFile ~data filename
       in
 
       let esyJson = Path.(path / "esy.json") in
       let packageJson = Path.(path / "package.json") in
       if%bind Fs.exists esyJson
-      then addResolvedFieldToPackageJson esyJson
+      then commitPackageJson esyJson
       else if%bind Fs.exists packageJson
-      then addResolvedFieldToPackageJson packageJson
+      then commitPackageJson packageJson
       else return ()
     in
 
@@ -198,7 +229,12 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
         let%bind fetched =
           RunAsync.contextf (
             let%bind () = Fs.createDir sourcePath in
-            match%bind doFetch sourcePath source with
+            let origSource =
+              match source with
+              | Source.Orig source -> source
+              | Source.Override info -> info.source
+            in
+            match%bind doFetch sourcePath origSource with
             | `Done ->
               let%bind () = commit sourcePath source in
               return `Done

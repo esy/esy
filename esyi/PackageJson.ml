@@ -219,13 +219,16 @@ module Resolutions = struct
       | Ok ((_path, name)) -> Ok name
       | Error err -> Error err
     in
-    let parseValue key =
-      function
+    let parseValue key json =
+      match json with
       | `String v -> begin
         match Astring.String.cut ~sep:"/" key with
         | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
         | _ -> Version.parse v
         end
+      | `Assoc _ ->
+        let%bind source = Source.of_yojson json in
+        return (Version.Source source)
       | _ -> Error "expected string"
     in
     function

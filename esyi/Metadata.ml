@@ -187,16 +187,16 @@ module rec R : sig
       name : string option;
       version : string option;
       build : string list list option;
-      install : string list list;
-      exportedEnv : ExportedEnv.t option;
-      exportedEnvOverride : exportedEnvOverride list option;
-      buildEnv : Env.t option;
-      buildEnvOverride : envOverride list option;
-      sandboxEnv : ExportedEnv.t option;
-      sandboxEnvOverride : envOverride list option;
-      dependencies : Dependencies.t option;
-      dependenciesOverride : dependencyOverride list option;
-      resolutions : Resolutions.t option;
+      install : string list list option;
+      (* exportedEnv : ExportedEnv.t option; *)
+      (* exportedEnvOverride : exportedEnvOverride list option; *)
+      (* buildEnv : Env.t option; *)
+      (* buildEnvOverride : envOverride list option; *)
+      (* sandboxEnv : ExportedEnv.t option; *)
+      (* sandboxEnvOverride : envOverride list option; *)
+      (* dependencies : Dependencies.t option; *)
+      (* dependenciesOverride : dependencyOverride list option; *)
+      (* resolutions : Resolutions.t option; *)
     }
     [@@deriving eq, ord]
   end
@@ -374,16 +374,16 @@ end = struct
       name : string option;
       version : string option;
       build : string list list option;
-      install : string list list;
-      exportedEnv : ExportedEnv.t option;
-      exportedEnvOverride : exportedEnvOverride list option;
-      buildEnv : Env.t option;
-      buildEnvOverride : envOverride list option;
-      sandboxEnv : ExportedEnv.t option;
-      sandboxEnvOverride : envOverride list option;
-      dependencies : Dependencies.t option;
-      dependenciesOverride : dependencyOverride list option;
-      resolutions : Resolutions.t option;
+      install : string list list option;
+      (* exportedEnv : ExportedEnv.t option; *)
+      (* exportedEnvOverride : exportedEnvOverride list option; *)
+      (* buildEnv : Env.t option; *)
+      (* buildEnvOverride : envOverride list option; *)
+      (* sandboxEnv : ExportedEnv.t option; *)
+      (* sandboxEnvOverride : envOverride list option; *)
+      (* dependencies : Dependencies.t option; *)
+      (* dependenciesOverride : dependencyOverride list option; *)
+      (* resolutions : Resolutions.t option; *)
     } [@@deriving eq, ord]
   end
 
