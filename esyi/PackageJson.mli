@@ -1,24 +1,6 @@
-module Command : sig
-  include module type of Metadata.Command
-
-  include S.COMPARABLE with type t := t
-  include S.JSONABLE with type t := t
-  include S.PRINTABLE with type t := t
-end
-
-module CommandList : sig
-  include module type of Metadata.CommandList
-
-  include S.COMPARABLE with type t := t
-  include S.JSONABLE with type t := t
-  include S.PRINTABLE with type t := t
-
-  val empty : t
-end
-
 module Scripts : sig
   type t = script StringMap.t
-  and script = { command : Command.t; }
+  and script = { command : Metadata.Command.t; }
   val empty : t
   val find : string -> t -> script option
 

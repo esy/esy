@@ -9,10 +9,11 @@ module BuildType = struct
 end
 
 module PackageJson = EsyInstall.PackageJson
+module Metadata = EsyInstall.Metadata
 module Source = EsyInstall.Source
 module SourceType = EsyBuildPackage.SourceType
-module Command = PackageJson.Command
-module CommandList = PackageJson.CommandList
+module Command = Metadata.Command
+module CommandList = Metadata.CommandList
 module ExportedEnv = PackageJson.ExportedEnv
 module Env = PackageJson.Env
 module Scripts = PackageJson.Scripts
@@ -480,7 +481,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
-          Build.EsyCommands (Some build)
+          Build.EsyCommands build
         | Some {EsyInstall.Package.OpamOverride. build = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
@@ -496,7 +497,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
-          Build.EsyCommands (Some install)
+          Build.EsyCommands install
         | Some {EsyInstall.Package.OpamOverride. install = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.install manifest.opam)

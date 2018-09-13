@@ -6,8 +6,8 @@ module BuildType : module type of EsyBuildPackage.BuildType
 module SourceType : module type of EsyBuildPackage.SourceType
 
 module Source : module type of EsyInstall.Source
-module Command : module type of EsyInstall.PackageJson.Command
-module CommandList : module type of EsyInstall.PackageJson.CommandList
+module Command : module type of EsyInstall.Metadata.Command
+module CommandList : module type of EsyInstall.Metadata.CommandList
 module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
 module Env : module type of EsyInstall.PackageJson.Env
 module Scripts : module type of EsyInstall.PackageJson.Scripts

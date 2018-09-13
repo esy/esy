@@ -160,33 +160,11 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
     let%bind () =
 
-      let applyOverride source editor =
-        match source with
-        | Source.Orig _ -> editor
-        | Source.Override {override; source = _} ->
-          Json.Edit.(
-            editor
-            |> get "esy"
-            |> (fun this -> match override.build with
-               | Some commands ->
-                 this
-                 |> set "build" Json.Encode.((list (list string)) commands)
-               | None -> this)
-            |> (fun this -> match override.install with
-               | Some commands ->
-                 this
-                 |> set "install" Json.Encode.((list (list string)) commands)
-               | None -> this)
-            |> up
-          )
-      in
-
       let commitPackageJson filename =
         let%bind json = Fs.readJsonFile filename in
         let%bind json = RunAsync.ofStringError Json.Edit.(
           ofJson json
           |> set "_esy.source" (Source.to_yojson source)
-          |> applyOverride source
           |> commit
         ) in
         let data = Yojson.Safe.pretty_to_string json in

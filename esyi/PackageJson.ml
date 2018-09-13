@@ -1,58 +1,8 @@
-module Command = struct
-
-  include Metadata.Command
-
-  let of_yojson (json : Json.t) =
-    match json with
-    | `String command -> Ok (Unparsed command)
-    | `List command ->
-      begin match Json.Decode.(list string (`List command)) with
-      | Ok args -> Ok (Parsed args)
-      | Error err -> Error err
-      end
-    | _ -> Error "expected either a string or an array of strings"
-
-  let to_yojson v =
-    match v with
-    | Parsed args -> `List (List.map ~f:(fun arg -> `String arg) args)
-    | Unparsed line -> `String line
-
-end
-
-module CommandList = struct
-
-  include Metadata.CommandList
-
-  let empty = None
-
-  let of_yojson (json : Json.t) =
-    let open Result.Syntax in
-    let commands =
-      match json with
-      | `Null -> Ok []
-      | `List commands ->
-        Json.Decode.list Command.of_yojson (`List commands)
-      | `String command ->
-        let%bind command = Command.of_yojson (`String command) in
-        Ok [command]
-      | _ -> Error "expected either a null, a string or an array"
-    in
-    match%bind commands with
-    | [] -> Ok None
-    | commands -> Ok (Some commands)
-
-  let to_yojson commands =
-    match commands with
-    | None -> `List []
-    | Some commands -> `List (List.map ~f:Command.to_yojson commands)
-
-end
-
 module Scripts = struct
 
   [@@@ocaml.warning "-32"]
   type script = {
-    command : Command.t;
+    command : Metadata.Command.t;
   }
   [@@deriving (eq, ord)]
 
@@ -64,13 +14,12 @@ module Scripts = struct
 
   let of_yojson =
     let script (json: Json.t) =
-      match CommandList.of_yojson json with
+      match Metadata.CommandList.of_yojson json with
       | Ok command ->
         begin match command with
-        | None
-        | Some [] -> Error "empty command"
-        | Some [command] -> Ok {command;}
-        | Some _ -> Error "multiple script commands are not supported"
+        | [] -> Error "empty command"
+        | [command] -> Ok {command;}
+        | _ -> Error "multiple script commands are not supported"
         end
       | Error err -> Error err
     in

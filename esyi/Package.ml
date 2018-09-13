@@ -137,8 +137,8 @@ module OpamOverride = struct
   end
 
   type t = {
-    build: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
-    install: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
+    build: (Metadata.CommandList.t option [@default None]);
+    install: (Metadata.CommandList.t option [@default None]);
     dependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
     peerDependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]) ;
     exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
@@ -147,8 +147,8 @@ module OpamOverride = struct
 
   let empty =
     {
-      build = PackageJson.CommandList.empty;
-      install = PackageJson.CommandList.empty;
+      build = None;
+      install = None;
       dependencies = PackageJson.Dependencies.empty;
       peerDependencies = PackageJson.Dependencies.empty;
       exportedEnv = PackageJson.ExportedEnv.empty;

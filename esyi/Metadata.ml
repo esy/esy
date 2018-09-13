@@ -1,23 +1,75 @@
+module Command : sig
+  type t =
+    | Parsed of string list
+    | Unparsed of string
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+end = struct
+
+  type t =
+    | Parsed of string list
+    | Unparsed of string
+    [@@deriving (show, eq, ord)]
+
+  let of_yojson (json : Json.t) =
+    match json with
+    | `String command -> Ok (Unparsed command)
+    | `List command ->
+      begin match Json.Decode.(list string (`List command)) with
+      | Ok args -> Ok (Parsed args)
+      | Error err -> Error err
+      end
+    | _ -> Error "expected either a string or an array of strings"
+
+  let to_yojson v =
+    match v with
+    | Parsed args -> `List (List.map ~f:(fun arg -> `String arg) args)
+    | Unparsed line -> `String line
+end
+
+module CommandList : sig
+
+  type t =
+    Command.t list
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+  val empty : t
+end = struct
+
+  type t =
+    Command.t list
+    [@@deriving (show, eq, ord)]
+
+  let empty = []
+
+  let of_yojson (json : Json.t) =
+    let open Result.Syntax in
+    let commands =
+      match json with
+      | `Null -> return []
+      | `List commands ->
+        Json.Decode.list Command.of_yojson (`List commands)
+      | `String command ->
+        let%bind command = Command.of_yojson (`String command) in
+        return [command]
+      | _ -> Error "expected either a null, a string or an array"
+    in
+    match%bind commands with
+    | [] -> Ok []
+    | commands -> Ok commands
+
+  let to_yojson commands =
+    `List (List.map ~f:Command.to_yojson commands)
+end
+
 module rec R : sig
 
-  module Command : sig
-    type t =
-      | Parsed of string list
-      | Unparsed of string
-
-    include S.PRINTABLE with type t := t
-    include S.COMPARABLE with type t := t
-
-  end
-
-  module CommandList : sig
-
-    type t =
-      Command.t list option
-
-    include S.PRINTABLE with type t := t
-    include S.COMPARABLE with type t := t
-  end
 
   module Env : sig
 
@@ -186,8 +238,8 @@ module rec R : sig
     type t = {
       name : string option;
       version : string option;
-      build : string list list option;
-      install : string list list option;
+      build : CommandList.t option;
+      install : CommandList.t option;
       (* exportedEnv : ExportedEnv.t option; *)
       (* exportedEnvOverride : exportedEnvOverride list option; *)
       (* buildEnv : Env.t option; *)
@@ -202,21 +254,6 @@ module rec R : sig
   end
 
 end = struct
-
-  module Command = struct
-
-    type t =
-      | Parsed of string list
-      | Unparsed of string
-      [@@deriving (show, eq, ord)]
-  end
-
-  module CommandList = struct
-
-    type t =
-      Command.t list option
-      [@@deriving (show, eq, ord)]
-  end
 
   module Env = struct
 
@@ -373,8 +410,8 @@ end = struct
     type t = {
       name : string option;
       version : string option;
-      build : string list list option;
-      install : string list list option;
+      build : CommandList.t option;
+      install : CommandList.t option;
       (* exportedEnv : ExportedEnv.t option; *)
       (* exportedEnvOverride : exportedEnvOverride list option; *)
       (* buildEnv : Env.t option; *)

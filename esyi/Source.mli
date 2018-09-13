@@ -1,6 +1,14 @@
 include module type of Metadata.Source
 
-include S.COMMON with type t := t
+module Override : sig
+  include module type of Metadata.SourceOverride
+
+  include S.JSONABLE with type t := t
+end
+
+include S.PRINTABLE with type t := t
+include S.COMPARABLE with type t := t
+include S.JSONABLE with type t := t
 
 val parser : t Parse.t
 val parse : string -> (t, string) result

@@ -109,13 +109,9 @@ let renderEsyCommands ~env scope commands =
       return (List.map ~f:Sandbox.Value.v args)
   in
 
-  match commands with
-  | None -> Ok []
-  | Some commands ->
-    begin match Result.List.map ~f:renderCommand commands with
-    | Ok commands -> Ok commands
-    | Error err -> Error err
-    end
+  match Result.List.map ~f:renderCommand commands with
+  | Ok commands -> Ok commands
+  | Error err -> Error err
 
 let renderOpamCommands opamEnv commands =
   let open Run.Syntax in

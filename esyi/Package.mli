@@ -57,8 +57,8 @@ module OpamOverride : sig
   end
 
   type t = {
-    build : PackageJson.Command.t list option;
-    install : PackageJson.Command.t list option;
+    build : Metadata.CommandList.t option;
+    install : Metadata.CommandList.t option;
     dependencies : PackageJson.Dependencies.t;
     peerDependencies : PackageJson.Dependencies.t;
     exportedEnv : PackageJson.ExportedEnv.t;
