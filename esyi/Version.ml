@@ -95,12 +95,6 @@ let of_yojson json =
   let%bind v = Json.Decode.string json in
   parse v
 
-let toNpmVersion v =
-  match v with
-  | Npm v -> SemverVersion.Version.show v
-  | Opam t -> OpamPackageVersion.Version.show t
-  | Source src -> Source.show src
-
 module Map = Map.Make(struct
   type nonrec t = t
   let compare = compare
