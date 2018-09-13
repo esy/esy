@@ -33,7 +33,8 @@
   },
   "resolutions": {
     "@opam/merlin-extend": "0.3",
-    "@opam/dune": "github:bryphe/dune#87a1993"
+    "@opam/dune": "github:bryphe/dune#87a1993",
+    "@opam/lwt": "github:bryphe/lwt#fbc846d"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
@@ -48,7 +49,7 @@
     "@opam/fpath": "^0.7.2",
     "@opam/lambda-term": "^1.11.0",
     "@opam/logs": "^0.6.2",
-    "@opam/lwt": "^4.0.0",
+    "@opam/lwt": "*",
     "@opam/lwt_ppx": "^1.1.0",
     "@opam/menhir": "*",
     "@opam/opam-core": "*",

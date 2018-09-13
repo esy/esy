@@ -1,5 +1,5 @@
 {
-  "hash": "9abe95f27ad7090c1ee46a32934820c3",
+  "hash": "e4492cb1ea5223dd2175e7ef6202b299",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -1477,7 +1477,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "lodash@4.17.10" ]
+      "dependencies": [ "lodash@4.17.11" ]
     },
     "request@2.88.0": {
       "record": {
@@ -2955,12 +2955,12 @@
       },
       "dependencies": []
     },
-    "lodash@4.17.10": {
+    "lodash@4.17.11": {
       "record": {
         "name": "lodash",
-        "version": "4.17.10",
+        "version": "4.17.11",
         "source":
-          "archive:https://registry.npmjs.org/lodash/-/lodash-4.17.10.tgz#sha1:1b7793cf7259ea38fb3661d4d38b3260af8ae4e7",
+          "archive:https://registry.npmjs.org/lodash/-/lodash-4.17.11.tgz#sha1:b39ea6229ef607ecd89e2c8df12536891cac9b8d",
         "files": [],
         "opam": null
       },
@@ -5358,7 +5358,7 @@
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
         "@opam/dune@github:bryphe/dune#87a1993", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
-        "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
+        "@opam/logs@opam:0.6.2", "@opam/lwt@github:bryphe/lwt#fbc846d",
         "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
         "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
@@ -5516,12 +5516,12 @@
       },
       "dependencies": [ "once@1.4.0" ]
     },
-    "electron-to-chromium@1.3.66": {
+    "electron-to-chromium@1.3.67": {
       "record": {
         "name": "electron-to-chromium",
-        "version": "1.3.66",
+        "version": "1.3.67",
         "source":
-          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.66.tgz#sha1:1410d8f8768a14dcd09d96222990f43c969af270",
+          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.67.tgz#sha1:5e8f3ffac89b4b0402c7e1a565be06f3a109abbc",
         "files": [],
         "opam": null
       },
@@ -6391,7 +6391,7 @@
         "opam": null
       },
       "dependencies": [
-        "caniuse-lite@1.0.30000885", "electron-to-chromium@1.3.66"
+        "caniuse-lite@1.0.30000885", "electron-to-chromium@1.3.67"
       ]
     },
     "browser-resolve@1.11.3": {
@@ -6536,7 +6536,7 @@
         "opam": null
       },
       "dependencies": [
-        "babel-runtime@6.26.0", "esutils@2.0.2", "lodash@4.17.10",
+        "babel-runtime@6.26.0", "esutils@2.0.2", "lodash@4.17.11",
         "to-fast-properties@1.0.3"
       ]
     },
@@ -6552,7 +6552,7 @@
       "dependencies": [
         "babel-code-frame@6.26.0", "babel-messages@6.23.0",
         "babel-runtime@6.26.0", "babel-types@6.26.0", "babylon@6.18.0",
-        "debug@2.6.9", "globals@9.18.0", "invariant@2.2.4", "lodash@4.17.10"
+        "debug@2.6.9", "globals@9.18.0", "invariant@2.2.4", "lodash@4.17.11"
       ]
     },
     "babel-template@6.26.0": {
@@ -6566,7 +6566,7 @@
       },
       "dependencies": [
         "babel-runtime@6.26.0", "babel-traverse@6.26.0",
-        "babel-types@6.26.0", "babylon@6.18.0", "lodash@4.17.10"
+        "babel-types@6.26.0", "babylon@6.18.0", "lodash@4.17.11"
       ]
     },
     "babel-runtime@6.26.0": {
@@ -6591,7 +6591,7 @@
       },
       "dependencies": [
         "babel-core@6.26.3", "babel-runtime@6.26.0", "core-js@2.5.7",
-        "home-or-tmp@2.0.0", "lodash@4.17.10", "mkdirp@0.5.1",
+        "home-or-tmp@2.0.0", "lodash@4.17.11", "mkdirp@0.5.1",
         "source-map-support@0.4.18"
       ]
     },
@@ -6965,7 +6965,7 @@
       },
       "dependencies": [
         "babel-runtime@6.26.0", "babel-template@6.26.0",
-        "babel-traverse@6.26.0", "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-traverse@6.26.0", "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-plugin-transform-es2015-block-scoped-functions@6.22.0": {
@@ -7171,7 +7171,7 @@
         "opam": null
       },
       "dependencies": [
-        "babel-runtime@6.26.0", "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-runtime@6.26.0", "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-helper-optimise-call-expression@6.24.1": {
@@ -7246,7 +7246,7 @@
       },
       "dependencies": [
         "babel-helper-function-name@6.24.1", "babel-runtime@6.26.0",
-        "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-helper-call-delegate@6.24.1": {
@@ -7289,7 +7289,7 @@
       "dependencies": [
         "babel-messages@6.23.0", "babel-runtime@6.26.0",
         "babel-types@6.26.0", "detect-indent@4.0.0", "jsesc@1.3.0",
-        "lodash@4.17.10", "source-map@0.5.7", "trim-right@1.0.1"
+        "lodash@4.17.11", "source-map@0.5.7", "trim-right@1.0.1"
       ]
     },
     "babel-core@6.26.3": {
@@ -7307,7 +7307,7 @@
         "babel-register@6.26.0", "babel-runtime@6.26.0",
         "babel-template@6.26.0", "babel-traverse@6.26.0",
         "babel-types@6.26.0", "babylon@6.18.0", "convert-source-map@1.6.0",
-        "debug@2.6.9", "json5@0.5.1", "lodash@4.17.10", "minimatch@3.0.4",
+        "debug@2.6.9", "json5@0.5.1", "lodash@4.17.11", "minimatch@3.0.4",
         "path-is-absolute@1.0.1", "private@0.1.8", "slash@1.0.0",
         "source-map@0.5.7"
       ]
@@ -7387,7 +7387,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "lodash@4.17.10" ]
+      "dependencies": [ "lodash@4.17.11" ]
     },
     "astral-regex@1.0.0": {
       "record": {
@@ -7836,7 +7836,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-threads@opam:base",
         "@opam/base-unix@opam:base", "@opam/camomile@opam:1.0.1",
         "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
-        "@opam/lambda-term@opam:1.13", "@opam/lwt@opam:4.1.0",
+        "@opam/lambda-term@opam:1.13", "@opam/lwt@github:bryphe/lwt#fbc846d",
         "@opam/lwt_react@opam:1.1.1", "@opam/ocamlfind@opam:1.8.0",
         "@opam/react@opam:1.2.1"
       ]
@@ -8443,8 +8443,7 @@
             "exportedEnv": {
               "OCAML_TOPLEVEL_PATH": {
                 "val": "#{self.toplevel}",
-                "scope": "global",
-                "exclusive": false
+                "scope": "global"
               }
             }
           }
@@ -8457,7 +8456,7 @@
         "name": "@opam/ocamlbuild",
         "version": "opam:0.12.0",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ocamlbuild.0.12.0+opam.tar.gz#md5:6e877d7f40c119c0c6c03f04342f2264",
+          "archive:https://opam.ocaml.org/archives/ocamlbuild.0.12.0+opam.tar.gz#md5:43f12b7f9a57d8e967a652bfb6a9dd65",
           "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b"
         ],
         "files": [
@@ -8634,7 +8633,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@opam:4.1.0", "@opam/react@opam:1.2.1"
+        "@opam/lwt@github:bryphe/lwt#fbc846d", "@opam/react@opam:1.2.1"
       ]
     },
     "@opam/lwt_ppx@opam:1.2.1": {
@@ -8656,7 +8655,8 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/lwt@github:bryphe/lwt#fbc846d",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_tools_versioned@opam:5.2.1"
       ]
     },
@@ -8679,45 +8679,20 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@opam:4.1.0"
+        "@opam/lwt@github:bryphe/lwt#fbc846d"
       ]
     },
-    "@opam/lwt@opam:4.1.0": {
+    "@opam/lwt@github:bryphe/lwt#fbc846d": {
       "record": {
         "name": "@opam/lwt",
-        "version": "opam:4.1.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lwt.4.1.0+opam.tar.gz#md5:5c73061ac341ca56c2f1bd62728a0ad9",
-          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
-        ],
-        "files": [
-          {
-            "name": "_esy/lwt-4.1.0.patch",
-            "content":
-              "--- ./src/unix/config/discover.ml\n+++ ./src/unix/config/discover.ml\n@@ -326,12 +326,16 @@\n     Sys.command s = 0) fmt in\n   let obj_file = Filename.chop_suffix stub_file \".c\" ^ !ext_obj\n   in\n+  let obj_flag = match !system with\n+  | \"win32\" | \"win64\" -> \"-ccopt -Fo:\"\n+  | _ -> \"-ccopt -o -ccopt \" in\n   (* First compile the .c file using -ocamlc and CFLAGS (opt) *)\n   (cmd\n-    \"%s -c %s %s -ccopt -o -ccopt %s >> %s 2>&1\"\n+    \"%s -c %s %s %s%s >> %s 2>&1\"\n     !ocamlc\n     (String.concat \" \" (List.map (fun x -> \"-ccopt \" ^ x) (List.map Filename.quote opt)))\n     (Filename.quote stub_file)\n+    obj_flag\n     (Filename.quote obj_file)\n     (Filename.quote !log_file))\n   &&\n"
-          }
-        ],
-        "opam": {
-          "name": "lwt",
-          "version": "4.1.0",
-          "opam":
-            "opam-version: \"1.2\"\nname: \"lwt\"\nversion: \"4.1.0\"\nmaintainer: [\n  \"Anton Bachin <antonbachin@yahoo.com>\"\n  \"Mauricio Fernandez <mfp@acm.org>\"\n  \"Simon Cruanes <simon.cruanes.2007@m4x.org>\"\n]\nauthors: [\"Jérôme Vouillon\" \"Jérémie Dimino\"]\nlicense: \"LGPL with OpenSSL linking exception\"\nhomepage: \"https://github.com/ocsigen/lwt\"\ndoc: \"https://ocsigen.org/lwt/manual/\"\nbug-reports: \"https://github.com/ocsigen/lwt/issues\"\ndepends: [\n  \"cppo\" {build & >= \"1.1.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta14\"}\n  \"ocamlfind\" {build & >= \"1.7.3-1\"}\n  \"result\"\n]\ndepopts: [\"base-threads\" \"base-unix\" \"conf-libev\"]\navailable: ocaml-version >= \"4.02.0\" & compiler != \"4.02.1+BER\"\nbuild: [\n  [\"ocaml\" \"src/util/configure.ml\" \"-use-libev\" \"%{conf-libev:installed}%\"]\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nmessages: [\n  \"For the PPX, please install package lwt_ppx\" {!lwt_ppx:installed}\n  \"For the Camlp4 syntax, please install package lwt_camlp4\"\n    {camlp4:installed & !lwt_camlp4:installed}\n  \"For Lwt_log and Lwt_daemon, please install package lwt_log\"\n    {!lwt_log:installed}\n]\ndev-repo: \"git+https://github.com/ocsigen/lwt.git\"",
-          "override": {
-            "build": [
-              [
-                "bash", "-c",
-                "#{os == 'windows' ? 'patch -p1 < _esy/lwt-4.1.0.patch' : 'true'}"
-              ],
-              [ "ocaml", "src/util/configure.ml", "-use-libev", "false" ],
-              [ "jbuilder", "build", "-p", "lwt", "-j", "4" ]
-            ]
-          }
-        }
+        "version": "github:bryphe/lwt#fbc846d",
+        "source": "github:bryphe/lwt#fbc846d",
+        "files": [],
+        "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
-        "@opam/jbuilder@opam:transition", "@opam/ocamlfind@opam:1.8.0",
-        "@opam/result@opam:1.3"
+        "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
+        "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },
     "@opam/logs@opam:0.6.2": {
@@ -8776,9 +8751,10 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/camomile@opam:1.0.1",
-        "@opam/jbuilder@opam:transition", "@opam/lwt@opam:4.1.0",
-        "@opam/lwt_log@opam:1.1.0", "@opam/lwt_react@opam:1.1.1",
-        "@opam/react@opam:1.2.1", "@opam/zed@opam:1.6"
+        "@opam/jbuilder@opam:transition",
+        "@opam/lwt@github:bryphe/lwt#fbc846d", "@opam/lwt_log@opam:1.1.0",
+        "@opam/lwt_react@opam:1.1.1", "@opam/react@opam:1.2.1",
+        "@opam/zed@opam:1.6"
       ]
     },
     "@opam/jbuilder@opam:transition": {
@@ -8846,21 +8822,21 @@
         "@opam/topkg@opam:0.9.1", "@opam/uchar@opam:0.0.2"
       ]
     },
-    "@opam/extlib@opam:1.7.5": {
+    "@opam/extlib-compat@opam:1.7.2": {
       "record": {
-        "name": "@opam/extlib",
-        "version": "opam:1.7.5",
+        "name": "@opam/extlib-compat",
+        "version": "opam:1.7.2",
         "source": [
-          "archive:https://opam.ocaml.org/archives/extlib.1.7.5+opam.tar.gz#md5:1b20f7a67db6e310249773ad08080f59",
-          "archive:http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f",
-          "archive:https://github.com/ygrek/ocaml-extlib/releases/download/1.7.5/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f"
+          "archive:https://opam.ocaml.org/archives/extlib-compat.1.7.2+opam.tar.gz#md5:369d5e97cb8a70df0cdb9f43376c3a70",
+          "archive:http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.2.tar.gz#md5:0f550dd06242828399a73387c49e0eed",
+          "archive:https://github.com/ygrek/ocaml-extlib/releases/download/1.7.2/extlib-1.7.2.tar.gz#md5:0f550dd06242828399a73387c49e0eed"
         ],
         "files": [],
         "opam": {
-          "name": "extlib",
-          "version": "1.7.5",
+          "name": "extlib-compat",
+          "version": "1.7.2",
           "opam":
-            "opam-version: \"1.2\"\nname: \"extlib\"\nversion: \"1.7.5\"\nmaintainer: \"ygrek@autistici.org\"\nauthors: [\n  \"Nicolas Cannasse\"\n  \"Brian Hurt\"\n  \"Yamagata Yoriyuki\"\n  \"Markus Mottl\"\n  \"Jesse Guardiani\"\n  \"John Skaller\"\n  \"Bardur Arantsson\"\n  \"Janne Hellsten\"\n  \"Richard W.M. Jones\"\n  \"ygrek\"\n  \"Gabriel Scherer\"\n  \"Pietro Abate\"\n]\nlicense: \"LGPL-2.1 with OCaml linking exception\"\nhomepage: \"https://github.com/ygrek/ocaml-extlib\"\ndoc: \"http://ygrek.org.ua/p/extlib/doc/\"\nbug-reports: \"https://github.com/ygrek/ocaml-extlib/issues\"\ndepends: [\n  \"ocamlfind\" {build}\n  \"cppo\" {build}\n  \"base-bytes\" {build}\n]\nbuild: [make \"minimal=1\" \"build\"]\nrun-test: [make \"minimal=1\" \"test\"]\ninstall: [make \"minimal=1\" \"install\"]\nremove: [\"ocamlfind\" \"remove\" \"extlib\"]\ndev-repo: \"git://github.com/ygrek/ocaml-extlib.git\"\nbuild-doc: [make \"minimal=1\" \"doc\"]",
+            "opam-version: \"1.2\"\nname: \"extlib-compat\"\nversion: \"1.7.2\"\nmaintainer: \"ygrek@autistici.org\"\nauthors: [\n  \"Nicolas Cannasse\"\n  \"Brian Hurt\"\n  \"Yamagata Yoriyuki\"\n  \"Markus Mottl\"\n  \"Jesse Guardiani\"\n  \"John Skaller\"\n  \"Bardur Arantsson\"\n  \"Janne Hellsten\"\n  \"Richard W.M. Jones\"\n  \"ygrek\"\n  \"Gabriel Scherer\"\n  \"Pietro Abate\"\n]\nlicense: \"LGPL-2.1 with OCaml linking exception\"\nhomepage: \"https://github.com/ygrek/ocaml-extlib\"\ndoc: \"http://ygrek.org.ua/p/extlib/doc/\"\nbug-reports: \"https://github.com/ygrek/ocaml-extlib/issues\"\ndepends: [\n  \"ocamlfind\" {build}\n  \"cppo\" {build}\n  \"base-bytes\" {build}\n]\nconflicts: [\"extlib\"]\navailable: ocaml-version < \"4.07.0\"\nbuild: [make \"build\"]\nrun-test: [make \"test\"]\ninstall: [make \"install\"]\nremove: [\"ocamlfind\" \"remove\" \"extlib\"]\ndev-repo: \"git://github.com/ygrek/ocaml-extlib.git\"\nbuild-doc: [make \"doc\"]",
           "override": null
         }
       },
@@ -8957,7 +8933,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/cppo@opam:1.6.4", "@opam/cudf@opam:0.9",
-        "@opam/extlib@opam:1.7.5", "@opam/ocamlbuild@opam:0.12.0",
+        "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0"
       ]
     },
@@ -8980,7 +8956,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
-        "@opam/extlib@opam:1.7.5", "@opam/ocamlbuild@opam:0.12.0"
+        "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0"
       ]
     },
     "@opam/cppo_ocamlbuild@opam:1.6.0": {
