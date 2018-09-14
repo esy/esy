@@ -6,6 +6,7 @@ val make :
   ?ocamlVersion:Version.t
   -> ?npmRegistry:NpmRegistry.t
   -> ?opamRegistry:OpamRegistry.t
+  -> resolutions:Package.Resolutions.t
   -> cfg:Config.t
   -> unit
   -> t RunAsync.t

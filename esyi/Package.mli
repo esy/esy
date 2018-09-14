@@ -61,7 +61,6 @@ module Dependencies : sig
   val show : t -> string
 
   val toApproximateRequests : t -> Req.t list
-  val applyResolutions : Resolutions.t -> t -> t
 end
 
 module File : sig

@@ -1,3 +1,4 @@
+module Resolutions = Package.Resolutions
 module Resolution = Package.Resolution
 
 module PackageCache = Memoize.Make(struct
@@ -156,13 +157,21 @@ type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
+  resolutions : Resolutions.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
   ocamlVersion : Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
-let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
+let make
+  ?ocamlVersion
+  ?npmRegistry
+  ?opamRegistry
+  ~resolutions
+  ~cfg
+  ()
+  =
   let open RunAsync.Syntax in
   let opamRegistry =
     match opamRegistry with
@@ -178,6 +187,7 @@ let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
+    resolutions;
     opamRegistry;
     npmRegistry;
     ocamlVersion;
@@ -319,18 +329,8 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink {path; manifest;})
   end
 
-let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+let resolve' ~fullMetadata ~name ~spec resolver =
   let open RunAsync.Syntax in
-
-  let spec =
-    match spec with
-    | None ->
-      if Package.isOpamPackageName name
-      then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
-      else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-    | Some spec -> spec
-  in
-
   match spec with
 
   | VersionSpec.Npm _
@@ -426,3 +426,25 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     } in
     let versionSpec = VersionSpec.ofVersion version in
     return ([resolution], Some versionSpec)
+
+let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+  let open RunAsync.Syntax in
+  match Resolutions.find resolver.resolutions name with
+  | Some resolution ->
+    let spec =
+      match resolution.resolution with
+      | Version version ->
+        VersionSpec.ofVersion version
+      | SourceOverride _ -> failwith "TODO"
+    in
+    return ([resolution], Some spec)
+  | None ->
+    let spec =
+      match spec with
+      | None ->
+        if Package.isOpamPackageName name
+        then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
+        else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+      | Some spec -> spec
+    in
+    resolve' ~fullMetadata ~name ~spec resolver

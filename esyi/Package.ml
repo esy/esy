@@ -177,39 +177,6 @@ module Dependencies = struct
       in
       Req.Set.elements reqs
 
-  let applyResolutions resolutions (deps : t) =
-    match deps with
-    | OpamFormula deps ->
-      let applyToDep (dep : Dep.t) =
-        match Resolutions.find resolutions dep.name with
-        | Some resolution ->
-          let req =
-            match resolution.Resolution.resolution with
-            | Version Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
-            | Version Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
-            | Version Source src -> Dep.Source (SourceSpec.ofSource src)
-            | SourceOverride _ -> failwith "TODO"
-          in
-          {dep with req}
-        | None -> dep
-      in
-      let deps = List.map ~f:(List.map ~f:applyToDep) deps in
-      OpamFormula deps
-    | NpmFormula reqs ->
-      let applyToReq (req : Req.t) =
-        match Resolutions.find resolutions req.name with
-        | Some resolution ->
-          begin match resolution.Resolution.resolution with
-          | Version version ->
-            let spec = VersionSpec.ofVersion version in
-            Req.make ~name:req.name ~spec
-          | SourceOverride _ -> failwith "TODO"
-          end
-        | None -> req
-      in
-      let reqs = List.map ~f:applyToReq reqs in
-      NpmFormula reqs
-
   let pp fmt deps =
     match deps with
     | OpamFormula deps ->

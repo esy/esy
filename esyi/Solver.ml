@@ -225,7 +225,7 @@ let make ~cfg ?resolver ~resolutions () =
   let open RunAsync.Syntax in
   let%bind resolver =
     match resolver with
-    | None -> Resolver.make ~cfg ()
+    | None -> Resolver.make ~cfg ~resolutions ()
     | Some resolver -> return resolver
   in
   let universe = ref Universe.empty in
@@ -257,10 +257,6 @@ let add ~(dependencies : Dependencies.t) solver =
     else return ()
 
   and addDependencies (dependencies : Dependencies.t) =
-    let dependencies =
-      Dependencies.applyResolutions solver.resolutions dependencies
-    in
-
     match dependencies with
     | Dependencies.NpmFormula reqs ->
       let%bind reqs = RunAsync.List.joinAll (
@@ -558,9 +554,6 @@ let solveDependenciesNaively
   in
 
   let solveDependencies dependencies =
-    let dependencies =
-      Dependencies.applyResolutions solver.resolutions dependencies
-    in
     let reqs =
       match dependencies with
       | Dependencies.NpmFormula reqs -> reqs
@@ -643,9 +636,15 @@ let solveDependenciesNaively
 
   return packagesToDependencies
 
-let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
+let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
   let open RunAsync.Syntax in
-  let%bind resolver = Resolver.make ~opamRegistry ~cfg () in
+  let%bind resolver =
+    Resolver.make
+      ~resolutions:sandbox.resolutions
+      ~cfg:sandbox.cfg
+      ~opamRegistry
+      ()
+  in
 
   let make resolution =
     Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution);%lwt
@@ -690,7 +689,7 @@ let solve (sandbox : Sandbox.t) =
     | Some ocamlReq ->
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
-          (solveOCamlReq ~cfg:sandbox.cfg ~opamRegistry ocamlReq)
+          (solveOCamlReq ~sandbox ~opamRegistry ocamlReq)
           "resolving %a" Req.pp ocamlReq
       in
 
@@ -717,7 +716,14 @@ let solve (sandbox : Sandbox.t) =
   in
 
   let%bind solver, dependencies =
-    let%bind resolver = Resolver.make ?ocamlVersion ~opamRegistry ~cfg:sandbox.cfg () in
+    let%bind resolver =
+      Resolver.make
+        ?ocamlVersion
+        ~opamRegistry
+        ~cfg:sandbox.cfg
+        ~resolutions:sandbox.resolutions
+        ()
+    in
     let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
