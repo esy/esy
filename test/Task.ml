@@ -36,9 +36,9 @@ let makeSandbox root dependencies =
   {
     Sandbox.
     spec = {
-      EsyLib.SandboxSpec.
+      EsyInstall.SandboxSpec.
       path = Path.v "/sandbox";
-      manifest = EsyLib.SandboxSpec.ManifestSpec.Esy "package.json";
+      manifest = EsyInstall.SandboxSpec.ManifestSpec.Esy "package.json";
     };
     cfg;
     buildConfig;

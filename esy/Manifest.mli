@@ -145,10 +145,10 @@ include MANIFEST
  *)
 val ofDir :
   ?name:string
-  -> ?manifest:SandboxSpec.ManifestSpec.t
+  -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
-val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

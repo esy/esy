@@ -83,7 +83,7 @@ module CommonOptions = struct
 
   type t = {
     cfg : Config.t;
-    spec : SandboxSpec.t;
+    spec : EsyInstall.SandboxSpec.t;
     installSandbox : EsyInstall.Sandbox.t;
   }
 
@@ -209,12 +209,12 @@ module CommonOptions = struct
         let open RunAsync.Syntax in
 
         let%bind sandboxPath = sandboxPath in
-        let%bind spec = SandboxSpec.ofPath sandboxPath in
+        let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
 
         let%bind prefixPath = match prefixPath with
           | Some prefixPath -> return (Some prefixPath)
           | None ->
-            let%bind rc = EsyRc.ofPath spec.SandboxSpec.path in
+            let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
             return rc.EsyRc.prefixPath
         in
 
@@ -297,7 +297,7 @@ end
 
 module SandboxInfo = struct
   type t = {
-    spec: SandboxSpec.t;
+    spec: EsyInstall.SandboxSpec.t;
     sandbox : Sandbox.t;
     task : Task.t;
     commandEnv : Environment.Bindings.t;
@@ -305,7 +305,7 @@ module SandboxInfo = struct
     info : Sandbox.info;
   }
 
-  let cachePath (cfg : Config.t) (spec : SandboxSpec.t) =
+  let cachePath (cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
     let hash = [
       Path.toString cfg.storePath;
       Path.toString spec.path;
@@ -315,7 +315,7 @@ module SandboxInfo = struct
       |> Digest.string
       |> Digest.to_hex
     in
-    Path.(SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
+    Path.(EsyInstall.SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
 
   let writeCache (cfg : Config.t) (info : t) =
     let open RunAsync.Syntax in
@@ -333,7 +333,7 @@ module SandboxInfo = struct
       in
 
       let%bind () =
-        if SandboxSpec.isDefault info.spec
+        if EsyInstall.SandboxSpec.isDefault info.spec
         then
           let writeData filename data =
             let f oc =
@@ -1351,7 +1351,7 @@ let gc (copts : CommonOptions.t) dryRun (roots : Path.t list) () =
   let%bind () =
     let%bind keep =
       let visitSandbox keep root =
-        match%lwt SandboxSpec.ofPath root with
+        match%lwt EsyInstall.SandboxSpec.ofPath root with
         | Ok spec ->
           let%bind sandbox, _ = Sandbox.make ~cfg:copts.cfg spec in
           let%bind task = RunAsync.ofRun (Task.ofSandbox sandbox) in

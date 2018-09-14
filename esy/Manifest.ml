@@ -8,6 +8,7 @@ module BuildType = struct
     | _ -> Error "expected false, true or \"_build\""
 end
 
+module SandboxSpec = EsyInstall.SandboxSpec
 module PackageJson = EsyInstall.PackageJson
 module Source = EsyInstall.Source
 module SourceType = EsyBuildPackage.SourceType
