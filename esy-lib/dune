@@ -22,6 +22,8 @@
             str
             astring
             EsyShellExpansion
+            tar
+            ezgzip
             )
   )
 
