@@ -142,7 +142,6 @@ type t = {
 
 and source =
   | Source of Source.t
-  | SourceSpec of SourceSpec.t
 
 and kind =
   | Esy

@@ -171,15 +171,13 @@ let rec findResolutionForRequest ~req = function
     then Some res
     else findResolutionForRequest ~req rest
 
-let solutionRecordOfPkg ~solver (pkg : Package.t) =
+let solutionRecordOfPkg ~solver:_ (pkg : Package.t) =
   let open RunAsync.Syntax in
 
   let%bind source =
     let resolve source =
       match source with
       | Package.Source source -> return source
-      | Package.SourceSpec sourceSpec ->
-        Resolver.resolveSource ~name:pkg.name ~sourceSpec solver.resolver
     in
     let main, mirrors = pkg.source in
     let%bind main = resolve main and
