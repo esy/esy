@@ -10,7 +10,7 @@ end
 
 module CommandList : sig
 
-  type t = Command.t list option
+  type t = Command.t list
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t

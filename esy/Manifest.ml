@@ -128,10 +128,9 @@ module Scripts = struct
       match CommandList.of_yojson json with
       | Ok command ->
         begin match command with
-        | None
-        | Some [] -> Error "empty command"
-        | Some [command] -> Ok {command;}
-        | Some _ -> Error "multiple script commands are not supported"
+        | [] -> Error "empty command"
+        | [command] -> Ok {command;}
+        | _ -> Error "multiple script commands are not supported"
         end
       | Error err -> Error err
     in
@@ -544,7 +543,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
-          Build.EsyCommands (Some build)
+          Build.EsyCommands build
         | Some {EsyInstall.Package.OpamOverride. build = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
@@ -560,7 +559,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
-          Build.EsyCommands (Some install)
+          Build.EsyCommands install
         | Some {EsyInstall.Package.OpamOverride. install = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.install manifest.opam)

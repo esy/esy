@@ -29,33 +29,25 @@ module CommandList = struct
 
   [@@@ocaml.warning "-32"]
   type t =
-    Command.t list option
+    Command.t list
     [@@deriving (show, eq, ord)]
 
-  let empty = None
+  let empty = []
 
   let toString = show
 
   let of_yojson (json : Json.t) =
     let open Result.Syntax in
-    let commands =
-      match json with
-      | `Null -> Ok []
-      | `List commands ->
-        Json.Parse.list Command.of_yojson (`List commands)
-      | `String command ->
-        let%bind command = Command.of_yojson (`String command) in
-        Ok [command]
-      | _ -> Error "expected either a null, a string or an array"
-    in
-    match%bind commands with
-    | [] -> Ok None
-    | commands -> Ok (Some commands)
+    match json with
+    | `Null -> return []
+    | `List commands ->
+      Json.Parse.list Command.of_yojson (`List commands)
+    | `String command ->
+      let%bind command = Command.of_yojson (`String command) in
+      return [command]
+    | _ -> Error "expected either a null, a string or an array"
 
-  let to_yojson commands =
-    match commands with
-    | None -> `List []
-    | Some commands -> `List (List.map ~f:Command.to_yojson commands)
+  let to_yojson commands = `List (List.map ~f:Command.to_yojson commands)
 
 end
 

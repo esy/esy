@@ -186,8 +186,8 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
             Manifest.Build.
             sourceType = Manifest.SourceType.Transient;
             buildEnv = Manifest.Env.empty;
-            buildCommands = Manifest.Build.EsyCommands None;
-            installCommands = Manifest.Build.EsyCommands None;
+            buildCommands = Manifest.Build.EsyCommands [];
+            installCommands = Manifest.Build.EsyCommands [];
             buildType = Manifest.BuildType.OutOfSource;
             patches = [];
             substs = [];
