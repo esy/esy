@@ -279,8 +279,8 @@ module LockfileV1 = struct
       Digest.string (digest ^ "__" ^ showDependencies dependencies)
     in
     let hashResolutions ~resolutions digest =
-      let f digest (key, version) =
-      Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.toString version)
+      let f digest resolution =
+        Digest.string (digest ^ "__" ^ Package.Resolution.show resolution)
       in
       List.fold_left
         ~f ~init:digest

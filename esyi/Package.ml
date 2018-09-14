@@ -5,19 +5,52 @@ type 'a disj = 'a list [@@deriving eq]
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list [@@deriving eq]
 
+module Resolution = struct
+
+  type t = {
+    name : string;
+    resolution : resolution;
+  }
+
+  and resolution =
+    Version of Version.t
+
+  let toString {name; resolution} =
+    let resolution =
+      match resolution with
+      | Version v -> Version.show v
+    in
+    name ^ "@" ^ resolution
+
+  let show = toString
+  let pp fmt r = Fmt.string fmt (show r)
+
+  let resolution_to_yojson resolution =
+    match resolution with
+    | Version v -> `String (Version.show v)
+
+  let resolution_of_yojson json =
+    match json with
+    | `String v -> Version.parse v
+    | _ -> Error "expected string"
+
+end
+
 module Resolutions = struct
-  type t = Version.t StringMap.t
+  type t = Resolution.t StringMap.t
 
   let empty = StringMap.empty
 
-  let find resolutions pkgName =
-    StringMap.find_opt pkgName resolutions
+  let find resolutions name =
+    StringMap.find_opt name resolutions
 
-  let entries = StringMap.bindings
+  let entries = StringMap.values
 
   let to_yojson v =
     let items =
-      let f k v items = (k, (`String (Version.toString v)))::items in
+      let f name {Resolution. resolution; _} items =
+        (name, Resolution.resolution_to_yojson resolution)::items
+      in
       StringMap.fold f v []
     in
     `Assoc items
@@ -29,13 +62,15 @@ module Resolutions = struct
       | Ok ((_path, name)) -> Ok name
       | Error err -> Error err
     in
-    let parseValue key =
+    let parseValue name =
       function
-      | `String v -> begin
-        match String.cut ~sep:"/" key with
-        | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
-        | _ -> Version.parse v
-        end
+      | `String v ->
+        let%bind version =
+          match String.cut ~sep:"/" name with
+          | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
+          | _ -> Version.parse v
+        in
+        return {Resolution. name; resolution = Resolution.Version version;}
       | _ -> Error "expected string"
     in
     function
@@ -115,12 +150,12 @@ module Dependencies = struct
     | OpamFormula deps ->
       let applyToDep (dep : Dep.t) =
         match Resolutions.find resolutions dep.name with
-        | Some version ->
+        | Some resolution ->
           let req =
-            match version with
-            | Version.Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
-            | Version.Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
-            | Version.Source src -> Dep.Source (SourceSpec.ofSource src)
+            match resolution.Resolution.resolution with
+            | Version Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
+            | Version Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
+            | Version Source src -> Dep.Source (SourceSpec.ofSource src)
           in
           {dep with req}
         | None -> dep
@@ -130,9 +165,12 @@ module Dependencies = struct
     | NpmFormula reqs ->
       let applyToReq (req : Req.t) =
         match Resolutions.find resolutions req.name with
-        | Some version ->
-          let spec = VersionSpec.ofVersion version in
-          Req.make ~name:req.name ~spec
+        | Some resolution ->
+          begin match resolution.Resolution.resolution with
+          | Version version ->
+            let spec = VersionSpec.ofVersion version in
+            Req.make ~name:req.name ~spec
+          end
         | None -> req
       in
       let reqs = List.map ~f:applyToReq reqs in

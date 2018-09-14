@@ -17,13 +17,26 @@ module Dep : sig
   val matches : name : string -> version : Version.t -> t -> bool
 end
 
+module Resolution : sig
+  type t = {
+    name : string;
+    resolution : resolution;
+  }
+
+  and resolution =
+    Version of Version.t
+
+  include S.PRINTABLE with type t := t
+
+end
+
 module Resolutions : sig
   type t
 
   val empty : t
-  val find : t -> string -> Version.t option
+  val find : t -> string -> Resolution.t option
 
-  val entries : t -> (string * Version.t) list
+  val entries : t -> Resolution.t list
 
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
