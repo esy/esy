@@ -316,6 +316,46 @@ async function initialize(
     return true;
   }
 
+  async function processPackageVersionInfo(
+    params: ?Array<string>,
+    res: ServerResponse,
+  ): Promise<boolean> {
+    if (!params) {
+      return false;
+    }
+
+    const [, scope, localName, version] = params;
+    const name = scope ? `${scope}/${localName}` : localName;
+
+    const packageEntry = await getPackageEntry(packages, name);
+
+    if (!packageEntry) {
+      return processError(res, 404, `Package not found: ${name}`);
+    }
+
+    const packageVersionEntry = packageEntry.versions.get(version);
+
+    if (!packageVersionEntry) {
+      return processError(res, 404, `Package version not found: ${name}@${version}`);
+    }
+
+    const data = JSON.stringify(
+      Object.assign({}, packageVersionEntry.packageJson, {
+        dist: {
+          shasum:
+            packageVersionEntry.shasum ||
+            (await getPackageArchiveHash(packageRegistry, name, version)),
+          tarball: await getPackageHttpArchivePath(packageRegistry, name, version),
+        },
+      }),
+    );
+
+    res.writeHead(200, {['Content-Type']: 'application/json'});
+    res.end(data);
+
+    return true;
+  }
+
   async function processPackageTarball(
     params: ?Array<string>,
     res: ServerResponse,
@@ -374,6 +414,15 @@ async function initialize(
             if (
               await processPackageInfo(
                 url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)$/),
+                res,
+              )
+            ) {
+              return;
+            }
+
+            if (
+              await processPackageVersionInfo(
+                url.match(/^\/(?:(@[^\/]+)\/)?([^@\/][^\/]*)\/([^@\/][^\/]*)$/),
                 res,
               )
             ) {
