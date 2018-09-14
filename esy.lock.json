@@ -223,12 +223,12 @@
         "lodash.sortby@4.7.0", "tr46@1.0.1", "webidl-conversions@4.0.2"
       ]
     },
-    "whatwg-mimetype@2.1.0": {
+    "whatwg-mimetype@2.2.0": {
       "record": {
         "name": "whatwg-mimetype",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "source":
-          "archive:https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.1.0.tgz#sha1:f0f21d76cbba72362eb609dbed2a30cd17fcc7d4",
+          "archive:https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.2.0.tgz#sha1:a3d58ef10b76009b042d03e25591ece89b88d171",
         "files": [],
         "opam": null
       },
@@ -3232,7 +3232,7 @@
         "request-promise-native@1.0.5", "sax@1.2.4", "symbol-tree@3.2.2",
         "tough-cookie@2.4.3", "w3c-hr-time@1.0.1",
         "webidl-conversions@4.0.2", "whatwg-encoding@1.0.4",
-        "whatwg-mimetype@2.1.0", "whatwg-url@6.5.0", "ws@5.2.2",
+        "whatwg-mimetype@2.2.0", "whatwg-url@6.5.0", "ws@5.2.2",
         "xml-name-validator@3.0.0"
       ]
     },
@@ -5359,7 +5359,7 @@
         "@opam/dune@github:bryphe/dune#31f5b7e9", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
         "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
-        "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
+        "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20170607",
         "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
         "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
         "@opam/ppx_deriving@opam:4.2.1",
@@ -5867,7 +5867,7 @@
         "opam": null
       },
       "dependencies": [
-        "abab@2.0.0", "whatwg-mimetype@2.1.0", "whatwg-url@7.0.0"
+        "abab@2.0.0", "whatwg-mimetype@2.2.0", "whatwg-url@7.0.0"
       ]
     },
     "dashdash@1.14.1": {
@@ -7797,7 +7797,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/biniou@opam:1.2.0",
-        "@opam/cppo@opam:1.6.4", "@opam/easy-format@opam:1.3.1",
+        "@opam/cppo@opam:1.6.5", "@opam/easy-format@opam:1.3.1",
         "@opam/jbuilder@opam:transition"
       ]
     },
@@ -7835,7 +7835,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-threads@opam:base",
         "@opam/base-unix@opam:base", "@opam/camomile@opam:1.0.1",
-        "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
+        "@opam/cppo@opam:1.6.5", "@opam/jbuilder@opam:transition",
         "@opam/lambda-term@opam:1.13", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_react@opam:1.1.1", "@opam/ocamlfind@opam:1.8.0",
         "@opam/react@opam:1.2.1"
@@ -8196,7 +8196,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/cppo_ocamlbuild@opam:1.6.0", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/ppx_deriving@opam:4.2.1",
         "@opam/result@opam:1.3", "@opam/yojson@opam:1.4.1"
@@ -8236,7 +8236,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/cppo_ocamlbuild@opam:1.6.0",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlbuild@opam:0.12.0", "@opam/ocamlfind@opam:1.8.0",
@@ -8369,7 +8369,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
-        "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.4",
+        "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
         "@opam/re@opam:1.8.0"
       ]
@@ -8414,11 +8414,6 @@
             "name": "ocamlfind.install",
             "content":
               "bin: [\n  \"src/findlib/ocamlfind\" {\"ocamlfind\"}\n  \"?src/findlib/ocamlfind_opt\" {\"ocamlfind\"}\n  \"?tools/safe_camlp4\"\n]\ntoplevel: [\"src/findlib/topfind\"]\n"
-          },
-          {
-            "name": "_esy/findlib-1.8.0.patch",
-            "content":
-              "--- ./Makefile\n+++ ./Makefile\n@@ -57,16 +57,16 @@\n \tcat findlib.conf.in | \\\n \t    $(SH) tools/patch '@SITELIB@' '$(OCAML_SITELIB)' >findlib.conf\n \tif ./tools/cmd_from_same_dir ocamlc; then \\\n-\t\techo 'ocamlc=\"ocamlc.opt\"' >>findlib.conf; \\\n+\t\techo 'ocamlc=\"ocamlc.opt$(EXEC_SUFFIX)\"' >>findlib.conf; \\\n \tfi\n \tif ./tools/cmd_from_same_dir ocamlopt; then \\\n-\t\techo 'ocamlopt=\"ocamlopt.opt\"' >>findlib.conf; \\\n+\t\techo 'ocamlopt=\"ocamlopt.opt$(EXEC_SUFFIX)\"' >>findlib.conf; \\\n \tfi\n \tif ./tools/cmd_from_same_dir ocamldep; then \\\n-\t\techo 'ocamldep=\"ocamldep.opt\"' >>findlib.conf; \\\n+\t\techo 'ocamldep=\"ocamldep.opt$(EXEC_SUFFIX)\"' >>findlib.conf; \\\n \tfi\n \tif ./tools/cmd_from_same_dir ocamldoc; then \\\n-\t\techo 'ocamldoc=\"ocamldoc.opt\"' >>findlib.conf; \\\n+\t\techo 'ocamldoc=\"ocamldoc.opt$(EXEC_SUFFIX)\"' >>findlib.conf; \\\n \tfi\n \n .PHONY: install-doc\n--- ./src/findlib/findlib_config.mlp\n+++ ./src/findlib/findlib_config.mlp\n@@ -24,3 +24,5 @@\n     | \"MacOS\" -> \"\"        (* don't know *)\n     | _ -> failwith \"Unknown Sys.os_type\"\n ;;\n+\n+let exec_suffix = \"@EXEC_SUFFIX@\";;\n--- ./src/findlib/findlib.ml\n+++ ./src/findlib/findlib.ml\n@@ -28,15 +28,20 @@\n let conf_ldconf = ref \"\";;\n let conf_ignore_dups_in = ref ([] : string list);;\n \n-let ocamlc_default = \"ocamlc\";;\n-let ocamlopt_default = \"ocamlopt\";;\n-let ocamlcp_default = \"ocamlcp\";;\n-let ocamloptp_default = \"ocamloptp\";;\n-let ocamlmklib_default = \"ocamlmklib\";;\n-let ocamlmktop_default = \"ocamlmktop\";;\n-let ocamldep_default = \"ocamldep\";;\n-let ocamlbrowser_default = \"ocamlbrowser\";;\n-let ocamldoc_default = \"ocamldoc\";;\n+let add_exec str =\n+  match Findlib_config.exec_suffix with\n+  | \"\" -> str\n+  | a  -> str ^ a ;;\n+let ocamlc_default = add_exec \"ocamlc\";;\n+let ocamlopt_default = add_exec \"ocamlopt\";;\n+let ocamlcp_default = add_exec \"ocamlcp\";;\n+let ocamloptp_default = add_exec \"ocamloptp\";;\n+let ocamlmklib_default = add_exec \"ocamlmklib\";;\n+let ocamlmktop_default = add_exec \"ocamlmktop\";;\n+let ocamldep_default = add_exec \"ocamldep\";;\n+let ocamlbrowser_default = add_exec \"ocamlbrowser\";;\n+let ocamldoc_default = add_exec \"ocamldoc\";;\n+\n \n \n let init_manually \n--- ./src/findlib/fl_package_base.ml\n+++ ./src/findlib/fl_package_base.ml\n@@ -133,7 +133,15 @@\n \t  List.find (fun def -> def.def_var = \"exists_if\") p.package_defs  in\n \tlet files = Fl_split.in_words def.def_value in\n \tList.exists \n-\t  (fun file -> Sys.file_exists (Filename.concat d' file))\n+\t  (fun file ->\n+            let fln = Filename.concat d' file in\n+            let e = Sys.file_exists fln in\n+            (* necessary for ppx executables *)\n+            if e || Sys.os_type <> \"Win32\" || Filename.check_suffix fln \".exe\" then\n+              e\n+            else\n+              Sys.file_exists (fln ^ \".exe\")\n+          )\n \t  files\n       with Not_found -> true in\n \n--- ./src/findlib/fl_split.ml\n+++ ./src/findlib/fl_split.ml\n@@ -126,10 +126,17 @@\n     | '/' | '\\\\' -> true\n     | _ -> false in\n   let norm_dir_win() =\n-    if l >= 1 && s.[0] = '/' then\n-      Buffer.add_char b '\\\\' else Buffer.add_char b s.[0];\n-    if l >= 2 && s.[1] = '/' then\n-      Buffer.add_char b '\\\\' else Buffer.add_char b s.[1];\n+    if l >= 1 then (\n+      if s.[0] = '/' then\n+        Buffer.add_char b '\\\\'\n+      else\n+        Buffer.add_char b s.[0] ;\n+      if l >= 2 then\n+        if s.[1] = '/' then\n+          Buffer.add_char b '\\\\'\n+        else\n+          Buffer.add_char b s.[1];\n+    );\n     for k = 2 to l - 1 do\n       let c = s.[k] in\n       if is_slash c then (\n--- ./src/findlib/frontend.ml\n+++ ./src/findlib/frontend.ml\n@@ -31,10 +31,18 @@\n   else\n     Sys_error (arg ^ \": \" ^ Unix.error_message code)\n \n+let is_win = Sys.os_type = \"Win32\"\n+\n+let () =\n+  match Findlib_config.system with\n+    | \"win32\" | \"win64\" | \"mingw\" | \"cygwin\" | \"mingw64\" | \"cygwin64\" ->\n+      (try set_binary_mode_out stdout true with _ -> ());\n+      (try set_binary_mode_out stderr true with _ -> ());\n+    | _ -> ()\n \n let slashify s =\n   match Findlib_config.system with\n-    | \"mingw\" | \"mingw64\" | \"cygwin\" ->\n+    | \"win32\" | \"win64\" | \"mingw\" | \"cygwin\" | \"mingw64\" | \"cygwin64\" ->\n         let b = Buffer.create 80 in\n         String.iter\n           (function\n@@ -49,7 +57,7 @@\n \n let out_path ?(prefix=\"\") s =\n   match Findlib_config.system with\n-    | \"mingw\" | \"mingw64\" | \"cygwin\" ->\n+   | \"win32\" | \"win64\" | \"mingw\" | \"mingw64\" | \"cygwin\" ->\n \tlet u = slashify s in\n \tprefix ^ \n \t  (if String.contains u ' ' then\n@@ -273,11 +281,9 @@\n \n \n let identify_dir d =\n-  match Sys.os_type with\n-    | \"Win32\" ->\n-\tfailwith \"identify_dir\"   (* not available *)\n-    | _ ->\n-\tlet s = Unix.stat d in\n+  if is_win then\n+    failwith \"identify_dir\";   (* not available *)\n+  let s = Unix.stat d in\n \t(s.Unix.st_dev, s.Unix.st_ino)\n ;;\n \n@@ -459,6 +465,96 @@\n       )\n       packages\n \n+let rewrite_cmd s =\n+  if s = \"\" || not is_win then\n+    s\n+  else\n+    let s =\n+      let l = String.length s in\n+      let b = Buffer.create l in\n+      for i = 0 to pred l do\n+        match s.[i] with\n+        | '/' -> Buffer.add_char b '\\\\'\n+        | x -> Buffer.add_char b x\n+      done;\n+      Buffer.contents b\n+    in\n+    if (Filename.is_implicit s && String.contains s '\\\\' = false) ||\n+      Filename.check_suffix (String.lowercase s) \".exe\" then\n+      s\n+    else\n+      let s' = s ^ \".exe\" in\n+      if Sys.file_exists s' then\n+        s'\n+      else\n+        s\n+\n+let rewrite_cmd s =\n+  if s = \"\" || not is_win then s else\n+  let s =\n+    let l = String.length s in\n+    let b = Buffer.create l in\n+    for i = 0 to pred l do\n+      match s.[i] with\n+      | '/' -> Buffer.add_char b '\\\\'\n+      | x -> Buffer.add_char b x\n+    done;\n+    Buffer.contents b\n+  in\n+  if (Filename.is_implicit s && String.contains s '\\\\' = false) ||\n+     Filename.check_suffix (String.lowercase s) \".exe\" then\n+    s\n+  else\n+    let s' = s ^ \".exe\" in\n+    if Sys.file_exists s' then\n+      s'\n+    else\n+      s\n+\n+let rewrite_pp cmd =\n+  if not is_win then cmd else\n+  let module T = struct exception Keep end in\n+  let is_whitespace = function\n+  | ' ' | '\\011' | '\\012' | '\\n' | '\\r' | '\\t' -> true\n+  | _ -> false in\n+  (* characters that triggers special behaviour (cmd.exe, not unix shell) *)\n+  let is_unsafe_char = function\n+  | '(' | ')' | '%' | '!' | '^' | '<' | '>' | '&' -> true\n+  | _ -> false in\n+  let len = String.length cmd in\n+  let buf = Buffer.create (len + 4) in\n+  let buf_cmd = Buffer.create len in\n+  let rec iter_ws i =\n+    if i >= len then () else\n+    let cur = cmd.[i] in\n+    if is_whitespace cur then (\n+      Buffer.add_char buf cur;\n+      iter_ws (succ i)\n+    )\n+    else\n+      iter_cmd i\n+  and iter_cmd i =\n+    if i >= len then add_buf_cmd () else\n+    let cur = cmd.[i] in\n+    if is_unsafe_char cur || cur = '\"' || cur = '\\'' then\n+      raise T.Keep;\n+    if is_whitespace cur then (\n+      add_buf_cmd ();\n+      Buffer.add_substring buf cmd i (len - i)\n+    )\n+    else (\n+      Buffer.add_char buf_cmd cur;\n+      iter_cmd (succ i)\n+    )\n+  and add_buf_cmd () =\n+    if Buffer.length buf_cmd > 0 then\n+      Buffer.add_string buf (rewrite_cmd (Buffer.contents buf_cmd))\n+  in\n+  try\n+    iter_ws 0;\n+    Buffer.contents buf\n+  with\n+  | T.Keep -> cmd\n \n let process_pp_spec syntax_preds packages pp_opts =\n   (* Returns: pp_command *)\n@@ -549,7 +645,7 @@\n       None -> []\n     | Some cmd ->\n \t[\"-pp\";\n-\t cmd ^ \" \" ^\n+\t (rewrite_cmd cmd) ^ \" \" ^\n \t String.concat \" \" (List.map Filename.quote pp_i_options) ^ \" \" ^\n \t String.concat \" \" (List.map Filename.quote pp_archives) ^ \" \" ^\n \t String.concat \" \" (List.map Filename.quote pp_opts)]\n@@ -625,9 +721,11 @@\n           in\n           try\n             let preprocessor =\n+              rewrite_cmd (\n               resolve_path\n                 ~base ~explicit:true\n-                (package_property predicates pname \"ppx\") in\n+                  (package_property predicates pname \"ppx\") )\n+            in\n             [\"-ppx\"; String.concat \" \" (preprocessor :: options)]\n           with Not_found -> []\n        )\n@@ -895,6 +993,14 @@\n        switch (e.g. -L<path> instead of -L <path>)\n      *)\n \n+(* We may need to remove files on which we do not have complete control.\n+   On Windows, removing a read-only file fails so try to change the\n+   mode of the file first. *)\n+let remove_file fname =\n+  try Sys.remove fname\n+  with Sys_error _ when is_win ->\n+    (try Unix.chmod fname 0o666 with Unix.Unix_error _ -> ());\n+    Sys.remove fname\n \n let ocamlc which () =\n \n@@ -1022,9 +1128,12 @@\n               \n \t      \"-intf\", \n \t      Arg.String (fun s -> pass_files := !pass_files @ [ Intf(slashify s) ]);\n-              \n+\n \t      \"-pp\", \n-\t      Arg.String (fun s -> pp_specified := true; add_spec_fn \"-pp\" s);\n+\t      Arg.String (fun s -> pp_specified := true; add_spec_fn \"-pp\" (rewrite_pp s));\n+\n+              \"-ppx\",\n+              Arg.String (fun s -> add_spec_fn \"-ppx\" (rewrite_pp s));\n \t      \n \t      \"-thread\", \n \t      Arg.Unit (fun _ -> threads := threads_default);\n@@ -1237,7 +1346,7 @@\n     with\n       any ->\n \tclose_out initl;\n-\tSys.remove initl_file_name;\n+\tremove_file initl_file_name;\n \traise any\n   end;\n \n@@ -1245,9 +1354,9 @@\n     at_exit\n       (fun () ->\n \tlet tr f x = try f x with _ -> () in\n-\ttr Sys.remove initl_file_name;\n-\ttr Sys.remove (Filename.chop_extension initl_file_name ^ \".cmi\");\n-\ttr Sys.remove (Filename.chop_extension initl_file_name ^ \".cmo\");\n+\ttr remove_file initl_file_name;\n+\ttr remove_file (Filename.chop_extension initl_file_name ^ \".cmi\");\n+\ttr remove_file (Filename.chop_extension initl_file_name ^ \".cmo\");\n       );\n \n   let exclude_list = [ stdlibdir; threads_dir; vmthreads_dir ] in\n@@ -1493,7 +1602,9 @@\n \t  [ \"-v\", Arg.Unit (fun () -> verbose := Verbose);\n \t    \"-pp\", Arg.String (fun s ->\n \t\t\t\t pp_specified := true;\n-\t\t\t\t options := !options @ [\"-pp\"; s]);\n+\t\t\t\t options := !options @ [\"-pp\"; rewrite_pp s]);\n+            \"-ppx\", Arg.String (fun s ->\n+\t\t\t\t options := !options @ [\"-ppx\"; rewrite_pp s]);\n \t  ]\n       )\n     )\n@@ -1672,7 +1783,9 @@\n \t      Arg.String (fun s -> add_spec_fn \"-I\" (slashify (resolve_path s)));\n \n \t      \"-pp\", Arg.String (fun s -> pp_specified := true;\n-\t\t \t           add_spec_fn \"-pp\" s);\n+                           add_spec_fn \"-pp\" (rewrite_pp s));\n+              \"-ppx\", Arg.String (fun s -> add_spec_fn \"-ppx\" (rewrite_pp s));\n+\n \t    ]\n \t)\n     )\n@@ -1830,7 +1943,10 @@\n       output_string ch_out append;\n       close_out ch_out;\n       close_in ch_in;\n-      Unix.utimes outpath s.Unix.st_mtime s.Unix.st_mtime;\n+      (try Unix.utimes outpath s.Unix.st_mtime s.Unix.st_mtime\n+       with Unix.Unix_error(e,_,_) ->\n+         prerr_endline(\"Warning: setting utimes for \" ^ outpath\n+                       ^ \": \" ^ Unix.error_message e));\n \n       prerr_endline(\"Installed \" ^ outpath);\n     with\n@@ -1882,6 +1998,8 @@\n              Unix.openfile (Filename.concat dir owner_file) [Unix.O_RDONLY] 0 in\n            let f =\n              Unix.in_channel_of_descr fd in\n+           if is_win then\n+             set_binary_mode_in f false;\n            try\n              let line = input_line f in\n              let is_my_file = (line = pkg) in\n@@ -2208,7 +2326,7 @@\n     let lines = read_ldconf !ldconf in\n     let dlldir_norm = Fl_split.norm_dir dlldir in\n     let dlldir_norm_lc = string_lowercase_ascii dlldir_norm in\n-    let ci_filesys = (Sys.os_type = \"Win32\") in\n+    let ci_filesys = is_win in\n     let check_dir d =\n       let d' = Fl_split.norm_dir d in\n       (d' = dlldir_norm) || \n@@ -2356,7 +2474,7 @@\n       List.iter\n         (fun file ->\n            let absfile = Filename.concat dlldir file in\n-           Sys.remove absfile;\n+           remove_file absfile;\n            prerr_endline (\"Removed \" ^ absfile)\n         )\n         dll_files\n@@ -2365,7 +2483,7 @@\n     (* Remove the files from the package directory: *)\n     if Sys.file_exists pkgdir then begin\n       let files = Sys.readdir pkgdir in\n-      Array.iter (fun f -> Sys.remove (Filename.concat pkgdir f)) files;\n+      Array.iter (fun f -> remove_file (Filename.concat pkgdir f)) files;\n       Unix.rmdir pkgdir;\n       prerr_endline (\"Removed \" ^ pkgdir)\n     end\n@@ -2415,7 +2533,9 @@\n \n \n let print_configuration() =\n+  let sl = slashify in\n   let dir s =\n+    let s = sl s in\n     if Sys.file_exists s then\n       s\n     else\n@@ -2453,27 +2573,27 @@\n \t   if md = \"\" then \"the corresponding package directories\" else dir md\n \t  );\n \tPrintf.printf \"The standard library is assumed to reside in:\\n    %s\\n\"\n-\t  (Findlib.ocaml_stdlib());\n+    (sl (Findlib.ocaml_stdlib()));\n \tPrintf.printf \"The ld.conf file can be found here:\\n    %s\\n\"\n-\t  (Findlib.ocaml_ldconf());\n+    (sl (Findlib.ocaml_ldconf()));\n \tflush stdout\n     | Some \"conf\" ->\n-\tprint_endline Findlib_config.config_file\n+  print_endline (sl Findlib_config.config_file)\n     | Some \"path\" ->\n-\tList.iter print_endline (Findlib.search_path())\n+  List.iter ( fun x -> print_endline (sl x)) (Findlib.search_path())\n     | Some \"destdir\" ->\n-\tprint_endline (Findlib.default_location())\n+  print_endline ( sl (Findlib.default_location()))\n     | Some \"metadir\" ->\n-\tprint_endline (Findlib.meta_directory())\n+  print_endline ( sl (Findlib.meta_directory()))\n     | Some \"metapath\" ->\n         let mdir = Findlib.meta_directory() in\n         let ddir = Findlib.default_location() in\n-\tprint_endline \n-          (if mdir <> \"\" then mdir ^ \"/META.%s\" else ddir ^ \"/%s/META\")\n+  print_endline ( sl\n+          (if mdir <> \"\" then mdir ^ \"/META.%s\" else ddir ^ \"/%s/META\"))\n     | Some \"stdlib\" ->\n-\tprint_endline (Findlib.ocaml_stdlib())\n+  print_endline ( sl (Findlib.ocaml_stdlib()))\n     | Some \"ldconf\" ->\n-\tprint_endline (Findlib.ocaml_ldconf())\n+  print_endline ( sl (Findlib.ocaml_ldconf()))\n     | _ ->\n \tassert false\n ;;\n@@ -2481,7 +2601,7 @@\n \n let ocamlcall pkg cmd =\n   let dir = package_directory pkg in\n-  let path = Filename.concat dir cmd in\n+  let path = rewrite_cmd (Filename.concat dir cmd) in\n   begin\n     try Unix.access path [ Unix.X_OK ]\n     with\n@@ -2647,6 +2767,10 @@\n   | Sys_error f ->\n       prerr_endline (\"ocamlfind: \" ^ f);\n       exit 2\n+  | Unix.Unix_error (e, fn, f) ->\n+      prerr_endline (\"ocamlfind: \" ^ fn ^ \" \" ^ f\n+                     ^ \": \" ^ Unix.error_message e);\n+      exit 2\n   | Findlib.No_such_package(pkg,info) ->\n       prerr_endline (\"ocamlfind: Package `\" ^ pkg ^ \"' not found\" ^\n \t\t     (if info <> \"\" then \" - \" ^ info else \"\"));\n--- ./src/findlib/Makefile\n+++ ./src/findlib/Makefile\n@@ -90,6 +90,7 @@\n \tcat findlib_config.mlp | \\\n \t        $(SH) $(TOP)/tools/patch '@CONFIGFILE@' '$(OCAMLFIND_CONF)' | \\\n \t        $(SH) $(TOP)/tools/patch '@STDLIB@' '$(OCAML_CORE_STDLIB)' | \\\n+\t\t\t$(SH) $(TOP)/tools/patch '@EXEC_SUFFIX@' '$(EXEC_SUFFIX)' | \\\n \t\tsed -e 's;@AUTOLINK@;$(OCAML_AUTOLINK);g' \\\n \t\t    -e 's;@SYSTEM@;$(SYSTEM);g' \\\n \t\t     >findlib_config.ml\n@@ -113,7 +114,7 @@\n \t$(OCAMLC) -a -o num_top.cma $(NUMTOP_OBJECTS)\n \n clean:\n-\trm -f *.cmi *.cmo *.cma *.cmx *.a *.o *.cmxa \\\n+\trm -f *.cmi *.cmo *.cma *.cmx *.lib *.a *.o *.cmxa \\\n \t  fl_meta.ml findlib_config.ml findlib.mml topfind.ml topfind \\\n \t  ocamlfind$(EXEC_SUFFIX) ocamlfind_opt$(EXEC_SUFFIX)\n \n@@ -121,7 +122,7 @@\n \tmkdir -p \"$(prefix)$(OCAML_SITELIB)/$(NAME)\"\n \tmkdir -p \"$(prefix)$(OCAMLFIND_BIN)\"\n \ttest $(INSTALL_TOPFIND) -eq 0 || cp topfind \"$(prefix)$(OCAML_CORE_STDLIB)\"\n-\tfiles=`$(SH) $(TOP)/tools/collect_files $(TOP)/Makefile.config findlib.cmi findlib.mli findlib.cma findlib.cmxa findlib.a findlib.cmxs topfind.cmi topfind.mli fl_package_base.mli fl_package_base.cmi fl_metascanner.mli fl_metascanner.cmi fl_metatoken.cmi findlib_top.cma findlib_top.cmxa findlib_top.a findlib_top.cmxs findlib_dynload.cma findlib_dynload.cmxa findlib_dynload.a findlib_dynload.cmxs fl_dynload.mli fl_dynload.cmi META` && \\\n+\tfiles=`$(SH) $(TOP)/tools/collect_files $(TOP)/Makefile.config findlib.cmi findlib.mli findlib.cma findlib.cmxa findlib$(LIB_SUFFIX) findlib.cmxs topfind.cmi topfind.mli fl_package_base.mli fl_package_base.cmi fl_metascanner.mli fl_metascanner.cmi fl_metatoken.cmi findlib_top.cma findlib_top.cmxa findlib_top$(LIB_SUFFIX) findlib_top.cmxs findlib_dynload.cma findlib_dynload.cmxa findlib_dynload$(LIB_SUFFIX) findlib_dynload.cmxs fl_dynload.mli fl_dynload.cmi META` && \\\n \tcp $$files \"$(prefix)$(OCAML_SITELIB)/$(NAME)\"\n \tf=\"ocamlfind$(EXEC_SUFFIX)\"; { test -f ocamlfind_opt$(EXEC_SUFFIX) && f=\"ocamlfind_opt$(EXEC_SUFFIX)\"; }; \\\n \tcp $$f \"$(prefix)$(OCAMLFIND_BIN)/ocamlfind$(EXEC_SUFFIX)\"\n"
           }
         ],
         "opam": {
@@ -8428,10 +8423,6 @@
             "opam-version: \"1.2\"\nname: \"ocamlfind\"\nversion: \"1.8.0\"\nmaintainer: \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\nauthors: \"Gerd Stolpmann <gerd@gerd-stolpmann.de>\"\nhomepage: \"http://projects.camlcity.org/projects/findlib.html\"\nbug-reports: \"https://gitlab.camlcity.org/gerd/lib-findlib/issues\"\ndepends: [\n  \"conf-m4\" {build}\n]\navailable: ocaml-version >= \"4.00.0\"\nbuild: [\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-custom\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"all\"]\n  [make \"opt\"] {ocaml-native}\n]\ninstall: [\n  [make \"install\"]\n  [\"install\" \"-m\" \"0755\" \"ocaml-stub\" \"%{bin}%/ocaml\"] {preinstalled}\n]\nremove: [\n  [\"ocamlfind\" \"remove\" \"bytes\"]\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"uninstall\"]\n  [\"rm\" \"-f\" \"%{bin}%/ocaml\"] {preinstalled}\n]\ndev-repo: \"git+https://gitlab.camlcity.org/gerd/lib-findlib.git\"",
           "override": {
             "build": [
-              [
-                "bash", "-c",
-                "#{os == 'windows' ? 'patch -p1 < _esy/findlib-1.8.0.patch' : 'true'}"
-              ],
               [
                 "./configure", "-bindir", "#{self.bin}", "-sitelib",
                 "#{self.lib}", "-mandir", "#{self.man}", "-config",
@@ -8452,8 +8443,7 @@
             "exportedEnv": {
               "OCAML_TOPLEVEL_PATH": {
                 "val": "#{self.toplevel}",
-                "scope": "global",
-                "exclusive": false
+                "scope": "global"
               }
             }
           }
@@ -8580,43 +8570,25 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
-    "@opam/menhir@opam:20171013": {
+    "@opam/menhir@opam:20170607": {
       "record": {
         "name": "@opam/menhir",
-        "version": "opam:20171013",
+        "version": "opam:20170607",
         "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
+          "archive:https://opam.ocaml.org/archives/menhir.20170607+opam.tar.gz#md5:aad332baa558bd26202cebc2b1b84a0b",
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170607.tar.gz#md5:993b60845182c71d777b1f3cf9a01b96"
         ],
-        "files": [
-          {
-            "name": "_esy/menhir-20171013.patch",
-            "content":
-              "--- ./Makefile\n+++ ./Makefile\n@@ -59,13 +59,8 @@\n \n # If the compiler is MSVC, then object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n-else\n-  OBJ          := o\n-# LIBSUFFIX    := a\n-endif\n+OBJ          := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_obj:/ {print $$2}' | tr -d '.')\n+#LIBSUFFIX   := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_lib:/ {print $$2}' | tr -d '.')\n \n # If we are under Windows (regardless of whether we are using MSVC or mingw)\n # then the name of the executable file ends in .exe.\n@@ -91,8 +86,9 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+OS_TYPE:=\t$(shell ocamlc -config | awk -F '[\\t \\r]+' '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
-          }
-        ],
+        "files": [],
         "opam": {
           "name": "menhir",
-          "version": "20171013",
+          "version": "20170607",
           "opam":
-            "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20171013\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
-          "override": {
-            "build": [
-              [
-                "bash", "-c",
-                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20171013.patch' : 'true'}"
-              ],
-              [
-                "make", "-f", "Makefile", "PREFIX=#{self.install}",
-                "USE_OCAMLFIND=true", "docdir=#{self.doc}/menhir",
-                "libdir=#{self.lib}/menhir", "mandir=#{self.man}/man1"
-              ]
-            ]
-          }
+            "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20170607\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
+          "override": null
         }
       },
       "dependencies": [
@@ -8709,7 +8681,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlfind@opam:1.8.0",
         "@opam/result@opam:1.3"
       ]
@@ -8860,7 +8832,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/cppo@opam:1.6.4", "@opam/ocamlfind@opam:1.8.0"
+        "@opam/cppo@opam:1.6.5", "@opam/ocamlfind@opam:1.8.0"
       ]
     },
     "@opam/easy-format@opam:1.3.1": {
@@ -8950,7 +8922,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
-        "@opam/cppo@opam:1.6.4", "@opam/cudf@opam:0.9",
+        "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0"
       ]
@@ -8995,30 +8967,30 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlbuild@opam:0.12.0"
       ]
     },
-    "@opam/cppo@opam:1.6.4": {
+    "@opam/cppo@opam:1.6.5": {
       "record": {
         "name": "@opam/cppo",
-        "version": "opam:1.6.4",
+        "version": "opam:1.6.5",
         "source": [
-          "archive:https://opam.ocaml.org/archives/cppo.1.6.4+opam.tar.gz#md5:c6651a3677048b442859d085138c2cc2",
-          "archive:https://github.com/mjambon/cppo/archive/v1.6.4.tar.gz#md5:f7a4a6a0e83b76562b45db3a93ffd204"
+          "archive:https://opam.ocaml.org/archives/cppo.1.6.5+opam.tar.gz#md5:07b0faeb722c1d625befb89fdc39617f",
+          "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82"
         ],
         "files": [],
         "opam": {
           "name": "cppo",
-          "version": "1.6.4",
+          "version": "1.6.5",
           "opam":
-            "opam-version: \"1.2\"\nname: \"cppo\"\nversion: \"1.6.4\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nlicense: \"BSD-3-Clause\"\nhomepage: \"https://github.com/mjambon/cppo\"\nbug-reports: \"https://github.com/mjambon/cppo/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"base-bytes\"\n  \"base-unix\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/mjambon/cppo.git\"",
+            "opam-version: \"1.2\"\nname: \"cppo\"\nversion: \"1.6.5\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nlicense: \"BSD-3-Clause\"\nhomepage: \"https://github.com/mjambon/cppo\"\nbug-reports: \"https://github.com/mjambon/cppo/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"base-unix\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/mjambon/cppo.git\"",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/base-unix@opam:base", "@opam/jbuilder@opam:transition"
+        "@esy-ocaml/substs@0.0.1", "@opam/base-unix@opam:base",
+        "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/conf-which@opam:1": {
@@ -9351,7 +9323,7 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170607",
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
