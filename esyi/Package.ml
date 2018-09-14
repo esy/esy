@@ -5,34 +5,62 @@ type 'a disj = 'a list [@@deriving eq]
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list [@@deriving eq]
 
+module Override = struct
+  type t = {
+    build : PackageJson.CommandList.t option [@default None];
+    install : PackageJson.CommandList.t option [@default None];
+  } [@@deriving yojson, eq, ord]
+end
+
 module Resolution = struct
 
   type t = {
     name : string;
     resolution : resolution;
   }
+  [@@deriving eq, ord]
 
   and resolution =
-    Version of Version.t
-
-  let toString {name; resolution} =
-    let resolution =
-      match resolution with
-      | Version v -> Version.show v
-    in
-    name ^ "@" ^ resolution
-
-  let show = toString
-  let pp fmt r = Fmt.string fmt (show r)
+    | Version of Version.t
+    | SourceOverride of {source : Source.t; override : Override.t}
 
   let resolution_to_yojson resolution =
     match resolution with
     | Version v -> `String (Version.show v)
+    | SourceOverride {source; override} ->
+      `Assoc [
+        "source", Source.to_yojson source;
+        "override", Override.to_yojson override;
+      ]
 
   let resolution_of_yojson json =
+    let open Result.Syntax in
     match json with
-    | `String v -> Version.parse v
+    | `String v ->
+      let%bind version = Version.parse v in
+      return (Version version)
+    | `Assoc _ ->
+      let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
+      let%bind override = Json.Parse.fieldWith ~name:"override" Override.of_yojson json in
+      return (SourceOverride {source; override;})
     | _ -> Error "expected string"
+
+
+  let digest {name; resolution} =
+    let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
+    name ^ resolution |> Digest.string |> Digest.to_hex
+
+  let toString ({name; resolution;} as r) =
+    let resolution =
+      match resolution with
+      | Version version -> Version.toString version
+      | SourceOverride { source; override = _; } ->
+        Source.toString source ^ "@" ^ digest r
+    in
+    name ^ "@" ^ resolution
+
+  let show = toString
+  let pp fmt r = Fmt.string fmt (toString r)
 
 end
 
@@ -45,6 +73,10 @@ module Resolutions = struct
     StringMap.find_opt name resolutions
 
   let entries = StringMap.values
+
+  let digest resolutions =
+    let f _ resolution hash = Digest.string (hash ^ Resolution.digest resolution) in
+    StringMap.fold f resolutions ""
 
   let to_yojson v =
     let items =
@@ -156,6 +188,7 @@ module Dependencies = struct
             | Version Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
             | Version Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
             | Version Source src -> Dep.Source (SourceSpec.ofSource src)
+            | SourceOverride _ -> failwith "TODO"
           in
           {dep with req}
         | None -> dep
@@ -170,6 +203,7 @@ module Dependencies = struct
           | Version version ->
             let spec = VersionSpec.ofVersion version in
             Req.make ~name:req.name ~spec
+          | SourceOverride _ -> failwith "TODO"
           end
         | None -> req
       in

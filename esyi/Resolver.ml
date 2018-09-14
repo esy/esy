@@ -1,20 +1,7 @@
-module Resolution = struct
-  type t = {
-    name: string;
-    version: Version.t
-  } [@@deriving (eq, ord)]
-
-  let make name version = {name; version;}
-
-  let cmpByVersion a b =
-    Version.compare a.version b.version
-
-  let pp fmt {name; version} =
-    Fmt.pf fmt "%s@%a" name Version.pp version
-end
+module Resolution = Package.Resolution
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * Version.t)
+  type key = (string * Resolution.resolution)
   type value = (Package.t, string) result RunAsync.t
 end)
 
@@ -199,38 +186,39 @@ let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
-  let key = (resolution.name, resolution.version) in
-  PackageCache.compute resolver.pkgCache key begin fun _ ->
-    match resolution.version with
-    | Version.Source ((Source.LocalPath {path; manifest}) as source)
-    | Version.Source ((Source.LocalPathLink {path; manifest}) as source) ->
+  let key = (resolution.name, resolution.resolution) in
+
+  let ofSource (source : Source.t) =
+    match source with
+    | LocalPath {path; manifest}
+    | LocalPathLink {path; manifest} ->
       let%bind pkg = loadPackageOfPath
         ?manifest
         ~name:resolution.name
-        ~version:resolution.version
+        ~version:(Version.Source source)
         ~source:(Package.Source source)
         path
       in
       return (Ok pkg)
-    | Version.Source (Git {remote; commit; manifest;} as source) ->
+    | Git {remote; commit; manifest;} ->
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
         let%bind pkg = loadPackageOfPath
           ?manifest
           ~name:resolution.name
-          ~version:resolution.version
+        ~version:(Version.Source source)
           ~source:(Package.Source source)
           repo
         in
         return (Ok pkg)
       end
-    | Version.Source ((Github {user; repo; commit; manifest;}) as source) ->
+    | Github {user; repo; commit; manifest;} ->
       let%bind pkg =
         loadPackageOfGithub
           ?manifest
           ~name:resolution.name
-          ~version:resolution.version
+          ~version:(Version.Source source)
           ~source:(Package.Source source)
           ~user
           ~repo
@@ -238,8 +226,14 @@ let package ~(resolution : Resolution.t) resolver =
           ()
       in
       return (Ok pkg)
-    | Version.Source Source.NoSource -> error "no source"
-    | Version.Source (Source.Archive _) -> error "not implemented"
+    | NoSource -> error "no source"
+    | Archive _ -> error "not implemented"
+  in
+
+  let ofVersion (version : Version.t) =
+    match version with
+    | Version.Source source -> ofSource source
+
     | Version.Npm version ->
       let%bind pkg =
         NpmRegistry.package
@@ -259,10 +253,16 @@ let package ~(resolution : Resolution.t) resolver =
         | Some manifest ->
           OpamManifest.toPackage
             ~name:resolution.name
-            ~version:resolution.version
+            ~version:(Version.Opam version)
             manifest
         | None -> error ("no such opam package: " ^ resolution.name)
       end
+  in
+
+  PackageCache.compute resolver.pkgCache key begin fun _ ->
+    match resolution.resolution with
+    | Version version -> ofVersion version
+    | SourceOverride _ -> failwith "TODO"
   end
 
 let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
@@ -349,7 +349,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
       let resolutions =
         let f version =
           let version = Version.Npm version in
-          {Resolution. name; version}
+          {Resolution. name; resolution = Version version}
         in
         List.map ~f versions
       in
@@ -370,9 +370,15 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     let spec = Option.orDefault ~default:spec rewrittenSpec in
 
     let resolutions =
+      let tryCheckConformsToSpec resolution =
+        match resolution.Resolution.resolution with
+        | Version version -> VersionSpec.matches ~version:version spec
+        | SourceOverride _ -> true (* do not filter them out yet *)
+      in
+
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
-      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
+      |> List.sort ~cmp:(fun a b -> Resolution.compare b a)
+      |> List.filter ~f:tryCheckConformsToSpec
     in
 
     return (resolutions, rewrittenSpec)
@@ -390,16 +396,22 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
         in
         let f (resolution : OpamRegistry.resolution) =
           let version = Version.Opam resolution.version in
-          {Resolution. name; version}
+          {Resolution. name; resolution = Version version}
         in
         return (List.map ~f versions)
       end
     in
 
     let resolutions =
+      let tryCheckConformsToSpec resolution =
+        match resolution.Resolution.resolution with
+        | Version version -> VersionSpec.matches ~version:version spec
+        | SourceOverride _ -> true (* do not filter them out yet *)
+      in
+
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
-      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
+      |> List.sort ~cmp:(fun a b -> Resolution.compare b a)
+      |> List.filter ~f:tryCheckConformsToSpec
     in
 
     return (resolutions, None)
@@ -407,5 +419,10 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
   | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
+    let resolution = {
+      Resolution.
+      name;
+      resolution = Resolution.Version version;
+    } in
     let versionSpec = VersionSpec.ofVersion version in
-    return ([{Resolution. name; version}], Some versionSpec)
+    return ([resolution], Some versionSpec)

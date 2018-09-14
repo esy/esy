@@ -17,6 +17,13 @@ module Dep : sig
   val matches : name : string -> version : Version.t -> t -> bool
 end
 
+module Override : sig
+  type t = {
+    build : PackageJson.CommandList.t option;
+    install : PackageJson.CommandList.t option;
+  }
+end
+
 module Resolution : sig
   type t = {
     name : string;
@@ -24,10 +31,11 @@ module Resolution : sig
   }
 
   and resolution =
-    Version of Version.t
+    | Version of Version.t
+    | SourceOverride of {source : Source.t; override : Override.t}
 
+  include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
-
 end
 
 module Resolutions : sig
@@ -40,6 +48,8 @@ module Resolutions : sig
 
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
+
+  val digest : t -> string
 end
 
 module Dependencies : sig

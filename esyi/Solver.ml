@@ -1,5 +1,6 @@
 module Dependencies = Package.Dependencies
 module Resolutions = Package.Resolutions
+module Resolution = Package.Resolution
 
 module Strategy = struct
   let trendy = "-removed,-notuptodate,-new"
@@ -19,7 +20,7 @@ module Explanation = struct
 
     type t =
       | Conflict of {left : chain; right : chain}
-      | Missing of {name : string; path : chain; available : Resolver.Resolution.t list}
+      | Missing of {name : string; path : chain; available : Resolution.t list}
       [@@deriving ord]
 
     and chain =
@@ -36,7 +37,7 @@ module Explanation = struct
           "No packages matching:@;@[<v 2>@;%s (required by %a)@;@;Versions available:@;@[<v 2>@;%a@]@]"
           name
           ppChain path
-          (Fmt.list Resolver.Resolution.pp) available
+          (Fmt.list Resolution.pp) available
       | Conflict {left; right;} ->
         Fmt.pf fmt
           "@[<v 2>Conflicting dependencies:@;@%a@;%a@]"
@@ -163,10 +164,15 @@ end
 let rec findResolutionForRequest ~req = function
   | [] -> None
   | res::rest ->
+    let version =
+      match res.Resolution.resolution with
+      | Version version -> version
+      | SourceOverride _ -> failwith "TODO"
+    in
     if
       Req.matches
-        ~name:res.Resolver.Resolution.name
-        ~version:res.Resolver.Resolution.version
+        ~name:res.Resolution.name
+        ~version
         req
     then Some res
     else findResolutionForRequest ~req rest
@@ -307,13 +313,13 @@ let add ~(dependencies : Dependencies.t) solver =
         let%bind pkg =
           RunAsync.contextf
             (Resolver.package ~resolution solver.resolver)
-            "resolving metadata %a" Resolver.Resolution.pp resolution
+            "resolving metadata %a" Resolution.pp resolution
         in
         match pkg with
         | Ok pkg -> return (Some pkg)
         | Error reason ->
           Logs_lwt.info (fun m ->
-            m "skipping package %a: %s" Resolver.Resolution.pp resolution reason);%lwt
+            m "skipping package %a: %s" Resolution.pp resolution reason);%lwt
           return None
       in
       resolutions
@@ -522,7 +528,7 @@ let solveDependenciesNaively
       begin match%bind Resolver.package ~resolution solver.resolver with
       | Ok pkg -> return (Some pkg)
       | Error reason ->
-        errorf "invalid package %a: %s" Resolver.Resolution.pp resolution reason
+        errorf "invalid package %a: %s" Resolution.pp resolution reason
       end
     | None -> return None
   in
@@ -641,12 +647,11 @@ let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
   let open RunAsync.Syntax in
   let%bind resolver = Resolver.make ~opamRegistry ~cfg () in
 
-  let resolveVersionFromPackage resolution =
-    match%bind Resolver.package ~resolution resolver with
-    | Ok pkg ->
-      Logs_lwt.app (fun m -> m "using %a" Package.pp pkg);%lwt
-      return pkg.originalVersion
-    | Error err -> error err
+  let make resolution =
+    Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution);%lwt
+    let%bind pkg = Resolver.package ~resolution resolver in
+    let%bind pkg = RunAsync.ofStringError pkg in
+    return (pkg.Package.originalVersion, Some pkg.version)
   in
 
   match req.spec with
@@ -654,19 +659,17 @@ let solveOCamlReq ~cfg ~opamRegistry (req : Req.t) =
   | VersionSpec.NpmDistTag _ ->
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
     begin match findResolutionForRequest ~req resolutions with
-    | Some resolution ->
-      let%bind origVersion = resolveVersionFromPackage resolution in
-      return (origVersion, Some resolution.version)
+    | Some resolution -> make resolution
     | None ->
       Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
       return (None, None)
     end
   | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
-  | VersionSpec.Source sourceSpec ->
-    let%bind source = Resolver.resolveSource ~name:req.name ~sourceSpec resolver in
-    let resolution = Resolver.Resolution.make req.name (Version.Source source) in
-    let%bind origVersion = resolveVersionFromPackage resolution in
-    return (origVersion, Some resolution.version)
+  | VersionSpec.Source _ ->
+    begin match%bind Resolver.resolve ~name:req.name ~spec:req.spec resolver with
+    | [resolution], _ -> make resolution
+    | _ -> errorf "multiple resolutions for %a, expected one" Req.pp req
+    end
 
 let solve (sandbox : Sandbox.t) =
   let open RunAsync.Syntax in
