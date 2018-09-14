@@ -518,7 +518,12 @@ let solveDependenciesNaively
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
+    let%bind resolutions, overrideSpec = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
+    let req =
+      match overrideSpec with
+      | Some spec -> Req.make ~name:req.name ~spec
+      | None -> req
+    in
     match findResolutionForRequest ~req resolutions with
     | Some resolution ->
       begin match%bind Resolver.package ~resolution solver.resolver with
