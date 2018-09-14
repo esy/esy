@@ -5,6 +5,7 @@ module Dist = struct
     name : string;
     version : Version.t;
     source : Source.t;
+    override : Package.Override.t option;
     tarballPath : Path.t option;
   }
 
@@ -180,6 +181,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       name = record.name;
       version = record.version;
       source;
+      override = record.override;
     } in
     let%bind tarballIsInCache = Fs.exists tarballPath in
 
@@ -248,13 +250,13 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
 let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. tarballPath; source; _} = dist in
+  let {Dist. tarballPath; source; override; _} = dist in
   match source, tarballPath with
 
-  | Source.LocalPathLink {path = orig; manifest;}, _ ->
+  | Source.LocalPathLink {path = origPath; manifest;}, _ ->
     let%bind () = Fs.createDir path in
     let%bind () =
-      let link = EsyLinkFile.{path = orig; manifest;} in
+      let link = EsyLinkFile.{path = origPath; manifest; override;} in
       EsyLinkFile.toFile link Path.(path / "_esylink")
     in
     return ()

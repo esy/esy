@@ -15,6 +15,9 @@ type t = {
   (** Optional manifest. If no specified then manifest resolution will be
       performed. *)
   manifest : SandboxSpec.ManifestSpec.t option;
+
+  (** Optional override. *)
+  override : Package.Override.t option;
 }
 
 val ofFile : Path.t -> t RunAsync.t

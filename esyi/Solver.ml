@@ -177,7 +177,7 @@ let rec findResolutionForRequest ~req = function
     then Some res
     else findResolutionForRequest ~req rest
 
-let solutionRecordOfPkg ~solver:_ (pkg : Package.t) =
+let solutionRecordOfPkg (pkg : Package.t) =
   let open RunAsync.Syntax in
 
   let%bind source =
@@ -216,6 +216,7 @@ let solutionRecordOfPkg ~solver:_ (pkg : Package.t) =
     Solution.Record.
     name = pkg.name;
     version = pkg.version;
+    override = pkg.override;
     source;
     files;
     opam;
@@ -406,6 +407,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     source = Package.Source Source.NoSource, [];
+    override = None;
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
@@ -756,7 +758,7 @@ let solve (sandbox : Sandbox.t) =
   let%bind sol =
     let%bind sol =
       let f solution (pkg, dependencies) =
-        let%bind record = solutionRecordOfPkg ~solver pkg in
+        let%bind record = solutionRecordOfPkg pkg in
         let solution = Solution.add ~record ~dependencies solution in
         return solution
       in
@@ -765,7 +767,7 @@ let solve (sandbox : Sandbox.t) =
       |> RunAsync.List.foldLeft ~f ~init:Solution.empty
     in
 
-    let%bind record = solutionRecordOfPkg ~solver sandbox.root in
+    let%bind record = solutionRecordOfPkg sandbox.root in
     let dependencies = Package.Map.find sandbox.root packagesToDependencies in
     return (Solution.addRoot ~record ~dependencies sol)
   in

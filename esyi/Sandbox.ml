@@ -78,6 +78,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         source = Source source, [];
+        override = None;
         dependencies;
         devDependencies = dependencies;
         opam = None;
@@ -112,6 +113,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       source = Package.Source source, [];
+      override = None;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       opam = None;

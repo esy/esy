@@ -240,6 +240,7 @@ module Layout = struct
       name;
       version = Version.Npm (parseVersionExn version);
       source = Source.NoSource, [];
+      override = None;
       files = [];
       opam = None;
     } : Record.t)

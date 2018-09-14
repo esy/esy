@@ -22,6 +22,8 @@ module Override : sig
     build : PackageJson.CommandList.t option;
     install : PackageJson.CommandList.t option;
   }
+
+  include S.JSONABLE with type t := t
 end
 
 module Resolution : sig
@@ -143,6 +145,7 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : source * source list;
+  override : Override.t option;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
