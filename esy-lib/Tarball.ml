@@ -64,24 +64,21 @@ let unpackWithTar ?stripComponents ~dst filename =
 
       let filename = Filename.concat (Path.toString out) (String.sub header.file_name 2 maxLength) in
 
-      if filename = "" then
-        RunAsync.return ()
-      else 
-        let filepath = match Path.ofString filename with
-        | Ok path -> path
-        | Error `Msg message -> failwith message
-        in
-        let%bind () = match Cstruct.to_string buf with
-        | "" -> Fs.createDir filepath
-        | data -> Fs.writeFile ~data filepath
-        in
-        RunAsync.return ()
+      let filepath = match Path.ofString filename with
+      | Ok path -> path
+      | Error `Msg message -> failwith message
+      in
+      match Cstruct.to_string buf with
+      | "" -> Fs.createDir filepath
+      | data -> Fs.writeFile ~data filepath
     in
 
     let rec readFiles ic =
       match Tar_cstruct.Archive.with_next_file ic readFile with
-      | exception Tar_cstruct.Header.End_of_stream -> ()
-      | _file -> readFiles ic
+      | exception Tar_cstruct.Header.End_of_stream -> RunAsync.return ()
+      | run -> 
+        let%bind() = run in
+        readFiles ic
     in
 
     try
@@ -96,7 +93,7 @@ let unpackWithTar ?stripComponents ~dst filename =
 
       let tarFile = Tar_cstruct.make_in_channel (Cstruct.of_string rawTarFile) in
 
-      RunAsync.return (readFiles tarFile)
+      readFiles tarFile
     with Sys_error message -> RunAsync.error message
   in
   match stripComponents with
