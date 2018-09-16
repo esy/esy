@@ -13,6 +13,7 @@ install:
 # once we have an `esy` build published for Windows that supports a minimal set of primitives
 # to support our current build system.
     - powershell scripts/bootstrap/install-npm-dependencies.ps1
+    - ps: Install-Product node 8 x64
     - node scripts/bootstrap/copy-fastreplacestring.js
     - npm run bootstrap:install-opam
     - npm run bootstrap:install-dependencies
