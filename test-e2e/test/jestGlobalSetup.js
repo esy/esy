@@ -14,8 +14,6 @@ const ESYCOMMAND =
     ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../../bin/esy');
 
-const INSTALL_COMMAND = process.platform === 'win32' ? 'legacy-install' : 'install';
-
 const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
 
 const testPath = path.join(os.homedir(), '.esytest');
@@ -44,6 +42,40 @@ async function buildOcamlPackage() {
   await mkdirOrIgnore(testPath);
 
   await mkdirOrIgnore(sandboxPath);
+
+  await fs.writeFile(
+    path.join(sandboxPath, 'esy.lock.json'),
+    JSON.stringify({
+      hash: '2a78e85bc6c0acf34a3c4df9faf2563e',
+      root: 'sandbox@path:.',
+      node: {
+        'sandbox@path:.': {
+          record: {
+            name: 'sandbox',
+            version: 'path:.',
+            source: 'path:.',
+            override: null,
+            files: [],
+            opam: null,
+          },
+          dependencies: ['ocaml@4.6.5'],
+        },
+        'ocaml@4.6.5': {
+          record: {
+            name: 'ocaml',
+            version: '4.6.5',
+            source:
+              'archive:https://registry.npmjs.org/ocaml/-/ocaml-4.6.5.tgz#sha1:23b6d4dc36437f431c427953a5236447e7b51368',
+            override: null,
+            files: [],
+            opam: null,
+          },
+          dependencies: [],
+        },
+      },
+    }),
+  );
+
   await fs.writeFile(
     path.join(sandboxPath, 'package.json'),
     JSON.stringify({
@@ -59,7 +91,7 @@ async function buildOcamlPackage() {
     }),
   );
 
-  await esy(INSTALL_COMMAND);
+  await esy('install');
   await esy('build');
 
   const buildEnv = JSON.parse((await esy('build-env --json')).stdout);
