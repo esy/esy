@@ -14,7 +14,7 @@ const {
   skipSuiteOnWindows,
 } = require('../test/helpers');
 
-skipSuiteOnWindows("Needs investigation");
+skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   packageJson({
@@ -41,17 +41,17 @@ const fixture = [
     dir(
       'dep',
       symlink('package.json', path.join('..', '..', 'dep')),
-      file('_esylink', './dep'),
+      file('_esylink', '{"path": "./dep"}'),
     ),
     dir(
       'dep2',
       symlink('package.json', path.join('..', '..', 'dep2')),
-      file('_esylink', './dep2'),
+      file('_esylink', '{"path": "./dep2"}'),
     ),
     dir(
       'dep3',
       symlink('package.json', path.join('..', '..', 'dep3')),
-      file('_esylink', './dep3'),
+      file('_esylink', '{"path": "./dep3"}'),
     ),
     ocamlPackage(),
   ),

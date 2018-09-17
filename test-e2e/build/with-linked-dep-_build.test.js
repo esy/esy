@@ -48,7 +48,7 @@ const fixture = [
     'node_modules',
     dir(
       'dep',
-      file('_esylink', './dep'),
+      file('_esylink', '{"path": "./dep"}'),
       symlink('package.json', '../../dep/package.json'),
     ),
     ocamlPackage(),
