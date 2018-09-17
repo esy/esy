@@ -212,12 +212,12 @@
         "lodash.sortby@4.7.0", "tr46@1.0.1", "webidl-conversions@4.0.2"
       ]
     },
-    "whatwg-mimetype@2.1.0": {
+    "whatwg-mimetype@2.2.0": {
       "record": {
         "name": "whatwg-mimetype",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "source":
-          "archive:https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.1.0.tgz#sha1:f0f21d76cbba72362eb609dbed2a30cd17fcc7d4",
+          "archive:https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.2.0.tgz#sha1:a3d58ef10b76009b042d03e25591ece89b88d171",
         "files": [],
         "opam": null
       },
@@ -602,7 +602,7 @@
         "opam": null
       },
       "dependencies": [
-        "chownr@1.0.1", "mkdirp@0.5.1", "pump@1.0.3", "tar-stream@1.6.1"
+        "chownr@1.1.1", "mkdirp@0.5.1", "pump@1.0.3", "tar-stream@1.6.1"
       ]
     },
     "tar@4.4.6": {
@@ -615,7 +615,7 @@
         "opam": null
       },
       "dependencies": [
-        "chownr@1.0.1", "fs-minipass@1.2.5", "minipass@2.3.4",
+        "chownr@1.1.1", "fs-minipass@1.2.5", "minipass@2.3.4",
         "minizlib@1.1.0", "mkdirp@0.5.1", "safe-buffer@5.1.2",
         "yallist@3.0.2"
       ]
@@ -861,12 +861,12 @@
       },
       "dependencies": [ "extend-shallow@3.0.2" ]
     },
-    "spdx-license-ids@3.0.0": {
+    "spdx-license-ids@3.0.1": {
       "record": {
         "name": "spdx-license-ids",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "source":
-          "archive:https://registry.npmjs.org/spdx-license-ids/-/spdx-license-ids-3.0.0.tgz#sha1:7a7cd28470cc6d3a1cfe6d66886f6bc430d3ac87",
+          "archive:https://registry.npmjs.org/spdx-license-ids/-/spdx-license-ids-3.0.1.tgz#sha1:e2a303236cac54b04031fa7a5a79c7e701df852f",
         "files": [],
         "opam": null
       },
@@ -881,7 +881,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "spdx-exceptions@2.1.0", "spdx-license-ids@3.0.0" ]
+      "dependencies": [ "spdx-exceptions@2.1.0", "spdx-license-ids@3.0.1" ]
     },
     "spdx-exceptions@2.1.0": {
       "record": {
@@ -904,7 +904,7 @@
         "opam": null
       },
       "dependencies": [
-        "spdx-expression-parse@3.0.0", "spdx-license-ids@3.0.0"
+        "spdx-expression-parse@3.0.0", "spdx-license-ids@3.0.1"
       ]
     },
     "source-map-url@0.4.0": {
@@ -1312,7 +1312,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "lodash@4.17.10" ]
+      "dependencies": [ "lodash@4.17.11" ]
     },
     "request@2.88.0": {
       "record": {
@@ -1485,7 +1485,7 @@
         "name": "readable-stream",
         "version": "2.3.6",
         "source":
-          "archive:https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.6.tgz#sha1:b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf",
+          "archive:http://registry.npmjs.org/readable-stream/-/readable-stream-2.3.6.tgz#sha1:b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf",
         "files": [],
         "opam": null
       },
@@ -1646,12 +1646,12 @@
       },
       "dependencies": []
     },
-    "pretty-format@23.5.0": {
+    "pretty-format@23.6.0": {
       "record": {
         "name": "pretty-format",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/pretty-format/-/pretty-format-23.5.0.tgz#sha1:0f9601ad9da70fe690a269cd3efca732c210687c",
+          "archive:https://registry.npmjs.org/pretty-format/-/pretty-format-23.6.0.tgz#sha1:5eaac8eeb6b33b987b7fe6097ea6a8a146ab5760",
         "files": [],
         "opam": null
       },
@@ -2266,7 +2266,7 @@
         "opam": null
       },
       "dependencies": [
-        "detect-libc@1.0.3", "mkdirp@0.5.1", "needle@2.2.2", "nopt@4.0.1",
+        "detect-libc@1.0.3", "mkdirp@0.5.1", "needle@2.2.3", "nopt@4.0.1",
         "npm-packlist@1.1.11", "npmlog@4.1.2", "rc@1.2.8", "rimraf@2.6.2",
         "semver@5.5.1", "tar@4.4.6"
       ]
@@ -2295,12 +2295,12 @@
       },
       "dependencies": []
     },
-    "needle@2.2.2": {
+    "needle@2.2.3": {
       "record": {
         "name": "needle",
-        "version": "2.2.2",
+        "version": "2.2.3",
         "source":
-          "archive:https://registry.npmjs.org/needle/-/needle-2.2.2.tgz#sha1:1120ca4c41f2fcc6976fd28a8968afe239929418",
+          "archive:https://registry.npmjs.org/needle/-/needle-2.2.3.tgz#sha1:c1b04da378cd634d8befe2de965dc2cfb0fd65ca",
         "files": [],
         "opam": null
       },
@@ -2339,6 +2339,17 @@
         "version": "2.11.0",
         "source":
           "archive:https://registry.npmjs.org/nan/-/nan-2.11.0.tgz#sha1:574e360e4d954ab16966ec102c0c049fd961a099",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
+    },
+    "ms@2.1.1": {
+      "record": {
+        "name": "ms",
+        "version": "2.1.1",
+        "source":
+          "archive:https://registry.npmjs.org/ms/-/ms-2.1.1.tgz#sha1:30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a",
         "files": [],
         "opam": null
       },
@@ -2620,12 +2631,12 @@
       },
       "dependencies": []
     },
-    "lodash@4.17.10": {
+    "lodash@4.17.11": {
       "record": {
         "name": "lodash",
-        "version": "4.17.10",
+        "version": "4.17.11",
         "source":
-          "archive:https://registry.npmjs.org/lodash/-/lodash-4.17.10.tgz#sha1:1b7793cf7259ea38fb3661d4d38b3260af8ae4e7",
+          "archive:https://registry.npmjs.org/lodash/-/lodash-4.17.11.tgz#sha1:b39ea6229ef607ecd89e2c8df12536891cac9b8d",
         "files": [],
         "opam": null
       },
@@ -2867,7 +2878,7 @@
         "opam": null
       },
       "dependencies": [
-        "abab@2.0.0", "acorn@5.7.2", "acorn-globals@4.1.0",
+        "abab@2.0.0", "acorn@5.7.3", "acorn-globals@4.3.0",
         "array-equal@1.0.0", "cssom@0.3.4", "cssstyle@1.1.1",
         "data-urls@1.0.1", "domexception@1.0.1", "escodegen@1.11.0",
         "html-encoding-sniffer@1.0.2", "left-pad@1.3.0", "nwsapi@2.0.9",
@@ -2875,7 +2886,7 @@
         "request-promise-native@1.0.5", "sax@1.2.4", "symbol-tree@3.2.2",
         "tough-cookie@2.4.3", "w3c-hr-time@1.0.1",
         "webidl-conversions@4.0.2", "whatwg-encoding@1.0.4",
-        "whatwg-mimetype@2.1.0", "whatwg-url@6.5.0", "ws@5.2.2",
+        "whatwg-mimetype@2.2.0", "whatwg-url@6.5.0", "ws@5.2.2",
         "xml-name-validator@3.0.0"
       ]
     },
@@ -2947,18 +2958,18 @@
         "ansi-escapes@3.1.0", "chalk@2.4.1", "string-length@2.0.0"
       ]
     },
-    "jest-validate@23.5.0": {
+    "jest-validate@23.6.0": {
       "record": {
         "name": "jest-validate",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-validate/-/jest-validate-23.5.0.tgz#sha1:f5df8f761cf43155e1b2e21d6e9de8a2852d0231",
+          "archive:https://registry.npmjs.org/jest-validate/-/jest-validate-23.6.0.tgz#sha1:36761f99d1ed33fcd425b4e4c5595d62b6597474",
         "files": [],
         "opam": null
       },
       "dependencies": [
         "chalk@2.4.1", "jest-get-type@22.4.3", "leven@2.1.0",
-        "pretty-format@23.5.0"
+        "pretty-format@23.6.0"
       ]
     },
     "jest-util@23.4.0": {
@@ -2972,24 +2983,24 @@
       },
       "dependencies": [
         "callsites@2.0.0", "chalk@2.4.1", "graceful-fs@4.1.11",
-        "is-ci@1.2.0", "jest-message-util@23.4.0", "mkdirp@0.5.1",
+        "is-ci@1.2.1", "jest-message-util@23.4.0", "mkdirp@0.5.1",
         "slash@1.0.0", "source-map@0.6.1"
       ]
     },
-    "jest-snapshot@23.5.0": {
+    "jest-snapshot@23.6.0": {
       "record": {
         "name": "jest-snapshot",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-snapshot/-/jest-snapshot-23.5.0.tgz#sha1:cc368ebd8513e1175e2a7277f37a801b7358ae79",
+          "archive:https://registry.npmjs.org/jest-snapshot/-/jest-snapshot-23.6.0.tgz#sha1:f9c2625d1b18acda01ec2d2b826c0ce58a5aa17a",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "babel-types@6.26.0", "chalk@2.4.1", "jest-diff@23.5.0",
-        "jest-matcher-utils@23.5.0", "jest-message-util@23.4.0",
-        "jest-resolve@23.5.0", "mkdirp@0.5.1", "natural-compare@1.4.0",
-        "pretty-format@23.5.0", "semver@5.5.1"
+        "babel-types@6.26.0", "chalk@2.4.1", "jest-diff@23.6.0",
+        "jest-matcher-utils@23.6.0", "jest-message-util@23.4.0",
+        "jest-resolve@23.6.0", "mkdirp@0.5.1", "natural-compare@1.4.0",
+        "pretty-format@23.6.0", "semver@5.5.1"
       ]
     },
     "jest-serializer@23.0.1": {
@@ -3003,12 +3014,12 @@
       },
       "dependencies": []
     },
-    "jest-runtime@23.5.0": {
+    "jest-runtime@23.6.0": {
       "record": {
         "name": "jest-runtime",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-runtime/-/jest-runtime-23.5.0.tgz#sha1:eb503525a196dc32f2f9974e3482d26bdf7b63ce",
+          "archive:https://registry.npmjs.org/jest-runtime/-/jest-runtime-23.6.0.tgz#sha1:059e58c8ab445917cd0e0d84ac2ba68de8f23082",
         "files": [],
         "opam": null
       },
@@ -3016,49 +3027,49 @@
         "babel-core@6.26.3", "babel-plugin-istanbul@4.1.6", "chalk@2.4.1",
         "convert-source-map@1.6.0", "exit@0.1.2",
         "fast-json-stable-stringify@2.0.0", "graceful-fs@4.1.11",
-        "jest-config@23.5.0", "jest-haste-map@23.5.0",
+        "jest-config@23.6.0", "jest-haste-map@23.6.0",
         "jest-message-util@23.4.0", "jest-regex-util@23.3.0",
-        "jest-resolve@23.5.0", "jest-snapshot@23.5.0", "jest-util@23.4.0",
-        "jest-validate@23.5.0", "micromatch@2.3.11", "realpath-native@1.0.2",
+        "jest-resolve@23.6.0", "jest-snapshot@23.6.0", "jest-util@23.4.0",
+        "jest-validate@23.6.0", "micromatch@2.3.11", "realpath-native@1.0.2",
         "slash@1.0.0", "strip-bom@3.0.0", "write-file-atomic@2.3.0",
         "yargs@11.1.0"
       ]
     },
-    "jest-runner@23.5.0": {
+    "jest-runner@23.6.0": {
       "record": {
         "name": "jest-runner",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-runner/-/jest-runner-23.5.0.tgz#sha1:570f7a044da91648b5bb9b6baacdd511076c71d7",
+          "archive:https://registry.npmjs.org/jest-runner/-/jest-runner-23.6.0.tgz#sha1:3894bd219ffc3f3cb94dc48a4170a2e6f23a5a38",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "exit@0.1.2", "graceful-fs@4.1.11", "jest-config@23.5.0",
-        "jest-docblock@23.2.0", "jest-haste-map@23.5.0",
-        "jest-jasmine2@23.5.0", "jest-leak-detector@23.5.0",
-        "jest-message-util@23.4.0", "jest-runtime@23.5.0",
+        "exit@0.1.2", "graceful-fs@4.1.11", "jest-config@23.6.0",
+        "jest-docblock@23.2.0", "jest-haste-map@23.6.0",
+        "jest-jasmine2@23.6.0", "jest-leak-detector@23.6.0",
+        "jest-message-util@23.4.0", "jest-runtime@23.6.0",
         "jest-util@23.4.0", "jest-worker@23.2.0", "source-map-support@0.5.9",
         "throat@4.1.0"
       ]
     },
-    "jest-resolve-dependencies@23.5.0": {
+    "jest-resolve-dependencies@23.6.0": {
       "record": {
         "name": "jest-resolve-dependencies",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-resolve-dependencies/-/jest-resolve-dependencies-23.5.0.tgz#sha1:10c4d135beb9d2256de1fedc7094916c3ad74af7",
+          "archive:https://registry.npmjs.org/jest-resolve-dependencies/-/jest-resolve-dependencies-23.6.0.tgz#sha1:b4526af24c8540d9a3fab102c15081cf509b723d",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "jest-regex-util@23.3.0", "jest-snapshot@23.5.0" ]
+      "dependencies": [ "jest-regex-util@23.3.0", "jest-snapshot@23.6.0" ]
     },
-    "jest-resolve@23.5.0": {
+    "jest-resolve@23.6.0": {
       "record": {
         "name": "jest-resolve",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-resolve/-/jest-resolve-23.5.0.tgz#sha1:3b8e7f67e84598f0caf63d1530bd8534a189d0e6",
+          "archive:https://registry.npmjs.org/jest-resolve/-/jest-resolve-23.6.0.tgz#sha1:cf1d1a24ce7ee7b23d661c33ba2150f3aebfa0ae",
         "files": [],
         "opam": null
       },
@@ -3102,52 +3113,52 @@
         "slash@1.0.0", "stack-utils@1.0.1"
       ]
     },
-    "jest-matcher-utils@23.5.0": {
+    "jest-matcher-utils@23.6.0": {
       "record": {
         "name": "jest-matcher-utils",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-23.5.0.tgz#sha1:0e2ea67744cab78c9ab15011c4d888bdd3e49e2a",
+          "archive:https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-23.6.0.tgz#sha1:726bcea0c5294261a7417afb6da3186b4b8cac80",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "chalk@2.4.1", "jest-get-type@22.4.3", "pretty-format@23.5.0"
+        "chalk@2.4.1", "jest-get-type@22.4.3", "pretty-format@23.6.0"
       ]
     },
-    "jest-leak-detector@23.5.0": {
+    "jest-leak-detector@23.6.0": {
       "record": {
         "name": "jest-leak-detector",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-leak-detector/-/jest-leak-detector-23.5.0.tgz#sha1:14ac2a785bd625160a2ea968fd5d98b7dcea3e64",
+          "archive:https://registry.npmjs.org/jest-leak-detector/-/jest-leak-detector-23.6.0.tgz#sha1:e4230fd42cf381a1a1971237ad56897de7e171de",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "pretty-format@23.5.0" ]
+      "dependencies": [ "pretty-format@23.6.0" ]
     },
-    "jest-jasmine2@23.5.0": {
+    "jest-jasmine2@23.6.0": {
       "record": {
         "name": "jest-jasmine2",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-jasmine2/-/jest-jasmine2-23.5.0.tgz#sha1:05fe7f1788e650eeb5a03929e6461ea2e9f3db53",
+          "archive:https://registry.npmjs.org/jest-jasmine2/-/jest-jasmine2-23.6.0.tgz#sha1:840e937f848a6c8638df24360ab869cc718592e0",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "babel-traverse@6.26.0", "chalk@2.4.1", "co@4.6.0", "expect@23.5.0",
-        "is-generator-fn@1.0.0", "jest-diff@23.5.0", "jest-each@23.5.0",
-        "jest-matcher-utils@23.5.0", "jest-message-util@23.4.0",
-        "jest-snapshot@23.5.0", "jest-util@23.4.0", "pretty-format@23.5.0"
+        "babel-traverse@6.26.0", "chalk@2.4.1", "co@4.6.0", "expect@23.6.0",
+        "is-generator-fn@1.0.0", "jest-diff@23.6.0", "jest-each@23.6.0",
+        "jest-matcher-utils@23.6.0", "jest-message-util@23.4.0",
+        "jest-snapshot@23.6.0", "jest-util@23.4.0", "pretty-format@23.6.0"
       ]
     },
-    "jest-haste-map@23.5.0": {
+    "jest-haste-map@23.6.0": {
       "record": {
         "name": "jest-haste-map",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-haste-map/-/jest-haste-map-23.5.0.tgz#sha1:d4ca618188bd38caa6cb20349ce6610e194a8065",
+          "archive:https://registry.npmjs.org/jest-haste-map/-/jest-haste-map-23.6.0.tgz#sha1:2e3eb997814ca696d62afdb3f2529f5bbc935e16",
         "files": [],
         "opam": null
       },
@@ -3192,16 +3203,16 @@
         "jest-mock@23.2.0", "jest-util@23.4.0", "jsdom@11.12.0"
       ]
     },
-    "jest-each@23.5.0": {
+    "jest-each@23.6.0": {
       "record": {
         "name": "jest-each",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-each/-/jest-each-23.5.0.tgz#sha1:77f7e2afe6132a80954b920006e78239862b10ba",
+          "archive:https://registry.npmjs.org/jest-each/-/jest-each-23.6.0.tgz#sha1:ba0c3a82a8054387016139c733a05242d3d71575",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "chalk@2.4.1", "pretty-format@23.5.0" ]
+      "dependencies": [ "chalk@2.4.1", "pretty-format@23.6.0" ]
     },
     "jest-docblock@23.2.0": {
       "record": {
@@ -3214,58 +3225,58 @@
       },
       "dependencies": [ "detect-newline@2.1.0" ]
     },
-    "jest-diff@23.5.0": {
+    "jest-diff@23.6.0": {
       "record": {
         "name": "jest-diff",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-diff/-/jest-diff-23.5.0.tgz#sha1:250651a433dd0050290a07642946cc9baaf06fba",
+          "archive:https://registry.npmjs.org/jest-diff/-/jest-diff-23.6.0.tgz#sha1:1500f3f16e850bb3d71233408089be099f610c7d",
         "files": [],
         "opam": null
       },
       "dependencies": [
         "chalk@2.4.1", "diff@3.5.0", "jest-get-type@22.4.3",
-        "pretty-format@23.5.0"
+        "pretty-format@23.6.0"
       ]
     },
-    "jest-config@23.5.0": {
+    "jest-config@23.6.0": {
       "record": {
         "name": "jest-config",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-config/-/jest-config-23.5.0.tgz#sha1:3770fba03f7507ee15f3b8867c742e48f31a9773",
+          "archive:https://registry.npmjs.org/jest-config/-/jest-config-23.6.0.tgz#sha1:f82546a90ade2d8c7026fbf6ac5207fc22f8eb1d",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "babel-core@6.26.3", "babel-jest@23.4.2", "chalk@2.4.1",
+        "babel-core@6.26.3", "babel-jest@23.6.0", "chalk@2.4.1",
         "glob@7.1.3", "jest-environment-jsdom@23.4.0",
         "jest-environment-node@23.4.0", "jest-get-type@22.4.3",
-        "jest-jasmine2@23.5.0", "jest-regex-util@23.3.0",
-        "jest-resolve@23.5.0", "jest-util@23.4.0", "jest-validate@23.5.0",
-        "micromatch@2.3.11", "pretty-format@23.5.0"
+        "jest-jasmine2@23.6.0", "jest-regex-util@23.3.0",
+        "jest-resolve@23.6.0", "jest-util@23.4.0", "jest-validate@23.6.0",
+        "micromatch@2.3.11", "pretty-format@23.6.0"
       ]
     },
-    "jest-cli@23.5.0": {
+    "jest-cli@23.6.0": {
       "record": {
         "name": "jest-cli",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/jest-cli/-/jest-cli-23.5.0.tgz#sha1:d316b8e34a38a610a1efc4f0403d8ef8a55e4492",
+          "archive:https://registry.npmjs.org/jest-cli/-/jest-cli-23.6.0.tgz#sha1:61ab917744338f443ef2baa282ddffdd658a5da4",
         "files": [],
         "opam": null
       },
       "dependencies": [
         "ansi-escapes@3.1.0", "chalk@2.4.1", "exit@0.1.2", "glob@7.1.3",
-        "graceful-fs@4.1.11", "import-local@1.0.0", "is-ci@1.2.0",
+        "graceful-fs@4.1.11", "import-local@1.0.0", "is-ci@1.2.1",
         "istanbul-api@1.3.7", "istanbul-lib-coverage@1.2.1",
         "istanbul-lib-instrument@1.10.2", "istanbul-lib-source-maps@1.2.6",
-        "jest-changed-files@23.4.2", "jest-config@23.5.0",
+        "jest-changed-files@23.4.2", "jest-config@23.6.0",
         "jest-environment-jsdom@23.4.0", "jest-get-type@22.4.3",
-        "jest-haste-map@23.5.0", "jest-message-util@23.4.0",
-        "jest-regex-util@23.3.0", "jest-resolve-dependencies@23.5.0",
-        "jest-runner@23.5.0", "jest-runtime@23.5.0", "jest-snapshot@23.5.0",
-        "jest-util@23.4.0", "jest-validate@23.5.0", "jest-watcher@23.4.0",
+        "jest-haste-map@23.6.0", "jest-message-util@23.4.0",
+        "jest-regex-util@23.3.0", "jest-resolve-dependencies@23.6.0",
+        "jest-runner@23.6.0", "jest-runtime@23.6.0", "jest-snapshot@23.6.0",
+        "jest-util@23.4.0", "jest-validate@23.6.0", "jest-watcher@23.4.0",
         "jest-worker@23.2.0", "micromatch@2.3.11", "node-notifier@5.2.1",
         "prompts@0.1.14", "realpath-native@1.0.2", "rimraf@2.6.2",
         "slash@1.0.0", "string-length@2.0.0", "strip-ansi@4.0.0",
@@ -3304,7 +3315,7 @@
         "opam": null
       },
       "dependencies": [
-        "debug@3.1.0", "istanbul-lib-coverage@1.2.1", "mkdirp@0.5.1",
+        "debug@3.2.5", "istanbul-lib-coverage@1.2.1", "mkdirp@0.5.1",
         "rimraf@2.6.2", "source-map@0.5.7"
       ]
     },
@@ -3767,16 +3778,16 @@
       },
       "dependencies": [ "kind-of@3.2.2" ]
     },
-    "is-ci@1.2.0": {
+    "is-ci@1.2.1": {
       "record": {
         "name": "is-ci",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "source":
-          "archive:https://registry.npmjs.org/is-ci/-/is-ci-1.2.0.tgz#sha1:3f4a08d6303a09882cef3f0fb97439c5f5ce2d53",
+          "archive:https://registry.npmjs.org/is-ci/-/is-ci-1.2.1.tgz#sha1:e3779c8ee17fccf428488f6e281187f2e632841c",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "ci-info@1.4.0" ]
+      "dependencies": [ "ci-info@1.5.1" ]
     },
     "is-callable@1.1.4": {
       "record": {
@@ -4612,18 +4623,18 @@
       },
       "dependencies": []
     },
-    "expect@23.5.0": {
+    "expect@23.6.0": {
       "record": {
         "name": "expect",
-        "version": "23.5.0",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/expect/-/expect-23.5.0.tgz#sha1:18999a0eef8f8acf99023fde766d9c323c2562ed",
+          "archive:https://registry.npmjs.org/expect/-/expect-23.6.0.tgz#sha1:1e0c8d3ba9a581c87bd71fb9bc8862d443425f98",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "ansi-styles@3.2.1", "jest-diff@23.5.0", "jest-get-type@22.4.3",
-        "jest-matcher-utils@23.5.0", "jest-message-util@23.4.0",
+        "ansi-styles@3.2.1", "jest-diff@23.6.0", "jest-get-type@22.4.3",
+        "jest-matcher-utils@23.6.0", "jest-message-util@23.4.0",
         "jest-regex-util@23.3.0"
       ]
     },
@@ -4725,7 +4736,7 @@
         "@esy-ocaml/reason@3.2.0", "@opam/angstrom@opam:0.10.0",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
-        "@opam/dune@opam:1.1.1", "@opam/fmt@opam:0.8.5",
+        "@opam/dune@opam:1.2.0", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
         "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
@@ -4738,7 +4749,7 @@
         "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
         "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
         "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
-        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.5.0", "klaw@2.1.1",
+        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1",
         "minimatch@3.0.4", "ocaml@4.6.5", "outdent@0.3.0", "prettier@1.14.2",
         "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
         "tar-fs@1.16.3", "tmp@0.0.33"
@@ -4862,12 +4873,12 @@
       },
       "dependencies": [ "once@1.4.0" ]
     },
-    "electron-to-chromium@1.3.63": {
+    "electron-to-chromium@1.3.67": {
       "record": {
         "name": "electron-to-chromium",
-        "version": "1.3.63",
+        "version": "1.3.67",
         "source":
-          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.63.tgz#sha1:6485f5f4f3375358aa8fa23c2029ada208483b8d",
+          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.67.tgz#sha1:5e8f3ffac89b4b0402c7e1a565be06f3a109abbc",
         "files": [],
         "opam": null
       },
@@ -5074,16 +5085,16 @@
       },
       "dependencies": []
     },
-    "debug@3.1.0": {
+    "debug@3.2.5": {
       "record": {
         "name": "debug",
-        "version": "3.1.0",
+        "version": "3.2.5",
         "source":
-          "archive:https://registry.npmjs.org/debug/-/debug-3.1.0.tgz#sha1:5bb5a0672628b64149566ba16819e61518c67261",
+          "archive:https://registry.npmjs.org/debug/-/debug-3.2.5.tgz#sha1:c2418fbfd7a29f4d4f70ff4cea604d4b64c46407",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "ms@2.0.0" ]
+      "dependencies": [ "ms@2.1.1" ]
     },
     "debug@2.6.9": {
       "record": {
@@ -5106,7 +5117,7 @@
         "opam": null
       },
       "dependencies": [
-        "abab@2.0.0", "whatwg-mimetype@2.1.0", "whatwg-url@7.0.0"
+        "abab@2.0.0", "whatwg-mimetype@2.2.0", "whatwg-url@7.0.0"
       ]
     },
     "dashdash@1.14.1": {
@@ -5336,23 +5347,23 @@
         "static-extend@0.1.2"
       ]
     },
-    "ci-info@1.4.0": {
+    "ci-info@1.5.1": {
       "record": {
         "name": "ci-info",
-        "version": "1.4.0",
+        "version": "1.5.1",
         "source":
-          "archive:https://registry.npmjs.org/ci-info/-/ci-info-1.4.0.tgz#sha1:4841d53cad49f11b827b648ebde27a6e189b412f",
+          "archive:https://registry.npmjs.org/ci-info/-/ci-info-1.5.1.tgz#sha1:17e8eb5de6f8b2b6038f0cbb714d410bfa9f3030",
         "files": [],
         "opam": null
       },
       "dependencies": []
     },
-    "chownr@1.0.1": {
+    "chownr@1.1.1": {
       "record": {
         "name": "chownr",
-        "version": "1.0.1",
+        "version": "1.1.1",
         "source":
-          "archive:https://registry.npmjs.org/chownr/-/chownr-1.0.1.tgz#sha1:e2a75042a9551908bebd25b8523d5f9769d79181",
+          "archive:https://registry.npmjs.org/chownr/-/chownr-1.1.1.tgz#sha1:54726b8b8fff4df053c42187e801fb4412df1494",
         "files": [],
         "opam": null
       },
@@ -5533,7 +5544,7 @@
         "opam": null
       },
       "dependencies": [
-        "caniuse-lite@1.0.30000885", "electron-to-chromium@1.3.63"
+        "caniuse-lite@1.0.30000885", "electron-to-chromium@1.3.67"
       ]
     },
     "browser-resolve@1.11.3": {
@@ -5667,7 +5678,7 @@
         "opam": null
       },
       "dependencies": [
-        "babel-runtime@6.26.0", "esutils@2.0.2", "lodash@4.17.10",
+        "babel-runtime@6.26.0", "esutils@2.0.2", "lodash@4.17.11",
         "to-fast-properties@1.0.3"
       ]
     },
@@ -5683,7 +5694,7 @@
       "dependencies": [
         "babel-code-frame@6.26.0", "babel-messages@6.23.0",
         "babel-runtime@6.26.0", "babel-types@6.26.0", "babylon@6.18.0",
-        "debug@2.6.9", "globals@9.18.0", "invariant@2.2.4", "lodash@4.17.10"
+        "debug@2.6.9", "globals@9.18.0", "invariant@2.2.4", "lodash@4.17.11"
       ]
     },
     "babel-template@6.26.0": {
@@ -5697,7 +5708,7 @@
       },
       "dependencies": [
         "babel-runtime@6.26.0", "babel-traverse@6.26.0",
-        "babel-types@6.26.0", "babylon@6.18.0", "lodash@4.17.10"
+        "babel-types@6.26.0", "babylon@6.18.0", "lodash@4.17.11"
       ]
     },
     "babel-runtime@6.26.0": {
@@ -5722,7 +5733,7 @@
       },
       "dependencies": [
         "babel-core@6.26.3", "babel-runtime@6.26.0", "core-js@2.5.7",
-        "home-or-tmp@2.0.0", "lodash@4.17.10", "mkdirp@0.5.1",
+        "home-or-tmp@2.0.0", "lodash@4.17.11", "mkdirp@0.5.1",
         "source-map-support@0.4.18"
       ]
     },
@@ -6096,7 +6107,7 @@
       },
       "dependencies": [
         "babel-runtime@6.26.0", "babel-template@6.26.0",
-        "babel-traverse@6.26.0", "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-traverse@6.26.0", "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-plugin-transform-es2015-block-scoped-functions@6.22.0": {
@@ -6206,7 +6217,7 @@
         "name": "babel-plugin-istanbul",
         "version": "4.1.6",
         "source":
-          "archive:https://registry.npmjs.org/babel-plugin-istanbul/-/babel-plugin-istanbul-4.1.6.tgz#sha1:36c59b2192efce81c5b378321b74175add1c9a45",
+          "archive:http://registry.npmjs.org/babel-plugin-istanbul/-/babel-plugin-istanbul-4.1.6.tgz#sha1:36c59b2192efce81c5b378321b74175add1c9a45",
         "files": [],
         "opam": null
       },
@@ -6237,12 +6248,12 @@
       },
       "dependencies": [ "babel-runtime@6.26.0" ]
     },
-    "babel-jest@23.4.2": {
+    "babel-jest@23.6.0": {
       "record": {
         "name": "babel-jest",
-        "version": "23.4.2",
+        "version": "23.6.0",
         "source":
-          "archive:https://registry.npmjs.org/babel-jest/-/babel-jest-23.4.2.tgz#sha1:f276de67798a5d68f2d6e87ff518c2f6e1609877",
+          "archive:https://registry.npmjs.org/babel-jest/-/babel-jest-23.6.0.tgz#sha1:a644232366557a2240a0c083da6b25786185a2f1",
         "files": [],
         "opam": null
       },
@@ -6302,7 +6313,7 @@
         "opam": null
       },
       "dependencies": [
-        "babel-runtime@6.26.0", "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-runtime@6.26.0", "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-helper-optimise-call-expression@6.24.1": {
@@ -6377,7 +6388,7 @@
       },
       "dependencies": [
         "babel-helper-function-name@6.24.1", "babel-runtime@6.26.0",
-        "babel-types@6.26.0", "lodash@4.17.10"
+        "babel-types@6.26.0", "lodash@4.17.11"
       ]
     },
     "babel-helper-call-delegate@6.24.1": {
@@ -6420,7 +6431,7 @@
       "dependencies": [
         "babel-messages@6.23.0", "babel-runtime@6.26.0",
         "babel-types@6.26.0", "detect-indent@4.0.0", "jsesc@1.3.0",
-        "lodash@4.17.10", "source-map@0.5.7", "trim-right@1.0.1"
+        "lodash@4.17.11", "source-map@0.5.7", "trim-right@1.0.1"
       ]
     },
     "babel-core@6.26.3": {
@@ -6438,7 +6449,7 @@
         "babel-register@6.26.0", "babel-runtime@6.26.0",
         "babel-template@6.26.0", "babel-traverse@6.26.0",
         "babel-types@6.26.0", "babylon@6.18.0", "convert-source-map@1.6.0",
-        "debug@2.6.9", "json5@0.5.1", "lodash@4.17.10", "minimatch@3.0.4",
+        "debug@2.6.9", "json5@0.5.1", "lodash@4.17.11", "minimatch@3.0.4",
         "path-is-absolute@1.0.1", "private@0.1.8", "slash@1.0.0",
         "source-map@0.5.7"
       ]
@@ -6518,7 +6529,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "lodash@4.17.10" ]
+      "dependencies": [ "lodash@4.17.11" ]
     },
     "astral-regex@1.0.0": {
       "record": {
@@ -6820,23 +6831,45 @@
         "fast-json-stable-stringify@2.0.0", "json-schema-traverse@0.3.1"
       ]
     },
-    "acorn-globals@4.1.0": {
+    "acorn-walk@6.0.1": {
       "record": {
-        "name": "acorn-globals",
-        "version": "4.1.0",
+        "name": "acorn-walk",
+        "version": "6.0.1",
         "source":
-          "archive:https://registry.npmjs.org/acorn-globals/-/acorn-globals-4.1.0.tgz#sha1:ab716025dbe17c54d3ef81d32ece2b2d99fe2538",
+          "archive:https://registry.npmjs.org/acorn-walk/-/acorn-walk-6.0.1.tgz#sha1:c7827bdbb8e21aa97b609adfa225400d9ae348ba",
         "files": [],
         "opam": null
       },
-      "dependencies": [ "acorn@5.7.2" ]
+      "dependencies": []
     },
-    "acorn@5.7.2": {
+    "acorn-globals@4.3.0": {
+      "record": {
+        "name": "acorn-globals",
+        "version": "4.3.0",
+        "source":
+          "archive:https://registry.npmjs.org/acorn-globals/-/acorn-globals-4.3.0.tgz#sha1:e3b6f8da3c1552a95ae627571f7dd6923bb54103",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [ "acorn@6.0.1", "acorn-walk@6.0.1" ]
+    },
+    "acorn@6.0.1": {
       "record": {
         "name": "acorn",
-        "version": "5.7.2",
+        "version": "6.0.1",
         "source":
-          "archive:https://registry.npmjs.org/acorn/-/acorn-5.7.2.tgz#sha1:91fa871883485d06708800318404e72bfb26dcc5",
+          "archive:https://registry.npmjs.org/acorn/-/acorn-6.0.1.tgz#sha1:66e6147e1027704479dc6d9b20d884c572db3cc1",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
+    },
+    "acorn@5.7.3": {
+      "record": {
+        "name": "acorn",
+        "version": "5.7.3",
+        "source":
+          "archive:https://registry.npmjs.org/acorn/-/acorn-5.7.3.tgz#sha1:67aa231bf8812974b85235a96771eb6bd07ea279",
         "files": [],
         "opam": null
       },
@@ -6906,7 +6939,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/biniou@opam:1.2.0",
-        "@opam/cppo@opam:1.6.4", "@opam/easy-format@opam:1.3.1",
+        "@opam/cppo@opam:1.6.5", "@opam/easy-format@opam:1.3.1",
         "@opam/jbuilder@opam:transition"
       ]
     },
@@ -6944,7 +6977,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-threads@opam:base",
         "@opam/base-unix@opam:base", "@opam/camomile@opam:1.0.1",
-        "@opam/cppo@opam:1.6.4", "@opam/jbuilder@opam:transition",
+        "@opam/cppo@opam:1.6.5", "@opam/jbuilder@opam:transition",
         "@opam/lambda-term@opam:1.13", "@opam/lwt@opam:4.1.0",
         "@opam/lwt_react@opam:1.1.1", "@opam/ocamlfind@opam:1.8.0",
         "@opam/react@opam:1.2.1"
@@ -7165,7 +7198,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-        "@opam/dune@opam:1.1.1", "@opam/ocaml-compiler-libs@opam:v0.11.0",
+        "@opam/dune@opam:1.2.0", "@opam/ocaml-compiler-libs@opam:v0.11.0",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0"
       ]
@@ -7304,7 +7337,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/cppo_ocamlbuild@opam:1.6.0", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/ppx_deriving@opam:4.2.1",
         "@opam/result@opam:1.3", "@opam/yojson@opam:1.4.1"
@@ -7344,7 +7377,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/cppo_ocamlbuild@opam:1.6.0",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
         "@opam/ocamlbuild@opam:0.12.0", "@opam/ocamlfind@opam:1.8.0",
@@ -7477,7 +7510,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
-        "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.4",
+        "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
         "@opam/re@opam:1.8.0"
       ]
@@ -7522,11 +7555,6 @@
             "name": "ocamlfind.install",
             "content":
               "bin: [\n  \"src/findlib/ocamlfind\" {\"ocamlfind\"}\n  \"?src/findlib/ocamlfind_opt\" {\"ocamlfind\"}\n  \"?tools/safe_camlp4\"\n]\ntoplevel: [\"src/findlib/topfind\"]\n"
-          },
-          {
-            "name": "esy-build",
-            "content":
-              "#!/bin/bash\n\nset -euo pipefail\nset -x\n\n#\n# Shim OCAMLLIB so that we can write topfind there\n#\n\nREAL_OCAMLLIB=\"$1\"\n\nmkdir -p $cur__install/lib/ocaml\ncd $cur__install/lib/ocaml\n\nfor filename in `ls -1 $REAL_OCAMLLIB`; do\n  ln -s $REAL_OCAMLLIB/$filename $filename;\ndone\n\n#\n# Build\n#\n\ncd $cur__root\n\nexport OCAMLLIB=\"$cur__install/lib/ocaml\"\n\n./configure \\\n  -bindir $cur__install/bin \\\n  -sitelib $cur__install/lib \\\n  -mandir $cur__install/man \\\n  -config $cur__install/lib/findlib.conf \\\n  -no-custom \\\n  -no-camlp4\n\nmake all\nmake opt\nmake install\n\n(opam-installer --prefix=$cur__install || true)\n"
           }
         ],
         "opam": {
@@ -7535,19 +7563,27 @@
           "opam":
             "opam-version: \"1.2\"\nname: \"ocamlfind\"\nversion: \"1.8.0\"\nmaintainer: \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\nauthors: \"Gerd Stolpmann <gerd@gerd-stolpmann.de>\"\nhomepage: \"http://projects.camlcity.org/projects/findlib.html\"\nbug-reports: \"https://gitlab.camlcity.org/gerd/lib-findlib/issues\"\ndepends: [\n  \"conf-m4\" {build}\n]\navailable: ocaml-version >= \"4.00.0\"\nbuild: [\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-custom\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"all\"]\n  [make \"opt\"] {ocaml-native}\n]\ninstall: [\n  [make \"install\"]\n  [\"install\" \"-m\" \"0755\" \"ocaml-stub\" \"%{bin}%/ocaml\"] {preinstalled}\n]\nremove: [\n  [\"ocamlfind\" \"remove\" \"bytes\"]\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"uninstall\"]\n  [\"rm\" \"-f\" \"%{bin}%/ocaml\"] {preinstalled}\n]\ndev-repo: \"git+https://gitlab.camlcity.org/gerd/lib-findlib.git\"",
           "override": {
-            "build": [ [ "bash", "./esy-build", "#{ocaml.lib / 'ocaml'}" ] ],
+            "build": [
+              [
+                "./configure", "-bindir", "#{self.bin}", "-sitelib",
+                "#{self.lib}", "-mandir", "#{self.man}", "-config",
+                "#{self.lib}/findlib.conf", "-no-custom", "-no-topfind"
+              ],
+              [ "make", "all" ],
+              [ "make", "opt" ]
+            ],
+            "install": [
+              [ "make", "install" ],
+              [ "install", "-m", "0755", "ocaml-stub", "#{self.bin}/ocaml" ],
+              [ "mkdir", "-p", "#{self.toplevel}" ],
+              [
+                "install", "-m", "0644", "src/findlib/topfind",
+                "#{self.toplevel}/topfind"
+              ]
+            ],
             "exportedEnv": {
-              "OCAMLLIB": {
-                "val": "#{@opam/ocamlfind.install / 'lib' / 'ocaml'}",
-                "scope": "global"
-              },
-              "CAML_LD_LIBRARY_PATH": {
-                "val":
-                  "#{@opam/ocamlfind.install / 'lib' / 'ocaml' / 'stublibs' : @opam/ocamlfind.install / 'lib' / 'ocaml' : $CAML_LD_LIBRARY_PATH}",
-                "scope": "global"
-              },
               "OCAML_TOPLEVEL_PATH": {
-                "val": "#{@opam/ocamlfind.install / 'lib' / 'ocaml'}",
+                "val": "#{self.toplevel}",
                 "scope": "global"
               }
             }
@@ -7561,7 +7597,7 @@
         "name": "@opam/ocamlbuild",
         "version": "opam:0.12.0",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ocamlbuild.0.12.0+opam.tar.gz#md5:6e877d7f40c119c0c6c03f04342f2264",
+          "archive:https://opam.ocaml.org/archives/ocamlbuild.0.12.0+opam.tar.gz#md5:43f12b7f9a57d8e967a652bfb6a9dd65",
           "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b"
         ],
         "files": [
@@ -7575,7 +7611,7 @@
           "name": "ocamlbuild",
           "version": "0.12.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ocamlbuild\"\nversion: \"0.12.0\"\nmaintainer: \"Gabriel Scherer <gabriel.scherer@gmail.com>\"\nauthors: [\"Nicolas Pouillard\" \"Berke Durak\"]\nlicense: \"LGPL-2 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocamlbuild/\"\ndoc: \"https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc\"\nbug-reports: \"https://github.com/ocaml/ocamlbuild/issues\"\nconflicts: [\n  \"base-ocamlbuild\"\n  \"ocamlfind\" {< \"1.6.2\"}\n]\navailable: ocaml-version >= \"4.03\"\nbuild: [\n  [\n    make\n    \"-f\"\n    \"configure.make\"\n    \"all\"\n    \"OCAMLBUILD_PREFIX=%{prefix}%\"\n    \"OCAMLBUILD_BINDIR=%{bin}%\"\n    \"OCAMLBUILD_LIBDIR=%{lib}%\"\n    \"OCAMLBUILD_MANDIR=%{man}%\"\n    \"OCAML_NATIVE=%{ocaml-native}%\"\n    \"OCAML_NATIVE_TOOLS=%{ocaml-native}%\"\n  ]\n  [make \"check-if-preinstalled\" \"all\" \"opam-install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/ocamlbuild.git\"",
+            "opam-version: \"1.2\"\nname: \"ocamlbuild\"\nversion: \"0.12.0\"\nmaintainer: \"Gabriel Scherer <gabriel.scherer@gmail.com>\"\nauthors: [\"Nicolas Pouillard\" \"Berke Durak\"]\nlicense: \"LGPL-2 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocamlbuild/\"\ndoc: \"https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc\"\nbug-reports: \"https://github.com/ocaml/ocamlbuild/issues\"\nconflicts: [\n  \"base-ocamlbuild\"\n  \"ocamlfind\" {< \"1.6.2\"}\n]\navailable: ocaml-version >= \"4.03\" & ocaml-version < \"4.08.0\"\nbuild: [\n  [\n    make\n    \"-f\"\n    \"configure.make\"\n    \"all\"\n    \"OCAMLBUILD_PREFIX=%{prefix}%\"\n    \"OCAMLBUILD_BINDIR=%{bin}%\"\n    \"OCAMLBUILD_LIBDIR=%{lib}%\"\n    \"OCAMLBUILD_MANDIR=%{man}%\"\n    \"OCAML_NATIVE=%{ocaml-native}%\"\n    \"OCAML_NATIVE_TOOLS=%{ocaml-native}%\"\n  ]\n  [make \"check-if-preinstalled\" \"all\" \"opam-install\"]\n]\ndev-repo: \"git+https://github.com/ocaml/ocamlbuild.git\"",
           "override": {
             "build": [
               [
@@ -7618,7 +7654,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.1.1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.2.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
       ]
     },
@@ -7675,7 +7711,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
@@ -7804,7 +7840,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlfind@opam:1.8.0",
         "@opam/result@opam:1.3"
       ]
@@ -7885,7 +7921,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.1.1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.2.0",
         "@opam/ocamlfind@opam:1.8.0"
       ]
     },
@@ -7955,7 +7991,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/cppo@opam:1.6.4", "@opam/ocamlfind@opam:1.8.0"
+        "@opam/cppo@opam:1.6.5", "@opam/ocamlfind@opam:1.8.0"
       ]
     },
     "@opam/easy-format@opam:1.3.1": {
@@ -7979,20 +8015,20 @@
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition"
       ]
     },
-    "@opam/dune@opam:1.1.1": {
+    "@opam/dune@opam:1.2.0": {
       "record": {
         "name": "@opam/dune",
-        "version": "opam:1.1.1",
+        "version": "opam:1.2.0",
         "source": [
-          "archive:https://opam.ocaml.org/archives/dune.1.1.1+opam.tar.gz#md5:7b15c22b89142b88d2544aefee550b09",
-          "archive:https://github.com/ocaml/dune/releases/download/1.1.1/dune-1.1.1.tbz#md5:d1da3d5a9cd9f450bb35724d16fbcaf2"
+          "archive:https://opam.ocaml.org/archives/dune.1.2.0+opam.tar.gz#md5:d3b0ff6f3171c03b8e1a8eef69af7312",
+          "archive:https://github.com/ocaml/dune/releases/download/1.2.0/dune-1.2.0.tbz#md5:84dee1298b5e1bd6a80161477920fbfa"
         ],
         "files": [],
         "opam": {
           "name": "dune",
-          "version": "1.1.1",
+          "version": "1.2.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"dune\"\nversion: \"1.1.1\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib]\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"",
+            "opam-version: \"1.2\"\nname: \"dune\"\nversion: \"1.2.0\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib] {opam-version < \"2\"}\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"",
           "override": {
             "build": [
               [ "ocaml", "bootstrap.ml" ],
@@ -8059,7 +8095,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
-        "@opam/cppo@opam:1.6.4", "@opam/cudf@opam:0.9",
+        "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0"
       ]
@@ -8104,30 +8140,30 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.4",
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlbuild@opam:0.12.0"
       ]
     },
-    "@opam/cppo@opam:1.6.4": {
+    "@opam/cppo@opam:1.6.5": {
       "record": {
         "name": "@opam/cppo",
-        "version": "opam:1.6.4",
+        "version": "opam:1.6.5",
         "source": [
-          "archive:https://opam.ocaml.org/archives/cppo.1.6.4+opam.tar.gz#md5:c6651a3677048b442859d085138c2cc2",
-          "archive:https://github.com/mjambon/cppo/archive/v1.6.4.tar.gz#md5:f7a4a6a0e83b76562b45db3a93ffd204"
+          "archive:https://opam.ocaml.org/archives/cppo.1.6.5+opam.tar.gz#md5:07b0faeb722c1d625befb89fdc39617f",
+          "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82"
         ],
         "files": [],
         "opam": {
           "name": "cppo",
-          "version": "1.6.4",
+          "version": "1.6.5",
           "opam":
-            "opam-version: \"1.2\"\nname: \"cppo\"\nversion: \"1.6.4\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nlicense: \"BSD-3-Clause\"\nhomepage: \"https://github.com/mjambon/cppo\"\nbug-reports: \"https://github.com/mjambon/cppo/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"base-bytes\"\n  \"base-unix\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/mjambon/cppo.git\"",
+            "opam-version: \"1.2\"\nname: \"cppo\"\nversion: \"1.6.5\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nlicense: \"BSD-3-Clause\"\nhomepage: \"https://github.com/mjambon/cppo\"\nbug-reports: \"https://github.com/mjambon/cppo/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"base-unix\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/mjambon/cppo.git\"",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/base-unix@opam:base", "@opam/jbuilder@opam:transition"
+        "@esy-ocaml/substs@0.0.1", "@opam/base-unix@opam:base",
+        "@opam/jbuilder@opam:transition"
       ]
     },
     "@opam/conf-which@opam:1": {
