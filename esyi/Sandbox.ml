@@ -17,7 +17,7 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
+let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
   let%bind opams =
@@ -62,7 +62,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
   in
 
   let source = Source.LocalPath {
-    path = projectPath;
+    path = Path.v ".";
     manifest = None;
   } in
   let version = Version.Source source in
@@ -148,7 +148,7 @@ let makeEsySandbox ~cfg ~spec projectPath path =
   ) in
 
   let root =
-    let source = Source.LocalPath {path = projectPath; manifest = None;} in
+    let source = Source.LocalPath {path = Path.v "."; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
     Package.ofPackageJson ~name ~version ~source:(Package.Source source) pkgJson
