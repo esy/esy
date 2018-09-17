@@ -22,7 +22,7 @@ build_script:
 # Reset %PATH% to avoid cygwin DLL conflicts with cause
 # *** fatal error - cygheap base mismatch detected
     - echo $PATH
-    - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files (x86)\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
+    - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
     - npm run bootstrap:build
     - npm run bootstrap:unit-test
     - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
