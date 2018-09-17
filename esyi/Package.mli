@@ -21,6 +21,7 @@ module Override : sig
   type t = {
     build : PackageJson.CommandList.t option;
     install : PackageJson.CommandList.t option;
+    dependencies : PackageJson.Dependencies.t option;
   }
 
   include S.JSONABLE with type t := t

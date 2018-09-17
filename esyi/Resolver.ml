@@ -57,7 +57,21 @@ let classifyManifest path =
   | "opam", "" -> return (`Opam None)
   | _ -> errorf "unknown manifest: %s" basename
 
-let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="master") () =
+let makeDummyPackage name version source =
+  {
+    Package.
+    name;
+    version;
+    originalVersion = None;
+    source = source, [];
+    override = None;
+    dependencies = Package.Dependencies.NpmFormula [];
+    devDependencies = Package.Dependencies.NpmFormula [];
+    opam = None;
+    kind = Esy;
+  }
+
+let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~user ~repo ?(ref="master") () =
   let open RunAsync.Syntax in
   let fetchFile name =
     let url =
@@ -76,7 +90,10 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
 
   let rec tryFilename filenames =
     match filenames with
-    | [] -> errorf "cannot find manifest at github:%s/%s#%s" user repo ref
+    | [] ->
+      if allowEmptyPackage
+      then return (makeDummyPackage name version source)
+      else errorf "cannot find manifest at github:%s/%s#%s" user repo ref
     | filename::rest ->
       begin match%lwt fetchFile filename with
       | Error _ -> tryFilename rest
@@ -107,12 +124,15 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
 
   tryFilename filenames
 
-let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
+let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path : Path.t) =
   let open RunAsync.Syntax in
 
   let rec tryFilename filenames =
     match filenames with
-    | [] -> errorf "cannot find manifest at %a" Path.pp path
+    | [] ->
+      if allowEmptyPackage
+      then return (makeDummyPackage name version source)
+      else errorf "cannot find manifest at %a" Path.pp path
     | filename::rest ->
       let path = Path.(path / filename) in
       if%bind Fs.exists path
@@ -198,7 +218,7 @@ let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
   let key = (resolution.name, resolution.resolution) in
 
-  let ofSource (source : Source.t) =
+  let ofSource ~allowEmptyPackage (source : Source.t) =
     match source with
     | LocalPath {path; manifest}
     | LocalPathLink {path; manifest} ->
@@ -206,10 +226,11 @@ let package ~(resolution : Resolution.t) resolver =
         ?manifest
         ~name:resolution.name
         ~version:(Version.Source source)
+        ~allowEmptyPackage
         ~source:(Package.Source source)
         path
       in
-      return (Ok pkg)
+      return pkg
     | Git {remote; commit; manifest;} ->
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
@@ -217,11 +238,12 @@ let package ~(resolution : Resolution.t) resolver =
         let%bind pkg = loadPackageOfPath
           ?manifest
           ~name:resolution.name
-        ~version:(Version.Source source)
+          ~version:(Version.Source source)
+          ~allowEmptyPackage
           ~source:(Package.Source source)
           repo
         in
-        return (Ok pkg)
+        return pkg
       end
     | Github {user; repo; commit; manifest;} ->
       let%bind pkg =
@@ -229,20 +251,23 @@ let package ~(resolution : Resolution.t) resolver =
           ?manifest
           ~name:resolution.name
           ~version:(Version.Source source)
+          ~allowEmptyPackage
           ~source:(Package.Source source)
           ~user
           ~repo
           ~ref:commit
           ()
       in
-      return (Ok pkg)
+      return pkg
     | NoSource -> error "no source"
     | Archive _ -> error "not implemented"
   in
 
   let ofVersion (version : Version.t) =
     match version with
-    | Version.Source source -> ofSource source
+    | Version.Source source ->
+      let%bind pkg = ofSource ~allowEmptyPackage:false source in
+      return (Ok pkg)
 
     | Version.Npm version ->
       let%bind pkg =
@@ -269,10 +294,27 @@ let package ~(resolution : Resolution.t) resolver =
       end
   in
 
+  let applyOverride pkg override =
+    let pkg = {pkg with Package. override = Some override} in
+    let pkg =
+      match override.Package.Override.dependencies with
+      | Some dependencies -> {
+          pkg with
+          Package.
+          dependencies = Package.Dependencies.NpmFormula dependencies
+        }
+      | None -> pkg
+    in
+    pkg
+  in
+
   PackageCache.compute resolver.pkgCache key begin fun _ ->
     match resolution.resolution with
     | Version version -> ofVersion version
-    | SourceOverride _ -> failwith "TODO"
+    | SourceOverride {source; override} ->
+      let%bind pkg = ofSource ~allowEmptyPackage:true source in
+      let pkg = applyOverride pkg override in
+      return (Ok pkg)
   end
 
 let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
@@ -435,7 +477,8 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
       match resolution.resolution with
       | Version version ->
         VersionSpec.ofVersion version
-      | SourceOverride _ -> failwith "TODO"
+      | SourceOverride {source; _} ->
+        VersionSpec.Source (SourceSpec.ofSource source)
     in
     return ([resolution], Some spec)
   | None ->

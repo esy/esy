@@ -9,6 +9,7 @@ module Override = struct
   type t = {
     build : PackageJson.CommandList.t option [@default None];
     install : PackageJson.CommandList.t option [@default None];
+    dependencies : PackageJson.Dependencies.t option [@default None];
   } [@@deriving yojson, eq, ord]
 end
 
