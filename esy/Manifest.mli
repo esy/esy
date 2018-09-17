@@ -53,6 +53,7 @@ module Build : sig
     buildEnv : Env.t;
   }
 
+  val empty : t
   val to_yojson : t -> Json.t
 end
 
@@ -66,6 +67,7 @@ module Dependencies : sig
     buildTimeDependencies : string list list;
     optDependencies : string list list;
   }
+  val empty : t
   val show : t -> string
 end
 

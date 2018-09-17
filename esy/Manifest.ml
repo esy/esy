@@ -91,6 +91,16 @@ module Build = struct
     buildEnv : Env.t;
   } [@@deriving to_yojson]
 
+  let empty = {
+    buildType = BuildType.OutOfSource;
+    buildCommands = EsyCommands [];
+    installCommands = EsyCommands [];
+    patches = [];
+    substs = [];
+    exportedEnv = [];
+    buildEnv = [];
+  }
+
 end
 
 module Dependencies = struct
@@ -100,6 +110,13 @@ module Dependencies = struct
     buildTimeDependencies : string list list;
     optDependencies : string list list;
   } [@@deriving show]
+
+  let empty = {
+    dependencies = [];
+    devDependencies = [];
+    buildTimeDependencies = [];
+    optDependencies = [];
+  }
 end
 
 module Release = struct
