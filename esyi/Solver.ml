@@ -167,7 +167,7 @@ let rec findResolutionForRequest ~req = function
     let version =
       match res.Resolution.resolution with
       | Version version -> version
-      | SourceOverride _ -> failwith "TODO"
+      | SourceOverride {source;_} -> Version.Source source
     in
     if
       Req.matches
