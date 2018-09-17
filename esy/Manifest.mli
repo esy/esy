@@ -44,7 +44,6 @@ module Build : sig
     | EsyCommands of CommandList.t
 
   type t = {
-    sourceType : SourceType.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -121,16 +120,6 @@ module type MANIFEST = sig
 
   val sandboxEnv : t -> Env.t Run.t
   (** Extract sandbox environment from manifest. *)
-
-  (**
-   * Unique id of the release.
-   *
-   * This could be a released version, git sha commit or some checksum of package
-   * contents if any.
-   *
-   * This info is used to construct a build key for the corresponding package.
-   *)
-  val source : t -> EsyInstall.Source.t option
 end
 
 include MANIFEST

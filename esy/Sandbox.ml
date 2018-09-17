@@ -1,12 +1,16 @@
+module Source = EsyInstall.Source
+module EsyLinkFile = EsyInstall.EsyLinkFile
+
 module Package = struct
   type t = {
     id : string;
     name : string;
     version : string;
     build : Manifest.Build.t;
-    sourcePath : EsyBuildPackage.Config.Path.t;
     originPath : Path.Set.t;
-    source : Manifest.Source.t option;
+    source : Manifest.Source.t;
+    sourcePath : EsyBuildPackage.Config.Path.t;
+    sourceType : Manifest.SourceType.t;
   }
 
   let pp fmt p =
@@ -251,28 +255,26 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       Lwt.return dependencies
     in
 
-    let%bind manifest, forceTransient, sourcePath, packagesPath =
+    let%bind manifest, source, sourcePath, packagesPath =
       let asRoot = Path.equal path spec.path in
       if asRoot
       then
         let%bind m = Manifest.ofSandboxSpec spec in
-        return (Some m, false, path, EsyInstall.SandboxSpec.nodeModulesPath spec)
+        let source = Source.LocalPathLink {path; manifest = None} in
+        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec)
       else
-        let%bind forceTransient, sourcePath, manifestFilename =
-          let pathToEsyLink = Path.(path / "_esylink") in
-          if%bind Fs.exists pathToEsyLink
-          then
-            let%bind link = EsyInstall.EsyLinkFile.ofFile pathToEsyLink in
-            return (true, link.EsyInstall.EsyLinkFile.path, link.manifest)
-          else
-            return (false, path, None)
+        let%bind link = EsyLinkFile.ofDir path in
+        let sourcePath =
+          match link.EsyLinkFile.source with
+          | Source.LocalPathLink info -> info.path
+          | _ -> path
         in
         let%bind m = Manifest.ofDir
           ?name
-          ?manifest:manifestFilename
+          ?manifest:(Source.manifest link.source)
           sourcePath
         in
-        return (m, forceTransient, sourcePath, path)
+        return (m, link.source, sourcePath, path)
     in
     match manifest with
     | Some (manifest, originPath) ->
@@ -292,7 +294,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
                 | Ok (Dependency.Dependency, pkg)
                 | Ok (Dependency.BuildTimeDependency, pkg)
                 | Ok (Dependency.OptDependency, pkg) ->
-                  pkg.Package.build.sourceType = Manifest.SourceType.Transient
+                  pkg.Package.sourceType = Manifest.SourceType.Transient
                 | Ok (Dependency.DevDependency, _)
                 | Error _ -> false)
             dependencies
@@ -301,10 +303,10 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         match build with
         | Some build ->
           let sourceType =
-            match hasDepWithSourceTypeDevelopment, forceTransient with
+            match hasDepWithSourceTypeDevelopment, source with
             | true, _ -> Manifest.SourceType.Transient
-            | _, true -> Manifest.SourceType.Transient
-            | false, false -> build.Manifest.Build.sourceType
+            | false, Source.LocalPathLink _ -> Manifest.SourceType.Transient
+            | false, _ -> Manifest.SourceType.Immutable
           in
 
           let pkg = {
@@ -312,10 +314,11 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
             id = Path.toString path;
             name = Manifest.name manifest;
             version = Manifest.version manifest;
-            build = {build with sourceType};
+            build;
             sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
             originPath;
-            source = Manifest.source manifest;
+            source;
+            sourceType;
           } in
 
           dependenciesByPackage :=

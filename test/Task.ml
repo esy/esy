@@ -66,7 +66,6 @@ module TestCommandExpr = struct
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      sourceType = Manifest.SourceType.Immutable;
       exportedEnv = [
         {
           Manifest.ExportedEnv.
@@ -85,9 +84,10 @@ module TestCommandExpr = struct
       ];
       buildEnv = [];
     };
-    sourcePath = Sandbox.Path.v "/path";
     originPath = Path.Set.empty;
-    source = None;
+    sourceType = Manifest.SourceType.Immutable;
+    sourcePath = Sandbox.Path.v "/path";
+    source = EsyInstall.Source.NoSource;
   }
 
   let pkg = Sandbox.Package.{
@@ -106,13 +106,13 @@ module TestCommandExpr = struct
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      sourceType = Manifest.SourceType.Immutable;
       exportedEnv = [];
       buildEnv = [];
     };
     originPath = Path.Set.empty;
     sourcePath = Sandbox.Path.v "/path";
-    source = None;
+    sourceType = Manifest.SourceType.Immutable;
+    source = EsyInstall.Source.NoSource;
   }
 
   let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)]

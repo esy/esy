@@ -27,6 +27,15 @@ type t =
   | NoSource
   [@@deriving (ord, eq)]
 
+let manifest (src : t) =
+  match src with
+  | Git info -> info.manifest
+  | Github info -> info.manifest
+  | LocalPath info -> info.manifest
+  | LocalPathLink info -> info.manifest
+  | Archive _ -> None
+  | NoSource -> None
+
 let toString = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit

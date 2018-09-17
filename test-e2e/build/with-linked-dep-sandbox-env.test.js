@@ -16,128 +16,140 @@ const {
 
 skipSuiteOnWindows('Needs investigation');
 
-const fixture = [
-  packageJson({
-    name: 'with-linked-dep-sandbox-env',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-      sandboxEnv: {
-        SANDBOX_ENV_VAR: 'global-sandbox-env-var',
-      },
-    },
-    dependencies: {
-      dep: '*',
-    },
-    buildTimeDependencies: {
-      dep2: '*',
-    },
-    devDependencies: {
-      dep3: '*',
-    },
-  }),
-  dir(
-    'node_modules',
-    dir(
-      'dep',
-      symlink('package.json', path.join('..', '..', 'dep')),
-      file('_esylink', '{"path": "./dep"}'),
-    ),
-    dir(
-      'dep2',
-      symlink('package.json', path.join('..', '..', 'dep2')),
-      file('_esylink', '{"path": "./dep2"}'),
-    ),
-    dir(
-      'dep3',
-      symlink('package.json', path.join('..', '..', 'dep3')),
-      file('_esylink', '{"path": "./dep3"}'),
-    ),
-    ocamlPackage(),
-  ),
-  dir(
-    'dep',
+function makeFixture(p) {
+  return [
     packageJson({
-      name: 'dep',
+      name: 'with-linked-dep-sandbox-env',
       version: '1.0.0',
       esy: {
-        build: [
-          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-          'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
-        ],
-        install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
+        build: 'true',
+        sandboxEnv: {
+          SANDBOX_ENV_VAR: 'global-sandbox-env-var',
+        },
       },
       dependencies: {
-        ocaml: '*',
+        dep: '*',
+      },
+      buildTimeDependencies: {
+        dep2: '*',
+      },
+      devDependencies: {
+        dep3: '*',
       },
     }),
-    file(
-      'dep.ml',
-      outdent`
+    dir(
+      'node_modules',
+      dir(
+        'dep',
+        symlink('package.json', path.join('..', '..', 'dep')),
+        file(
+          '_esylink',
+          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep')}`}),
+        ),
+      ),
+      dir(
+        'dep2',
+        symlink('package.json', path.join('..', '..', 'dep2')),
+        file(
+          '_esylink',
+          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep2')}`}),
+        ),
+      ),
+      dir(
+        'dep3',
+        symlink('package.json', path.join('..', '..', 'dep3')),
+        file(
+          '_esylink',
+          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep3')}`}),
+        ),
+      ),
+      ocamlPackage(),
+    ),
+    dir(
+      'dep',
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          build: [
+            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+          ],
+          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      file(
+        'dep.ml',
+        outdent`
       let () =
         let v = Sys.getenv "SANDBOX_ENV_VAR" in
         print_endline (v ^ "-in-dep");
     `,
+      ),
     ),
-  ),
-  dir(
-    'dep2',
-    packageJson({
-      name: 'dep2',
-      version: '1.0.0',
-      esy: {
-        build: [
-          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-          'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
-        ],
-        install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-      },
-      dependencies: {
-        ocaml: '*',
-      },
-    }),
-    file(
-      'dep2.ml',
-      outdent`
+    dir(
+      'dep2',
+      packageJson({
+        name: 'dep2',
+        version: '1.0.0',
+        esy: {
+          build: [
+            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+          ],
+          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      file(
+        'dep2.ml',
+        outdent`
       let () =
         let v = Sys.getenv "SANDBOX_ENV_VAR" in
         print_endline (v ^ "-in-dep2");
     `,
+      ),
     ),
-  ),
-  dir(
-    'dep3',
-    packageJson({
-      name: 'dep3',
-      version: '1.0.0',
-      license: 'MIT',
-      esy: {
-        build: [
-          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-          'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
-        ],
-        install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-      },
-      dependencies: {
-        ocaml: '*',
-      },
-    }),
-    file(
-      'dep3.ml',
-      outdent`
+    dir(
+      'dep3',
+      packageJson({
+        name: 'dep3',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          build: [
+            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+          ],
+          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      file(
+        'dep3.ml',
+        outdent`
       let () =
         let v = Sys.getenv "SANDBOX_ENV_VAR" in
         print_endline (v ^ "-in-dep3");
     `,
+      ),
     ),
-  ),
-];
+  ];
+}
 
-describe('Build - with linked dep _build', () => {
+describe('Linked deps with presen', () => {
   let p;
 
   beforeEach(async () => {
-    p = await createTestSandbox(...fixture);
+    p = await createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('build');
   });
 

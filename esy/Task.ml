@@ -292,11 +292,7 @@ let ofSandbox
 
         (* a special tag which is communicated by the installer and specifies
          * the version of distribution of vcs commit sha *)
-        let source =
-          match pkg.source with
-          | Some source -> Manifest.Source.toString source
-          | None -> ""
-        in
+        let source = Manifest.Source.toString pkg.source in
 
         let sandboxEnv =
           sandbox.env
@@ -314,7 +310,7 @@ let ofSandbox
     in
 
     let sourceType =
-      match forceImmutable, pkg.build.sourceType with
+      match forceImmutable, pkg.sourceType with
       | true, _ -> Manifest.SourceType.Immutable
       | false, sourceType -> sourceType
     in

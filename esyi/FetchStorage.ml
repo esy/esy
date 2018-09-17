@@ -148,25 +148,6 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       List.map ~f record.files |> RunAsync.List.waitAll
     in
 
-    let%bind () =
-      let addResolvedFieldToPackageJson filename =
-        match%bind Fs.readJsonFile filename with
-        | `Assoc items ->
-          let json = `Assoc (("_esy.source", `String (Source.toString source))::items) in
-          let data = Yojson.Safe.pretty_to_string json in
-          Fs.writeFile ~data filename
-        | _ -> error "invalid package.json"
-      in
-
-      let esyJson = Path.(path / "esy.json") in
-      let packageJson = Path.(path / "package.json") in
-      if%bind Fs.exists esyJson
-      then addResolvedFieldToPackageJson esyJson
-      else if%bind Fs.exists packageJson
-      then addResolvedFieldToPackageJson packageJson
-      else return ()
-    in
-
     return ()
   in
 
@@ -251,19 +232,22 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
   let {Dist. tarballPath; source; override; _} = dist in
-  match source, tarballPath with
 
-  | Source.LocalPathLink {path = origPath; manifest;}, _ ->
-    let%bind () = Fs.createDir path in
-    let%bind () =
-      let link = EsyLinkFile.{path = origPath; manifest; override;} in
-      EsyLinkFile.toFile link Path.(path / "_esylink")
-    in
-    return ()
+  let%bind () = Fs.createDir path in
 
-  | _, Some tarballPath ->
-    let%bind () = Fs.createDir path in
-    let%bind () = Tarball.unpack ~dst:path tarballPath in
-    return ()
-  | _, None ->
-    return ()
+  let%bind () =
+    match source, tarballPath with
+    | Source.LocalPathLink _, _
+    | _, None ->
+      return ()
+    | _, Some tarballPath ->
+      Tarball.unpack ~dst:path tarballPath
+  in
+
+  let%bind () =
+    EsyLinkFile.toDir
+      EsyLinkFile.{source; override;}
+      path
+  in
+
+  return ()

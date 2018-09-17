@@ -82,7 +82,6 @@ module Build = struct
     `Assoc ["path", Path.to_yojson path; "filter", filter]
 
   type t = {
-    sourceType : SourceType.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -190,16 +189,6 @@ module type MANIFEST = sig
   val scripts : t -> Scripts.t Run.t
 
   val sandboxEnv : t -> Env.t Run.t
-
-  (**
-   * Unique id of the release.
-   *
-   * This could be a released version, git sha commit or some checksum of package
-   * contents if any.
-   *
-   * This info is used to construct a build key for the corresponding package.
-   *)
-  val source : t -> Source.t option
 end
 
 module Esy : sig
@@ -234,7 +223,6 @@ end = struct
       optDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
       buildTimeDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
       esy: EsyManifest.t option [@default None];
-      source: Source.t option [@key "_esy.source"] [@default None];
     } [@@deriving (of_yojson {strict = false})]
   end
 
@@ -249,7 +237,6 @@ end = struct
     optDependencies : PackageJson.Dependencies.t;
     buildTimeDependencies : PackageJson.Dependencies.t;
     esy: EsyManifest.t option;
-    source: Source.t option;
   }
 
   type t = manifest * Json.t
@@ -276,9 +263,6 @@ end = struct
       optDependencies;
       buildTimeDependencies
     }
-
-  let source (manifest, _) =
-    manifest.source
 
   let release (m, _) =
     let open Option.Syntax in
@@ -307,10 +291,6 @@ end = struct
     let%bind esy = m.esy in
     Some {
       Build.
-      sourceType = (
-        match m.source with
-        | None -> SourceType.Transient
-        | Some _ -> SourceType.Immutable);
       buildType = esy.EsyManifest.buildsInSource;
       exportedEnv = esy.EsyManifest.exportedEnv;
       buildEnv = esy.EsyManifest.buildEnv;
@@ -342,7 +322,6 @@ end = struct
       optDependencies = jsonManifest.optDependencies;
       buildTimeDependencies = jsonManifest.buildTimeDependencies;
       esy = jsonManifest.esy;
-      source = jsonManifest.source;
     }
 
   let ofFile (path : Path.t) =
@@ -530,11 +509,6 @@ end = struct
 
   let release _ = None
 
-  let source m =
-    match m with
-    | Installed m -> Some m.info.source
-    | AggregatedRoot _ -> None
-
   let description _ = None
   let license _ = None
 
@@ -598,12 +572,6 @@ end = struct
       | AggregatedRoot _ -> BuildType.Unsafe
     in
 
-    let sourceType =
-      match m with
-      | Installed _ -> SourceType.Immutable
-      | AggregatedRoot _ -> SourceType.Transient
-    in
-
     let exportedEnv =
       match m with
       | Installed manifest ->
@@ -616,7 +584,6 @@ end = struct
 
     Some {
       Build.
-      sourceType;
       buildType;
       exportedEnv;
       buildEnv = Env.empty;
@@ -667,11 +634,6 @@ end = struct
     match m with
     | Opam m -> Opam.license m
     | Esy m -> Esy.license m
-
-  let source m =
-    match m with
-    | Opam m -> Opam.source m
-    | Esy m -> Esy.source m
 
   let dependencies m =
     match m with

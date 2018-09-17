@@ -95,6 +95,13 @@ async function buildOcamlPackage() {
     }),
   );
 
+  await fs.writeFile(
+    path.join(ocamlPackagePath, '_esylink'),
+    JSON.stringify({
+      source: 'path:.',
+    }),
+  );
+
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
 }
 

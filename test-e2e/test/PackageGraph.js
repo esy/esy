@@ -57,9 +57,16 @@ async function crawlPackage(
   let opamPath;
   if (await fsUtils.exists(esyLinkPath)) {
     let link = JSON.parse(await fsUtils.readFile(esyLinkPath, 'utf8'));
-    let sourcePath = link.path;
-    packageJsonPath = path.join(sourcePath, 'package.json');
-    opamPath = path.join(sourcePath, '_esy', 'opam');
+    let parseSource = /link:(.+)/;
+    let m = parseSource.exec(link.source);
+    if (m != null) {
+      let sourcePath = m[1];
+      packageJsonPath = path.join(sourcePath, 'package.json');
+      opamPath = path.join(sourcePath, '_esy', 'opam');
+    } else {
+      packageJsonPath = path.join(directory, 'package.json');
+      opamPath = path.join(directory, '_esy', 'opam');
+    }
   } else {
     packageJsonPath = path.join(directory, 'package.json');
     opamPath = path.join(directory, '_esy', 'opam');

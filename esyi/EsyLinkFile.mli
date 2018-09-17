@@ -8,20 +8,15 @@
  *)
 
 type t = {
-
-  (** Path to source tree. *)
-  path : Path.t;
-
-  (** Optional manifest. If no specified then manifest resolution will be
-      performed. *)
-  manifest : SandboxSpec.ManifestSpec.t option;
+  (** Source. *)
+  source : Source.t;
 
   (** Optional override. *)
   override : Package.Override.t option;
 }
 
-val ofFile : Path.t -> t RunAsync.t
+val ofDir : Path.t -> t RunAsync.t
 (** Read from path. *)
 
-val toFile : t -> Path.t -> unit RunAsync.t
+val toDir : t -> Path.t -> unit RunAsync.t
 (** Write at path. *)

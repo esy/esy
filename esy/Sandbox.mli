@@ -8,9 +8,10 @@ module Package : sig
     name : string;
     version : string;
     build : Manifest.Build.t;
-    sourcePath : EsyBuildPackage.Config.Path.t;
     originPath : Path.Set.t;
-    source : Manifest.Source.t option;
+    source : Manifest.Source.t;
+    sourcePath : EsyBuildPackage.Config.Path.t;
+    sourceType : Manifest.SourceType.t;
   }
 
   val pp : t Fmt.t
