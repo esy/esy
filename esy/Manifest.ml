@@ -1,5 +1,5 @@
 module BuildType = struct
-  include EsyBuildPackage.BuildType
+  include EsyLib.BuildType
 
   let of_yojson = function
     | `String "_build" -> Ok JbuilderLike
@@ -11,7 +11,7 @@ end
 module SandboxSpec = EsyInstall.SandboxSpec
 module PackageJson = EsyInstall.PackageJson
 module Source = EsyInstall.Source
-module SourceType = EsyBuildPackage.SourceType
+module SourceType = EsyLib.SourceType
 module Command = PackageJson.Command
 module CommandList = PackageJson.CommandList
 module ExportedEnv = PackageJson.ExportedEnv

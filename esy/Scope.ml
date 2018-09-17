@@ -159,8 +159,8 @@ end = struct
     | "etc" -> p Sandbox.Path.(installPath / "etc")
     | "dev" -> b (
       match scope.sourceType with
-      | EsyBuildPackage.SourceType.Immutable -> false
-      | EsyBuildPackage.SourceType.Transient -> true)
+      | SourceType.Immutable -> false
+      | SourceType.Transient -> true)
     | _ -> None
 
   let buildEnv scope =

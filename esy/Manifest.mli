@@ -2,8 +2,8 @@
  * This module represents manifests and info which can be parsed out of it.
  *)
 
-module BuildType : module type of EsyBuildPackage.BuildType
-module SourceType : module type of EsyBuildPackage.SourceType
+module BuildType : module type of EsyLib.BuildType
+module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyInstall.Source
 module Command : module type of EsyInstall.PackageJson.Command
