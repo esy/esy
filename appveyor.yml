@@ -4,9 +4,6 @@ platform:
 environment:
    HOME: C:\Users\appveyor
 
-cache:
-    - C:\Users\appveyor\.esy
-
 install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
