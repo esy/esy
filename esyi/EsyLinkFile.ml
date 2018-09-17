@@ -1,7 +1,7 @@
 type t = {
   path : Path.t;
-  manifest : SandboxSpec.ManifestSpec.t option;
-  override : Package.Override.t option;
+  manifest : SandboxSpec.ManifestSpec.t option [@default None];
+  override : Package.Override.t option [@default None];
 } [@@deriving yojson]
 
 let ofFile path =
