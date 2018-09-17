@@ -25,29 +25,26 @@ module Package = struct
 
 end
 
-module Dependency = struct
-  type t =
-    (kind * Package.t, error) result
-    [@@deriving ord]
+module Dependencies = struct
+  [@@@ocaml.warning "-32"]
+  type t = {
+    dependencies : dependency list;
+    buildTimeDependencies : dependency list;
+    devDependencies : dependency list;
+  }
+  [@@deriving ord, show]
 
-  and kind =
-    | Dependency
-    | OptDependency
-    | DevDependency
-    | BuildTimeDependency
+  and dependency = (Package.t, error) result
 
   and error =
     | InvalidDependency of { name : string; message : string; }
     | MissingDependency of { name : string; }
 
-  let pp fmt dep =
-    match dep with
-    | Ok (Dependency, p) -> Fmt.pf fmt "Dependency %s" p.Package.id
-    | Ok (OptDependency, p) -> Fmt.pf fmt "OptDependency %s" p.Package.id
-    | Ok (DevDependency, p) -> Fmt.pf fmt "DevDependency %s" p.Package.id
-    | Ok (BuildTimeDependency, p) -> Fmt.pf fmt "BuildTimeDependency %s" p.Package.id
-    | Error (InvalidDependency p) -> Fmt.pf fmt "InvalidDependency %s" p.name
-    | Error (MissingDependency p) -> Fmt.pf fmt "MissingDependency %s" p.name
+  let empty = {
+    dependencies = [];
+    buildTimeDependencies = [];
+    devDependencies = [];
+  }
 
 end
 
@@ -56,42 +53,44 @@ type t = {
   cfg : Config.t;
   buildConfig: EsyBuildPackage.Config.t;
   root : Package.t;
-  dependencies : Dependency.t list Package.Map.t;
+  dependencies : Dependencies.t Package.Map.t;
   scripts : Manifest.Scripts.t;
   env : Manifest.Env.t;
 }
 
+type info = (Path.t * float) list
+
 let dependencies pkg sandbox =
   match Package.Map.find_opt pkg sandbox.dependencies with
   | Some deps -> deps
-  | None -> []
+  | None -> Dependencies.empty
 
 let findPackage cond sandbox =
   let rec checkPkg pkg =
     if cond pkg
     then Some pkg
-    else
-      match Package.Map.find_opt pkg sandbox.dependencies with
-      | None -> None
-      | Some deps -> checkDeps deps
+    else checkDeps (dependencies pkg sandbox)
+
   and checkDeps deps =
-    match deps with
-    | [] -> None
-    | Ok (_, pkg)::deps ->
-      begin match checkPkg pkg with
-      | None -> checkDeps deps
-      | Some r -> Some r
-      end
-    | Error _::deps -> checkDeps deps
+    let rec check deps =
+      match deps with
+      | [] -> None
+      | Ok pkg::deps ->
+        begin match checkPkg pkg with
+        | None -> check deps
+        | Some r -> Some r
+        end
+      | Error _::deps -> check deps
+    in
+    check (deps.dependencies @ deps.buildTimeDependencies)
+
   in
   checkPkg sandbox.root
 
-type info = (Path.t * float) list
-
-  let packagePathAt ?scope ~name basedir =
-    match scope with
-    | Some scope -> Path.(basedir / "node_modules" / scope / name)
-    | None -> Path.(basedir / "node_modules" / name)
+let packagePathAt ?scope ~name basedir =
+  match scope with
+  | Some scope -> Path.(basedir / "node_modules" / scope / name)
+  | None -> Path.(basedir / "node_modules" / name)
 
 let rec resolvePackage (name : string) (basedir : Path.t) =
 
@@ -168,9 +167,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       ?(skipUnresolved= false)
       ~packagesPath
       ~ignoreCircularDep
-      ~make
-      (dependencies : string list list)
-      (prevDependencies : Dependency.t StringMap.t) =
+      (dependencies : string list list) =
 
       let%lwt dependencies =
         let rec tryResolve names =
@@ -189,70 +186,58 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
 
       let f dependencies =
         function
-        | Ok (name, `PackageWithBuild (pkg, _)) ->
-          let dep = make pkg in
-          StringMap.add name dep dependencies
-        | Ok (_, `Package transitiveDependencies) ->
-          let f k v dependencies =
-            if StringMap.mem k dependencies
-            then dependencies
-            else StringMap.add k v dependencies
-          in
-          StringMap.fold f transitiveDependencies dependencies
         | Ok (_, `Ignored) -> dependencies
+        | Ok (_, `Package _) -> dependencies
+        | Ok (_, `PackageWithBuild (pkg, _)) -> (Ok pkg)::dependencies
         | Ok (name, `Unresolved) ->
           if skipUnresolved
           then dependencies
           else
-            let dep = Error (Dependency.MissingDependency {name}) in
-            StringMap.add name dep dependencies
+            let dep = Error (Dependencies.MissingDependency {name}) in
+            dep::dependencies
         | Error (name, message) ->
-          let dep = Error (Dependency.InvalidDependency {name; message;}) in
-          StringMap.add name dep dependencies
+          let dep = Error (Dependencies.InvalidDependency {name; message;}) in
+          dep::dependencies
       in
-      Lwt.return (List.fold_left ~f ~init:prevDependencies dependencies)
+      Lwt.return (List.fold_left ~f ~init:[] dependencies)
     in
 
     let loadDependencies ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
-      let dependencies = StringMap.empty in
-      let%lwt dependencies =
+      let%lwt devDependencies =
         if Path.equal buildConfig.EsyBuildPackage.Config.projectPath path
         then
           addDependencies
-            ~ignoreCircularDep ~skipUnresolved:true
+            ~ignoreCircularDep
+            ~skipUnresolved:true
             ~packagesPath
-            ~make:(fun pkg -> Ok (DevDependency, pkg))
             deps.devDependencies
-            dependencies
-        else
-          Lwt.return dependencies
+        else Lwt.return []
       in
-      let%lwt dependencies =
+      let%lwt buildTimeDependencies =
         addDependencies
           ~ignoreCircularDep
           ~packagesPath
-          ~make:(fun pkg -> Ok (BuildTimeDependency, pkg))
           deps.buildTimeDependencies
-          dependencies
       in
-      let%lwt dependencies =
+      let%lwt optDependencies =
         addDependencies
           ~ignoreCircularDep
           ~packagesPath
           ~skipUnresolved:true
-          ~make:(fun pkg -> Ok (OptDependency, pkg))
           deps.optDependencies
-          dependencies
       in
       let%lwt dependencies =
         addDependencies
           ~ignoreCircularDep
           ~packagesPath
-          ~make:(fun pkg -> Ok (Dependency, pkg))
           deps.dependencies
-          dependencies
       in
-      Lwt.return dependencies
+      Lwt.return {
+        Dependencies.
+        dependencies = dependencies @ optDependencies;
+        buildTimeDependencies;
+        devDependencies;
+      }
     in
 
     let%bind manifest, source, sourcePath, packagesPath =
@@ -288,16 +273,14 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         in
 
         let hasDepWithSourceTypeDevelopment =
-          StringMap.exists
-            (fun _k dep ->
-              match dep with
-                | Ok (Dependency.Dependency, pkg)
-                | Ok (Dependency.BuildTimeDependency, pkg)
-                | Ok (Dependency.OptDependency, pkg) ->
-                  pkg.Package.sourceType = Manifest.SourceType.Transient
-                | Ok (Dependency.DevDependency, _)
-                | Error _ -> false)
-            dependencies
+          let isTransient dep =
+            match dep with
+            | Ok {Package. sourceType = Manifest.SourceType.Transient; _} -> true
+            | Ok {Package. sourceType = Manifest.SourceType.Immutable; _} -> false
+            | Error _ -> false
+          in
+          List.exists ~f:isTransient dependencies.dependencies
+          || List.exists ~f:isTransient dependencies.buildTimeDependencies
         in
 
         match build with
@@ -322,7 +305,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           } in
 
           dependenciesByPackage :=
-            Package.Map.add pkg (StringMap.values dependencies)
+            Package.Map.add pkg dependencies
             !dependenciesByPackage;
 
           return (`PackageWithBuild (pkg, manifest))

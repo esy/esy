@@ -203,7 +203,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           dependencies =
             Sandbox.Package.Map.add
               root
-              [Ok (Sandbox.Dependency.Dependency, pkg)]
+              Sandbox.Dependencies.{empty with dependencies = [Ok pkg]}
               sandbox.dependencies;
         }
       in

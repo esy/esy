@@ -30,7 +30,10 @@ let makeSandbox root dependencies =
   let dependencies =
     Sandbox.Package.Map.(
       empty
-      |> add root dependencies
+      |> add root Sandbox.Dependencies.{
+        empty with
+        dependencies;
+      }
     )
   in
   {
@@ -115,7 +118,7 @@ module TestCommandExpr = struct
     source = EsyInstall.Source.NoSource;
   }
 
-  let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)]
+  let dependencies = [Ok dep]
 
   let check ?platform sandbox f =
     match Task.ofSandbox ?platform sandbox with
@@ -261,7 +264,7 @@ let checkEnvExists ~name ~value task =
       };
     } in
     let pkg = pkg in
-    let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)] in
+    let dependencies = [Ok dep] in
     check ~platform:System.Platform.Linux (makeSandbox pkg dependencies) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task

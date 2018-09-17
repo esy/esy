@@ -181,59 +181,66 @@ let ofSandbox
 
   let rec allDependenciesOf (pkg : Sandbox.Package.t) =
 
-    let rec aux ?(direct=true) (map, order) dep =
+    let rec aux ?(direct=true) dkind (map, order) dep =
 
-      let%bind dpkg =
+      let%bind dpkg, dkind =
         match dep with
-        | Ok (Sandbox.Dependency.Dependency, dpkg)
-        | Ok (Sandbox.Dependency.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
-        | Ok (Sandbox.Dependency.BuildTimeDependency, dpkg) ->
-          if direct
-          then return (Some (dpkg, BuildTimeDependency))
-          else return None
-        | Ok (Sandbox.Dependency.DevDependency, dpkg) ->
-          if direct
-          then return (Some (dpkg, DevDependency))
-          else return None
-        | Error (Sandbox.Dependency.MissingDependency {name;}) ->
+        | Ok dpkg -> return (dpkg, dkind)
+        | Error (Sandbox.Dependencies.MissingDependency {name;}) ->
           Run.errorf "package %s is missing, run 'esy install' to fix that" name
-        | Error (Sandbox.Dependency.InvalidDependency {name; message;}) ->
+        | Error (Sandbox.Dependencies.InvalidDependency {name; message;}) ->
           Run.errorf "invalid package %s: %s" name message
       in
 
-      match dpkg with
-      | None -> return (map, order)
-      | Some (dpkg, dkind) ->
+      let seenDep =
+        let open Option.Syntax in
+        let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
+        return (direct, task, dpkg)
+      in
 
-        let seenDep =
-          let open Option.Syntax in
-          let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
-          return (direct, task, dpkg)
+      match direct, seenDep with
+      | false, Some (false, _, _) -> return (map, order)
+      | false, Some (true, _, _) -> return (map, order)
+      | true, Some (true, _, _) -> return (map, order)
+      | true, Some (false, deptask, pkg) ->
+        let map = Sandbox.Package.Map.add pkg (true, deptask) map in
+        return (map, order)
+      | _, None ->
+        let deps = Sandbox.dependencies dpkg sandbox in
+
+        let%bind (map, order) = Result.List.foldLeft
+          ~f:(aux ~direct:false Dependency)
+          ~init:(map, order)
+          deps.dependencies
         in
-        match direct, seenDep with
-        | false, Some (false, _, _) -> return (map, order)
-        | false, Some (true, _, _) -> return (map, order)
-        | true, Some (true, _, _) -> return (map, order)
-        | true, Some (false, deptask, pkg) ->
-          let map = Sandbox.Package.Map.add pkg (true, deptask) map in
-          return (map, order)
-        | _, None ->
-          let%bind (map, order) = Result.List.foldLeft
-            ~f:(aux ~direct:false)
-            ~init:(map, order)
-            (Sandbox.dependencies dpkg sandbox)
-          in
-          let%bind dtask = taskOfPackageCached dpkg in
-          let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
-          let order = dpkg::order in
-          return (map, order)
+        let%bind dtask = taskOfPackageCached dpkg in
+        let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
+        let order = dpkg::order in
+        return (map, order)
       in
 
       let%bind map, order =
-        Result.List.foldLeft
-          ~f:(aux ~direct:true)
-          ~init:(Sandbox.Package.Map.empty, [])
-          (Sandbox.dependencies pkg sandbox)
+        let deps = Sandbox.dependencies pkg sandbox in
+        let acc = Sandbox.Package.Map.empty, [] in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true Dependency)
+            ~init:acc
+            deps.dependencies
+        in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true BuildTimeDependency)
+            ~init:acc
+            deps.buildTimeDependencies
+        in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true DevDependency)
+            ~init:acc
+            deps.devDependencies
+        in
+        return acc
       in
 
       return (
