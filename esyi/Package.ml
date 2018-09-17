@@ -43,7 +43,7 @@ module Resolution = struct
       let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
       let%bind override = Json.Parse.fieldWith ~name:"override" Override.of_yojson json in
       return (SourceOverride {source; override;})
-    | _ -> Error "expected string"
+    | _ -> Error "expected string or object"
 
 
   let digest {name; resolution} =
@@ -94,8 +94,8 @@ module Resolutions = struct
       | Ok ((_path, name)) -> Ok name
       | Error err -> Error err
     in
-    let parseValue name =
-      function
+    let parseValue name json =
+      match json with
       | `String v ->
         let%bind version =
           match String.cut ~sep:"/" name with
@@ -103,6 +103,9 @@ module Resolutions = struct
           | _ -> Version.parse v
         in
         return {Resolution. name; resolution = Resolution.Version version;}
+      | `Assoc _ ->
+        let%bind resolution = Resolution.resolution_of_yojson json in
+        return {Resolution. name; resolution;}
       | _ -> Error "expected string"
     in
     function
