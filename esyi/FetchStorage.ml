@@ -49,9 +49,17 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let doFetch path source =
     match source with
 
-    | Source.LocalPath _ ->
-      let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
-      failwith msg
+    | Source.LocalPath { path = srcPath; manifest = _; } ->
+      let%bind names = Fs.listDir srcPath in
+      let copy name =
+        let src = Path.(srcPath / name) in
+        let dst = Path.(path / name) in
+        Fs.copyPath ~src ~dst
+      in
+      let%bind () =
+        RunAsync.List.waitAll (List.map ~f:copy names)
+      in
+      return `Done
 
     | Source.LocalPathLink _ ->
       (* this case is handled separately *)
