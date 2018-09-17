@@ -696,7 +696,7 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let f (task : Task.t) =
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = computeEnv info in
+      let%bind env = computeEnv info task in
       let pkg = Task.pkg task in
       let header = header pkg in
       if asJson
@@ -720,8 +720,8 @@ let buildEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.buildEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.buildEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return env
   in
@@ -732,8 +732,8 @@ let commandEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.commandEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.commandEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return (Environment.current @ env)
   in
@@ -744,8 +744,8 @@ let sandboxEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.sandboxEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.sandboxEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     Ok (Environment.current @ env)
   in
