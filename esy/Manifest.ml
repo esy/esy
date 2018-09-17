@@ -1,11 +1,6 @@
 module BuildType = struct
   include EsyLib.BuildType
-
-  let of_yojson = function
-    | `String "_build" -> Ok JbuilderLike
-    | `Bool true -> Ok InSource
-    | `Bool false -> Ok OutOfSource
-    | _ -> Error "expected false, true or \"_build\""
+  include EsyLib.BuildType.AsInPackageJson
 end
 
 module SandboxSpec = EsyInstall.SandboxSpec
