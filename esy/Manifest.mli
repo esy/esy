@@ -9,20 +9,13 @@ module Source : module type of EsyInstall.Source
 module Command : module type of EsyInstall.PackageJson.Command
 module CommandList : module type of EsyInstall.PackageJson.CommandList
 module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
+module Env : module type of EsyInstall.PackageJson.Env
 
 module Scripts : sig
   type t = script StringMap.t
   and script = { command : Command.t; }
   val empty : t
   val find : string -> t -> script option
-end
-
-module Env : sig
-  type t = item list
-  and item = { name : string; value : string; }
-  val empty : t
-  val show : t -> string
-  val to_yojson : t Json.encoder
 end
 
 (**

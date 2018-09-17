@@ -18,10 +18,15 @@ module Dep : sig
 end
 
 module Override : sig
+
   type t = {
     buildType : BuildType.t option;
     build : PackageJson.CommandList.t option;
     install : PackageJson.CommandList.t option;
+    exportedEnv: PackageJson.ExportedEnv.t option;
+    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option;
+    buildEnv: PackageJson.Env.t option;
+    buildEnvOverride: PackageJson.EnvOverride.t option;
     dependencies : PackageJson.Dependencies.t option;
   }
 

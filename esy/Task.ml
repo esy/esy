@@ -342,7 +342,7 @@ let ofSandbox
         let f {Manifest.Env. name; value} =
           Sandbox.Environment.Bindings.value name (Sandbox.Value.v value)
         in
-        List.map ~f sandbox.Sandbox.env
+        List.map ~f (StringMap.values sandbox.Sandbox.env)
       in
 
       let exportedScope =

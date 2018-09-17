@@ -122,8 +122,20 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
 let applyPkgOverride (pkg : Package.t) (override : Override.t) =
 
+  let {
+    Override.
+    buildType;
+    build;
+    install;
+    exportedEnv;
+    exportedEnvOverride;
+    buildEnv;
+    buildEnvOverride;
+    dependencies = _;
+  } = override in
+
   let pkg =
-    match override.buildType with
+    match buildType with
     | None -> pkg
     | Some buildType -> {
         pkg with
@@ -135,7 +147,7 @@ let applyPkgOverride (pkg : Package.t) (override : Override.t) =
   in
 
   let pkg =
-    match override.build with
+    match build with
     | None -> pkg
     | Some commands -> {
         pkg with
@@ -147,13 +159,63 @@ let applyPkgOverride (pkg : Package.t) (override : Override.t) =
   in
 
   let pkg =
-    match override.install with
+    match install with
     | None -> pkg
     | Some commands -> {
         pkg with
         build = {
           pkg.build with
           installCommands = Manifest.Build.EsyCommands commands
+        };
+      }
+  in
+
+  let pkg =
+    match exportedEnv with
+    | None -> pkg
+    | Some exportedEnv -> {
+        pkg with
+        build = {
+          pkg.build with
+          exportedEnv;
+        };
+      }
+  in
+
+  let pkg =
+    match exportedEnvOverride with
+    | None -> pkg
+    | Some override ->
+      {
+        pkg with
+        build = {
+          pkg.build with
+          exportedEnv = StringMap.Override.apply pkg.build.exportedEnv override;
+        };
+      }
+  in
+
+  let pkg =
+    match buildEnv with
+    | None -> pkg
+    | Some buildEnv -> {
+        pkg with
+        build = {
+          pkg.build with
+          buildEnv;
+        };
+      }
+  in
+
+  let pkg =
+    match buildEnvOverride with
+    | None -> pkg
+    | Some override ->
+      {
+        pkg with
+        build = {
+          pkg.build with
+          buildEnv = StringMap.Override.apply pkg.build.buildEnv override
         };
       }
   in

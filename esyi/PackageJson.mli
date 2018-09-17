@@ -19,8 +19,30 @@ module CommandList : sig
   val empty : t
 end
 
+module Env : sig
+  type t = item StringMap.t
+
+  and item = {
+    name : string;
+    value : string;
+  }
+
+  val empty : t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module EnvOverride : sig
+  type t = Env.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
 module ExportedEnv : sig
-  type t = item list
+  type t = item StringMap.t
 
   and item = {
     name : string;
@@ -32,11 +54,18 @@ module ExportedEnv : sig
   and scope = Local | Global
 
   val empty : t
-  
+
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
 
+end
+
+module ExportedEnvOverride : sig
+  type t = ExportedEnv.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
 end
 
 module Dependencies : sig

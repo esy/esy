@@ -69,23 +69,24 @@ module TestCommandExpr = struct
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      exportedEnv = [
-        {
+      exportedEnv = EsyLib.StringMap.(
+        empty
+        |> add "OK" {
           Manifest.ExportedEnv.
           name = "OK";
           value = "#{self.install / 'ok'}";
           exclusive = false;
           scope = Local;
-        };
-        {
+        }
+        |> add "OK_BY_NAME" {
           Manifest.ExportedEnv.
           name = "OK_BY_NAME";
           value = "#{dep.install / 'ok-by-name'}";
           exclusive = false;
           scope = Local;
         }
-      ];
-      buildEnv = [];
+      );
+      buildEnv = Manifest.Env.empty;
     };
     originPath = Path.Set.empty;
     sourceType = Manifest.SourceType.Immutable;
@@ -109,8 +110,8 @@ module TestCommandExpr = struct
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      exportedEnv = [];
-      buildEnv = [];
+      exportedEnv = Manifest.ExportedEnv.empty;
+      buildEnv = Manifest.Env.empty;
     };
     originPath = Path.Set.empty;
     sourcePath = Sandbox.Path.v "/path";
@@ -238,29 +239,30 @@ let checkEnvExists ~name ~value task =
       dep with
       build = {
         dep.build with
-        exportedEnv = [
-          {
-            Manifest.ExportedEnv.
-            name = "OCAMLPATH";
-            value = "#{'one' : 'two'}";
-            exclusive = false;
-            scope = Local;
-          };
-          {
+        exportedEnv = EsyLib.StringMap.(
+          empty
+          |> add "OCAMLPATH" {
+              Manifest.ExportedEnv.
+              name = "OCAMLPATH";
+              value = "#{'one' : 'two'}";
+              exclusive = false;
+              scope = Local;
+            }
+          |> add "PATH" {
             Manifest.ExportedEnv.
             name = "PATH";
             value = "#{'/bin' : '/usr/bin'}";
             exclusive = false;
             scope = Local;
-          };
-          {
+          }
+          |> add "OCAMLLIB" {
             Manifest.ExportedEnv.
             name = "OCAMLLIB";
             value = "#{os == 'windows' ? ('lib' / 'ocaml') : 'lib'}";
             exclusive = false;
             scope = Local;
           };
-        ];
+        );
       };
     } in
     let pkg = pkg in

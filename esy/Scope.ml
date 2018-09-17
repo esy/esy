@@ -44,8 +44,9 @@ end = struct
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
-          (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal)
+          _name
           Manifest.ExportedEnv.{name; scope = envScope; value; exclusive = _}
+          (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal)
           =
           match envScope with
           | Manifest.ExportedEnv.Global ->
@@ -58,7 +59,7 @@ end = struct
             let exportedEnvLocal = (name, value)::exportedEnvLocal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
         in
-        List.fold_left ~f ~init:(true, [], []) pkg.build.exportedEnv
+        StringMap.fold f pkg.build.exportedEnv (true, [], []) 
       in
 
       let exportedEnvGlobal =
@@ -197,8 +198,8 @@ end = struct
     in
 
     let env =
-      let f env {Manifest.Env. name; value;} = (name, value)::env in
-      List.fold_left ~f ~init:env scope.pkg.build.buildEnv
+      let f _name {Manifest.Env. name; value;} env = (name, value)::env in
+      StringMap.fold f scope.pkg.build.buildEnv env
     in
 
     let env =

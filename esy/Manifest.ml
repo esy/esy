@@ -10,41 +10,7 @@ module SourceType = EsyLib.SourceType
 module Command = PackageJson.Command
 module CommandList = PackageJson.CommandList
 module ExportedEnv = PackageJson.ExportedEnv
-
-module Env = struct
-
-  [@@@ocaml.warning "-32"]
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let empty = []
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String value ->
-        Ok ({name = k; value;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-
-  let to_yojson env =
-    let items =
-      let f {name; value} = name, `String value in
-      List.map ~f env
-    in
-    `Assoc items
-end
+module Env = PackageJson.Env
 
 module Build = struct
 
@@ -92,8 +58,8 @@ module Build = struct
     installCommands = EsyCommands [];
     patches = [];
     substs = [];
-    exportedEnv = [];
-    buildEnv = [];
+    exportedEnv = ExportedEnv.empty;
+    buildEnv = StringMap.empty;
   }
 
 end
@@ -215,7 +181,7 @@ end = struct
       build: (CommandList.t [@default CommandList.empty]);
       install: (CommandList.t [@default CommandList.empty]);
       buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
-      exportedEnv: (ExportedEnv.t [@default []]);
+      exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
       buildEnv: (Env.t [@default Env.empty]);
       sandboxEnv: (Env.t [@default Env.empty]);
       release: (Release.t option [@default None]);

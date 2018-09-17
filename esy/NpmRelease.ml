@@ -190,7 +190,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
             buildType = Manifest.BuildType.OutOfSource;
             patches = [];
             substs = [];
-            exportedEnv = [];
+            exportedEnv = Manifest.ExportedEnv.empty;
           };
           sourceType = Manifest.SourceType.Transient;
           sourcePath = pkg.sourcePath;

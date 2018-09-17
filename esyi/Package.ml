@@ -15,6 +15,10 @@ module Override = struct
     buildType : BuildType.t option [@default None] [@key "buildsInSource"];
     build : PackageJson.CommandList.t option [@default None];
     install : PackageJson.CommandList.t option [@default None];
+    exportedEnv: PackageJson.ExportedEnv.t option [@default None];
+    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option [@default None];
+    buildEnv: PackageJson.Env.t option [@default None];
+    buildEnvOverride: PackageJson.EnvOverride.t option [@default None];
     dependencies : PackageJson.Dependencies.t option [@default None];
   } [@@deriving yojson, eq, ord]
 end
