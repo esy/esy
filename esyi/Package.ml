@@ -6,7 +6,13 @@ type 'a disj = 'a list [@@deriving eq]
 type 'a conj = 'a list [@@deriving eq]
 
 module Override = struct
+  module BuildType = struct
+    include EsyLib.BuildType
+    include EsyLib.BuildType.AsInPackageJson
+  end
+
   type t = {
+    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
     build : PackageJson.CommandList.t option [@default None];
     install : PackageJson.CommandList.t option [@default None];
     dependencies : PackageJson.Dependencies.t option [@default None];

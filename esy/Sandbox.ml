@@ -123,6 +123,18 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 let applyPkgOverride (pkg : Package.t) (override : Override.t) =
 
   let pkg =
+    match override.buildType with
+    | None -> pkg
+    | Some buildType -> {
+        pkg with
+        build = {
+          pkg.build with
+          buildType = buildType;
+        };
+      }
+  in
+
+  let pkg =
     match override.build with
     | None -> pkg
     | Some commands -> {

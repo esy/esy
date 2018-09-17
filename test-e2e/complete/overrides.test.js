@@ -74,6 +74,44 @@ describe('complete workflow for esy sandboxes', () => {
     }
   });
 
+  it('buildType override', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          ocaml: '*',
+          dep: '*',
+        },
+        devDependencies: {
+          ocaml: '*',
+        },
+        resolutions: {
+          dep: {
+            source: 'path:./dep',
+            override: {
+              buildsInSource: true,
+              build: ['ocamlopt -o dep.exe dep.ml'],
+              install: ['cp dep.exe #{self.bin/}dep.exe'],
+              dependencies: {
+                ocaml: '*',
+              },
+            },
+          },
+        },
+      }),
+      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+    ];
+    const p = await createTestSandbox(...fixture);
+
+    await p.esy('install --skip-repository-update');
+    await p.esy('build');
+
+    const {stdout} = await p.esy('dep.exe');
+    expect(stdout.trim()).toEqual('__dep__');
+  });
+
   it('turning a linked dir into esy package', async () => {
     const fixture = [
       packageJson({

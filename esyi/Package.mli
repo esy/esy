@@ -19,6 +19,7 @@ end
 
 module Override : sig
   type t = {
+    buildType : BuildType.t option;
     build : PackageJson.CommandList.t option;
     install : PackageJson.CommandList.t option;
     dependencies : PackageJson.Dependencies.t option;
