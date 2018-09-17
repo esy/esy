@@ -77,7 +77,7 @@
     "jest-cli": "^23.4.1",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
-    "ocaml": "~4.6.0",
+    "ocaml": "esy-ocaml/ocaml#858beca",
     "outdent": "^0.3.0",
     "prettier": "^1.13.7",
     "rimraf": "^2.6.2",
