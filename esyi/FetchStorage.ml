@@ -8,43 +8,26 @@ module Dist = struct
 
   let pp fmt dist =
     Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
+
+  let tarballPath ~(cfg : Config.t) (dist : t) =
+
+    let hash vs =
+      vs
+      |> String.concat ~sep:"__"
+      |> Digest.string
+      |> Digest.to_hex
+      |> String.Sub.v ~start:0 ~stop:8
+      |> String.Sub.to_string
+    in
+
+    let id = Path.safePath (
+      let version = Version.show dist.record.version in
+      let source = Source.show dist.source in
+      Printf.sprintf "%s__%s__%s_v2" dist.record.name version (hash [source])
+    ) in
+
+    Path.(cfg.cacheTarballsPath // v id |> addExt "tgz")
 end
-
-let tarballPath ~(cfg : Config.t) (source : Source.t) (record : Solution.Record.t) =
-
-  let hash vs =
-    vs
-    |> String.concat ~sep:"__"
-    |> Digest.string
-    |> Digest.to_hex
-    |> String.Sub.v ~start:0 ~stop:8
-    |> String.Sub.to_string
-  in
-
-  let id =
-    let version = Version.show record.version in
-    let source = Source.show source in
-    match record.opam with
-    | None ->
-      Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
-    | Some opam ->
-      let h = hash [
-        source;
-        opam.opam
-        |> Package.Opam.OpamFile.to_yojson
-        |> Yojson.Safe.to_string;
-        (match opam.override with
-        | Some override ->
-          override
-          |> Package.OpamOverride.to_yojson
-          |> Yojson.Safe.to_string
-        | None -> "");
-      ] in
-      Printf.sprintf "%s__%s__%s_v2" record.name version h
-  in
-
-  let id = EsyLib.Path.safePath id in
-  Path.(cfg.cacheTarballsPath // v id |> addExt "tgz")
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
@@ -108,7 +91,81 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       return `Done
   in
 
-  let commit path source =
+  let doFetchIfNeeded source =
+    let dist = {
+      Dist.
+      record;
+      source;
+    } in
+
+    let tarballPath = Dist.tarballPath ~cfg dist in
+
+    let%bind tarballIsInCache = Fs.exists tarballPath in
+
+    match source, tarballIsInCache with
+    | Source.LocalPathLink _, _ ->
+      return (`Done dist)
+    | _, true ->
+      return (`Done dist)
+    | _, false ->
+      Fs.withTempDir (fun sourcePath ->
+        let%bind fetched =
+          RunAsync.contextf (
+            let%bind () = Fs.createDir sourcePath in
+            doFetch sourcePath source
+          )
+          "fetching %a" Source.pp source
+        in
+
+        match fetched with
+        | `Done ->
+          let%bind () =
+            let%bind () = Fs.createDir (Path.parent tarballPath) in
+            let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
+            let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
+            let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+            return ()
+          in
+          return (`Done dist)
+        | `TryNext err -> return (`TryNext err)
+      )
+    in
+
+    let rec tryFetch errs sources =
+      match sources with
+      | source::nextSources ->
+        begin match%bind doFetchIfNeeded source with
+        | `Done dist -> return dist
+        | `TryNext err ->
+          tryFetch ((source, err)::errs) nextSources
+        end
+      | [] ->
+        Logs_lwt.err (fun m ->
+          let ppErr fmt (source, err) =
+            Fmt.pf fmt
+              "source: %a@\nerror: %a"
+              Source.pp source
+              Run.ppError err
+          in
+          m "unable to fetch %a:@[<v 2>@\n%a@]"
+            Solution.Record.pp record
+            Fmt.(list ~sep:(unit "@\n") ppErr) errs
+        );%lwt
+        error "installation error"
+    in
+
+    let sources =
+      let main, mirrors = record.source in
+      main::mirrors
+    in
+
+    tryFetch [] sources
+
+let install ~cfg ~path dist =
+  let open RunAsync.Syntax in
+  let {Dist. source; record;} = dist in
+
+  let finishInstall path =
 
     let removeEsyJsonIfExists () =
       let esyJson = Path.(path / "esy.json") in
@@ -162,83 +219,6 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
     return ()
   in
 
-  let doFetchIfNeeded source =
-    let tarballPath = tarballPath ~cfg source record in
-
-    let dist = {
-      Dist.
-      record;
-      source;
-    } in
-    let%bind tarballIsInCache = Fs.exists tarballPath in
-
-    match source, tarballIsInCache with
-    | Source.LocalPathLink _, _ ->
-      return (`Done dist)
-    | _, true ->
-      return (`Done dist)
-    | _, false ->
-      Fs.withTempDir (fun sourcePath ->
-        let%bind fetched =
-          RunAsync.contextf (
-            let%bind () = Fs.createDir sourcePath in
-            match%bind doFetch sourcePath source with
-            | `Done ->
-              let%bind () = commit sourcePath source in
-              return `Done
-            | `TryNext err -> return (`TryNext err)
-          )
-          "fetching %a" Source.pp source
-        in
-
-        match fetched with
-        | `Done ->
-          let%bind () =
-            let%bind () = Fs.createDir (Path.parent tarballPath) in
-            let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
-            let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
-            let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-            return ()
-          in
-          return (`Done dist)
-        | `TryNext err -> return (`TryNext err)
-      )
-    in
-
-    let rec tryFetch errs sources =
-      match sources with
-      | source::nextSources ->
-        begin match%bind doFetchIfNeeded source with
-        | `Done dist -> return dist
-        | `TryNext err ->
-          tryFetch ((source, err)::errs) nextSources
-        end
-      | [] ->
-        Logs_lwt.err (fun m ->
-          let ppErr fmt (source, err) =
-            Fmt.pf fmt
-              "source: %a@\nerror: %a"
-              Source.pp source
-              Run.ppError err
-          in
-          m "unable to fetch %a:@[<v 2>@\n%a@]"
-            Solution.Record.pp record
-            Fmt.(list ~sep:(unit "@\n") ppErr) errs
-        );%lwt
-        error "installation error"
-    in
-
-    let sources =
-      let main, mirrors = record.source in
-      main::mirrors
-    in
-
-    tryFetch [] sources
-
-let install ~cfg ~path dist =
-  let open RunAsync.Syntax in
-  let {Dist. source; record;} = dist in
-
   let%bind () = Fs.createDir path in
 
   (*
@@ -258,11 +238,16 @@ let install ~cfg ~path dist =
 
   let%bind () =
     match source with
-    | Source.LocalPathLink _ -> return ()
-    | Source.NoSource -> return ()
+    | Source.LocalPathLink _ ->
+      return ()
+    | Source.NoSource ->
+      let%bind () = finishInstall path in
+      return ()
     | _ ->
-      let tarballPath = tarballPath ~cfg source record in
-      Tarball.unpack ~dst:path tarballPath
+      let tarballPath = Dist.tarballPath ~cfg dist in
+      let%bind () = Tarball.unpack ~dst:path tarballPath in
+      let%bind () = finishInstall path in
+      return ()
   in
 
   return ()
