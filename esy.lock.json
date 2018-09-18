@@ -1,5 +1,5 @@
 {
-  "hash": "c143153326191824d33b47d8497db1e9",
+  "hash": "14a9bf455cf11592076aedfcc032d87b",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -5364,7 +5364,7 @@
         "@opam/ppx_deriving@opam:4.2.1",
         "@opam/ppx_deriving_yojson@opam:3.1",
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
+        "@opam/re@opam:1.7.2", "@opam/utop@opam:2.2.0",
         "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
         "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
         "esy-solve-cudf@0.1.6",
@@ -7953,34 +7953,6 @@
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
-    "@opam/seq@opam:base": {
-      "record": {
-        "name": "@opam/seq",
-        "version": "opam:base",
-        "source": "no-source:",
-        "files": [
-          {
-            "name": "seq.install",
-            "content": "lib:[\n  \"META.seq\" {\"META\"}\n]\n"
-          },
-          {
-            "name": "META.seq",
-            "content":
-              "name=\"seq\"\nversion=\"[distributed with OCaml 4.07 or above]\"\ndescription=\"dummy backward-compatibility package for iterators\"\nrequires=\"\"\n"
-          }
-        ],
-        "opam": {
-          "name": "seq",
-          "version": "base",
-          "opam":
-            "opam-version: \"2.0\"\nname: \"seq\"\nversion: \"base\"\nsynopsis:\n  \"Compatibility package for OCaml's standard iterator type starting from 4.07.\"\nmaintainer: \" \"\nauthors: \" \"\nhomepage: \" \"\nbug-reports: \"https://caml.inria.fr/mantis/main_page.php\"\ndepends: [\n  \"ocaml\" {>= \"4.07.0\"}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml.git\"\nextra-files: [\n  [\"seq.install\" \"md5=026b31e1df290373198373d5aaa26e42\"]\n  [\"META.seq\" \"md5=b33c8a1a6c7ed797816ce27df4855107\"]\n]",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "ocaml@github:esy-ocaml/ocaml#858beca"
-      ]
-    },
     "@opam/rresult@opam:0.5.0": {
       "record": {
         "name": "@opam/rresult",
@@ -8049,26 +8021,27 @@
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
-    "@opam/re@opam:1.8.0": {
+    "@opam/re@opam:1.7.2": {
       "record": {
         "name": "@opam/re",
-        "version": "opam:1.8.0",
+        "version": "opam:1.7.2",
         "source": [
-          "archive:https://opam.ocaml.org/archives/re.1.8.0+opam.tar.gz#md5:2126a0727f42f1cae2566a2d1aea7ffa",
-          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz#md5:765f6f8d3e6ab200866e719ed7e5178d"
+          "archive:https://opam.ocaml.org/archives/re.1.7.2+opam.tar.gz#md5:3171a97c542fb48376fc9cc095e21a5c",
+          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz#md5:d7c94a401d03f4688aabc60cd40217aa"
         ],
         "files": [],
         "opam": {
           "name": "re",
-          "version": "1.8.0",
+          "version": "1.7.2",
           "opam":
-            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.8.0\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"ounit\" {with-test}\n  \"seq\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-n\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz\"\n  checksum: \"md5=765f6f8d3e6ab200866e719ed7e5178d\"\n}",
+            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.7.2\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build}\n  \"base-bytes\"\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz\"\n  checksum: \"md5=d7c94a401d03f4688aabc60cd40217aa\"\n}",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/seq@opam:base", "ocaml@github:esy-ocaml/ocaml#858beca"
+        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
+        "@opam/jbuilder@opam:transition",
+        "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
     "@opam/ppxlib@opam:0.3.0": {
@@ -8414,7 +8387,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
-        "@opam/re@opam:1.8.0", "ocaml@github:esy-ocaml/ocaml#858beca"
+        "@opam/re@opam:1.7.2", "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
     "@opam/ocamlgraph@opam:1.8.8": {
@@ -9026,7 +8999,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
-        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0",
+        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.7.2",
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },

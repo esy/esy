@@ -34,6 +34,7 @@
   "resolutions": {
     "@opam/merlin-extend": "0.3",
     "@opam/dune": "1.1.1",
+    "@opam/seq": "0.1",
     "ocaml": "github:esy-ocaml/ocaml#858beca"
   },
   "dependencies": {
