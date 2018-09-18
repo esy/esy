@@ -4,7 +4,7 @@ module Command = struct
   type t =
     | Parsed of string list
     | Unparsed of string
-    [@@deriving (show, eq, ord)]
+    [@@deriving show, ord]
 
   let of_yojson (json : Json.t) =
     match json with
@@ -28,7 +28,7 @@ module CommandList = struct
   [@@@ocaml.warning "-32"]
   type t =
     Command.t list
-    [@@deriving (show, eq, ord)]
+    [@@deriving show, ord]
 
   let empty = []
 
@@ -54,11 +54,11 @@ module Env = struct
     name : string;
     value : string;
   }
-  [@@deriving (show, eq, ord)]
+  [@@deriving show, ord]
 
   type t =
     item StringMap.t
-    [@@deriving (eq, ord)]
+    [@@deriving ord]
 
   let empty = StringMap.empty
 
@@ -97,7 +97,7 @@ module Env = struct
 end
 
 module EnvOverride = struct
-  type t = Env.item StringMap.Override.t [@@deriving eq, ord]
+  type t = Env.item StringMap.Override.t [@@deriving ord]
   let of_yojson = StringMap.Override.of_yojson Env.item_of_yojson
   let to_yojson = StringMap.Override.to_yojson Env.item_to_yojson
 end
@@ -108,7 +108,7 @@ module ExportedEnv = struct
   type scope =
     | Local
     | Global
-    [@@deriving (show, eq, ord)]
+    [@@deriving show, ord]
 
   let scope_of_yojson = function
     | `String "global" -> Ok Global
@@ -135,10 +135,10 @@ module ExportedEnv = struct
     scope : scope;
     exclusive : bool;
   }
-  [@@deriving (show, eq, ord)]
+  [@@deriving show, ord]
 
   type t = item StringMap.t
-    [@@deriving (eq, ord)]
+    [@@deriving ord]
 
   let empty = StringMap.empty
 
@@ -185,7 +185,7 @@ module ExportedEnvOverride = struct
 
   type t =
     ExportedEnv.item StringMap.Override.t
-    [@@deriving (ord, eq)]
+    [@@deriving ord]
 
   let of_yojson = StringMap.Override.of_yojson ExportedEnv.item_of_yojson
   let to_yojson = StringMap.Override.to_yojson ExportedEnv.item_to_yojson
@@ -194,7 +194,7 @@ end
 
 module Dependencies = struct
 
-  type t = Req.t list [@@deriving (eq, ord)]
+  type t = Req.t list [@@deriving ord]
 
   let empty = []
 

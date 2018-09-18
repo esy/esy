@@ -1,4 +1,4 @@
-[@deriving (show, eq, ord)]
+[@deriving (show, ord)]
 type t =
   | Immutable
   | Transient;

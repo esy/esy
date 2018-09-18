@@ -6,7 +6,7 @@ module Platform = struct
     | Windows (* mingw msvc *)
     | Unix (* all other unix-y systems *)
     | Unknown
-    [@@deriving eq, ord]
+    [@@deriving ord]
 
   let show = function
     | Darwin -> "darwin"
@@ -45,7 +45,7 @@ module Arch = struct
     | Arm32
     | Arm64
     | Unknown
-    [@@deriving eq, ord]
+    [@@deriving ord]
 
   let show = function
     | X86_32 -> "x86_32"

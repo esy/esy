@@ -5,7 +5,7 @@ module Binding = struct
     value : 'v value;
     origin : string option;
   }
-  [@@deriving eq, ord]
+  [@@deriving ord]
 
   and 'v value =
     | Value of 'v
@@ -60,7 +60,7 @@ end = struct
 
   type t =
     V.t StringMap.t
-    [@@deriving ord, eq, yojson]
+    [@@deriving ord, yojson]
 
   type env = t
 
@@ -81,7 +81,7 @@ end = struct
   module Bindings = struct
     type t =
       V.t Binding.t list
-      [@@deriving eq, ord]
+      [@@deriving ord]
 
     let empty = []
     let value ?origin name value = {Binding. name; value = Value value; origin}

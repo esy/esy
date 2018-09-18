@@ -1,5 +1,5 @@
 type t = kind * string
-[@@deriving eq, ord]
+[@@deriving ord]
 
 and kind =
 | Md5

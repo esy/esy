@@ -329,7 +329,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         | None -> deps
       in
       let%lwt devDependencies =
-        if Path.equal buildConfig.EsyBuildPackage.Config.projectPath path
+        if Path.compare buildConfig.EsyBuildPackage.Config.projectPath path = 0
         then
           addDependencies
             ~ignoreCircularDep
@@ -366,7 +366,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
     in
 
     let%bind manifest, source, sourcePath, packagesPath, override =
-      let asRoot = Path.equal path spec.path in
+      let asRoot = Path.compare path spec.path = 0 in
       if asRoot
       then
         let%bind m = Manifest.ofSandboxSpec spec in

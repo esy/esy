@@ -3,7 +3,7 @@ type t =
   | NpmDistTag of string * SemverVersion.Version.t option
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
 let show = function
   | Npm formula -> SemverVersion.Formula.DNF.show formula
@@ -23,7 +23,7 @@ let matches ~version spec =
   | Npm _, _ -> false
 
   | NpmDistTag (_tag, Some resolvedVersion), Version.Npm version ->
-    SemverVersion.Version.equal resolvedVersion version
+    SemverVersion.Version.compare resolvedVersion version = 0
   | NpmDistTag (_tag, None), Version.Npm _ -> assert false
   | NpmDistTag (_tag, _), _ -> false
 

@@ -25,7 +25,7 @@ type t =
       manifest : SandboxSpec.ManifestSpec.t option;
     }
   | NoSource
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
 let show = function
   | Github {user; repo; ref = None; manifest = None;} ->
@@ -69,19 +69,19 @@ let pp fmt spec =
   Fmt.pf fmt "%s" (show spec)
 
 let matches ~source spec =
-  let eqManifestName = [%derive.eq: MS.t option] in
+  let compareManifestName = [%derive.ord: MS.t option] in
   match spec, source with
   | LocalPath {path = p1; manifest = m1},
     Source.LocalPath {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
+    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
   | LocalPath {path = p1; manifest = m1},
     Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
+    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
   | LocalPath _, _ -> false
 
   | LocalPathLink {path = p1; manifest = m1},
     Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.equal p1 p2 && eqManifestName m1 m2
+    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
   | LocalPathLink _, _ -> false
 
   | Github ({ref = Some specRef; manifest = m1; _} as spec), Source.Github src ->
@@ -89,22 +89,22 @@ let matches ~source spec =
       equal src.user spec.user
       && equal src.repo spec.repo
       && equal src.commit specRef
-    ) && eqManifestName src.manifest m1
+    ) && compareManifestName src.manifest m1 = 0
   | Github ({ref = None; _} as spec), Source.Github src ->
     String.(
       equal spec.user src.user
       && equal spec.repo src.repo
-    ) && eqManifestName spec.manifest src.manifest
+    ) && compareManifestName spec.manifest src.manifest = 0
   | Github _, _ -> false
 
   | Git ({ref = Some specRef; _} as spec), Source.Git src ->
     String.(
       equal spec.remote src.remote
       && equal specRef src.commit
-    ) && eqManifestName spec.manifest src.manifest
+    ) && compareManifestName spec.manifest src.manifest = 0
   | Git ({ref = None; _} as spec), Source.Git src ->
     String.(equal spec.remote src.remote)
-    && eqManifestName spec.manifest src.manifest
+    && compareManifestName spec.manifest src.manifest = 0
   | Git _, _ -> false
 
   | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
@@ -243,7 +243,7 @@ let parse =
 let%test_module "parsing" = (module struct
 
   let expectParses =
-    Parse.Test.expectParses ~pp ~equal parse
+    Parse.Test.expectParses ~pp ~compare parse
 
   let%test "github:user/repo" =
     expectParses

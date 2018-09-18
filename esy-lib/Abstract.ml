@@ -42,7 +42,6 @@ module String = struct
     let pp = Fmt.string
 
     let compare = String.compare
-    let equal = String.equal
 
     let of_yojson = Json.Parse.string
     let to_yojson v = `String v

@@ -60,7 +60,6 @@ let normalizeAndRemoveEmptySeg = p =>
 /* COMPARABLE */
 
 let compare = Fpath.compare;
-let equal = Fpath.equal;
 
 /* PRINTABLE */
 

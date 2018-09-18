@@ -78,9 +78,8 @@ module File : sig
     perm : int;
   }
 
-  val equal : t -> t -> bool
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
 end
 
 module OpamOverride : sig

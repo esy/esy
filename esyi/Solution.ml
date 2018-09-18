@@ -46,18 +46,17 @@ module Record = struct
     then Version.compare a.version b.version
     else c
 
-  let equal a b =
-    String.equal a.name b.name && Version.equal a.version b.version
-
   let pp fmt record =
     Fmt.pf fmt "%s@%a" record.name Version.pp record.version
+
+  let show = Format.asprintf "%a" pp
 
   module Map = Map.Make(struct type nonrec t = t let compare = compare end)
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
 module Id = struct
-  type t = string * Version.t [@@deriving (ord, eq)]
+  type t = string * Version.t [@@deriving ord]
 
   let rec parse v =
     let open Result.Syntax in
@@ -122,7 +121,7 @@ and t = {
   root : Id.t option;
   records : Record.t Id.Map.t;
   dependencies : Id.Set.t Id.Map.t;
-} [@@deriving eq]
+}
 
 let root sol =
   match sol.root with
@@ -254,7 +253,7 @@ module LockfileV1 = struct
 
   let solutionOfLockfile root node =
     let f id {record; dependencies} sol =
-      if Id.equal root id
+      if Id.compare root id = 0
       then addRoot ~record ~dependencies sol
       else add ~record ~dependencies sol
     in

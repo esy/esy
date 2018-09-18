@@ -170,7 +170,7 @@ module CommonOptions = struct
       then return path
       else
         let parent = Path.parent path in
-        if not (Path.equal path parent)
+        if not (Path.compare path parent = 0)
         then climb (Path.parent path)
         else
           let%bind msg = RunAsync.ofRun (

@@ -99,11 +99,11 @@ module Path: {
         cwd /\/ p;
       };
     let p = normalize(p);
-    if (equal(p, cfg.storePath)) {
+    if (compare(p, cfg.storePath) == 0) {
       store;
-    } else if (equal(p, cfg.localStorePath)) {
+    } else if (compare(p, cfg.localStorePath) == 0) {
       localStore;
-    } else if (equal(p, cfg.projectPath)) {
+    } else if (compare(p, cfg.projectPath) == 0) {
       project;
     } else {
       switch (remPrefix(cfg.storePath, p)) {

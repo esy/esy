@@ -93,11 +93,11 @@ module Scripts = struct
   type script = {
     command : Command.t;
   }
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
   type t =
     script StringMap.t
-    [@@deriving (eq, ord)]
+    [@@deriving ord]
 
   let empty = StringMap.empty
 

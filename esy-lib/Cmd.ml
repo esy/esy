@@ -7,7 +7,7 @@
  * reversed argument order.
  *)
 type t = string * string list
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
 let v tool = tool, []
 let p = Path.show

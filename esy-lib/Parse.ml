@@ -31,12 +31,12 @@ let parse p input =
   parse_string (p <* end_of_input) input
 
 module Test = struct
-  let expectParses ~pp ~equal parse input expectation =
+  let expectParses ~pp ~compare parse input expectation =
     match parse input with
     | Error err ->
       Format.printf "Error parsing '%s': %s@\n" input err;
       false
-    | Ok v when equal v expectation -> true
+    | Ok v when compare v expectation = 0 -> true
     | Ok v ->
       Format.printf
       "Error parsing '%s':@\n  expected: %a@\n  got:      %a@\n"

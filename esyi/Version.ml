@@ -2,7 +2,7 @@ type t =
   | Npm of SemverVersion.Version.t
   | Opam of OpamPackageVersion.Version.t
   | Source of Source.t
-  [@@deriving (ord, eq)]
+  [@@deriving ord]
 
 let show v =
   match v with
@@ -42,7 +42,7 @@ let parse ?(tryAsOpam=false) =
 
 let%test_module "parsing" = (module struct
 
-  let expectParses = Parse.Test.expectParses ~pp ~equal
+  let expectParses = Parse.Test.expectParses ~pp ~compare
 
   let%test "1.0.0" =
     expectParses

@@ -1,7 +1,7 @@
 type t = {
   name: string;
   spec: VersionSpec.t;
-} [@@deriving (eq, ord)]
+} [@@deriving ord]
 
 let show {name; spec} =
   name ^ "@" ^ (VersionSpec.show spec)
@@ -360,7 +360,7 @@ let%test_module "parsing" = (module struct
   let expectParsesTo input e =
     match parse input with
     | Ok req ->
-      if equal req e
+      if compare req e = 0
       then true
       else (
         Format.printf "@[<v>parsing: %s@\n     got: %a@\nexpected: %a@\n@]@\n" input pp req pp e;
