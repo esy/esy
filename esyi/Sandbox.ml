@@ -77,7 +77,7 @@ let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
         name = "empty";
         version;
         originalVersion = None;
-        source = Source source, [];
+        source = source, [];
         override = None;
         dependencies;
         devDependencies = dependencies;
@@ -112,7 +112,7 @@ let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
       name = "root";
       version;
       originalVersion = None;
-      source = Package.Source source, [];
+      source = source, [];
       override = None;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
@@ -151,7 +151,7 @@ let makeEsySandbox ~cfg ~spec projectPath path =
     let source = Source.LocalPath {path = Path.v "."; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
-    Package.ofPackageJson ~name ~version ~source:(Package.Source source) pkgJson
+    Package.ofPackageJson ~name ~version ~source pkgJson
   in
 
   let sandboxDependencies, ocamlReq =

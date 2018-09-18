@@ -296,16 +296,13 @@ type t = {
   name : string;
   version : Version.t;
   originalVersion : Version.t option;
-  source : source * source list;
+  source : Source.t * Source.t list;
   override : Override.t option;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
   kind : kind;
 }
-
-and source =
-  | Source of Source.t
 
 and kind =
   | Esy

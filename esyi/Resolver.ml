@@ -227,7 +227,7 @@ let package ~(resolution : Resolution.t) resolver =
         ~name:resolution.name
         ~version:(Version.Source source)
         ~allowEmptyPackage
-        ~source:(Package.Source source)
+        ~source
         path
       in
       return pkg
@@ -240,7 +240,7 @@ let package ~(resolution : Resolution.t) resolver =
           ~name:resolution.name
           ~version:(Version.Source source)
           ~allowEmptyPackage
-          ~source:(Package.Source source)
+          ~source
           repo
         in
         return pkg
@@ -252,7 +252,7 @@ let package ~(resolution : Resolution.t) resolver =
           ~name:resolution.name
           ~version:(Version.Source source)
           ~allowEmptyPackage
-          ~source:(Package.Source source)
+          ~source
           ~user
           ~repo
           ~ref:commit

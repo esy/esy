@@ -165,10 +165,10 @@ let convertOpamUrl (manifest : t) =
     let convert (url : OpamUrl.t) =
       match url.backend with
       | `http ->
-        return (Package.Source (Source.Archive {
+        return (Source.Archive {
           url = OpamUrl.to_string url;
           checksum;
-        }))
+        })
       | `rsync -> Error "unsupported source for opam: rsync"
       | `hg -> Error "unsupported source for opam: hg"
       | `darcs -> Error "unsupported source for opam: darcs"
@@ -190,16 +190,16 @@ let convertOpamUrl (manifest : t) =
   let%bind main, mirrors =
     match manifest.override.Override.opam.Override.Opam.source with
     | Some source ->
-      let main = Package.Source (Source.Archive {
+      let main = Source.Archive {
         url = source.url;
         checksum = Checksum.Md5, source.checksum;
-      }) in
+      } in
       return (main, [])
     | None -> begin
       match manifest.url with
       | Some url -> sourceOfOpamUrl url
       | None ->
-        let main = Package.Source Source.NoSource in
+        let main = Source.NoSource in
         Ok (main, [])
       end
   in
@@ -208,10 +208,10 @@ let convertOpamUrl (manifest : t) =
   | Some archive ->
     let mirrors = main::mirrors in
     let main =
-      Package.Source (Source.Archive {
+      Source.Archive {
         url = archive.url;
         checksum = Checksum.Md5, archive.md5;
-      })
+      }
     in
     Ok (main, mirrors)
   | None ->

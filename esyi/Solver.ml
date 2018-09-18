@@ -180,17 +180,6 @@ let rec findResolutionForRequest ~req = function
 let solutionRecordOfPkg (pkg : Package.t) =
   let open RunAsync.Syntax in
 
-  let%bind source =
-    let resolve source =
-      match source with
-      | Package.Source source -> return source
-    in
-    let main, mirrors = pkg.source in
-    let%bind main = resolve main and
-              mirrors = RunAsync.List.joinAll (List.map ~f:resolve mirrors) in
-    return (main, mirrors)
-  in
-
   let%bind files =
     match pkg.opam with
     | Some opam -> opam.files ()
@@ -217,7 +206,7 @@ let solutionRecordOfPkg (pkg : Package.t) =
     name = pkg.name;
     version = pkg.version;
     override = pkg.override;
-    source;
+    source = pkg.source;
     files;
     opam;
   }
@@ -406,7 +395,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     name = "ROOT";
     version = Version.parseExn "0.0.0";
     originalVersion = None;
-    source = Package.Source Source.NoSource, [];
+    source = Source.NoSource, [];
     override = None;
     opam = None;
     dependencies;

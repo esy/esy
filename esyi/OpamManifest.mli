@@ -39,7 +39,7 @@ val ofPath :
 
 val toPackage :
   ?ignoreFiles:bool
-  -> ?source:Package.source
+  -> ?source:Source.t
   -> name : string
   -> version : Version.t
   -> t
