@@ -5,7 +5,6 @@ module P = Parse
 module Version = struct
   type t = OpamPackage.Version.t
 
-  let equal a b = OpamPackage.Version.compare a b = 0
   let compare = OpamPackage.Version.compare
   let show = OpamPackage.Version.to_string
   let pp fmt v = Fmt.pf fmt "opam:%s" (show v)

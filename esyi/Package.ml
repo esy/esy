@@ -1,9 +1,9 @@
 module String = Astring.String
 
 [@@@ocaml.warning "-32"]
-type 'a disj = 'a list [@@deriving eq]
+type 'a disj = 'a list
 [@@@ocaml.warning "-32"]
-type 'a conj = 'a list [@@deriving eq]
+type 'a conj = 'a list
 
 module Override = struct
   module BuildType = struct
@@ -20,7 +20,7 @@ module Override = struct
     buildEnv: PackageJson.Env.t option [@default None];
     buildEnvOverride: PackageJson.EnvOverride.t option [@default None];
     dependencies : PackageJson.Dependencies.t option [@default None];
-  } [@@deriving yojson, eq, ord]
+  } [@@deriving yojson, ord]
 end
 
 module Resolution = struct
@@ -29,7 +29,7 @@ module Resolution = struct
     name : string;
     resolution : resolution;
   }
-  [@@deriving eq, ord]
+  [@@deriving ord]
 
   and resolution =
     | Version of Version.t
@@ -213,7 +213,7 @@ module File = struct
     content : string;
     (* file, permissions add 0o644 default for backward compat. *)
     perm : (int [@default 0o644]);
-  } [@@deriving (yojson, show, ord, eq)]
+  } [@@deriving yojson, show, ord]
 end
 
 module OpamOverride = struct
@@ -222,7 +222,7 @@ module OpamOverride = struct
     type t = {
       source: (source option [@default None]);
       files: (File.t list [@default []]);
-    } [@@deriving (yojson, eq, ord, show)]
+    } [@@deriving yojson, ord, show]
 
     and source = {
       url: string;
@@ -240,7 +240,7 @@ module OpamOverride = struct
     peerDependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]) ;
     exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
     opam: (Opam.t [@default Opam.empty]);
-  } [@@deriving (yojson, eq, ord, show)]
+  } [@@deriving yojson, ord, show]
 
   let empty =
     {

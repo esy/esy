@@ -30,11 +30,10 @@ type t =
   | NoSource
 
 include S.PRINTABLE with type t := t
+include S.COMPARABLE with type t := t
 
 val to_yojson : t -> [> `String of string ]
 val ofSource : Source.t -> t
-val equal : t -> t -> bool
-val compare : t -> t -> int
 val matches : source:Source.t -> t -> bool
 
 val parser : t Parse.t

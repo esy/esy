@@ -115,7 +115,7 @@ module Layout = struct
         let rec aux = function
           | (modules, path)::rest ->
             Hashtbl.replace modules record.Record.name record;
-            if Path.equal insertionPath path
+            if Path.compare insertionPath path = 0
             then ()
             else aux rest
           | [] -> ()
@@ -129,7 +129,7 @@ module Layout = struct
         | ((modules, _) as here)::upTheTree ->
           begin match Hashtbl.find_opt modules record.Record.name with
           | Some r ->
-            if Record.equal r record
+            if Record.compare r record = 0
             then `Done (here, here::upTheTree)
             else `None
           | None ->

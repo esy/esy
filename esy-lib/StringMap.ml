@@ -36,7 +36,6 @@ let of_yojson v_of_yojson =
   | _ -> Error "expected an object"
 
 type 'a stringMap = 'a t
-let equal_stringMap = equal
 let compare_stringMap = compare
 
 module Override : sig
@@ -50,7 +49,6 @@ module Override : sig
   val apply : 'a stringMap -> 'a t -> 'a stringMap
 
   val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-  val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 
   val of_yojson :
     (string -> Yojson.Safe.json -> ('a, string) result)
@@ -64,7 +62,7 @@ end = struct
 
   type 'a t =
     'a override stringMap
-    [@@deriving eq, ord]
+    [@@deriving ord]
 
   and 'a override =
     | Drop
@@ -115,20 +113,20 @@ end = struct
     let override = empty |> add "c" (Edit "d") in
     let result = apply orig override in
     let expect = empty |> add "a" "b" |> add "c" "d" in
-    equal_stringMap String.equal result expect
+    compare_stringMap String.compare result expect = 0
 
   let%test "apply: drop key" =
     let orig = empty |> add "a" "b" |> add "c" "d" in
     let override = empty |> add "c" Drop in
     let result = apply orig override in
     let expect = empty |> add "a" "b" in
-    equal_stringMap String.equal result expect
+    compare_stringMap String.compare result expect = 0
 
   let%test "apply: replace key" =
     let orig = empty |> add "a" "b" |> add "c" "d" in
     let override = empty |> add "c" (Edit "d!") in
     let result = apply orig override in
     let expect = empty |> add "a" "b" |> add "c" "d!" in
-    equal_stringMap String.equal result expect
+    compare_stringMap String.compare result expect = 0
 
 end

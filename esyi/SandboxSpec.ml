@@ -3,7 +3,7 @@ module ManifestSpec = struct
   | Esy of string
   | Opam of string
   | OpamAggregated of string list
-  [@@deriving ord, eq]
+  [@@deriving ord]
 
   let show = function
     | Esy fname
@@ -83,13 +83,13 @@ end
 type t = {
   path : Path.t;
   manifest : ManifestSpec.t
-} [@@deriving ord, eq]
+} [@@deriving ord]
 
 let doesPathReferToConcreteManifest path =
   Path.(
     hasExt ".json" path
     || hasExt ".opam" path
-    || Path.(equal path (v "opam"))
+    || Path.(compare path (v "opam") = 0)
   )
 
 let name spec =

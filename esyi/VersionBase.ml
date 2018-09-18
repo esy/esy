@@ -95,7 +95,7 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, eq, ord)]
+      [@@deriving (yojson, ord)]
 
     let pp fmt = function
       | EQ v -> Fmt.pf fmt "=%a" Version.pp v
@@ -168,17 +168,17 @@ module Formula = struct
     type constr = Constraint.t
 
     [@@@ocaml.warning "-32"]
-    type 'f conj = 'f list [@@deriving (show, yojson, eq, ord)]
+    type 'f conj = 'f list [@@deriving (show, yojson, ord)]
 
     [@@@ocaml.warning "-32"]
-    type 'f disj = 'f list [@@deriving (show, yojson, eq, ord)]
+    type 'f disj = 'f list [@@deriving (show, yojson, ord)]
 
     module VersionSet = Constraint.VersionSet
 
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (yojson, eq, ord)]
+        [@@deriving (yojson, ord)]
 
       let unit constr =
         [[constr]]
@@ -264,7 +264,7 @@ module Formula = struct
       [@@@ocaml.warning "-32"]
       type t =
         Constraint.t disj conj
-        [@@deriving yojson, eq, ord]
+        [@@deriving yojson, ord]
 
       let pp fmt f =
         let ppDisj fmt = function
@@ -356,7 +356,6 @@ let%test_module "Formula" = (module struct
   module Version = struct
     type t = int [@@deriving yojson]
     let majorMinorPatch n = Some (n, 0, 0)
-    let equal = (=)
     let compare = compare
     let pp = Fmt.int
     let show = string_of_int

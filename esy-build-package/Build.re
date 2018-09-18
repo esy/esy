@@ -22,7 +22,7 @@ type t = {
 type build = t;
 
 let isRoot = (build: t) =>
-  Config.Value.equal(build.plan.sourcePath, Config.Value.project);
+  Config.Value.compare(build.plan.sourcePath, Config.Value.project) == 0;
 
 let regex = (base, segments) => {
   let pat = String.concat(Path.dirSep, [Path.show(base), ...segments]);

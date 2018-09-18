@@ -7,7 +7,7 @@ module Version = struct
     patch : int;
     prerelease : prerelease;
     build : build;
-  } [@@deriving eq]
+  }
 
   and prerelease = segment list
 
@@ -210,7 +210,7 @@ module Version = struct
       match e, p with
       | Error _, Error _ -> true
       | Ok e, Ok p ->
-        if equal p e
+        if compare p e = 0
         then true
         else (
           Format.printf
@@ -709,7 +709,7 @@ module Formula = struct
       match e, p with
       | Error _, Error _ -> true
       | Ok e, Ok p ->
-        if DNF.equal p e
+        if DNF.compare p e = 0
         then true
         else (
           Format.printf

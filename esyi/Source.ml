@@ -25,7 +25,7 @@ type t =
       manifest : SandboxSpec.ManifestSpec.t option;
     }
   | NoSource
-  [@@deriving (ord, eq)]
+  [@@deriving ord]
 
 let manifest (src : t) =
   match src with
@@ -137,7 +137,7 @@ let parse = Parse.(parse parser)
 let%test_module "parsing" = (module struct
 
   let expectParses =
-    Parse.Test.expectParses ~pp ~equal parse
+    Parse.Test.expectParses ~pp ~compare parse
 
   let%test "github:user/repo#commit" =
     expectParses

@@ -2,7 +2,7 @@ module Path = EsyLib.Path;
 
 module Env = EsyLib.Environment.Make(Config.Value);
 
-[@deriving (yojson, ord, eq)]
+[@deriving (yojson, ord)]
 type t = {
   id: string,
   name: string,

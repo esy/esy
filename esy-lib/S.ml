@@ -15,7 +15,6 @@ end
 module type COMPARABLE = sig
   type t
 
-  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 

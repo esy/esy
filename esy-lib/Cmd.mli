@@ -42,9 +42,7 @@ val getTool : t -> string
 val getArgs : t -> string list
 
 include S.PRINTABLE with type t := t
-
-val equal : t -> t -> bool
-val compare : t -> t -> int
+include S.COMPARABLE with type t := t
 
 val resolveInvocation : string list -> t -> (t, [> `Msg of string ]) result
 (** TODO: remove away, use resolveInvocation instead *)

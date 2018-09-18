@@ -14,11 +14,11 @@ and segment =
   | Pkg of string
   | AnyPkg
 
-val show : t -> string
 val parse : string -> (t, string) result
 
-val equal : t -> t -> bool
-val compare : t -> t -> int
+include S.PRINTABLE with type t := t
+include S.COMPARABLE with type t := t
+include S.JSONABLE with type t := t
 
 val to_yojson : t Json.encoder
 val of_yojson : t Json.decoder
