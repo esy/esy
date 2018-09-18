@@ -1,5 +1,5 @@
 {
-  "hash": "da6e01f5e6287999b02078d959c1bcc2",
+  "hash": "94ce17b7840db12bcb02ab820c6be0a8",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -5353,7 +5353,7 @@
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
         "@esy-ocaml/reason@3.2.0",
-        "@opam/angstrom@github:esy-ocaml/angstrom#36c3017",
+        "@opam/angstrom@github:esy-ocaml/angstrom#525f254",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
         "@opam/dune@opam:1.1.1", "@opam/fmt@opam:0.8.5",
@@ -9281,11 +9281,11 @@
         "@opam/topkg@opam:0.9.1", "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
-    "@opam/angstrom@github:esy-ocaml/angstrom#36c3017": {
+    "@opam/angstrom@github:esy-ocaml/angstrom#525f254": {
       "record": {
         "name": "@opam/angstrom",
-        "version": "github:esy-ocaml/angstrom#36c3017",
-        "source": "github:esy-ocaml/angstrom#36c3017",
+        "version": "github:esy-ocaml/angstrom#525f254",
+        "source": "github:esy-ocaml/angstrom#525f254",
         "files": [],
         "opam": null
       },

@@ -36,7 +36,7 @@
     "@opam/dune": "1.1.1",
     "@opam/seq": "0.1",
     "ocaml": "github:esy-ocaml/ocaml#858beca",
-    "@opam/angstrom": "github:esy-ocaml/angstrom#36c3017"
+    "@opam/angstrom": "github:esy-ocaml/angstrom#525f254"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
