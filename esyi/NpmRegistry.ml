@@ -66,7 +66,8 @@ let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
     originalVersion = Some originalVersion;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
-    source = Package.Source source, [];
+    source = source, [];
+    override = None;
     opam = None;
     kind =
       (match pkgJson.esy with
@@ -170,7 +171,7 @@ let package ~name ~version registry () =
     let desc = Format.asprintf "fetch %s@%a" name SemverVersion.Version.pp version in
     let name = Str.global_replace (Str.regexp "/") "%2f" name in
     let%bind data =
-      let url = registry.url ^ "/" ^ name ^ "/" ^ SemverVersion.Version.toString version in
+      let url = registry.url ^ "/" ^ name ^ "/" ^ SemverVersion.Version.show version in
       retryInCaseOfError ~num:3 ~desc (fun () -> Curl.get url)
     in
     RunAsync.ofRun (

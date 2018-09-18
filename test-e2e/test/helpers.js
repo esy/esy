@@ -29,6 +29,11 @@ function getTempDir() {
 const exeExtension = isWindows ? '.exe' : '';
 
 function ocamlPackage() {
+  let esyLink = {
+    type: 'file-copy',
+    name: '_esylink',
+    path: path.join(ocamlPackagePath, '_esylink'),
+  };
   let packageJson = {
     type: 'file-copy',
     name: 'package.json',
@@ -39,7 +44,7 @@ function ocamlPackage() {
     name: ocamloptName,
     path: path.join(ocamlPackagePath, ocamloptName),
   };
-  return FixtureUtils.dir('ocaml', ocamlopt, packageJson);
+  return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
 }
 
 export type TestSandbox = {
@@ -48,6 +53,8 @@ export type TestSandbox = {
   projectPath: string,
   esyPrefixPath: string,
   npmPrefixPath: string,
+
+  fixture: (...fixture: Fixture) => Promise<void>,
 
   run: (args: string) => Promise<{stderr: string, stdout: string}>,
   esy: (
@@ -156,6 +163,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     run,
     esy,
     npm,
+    fixture: async (...fixture) => {
+      await FixtureUtils.initialize(projectPath, fixture);
+    },
     runJavaScriptInNodeAndReturnJson,
     defineNpmPackage: (pkg, options) =>
       NpmRegistryMock.definePackage(npmRegistry, pkg, options),

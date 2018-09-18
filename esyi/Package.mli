@@ -17,16 +17,48 @@ module Dep : sig
   val matches : name : string -> version : Version.t -> t -> bool
 end
 
+module Override : sig
+
+  type t = {
+    buildType : BuildType.t option;
+    build : PackageJson.CommandList.t option;
+    install : PackageJson.CommandList.t option;
+    exportedEnv: PackageJson.ExportedEnv.t option;
+    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option;
+    buildEnv: PackageJson.Env.t option;
+    buildEnvOverride: PackageJson.EnvOverride.t option;
+    dependencies : PackageJson.Dependencies.t option;
+  }
+
+  include S.JSONABLE with type t := t
+end
+
+module Resolution : sig
+  type t = {
+    name : string;
+    resolution : resolution;
+  }
+
+  and resolution =
+    | Version of Version.t
+    | SourceOverride of {source : Source.t; override : Override.t}
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
 module Resolutions : sig
   type t
 
   val empty : t
-  val find : t -> string -> Version.t option
+  val find : t -> string -> Resolution.t option
 
-  val entries : t -> (string * Version.t) list
+  val entries : t -> Resolution.t list
 
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
+
+  val digest : t -> string
 end
 
 module Dependencies : sig
@@ -34,11 +66,9 @@ module Dependencies : sig
     | OpamFormula of Dep.t disj conj
     | NpmFormula of Req.t conj
 
-  val pp : t Fmt.t
-  val show : t -> string
+  include S.PRINTABLE with type t := t
 
   val toApproximateRequests : t -> Req.t list
-  val applyResolutions : Resolutions.t -> t -> t
 end
 
 module File : sig
@@ -48,9 +78,8 @@ module File : sig
     perm : int;
   }
 
-  val equal : t -> t -> bool
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
 end
 
 module OpamOverride : sig
@@ -69,8 +98,8 @@ module OpamOverride : sig
   end
 
   type t = {
-    build : PackageJson.Command.t list option;
-    install : PackageJson.Command.t list option;
+    build : PackageJson.CommandList.t option;
+    install : PackageJson.CommandList.t option;
     dependencies : PackageJson.Dependencies.t;
     peerDependencies : PackageJson.Dependencies.t;
     exportedEnv : PackageJson.ExportedEnv.t;
@@ -120,16 +149,13 @@ type t = {
   name : string;
   version : Version.t;
   originalVersion : Version.t option;
-  source : source * source list;
+  source : Source.t * Source.t list;
+  override : Override.t option;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
   kind : kind;
 }
-
-and source =
-  | Source of Source.t
-  | SourceSpec of SourceSpec.t
 
 and kind =
   | Esy
@@ -142,7 +168,7 @@ val compare : t -> t -> int
 val ofPackageJson :
   name:string
   -> version:Version.t
-  -> source:source
+  -> source:Source.t
   -> PackageJson.t
   -> t
 (** Convert package.json into a package *)

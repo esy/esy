@@ -16,53 +16,61 @@ const {
   exeExtension,
 } = require('../test/helpers');
 
-const fixture = [
-  packageJson({
-    name: 'with-linked-dep',
-    version: '1.0.0',
-    license: 'MIT',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-    },
-  }),
-  dir(
-    'dep',
+function makeFixture(p) {
+  return [
     packageJson({
-      name: 'dep',
+      name: 'with-linked-dep',
       version: '1.0.0',
       license: 'MIT',
       esy: {
-        build: [
-          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-          'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
-        ],
-        install: `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: 'true',
       },
       dependencies: {
-        ocaml: '*',
+        dep: '*',
       },
     }),
-    file('dep.ml', 'let () = print_endline "__dep__"'),
-  ),
-  dir(
-    'node_modules',
     dir(
       'dep',
-      file('_esylink', './dep'),
-      symlink('package.json', '../../dep/package.json'),
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          build: [
+            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
+            'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
+          ],
+          install: `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
-    ocamlPackage(),
-  ),
-];
+    dir(
+      'node_modules',
+      dir(
+        'dep',
+        file(
+          '_esylink',
+          JSON.stringify({
+            source: `link:${path.join(p.projectPath, 'dep')}`,
+          }),
+        ),
+        symlink('package.json', '../../dep/package.json'),
+      ),
+      ocamlPackage(),
+    ),
+  ];
+}
 
 describe('Build - with linked dep', () => {
   let p;
 
   beforeAll(async () => {
-    p = await createTestSandbox(...fixture);
+    p = await createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('build');
   });
 

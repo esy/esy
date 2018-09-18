@@ -48,8 +48,7 @@ let make =
   );
 
 let render = (cfg, v) => {
-  let path = v =>
-    v |> EsyLib.Path.toString |> EsyLib.Path.normalizePathSlashes;
+  let path = v => v |> EsyLib.Path.show |> EsyLib.Path.normalizePathSlashes;
   let projectPath = path(cfg.projectPath);
   let storePath = path(cfg.storePath);
   let localStorePath = path(cfg.localStorePath);
@@ -88,9 +87,9 @@ module Path: {
   let localStore = v("%{localStore}%");
 
   let toValue = path =>
-    path |> toString |> EsyLib.Path.normalizePathSlashes |> Value.v;
+    path |> show |> EsyLib.Path.normalizePathSlashes |> Value.v;
 
-  let toPath = (cfg, path) => path |> toString |> render(cfg) |> v;
+  let toPath = (cfg, path) => path |> show |> render(cfg) |> v;
 
   let ofPath = (cfg, p) => {
     let p =
@@ -100,11 +99,11 @@ module Path: {
         cwd /\/ p;
       };
     let p = normalize(p);
-    if (equal(p, cfg.storePath)) {
+    if (compare(p, cfg.storePath) == 0) {
       store;
-    } else if (equal(p, cfg.localStorePath)) {
+    } else if (compare(p, cfg.localStorePath) == 0) {
       localStore;
-    } else if (equal(p, cfg.projectPath)) {
+    } else if (compare(p, cfg.projectPath) == 0) {
       project;
     } else {
       switch (remPrefix(cfg.storePath, p)) {

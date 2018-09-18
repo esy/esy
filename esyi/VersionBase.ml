@@ -95,7 +95,7 @@ module Constraint = struct
       | LTE of Version.t
       | NONE
       | ANY
-      [@@deriving (yojson, eq, ord)]
+      [@@deriving (yojson, ord)]
 
     let pp fmt = function
       | EQ v -> Fmt.pf fmt "=%a" Version.pp v
@@ -139,10 +139,8 @@ module Constraint = struct
         then matchesSimple ~version constr
         else false
 
-    let toString c =
-      Format.asprintf "%a" pp c
-
-    let show = toString
+    let show v =
+      Format.asprintf "%a" pp v
 
     let rec map ~f constr =
       match constr with
@@ -170,17 +168,17 @@ module Formula = struct
     type constr = Constraint.t
 
     [@@@ocaml.warning "-32"]
-    type 'f conj = 'f list [@@deriving (show, yojson, eq, ord)]
+    type 'f conj = 'f list [@@deriving (show, yojson, ord)]
 
     [@@@ocaml.warning "-32"]
-    type 'f disj = 'f list [@@deriving (show, yojson, eq, ord)]
+    type 'f disj = 'f list [@@deriving (show, yojson, ord)]
 
     module VersionSet = Constraint.VersionSet
 
     module DNF = struct
       type t =
         Constraint.t conj disj
-        [@@deriving (yojson, eq, ord)]
+        [@@deriving (yojson, ord)]
 
       let unit constr =
         [[constr]]
@@ -240,8 +238,6 @@ module Formula = struct
       let show f =
         Format.asprintf "%a" pp f
 
-      let toString = show
-
       let rec map ~f formulas =
         let mapConj (formulas) =
           (List.map ~f:(Constraint.map ~f) formulas)
@@ -268,7 +264,7 @@ module Formula = struct
       [@@@ocaml.warning "-32"]
       type t =
         Constraint.t disj conj
-        [@@deriving yojson, eq, ord]
+        [@@deriving yojson, ord]
 
       let pp fmt f =
         let ppDisj fmt = function
@@ -281,8 +277,6 @@ module Formula = struct
 
       let show f =
         Format.asprintf "%a" pp f
-
-      let toString = show
 
       let matches ~version (formulas) =
         let matchesDisj (formulas) =
@@ -362,7 +356,6 @@ let%test_module "Formula" = (module struct
   module Version = struct
     type t = int [@@deriving yojson]
     let majorMinorPatch n = Some (n, 0, 0)
-    let equal = (=)
     let compare = compare
     let pp = Fmt.int
     let show = string_of_int
@@ -374,7 +367,6 @@ let%test_module "Formula" = (module struct
       | Some v -> Ok v
       | None -> Error "not a version"
     let parseExn = int_of_string
-    let toString = string_of_int
   end
 
   module C = Constraint.Make(Version)

@@ -1,23 +1,98 @@
 module String = Astring.String
 
 [@@@ocaml.warning "-32"]
-type 'a disj = 'a list [@@deriving eq]
+type 'a disj = 'a list
 [@@@ocaml.warning "-32"]
-type 'a conj = 'a list [@@deriving eq]
+type 'a conj = 'a list
+
+module Override = struct
+  module BuildType = struct
+    include EsyLib.BuildType
+    include EsyLib.BuildType.AsInPackageJson
+  end
+
+  type t = {
+    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
+    build : PackageJson.CommandList.t option [@default None];
+    install : PackageJson.CommandList.t option [@default None];
+    exportedEnv: PackageJson.ExportedEnv.t option [@default None];
+    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option [@default None];
+    buildEnv: PackageJson.Env.t option [@default None];
+    buildEnvOverride: PackageJson.EnvOverride.t option [@default None];
+    dependencies : PackageJson.Dependencies.t option [@default None];
+  } [@@deriving yojson, ord]
+end
+
+module Resolution = struct
+
+  type t = {
+    name : string;
+    resolution : resolution;
+  }
+  [@@deriving ord]
+
+  and resolution =
+    | Version of Version.t
+    | SourceOverride of {source : Source.t; override : Override.t}
+
+  let resolution_to_yojson resolution =
+    match resolution with
+    | Version v -> `String (Version.show v)
+    | SourceOverride {source; override} ->
+      `Assoc [
+        "source", Source.to_yojson source;
+        "override", Override.to_yojson override;
+      ]
+
+  let resolution_of_yojson json =
+    let open Result.Syntax in
+    match json with
+    | `String v ->
+      let%bind version = Version.parse v in
+      return (Version version)
+    | `Assoc _ ->
+      let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
+      let%bind override = Json.Parse.fieldWith ~name:"override" Override.of_yojson json in
+      return (SourceOverride {source; override;})
+    | _ -> Error "expected string or object"
+
+
+  let digest {name; resolution} =
+    let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
+    name ^ resolution |> Digest.string |> Digest.to_hex
+
+  let show ({name; resolution;} as r) =
+    let resolution =
+      match resolution with
+      | Version version -> Version.show version
+      | SourceOverride { source; override = _; } ->
+        Source.show source ^ "@" ^ digest r
+    in
+    name ^ "@" ^ resolution
+
+  let pp fmt r = Fmt.string fmt (show r)
+
+end
 
 module Resolutions = struct
-  type t = Version.t StringMap.t
+  type t = Resolution.t StringMap.t
 
   let empty = StringMap.empty
 
-  let find resolutions pkgName =
-    StringMap.find_opt pkgName resolutions
+  let find resolutions name =
+    StringMap.find_opt name resolutions
 
-  let entries = StringMap.bindings
+  let entries = StringMap.values
+
+  let digest resolutions =
+    let f _ resolution hash = Digest.string (hash ^ Resolution.digest resolution) in
+    StringMap.fold f resolutions ""
 
   let to_yojson v =
     let items =
-      let f k v items = (k, (`String (Version.toString v)))::items in
+      let f name {Resolution. resolution; _} items =
+        (name, Resolution.resolution_to_yojson resolution)::items
+      in
       StringMap.fold f v []
     in
     `Assoc items
@@ -29,13 +104,18 @@ module Resolutions = struct
       | Ok ((_path, name)) -> Ok name
       | Error err -> Error err
     in
-    let parseValue key =
-      function
-      | `String v -> begin
-        match String.cut ~sep:"/" key with
-        | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
-        | _ -> Version.parse v
-        end
+    let parseValue name json =
+      match json with
+      | `String v ->
+        let%bind version =
+          match String.cut ~sep:"/" name with
+          | Some ("@opam", _) -> Version.parse ~tryAsOpam:true v
+          | _ -> Version.parse v
+        in
+        return {Resolution. name; resolution = Resolution.Version version;}
+      | `Assoc _ ->
+        let%bind resolution = Resolution.resolution_of_yojson json in
+        return {Resolution. name; resolution;}
       | _ -> Error "expected string"
     in
     function
@@ -110,34 +190,6 @@ module Dependencies = struct
       in
       Req.Set.elements reqs
 
-  let applyResolutions resolutions (deps : t) =
-    match deps with
-    | OpamFormula deps ->
-      let applyToDep (dep : Dep.t) =
-        match Resolutions.find resolutions dep.name with
-        | Some version ->
-          let req =
-            match version with
-            | Version.Npm v -> Dep.Npm (SemverVersion.Constraint.EQ v)
-            | Version.Opam v -> Dep.Opam (OpamPackageVersion.Constraint.EQ v)
-            | Version.Source src -> Dep.Source (SourceSpec.ofSource src)
-          in
-          {dep with req}
-        | None -> dep
-      in
-      let deps = List.map ~f:(List.map ~f:applyToDep) deps in
-      OpamFormula deps
-    | NpmFormula reqs ->
-      let applyToReq (req : Req.t) =
-        match Resolutions.find resolutions req.name with
-        | Some version ->
-          let spec = VersionSpec.ofVersion version in
-          Req.make ~name:req.name ~spec
-        | None -> req
-      in
-      let reqs = List.map ~f:applyToReq reqs in
-      NpmFormula reqs
-
   let pp fmt deps =
     match deps with
     | OpamFormula deps ->
@@ -161,7 +213,7 @@ module File = struct
     content : string;
     (* file, permissions add 0o644 default for backward compat. *)
     perm : (int [@default 0o644]);
-  } [@@deriving (yojson, show, ord, eq)]
+  } [@@deriving yojson, show, ord]
 end
 
 module OpamOverride = struct
@@ -170,7 +222,7 @@ module OpamOverride = struct
     type t = {
       source: (source option [@default None]);
       files: (File.t list [@default []]);
-    } [@@deriving (yojson, eq, ord, show)]
+    } [@@deriving yojson, ord, show]
 
     and source = {
       url: string;
@@ -182,20 +234,18 @@ module OpamOverride = struct
   end
 
   type t = {
-    build: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
-    install: (PackageJson.CommandList.t [@default PackageJson.CommandList.empty]);
+    build: (PackageJson.CommandList.t option [@default None]);
+    install: (PackageJson.CommandList.t option [@default None]);
     dependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
     peerDependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]) ;
     exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
     opam: (Opam.t [@default Opam.empty]);
-  } [@@deriving (yojson, eq, ord, show)]
-
-  let toString = show
+  } [@@deriving yojson, ord, show]
 
   let empty =
     {
-      build = PackageJson.CommandList.empty;
-      install = PackageJson.CommandList.empty;
+      build = None;
+      install = None;
       dependencies = PackageJson.Dependencies.empty;
       peerDependencies = PackageJson.Dependencies.empty;
       exportedEnv = PackageJson.ExportedEnv.empty;
@@ -246,16 +296,13 @@ type t = {
   name : string;
   version : Version.t;
   originalVersion : Version.t option;
-  source : source * source list;
+  source : Source.t * Source.t list;
+  override : Override.t option;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
   kind : kind;
 }
-
-and source =
-  | Source of Source.t
-  | SourceSpec of SourceSpec.t
 
 and kind =
   | Esy
@@ -296,6 +343,7 @@ let ofPackageJson ~name ~version ~source (pkgJson : PackageJson.t) =
     dependencies = Dependencies.NpmFormula dependencies;
     devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
     source = source, [];
+    override = None;
     opam = None;
     kind = if Option.isSome pkgJson.esy then Esy else Npm;
   }

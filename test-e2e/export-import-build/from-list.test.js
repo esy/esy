@@ -15,62 +15,70 @@ const {
 
 skipSuiteOnWindows('Needs investigation');
 
-const fixture = [
-  packageJson({
-    name: 'symlinks-into-dep',
-    version: '1.0.0',
-    license: 'MIT',
-    esy: {
-      build: ['ln -s #{dep.bin / dep.name} #{self.bin / self.name}'],
-    },
-    dependencies: {
-      dep: '*',
-    },
-  }),
-  dir(
-    'node_modules',
+function makeFixture(p) {
+  return [
+    packageJson({
+      name: 'symlinks-into-dep',
+      version: '1.0.0',
+      license: 'MIT',
+      esy: {
+        build: ['ln -s #{dep.bin / dep.name} #{self.bin / self.name}'],
+      },
+      dependencies: {
+        dep: '*',
+      },
+    }),
     dir(
-      'dep',
-      packageJson({
-        name: 'dep',
-        version: '1.0.0',
-        license: 'MIT',
-        esy: {
-          build: ['ln -s #{subdep.bin / subdep.name} #{self.bin / self.name}'],
-        },
-        dependencies: {
-          subdep: '*',
-        },
-        '_esy.source': 'path:./',
-      }),
+      'node_modules',
       dir(
-        'node_modules',
-        dir(
-          'subdep',
-          packageJson({
-            name: 'subdep',
-            version: '1.0.0',
-            license: 'MIT',
-            esy: {
-              buildsInSource: true,
-              build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-              install: 'cp #{self.root / self.name} #{self.bin / self.name}',
-            },
-            dependencies: {
-              ocaml: '*',
-            },
-            '_esy.source': 'path:./',
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          license: 'MIT',
+          esy: {
+            build: ['ln -s #{subdep.bin / subdep.name} #{self.bin / self.name}'],
+          },
+          dependencies: {
+            subdep: '*',
+          },
+        }),
+        file(
+          '_esylink',
+          JSON.stringify({
+            source: `path:.`,
           }),
-          file('subdep.ml', 'let () = print_endline "__subdep__"'),
         ),
-        ocamlPackage(),
+        dir(
+          'node_modules',
+          dir(
+            'subdep',
+            packageJson({
+              name: 'subdep',
+              version: '1.0.0',
+              license: 'MIT',
+              esy: {
+                buildsInSource: true,
+                build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
+                install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+              },
+              dependencies: {
+                ocaml: '*',
+              },
+            }),
+            file('_esylink', JSON.stringify({source: `path:.`})),
+            file('subdep.ml', 'let () = print_endline "__subdep__"'),
+          ),
+          ocamlPackage(),
+        ),
       ),
     ),
-  ),
-];
+  ];
+}
 
 it('export import build - from list', async () => {
-  const p = await createTestSandbox(...fixture);
+  const p = await createTestSandbox();
+  await p.fixture(...makeFixture(p));
   await p.esy('build');
 
   await p.esy('export-dependencies');

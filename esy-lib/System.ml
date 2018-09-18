@@ -6,7 +6,7 @@ module Platform = struct
     | Windows (* mingw msvc *)
     | Unix (* all other unix-y systems *)
     | Unknown
-    [@@deriving eq, ord]
+    [@@deriving ord]
 
   let show = function
     | Darwin -> "darwin"
@@ -17,8 +17,6 @@ module Platform = struct
     | Unknown -> "unknown"
 
   let pp fmt v = Fmt.string fmt (show v)
-
-  let toString = show
 
   let host =
     let uname () =
@@ -47,7 +45,7 @@ module Arch = struct
     | Arm32
     | Arm64
     | Unknown
-    [@@deriving eq, ord]
+    [@@deriving ord]
 
   let show = function
     | X86_32 -> "x86_32"
@@ -59,8 +57,6 @@ module Arch = struct
     | Unknown -> "unknown"
 
   let pp fmt v = Fmt.string fmt (show v)
-
-  let toString = show
 
   let host =
     let uname () =

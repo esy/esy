@@ -35,37 +35,10 @@ module Record = struct
     name: string;
     version: Version.t;
     source: SourceWithMirrors.t;
+    override: Package.Override.t option;
     files : Package.File.t list;
     opam : Opam.t option;
   } [@@deriving yojson]
-
-  let mapVersion ~f (record : t) =
-    let version =
-      match record.version with
-      | Version.Source (Source.LocalPath info) ->
-        Version.Source (Source.LocalPath {info with path = f info.path;})
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> record.version
-    in
-    let source =
-      let f source =
-        match source with
-        | Source.LocalPathLink info ->
-          Source.LocalPathLink {info with path = f info.path;}
-        | Source.LocalPath info ->
-          Source.LocalPath {info with path = f info.path;}
-        | Source.Archive _
-        | Source.Git _
-        | Source.Github _
-        | Source.NoSource -> source
-      in
-      let main, mirrors = record.source in
-      let main = f main in
-      let mirrors = List.map ~f mirrors in
-      main, mirrors
-    in
-    {record with source; version}
 
   let compare a b =
     let c = String.compare a.name b.name in
@@ -73,18 +46,17 @@ module Record = struct
     then Version.compare a.version b.version
     else c
 
-  let equal a b =
-    String.equal a.name b.name && Version.equal a.version b.version
-
   let pp fmt record =
     Fmt.pf fmt "%s@%a" record.name Version.pp record.version
+
+  let show = Format.asprintf "%a" pp
 
   module Map = Map.Make(struct type nonrec t = t let compare = compare end)
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
 module Id = struct
-  type t = string * Version.t [@@deriving (ord, eq)]
+  type t = string * Version.t [@@deriving ord]
 
   let rec parse v =
     let open Result.Syntax in
@@ -98,22 +70,11 @@ module Id = struct
     | None -> Error "invalid id"
 
   let to_yojson (name, version) =
-    `String (name ^ "@" ^ Version.toString version)
+    `String (name ^ "@" ^ Version.show version)
 
   let of_yojson = function
     | `String v -> parse v
     | _ -> Error "expected string"
-
-  let mapVersion ~f ((name, version) : t) =
-    let version =
-      match version with
-      | Version.Source (Source.LocalPath info) ->
-        Version.Source (Source.LocalPath {info with path = f info.path;})
-      | Version.Npm _
-      | Version.Opam _
-      | Version.Source _ -> version
-    in
-    ((name, version) : t)
 
   let ofRecord (record : Record.t) =
     record.name, record.version
@@ -132,7 +93,7 @@ module Id = struct
     let to_yojson v_to_yojson map =
       let items =
         let f (name, version) v items =
-          let k = name ^ "@" ^ Version.toString version in
+          let k = name ^ "@" ^ Version.show version in
           (k, v_to_yojson v)::items
         in
         fold f map []
@@ -160,7 +121,7 @@ and t = {
   root : Id.t option;
   records : Record.t Id.Map.t;
   dependencies : Id.Set.t Id.Map.t;
-} [@@deriving eq]
+}
 
 let root sol =
   match sol.root with
@@ -279,12 +240,7 @@ module LockfileV1 = struct
       Digest.string (digest ^ "__" ^ showDependencies dependencies)
     in
     let hashResolutions ~resolutions digest =
-      let f digest (key, version) =
-      Digest.string (digest ^ "__" ^ key ^ "__" ^ Version.toString version)
-      in
-      List.fold_left
-        ~f ~init:digest
-        (Package.Resolutions.entries resolutions)
+      Digest.string (digest ^ "__" ^ Package.Resolutions.digest resolutions)
     in
     let digest =
       Digest.string ""
@@ -295,38 +251,25 @@ module LockfileV1 = struct
     in
     Digest.to_hex digest
 
-  let solutionOfLockfile ~(sandbox : Sandbox.t) root node =
-    let derelativize path = Path.(sandbox.spec.path // path |> normalize) in
-    let root = Id.mapVersion ~f:derelativize root in
+  let solutionOfLockfile root node =
     let f id {record; dependencies} sol =
-      let record = Record.mapVersion ~f:derelativize record in
-      let id = Id.mapVersion ~f:derelativize id in
-      if Id.equal root id
+      if Id.compare root id = 0
       then addRoot ~record ~dependencies sol
       else add ~record ~dependencies sol
     in
     Id.Map.fold f node empty
 
-  let lockfileOfSolution ~(sandbox : Sandbox.t) (sol : solution) =
-    let relativize path =
-      if Path.equal path sandbox.spec.path
-      then Path.(v ".")
-      else match Path.relativize ~root:sandbox.spec.path path with
-      | Some path -> path
-      | None -> path
-    in
+  let lockfileOfSolution (sol : solution) =
     let node =
       let f id record nodes =
         let dependencies = Id.Map.find id sol.dependencies in
-        let id = Id.mapVersion ~f:relativize id in
-        let record = Record.mapVersion ~f:relativize record in
         Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
       in
       Id.Map.fold f sol.records Id.Map.empty
     in
     let root =
       match sol.root with
-      | Some root -> Id.mapVersion ~f:relativize root
+      | Some root -> root
       | None -> failwith "empty solution"
     in
     root, node
@@ -343,7 +286,7 @@ module LockfileV1 = struct
       | Ok lockfile ->
         if lockfile.hash = computeSandboxChecksum sandbox
         then
-          let solution = solutionOfLockfile ~sandbox lockfile.root lockfile.node in
+          let solution = solutionOfLockfile lockfile.root lockfile.node in
           return (Some solution)
         else return None
       | Error err ->
@@ -359,7 +302,7 @@ module LockfileV1 = struct
       return None
 
   let toFile ~sandbox ~(solution : solution) (path : Path.t) =
-    let root, node = lockfileOfSolution ~sandbox solution in
+    let root, node = lockfileOfSolution solution in
     let hash = computeSandboxChecksum sandbox in
     let lockfile = {hash; node; root} in
     let json = to_yojson lockfile in

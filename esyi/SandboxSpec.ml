@@ -3,13 +3,12 @@ module ManifestSpec = struct
   | Esy of string
   | Opam of string
   | OpamAggregated of string list
-  [@@deriving ord, eq]
+  [@@deriving ord]
 
-  let toString = function
-    | Esy fname | Opam fname -> fname
+  let show = function
+    | Esy fname
+    | Opam fname -> fname
     | OpamAggregated fnames -> String.concat "," fnames
-
-  let show = toString
 
   let pp fmt manifest =
     match manifest with
@@ -84,13 +83,13 @@ end
 type t = {
   path : Path.t;
   manifest : ManifestSpec.t
-} [@@deriving ord, eq]
+} [@@deriving ord]
 
 let doesPathReferToConcreteManifest path =
   Path.(
     hasExt ".json" path
     || hasExt ".opam" path
-    || Path.(equal path (v "opam"))
+    || Path.(compare path (v "opam") = 0)
   )
 
 let name spec =
@@ -98,7 +97,7 @@ let name spec =
   | OpamAggregated _ -> "opam"
   | Opam "opam" -> "opam"
   | Esy "package.json" | Esy "esy.json" -> "default"
-  | Opam fname | Esy fname -> Path.(toString (remExt (v fname)))
+  | Opam fname | Esy fname -> Path.(show (remExt (v fname)))
 
 let isDefault spec =
   match spec.manifest with
@@ -180,7 +179,6 @@ let pp fmt spec =
   ManifestSpec.pp fmt spec.manifest
 
 let show spec = Format.asprintf "%a" pp spec
-let toString spec = Format.asprintf "%a" pp spec
 
 module Set = Set.Make(struct
   type nonrec t = t

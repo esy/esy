@@ -20,12 +20,13 @@ module Record : sig
     name: string;
     version: Version.t;
     source: Source.t * Source.t list;
+    override: Package.Override.t option;
     files : Package.File.t list;
     opam : Opam.t option;
   }
 
-  val pp : t Fmt.t
-  val equal : t -> t -> bool
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
 
   module Map : Map.S with type key := t
   module Set : Set.S with type elt := t
@@ -46,8 +47,6 @@ type t
 val root : t -> Record.t option
 val dependencies : Record.t -> t -> Record.Set.t
 val records : t -> Record.Set.t
-
-val equal : t -> t -> bool
 
 val empty : t
 

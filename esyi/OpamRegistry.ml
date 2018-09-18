@@ -72,7 +72,7 @@ let make ~cfg () =
     let%bind repo =
       let path = Path.(repoPath / "repo") in
       let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
       let repo = OpamFile.Repo.read_from_string ~filename data in
       return repo
     in

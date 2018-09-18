@@ -7,7 +7,7 @@ module Version = struct
     patch : int;
     prerelease : prerelease;
     build : build;
-  } [@@deriving eq]
+  }
 
   and prerelease = segment list
 
@@ -35,7 +35,7 @@ module Version = struct
   let make ?(prerelease=[]) ?(build=[]) major minor patch =
     {major; minor; patch; prerelease; build}
 
-  let toString v =
+  let show v =
     let prelease = match v.prerelease with
     | [] -> ""
     | v -> Format.asprintf "-%a" ppPrerelease v
@@ -46,10 +46,8 @@ module Version = struct
     in
     Format.asprintf "%i.%i.%i%s%s" v.major v.minor v.patch prelease build
 
-  let show = toString
-
   let pp fmt v =
-    Fmt.pf fmt "%s" (toString v)
+    Fmt.pf fmt "%s" (show v)
 
   let majorMinorPatch v = Some (v.major, v.minor, v.patch)
 
@@ -212,7 +210,7 @@ module Version = struct
       match e, p with
       | Error _, Error _ -> true
       | Ok e, Ok p ->
-        if equal p e
+        if compare p e = 0
         then true
         else (
           Format.printf
@@ -411,7 +409,7 @@ module Version = struct
     | _ -> Error "expected string"
 
   let to_yojson v =
-    `String (toString v)
+    `String (show v)
 
 end
 
@@ -711,7 +709,7 @@ module Formula = struct
       match e, p with
       | Error _, Error _ -> true
       | Ok e, Ok p ->
-        if DNF.equal p e
+        if DNF.compare p e = 0
         then true
         else (
           Format.printf

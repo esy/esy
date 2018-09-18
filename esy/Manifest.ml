@@ -1,54 +1,16 @@
 module BuildType = struct
-  include EsyBuildPackage.BuildType
-
-  let of_yojson = function
-    | `String "_build" -> Ok JbuilderLike
-    | `Bool true -> Ok InSource
-    | `Bool false -> Ok OutOfSource
-    | _ -> Error "expected false, true or \"_build\""
+  include EsyLib.BuildType
+  include EsyLib.BuildType.AsInPackageJson
 end
 
+module SandboxSpec = EsyInstall.SandboxSpec
 module PackageJson = EsyInstall.PackageJson
 module Source = EsyInstall.Source
-module SourceType = EsyBuildPackage.SourceType
+module SourceType = EsyLib.SourceType
 module Command = PackageJson.Command
 module CommandList = PackageJson.CommandList
 module ExportedEnv = PackageJson.ExportedEnv
-
-module Env = struct
-
-  [@@@ocaml.warning "-32"]
-  type item = {
-    name : string;
-    value : string;
-  }
-  [@@deriving (show, eq, ord)]
-
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
-
-  let empty = []
-
-  let of_yojson = function
-    | `Assoc items ->
-      let open Result.Syntax in
-      let f items ((k, v): (string * Yojson.Safe.json)) = match v with
-      | `String value ->
-        Ok ({name = k; value;}::items)
-      | _ -> Error "expected string"
-      in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
-    | _ -> Error "expected an object"
-
-  let to_yojson env =
-    let items =
-      let f {name; value} = name, `String value in
-      List.map ~f env
-    in
-    `Assoc items
-end
+module Env = PackageJson.Env
 
 module Build = struct
 
@@ -81,7 +43,6 @@ module Build = struct
     `Assoc ["path", Path.to_yojson path; "filter", filter]
 
   type t = {
-    sourceType : SourceType.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -90,6 +51,16 @@ module Build = struct
     exportedEnv : ExportedEnv.t;
     buildEnv : Env.t;
   } [@@deriving to_yojson]
+
+  let empty = {
+    buildType = BuildType.OutOfSource;
+    buildCommands = EsyCommands [];
+    installCommands = EsyCommands [];
+    patches = [];
+    substs = [];
+    exportedEnv = ExportedEnv.empty;
+    buildEnv = StringMap.empty;
+  }
 
 end
 
@@ -100,6 +71,13 @@ module Dependencies = struct
     buildTimeDependencies : string list list;
     optDependencies : string list list;
   } [@@deriving show]
+
+  let empty = {
+    dependencies = [];
+    devDependencies = [];
+    buildTimeDependencies = [];
+    optDependencies = [];
+  }
 end
 
 module Release = struct
@@ -115,11 +93,11 @@ module Scripts = struct
   type script = {
     command : Command.t;
   }
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
   type t =
     script StringMap.t
-    [@@deriving (eq, ord)]
+    [@@deriving ord]
 
   let empty = StringMap.empty
 
@@ -128,10 +106,9 @@ module Scripts = struct
       match CommandList.of_yojson json with
       | Ok command ->
         begin match command with
-        | None
-        | Some [] -> Error "empty command"
-        | Some [command] -> Ok {command;}
-        | Some _ -> Error "multiple script commands are not supported"
+        | [] -> Error "empty command"
+        | [command] -> Ok {command;}
+        | _ -> Error "multiple script commands are not supported"
         end
       | Error err -> Error err
     in
@@ -190,16 +167,6 @@ module type MANIFEST = sig
   val scripts : t -> Scripts.t Run.t
 
   val sandboxEnv : t -> Env.t Run.t
-
-  (**
-   * Unique id of the release.
-   *
-   * This could be a released version, git sha commit or some checksum of package
-   * contents if any.
-   *
-   * This info is used to construct a build key for the corresponding package.
-   *)
-  val source : t -> Source.t option
 end
 
 module Esy : sig
@@ -214,7 +181,7 @@ end = struct
       build: (CommandList.t [@default CommandList.empty]);
       install: (CommandList.t [@default CommandList.empty]);
       buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
-      exportedEnv: (ExportedEnv.t [@default []]);
+      exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
       buildEnv: (Env.t [@default Env.empty]);
       sandboxEnv: (Env.t [@default Env.empty]);
       release: (Release.t option [@default None]);
@@ -234,7 +201,6 @@ end = struct
       optDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
       buildTimeDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
       esy: EsyManifest.t option [@default None];
-      source: Source.t option [@key "_esy.source"] [@default None];
     } [@@deriving (of_yojson {strict = false})]
   end
 
@@ -249,7 +215,6 @@ end = struct
     optDependencies : PackageJson.Dependencies.t;
     buildTimeDependencies : PackageJson.Dependencies.t;
     esy: EsyManifest.t option;
-    source: Source.t option;
   }
 
   type t = manifest * Json.t
@@ -276,9 +241,6 @@ end = struct
       optDependencies;
       buildTimeDependencies
     }
-
-  let source (manifest, _) =
-    manifest.source
 
   let release (m, _) =
     let open Option.Syntax in
@@ -307,10 +269,6 @@ end = struct
     let%bind esy = m.esy in
     Some {
       Build.
-      sourceType = (
-        match m.source with
-        | None -> SourceType.Transient
-        | Some _ -> SourceType.Immutable);
       buildType = esy.EsyManifest.buildsInSource;
       exportedEnv = esy.EsyManifest.exportedEnv;
       buildEnv = esy.EsyManifest.buildEnv;
@@ -342,7 +300,6 @@ end = struct
       optDependencies = jsonManifest.optDependencies;
       buildTimeDependencies = jsonManifest.buildTimeDependencies;
       esy = jsonManifest.esy;
-      source = jsonManifest.source;
     }
 
   let ofFile (path : Path.t) =
@@ -489,7 +446,7 @@ end = struct
     let open RunAsync.Syntax in
     let%bind opam =
       let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.toString path)) in
+      let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
       let opam = OpamFile.OPAM.read_from_string ~filename data in
       let opam = OpamFormatUpgrade.opam_file ~filename opam in
       return opam
@@ -530,11 +487,6 @@ end = struct
 
   let release _ = None
 
-  let source m =
-    match m with
-    | Installed m -> Some m.info.source
-    | AggregatedRoot _ -> None
-
   let description _ = None
   let license _ = None
 
@@ -544,7 +496,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
-          Build.EsyCommands (Some build)
+          Build.EsyCommands build
         | Some {EsyInstall.Package.OpamOverride. build = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
@@ -560,7 +512,7 @@ end = struct
       | Installed manifest ->
         begin match manifest.info.override with
         | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
-          Build.EsyCommands (Some install)
+          Build.EsyCommands install
         | Some {EsyInstall.Package.OpamOverride. install = None; _}
         | None ->
           Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
@@ -598,12 +550,6 @@ end = struct
       | AggregatedRoot _ -> BuildType.Unsafe
     in
 
-    let sourceType =
-      match m with
-      | Installed _ -> SourceType.Immutable
-      | AggregatedRoot _ -> SourceType.Transient
-    in
-
     let exportedEnv =
       match m with
       | Installed manifest ->
@@ -616,7 +562,6 @@ end = struct
 
     Some {
       Build.
-      sourceType;
       buildType;
       exportedEnv;
       buildEnv = Env.empty;
@@ -667,11 +612,6 @@ end = struct
     match m with
     | Opam m -> Opam.license m
     | Esy m -> Esy.license m
-
-  let source m =
-    match m with
-    | Opam m -> Opam.source m
-    | Esy m -> Esy.source m
 
   let dependencies m =
     match m with

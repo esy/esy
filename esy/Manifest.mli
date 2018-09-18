@@ -2,27 +2,20 @@
  * This module represents manifests and info which can be parsed out of it.
  *)
 
-module BuildType : module type of EsyBuildPackage.BuildType
-module SourceType : module type of EsyBuildPackage.SourceType
+module BuildType : module type of EsyLib.BuildType
+module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyInstall.Source
 module Command : module type of EsyInstall.PackageJson.Command
 module CommandList : module type of EsyInstall.PackageJson.CommandList
 module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
+module Env : module type of EsyInstall.PackageJson.Env
 
 module Scripts : sig
   type t = script StringMap.t
   and script = { command : Command.t; }
   val empty : t
   val find : string -> t -> script option
-end
-
-module Env : sig
-  type t = item list
-  and item = { name : string; value : string; }
-  val empty : t
-  val show : t -> string
-  val to_yojson : t Json.encoder
 end
 
 (**
@@ -44,7 +37,6 @@ module Build : sig
     | EsyCommands of CommandList.t
 
   type t = {
-    sourceType : SourceType.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -54,6 +46,7 @@ module Build : sig
     buildEnv : Env.t;
   }
 
+  val empty : t
   val to_yojson : t -> Json.t
 end
 
@@ -67,6 +60,7 @@ module Dependencies : sig
     buildTimeDependencies : string list list;
     optDependencies : string list list;
   }
+  val empty : t
   val show : t -> string
 end
 
@@ -121,16 +115,6 @@ module type MANIFEST = sig
 
   val sandboxEnv : t -> Env.t Run.t
   (** Extract sandbox environment from manifest. *)
-
-  (**
-   * Unique id of the release.
-   *
-   * This could be a released version, git sha commit or some checksum of package
-   * contents if any.
-   *
-   * This info is used to construct a build key for the corresponding package.
-   *)
-  val source : t -> EsyInstall.Source.t option
 end
 
 include MANIFEST
@@ -145,10 +129,10 @@ include MANIFEST
  *)
 val ofDir :
   ?name:string
-  -> ?manifest:SandboxSpec.ManifestSpec.t
+  -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
-val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t

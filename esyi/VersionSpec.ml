@@ -3,18 +3,18 @@ type t =
   | NpmDistTag of string * SemverVersion.Version.t option
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
-let toString = function
-  | Npm formula -> SemverVersion.Formula.DNF.toString formula
+let show = function
+  | Npm formula -> SemverVersion.Formula.DNF.show formula
   | NpmDistTag (tag, _version) -> tag
-  | Opam formula -> OpamPackageVersion.Formula.DNF.toString formula
-  | Source src -> SourceSpec.toString src
+  | Opam formula -> OpamPackageVersion.Formula.DNF.show formula
+  | Source src -> SourceSpec.show src
 
 let pp fmt spec =
-  Fmt.string fmt (toString spec)
+  Fmt.string fmt (show spec)
 
-let to_yojson src = `String (toString src)
+let to_yojson src = `String (show src)
 
 let matches ~version spec =
   match spec, version with
@@ -23,7 +23,7 @@ let matches ~version spec =
   | Npm _, _ -> false
 
   | NpmDistTag (_tag, Some resolvedVersion), Version.Npm version ->
-    SemverVersion.Version.equal resolvedVersion version
+    SemverVersion.Version.compare resolvedVersion version = 0
   | NpmDistTag (_tag, None), Version.Npm _ -> assert false
   | NpmDistTag (_tag, _), _ -> false
 

@@ -194,7 +194,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
   let f = (path, acc) =>
     switch (acc) {
     | Ok () =>
-      if (Path.equal(path, from)) {
+      if (Path.compare(path, from) == 0) {
         Ok();
       } else if (Path.Set.mem(
                    Path.remEmptySeg(Path.parent(path)),

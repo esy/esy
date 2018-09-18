@@ -2,7 +2,7 @@ module String = Astring.String
 
 type t =
   segment list * string
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
 and segment =
   | Pkg of string
@@ -17,6 +17,8 @@ let show (path, pkg) =
     |> List.map ~f:(function | Pkg name -> name | AnyPkg -> "**")
     |> String.concat ~sep:"/"
   in path ^ "/" ^ pkg
+
+let pp fmt v = Fmt.pf fmt "%s" (show v)
 
 let parse v =
   let parts = String.cuts ~empty:true ~sep:(("/")[@reason.raw_literal "/"]) v in

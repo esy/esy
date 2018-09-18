@@ -1,18 +1,16 @@
 type t = {
   name: string;
   spec: VersionSpec.t;
-} [@@deriving (eq, ord)]
+} [@@deriving ord]
 
-let toString {name; spec} =
-  name ^ "@" ^ (VersionSpec.toString spec)
-
-let show = toString
+let show {name; spec} =
+  name ^ "@" ^ (VersionSpec.show spec)
 
 let to_yojson req =
-  `String (toString req)
+  `String (show req)
 
 let pp fmt req =
-  Fmt.fmt "%s" fmt (toString req)
+  Fmt.fmt "%s" fmt (show req)
 
 let matches ~name ~version req =
   name = req.name && VersionSpec.matches ~version req.spec
@@ -362,7 +360,7 @@ let%test_module "parsing" = (module struct
   let expectParsesTo input e =
     match parse input with
     | Ok req ->
-      if equal req e
+      if compare req e = 0
       then true
       else (
         Format.printf "@[<v>parsing: %s@\n     got: %a@\nexpected: %a@\n@]@\n" input pp req pp e;

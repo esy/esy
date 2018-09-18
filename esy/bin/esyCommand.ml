@@ -23,7 +23,7 @@ module EsyRuntime = struct
           Printf.sprintf
           "unable to resolve %s from %s"
           req
-          (Path.toString currentDirname)
+          (Path.show currentDirname)
         in
         RunAsync.error msg
       | Error (`Msg err) -> RunAsync.error err
@@ -83,7 +83,7 @@ module CommonOptions = struct
 
   type t = {
     cfg : Config.t;
-    spec : SandboxSpec.t;
+    spec : EsyInstall.SandboxSpec.t;
     installSandbox : EsyInstall.Sandbox.t;
   }
 
@@ -170,7 +170,7 @@ module CommonOptions = struct
       then return path
       else
         let parent = Path.parent path in
-        if not (Path.equal path parent)
+        if not (Path.compare path parent = 0)
         then climb (Path.parent path)
         else
           let%bind msg = RunAsync.ofRun (
@@ -209,12 +209,12 @@ module CommonOptions = struct
         let open RunAsync.Syntax in
 
         let%bind sandboxPath = sandboxPath in
-        let%bind spec = SandboxSpec.ofPath sandboxPath in
+        let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
 
         let%bind prefixPath = match prefixPath with
           | Some prefixPath -> return (Some prefixPath)
           | None ->
-            let%bind rc = EsyRc.ofPath spec.SandboxSpec.path in
+            let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
             return rc.EsyRc.prefixPath
         in
 
@@ -297,7 +297,7 @@ end
 
 module SandboxInfo = struct
   type t = {
-    spec: SandboxSpec.t;
+    spec: EsyInstall.SandboxSpec.t;
     sandbox : Sandbox.t;
     task : Task.t;
     commandEnv : Environment.Bindings.t;
@@ -305,17 +305,17 @@ module SandboxInfo = struct
     info : Sandbox.info;
   }
 
-  let cachePath (cfg : Config.t) (spec : SandboxSpec.t) =
+  let cachePath (cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
     let hash = [
-      Path.toString cfg.storePath;
-      Path.toString spec.path;
+      Path.show cfg.storePath;
+      Path.show spec.path;
       cfg.esyVersion
     ]
       |> String.concat "$$"
       |> Digest.string
       |> Digest.to_hex
     in
-    Path.(SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
+    Path.(EsyInstall.SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
 
   let writeCache (cfg : Config.t) (info : t) =
     let open RunAsync.Syntax in
@@ -329,11 +329,11 @@ module SandboxInfo = struct
         in
         let cachePath = cachePath cfg info.spec in
         let%bind () = Fs.createDir (Path.parent cachePath) in
-        Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString cachePath) f
+        Lwt_io.with_file ~mode:Lwt_io.Output (Path.show cachePath) f
       in
 
       let%bind () =
-        if SandboxSpec.isDefault info.spec
+        if EsyInstall.SandboxSpec.isDefault info.spec
         then
           let writeData filename data =
             let f oc =
@@ -341,7 +341,7 @@ module SandboxInfo = struct
               let%lwt () = Lwt_io.flush oc in
               return ()
             in
-            Lwt_io.with_file ~mode:Lwt_io.Output (Path.toString filename) f
+            Lwt_io.with_file ~mode:Lwt_io.Output (Path.show filename) f
           in
           let sandboxBin = Path.(info.spec.path / "node_modules" / ".cache" / "_esy" / "build" / "bin") in
           let%bind () = Fs.createDir sandboxBin in
@@ -396,7 +396,7 @@ module SandboxInfo = struct
         then return None
         else return (Some info)
       in
-      try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.toString cachePath) f
+      try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.show cachePath) f
       with | Unix.Unix_error _ -> return None
     in Perf.measureLwt ~label:"reading sandbox info cache" f
 
@@ -467,7 +467,7 @@ module SandboxInfo = struct
       | Some task ->
         Sandbox.Path.(Task.installPath task / "lib")
         |> Sandbox.Path.toPath sandbox.Sandbox.buildConfig
-        |> Path.toString
+        |> Path.show
       | None -> ""
     in
     let env =
@@ -532,7 +532,7 @@ module SandboxInfo = struct
       let env =
         `CustomEnv Astring.String.Map.(
           empty |>
-          add "OCAMLPATH" (Path.toString ocamlpath)
+          add "OCAMLPATH" (Path.show ocamlpath)
       ) in
       let cmd = Cmd.(
         v (p ocamlfind)
@@ -604,7 +604,7 @@ let withBuildTaskByPath
     let findByPath (task : Task.t) =
       let pkg = Task.pkg task in
       Path.Set.mem packagePath pkg.originPath
-      || String.equal (Path.toString packagePath) pkg.id
+      || String.equal (Path.show packagePath) pkg.id
     in
     begin match Task.Graph.find ~f:findByPath info.task with
     | None -> errorf "No package found at %a" Path.pp packagePath
@@ -696,7 +696,7 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let f (task : Task.t) =
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = computeEnv info in
+      let%bind env = computeEnv info task in
       let pkg = Task.pkg task in
       let header = header pkg in
       if asJson
@@ -720,8 +720,8 @@ let buildEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.buildEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.buildEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return env
   in
@@ -732,8 +732,8 @@ let commandEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.commandEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.commandEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return (Environment.current @ env)
   in
@@ -744,8 +744,8 @@ let sandboxEnv =
   let header (pkg : Sandbox.Package.t) =
     Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
   in
-  let computeEnv (info : SandboxInfo.t) =
-    let%bind env = Task.sandboxEnv info.task in
+  let computeEnv (info : SandboxInfo.t) task =
+    let%bind env = Task.sandboxEnv task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     Ok (Environment.current @ env)
   in
@@ -898,7 +898,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
     )
   in
   match%bind Task.Graph.fold ~f ~init:(return None) info.task with
-  | Some tree -> return (print_endline (TermTree.toString tree))
+  | Some tree -> return (print_endline (TermTree.render tree))
   | None -> return ()
 
 let formatPackageInfo ~built:(built : bool)  (task : Task.t) =
@@ -987,7 +987,7 @@ let lsModules copts only () =
       Path.ofString (meta.location ^ Path.dirSep ^ meta.archive) |> function
       | Ok archive ->
         if%bind Fs.exists archive then begin
-          let archive = Path.toString archive in
+          let archive = Path.show archive in
           let%bind lines =
             SandboxInfo.modules ~ocamlobjinfo archive
           in
@@ -1134,12 +1134,12 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
           let constr =
             match record.Solution.Record.version with
             | Version.Npm version ->
-              SemverVersion.Formula.DNF.toString
+              SemverVersion.Formula.DNF.show
                 (SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
-              Version.toString record.Solution.Record.version
+              Version.show record.Solution.Record.version
           in
           name, `String constr
         | None -> assert false
@@ -1337,7 +1337,7 @@ let gc (copts : CommonOptions.t) dryRun (roots : Path.t list) () =
   let perform path =
     if dryRun
     then (
-      print_endline (Path.toString path);
+      print_endline (Path.show path);
       return ()
     ) else Fs.rmPath path
   in
@@ -1351,7 +1351,7 @@ let gc (copts : CommonOptions.t) dryRun (roots : Path.t list) () =
   let%bind () =
     let%bind keep =
       let visitSandbox keep root =
-        match%lwt SandboxSpec.ofPath root with
+        match%lwt EsyInstall.SandboxSpec.ofPath root with
         | Ok spec ->
           let%bind sandbox, _ = Sandbox.make ~cfg:copts.cfg spec in
           let%bind task = RunAsync.ofRun (Task.ofSandbox sandbox) in

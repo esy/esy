@@ -2,13 +2,13 @@ module Path = EsyLib.Path;
 
 module Env = EsyLib.Environment.Make(Config.Value);
 
-[@deriving (yojson, ord, eq)]
+[@deriving (yojson, ord)]
 type t = {
   id: string,
   name: string,
   version: string,
-  sourceType: SourceType.t,
-  buildType: BuildType.t,
+  sourceType: EsyLib.SourceType.t,
+  buildType: EsyLib.BuildType.t,
   build: list(list(Config.Value.t)),
   install: list(list(Config.Value.t)),
   sourcePath: Config.Value.t,

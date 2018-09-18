@@ -17,7 +17,7 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
+let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
   let%bind opams =
@@ -62,7 +62,7 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
   in
 
   let source = Source.LocalPath {
-    path = projectPath;
+    path = Path.v ".";
     manifest = None;
   } in
   let version = Version.Source source in
@@ -77,7 +77,8 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
         name = "empty";
         version;
         originalVersion = None;
-        source = Source source, [];
+        source = source, [];
+        override = None;
         dependencies;
         devDependencies = dependencies;
         opam = None;
@@ -111,7 +112,8 @@ let makeOpamSandbox ~cfg ~spec projectPath (paths : Path.t list) =
       name = "root";
       version;
       originalVersion = None;
-      source = Package.Source source, [];
+      source = source, [];
+      override = None;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       opam = None;
@@ -146,10 +148,10 @@ let makeEsySandbox ~cfg ~spec projectPath path =
   ) in
 
   let root =
-    let source = Source.LocalPath {path = projectPath; manifest = None;} in
+    let source = Source.LocalPath {path = Path.v "."; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
-    Package.ofPackageJson ~name ~version ~source:(Package.Source source) pkgJson
+    Package.ofPackageJson ~name ~version ~source pkgJson
   in
 
   let sandboxDependencies, ocamlReq =

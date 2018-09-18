@@ -16,8 +16,10 @@ type t =
 let pp: Fmt.t(t);
 let show: t => string;
 
-let equal : t => t => bool;
-let compare : t => t => int;
+include S.COMPARABLE with type t := t
+include S.JSONABLE with type t := t
 
-let of_yojson: EsyLib.Json.decoder(t);
-let to_yojson: EsyLib.Json.encoder(t);
+/** JSON repr which is used in package.json */
+module AsInPackageJson : {
+  include S.JSONABLE with type t := t
+}

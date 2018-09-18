@@ -25,33 +25,40 @@ type t =
       manifest : SandboxSpec.ManifestSpec.t option;
     }
   | NoSource
-  [@@deriving (ord, eq)]
+  [@@deriving ord]
 
-let toString = function
+let manifest (src : t) =
+  match src with
+  | Git info -> info.manifest
+  | Github info -> info.manifest
+  | LocalPath info -> info.manifest
+  | LocalPathLink info -> info.manifest
+  | Archive _ -> None
+  | NoSource -> None
+
+let show = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.toString manifest) commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (MS.show manifest) commit
   | Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote (MS.toString manifest) commit
+    Printf.sprintf "git:%s:%s#%s" remote (MS.show manifest) commit
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.toString path)
+    Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (MS.show manifest)
   | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.toString path)
+    Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.toString path) (MS.toString manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (MS.show manifest)
   | NoSource -> "no-source:"
 
-let show = toString
-
 let pp fmt src =
-  Fmt.pf fmt "%s" (toString src)
+  Fmt.pf fmt "%s" (show src)
 
 module Parse = struct
   include Parse
@@ -130,7 +137,7 @@ let parse = Parse.(parse parser)
 let%test_module "parsing" = (module struct
 
   let expectParses =
-    Parse.Test.expectParses ~pp ~equal parse
+    Parse.Test.expectParses ~pp ~compare parse
 
   let%test "github:user/repo#commit" =
     expectParses
@@ -234,7 +241,7 @@ let%test_module "parsing" = (module struct
 end)
 
 let to_yojson v =
-  `String (toString v)
+  `String (show v)
 
 let of_yojson json =
   match json with

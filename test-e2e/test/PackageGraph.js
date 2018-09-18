@@ -14,7 +14,7 @@ export type Package = {
   dependencies: {[name: string]: Package},
 };
 
-async function crawlDependencies(nodeModulesPath) {
+async function crawlDependencies(root, nodeModulesPath) {
   const dependencies = {};
 
   if (await fsUtils.exists(nodeModulesPath)) {
@@ -26,14 +26,14 @@ async function crawlDependencies(nodeModulesPath) {
           const items = await fsUtils.readdir(scopedNodeModulesPath);
           for (const name of items) {
             const depDirectory = path.join(scopedNodeModulesPath, name);
-            const dep = await crawlPackage(depDirectory);
+            const dep = await crawlPackage(root, depDirectory);
             if (dep != null) {
               dependencies[dep.name] = dep;
             }
           }
         } else {
           const depDirectory = path.join(nodeModulesPath, name);
-          const dep = await crawlPackage(depDirectory);
+          const dep = await crawlPackage(root, depDirectory);
           if (dep != null) {
             dependencies[dep.name] = dep;
           }
@@ -45,6 +45,7 @@ async function crawlDependencies(nodeModulesPath) {
 }
 
 async function crawlPackage(
+  root,
   directory: string,
   nodeModulesPath?: string,
 ): Promise<?Package> {
@@ -57,9 +58,16 @@ async function crawlPackage(
   let opamPath;
   if (await fsUtils.exists(esyLinkPath)) {
     let link = JSON.parse(await fsUtils.readFile(esyLinkPath, 'utf8'));
-    let sourcePath = link.path;
-    packageJsonPath = path.join(sourcePath, 'package.json');
-    opamPath = path.join(sourcePath, '_esy', 'opam');
+    let parseSource = /link:(.+)/;
+    let m = parseSource.exec(link.source);
+    if (m != null) {
+      let sourcePath = m[1];
+      packageJsonPath = path.join(root, sourcePath, 'package.json');
+      opamPath = path.join(root, sourcePath, '_esy', 'opam');
+    } else {
+      packageJsonPath = path.join(directory, 'package.json');
+      opamPath = path.join(directory, '_esy', 'opam');
+    }
   } else {
     packageJsonPath = path.join(directory, 'package.json');
     opamPath = path.join(directory, '_esy', 'opam');
@@ -67,7 +75,7 @@ async function crawlPackage(
 
   if (await fsUtils.exists(packageJsonPath)) {
     const packageJson = await fsUtils.readJson(packageJsonPath);
-    const dependencies = await crawlDependencies(nodeModulesPath);
+    const dependencies = await crawlDependencies(root, nodeModulesPath);
     return {
       name: packageJson.name,
       version: packageJson.version,
@@ -75,7 +83,7 @@ async function crawlPackage(
       dependencies,
     };
   } else if (await fsUtils.exists(opamPath)) {
-    const dependencies = await crawlDependencies(nodeModulesPath);
+    const dependencies = await crawlDependencies(root, nodeModulesPath);
     return {
       name: path.basename(directory),
       version: 'opam',
@@ -88,7 +96,11 @@ async function crawlPackage(
 }
 
 function crawl(directory: string, sandbox?: string = 'default') {
-  return crawlPackage(directory, path.join(directory, '_esy', sandbox, 'node_modules'));
+  return crawlPackage(
+    directory,
+    directory,
+    path.join(directory, '_esy', sandbox, 'node_modules'),
+  );
 }
 
 module.exports = {crawl};

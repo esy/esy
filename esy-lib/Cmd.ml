@@ -7,10 +7,10 @@
  * reversed argument order.
  *)
 type t = string * string list
-  [@@deriving (eq, ord)]
+  [@@deriving ord]
 
 let v tool = tool, []
-let p = Path.toString
+let p = Path.show
 
 let addArg arg (tool, args) =
   let args = arg::args in
@@ -43,12 +43,10 @@ let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
 
-let toString (tool, args) =
+let show (tool, args) =
   let tool = Filename.quote tool in
   let args = List.rev_map ~f:Filename.quote args in
   StringLabels.concat ~sep:" " (tool::args)
-
-let show = toString
 
 let pp ppf (tool, args) =
   match args with
@@ -126,7 +124,7 @@ let resolveCmd path cmd =
     | x::xs ->
       begin match find x with
       | Ok (Some (x)) ->
-        Ok (Path.toString x)
+        Ok (Path.show x)
       | Ok None
       | Error _ -> resolve xs
       end

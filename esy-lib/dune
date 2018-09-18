@@ -1,7 +1,8 @@
 (library
   (name EsyLib)
-  (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std ppx_inline_test))
   (flags (:standard (-w -39)))
+  (inline_tests)
   (libraries
             angstrom
             lwt

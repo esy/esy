@@ -86,7 +86,7 @@ let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
     match Sandbox.Environment.find name env with
-    | Some v -> Some (Sandbox.Value.toString v)
+    | Some v -> Some (Sandbox.Value.show v)
     | None -> None
   in
 
@@ -109,13 +109,9 @@ let renderEsyCommands ~env scope commands =
       return (List.map ~f:Sandbox.Value.v args)
   in
 
-  match commands with
-  | None -> Ok []
-  | Some commands ->
-    begin match Result.List.map ~f:renderCommand commands with
-    | Ok commands -> Ok commands
-    | Error err -> Error err
-    end
+  match Result.List.map ~f:renderCommand commands with
+  | Ok commands -> Ok commands
+  | Error err -> Error err
 
 let renderOpamCommands opamEnv commands =
   let open Run.Syntax in
@@ -131,7 +127,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
   let commands =
     let f path =
       let path = Path.addExt ".in" path in
-      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.toString path)]
+      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.show path)]
     in
     List.map ~f substs
   in
@@ -152,7 +148,7 @@ let renderOpamPatchesToCommands opamEnv patches =
     let%bind filtered = Result.List.map ~f:evalFilter patches in
 
     let toCommand (path, _) =
-      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.toString path] in
+      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.show path] in
       List.map ~f:Sandbox.Value.v cmd
     in
 
@@ -185,59 +181,66 @@ let ofSandbox
 
   let rec allDependenciesOf (pkg : Sandbox.Package.t) =
 
-    let rec aux ?(direct=true) (map, order) dep =
+    let rec aux ?(direct=true) dkind (map, order) dep =
 
-      let%bind dpkg =
+      let%bind dpkg, dkind =
         match dep with
-        | Ok (Sandbox.Dependency.Dependency, dpkg)
-        | Ok (Sandbox.Dependency.OptDependency, dpkg) -> return (Some (dpkg, Dependency))
-        | Ok (Sandbox.Dependency.BuildTimeDependency, dpkg) ->
-          if direct
-          then return (Some (dpkg, BuildTimeDependency))
-          else return None
-        | Ok (Sandbox.Dependency.DevDependency, dpkg) ->
-          if direct
-          then return (Some (dpkg, DevDependency))
-          else return None
-        | Error (Sandbox.Dependency.MissingDependency {name;}) ->
+        | Ok dpkg -> return (dpkg, dkind)
+        | Error (Sandbox.Dependencies.MissingDependency {name;}) ->
           Run.errorf "package %s is missing, run 'esy install' to fix that" name
-        | Error (Sandbox.Dependency.InvalidDependency {name; message;}) ->
+        | Error (Sandbox.Dependencies.InvalidDependency {name; message;}) ->
           Run.errorf "invalid package %s: %s" name message
       in
 
-      match dpkg with
-      | None -> return (map, order)
-      | Some (dpkg, dkind) ->
+      let seenDep =
+        let open Option.Syntax in
+        let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
+        return (direct, task, dpkg)
+      in
 
-        let seenDep =
-          let open Option.Syntax in
-          let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
-          return (direct, task, dpkg)
+      match direct, seenDep with
+      | false, Some (false, _, _) -> return (map, order)
+      | false, Some (true, _, _) -> return (map, order)
+      | true, Some (true, _, _) -> return (map, order)
+      | true, Some (false, deptask, pkg) ->
+        let map = Sandbox.Package.Map.add pkg (true, deptask) map in
+        return (map, order)
+      | _, None ->
+        let deps = Sandbox.dependencies dpkg sandbox in
+
+        let%bind (map, order) = Result.List.foldLeft
+          ~f:(aux ~direct:false Dependency)
+          ~init:(map, order)
+          deps.dependencies
         in
-        match direct, seenDep with
-        | false, Some (false, _, _) -> return (map, order)
-        | false, Some (true, _, _) -> return (map, order)
-        | true, Some (true, _, _) -> return (map, order)
-        | true, Some (false, deptask, pkg) ->
-          let map = Sandbox.Package.Map.add pkg (true, deptask) map in
-          return (map, order)
-        | _, None ->
-          let%bind (map, order) = Result.List.foldLeft
-            ~f:(aux ~direct:false)
-            ~init:(map, order)
-            (Sandbox.dependencies dpkg sandbox)
-          in
-          let%bind dtask = taskOfPackageCached dpkg in
-          let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
-          let order = dpkg::order in
-          return (map, order)
+        let%bind dtask = taskOfPackageCached dpkg in
+        let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
+        let order = dpkg::order in
+        return (map, order)
       in
 
       let%bind map, order =
-        Result.List.foldLeft
-          ~f:(aux ~direct:true)
-          ~init:(Sandbox.Package.Map.empty, [])
-          (Sandbox.dependencies pkg sandbox)
+        let deps = Sandbox.dependencies pkg sandbox in
+        let acc = Sandbox.Package.Map.empty, [] in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true Dependency)
+            ~init:acc
+            deps.dependencies
+        in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true BuildTimeDependency)
+            ~init:acc
+            deps.buildTimeDependencies
+        in
+        let%bind acc =
+          Result.List.foldLeft
+            ~f:(aux ~direct:true DevDependency)
+            ~init:acc
+            deps.devDependencies
+        in
+        return acc
       in
 
       return (
@@ -296,11 +299,7 @@ let ofSandbox
 
         (* a special tag which is communicated by the installer and specifies
          * the version of distribution of vcs commit sha *)
-        let source =
-          match pkg.source with
-          | Some source -> Manifest.Source.toString source
-          | None -> ""
-        in
+        let source = Manifest.Source.show pkg.source in
 
         let sandboxEnv =
           sandbox.env
@@ -318,7 +317,7 @@ let ofSandbox
     in
 
     let sourceType =
-      match forceImmutable, pkg.build.sourceType with
+      match forceImmutable, pkg.sourceType with
       | true, _ -> Manifest.SourceType.Immutable
       | false, sourceType -> sourceType
     in
@@ -343,7 +342,7 @@ let ofSandbox
         let f {Manifest.Env. name; value} =
           Sandbox.Environment.Bindings.value name (Sandbox.Value.v value)
         in
-        List.map ~f sandbox.Sandbox.env
+        List.map ~f (StringMap.values sandbox.Sandbox.env)
       in
 
       let exportedScope =
