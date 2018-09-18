@@ -561,8 +561,8 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 
   switch (build.plan.sourceType) {
-  | SourceType.Transient => withLock(build.lockPath, perform)
-  | SourceType.Immutable => perform()
+  | EsyLib.SourceType.Transient => withLock(build.lockPath, perform)
+  | EsyLib.SourceType.Immutable => perform()
   };
 };
 
@@ -728,7 +728,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
     let%bind info = {
       let%bind sourceModTime =
         switch (sourceModTime, build.plan.sourceType) {
-        | (None, SourceType.Transient) =>
+        | (None, EsyLib.SourceType.Transient) =>
           if (isRoot(build)) {
             Ok(None);
           } else {
@@ -751,7 +751,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
   | (true, _) =>
     Logs.debug(m => m("forcing build"));
     performBuild(None);
-  | (false, SourceType.Transient) =>
+  | (false, EsyLib.SourceType.Transient) =>
     if (isRoot(build)) {
       performBuild(None);
     } else {
@@ -769,7 +769,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
         ok;
       };
     }
-  | (false, SourceType.Immutable) =>
+  | (false, EsyLib.SourceType.Immutable) =>
     let%bind installPathExists = exists(build.installPath);
     if (installPathExists) {
       Logs.debug(m => m("build exists in store, skipping"));

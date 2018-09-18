@@ -29,34 +29,82 @@ module CommandList = struct
 
   [@@@ocaml.warning "-32"]
   type t =
-    Command.t list option
+    Command.t list
     [@@deriving (show, eq, ord)]
 
-  let empty = None
+  let empty = []
 
   let toString = show
 
   let of_yojson (json : Json.t) =
     let open Result.Syntax in
-    let commands =
-      match json with
-      | `Null -> Ok []
-      | `List commands ->
-        Json.Parse.list Command.of_yojson (`List commands)
-      | `String command ->
-        let%bind command = Command.of_yojson (`String command) in
-        Ok [command]
-      | _ -> Error "expected either a null, a string or an array"
+    match json with
+    | `Null -> return []
+    | `List commands ->
+      Json.Parse.list Command.of_yojson (`List commands)
+    | `String command ->
+      let%bind command = Command.of_yojson (`String command) in
+      return [command]
+    | _ -> Error "expected either a null, a string or an array"
+
+  let to_yojson commands = `List (List.map ~f:Command.to_yojson commands)
+
+end
+
+module Env = struct
+
+  [@@@ocaml.warning "-32"]
+  type item = {
+    name : string;
+    value : string;
+  }
+  [@@deriving (show, eq, ord)]
+
+  type t =
+    item StringMap.t
+    [@@deriving (eq, ord)]
+
+  let empty = StringMap.empty
+
+  let item_of_yojson name json =
+    match json with
+    | `String value -> Ok {name; value;}
+    | _ -> Error "expected string"
+
+  let of_yojson =
+    let open Result.Syntax in
+    function
+    | `Assoc items ->
+      let f items (name, json) =
+        let%bind item = item_of_yojson name json in
+        return (StringMap.add name item items)
+      in
+      Result.List.foldLeft ~f ~init:StringMap.empty items
+    | _ -> Error "expected object"
+
+  let item_to_yojson {value;_} = `String value
+
+  let to_yojson env =
+    let items =
+      let f (name, item) = name, item_to_yojson item in
+      List.map ~f (StringMap.bindings env)
     in
-    match%bind commands with
-    | [] -> Ok None
-    | commands -> Ok (Some commands)
+    `Assoc items
 
-  let to_yojson commands =
-    match commands with
-    | None -> `List []
-    | Some commands -> `List (List.map ~f:Command.to_yojson commands)
+  let pp =
+    let ppItem fmt (name, {value;_}) =
+      Fmt.pf fmt "%s: %s" name value
+    in
+    StringMap.pp ~sep:(Fmt.unit ", ") ppItem
 
+  let show env = Format.asprintf "%a" pp env
+  let toString = show
+end
+
+module EnvOverride = struct
+  type t = Env.item StringMap.Override.t [@@deriving eq, ord]
+  let of_yojson = StringMap.Override.of_yojson Env.item_of_yojson
+  let to_yojson = StringMap.Override.to_yojson Env.item_to_yojson
 end
 
 module ExportedEnv = struct
@@ -94,37 +142,59 @@ module ExportedEnv = struct
   }
   [@@deriving (show, eq, ord)]
 
-  type t =
-    item list
-    [@@deriving (show, eq, ord)]
+  type t = item StringMap.t
+    [@@deriving (eq, ord)]
 
-  let toString = show
+  let empty = StringMap.empty
 
-  let empty = []
+  let item_of_yojson name json =
+    let open Result.Syntax in
+    let%bind {Item. value; scope; exclusive} = Item.of_yojson json in
+    return ({name; value; scope; exclusive})
 
   let of_yojson = function
     | `Assoc items ->
       let open Result.Syntax in
-      let f items (k, v) =
-        let%bind {Item. value; scope; exclusive} = Item.of_yojson v in
-        Ok ({name = k; value; scope; exclusive}::items)
+      let f items (name, json) =
+        let%bind item = item_of_yojson name json in
+        return (StringMap.add name item items)
       in
-      let%bind items = Result.List.foldLeft ~f ~init:[] items in
-      Ok (List.rev items)
+      Result.List.foldLeft ~f ~init:StringMap.empty items
     | _ -> Error "expected an object"
+
+  let item_to_yojson item =
+    `Assoc [
+      "val", `String item.value;
+      "scope", scope_to_yojson item.scope;
+      "exclusive", `Bool item.exclusive;
+    ]
 
   let to_yojson env =
     let items =
-      let f {name; value; scope; exclusive;} =
-        name, `Assoc [
-          "val", `String value;
-          "scope", scope_to_yojson scope;
-          "exclusive", `Bool exclusive;
-        ]
-      in
-      List.map ~f env
+      let f (name, item) = name, item_to_yojson item in
+      List.map ~f (StringMap.bindings env)
     in
     `Assoc items
+
+  let pp =
+    let ppItem fmt (name, item) =
+      Fmt.pf fmt "%s: %a" name pp_item item
+    in
+    StringMap.pp ~sep:(Fmt.unit ", ") ppItem
+
+  let show env = Format.asprintf "%a" pp env
+  let toString = show
+
+end
+
+module ExportedEnvOverride = struct
+
+  type t =
+    ExportedEnv.item StringMap.Override.t
+    [@@deriving (ord, eq)]
+
+  let of_yojson = StringMap.Override.of_yojson ExportedEnv.item_of_yojson
+  let to_yojson = StringMap.Override.to_yojson ExportedEnv.item_to_yojson
 
 end
 

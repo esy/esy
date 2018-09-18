@@ -30,15 +30,18 @@ let makeSandbox root dependencies =
   let dependencies =
     Sandbox.Package.Map.(
       empty
-      |> add root dependencies
+      |> add root Sandbox.Dependencies.{
+        empty with
+        dependencies;
+      }
     )
   in
   {
     Sandbox.
     spec = {
-      EsyLib.SandboxSpec.
+      EsyInstall.SandboxSpec.
       path = Path.v "/sandbox";
-      manifest = EsyLib.SandboxSpec.ManifestSpec.Esy "package.json";
+      manifest = EsyInstall.SandboxSpec.ManifestSpec.Esy "package.json";
     };
     cfg;
     buildConfig;
@@ -61,33 +64,34 @@ module TestCommandExpr = struct
     version = "1.0.0";
     build = {
       Manifest.Build.
-      buildCommands = EsyCommands None;
-      installCommands = EsyCommands None;
+      buildCommands = EsyCommands [];
+      installCommands = EsyCommands [];
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      sourceType = Manifest.SourceType.Immutable;
-      exportedEnv = [
-        {
+      exportedEnv = EsyLib.StringMap.(
+        empty
+        |> add "OK" {
           Manifest.ExportedEnv.
           name = "OK";
           value = "#{self.install / 'ok'}";
           exclusive = false;
           scope = Local;
-        };
-        {
+        }
+        |> add "OK_BY_NAME" {
           Manifest.ExportedEnv.
           name = "OK_BY_NAME";
           value = "#{dep.install / 'ok-by-name'}";
           exclusive = false;
           scope = Local;
         }
-      ];
-      buildEnv = [];
+      );
+      buildEnv = Manifest.Env.empty;
     };
-    sourcePath = Sandbox.Path.v "/path";
     originPath = Path.Set.empty;
-    source = None;
+    sourceType = Manifest.SourceType.Immutable;
+    sourcePath = Sandbox.Path.v "/path";
+    source = EsyInstall.Source.NoSource;
   }
 
   let pkg = Sandbox.Package.{
@@ -96,26 +100,26 @@ module TestCommandExpr = struct
     version = "1.0.0";
     build = {
       Manifest.Build.
-      buildCommands = EsyCommands (Some [
+      buildCommands = EsyCommands [
         Manifest.Command.Unparsed "cp ./hello #{self.bin}";
         Manifest.Command.Unparsed "cp ./hello2 #{pkg.bin}";
-      ]);
-      installCommands = EsyCommands (Some [
+      ];
+      installCommands = EsyCommands [
         Manifest.Command.Parsed ["cp"; "./man"; "#{self.man}"]
-      ]);
+      ];
       patches = [];
       substs = [];
       buildType = Manifest.BuildType.InSource;
-      sourceType = Manifest.SourceType.Immutable;
-      exportedEnv = [];
-      buildEnv = [];
+      exportedEnv = Manifest.ExportedEnv.empty;
+      buildEnv = Manifest.Env.empty;
     };
     originPath = Path.Set.empty;
     sourcePath = Sandbox.Path.v "/path";
-    source = None;
+    sourceType = Manifest.SourceType.Immutable;
+    source = EsyInstall.Source.NoSource;
   }
 
-  let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)]
+  let dependencies = [Ok dep]
 
   let check ?platform sandbox f =
     match Task.ofSandbox ?platform sandbox with
@@ -142,12 +146,12 @@ module TestCommandExpr = struct
       pkg with
       build = {
         pkg.build with
-        buildCommands = EsyCommands (Some [
+        buildCommands = EsyCommands [
           Manifest.Command.Unparsed "#{os == 'linux' ? 'apt-get install pkg' : 'true'}";
-        ]);
-        installCommands = EsyCommands (Some [
+        ];
+        installCommands = EsyCommands [
           Manifest.Command.Unparsed "make #{os == 'linux' ? 'install-linux' : 'install'}";
-        ]);
+        ];
         buildType = Manifest.BuildType.InSource;
       }
     } in
@@ -235,33 +239,34 @@ let checkEnvExists ~name ~value task =
       dep with
       build = {
         dep.build with
-        exportedEnv = [
-          {
-            Manifest.ExportedEnv.
-            name = "OCAMLPATH";
-            value = "#{'one' : 'two'}";
-            exclusive = false;
-            scope = Local;
-          };
-          {
+        exportedEnv = EsyLib.StringMap.(
+          empty
+          |> add "OCAMLPATH" {
+              Manifest.ExportedEnv.
+              name = "OCAMLPATH";
+              value = "#{'one' : 'two'}";
+              exclusive = false;
+              scope = Local;
+            }
+          |> add "PATH" {
             Manifest.ExportedEnv.
             name = "PATH";
             value = "#{'/bin' : '/usr/bin'}";
             exclusive = false;
             scope = Local;
-          };
-          {
+          }
+          |> add "OCAMLLIB" {
             Manifest.ExportedEnv.
             name = "OCAMLLIB";
             value = "#{os == 'windows' ? ('lib' / 'ocaml') : 'lib'}";
             exclusive = false;
             scope = Local;
           };
-        ];
+        );
       };
     } in
     let pkg = pkg in
-    let dependencies = [Ok (Sandbox.Dependency.Dependency, dep)] in
+    let dependencies = [Ok dep] in
     check ~platform:System.Platform.Linux (makeSandbox pkg dependencies) (fun task ->
       checkEnvExists ~name:"OCAMLPATH" ~value:"one:two" task
       && checkEnvExists ~name:"PATH" ~value:"/bin:/usr/bin" task

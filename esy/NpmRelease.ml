@@ -184,18 +184,18 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           version = pkg.version;
           build = {
             Manifest.Build.
-            sourceType = Manifest.SourceType.Transient;
             buildEnv = Manifest.Env.empty;
-            buildCommands = Manifest.Build.EsyCommands None;
-            installCommands = Manifest.Build.EsyCommands None;
+            buildCommands = Manifest.Build.EsyCommands [];
+            installCommands = Manifest.Build.EsyCommands [];
             buildType = Manifest.BuildType.OutOfSource;
             patches = [];
             substs = [];
-            exportedEnv = [];
+            exportedEnv = Manifest.ExportedEnv.empty;
           };
+          sourceType = Manifest.SourceType.Transient;
           sourcePath = pkg.sourcePath;
           originPath = pkg.originPath;
-          source = None;
+          source = EsyInstall.Source.LocalPathLink {path = Path.v "."; manifest = None};
         } in
         {
           sandbox with
@@ -203,7 +203,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           dependencies =
             Sandbox.Package.Map.add
               root
-              [Ok (Sandbox.Dependency.Dependency, pkg)]
+              Sandbox.Dependencies.{empty with dependencies = [Ok pkg]}
               sandbox.dependencies;
         }
       in

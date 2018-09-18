@@ -5,6 +5,7 @@ module Dist = struct
     name : string;
     version : Version.t;
     source : Source.t;
+    override : Package.Override.t option;
     tarballPath : Path.t option;
   }
 
@@ -48,9 +49,17 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let doFetch path source =
     match source with
 
-    | Source.LocalPath _ ->
-      let msg = "Fetching " ^ record.name ^ ": NOT IMPLEMENTED" in
-      failwith msg
+    | Source.LocalPath { path = srcPath; manifest = _; } ->
+      let%bind names = Fs.listDir srcPath in
+      let copy name =
+        let src = Path.(srcPath / name) in
+        let dst = Path.(path / name) in
+        Fs.copyPath ~src ~dst
+      in
+      let%bind () =
+        RunAsync.List.waitAll (List.map ~f:copy names)
+      in
+      return `Done
 
     | Source.LocalPathLink _ ->
       (* this case is handled separately *)
@@ -147,25 +156,6 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       List.map ~f record.files |> RunAsync.List.waitAll
     in
 
-    let%bind () =
-      let addResolvedFieldToPackageJson filename =
-        match%bind Fs.readJsonFile filename with
-        | `Assoc items ->
-          let json = `Assoc (("_esy.source", `String (Source.toString source))::items) in
-          let data = Yojson.Safe.pretty_to_string json in
-          Fs.writeFile ~data filename
-        | _ -> error "invalid package.json"
-      in
-
-      let esyJson = Path.(path / "esy.json") in
-      let packageJson = Path.(path / "package.json") in
-      if%bind Fs.exists esyJson
-      then addResolvedFieldToPackageJson esyJson
-      else if%bind Fs.exists packageJson
-      then addResolvedFieldToPackageJson packageJson
-      else return ()
-    in
-
     return ()
   in
 
@@ -180,6 +170,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       name = record.name;
       version = record.version;
       source;
+      override = record.override;
     } in
     let%bind tarballIsInCache = Fs.exists tarballPath in
 
@@ -248,20 +239,32 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
 let install ~cfg:_ ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. tarballPath; source; _} = dist in
-  match source, tarballPath with
+  let {Dist. tarballPath; source; override; _} = dist in
 
-  | Source.LocalPathLink {path = orig; manifest;}, _ ->
-    let%bind () = Fs.createDir path in
-    let%bind () =
-      let link = EsyLinkFile.{path = orig; manifest;} in
-      EsyLinkFile.toFile link Path.(path / "_esylink")
-    in
-    return ()
+  let%bind () = Fs.createDir path in
 
-  | _, Some tarballPath ->
-    let%bind () = Fs.createDir path in
-    let%bind () = Tarball.unpack ~dst:path tarballPath in
-    return ()
-  | _, None ->
-    return ()
+  (*
+   * @andreypopp: We place _esylink before unpacking tarball, but that's just
+   * because we get failures on Windows due to permission errors (reproducible
+   * on AppVeyor).
+   *
+   * I'd prefer to place _esylink after unpacking tarball to prevent tarball
+   * contents overriding _esylink accidentially but probability of such event
+   * is low enough so I proceeded with the current order.
+   *)
+  let%bind () =
+    EsyLinkFile.toDir
+      EsyLinkFile.{source; override;}
+      path
+  in
+
+  let%bind () =
+    match source, tarballPath with
+    | Source.LocalPathLink _, _
+    | _, None ->
+      return ()
+    | _, Some tarballPath ->
+      Tarball.unpack ~dst:path tarballPath
+  in
+
+  return ()

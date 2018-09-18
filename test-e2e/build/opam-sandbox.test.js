@@ -309,6 +309,7 @@ describe('build opam sandbox', () => {
           '@opam',
           dir(
             'dep',
+            file('_esylink', JSON.stringify({source: `path:.`})),
             dir(
               '_esy',
               file(

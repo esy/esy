@@ -12,47 +12,55 @@ const {
   ocamlPackage,
 } = require('../test/helpers');
 
-const fixture = [
-  packageJson({
-    name: 'with-linked-dep-in-source',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-    },
-  }),
-  dir(
-    'dep',
+function makeFixture(p) {
+  return [
     packageJson({
-      name: 'dep',
+      name: 'with-linked-dep-in-source',
       version: '1.0.0',
       esy: {
-        buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-        install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+        build: 'true',
       },
       dependencies: {
-        ocaml: '*',
+        dep: '*',
       },
     }),
-    file('dep.ml', 'let () = print_endline "__dep__"'),
-  ),
-  dir(
-    'node_modules',
     dir(
       'dep',
-      file('_esylink', './dep'),
-      symlink('package.json', '../../dep/package.json'),
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          buildsInSource: true,
+          build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
+          install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
-    ocamlPackage(),
-  ),
-];
+    dir(
+      'node_modules',
+      dir(
+        'dep',
+        file(
+          '_esylink',
+          JSON.stringify({
+            source: `link:${path.join(p.projectPath, 'dep')}`,
+          }),
+        ),
+        symlink('package.json', '../../dep/package.json'),
+      ),
+      ocamlPackage(),
+    ),
+  ];
+}
 
 describe('Build - with linked dep _build', () => {
   it('package "dep" should be visible in all envs', async () => {
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...makeFixture(p));
 
     const expecting = expect.stringMatching('__dep__');
 

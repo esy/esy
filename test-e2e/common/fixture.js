@@ -42,8 +42,9 @@ const simpleProject = [
           ocaml: '*',
           depOfDep: '*',
         },
-        '_esy.source': 'path:./',
       }),
+
+      file('_esylink', JSON.stringify({source: `path:.`})),
       file('dep.ml', 'let () = print_endline "__dep__"'),
     ),
     dir(
@@ -57,8 +58,8 @@ const simpleProject = [
             depOfDep__global: {val: 'depOfDep__global__value', scope: 'global'},
           },
         },
-        '_esy.source': 'path:./',
       }),
+      file('_esylink', JSON.stringify({source: `path:.`})),
     ),
     dir(
       'devDep',
@@ -77,8 +78,8 @@ const simpleProject = [
         dependencies: {
           ocaml: '*',
         },
-        '_esy.source': 'path:./',
       }),
+      file('_esylink', JSON.stringify({source: `path:.`})),
       file('devDep.ml', 'let () = print_endline "__devDep__"'),
     ),
     ocamlPackage(),

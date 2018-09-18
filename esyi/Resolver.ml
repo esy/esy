@@ -1,20 +1,8 @@
-module Resolution = struct
-  type t = {
-    name: string;
-    version: Version.t
-  } [@@deriving (eq, ord)]
-
-  let make name version = {name; version;}
-
-  let cmpByVersion a b =
-    Version.compare a.version b.version
-
-  let pp fmt {name; version} =
-    Fmt.pf fmt "%s@%a" name Version.pp version
-end
+module Resolutions = Package.Resolutions
+module Resolution = Package.Resolution
 
 module PackageCache = Memoize.Make(struct
-  type key = (string * Version.t)
+  type key = (string * Resolution.resolution)
   type value = (Package.t, string) result RunAsync.t
 end)
 
@@ -69,7 +57,21 @@ let classifyManifest path =
   | "opam", "" -> return (`Opam None)
   | _ -> errorf "unknown manifest: %s" basename
 
-let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="master") () =
+let makeDummyPackage name version source =
+  {
+    Package.
+    name;
+    version;
+    originalVersion = None;
+    source = source, [];
+    override = None;
+    dependencies = Package.Dependencies.NpmFormula [];
+    devDependencies = Package.Dependencies.NpmFormula [];
+    opam = None;
+    kind = Esy;
+  }
+
+let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~user ~repo ?(ref="master") () =
   let open RunAsync.Syntax in
   let fetchFile name =
     let url =
@@ -88,7 +90,10 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
 
   let rec tryFilename filenames =
     match filenames with
-    | [] -> errorf "cannot find manifest at github:%s/%s#%s" user repo ref
+    | [] ->
+      if allowEmptyPackage
+      then return (makeDummyPackage name version source)
+      else errorf "cannot find manifest at github:%s/%s#%s" user repo ref
     | filename::rest ->
       begin match%lwt fetchFile filename with
       | Error _ -> tryFilename rest
@@ -119,12 +124,15 @@ let loadPackageOfGithub ?manifest ~name ~version ~source ~user ~repo ?(ref="mast
 
   tryFilename filenames
 
-let loadPackageOfPath ?manifest ~name ~version ~source (path : Path.t) =
+let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path : Path.t) =
   let open RunAsync.Syntax in
 
   let rec tryFilename filenames =
     match filenames with
-    | [] -> errorf "cannot find manifest at %a" Path.pp path
+    | [] ->
+      if allowEmptyPackage
+      then return (makeDummyPackage name version source)
+      else errorf "cannot find manifest at %a" Path.pp path
     | filename::rest ->
       let path = Path.(path / filename) in
       if%bind Fs.exists path
@@ -169,13 +177,21 @@ type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
+  resolutions : Resolutions.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
   ocamlVersion : Version.t option;
   resolutionCache : ResolutionCache.t;
 }
 
-let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
+let make
+  ?ocamlVersion
+  ?npmRegistry
+  ?opamRegistry
+  ~resolutions
+  ~cfg
+  ()
+  =
   let open RunAsync.Syntax in
   let opamRegistry =
     match opamRegistry with
@@ -191,6 +207,7 @@ let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
+    resolutions;
     opamRegistry;
     npmRegistry;
     ocamlVersion;
@@ -199,47 +216,59 @@ let make ?ocamlVersion ?npmRegistry ?opamRegistry ~cfg () =
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
-  let key = (resolution.name, resolution.version) in
-  PackageCache.compute resolver.pkgCache key begin fun _ ->
-    match resolution.version with
-    | Version.Source ((Source.LocalPath {path; manifest}) as source)
-    | Version.Source ((Source.LocalPathLink {path; manifest}) as source) ->
+  let key = (resolution.name, resolution.resolution) in
+
+  let ofSource ~allowEmptyPackage (source : Source.t) =
+    match source with
+    | LocalPath {path; manifest}
+    | LocalPathLink {path; manifest} ->
       let%bind pkg = loadPackageOfPath
         ?manifest
         ~name:resolution.name
-        ~version:resolution.version
+        ~version:(Version.Source source)
+        ~allowEmptyPackage
         ~source:(Package.Source source)
         path
       in
-      return (Ok pkg)
-    | Version.Source (Git {remote; commit; manifest;} as source) ->
+      return pkg
+    | Git {remote; commit; manifest;} ->
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
         let%bind pkg = loadPackageOfPath
           ?manifest
           ~name:resolution.name
-          ~version:resolution.version
+          ~version:(Version.Source source)
+          ~allowEmptyPackage
           ~source:(Package.Source source)
           repo
         in
-        return (Ok pkg)
+        return pkg
       end
-    | Version.Source ((Github {user; repo; commit; manifest;}) as source) ->
+    | Github {user; repo; commit; manifest;} ->
       let%bind pkg =
         loadPackageOfGithub
           ?manifest
           ~name:resolution.name
-          ~version:resolution.version
+          ~version:(Version.Source source)
+          ~allowEmptyPackage
           ~source:(Package.Source source)
           ~user
           ~repo
           ~ref:commit
           ()
       in
+      return pkg
+    | NoSource -> error "no source"
+    | Archive _ -> error "not implemented"
+  in
+
+  let ofVersion (version : Version.t) =
+    match version with
+    | Version.Source source ->
+      let%bind pkg = ofSource ~allowEmptyPackage:false source in
       return (Ok pkg)
-    | Version.Source Source.NoSource -> error "no source"
-    | Version.Source (Source.Archive _) -> error "not implemented"
+
     | Version.Npm version ->
       let%bind pkg =
         NpmRegistry.package
@@ -259,10 +288,33 @@ let package ~(resolution : Resolution.t) resolver =
         | Some manifest ->
           OpamManifest.toPackage
             ~name:resolution.name
-            ~version:resolution.version
+            ~version:(Version.Opam version)
             manifest
         | None -> error ("no such opam package: " ^ resolution.name)
       end
+  in
+
+  let applyOverride pkg override =
+    let pkg = {pkg with Package. override = Some override} in
+    let pkg =
+      match override.Package.Override.dependencies with
+      | Some dependencies -> {
+          pkg with
+          Package.
+          dependencies = Package.Dependencies.NpmFormula dependencies
+        }
+      | None -> pkg
+    in
+    pkg
+  in
+
+  PackageCache.compute resolver.pkgCache key begin fun _ ->
+    match resolution.resolution with
+    | Version version -> ofVersion version
+    | SourceOverride {source; override} ->
+      let%bind pkg = ofSource ~allowEmptyPackage:true source in
+      let pkg = applyOverride pkg override in
+      return (Ok pkg)
   end
 
 let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
@@ -319,18 +371,8 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       return (Source.LocalPathLink {path; manifest;})
   end
 
-let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+let resolve' ~fullMetadata ~name ~spec resolver =
   let open RunAsync.Syntax in
-
-  let spec =
-    match spec with
-    | None ->
-      if Package.isOpamPackageName name
-      then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
-      else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-    | Some spec -> spec
-  in
-
   match spec with
 
   | VersionSpec.Npm _
@@ -349,7 +391,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
       let resolutions =
         let f version =
           let version = Version.Npm version in
-          {Resolution. name; version}
+          {Resolution. name; resolution = Version version}
         in
         List.map ~f versions
       in
@@ -370,9 +412,15 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     let spec = Option.orDefault ~default:spec rewrittenSpec in
 
     let resolutions =
+      let tryCheckConformsToSpec resolution =
+        match resolution.Resolution.resolution with
+        | Version version -> VersionSpec.matches ~version:version spec
+        | SourceOverride _ -> true (* do not filter them out yet *)
+      in
+
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
-      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
+      |> List.sort ~cmp:(fun a b -> Resolution.compare b a)
+      |> List.filter ~f:tryCheckConformsToSpec
     in
 
     return (resolutions, rewrittenSpec)
@@ -390,16 +438,22 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
         in
         let f (resolution : OpamRegistry.resolution) =
           let version = Version.Opam resolution.version in
-          {Resolution. name; version}
+          {Resolution. name; resolution = Version version}
         in
         return (List.map ~f versions)
       end
     in
 
     let resolutions =
+      let tryCheckConformsToSpec resolution =
+        match resolution.Resolution.resolution with
+        | Version version -> VersionSpec.matches ~version:version spec
+        | SourceOverride _ -> true (* do not filter them out yet *)
+      in
+
       resolutions
-      |> List.sort ~cmp:(fun a b -> Resolution.cmpByVersion b a)
-      |> List.filter ~f:(fun r -> VersionSpec.matches ~version:r.Resolution.version spec)
+      |> List.sort ~cmp:(fun a b -> Resolution.compare b a)
+      |> List.filter ~f:tryCheckConformsToSpec
     in
 
     return (resolutions, None)
@@ -407,5 +461,33 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
   | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
+    let resolution = {
+      Resolution.
+      name;
+      resolution = Resolution.Version version;
+    } in
     let versionSpec = VersionSpec.ofVersion version in
-    return ([{Resolution. name; version}], Some versionSpec)
+    return ([resolution], Some versionSpec)
+
+let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
+  let open RunAsync.Syntax in
+  match Resolutions.find resolver.resolutions name with
+  | Some resolution ->
+    let spec =
+      match resolution.resolution with
+      | Version version ->
+        VersionSpec.ofVersion version
+      | SourceOverride {source; _} ->
+        VersionSpec.Source (SourceSpec.ofSource source)
+    in
+    return ([resolution], Some spec)
+  | None ->
+    let spec =
+      match spec with
+      | None ->
+        if Package.isOpamPackageName name
+        then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
+        else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+      | Some spec -> spec
+    in
+    resolve' ~fullMetadata ~name ~spec resolver
