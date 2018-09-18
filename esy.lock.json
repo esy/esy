@@ -1,5 +1,5 @@
 {
-  "hash": "14a9bf455cf11592076aedfcc032d87b",
+  "hash": "da6e01f5e6287999b02078d959c1bcc2",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -1490,7 +1490,7 @@
       },
       "dependencies": [
         "aws-sign2@0.7.0", "aws4@1.8.0", "caseless@0.12.0",
-        "combined-stream@1.0.6", "extend@3.0.2", "forever-agent@0.6.1",
+        "combined-stream@1.0.7", "extend@3.0.2", "forever-agent@0.6.1",
         "form-data@2.3.2", "har-validator@5.1.0", "http-signature@1.2.0",
         "is-typedarray@1.0.0", "isstream@0.1.2", "json-stringify-safe@5.0.1",
         "mime-types@2.1.20", "oauth-sign@0.9.0", "performance-now@2.1.0",
@@ -5352,7 +5352,8 @@
       },
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/merlin@3.0.5005",
-        "@esy-ocaml/reason@3.2.0", "@opam/angstrom@opam:0.10.0",
+        "@esy-ocaml/reason@3.2.0",
+        "@opam/angstrom@github:esy-ocaml/angstrom#36c3017",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
         "@opam/dune@opam:1.1.1", "@opam/fmt@opam:0.8.5",
@@ -5364,7 +5365,7 @@
         "@opam/ppx_deriving@opam:4.2.1",
         "@opam/ppx_deriving_yojson@opam:3.1",
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.7.2", "@opam/utop@opam:2.2.0",
+        "@opam/re@opam:1.7.3", "@opam/utop@opam:2.2.0",
         "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
         "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
         "esy-solve-cudf@0.1.6",
@@ -6036,12 +6037,23 @@
       },
       "dependencies": [ "graceful-readlink@1.0.1" ]
     },
+    "combined-stream@1.0.7": {
+      "record": {
+        "name": "combined-stream",
+        "version": "1.0.7",
+        "source":
+          "archive:https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.7.tgz#sha1:2d1d24317afb8abe95d6d2c0b07b57813539d828",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [ "delayed-stream@1.0.0" ]
+    },
     "combined-stream@1.0.6": {
       "record": {
         "name": "combined-stream",
         "version": "1.0.6",
         "source":
-          "archive:https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.6.tgz#sha1:723e7df6e801ac5613113a7e445a9b69cb632818",
+          "archive:http://registry.npmjs.org/combined-stream/-/combined-stream-1.0.6.tgz#sha1:723e7df6e801ac5613113a7e445a9b69cb632818",
         "files": [],
         "opam": null
       },
@@ -7780,10 +7792,8 @@
       "record": {
         "name": "@opam/zed",
         "version": "opam:1.6",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/zed.1.6+opam.tar.gz#md5:626adf7f380b1ee865850104123de8eb",
-          "archive:https://github.com/diml/zed/releases/download/1.6/zed-1.6.tbz#md5:f75c3094af1a22f9801d5ca5eb2d40e0"
-        ],
+        "source":
+          "archive:https://github.com/diml/zed/releases/download/1.6/zed-1.6.tbz#md5:f75c3094af1a22f9801d5ca5eb2d40e0",
         "files": [],
         "opam": {
           "name": "zed",
@@ -7803,10 +7813,8 @@
       "record": {
         "name": "@opam/yojson",
         "version": "opam:1.4.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/yojson.1.4.1+opam.tar.gz#md5:e6c9643ee76e622ca2e53ef9e4091192",
-          "archive:https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz#md5:3ea6e36422dd670e8ab880710d5f7398"
-        ],
+        "source":
+          "archive:https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz#md5:3ea6e36422dd670e8ab880710d5f7398",
         "files": [],
         "opam": {
           "name": "yojson",
@@ -7827,10 +7835,8 @@
       "record": {
         "name": "@opam/utop",
         "version": "opam:2.2.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/utop.2.2.0+opam.tar.gz#md5:0f638cca878347aaae983d79104c34d1",
-          "archive:https://github.com/diml/utop/releases/download/2.2.0/utop-2.2.0.tbz#md5:c8e4805883ce27a2ef27b0e4322d6f04"
-        ],
+        "source":
+          "archive:https://github.com/diml/utop/releases/download/2.2.0/utop-2.2.0.tbz#md5:c8e4805883ce27a2ef27b0e4322d6f04",
         "files": [
           {
             "name": "_esy/utop-2.2.0.patch",
@@ -7867,10 +7873,8 @@
       "record": {
         "name": "@opam/uchar",
         "version": "opam:0.0.2",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/uchar.0.0.2+opam.tar.gz#md5:a4754e44371178a883821e664f644b19",
-          "archive:https://github.com/ocaml/uchar/releases/download/v0.0.2/uchar-0.0.2.tbz#md5:c9ba2c738d264c420c642f7bb1cf4a36"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/uchar/releases/download/v0.0.2/uchar-0.0.2.tbz#md5:c9ba2c738d264c420c642f7bb1cf4a36",
         "files": [],
         "opam": {
           "name": "uchar",
@@ -7889,10 +7893,8 @@
       "record": {
         "name": "@opam/topkg",
         "version": "opam:0.9.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/topkg.0.9.1+opam.tar.gz#md5:1ec2522f346d19bf4c24c3c0b2e3e8bd",
-          "archive:http://erratique.ch/software/topkg/releases/topkg-0.9.1.tbz#md5:8978a0595db1a22e4251ec62735d4b84"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/topkg/releases/topkg-0.9.1.tbz#md5:8978a0595db1a22e4251ec62735d4b84",
         "files": [],
         "opam": {
           "name": "topkg",
@@ -7912,10 +7914,8 @@
       "record": {
         "name": "@opam/stdio",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/stdio.v0.11.0+opam.tar.gz#md5:bfc3df3658e4f5cd847fc7e2fa867e8b",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/stdio-v0.11.0.tar.gz#md5:2db42ee38c91b3ff7126c2634c407b99"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/stdio-v0.11.0.tar.gz#md5:2db42ee38c91b3ff7126c2634c407b99",
         "files": [],
         "opam": {
           "name": "stdio",
@@ -7935,10 +7935,8 @@
       "record": {
         "name": "@opam/sexplib0",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/sexplib0.v0.11.0+opam.tar.gz#md5:bc98d0dae9b81c0d1709fd529d813cb3",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib0-v0.11.0.tar.gz#md5:1c14ba30b471e49f1b23fea5ff99ea6b"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib0-v0.11.0.tar.gz#md5:1c14ba30b471e49f1b23fea5ff99ea6b",
         "files": [],
         "opam": {
           "name": "sexplib0",
@@ -7957,10 +7955,8 @@
       "record": {
         "name": "@opam/rresult",
         "version": "opam:0.5.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/rresult.0.5.0+opam.tar.gz#md5:e792478327f3e536a0d66276def8dd1d",
-          "archive:http://erratique.ch/software/rresult/releases/rresult-0.5.0.tbz#md5:2aa904e5f1707903da68d80d71c85637"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/rresult/releases/rresult-0.5.0.tbz#md5:2aa904e5f1707903da68d80d71c85637",
         "files": [],
         "opam": {
           "name": "rresult",
@@ -7980,10 +7976,8 @@
       "record": {
         "name": "@opam/result",
         "version": "opam:1.3",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/result.1.3+opam.tar.gz#md5:627b5fd1f70949a36e38cb2798021f9a",
-          "archive:https://github.com/janestreet/result/releases/download/1.3/result-1.3.tbz#md5:4beebefd41f7f899b6eeba7414e7ae01"
-        ],
+        "source":
+          "archive:https://github.com/janestreet/result/releases/download/1.3/result-1.3.tbz#md5:4beebefd41f7f899b6eeba7414e7ae01",
         "files": [],
         "opam": {
           "name": "result",
@@ -8002,10 +7996,8 @@
       "record": {
         "name": "@opam/react",
         "version": "opam:1.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/react.1.2.1+opam.tar.gz#md5:ca71a5239ce33d429f73e675480e2a88",
-          "archive:http://erratique.ch/software/react/releases/react-1.2.1.tbz#md5:ce1454438ce4e9d2931248d3abba1fcc"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/react/releases/react-1.2.1.tbz#md5:ce1454438ce4e9d2931248d3abba1fcc",
         "files": [],
         "opam": {
           "name": "react",
@@ -8021,26 +8013,23 @@
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
-    "@opam/re@opam:1.7.2": {
+    "@opam/re@opam:1.7.3": {
       "record": {
         "name": "@opam/re",
-        "version": "opam:1.7.2",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/re.1.7.2+opam.tar.gz#md5:3171a97c542fb48376fc9cc095e21a5c",
-          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz#md5:d7c94a401d03f4688aabc60cd40217aa"
-        ],
+        "version": "opam:1.7.3",
+        "source":
+          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.3/re-1.7.3.tbz#md5:d2a74ca77216861bce4449600a132de9",
         "files": [],
         "opam": {
           "name": "re",
-          "version": "1.7.2",
+          "version": "1.7.3",
           "opam":
-            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.7.2\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build}\n  \"base-bytes\"\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz\"\n  checksum: \"md5=d7c94a401d03f4688aabc60cd40217aa\"\n}",
+            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.7.3\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.7.3/re-1.7.3.tbz\"\n  checksum: \"md5=d2a74ca77216861bce4449600a132de9\"\n}",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/jbuilder@opam:transition",
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
@@ -8048,10 +8037,8 @@
       "record": {
         "name": "@opam/ppxlib",
         "version": "opam:0.3.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppxlib.0.3.0+opam.tar.gz#md5:01a1c0c788d392f9b846248803e24051",
-          "archive:https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz#md5:e6ff83b1643a44fcb6b0acde4d2aa299"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz#md5:e6ff83b1643a44fcb6b0acde4d2aa299",
         "files": [],
         "opam": {
           "name": "ppxlib",
@@ -8073,10 +8060,8 @@
       "record": {
         "name": "@opam/ppx_tools_versioned",
         "version": "opam:5.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_tools_versioned.5.2.1+opam.tar.gz#md5:41dadea597e9f646cafb8db3367a6833",
-          "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5",
         "files": [],
         "opam": {
           "name": "ppx_tools_versioned",
@@ -8096,10 +8081,8 @@
       "record": {
         "name": "@opam/ppx_tools",
         "version": "opam:5.1+4.06.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_tools.5.1+4.06.0+opam.tar.gz#md5:abb73bb1a7e4299986cd7d457bea9a48",
-          "archive:https://github.com/ocaml-ppx/ppx_tools/archive/5.1+4.06.0.tar.gz#md5:6ba2e9690b1f579ba562b86022d1c308"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_tools/archive/5.1+4.06.0.tar.gz#md5:6ba2e9690b1f579ba562b86022d1c308",
         "files": [],
         "opam": {
           "name": "ppx_tools",
@@ -8118,10 +8101,8 @@
       "record": {
         "name": "@opam/ppx_let",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_let.v0.11.0+opam.tar.gz#md5:2b3b58848f7eabe62ac48895f6868a89",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_let-v0.11.0.tar.gz#md5:40d1798d7724816c65eb5cdabd20f150"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_let-v0.11.0.tar.gz#md5:40d1798d7724816c65eb5cdabd20f150",
         "files": [],
         "opam": {
           "name": "ppx_let",
@@ -8142,10 +8123,8 @@
       "record": {
         "name": "@opam/ppx_inline_test",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_inline_test.v0.11.0+opam.tar.gz#md5:9479e0aa2f0426950b47f17a50f0cad8",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_inline_test-v0.11.0.tar.gz#md5:1f2e014332373638696d8893d87f4682"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_inline_test-v0.11.0.tar.gz#md5:1f2e014332373638696d8893d87f4682",
         "files": [],
         "opam": {
           "name": "ppx_inline_test",
@@ -8166,10 +8145,8 @@
       "record": {
         "name": "@opam/ppx_deriving_yojson",
         "version": "opam:3.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_deriving_yojson.3.1+opam.tar.gz#md5:c7b01baeb019967d192f882b5920f72b",
-          "archive:https://github.com/ocaml-ppx/ppx_deriving_yojson/archive/v3.1.tar.gz#md5:83128c06b0569309351886d9fd0dbb74"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_deriving_yojson/archive/v3.1.tar.gz#md5:83128c06b0569309351886d9fd0dbb74",
         "files": [
           {
             "name": "_esy/ppx_deriving_yojson-3.1.patch",
@@ -8216,10 +8193,8 @@
       "record": {
         "name": "@opam/ppx_deriving",
         "version": "opam:4.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_deriving.4.2.1+opam.tar.gz#md5:17337ce91b5b1baa423e411a358a3de8",
-          "archive:https://github.com/ocaml-ppx/ppx_deriving/archive/v4.2.1.tar.gz#md5:2195fccf2a527c3ff9ec5b4e36e2f0a8"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_deriving/archive/v4.2.1.tar.gz#md5:2195fccf2a527c3ff9ec5b4e36e2f0a8",
         "files": [
           {
             "name": "_esy/ppx_deriving-4.2.1.patch",
@@ -8258,10 +8233,8 @@
       "record": {
         "name": "@opam/ppx_derivers",
         "version": "opam:1.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_derivers.1.0+opam.tar.gz#md5:7b1cfb4260512d4b2e9d45213c3cba2a",
-          "archive:https://github.com/ocaml-ppx/ppx_derivers/archive/1.0.tar.gz#md5:4ddce8f43fdb9b0ef0ab6a7cbfebc3e3"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_derivers/archive/1.0.tar.gz#md5:4ddce8f43fdb9b0ef0ab6a7cbfebc3e3",
         "files": [],
         "opam": {
           "name": "ppx_derivers",
@@ -8280,10 +8253,8 @@
       "record": {
         "name": "@opam/opam-state",
         "version": "opam:2.0.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/opam-state.2.0.0+opam.tar.gz#md5:54fcfc8a2c73ca70289b7ba46559978f",
-          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50",
         "files": [],
         "opam": {
           "name": "opam-state",
@@ -8303,10 +8274,8 @@
       "record": {
         "name": "@opam/opam-repository",
         "version": "opam:2.0.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/opam-repository.2.0.0+opam.tar.gz#md5:6aa449a710cf6628c6117a3077ae3f84",
-          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50",
         "files": [],
         "opam": {
           "name": "opam-repository",
@@ -8326,10 +8295,8 @@
       "record": {
         "name": "@opam/opam-format",
         "version": "opam:2.0.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/opam-format.2.0.0+opam.tar.gz#md5:4ee0af9584258f8f787d701e6da914eb",
-          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50",
         "files": [],
         "opam": {
           "name": "opam-format",
@@ -8349,10 +8316,8 @@
       "record": {
         "name": "@opam/opam-file-format",
         "version": "opam:2.0.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/opam-file-format.2.0.0+opam.tar.gz#md5:78139ec05306b0172b939dbf4f9ca4f5",
-          "archive:https://github.com/ocaml/opam-file-format/archive/2.0.0.tar.gz#md5:d7852cb63df0f442bed14ba2c5740135"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/opam-file-format/archive/2.0.0.tar.gz#md5:d7852cb63df0f442bed14ba2c5740135",
         "files": [],
         "opam": {
           "name": "opam-file-format",
@@ -8370,10 +8335,8 @@
       "record": {
         "name": "@opam/opam-core",
         "version": "opam:2.0.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/opam-core.2.0.0+opam.tar.gz#md5:80e75dd714813591059cdd99217e45a1",
-          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/opam/archive/2.0.0-rc4.tar.gz#md5:385612adf8733f6816cfcbc39e3e1b50",
         "files": [],
         "opam": {
           "name": "opam-core",
@@ -8387,17 +8350,15 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
-        "@opam/re@opam:1.7.2", "ocaml@github:esy-ocaml/ocaml#858beca"
+        "@opam/re@opam:1.7.3", "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
     "@opam/ocamlgraph@opam:1.8.8": {
       "record": {
         "name": "@opam/ocamlgraph",
         "version": "opam:1.8.8",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocamlgraph.1.8.8+opam.tar.gz#md5:0bc877c8e7a533f4f812a7c48d8c6347",
-          "archive:http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.8.tar.gz#md5:9d71ca69271055bd22d0dfe4e939831a"
-        ],
+        "source":
+          "archive:http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.8.tar.gz#md5:9d71ca69271055bd22d0dfe4e939831a",
         "files": [],
         "opam": {
           "name": "ocamlgraph",
@@ -8417,7 +8378,6 @@
         "name": "@opam/ocamlfind",
         "version": "opam:1.8.0",
         "source": [
-          "archive:https://opam.ocaml.org/archives/ocamlfind.1.8.0+opam.tar.gz#md5:4d70eaf49e0f5f4d84257391088da0a2",
           "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
           "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
         ],
@@ -8469,8 +8429,7 @@
             "exportedEnv": {
               "OCAML_TOPLEVEL_PATH": {
                 "val": "#{self.toplevel}",
-                "scope": "global",
-                "exclusive": false
+                "scope": "global"
               }
             }
           }
@@ -8485,10 +8444,8 @@
       "record": {
         "name": "@opam/ocamlbuild",
         "version": "opam:0.12.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocamlbuild.0.12.0+opam.tar.gz#md5:43f12b7f9a57d8e967a652bfb6a9dd65",
-          "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b",
         "files": [
           {
             "name": "_esy/ocamlbuild-0.12.0.patch",
@@ -8531,10 +8488,8 @@
       "record": {
         "name": "@opam/ocaml-migrate-parsetree",
         "version": "opam:1.0.11",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocaml-migrate-parsetree.1.0.11+opam.tar.gz#md5:d3ac8978ae2f0554ac77912e94abed3b",
-          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz#md5:26bb1b038de81a79d43ed95c282b2b71"
-        ],
+        "source":
+          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz#md5:26bb1b038de81a79d43ed95c282b2b71",
         "files": [],
         "opam": {
           "name": "ocaml-migrate-parsetree",
@@ -8554,10 +8509,8 @@
       "record": {
         "name": "@opam/ocaml-compiler-libs",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocaml-compiler-libs.v0.11.0+opam.tar.gz#md5:bbf105e8837058bcc2c42b9b7409e1f6",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ocaml-compiler-libs-v0.11.0.tar.gz#md5:e170c16186aa55b7e8b11e461418a10a"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ocaml-compiler-libs-v0.11.0.tar.gz#md5:e170c16186aa55b7e8b11e461418a10a",
         "files": [],
         "opam": {
           "name": "ocaml-compiler-libs",
@@ -8576,10 +8529,8 @@
       "record": {
         "name": "@opam/merlin-extend",
         "version": "opam:0.3",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/merlin-extend.0.3+opam.tar.gz#md5:5bc02f7e256c5a2e99e8dc01b26b81c2",
-          "archive:https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz#md5:9c6dfd4f53328f02f12fcc265f4e2dda"
-        ],
+        "source":
+          "archive:https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz#md5:9c6dfd4f53328f02f12fcc265f4e2dda",
         "files": [
           {
             "name": "_esy/merlin-extend-winfix.patch",
@@ -8612,10 +8563,8 @@
       "record": {
         "name": "@opam/menhir",
         "version": "opam:20171013",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20171013+opam.tar.gz#md5:b361a87378407e26b9ea2dde7ddf41a0",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11"
-        ],
+        "source":
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11",
         "files": [
           {
             "name": "_esy/menhir-20171013.patch",
@@ -8652,10 +8601,8 @@
       "record": {
         "name": "@opam/lwt_react",
         "version": "opam:1.1.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lwt_react.1.1.1+opam.tar.gz#md5:212efee48f058c45e32b4a391ea31fb9",
-          "archive:https://github.com/ocsigen/lwt/archive/4.0.0.tar.gz#md5:3bbde866884e32cc7a9d9cbd1e52bde3"
-        ],
+        "source":
+          "archive:https://github.com/ocsigen/lwt/archive/4.0.0.tar.gz#md5:3bbde866884e32cc7a9d9cbd1e52bde3",
         "files": [],
         "opam": {
           "name": "lwt_react",
@@ -8675,10 +8622,8 @@
       "record": {
         "name": "@opam/lwt_ppx",
         "version": "opam:1.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lwt_ppx.1.2.1+opam.tar.gz#md5:e69b382de412410fd89dacf7dc6e8d3e",
-          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
-        ],
+        "source":
+          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7",
         "files": [],
         "opam": {
           "name": "lwt_ppx",
@@ -8699,10 +8644,8 @@
       "record": {
         "name": "@opam/lwt_log",
         "version": "opam:1.1.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lwt_log.1.1.0+opam.tar.gz#md5:b41828633ddea2e0d68a649c3def1ece",
-          "archive:https://github.com/aantron/lwt_log/archive/1.1.0.tar.gz#md5:92142135d01a4d7e805990cc98653d55"
-        ],
+        "source":
+          "archive:https://github.com/aantron/lwt_log/archive/1.1.0.tar.gz#md5:92142135d01a4d7e805990cc98653d55",
         "files": [],
         "opam": {
           "name": "lwt_log",
@@ -8721,10 +8664,8 @@
       "record": {
         "name": "@opam/lwt",
         "version": "opam:4.1.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lwt.4.1.0+opam.tar.gz#md5:5c73061ac341ca56c2f1bd62728a0ad9",
-          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
-        ],
+        "source":
+          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7",
         "files": [],
         "opam": {
           "name": "lwt",
@@ -8744,10 +8685,8 @@
       "record": {
         "name": "@opam/logs",
         "version": "opam:0.6.2",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/logs.0.6.2+opam.tar.gz#md5:ae59f44e82a6b6c229e7757b81e54cff",
-          "archive:http://erratique.ch/software/logs/releases/logs-0.6.2.tbz#md5:19f824c02c83c6dddc3bfb6459e4743e"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/logs/releases/logs-0.6.2.tbz#md5:19f824c02c83c6dddc3bfb6459e4743e",
         "files": [],
         "opam": {
           "name": "logs",
@@ -8767,10 +8706,8 @@
       "record": {
         "name": "@opam/lambda-term",
         "version": "opam:1.13",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/lambda-term.1.13+opam.tar.gz#md5:4d012fe08f3698ac3113909ba7269812",
-          "archive:https://github.com/diml/lambda-term/releases/download/1.13/lambda-term-1.13.tbz#md5:c13826a97014d4d573b927b623c7e043"
-        ],
+        "source":
+          "archive:https://github.com/diml/lambda-term/releases/download/1.13/lambda-term-1.13.tbz#md5:c13826a97014d4d573b927b623c7e043",
         "files": [
           {
             "name": "_esy/lambda-term-1.13.patch",
@@ -8825,10 +8762,8 @@
       "record": {
         "name": "@opam/fpath",
         "version": "opam:0.7.2",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/fpath.0.7.2+opam.tar.gz#md5:cbb85938dc7d5524682f64ef1fd134c4",
-          "archive:http://erratique.ch/software/fpath/releases/fpath-0.7.2.tbz#md5:52c7ecb0bf180088336f3c645875fa41"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/fpath/releases/fpath-0.7.2.tbz#md5:52c7ecb0bf180088336f3c645875fa41",
         "files": [],
         "opam": {
           "name": "fpath",
@@ -8849,10 +8784,8 @@
       "record": {
         "name": "@opam/fmt",
         "version": "opam:0.8.5",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/fmt.0.8.5+opam.tar.gz#md5:7d36eb6998bfbd93d497f5cd0b32ddfc",
-          "archive:http://erratique.ch/software/fmt/releases/fmt-0.8.5.tbz#md5:77b64aa6f20f09de28f2405d6195f12c"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/fmt/releases/fmt-0.8.5.tbz#md5:77b64aa6f20f09de28f2405d6195f12c",
         "files": [],
         "opam": {
           "name": "fmt",
@@ -8874,7 +8807,6 @@
         "name": "@opam/extlib-compat",
         "version": "opam:1.7.2",
         "source": [
-          "archive:https://opam.ocaml.org/archives/extlib-compat.1.7.2+opam.tar.gz#md5:369d5e97cb8a70df0cdb9f43376c3a70",
           "archive:http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.2.tar.gz#md5:0f550dd06242828399a73387c49e0eed",
           "archive:https://github.com/ygrek/ocaml-extlib/releases/download/1.7.2/extlib-1.7.2.tar.gz#md5:0f550dd06242828399a73387c49e0eed"
         ],
@@ -8897,10 +8829,8 @@
       "record": {
         "name": "@opam/easy-format",
         "version": "opam:1.3.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/easy-format.1.3.1+opam.tar.gz#md5:6fa9fa55978e78690975f0663cb45a85",
-          "archive:https://github.com/mjambon/easy-format/archive/v1.3.1.tar.gz#md5:4e163700fb88fdcd6b8976c3a216c8ea"
-        ],
+        "source":
+          "archive:https://github.com/mjambon/easy-format/archive/v1.3.1.tar.gz#md5:4e163700fb88fdcd6b8976c3a216c8ea",
         "files": [],
         "opam": {
           "name": "easy-format",
@@ -8919,10 +8849,8 @@
       "record": {
         "name": "@opam/dune",
         "version": "opam:1.1.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/dune.1.1.1+opam.tar.gz#md5:7b15c22b89142b88d2544aefee550b09",
-          "archive:https://github.com/ocaml/dune/releases/download/1.1.1/dune-1.1.1.tbz#md5:d1da3d5a9cd9f450bb35724d16fbcaf2"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/dune/releases/download/1.1.1/dune-1.1.1.tbz#md5:d1da3d5a9cd9f450bb35724d16fbcaf2",
         "files": [],
         "opam": {
           "name": "dune",
@@ -8945,10 +8873,8 @@
       "record": {
         "name": "@opam/dose3",
         "version": "opam:5.0.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/dose3.5.0.1+opam.tar.gz#md5:40007fd176c0472b1422bdc22e32deec",
-          "archive:https://gforge.inria.fr/frs/download.php/file/36063/dose3-5.0.1.tar.gz#md5:e7d4b1840383c6732f29a47c08ba5650"
-        ],
+        "source":
+          "archive:https://gforge.inria.fr/frs/download.php/file/36063/dose3-5.0.1.tar.gz#md5:e7d4b1840383c6732f29a47c08ba5650",
         "files": [
           {
             "name":
@@ -8999,7 +8925,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
-        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.7.2",
+        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.7.3",
         "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
@@ -9007,10 +8933,8 @@
       "record": {
         "name": "@opam/cudf",
         "version": "opam:0.9",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/cudf.0.9+opam.tar.gz#md5:1f2bc616dd64eb5efeaf4efb7c9c0f34",
-          "archive:https://gforge.inria.fr/frs/download.php/36602/cudf-0.9.tar.gz#md5:a4c0e652e56e74c7b388a43f9258d119"
-        ],
+        "source":
+          "archive:https://gforge.inria.fr/frs/download.php/36602/cudf-0.9.tar.gz#md5:a4c0e652e56e74c7b388a43f9258d119",
         "files": [],
         "opam": {
           "name": "cudf",
@@ -9030,10 +8954,8 @@
       "record": {
         "name": "@opam/cppo_ocamlbuild",
         "version": "opam:1.6.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/cppo_ocamlbuild.1.6.0+opam.tar.gz#md5:dbc21d18562fadd1b999a5410d00e3fa",
-          "archive:https://github.com/mjambon/cppo/archive/v1.6.0.tar.gz#md5:aee411b3546bc5d198c71ae9185cade4"
-        ],
+        "source":
+          "archive:https://github.com/mjambon/cppo/archive/v1.6.0.tar.gz#md5:aee411b3546bc5d198c71ae9185cade4",
         "files": [],
         "opam": {
           "name": "cppo_ocamlbuild",
@@ -9053,10 +8975,8 @@
       "record": {
         "name": "@opam/cppo",
         "version": "opam:1.6.5",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/cppo.1.6.5+opam.tar.gz#md5:07b0faeb722c1d625befb89fdc39617f",
-          "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82"
-        ],
+        "source":
+          "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82",
         "files": [],
         "opam": {
           "name": "cppo",
@@ -9130,10 +9050,8 @@
       "record": {
         "name": "@opam/cmdliner",
         "version": "opam:1.0.2",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/cmdliner.1.0.2+opam.tar.gz#md5:b3f734417099fa5d9198bc927b12873f",
-          "archive:http://erratique.ch/software/cmdliner/releases/cmdliner-1.0.2.tbz#md5:ab2f0130e88e8dcd723ac6154c98a881"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/cmdliner/releases/cmdliner-1.0.2.tbz#md5:ab2f0130e88e8dcd723ac6154c98a881",
         "files": [],
         "opam": {
           "name": "cmdliner",
@@ -9153,10 +9071,8 @@
       "record": {
         "name": "@opam/camomile",
         "version": "opam:1.0.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/camomile.1.0.1+opam.tar.gz#md5:1e1465d42ef0e422a165b19b22b2964b",
-          "archive:https://github.com/yoriyuki/Camomile/releases/download/1.0.1/camomile-1.0.1.tbz#md5:82e016653431353a07f22c259adc6e05"
-        ],
+        "source":
+          "archive:https://github.com/yoriyuki/Camomile/releases/download/1.0.1/camomile-1.0.1.tbz#md5:82e016653431353a07f22c259adc6e05",
         "files": [],
         "opam": {
           "name": "camomile",
@@ -9175,10 +9091,8 @@
       "record": {
         "name": "@opam/bos",
         "version": "opam:0.2.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/bos.0.2.0+opam.tar.gz#md5:139d07a78e5b0479dd2e0a4fd6d7c823",
-          "archive:http://erratique.ch/software/bos/releases/bos-0.2.0.tbz#md5:aeae7447567db459c856ee41b5a66fd2"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/bos/releases/bos-0.2.0.tbz#md5:aeae7447567db459c856ee41b5a66fd2",
         "files": [],
         "opam": {
           "name": "bos",
@@ -9201,10 +9115,8 @@
       "record": {
         "name": "@opam/biniou",
         "version": "opam:1.2.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/biniou.1.2.0+opam.tar.gz#md5:488e51fe3339b2b190dfa1db74dd7946",
-          "archive:https://github.com/mjambon/biniou/archive/v1.2.0.tar.gz#md5:f3e92358e832ed94eaf23ce622ccc2f9"
-        ],
+        "source":
+          "archive:https://github.com/mjambon/biniou/archive/v1.2.0.tar.gz#md5:f3e92358e832ed94eaf23ce622ccc2f9",
         "files": [],
         "opam": {
           "name": "biniou",
@@ -9224,10 +9136,8 @@
       "record": {
         "name": "@opam/bigstringaf",
         "version": "opam:0.3.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/bigstringaf.0.3.0+opam.tar.gz#md5:e1a364ab727071feb2c8e238408b4f6f",
-          "archive:https://github.com/inhabitedtype/bigstringaf/archive/0.3.0.tar.gz#md5:739a2006067d7432743f777d7f5afcfd"
-        ],
+        "source":
+          "archive:https://github.com/inhabitedtype/bigstringaf/archive/0.3.0.tar.gz#md5:739a2006067d7432743f777d7f5afcfd",
         "files": [],
         "opam": {
           "name": "bigstringaf",
@@ -9320,10 +9230,8 @@
       "record": {
         "name": "@opam/base",
         "version": "opam:v0.11.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/base.v0.11.1+opam.tar.gz#md5:c211940166b706df35bd47a8ffd4b89f",
-          "archive:https://github.com/janestreet/base/releases/download/v0.11.1/base-v0.11.1.tbz#md5:e7e7dc5db3f1fea19d74a31bbd4ac621"
-        ],
+        "source":
+          "archive:https://github.com/janestreet/base/releases/download/v0.11.1/base-v0.11.1.tbz#md5:e7e7dc5db3f1fea19d74a31bbd4ac621",
         "files": [
           {
             "name": "_esy/base-v0.11.1.patch",
@@ -9356,10 +9264,8 @@
       "record": {
         "name": "@opam/astring",
         "version": "opam:0.8.3",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/astring.0.8.3+opam.tar.gz#md5:e2fe279530a6602caa413dba36889254",
-          "archive:http://erratique.ch/software/astring/releases/astring-0.8.3.tbz#md5:c5bf6352b9ac27fbeab342740f4fa870"
-        ],
+        "source":
+          "archive:http://erratique.ch/software/astring/releases/astring-0.8.3.tbz#md5:c5bf6352b9ac27fbeab342740f4fa870",
         "files": [],
         "opam": {
           "name": "astring",
@@ -9375,27 +9281,16 @@
         "@opam/topkg@opam:0.9.1", "ocaml@github:esy-ocaml/ocaml#858beca"
       ]
     },
-    "@opam/angstrom@opam:0.10.0": {
+    "@opam/angstrom@github:esy-ocaml/angstrom#36c3017": {
       "record": {
         "name": "@opam/angstrom",
-        "version": "opam:0.10.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/angstrom.0.10.0+opam.tar.gz#md5:dce44d95d154c2bff60f4bc83a506ef7",
-          "archive:https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz#md5:51e2d9a272314671eb5fa3fb3fd5171f"
-        ],
+        "version": "github:esy-ocaml/angstrom#36c3017",
+        "source": "github:esy-ocaml/angstrom#36c3017",
         "files": [],
-        "opam": {
-          "name": "angstrom",
-          "version": "0.10.0",
-          "opam":
-            "opam-version: \"2.0\"\nname: \"angstrom\"\nversion: \"0.10.0\"\nsynopsis: \"Parser combinators built for speed and memory-efficiency\"\ndescription: \"\"\"\nAngstrom is a parser-combinator library that makes it easy to write efficient,\nexpressive, and reusable parsers suitable for high-performance applications. It\nexposes monadic and applicative interfaces for composition, and supports\nincremental input through buffered and unbuffered interfaces. Both interfaces\ngive the user total control over the blocking behavior of their application,\nwith the unbuffered interface enabling zero-copy IO. Parsers are backtracking by\ndefault and support unbounded lookahead.\"\"\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/angstrom\"\nbug-reports: \"https://github.com/inhabitedtype/angstrom/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"bigstringaf\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/angstrom.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz\"\n  checksum: \"md5=51e2d9a272314671eb5fa3fb3fd5171f\"\n}",
-          "override": null
-        }
+        "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/bigstringaf@opam:0.3.0",
-        "@opam/jbuilder@opam:transition", "@opam/result@opam:1.3",
-        "ocaml@github:esy-ocaml/ocaml#858beca"
+        "@opam/bigstringaf@opam:0.3.0", "@opam/jbuilder@opam:transition"
       ]
     },
     "@esy-ocaml/substs@0.0.1": {
