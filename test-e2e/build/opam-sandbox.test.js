@@ -309,26 +309,17 @@ describe('build opam sandbox', () => {
           '@opam',
           dir(
             'dep',
-            file('_esylink', JSON.stringify({source: `path:.`})),
-            dir(
-              '_esy',
-              file(
-                'opam',
-                `
-                opam-version: "1.2"
-                version: "1.0.0"
-                name: "dep"
-                `,
-              ),
-              file(
-                'esy-opam.json',
-                `
-                {
-                  "source": "path:.",
-                  "override": null
-                }
-                `,
-              ),
+            file(
+              '_esylink',
+              JSON.stringify({
+                source: `path:.`,
+                opam: {
+                  name: 'dep',
+                  version: '1.0.0',
+                  opam: `opam-version: "1.2"`,
+                  override: null,
+                },
+              }),
             ),
           ),
         ),

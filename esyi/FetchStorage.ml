@@ -167,38 +167,6 @@ let install ~cfg ~path dist =
 
   let finishInstall path =
 
-    let removeEsyJsonIfExists () =
-      let esyJson = Path.(path / "esy.json") in
-      match%bind Fs.exists(esyJson) with
-      | true -> Fs.unlink(esyJson)
-      | false -> return ()
-    in
-
-    let%bind () =
-      match record.opam with
-      | Some { name; version; opam; override } ->
-        let%bind () = removeEsyJsonIfExists() in
-        let data =
-          Format.asprintf
-            "name: \"%a\"\nversion: \"%a\"\n%a"
-            Package.Opam.OpamName.pp name
-            Package.Opam.OpamPackageVersion.pp version
-            Package.Opam.OpamFile.pp opam
-        in
-        let%bind () = Fs.createDir Path.(path / "_esy") in
-        let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
-        let%bind () =
-          let info = {
-            EsyOpamFile.
-            override;
-            source;
-          } in
-          EsyOpamFile.toFile info Path.(path / "_esy" / "esy-opam.json")
-        in
-        return ()
-      | None -> return ()
-    in
-
     let%bind () =
       let f {Package.File. name; content; perm} =
         let name = Path.append path name in
@@ -232,7 +200,7 @@ let install ~cfg ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; override = record.override;}
+      EsyLinkFile.{source; override = record.override; opam = record.opam}
       path
   in
 
