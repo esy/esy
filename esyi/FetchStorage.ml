@@ -2,18 +2,15 @@ module String = Astring.String
 
 module Dist = struct
   type t = {
-    name : string;
-    version : Version.t;
     source : Source.t;
-    override : Package.Override.t option;
-    tarballPath : Path.t option;
+    record : Solution.Record.t;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
 end
 
-let cacheId source (record : Solution.Record.t) =
+let tarballPath ~(cfg : Config.t) (source : Source.t) (record : Solution.Record.t) =
 
   let hash vs =
     vs
@@ -23,25 +20,31 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Version.show record.version in
-  let source = Source.show source in
-  match record.opam with
-  | None ->
-    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
-  | Some opam ->
-    let h = hash [
-      source;
-      opam.opam
-      |> Package.Opam.OpamFile.to_yojson
-      |> Yojson.Safe.to_string;
-      (match opam.override with
-      | Some override ->
-        override
-        |> Package.OpamOverride.to_yojson
-        |> Yojson.Safe.to_string
-      | None -> "");
-    ] in
-    Printf.sprintf "%s__%s__%s_v2" record.name version h
+
+  let id =
+    let version = Version.show record.version in
+    let source = Source.show source in
+    match record.opam with
+    | None ->
+      Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
+    | Some opam ->
+      let h = hash [
+        source;
+        opam.opam
+        |> Package.Opam.OpamFile.to_yojson
+        |> Yojson.Safe.to_string;
+        (match opam.override with
+        | Some override ->
+          override
+          |> Package.OpamOverride.to_yojson
+          |> Yojson.Safe.to_string
+        | None -> "");
+      ] in
+      Printf.sprintf "%s__%s__%s_v2" record.name version h
+  in
+
+  let id = EsyLib.Path.safePath id in
+  Path.(cfg.cacheTarballsPath // v id |> addExt "tgz")
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
@@ -160,17 +163,12 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   in
 
   let doFetchIfNeeded source =
-    let unsafeKey = cacheId source record in
-    let key = EsyLib.Path.safePath unsafeKey in
-    let tarballPath = Path.(cfg.cacheTarballsPath // v key |> addExt "tgz") in
+    let tarballPath = tarballPath ~cfg source record in
 
     let dist = {
       Dist.
-      tarballPath = Some tarballPath;
-      name = record.name;
-      version = record.version;
+      record;
       source;
-      override = record.override;
     } in
     let%bind tarballIsInCache = Fs.exists tarballPath in
 
@@ -237,9 +235,9 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
     tryFetch [] sources
 
-let install ~cfg:_ ~path dist =
+let install ~cfg ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. tarballPath; source; override; _} = dist in
+  let {Dist. source; record;} = dist in
 
   let%bind () = Fs.createDir path in
 
@@ -254,16 +252,16 @@ let install ~cfg:_ ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; override;}
+      EsyLinkFile.{source; override = record.override;}
       path
   in
 
   let%bind () =
-    match source, tarballPath with
-    | Source.LocalPathLink _, _
-    | _, None ->
-      return ()
-    | _, Some tarballPath ->
+    match source with
+    | Source.LocalPathLink _ -> return ()
+    | Source.NoSource -> return ()
+    | _ ->
+      let tarballPath = tarballPath ~cfg source record in
       Tarball.unpack ~dst:path tarballPath
   in
 
