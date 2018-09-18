@@ -243,6 +243,21 @@ let install ~cfg:_ ~path dist =
 
   let%bind () = Fs.createDir path in
 
+  (*
+   * @andreypopp: We place _esylink before unpacking tarball, but that's just
+   * because we get failures on Windows due to permission errors (reproducible
+   * on AppVeyor).
+   *
+   * I'd prefer to place _esylink after unpacking tarball to prevent tarball
+   * contents overriding _esylink accidentially but probability of such event
+   * is low enough so I proceeded with the current order.
+   *)
+  let%bind () =
+    EsyLinkFile.toDir
+      EsyLinkFile.{source; override;}
+      path
+  in
+
   let%bind () =
     match source, tarballPath with
     | Source.LocalPathLink _, _
@@ -250,12 +265,6 @@ let install ~cfg:_ ~path dist =
       return ()
     | _, Some tarballPath ->
       Tarball.unpack ~dst:path tarballPath
-  in
-
-  let%bind () =
-    EsyLinkFile.toDir
-      EsyLinkFile.{source; override;}
-      path
   in
 
   return ()
