@@ -171,7 +171,7 @@ end = struct
       else installPath scope
     in
 
-    let p v = Sandbox.Value.toString (Sandbox.Path.toValue v) in
+    let p v = Sandbox.Value.show (Sandbox.Path.toValue v) in
 
     (* add builtins *)
     let env =
@@ -376,7 +376,7 @@ let env ~includeBuildEnv scope =
 let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   let open OpamVariable in
 
-  let opamArch = System.Arch.(toString host) in
+  let opamArch = System.Arch.(show host) in
 
   let opamOs =
     match scope.platform with

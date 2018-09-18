@@ -20,14 +20,13 @@ module Version = struct
   let majorMinorPatch _v = None
   let prerelease _v = false
   let stripPrerelease v = v
-  let toString = OpamPackage.Version.to_string
   let to_yojson v = `String (show v)
   let of_yojson = function
     | `String v -> parse v
     | _ -> Error "expected a string"
 
   let ofSemver v =
-    let v = SemverVersion.Version.toString v in
+    let v = SemverVersion.Version.show v in
     parse v
 end
 

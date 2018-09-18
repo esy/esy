@@ -24,7 +24,7 @@ module File = struct
     let open RunAsync.Syntax in
     let load () =
       let%bind data = Fs.readFile path in
-      let filename = Path.toString path in
+      let filename = Path.show path in
       return (ofString ?upgradeIfOpamVersionIsLessThan ~filename data)
     in
     match cache with

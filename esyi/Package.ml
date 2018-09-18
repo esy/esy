@@ -61,17 +61,16 @@ module Resolution = struct
     let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
     name ^ resolution |> Digest.string |> Digest.to_hex
 
-  let toString ({name; resolution;} as r) =
+  let show ({name; resolution;} as r) =
     let resolution =
       match resolution with
-      | Version version -> Version.toString version
+      | Version version -> Version.show version
       | SourceOverride { source; override = _; } ->
-        Source.toString source ^ "@" ^ digest r
+        Source.show source ^ "@" ^ digest r
     in
     name ^ "@" ^ resolution
 
-  let show = toString
-  let pp fmt r = Fmt.string fmt (toString r)
+  let pp fmt r = Fmt.string fmt (show r)
 
 end
 
@@ -242,8 +241,6 @@ module OpamOverride = struct
     exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
     opam: (Opam.t [@default Opam.empty]);
   } [@@deriving (yojson, eq, ord, show)]
-
-  let toString = show
 
   let empty =
     {

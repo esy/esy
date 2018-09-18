@@ -66,8 +66,7 @@ module Dependencies : sig
     | OpamFormula of Dep.t disj conj
     | NpmFormula of Req.t conj
 
-  val pp : t Fmt.t
-  val show : t -> string
+  include S.PRINTABLE with type t := t
 
   val toApproximateRequests : t -> Req.t list
 end

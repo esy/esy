@@ -50,7 +50,7 @@ let findVersionExn ~name ~version (univ : t) =
     let msg =
       Printf.sprintf
         "inconsistent state: package not in the universr %s@%s"
-        name (Version.toString version)
+        name (Version.show version)
     in
     failwith msg
 
@@ -117,7 +117,7 @@ module CudfVersionMap = struct
       let msg =
         Printf.sprintf
           "inconsistent state: found a package not in the cudf version map %s@%s"
-          name (Version.toString version)
+          name (Version.show version)
       in
       failwith msg
 

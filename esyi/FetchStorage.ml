@@ -23,8 +23,8 @@ let cacheId source (record : Solution.Record.t) =
     |> String.Sub.v ~start:0 ~stop:8
     |> String.Sub.to_string
   in
-  let version = Version.toString record.version in
-  let source = Source.toString source in
+  let version = Version.show record.version in
+  let source = Source.show source in
   match record.opam with
   | None ->
     Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])

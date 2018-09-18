@@ -85,8 +85,8 @@ let checkoutConv =
   in
   let print (fmt : Format.formatter) v =
     match v with
-    | `RemoteLocal (remote, local) -> Fmt.pf fmt "%s:%s" remote (Path.toString local)
-    | `Local local -> Fmt.pf fmt ":%s" (Path.toString local)
+    | `RemoteLocal (remote, local) -> Fmt.pf fmt "%s:%s" remote (Path.show local)
+    | `Local local -> Fmt.pf fmt ":%s" (Path.show local)
     | `Remote remote -> Fmt.pf fmt "%s" remote
   in
   Arg.conv ~docv:"VAL" (parse, print)

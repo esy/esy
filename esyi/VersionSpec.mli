@@ -9,11 +9,11 @@ type t =
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
 
-val pp : t Fmt.t
-val toString : t -> string
-val to_yojson : t -> [> `String of string ]
 
 include S.COMPARABLE with type t := t
+include S.PRINTABLE with type t := t
+
+val to_yojson : t Json.encoder
 
 val parserNpm : t Parse.t
 val parserOpam : t Parse.t

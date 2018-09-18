@@ -3,16 +3,14 @@ type t = {
   spec: VersionSpec.t;
 } [@@deriving (eq, ord)]
 
-let toString {name; spec} =
-  name ^ "@" ^ (VersionSpec.toString spec)
-
-let show = toString
+let show {name; spec} =
+  name ^ "@" ^ (VersionSpec.show spec)
 
 let to_yojson req =
-  `String (toString req)
+  `String (show req)
 
 let pp fmt req =
-  Fmt.fmt "%s" fmt (toString req)
+  Fmt.fmt "%s" fmt (show req)
 
 let matches ~name ~version req =
   name = req.name && VersionSpec.matches ~version req.spec

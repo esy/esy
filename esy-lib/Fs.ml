@@ -8,7 +8,7 @@ let toRunAsync ?(desc="I/O failed") promise =
     error (Printf.sprintf "%s: %s" desc msg)
 
 let readFile (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   let desc = Printf.sprintf "Unable to read file %s" path in
   toRunAsync ~desc (fun () ->
     let f ic = Lwt_io.read ic in
@@ -16,7 +16,7 @@ let readFile (path : Path.t) =
   )
 
 let writeFile ?perm ~data (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   let desc = Printf.sprintf "Unable to write file %s" path in
   toRunAsync ~desc (fun () ->
     let f oc = Lwt_io.write oc data in
@@ -25,7 +25,7 @@ let writeFile ?perm ~data (path : Path.t) =
 
 let openFile ~mode ~perm path =
   toRunAsync (fun () ->
-    Lwt_unix.openfile (Path.toString path) mode perm)
+    Lwt_unix.openfile (Path.show path) mode perm)
 
 let readJsonFile (path : Path.t) =
   let open RunAsync.Syntax in
@@ -39,14 +39,14 @@ let writeJsonFile ~json path =
   writeFile ~data path
 
 let exists (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   let%lwt exists = Lwt_unix.file_exists path in
   RunAsync.return exists
 
 let chmod permission (path : Path.t) =
   RunAsync.contextf (
     try%lwt
-      let path = Path.toString path in
+      let path = Path.show path in
       let%lwt () = Lwt_unix.chmod path permission in
       RunAsync.return ()
     with Unix.Unix_error (errno, _, _) ->
@@ -57,7 +57,7 @@ let chmod permission (path : Path.t) =
 let createDir (path : Path.t) =
   let rec create path =
     try%lwt (
-      let path = Path.toString path in
+      let path = Path.show path in
       Lwt_unix.mkdir path 0o777
     ) with
     | Unix.Unix_error (Unix.EEXIST, _, _) ->
@@ -71,7 +71,7 @@ let createDir (path : Path.t) =
   RunAsync.return ()
 
 let stat (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   match%lwt Lwt_unix.stat path with
   | stats -> RunAsync.return stats
   | exception Unix.Unix_error (Unix.ENOTDIR, "stat", _) ->
@@ -80,7 +80,7 @@ let stat (path : Path.t) =
     RunAsync.error "unable to stat"
 
 let lstat (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   try%lwt
     let%lwt stats = Lwt_unix.lstat path in
     RunAsync.return stats
@@ -95,24 +95,24 @@ let isDir (path : Path.t) =
   | Error _ -> RunAsync.return false
 
 let unlink (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
 let readlink (path : Path.t) =
-  let path = Path.toString path in
+  let path = Path.show path in
   let%lwt link = Lwt_unix.readlink path in
   RunAsync.return (Path.v link)
 
 let symlink ~src target =
-  let src = Path.toString src in
-  let target = Path.toString target in
+  let src = Path.show src in
+  let target = Path.show target in
   let%lwt () = Lwt_unix.symlink src target in
   RunAsync.return ()
 
 let rename ~src target =
-  let src = Path.toString src in
-  let target = Path.toString target in
+  let src = Path.show src in
+  let target = Path.show target in
   let%lwt () = Lwt_unix.rename src target in
   RunAsync.return ()
 
@@ -138,7 +138,7 @@ let fold
     if skipTraverse path
     then return acc
     else (
-      let spath = Path.toString path in
+      let spath = Path.show path in
       let%lwt stat = Lwt_unix.lstat spath in
       match stat.Unix.st_kind with
       | Unix.S_DIR ->
@@ -152,7 +152,7 @@ let fold
   visitPath init path
 
 let listDir path =
-  match%lwt Lwt_unix.opendir (Path.toString path) with
+  match%lwt Lwt_unix.opendir (Path.show path) with
   | exception Unix.Unix_error (Unix.ENOENT, "opendir", _) ->
     RunAsync.error "cannot read the directory"
   | exception Unix.Unix_error (Unix.ENOTDIR, "opendir", _) ->
@@ -174,7 +174,7 @@ let copyStatLwt ~stat path =
   match System.Platform.host with
   | Windows -> Lwt.return () (* copying these stats is not necessary on Windows, and can cause Permission Denied errors *)
   | _ ->
-    let path = Path.toString path in
+    let path = Path.show path in
     let%lwt () = Lwt_unix.utimes path stat.Unix.st_atime stat.Unix.st_mtime in
     let%lwt () = Lwt_unix.chmod path stat.Unix.st_perm in
     let%lwt () = 
@@ -184,8 +184,8 @@ let copyStatLwt ~stat path =
 
 let copyFileLwt ~src ~dst =
 
-  let origPathS = Path.toString src in
-  let destPathS = Path.toString dst in
+  let origPathS = Path.show src in
+  let destPathS = Path.show dst in
 
   let chunkSize = 1024 * 1024 (* 1mb *) in
 
@@ -220,8 +220,8 @@ let copyFileLwt ~src ~dst =
   Lwt.return ()
 
 let rec copyPathLwt ~src ~dst =
-  let origPathS = Path.toString src in
-  let destPathS = Path.toString dst in
+  let origPathS = Path.show src in
+  let destPathS = Path.show dst in
   let%lwt stat = Lwt_unix.lstat origPathS in
   match stat.st_kind with
   | S_REG ->
@@ -257,7 +257,7 @@ let rec copyPathLwt ~src ~dst =
     Lwt.return ()
 
 let rec rmPathLwt path =
-  let pathS = Path.toString path in
+  let pathS = Path.show path in
   let%lwt stat = Lwt_unix.lstat pathS in
   match stat.st_kind with
   | S_DIR ->
@@ -283,7 +283,7 @@ let rec rmPathLwt path =
 let copyFile ~src ~dst =
   try%lwt (
     let%lwt () = copyFileLwt ~src ~dst in
-    let%lwt stat = Lwt_unix.stat (Path.toString src) in
+    let%lwt stat = Lwt_unix.stat (Path.show src) in
     let%lwt () = copyStatLwt ~stat dst in
     RunAsync.return ()
   ) with Unix.Unix_error (error, _, _) ->
@@ -320,7 +320,7 @@ let withTempDir ?tempDir f =
   | None -> Filename.get_temp_dir_name ()
   in
   let path = randPath (Path.v tempDir) "esy-%s" in
-  let%lwt () = Lwt_unix.mkdir (Path.toString path) 0o700 in
+  let%lwt () = Lwt_unix.mkdir (Path.show path) 0o700 in
   Lwt.finalize
     (fun () -> f path)
     (fun () -> 

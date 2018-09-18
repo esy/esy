@@ -68,7 +68,7 @@ end = struct
   let empty = StringMap.empty
   let find = StringMap.find
   let map ~f env =
-    let f value = value |> V.toString |> f |> V.v in
+    let f value = value |> V.show |> f |> V.v in
     StringMap.map f env
 
   let render ctx env =
@@ -99,13 +99,13 @@ end = struct
         let value =
           match binding.Binding.value with
           | Binding.Value value ->
-            Binding.Value (value |> V.toString |> f |> V.v)
+            Binding.Value (value |> V.show |> f |> V.v)
           | Binding.ExpandedValue value ->
-            Binding.ExpandedValue (value |> V.toString |> f |> V.v)
+            Binding.ExpandedValue (value |> V.show |> f |> V.v)
           | Binding.Prefix value ->
-            Binding.Prefix (value |> V.toString |> f |> V.v)
+            Binding.Prefix (value |> V.show |> f |> V.v)
           | Binding.Suffix value ->
-            Binding.Suffix (value |> V.toString |> f |> V.v)
+            Binding.Suffix (value |> V.show |> f |> V.v)
         in
         {binding with value}
       in
@@ -135,30 +135,30 @@ end = struct
         in
         match binding.Binding.value with
         | Value value ->
-          let value = V.toString value in
+          let value = V.show value in
           let%bind value = EsyShellExpansion.render ~scope value in
           let value = V.v value in
           Ok (StringMap.add binding.name value env)
         | ExpandedValue value ->
           Ok (StringMap.add binding.name value env)
         | Prefix value ->
-          let value = V.toString value in
+          let value = V.show value in
           let value =
             match StringMap.find binding.name env with
             | Some prevValue ->
               let sep = System.Environment.sep ~platform ~name:binding.name () in
-              value ^ sep ^ (V.toString prevValue)
+              value ^ sep ^ (V.show prevValue)
             | None -> value
           in
           let value = V.v value in
           Ok (StringMap.add binding.name value env)
         | Suffix value ->
-          let value = V.toString value in
+          let value = V.show value in
           let value =
             match StringMap.find binding.name env with
             | Some prevValue ->
               let sep = System.Environment.sep ~platform ~name:binding.name () in
-              (V.toString prevValue) ^ sep ^ value
+              (V.show prevValue) ^ sep ^ value
             | None -> value
           in
           let value = V.v value in
@@ -175,7 +175,6 @@ module V = Make(struct
   let v v = v
   let of_yojson = Json.Parse.string
   let to_yojson v = `String v
-  let toString v = v
   let show v = v
   let pp = Fmt.string
   let render () v = v

@@ -92,7 +92,7 @@ let run ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd =
     match%lwt process#status with
     | Unix.WEXITED 0 -> return ()
     | _ ->
-      let cmd = Cmd.toString cmd in
+      let cmd = Cmd.show cmd in
       let msg = Printf.sprintf "error running command: %s" cmd in
       error msg
   in

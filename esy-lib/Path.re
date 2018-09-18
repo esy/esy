@@ -25,18 +25,21 @@ let isAbs = Fpath.is_abs;
 let isPrefix = Fpath.is_prefix;
 let remPrefix = Fpath.rem_prefix;
 
-let homePath = () => Fpath.v(
-  switch (Sys.getenv_opt("HOME"), System.Platform.host) {
-  | (Some(dir), _) => dir
-  | (None, System.Platform.Windows) => Sys.getenv("USERPROFILE")
-  | (None, _) => failwith("Could not find HOME dir")
-  });
-let dataPath = () => Fpath.v(
-  switch (System.Platform.host) {
-  | System.Platform.Windows => Sys.getenv("LOCALAPPDATA")
-  | _ => Sys.getenv("HOME")
-  }
-);
+let homePath = () =>
+  Fpath.v(
+    switch (Sys.getenv_opt("HOME"), System.Platform.host) {
+    | (Some(dir), _) => dir
+    | (None, System.Platform.Windows) => Sys.getenv("USERPROFILE")
+    | (None, _) => failwith("Could not find HOME dir")
+    },
+  );
+let dataPath = () =>
+  Fpath.v(
+    switch (System.Platform.host) {
+    | System.Platform.Windows => Sys.getenv("LOCALAPPDATA")
+    | _ => Sys.getenv("HOME")
+    },
+  );
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
 let relativize = Fpath.relativize;
@@ -63,16 +66,14 @@ let equal = Fpath.equal;
 
 let show = Fpath.to_string;
 let pp = Fpath.pp;
-let toString = Fpath.to_string;
 let toPrettyString = p =>
   Run.Syntax.(
     {
-      let%bind path = {
+      let%bind path =
         switch (remPrefix(homePath(), p)) {
         | Some(p) => return(Fpath.append(Fpath.v("~"), p))
         | None => return(p)
         };
-      };
       return(Fpath.to_string(path));
     }
   );
@@ -89,7 +90,7 @@ let of_yojson = (json: Yojson.Safe.json) =>
   | _ => Error("invalid path")
   };
 
-let to_yojson = (path: t) => `String(toString(path));
+let to_yojson = (path: t) => `String(show(path));
 
 let safeSeg = {
   let replaceAt = Str.regexp("@");

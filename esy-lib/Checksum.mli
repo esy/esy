@@ -6,15 +6,11 @@ and kind =
   | Sha256
   | Sha512
 
-val equal : t -> t -> bool
-val compare : t -> t -> int
-val pp : t Fmt.t
-val show : t -> string
+include S.JSONABLE with type t := t
+include S.PRINTABLE with type t := t
+include S.COMPARABLE with type t := t
 
 val parser : t Parse.t
 val parse : string -> (t, string) result
-
-val to_yojson : t Json.encoder
-val of_yojson : t Json.decoder
 
 val checkFile : path:Path.t -> t -> unit RunAsync.t

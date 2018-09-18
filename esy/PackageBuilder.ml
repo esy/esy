@@ -38,7 +38,7 @@ let run
     | `Log ->
       let logPath = Sandbox.Path.toPath sandbox.buildConfig (Task.logPath task) in
       let%lwt fd = Lwt_unix.openfile
-        (Path.toString logPath)
+        (Path.show logPath)
         Lwt_unix.[O_WRONLY; O_CREAT]
         0o644
       in
