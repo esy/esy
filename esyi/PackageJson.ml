@@ -6,8 +6,6 @@ module Command = struct
     | Unparsed of string
     [@@deriving (show, eq, ord)]
 
-  let toString = show
-
   let of_yojson (json : Json.t) =
     match json with
     | `String command -> Ok (Unparsed command)
@@ -33,8 +31,6 @@ module CommandList = struct
     [@@deriving (show, eq, ord)]
 
   let empty = []
-
-  let toString = show
 
   let of_yojson (json : Json.t) =
     let open Result.Syntax in
@@ -98,7 +94,6 @@ module Env = struct
     StringMap.pp ~sep:(Fmt.unit ", ") ppItem
 
   let show env = Format.asprintf "%a" pp env
-  let toString = show
 end
 
 module EnvOverride = struct
@@ -183,7 +178,6 @@ module ExportedEnv = struct
     StringMap.pp ~sep:(Fmt.unit ", ") ppItem
 
   let show env = Format.asprintf "%a" pp env
-  let toString = show
 
 end
 

@@ -41,9 +41,7 @@ val getToolAndLine : t -> string * string array
 val getTool : t -> string
 val getArgs : t -> string list
 
-val pp : Format.formatter -> t -> unit
-val show : t -> string
-val toString : t -> string
+include S.PRINTABLE with type t := t
 
 val equal : t -> t -> bool
 val compare : t -> t -> int

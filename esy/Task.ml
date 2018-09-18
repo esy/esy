@@ -86,7 +86,7 @@ let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
     match Sandbox.Environment.find name env with
-    | Some v -> Some (Sandbox.Value.toString v)
+    | Some v -> Some (Sandbox.Value.show v)
     | None -> None
   in
 
@@ -127,7 +127,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
   let commands =
     let f path =
       let path = Path.addExt ".in" path in
-      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.toString path)]
+      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.show path)]
     in
     List.map ~f substs
   in
@@ -148,7 +148,7 @@ let renderOpamPatchesToCommands opamEnv patches =
     let%bind filtered = Result.List.map ~f:evalFilter patches in
 
     let toCommand (path, _) =
-      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.toString path] in
+      let cmd = ["patch"; "--strip"; "1"; "--input"; Path.show path] in
       List.map ~f:Sandbox.Value.v cmd
     in
 
@@ -299,7 +299,7 @@ let ofSandbox
 
         (* a special tag which is communicated by the installer and specifies
          * the version of distribution of vcs commit sha *)
-        let source = Manifest.Source.toString pkg.source in
+        let source = Manifest.Source.show pkg.source in
 
         let sandboxEnv =
           sandbox.env

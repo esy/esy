@@ -55,7 +55,7 @@ module TestCommandExpr = struct
 
   let commandsEqual = [%derive.eq: string list list]
   let checkCommandsEqual commands expectation =
-    let commands = List.map (List.map Sandbox.Value.toString) commands in
+    let commands = List.map (List.map Sandbox.Value.show) commands in
     commandsEqual commands expectation
 
   let dep = Sandbox.Package.{

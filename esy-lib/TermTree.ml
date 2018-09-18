@@ -5,7 +5,7 @@
 type t =
   | Node of { line : string; children : t list }
 
-let toString (node : t) =
+let render (node : t) =
   let rec nodeToLines ~indent ~lines (Node { line; children }) =
     let lines =
       let indent = indent |> List.rev |> StringLabels.concat ~sep:"" in

@@ -4,16 +4,14 @@ type t =
   | Source of Source.t
   [@@deriving (ord, eq)]
 
-let toString v =
+let show v =
   match v with
-  | Npm t -> SemverVersion.Version.toString(t)
-  | Opam v -> "opam:" ^ OpamPackageVersion.Version.toString(v)
-  | Source src -> (Source.toString src)
-
-let show = toString
+  | Npm t -> SemverVersion.Version.show t
+  | Opam v -> "opam:" ^ OpamPackageVersion.Version.show v
+  | Source src -> (Source.show src)
 
 let pp fmt v =
-  Fmt.fmt "%s" fmt (toString v)
+  Fmt.fmt "%s" fmt (show v)
 
 module Parse = struct
   include Parse
@@ -88,7 +86,7 @@ let parseExn v =
   | Ok v -> v
   | Error err -> failwith err
 
-let to_yojson v = `String (toString v)
+let to_yojson v = `String (show v)
 
 let of_yojson json =
   let open Result.Syntax in
@@ -97,9 +95,9 @@ let of_yojson json =
 
 let toNpmVersion v =
   match v with
-  | Npm v -> SemverVersion.Version.toString(v)
-  | Opam t -> OpamPackageVersion.Version.toString(t)
-  | Source src -> Source.toString src
+  | Npm v -> SemverVersion.Version.show v
+  | Opam t -> OpamPackageVersion.Version.show t
+  | Source src -> Source.show src
 
 module Map = Map.Make(struct
   type nonrec t = t

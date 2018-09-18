@@ -3,7 +3,6 @@ module type PRINTABLE = sig
 
   val pp : t Fmt.t
   val show : t -> string
-  val toString : t -> string
 end
 
 module type JSONABLE = sig

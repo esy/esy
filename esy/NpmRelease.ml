@@ -254,11 +254,11 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
         let nextStorePrefix =
-          String.make (String.length (Path.toString sandbox.buildConfig.storePath)) '_'
+          String.make (String.length (Path.show sandbox.buildConfig.storePath)) '_'
         in
         (sandbox.buildConfig.storePath, Path.v nextStorePrefix)
       in
-      let%bind () = Fs.writeFile ~data:(Path.toString destPrefix) Path.(binPath / "_storePath") in
+      let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
       Task.rewritePrefix ~cfg:sandbox.cfg ~origPrefix ~destPrefix binPath
     in
 

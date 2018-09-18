@@ -420,7 +420,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
 
           let pkg = {
             Package.
-            id = Path.toString path;
+            id = Path.show path;
             name = Manifest.name manifest;
             version = Manifest.version manifest;
             build;
@@ -473,7 +473,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       in
       let pkg = {
         Package.
-        id = Path.toString path;
+        id = Path.show path;
         name;
         version = Source.show source;
         build = Manifest.Build.empty;

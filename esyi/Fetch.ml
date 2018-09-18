@@ -254,7 +254,7 @@ module Layout = struct
       let convert =
         let f (installation : installation) =
           Format.asprintf "%a" Record.pp installation.record,
-          Path.toString installation.path
+          Path.show installation.path
         in
         List.map ~f layout
       in
@@ -584,7 +584,7 @@ let runLifecycleScript ~installation ~name script =
     let script =
       Printf.sprintf
         "cd %s && %s"
-        (Filename.quote (Path.toString installation.path))
+        (Filename.quote (Path.show installation.path))
         script
     in
     (* TODO(windows): use cmd here *)
@@ -693,8 +693,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
           Printf.sprintf
             "inconsistent state: no dist were fetched for %s@%s at %s"
             record.Record.name
-            (Version.toString record.Record.version)
-            (Path.toString path)
+            (Version.show record.Record.version)
+            (Path.show path)
         in
         failwith msg
     in
