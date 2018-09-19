@@ -235,32 +235,27 @@ let package ~(resolution : Resolution.t) resolver =
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
-        let%bind pkg = loadPackageOfPath
+        loadPackageOfPath
           ?manifest
           ~name:resolution.name
           ~version:(Version.Source source)
           ~allowEmptyPackage
           ~source
           repo
-        in
-        return pkg
       end
     | Github {user; repo; commit; manifest;} ->
-      let%bind pkg =
-        loadPackageOfGithub
-          ?manifest
-          ~name:resolution.name
-          ~version:(Version.Source source)
-          ~allowEmptyPackage
-          ~source
-          ~user
-          ~repo
-          ~ref:commit
-          ()
-      in
-      return pkg
-    | NoSource -> error "no source"
+      loadPackageOfGithub
+        ?manifest
+        ~name:resolution.name
+        ~version:(Version.Source source)
+        ~allowEmptyPackage
+        ~source
+        ~user
+        ~repo
+        ~ref:commit
+        ()
     | Archive _ -> error "not implemented"
+    | NoSource -> error "no source"
   in
 
   let ofVersion (version : Version.t) =
