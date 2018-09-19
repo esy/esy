@@ -74,6 +74,67 @@ describe('complete workflow for esy sandboxes', () => {
     }
   });
 
+  it('synthesizing a package with no-source:', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          dep: '*',
+        },
+        devDependencies: {
+          ocaml: '*',
+        },
+        resolutions: {
+          // This provides a package dep which is declared with no source and
+          // just commands which need to be executed, we just copy its
+          // dependency depdep.exe as dep.exe which we then execute.
+          dep: {
+            source: 'no-source:',
+            override: {
+              build: [],
+              install: ['cp #{depdep.bin / depdep.name}.exe #{self.bin / self.name}.exe'],
+              dependencies: {depdep: 'path:./depdep'},
+            },
+          },
+        },
+      }),
+      dir(
+        'depdep',
+        packageJson({
+          name: 'depdep',
+          version: '1.0.0',
+          dependencies: {ocaml: '*'},
+          esy: {
+            build: [
+              'cp #{self.name}.ml #{self.target_dir / self.name}.ml',
+              'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
+            ],
+            install: [
+              'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+            ],
+          },
+        }),
+        file('depdep.ml', 'print_endline "__depdep__"'),
+      ),
+    ];
+
+    const p = await createTestSandbox(...fixture);
+
+    await p.esy('install --skip-repository-update');
+    await p.esy('build');
+
+    {
+      const {stdout} = await p.esy('dep.exe');
+      expect(stdout.trim()).toEqual('__depdep__');
+    }
+    {
+      const {stdout} = await p.esy('b dep.exe');
+      expect(stdout.trim()).toEqual('__depdep__');
+    }
+  });
+
   it('buildType override', async () => {
     const fixture = [
       packageJson({
