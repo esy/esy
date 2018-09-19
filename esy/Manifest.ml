@@ -176,7 +176,7 @@ module type QUERY_MANIFEST = sig
   val manifest : t
 end
 
-module Esy : sig
+module EsyManifest : sig
   include MANIFEST
 
   val ofFile : Path.t -> t RunAsync.t
@@ -286,7 +286,7 @@ end = struct
     }
 
   let ofJsonManifest (jsonManifest: JsonManifest.t) (path: Path.t) =
-    let name = 
+    let name =
       match jsonManifest.name with
       | Some name  -> name
       | None -> Path.basename path
@@ -320,7 +320,195 @@ end = struct
 
 end
 
-module Opam : sig
+let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
+  let formula =
+    OpamFilter.filter_deps
+      ~default:true ~build ~post ~test ~doc ~dev
+      formula
+  in
+  let cnf = OpamFormula.to_cnf formula in
+  let f atom =
+    let name, _ = atom in
+    match OpamPackage.Name.to_string name with
+    | "ocaml" -> "ocaml"
+    | name -> "@opam/" ^ name
+  in
+  List.map ~f:(List.map ~f) cnf
+
+let readOpam path =
+  let open RunAsync.Syntax in
+  let%bind data = Fs.readFile path in
+  if String.trim data = ""
+  then return None
+  else
+    let opam = OpamFile.OPAM.read_from_string data in
+    let name = Path.(path |> remExt |> basename) in
+    return (Some (name, opam))
+
+module OpamManifest : sig
+  include MANIFEST
+
+  val ofInstallationDir : Path.t -> t option RunAsync.t
+  val ofFile : Path.t -> t RunAsync.t
+end = struct
+  type t = EsyInstall.Solution.Record.Opam.t
+
+  let opamname (manifest : t) =
+    let name =
+      try OpamFile.OPAM.name manifest.opam
+      with _ -> manifest.name
+    in
+    OpamPackage.Name.to_string name
+
+  let name (manifest : t) = "@opam/" ^ (opamname manifest)
+
+  let version (manifest : t) =
+    let version =
+      try OpamFile.OPAM.version manifest.opam
+      with _ -> manifest.version
+    in
+    OpamPackage.Version.to_string version
+
+  let dependencies (manifest : t) =
+    let dependencies =
+
+      let dependsOfOpam opam =
+        let f = OpamFile.OPAM.depends opam in
+        let dependencies =
+          listPackageNamesOfFormula
+            ~build:true ~test:false ~post:true ~doc:false ~dev:false
+            f
+        in
+        let dependencies = ["ocaml"]::["@esy-ocaml/substs"]::dependencies in
+
+        dependencies
+      in
+
+      let dependencies = dependsOfOpam manifest.opam in
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. dependencies = extraDependencies; _} ->
+        let extraDependencies =
+          extraDependencies
+          |> List.map ~f:(fun req -> [req.EsyInstall.Req.name])
+        in
+        List.append dependencies extraDependencies
+      | None -> dependencies
+    in
+
+    let optDependencies =
+      let dependencies =
+        let f = OpamFile.OPAM.depopts manifest.opam in
+        let dependencies =
+          listPackageNamesOfFormula
+            ~build:true ~test:false ~post:true ~doc:false ~dev:false
+            f
+        in
+        match dependencies with
+        | [] -> []
+        | [single] -> List.map ~f:(fun name -> [name]) single
+        | _multi ->
+          (** apparently depopts has a different structure than depends in opam,
+          * it's always a single list of packages in cnf
+          * TODO: cleanup this mess
+          *)
+          assert false
+      in
+      dependencies
+    in
+    {
+      Dependencies.
+      dependencies;
+      buildTimeDependencies = [];
+      devDependencies = [];
+      optDependencies;
+    }
+
+  let release _ = None
+  let description _ = None
+  let license _ = None
+
+  let build (manifest : t) =
+    let buildCommands =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
+        Build.EsyCommands build
+      | Some {EsyInstall.Package.OpamOverride. build = None; _}
+      | None ->
+        Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
+    in
+
+    let installCommands =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
+        Build.EsyCommands install
+      | Some {EsyInstall.Package.OpamOverride. install = None; _}
+      | None ->
+        Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
+    in
+
+    let patches =
+      let patches = OpamFile.OPAM.patches manifest.opam in
+      let f (name, filter) =
+        let name = Path.v (OpamFilename.Base.to_string name) in
+        (name, filter)
+      in
+      List.map ~f patches
+    in
+
+    let substs =
+      let names = OpamFile.OPAM.substs manifest.opam in
+      let f name = Path.v (OpamFilename.Base.to_string name) in
+      List.map ~f names
+    in
+
+    let exportedEnv =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. exportedEnv;_} -> exportedEnv
+      | None -> ExportedEnv.empty
+    in
+
+    Some {
+      Build.
+      (* we assume opam installations are built in source *)
+      buildType = BuildType.InSource;
+      exportedEnv;
+      buildEnv = Env.empty;
+      buildCommands;
+      installCommands;
+      patches;
+      substs;
+    }
+
+  let scripts _ = Run.return Scripts.empty
+
+  let sandboxEnv _ = Run.return Env.empty
+
+  let ofInstallationDir (path : Path.t) =
+    let open RunAsync.Syntax in
+    match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
+    | None
+    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
+      return None
+    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
+      return (Some info)
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    match%bind readOpam path with
+    | None -> errorf "unable to load opam manifest at %a" Path.pp path
+    | Some (_, opam) ->
+      let name = Path.(basename (parent path)) in
+      let version = "dev" in
+      return {
+        EsyInstall.Solution.Record.Opam.
+        name = OpamPackage.Name.of_string name;
+        version = OpamPackage.Version.of_string version;
+        opam;
+        override = None;
+      }
+end
+
+module OpamRootManifest : sig
   include MANIFEST
 
   val ofFiles :
@@ -328,56 +516,20 @@ module Opam : sig
     -> Path.t list
     -> t RunAsync.t
 
-  val ofInstallation :
-    ?name:string
-    -> Path.t
-    -> t option RunAsync.t
-
-  val ofFile :
-    name:string
-    -> version:string
-    -> Path.t
-    -> t RunAsync.t
-
 end = struct
-  type t =
-    | Installed of {
-        name : string option;
-        info : EsyInstall.Solution.Record.Opam.t;
-      }
-    | AggregatedRoot of {
-        name : string option;
-        opam : (string * OpamFile.OPAM.t) list
-      }
+  type t = {
+    name : string option;
+    opam : (string * OpamFile.OPAM.t) list;
+  }
 
-  let opamname = function
-    | Installed {info; _} -> OpamPackage.Name.to_string info.name
-    | AggregatedRoot _ -> "root"
+  let opamname _ = "root"
 
   let name manifest =
     match manifest with
-    | Installed {name = Some name; _} -> name
-    | AggregatedRoot {name = Some name; _} -> name
+    | {name = Some name; _} -> name
     | manifest -> "@opam/" ^ (opamname manifest)
 
-  let version = function
-    | Installed {info;_} -> OpamPackage.Version.to_string info.version
-    | AggregatedRoot _ -> "dev"
-
-  let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
-    let formula =
-      OpamFilter.filter_deps
-        ~default:true ~build ~post ~test ~doc ~dev
-        formula
-    in
-    let cnf = OpamFormula.to_cnf formula in
-    let f atom =
-      let name, _ = atom in
-      match OpamPackage.Name.to_string name with
-      | "ocaml" -> "ocaml"
-      | name -> "@opam/" ^ name
-    in
-    List.map ~f:(List.map ~f) cnf
+  let version _ = "dev"
 
   let dependencies manifest =
     let dependencies =
@@ -393,112 +545,32 @@ end = struct
 
         dependencies
       in
-      match manifest with
-      | Installed {info; name = _} ->
-        let dependencies = dependsOfOpam info.opam in
-        begin
-        match info.override with
-        | Some {EsyInstall.Package.OpamOverride. dependencies = extraDependencies; _} ->
-          let extraDependencies =
-            extraDependencies
-            |> List.map ~f:(fun req -> [req.EsyInstall.Req.name])
-          in
-          List.append dependencies extraDependencies
-        | None -> dependencies
-        end
-      | AggregatedRoot {opam; _} ->
-        let namesPresent =
-          let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
-          List.fold_left ~f ~init:StringSet.empty opam
+      let namesPresent =
+        let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
+        List.fold_left ~f ~init:StringSet.empty manifest.opam
+      in
+      let f dependencies (_name, opam) =
+        let update = dependsOfOpam opam in
+        let update =
+          let f name = not (StringSet.mem name namesPresent) in
+          List.map ~f:(List.filter ~f) update
         in
-        let f dependencies (_name, opam) =
-          let update = dependsOfOpam opam in
-          let update =
-            let f name = not (StringSet.mem name namesPresent) in
-            List.map ~f:(List.filter ~f) update
-          in
-          let update =
-            let f = function | [] -> false | _ -> true in
-            List.filter ~f update
-          in
-          dependencies @ update
+        let update =
+          let f = function | [] -> false | _ -> true in
+          List.filter ~f update
         in
-        List.fold_left ~f ~init:[] opam
+        dependencies @ update
+      in
+      List.fold_left ~f ~init:[] manifest.opam
     in
 
-    let optDependencies =
-      match manifest with
-      | Installed {info;_} ->
-        let dependencies =
-          let f = OpamFile.OPAM.depopts info.opam in
-          let dependencies =
-            listPackageNamesOfFormula
-              ~build:true ~test:false ~post:true ~doc:false ~dev:false
-              f
-          in
-          match dependencies with
-          | [] -> []
-          | [single] -> List.map ~f:(fun name -> [name]) single
-          | _multi ->
-            (** apparently depopts has a different structure than depends in opam,
-            * it's always a single list of packages in cnf
-            * TODO: cleanup this mess
-            *)
-            assert false
-        in
-        dependencies
-      | AggregatedRoot _ -> []
-    in
     {
       Dependencies.
       dependencies;
       buildTimeDependencies = [];
       devDependencies = [];
-      optDependencies;
+      optDependencies = [];
     }
-
-  let ofInstallation ?name (path : Path.t) =
-    let open RunAsync.Syntax in
-    match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
-    | None
-    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
-      return None
-    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      return (Some (Installed {info; name}))
-
-  let readOpam path =
-    let open RunAsync.Syntax in
-    let%bind data = Fs.readFile path in
-    if String.trim data = ""
-    then return None
-    else
-      let opam = OpamFile.OPAM.read_from_string data in
-      let name = Path.(path |> remExt |> basename) in
-      return (Some (name, opam))
-
-  let ofFile ~name ~version (path : Path.t) =
-    let open RunAsync.Syntax in
-    match%bind readOpam path with
-    | None -> errorf "unable to load opam manifest at %a" Path.pp path
-    | Some (_, opam) ->
-      let version = OpamPackage.Version.of_string version in
-      return (Installed {
-        name = Some name;
-        info = {
-          EsyInstall.Solution.Record.Opam.
-          name = OpamPackage.Name.of_string "pkg"; version; opam;
-          override = None;
-        }
-      })
-
-  let ofFiles ?name paths =
-    let open RunAsync.Syntax in
-    let%bind opams =
-      paths
-      |> List.map ~f:readOpam
-      |> RunAsync.List.joinAll
-    in
-    return (AggregatedRoot {name; opam = List.filterNone opams;})
 
   let release _ = None
 
@@ -508,98 +580,53 @@ end = struct
   let build m =
     let buildCommands =
       match m with
-      | Installed manifest ->
-        begin match manifest.info.override with
-        | Some {EsyInstall.Package.OpamOverride. build = Some build; _} ->
-          Build.EsyCommands build
-        | Some {EsyInstall.Package.OpamOverride. build = None; _}
-        | None ->
-          Build.OpamCommands (OpamFile.OPAM.build manifest.info.opam)
-        end
-      | AggregatedRoot {opam = [_name, opam]; _} ->
+      | {opam = [_name, opam]; _} ->
         Build.OpamCommands (OpamFile.OPAM.build opam)
-      | AggregatedRoot _ ->
+      | _ ->
         Build.OpamCommands []
     in
 
     let installCommands =
       match m with
-      | Installed manifest ->
-        begin match manifest.info.override with
-        | Some {EsyInstall.Package.OpamOverride. install = Some install; _} ->
-          Build.EsyCommands install
-        | Some {EsyInstall.Package.OpamOverride. install = None; _}
-        | None ->
-          Build.OpamCommands (OpamFile.OPAM.install manifest.info.opam)
-        end
-      | AggregatedRoot {opam = [_name, opam]; _} ->
+      | {opam = [_name, opam]; _} ->
         Build.OpamCommands (OpamFile.OPAM.install opam)
-      | AggregatedRoot _ ->
+      | _ ->
         Build.OpamCommands []
-    in
-
-    let patches =
-      match m with
-      | Installed manifest ->
-        let patches = OpamFile.OPAM.patches manifest.info.opam in
-        let f (name, filter) =
-          let name = Path.v (OpamFilename.Base.to_string name) in
-          (name, filter)
-        in
-        List.map ~f patches
-      | AggregatedRoot _ -> []
-    in
-
-    let substs =
-      match m with
-      | Installed manifest ->
-        let names = OpamFile.OPAM.substs manifest.info.opam in
-        let f name = Path.v (OpamFilename.Base.to_string name) in
-        List.map ~f names
-      | AggregatedRoot _ -> []
-    in
-
-    let buildType =
-      match m with
-      | Installed _ -> BuildType.InSource
-      | AggregatedRoot _ -> BuildType.Unsafe
-    in
-
-    let exportedEnv =
-      match m with
-      | Installed manifest ->
-        begin match manifest.info.override with
-        | Some {EsyInstall.Package.OpamOverride. exportedEnv;_} -> exportedEnv
-        | None -> ExportedEnv.empty
-        end
-      | AggregatedRoot _ -> ExportedEnv.empty
     in
 
     Some {
       Build.
-      buildType;
-      exportedEnv;
+      buildType = BuildType.Unsafe;
+      exportedEnv = ExportedEnv.empty;
       buildEnv = Env.empty;
       buildCommands;
       installCommands;
-      patches;
-      substs;
+      patches = [];
+      substs = [];
     }
 
   let scripts _ = Run.return Scripts.empty
 
   let sandboxEnv _ = Run.return Env.empty
 
+  let ofFiles ?name paths =
+    let open RunAsync.Syntax in
+    let%bind opams =
+      paths
+      |> List.map ~f:readOpam
+      |> RunAsync.List.joinAll
+    in
+    return {name; opam = List.filterNone opams;}
+
 end
 
-module EsyOrOpamManifest : sig
+module Manifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
   val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
-    ?name:string
-    -> ?manifest:SandboxSpec.ManifestSpec.t
+    ?manifest:SandboxSpec.ManifestSpec.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
 
@@ -623,132 +650,106 @@ end = struct
   let scripts (module M : QUERY_MANIFEST) = M.scripts M.manifest
   let sandboxEnv (module M : QUERY_MANIFEST) = M.sandboxEnv M.manifest
 
-  let ofDir ?name ?manifest (path : Path.t) =
+  let loadEsyManifest path =
+    let open RunAsync.Syntax in
+    let%bind manifest = EsyManifest.ofFile path in
+    let m = (module struct include EsyManifest let manifest = manifest end : QUERY_MANIFEST) in
+    return (m, Path.Set.singleton path)
+
+  let loadOpamManifest path =
+    let open RunAsync.Syntax in
+    let%bind manifest = OpamManifest.ofFile path in
+    let m = (module struct include OpamManifest let manifest = manifest end : QUERY_MANIFEST) in
+    return (m, Path.Set.singleton path)
+
+  let loadOpamManifestOfFiles paths =
+    let open RunAsync.Syntax in
+    let%bind manifest = OpamRootManifest.ofFiles paths in
+    let m =
+      (module struct
+        include OpamRootManifest
+        let manifest = manifest
+      end : QUERY_MANIFEST)
+    in
+    return (m, Path.Set.of_list paths)
+
+  let loadOpamManifestOfInstallation path =
+    let open RunAsync.Syntax in
+    match%bind OpamManifest.ofInstallationDir path with
+    | Some manifest ->
+      let m =
+        (module struct
+          include OpamManifest
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (Some (m, Path.Set.empty))
+    | None -> return None
+
+  let discoverManifest path =
     let open RunAsync.Syntax in
 
-    let discoverOfDir path =
-
-      let filenames =
-        let dirname = Path.basename path in
-        [
-          `Esy, Path.v "esy.json";
-          `Esy, Path.v "package.json";
-          `Opam, Path.(v dirname |> addExt ".opam");
-          `Opam, Path.v "opam";
-        ]
-      in
-
-      let rec tryLoad = function
-        | [] -> return None
-        | (kind, fname)::rest ->
-          let fname = Path.(path // fname) in
-          if%bind Fs.exists fname
-          then (
-            match kind with
-            | `Esy ->
-              let%bind manifest = Esy.ofFile fname in
-              let m =
-                (module struct
-                  include Esy
-                  let manifest = manifest
-                end : QUERY_MANIFEST)
-              in
-              return (Some (m, Path.Set.singleton fname))
-            | `Opam ->
-              let name =
-                match name with
-                | Some name -> name
-                | None -> Path.basename path
-              in
-              let%bind manifest = Opam.ofFile ~name ~version:"dev" fname in
-              let m =
-                (module struct
-                  include Opam
-                  let manifest = manifest
-                end : QUERY_MANIFEST)
-              in
-              return (Some (m, Path.Set.singleton fname))
-          )
-          else tryLoad rest
-      in
-
-      tryLoad filenames
+    let filenames =
+      let dirname = Path.basename path in
+      [
+        `Esy, Path.v "esy.json";
+        `Esy, Path.v "package.json";
+        `Opam, Path.(v dirname |> addExt ".opam");
+        `Opam, Path.v "opam";
+      ]
     in
+
+    let rec tryLoad = function
+      | [] -> return None
+      | (kind, fname)::rest ->
+        let fname = Path.(path // fname) in
+        if%bind Fs.exists fname
+        then
+          let%bind manifest =
+            match kind with
+            | `Esy -> loadEsyManifest fname
+            | `Opam -> loadOpamManifest fname
+          in
+          return (Some manifest)
+        else tryLoad rest
+    in
+
+    tryLoad filenames
+
+  let ofDir ?manifest (path : Path.t) =
+    let open RunAsync.Syntax in
 
     match manifest with
     | None ->
-      begin match%bind Opam.ofInstallation ?name path with
-      | Some manifest ->
-        let m =
-          (module struct
-            include Opam
-            let manifest = manifest
-          end : QUERY_MANIFEST)
-        in
-        return (Some (m, Path.Set.empty))
-      | None -> discoverOfDir path
+      begin match%bind loadOpamManifestOfInstallation path with
+      | Some manifest -> return (Some manifest)
+      | None -> discoverManifest path
       end
-    | Some (SandboxSpec.ManifestSpec.OpamAggregated _) ->
-      errorf "unable to load manifest from aggregated opam files"
-    | Some (SandboxSpec.ManifestSpec.Esy fname) ->
-      let path = Path.(path / fname) in
-      let%bind manifest = Esy.ofFile path in
-      let m =
-        (module struct
-          include Esy
-          let manifest = manifest
-        end : QUERY_MANIFEST)
+    | Some spec ->
+      let%bind manifest =
+        match spec with
+        | SandboxSpec.ManifestSpec.OpamAggregated _ ->
+          errorf "unable to load manifest from aggregated opam files"
+        | SandboxSpec.ManifestSpec.Esy fname ->
+          let path = Path.(path / fname) in
+          loadEsyManifest path
+        | SandboxSpec.ManifestSpec.Opam fname ->
+          let path = Path.(path / fname) in
+          loadOpamManifest path
       in
-      return (Some (m, Path.Set.singleton path))
-    | Some (SandboxSpec.ManifestSpec.Opam fname) ->
-      let name =
-        match name with
-        | Some name -> name
-        | None -> Path.basename path
-      in
-      let path = Path.(path / fname) in
-      let%bind manifest = Opam.ofFile ~name ~version:"dev" path in
-      let m =
-        (module struct
-          include Opam
-          let manifest = manifest
-        end : QUERY_MANIFEST)
-      in
-      return (Some (m, Path.Set.singleton path))
+      return (Some manifest)
 
   let ofSandboxSpec (spec : SandboxSpec.t) =
-    let open RunAsync.Syntax in
     match spec.manifest with
     | SandboxSpec.ManifestSpec.Esy fname ->
       let path = Path.(spec.path / fname) in
-      let%bind manifest = Esy.ofFile path in
-      let m =
-        (module struct
-          include Esy
-          let manifest = manifest
-        end : QUERY_MANIFEST)
-      in
-      return (m, Path.Set.singleton path)
+      loadEsyManifest path
     | SandboxSpec.ManifestSpec.Opam fname ->
       let path = Path.(spec.path / fname) in
-      let%bind manifest = Opam.ofFiles [path] in
-      let m =
-        (module struct
-          include Opam
-          let manifest = manifest
-        end : QUERY_MANIFEST)
-      in
-      return (m, Path.Set.singleton path)
+      loadOpamManifestOfFiles [path]
     | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
-      let%bind manifest = Opam.ofFiles paths in
-      let m =
-        (module struct
-          include Opam
-          let manifest = manifest
-        end : QUERY_MANIFEST)
-      in
-      return (m, Path.Set.of_list paths)
+      loadOpamManifestOfFiles paths
 
   let dirHasManifest (path : Path.t) =
     let open RunAsync.Syntax in
@@ -760,4 +761,4 @@ end = struct
     return (List.exists ~f names)
 end
 
-include EsyOrOpamManifest
+include Manifest
