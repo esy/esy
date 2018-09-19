@@ -4,12 +4,13 @@ platform:
 install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
-    - npm install -g rimraf
     - npm install -g esy@0.2.11
     - appveyor-retry appveyor-retry esy install
 
 build_script:
      - esy build
+     - npm run build:copy-frs
+     - npm run test:unit
 #    - npm run make:test
 #    - npm run bootstrap:make-release-package
 

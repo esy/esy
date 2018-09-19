@@ -28,7 +28,9 @@
     "bootstrap:build": "esy-bash make bootstrap",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
-    "build:copy-frs": "esy b \"cp $(esy which fastreplacestring) bin/fastreplacestring\"",
+    "install:esy": "esy install",
+    "build:esy": "esy build",
+    "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
     "test:unit": "esy b dune runtest test",
     "test-e2e": "jest --runInBand test-e2e",
     "postinstall": "echo Hello World!"
