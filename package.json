@@ -67,7 +67,8 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
-    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
+    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b",
+    "esy-bash": "0.1.22"
   },
   "peerDependencies": {
     "ocaml": "~4.6.6"
