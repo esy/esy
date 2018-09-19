@@ -16,10 +16,11 @@ module ResolutionCache = Memoize.Make(struct
   type value = Resolution.t list RunAsync.t
 end)
 
-let toOpamName name =
+let opamname name =
+  let open RunAsync.Syntax in
   match Astring.String.cut ~sep:"@opam/" name with
-  | Some ("", name) -> OpamPackage.Name.of_string name
-  | _ -> failwith ("invalid opam package name: " ^ name)
+  | Some ("", name) -> return (OpamPackage.Name.of_string name)
+  | _ -> errorf "invalid opam package name: %s" name
 
 let toOpamOcamlVersion version =
   match version with
@@ -287,7 +288,7 @@ let package ~(resolution : Resolution.t) resolver =
       return (Ok pkg)
     | Version.Opam version ->
       begin match%bind
-        let name = toOpamName resolution.name in
+        let%bind name = opamname resolution.name in
         OpamRegistry.version
           ~name
           ~version
@@ -438,7 +439,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       ResolutionCache.compute resolver.resolutionCache name begin fun () ->
         let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
-          let name = toOpamName name in
+          let%bind name = opamname name in
           OpamRegistry.versions
             ?ocamlVersion:(toOpamOcamlVersion resolver.ocamlVersion)
             ~name
