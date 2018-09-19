@@ -68,52 +68,6 @@ let to_yojson src = `String (show src)
 let pp fmt spec =
   Fmt.pf fmt "%s" (show spec)
 
-let matches ~source spec =
-  let compareManifestName = [%derive.ord: MS.t option] in
-  match spec, source with
-  | LocalPath {path = p1; manifest = m1},
-    Source.LocalPath {path = p2; manifest = m2} ->
-    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
-  | LocalPath {path = p1; manifest = m1},
-    Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
-  | LocalPath _, _ -> false
-
-  | LocalPathLink {path = p1; manifest = m1},
-    Source.LocalPathLink {path = p2; manifest = m2} ->
-    Path.compare p1 p2 = 0 && compareManifestName m1 m2 = 0
-  | LocalPathLink _, _ -> false
-
-  | Github ({ref = Some specRef; manifest = m1; _} as spec), Source.Github src ->
-    String.(
-      equal src.user spec.user
-      && equal src.repo spec.repo
-      && equal src.commit specRef
-    ) && compareManifestName src.manifest m1 = 0
-  | Github ({ref = None; _} as spec), Source.Github src ->
-    String.(
-      equal spec.user src.user
-      && equal spec.repo src.repo
-    ) && compareManifestName spec.manifest src.manifest = 0
-  | Github _, _ -> false
-
-  | Git ({ref = Some specRef; _} as spec), Source.Git src ->
-    String.(
-      equal spec.remote src.remote
-      && equal specRef src.commit
-    ) && compareManifestName spec.manifest src.manifest = 0
-  | Git ({ref = None; _} as spec), Source.Git src ->
-    String.(equal spec.remote src.remote)
-    && compareManifestName spec.manifest src.manifest = 0
-  | Git _, _ -> false
-
-  | Archive {url = url1; _}, Source.Archive {url = url2; _}  ->
-    String.equal url1 url2
-  | Archive _, _ -> false
-
-  | NoSource, NoSource -> true
-  | NoSource, _ -> false
-
 let ofSource (source : Source.t) =
   match source with
   | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}

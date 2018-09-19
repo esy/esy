@@ -3,13 +3,14 @@ type t
 
 (** Make new resolver *)
 val make :
-  ?ocamlVersion:Version.t
-  -> ?npmRegistry:NpmRegistry.t
+  ?npmRegistry:NpmRegistry.t
   -> ?opamRegistry:OpamRegistry.t
   -> resolutions:Package.Resolutions.t
   -> cfg:Config.t
   -> unit
   -> t RunAsync.t
+
+val setOCamlVersion : Version.t -> t -> unit
 
 (**
  * Resolve package request into a list of resolutions
@@ -40,3 +41,6 @@ val package :
   resolution:Package.Resolution.t
   -> t
   -> (Package.t, string) result RunAsync.t
+
+val versionMatchesReq : t -> Req.t -> string -> Version.t -> bool
+val versionMatchesDep : t -> Package.Dep.t -> string -> Version.t -> bool

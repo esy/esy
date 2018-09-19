@@ -18,5 +18,4 @@ val to_yojson : t Json.encoder
 val parserNpm : t Parse.t
 val parserOpam : t Parse.t
 
-val matches : version:Version.t -> t -> bool
 val ofVersion : Version.t -> t

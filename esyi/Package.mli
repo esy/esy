@@ -14,7 +14,6 @@ module Dep : sig
     | Source of SourceSpec.t
 
   val pp : t Fmt.t
-  val matches : name : string -> version : Version.t -> t -> bool
 end
 
 module Override : sig

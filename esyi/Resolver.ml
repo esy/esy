@@ -212,12 +212,14 @@ type t = {
   resolutions : Resolutions.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
-  ocamlVersion : Version.t option;
+  mutable ocamlVersion : Version.t option;
   resolutionCache : ResolutionCache.t;
+
+  npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
+  sourceSpecs : (SourceSpec.t, Source.t) Hashtbl.t;
 }
 
 let make
-  ?ocamlVersion
   ?npmRegistry
   ?opamRegistry
   ~resolutions
@@ -235,6 +237,21 @@ let make
     | Some npmRegistry -> npmRegistry
     | None -> NpmRegistry.make ~url:cfg.Config.npmRegistry ()
   in
+
+  let sourceSpecs =
+    let tbl = Hashtbl.create 500 in
+    let f resolution =
+      match resolution.Resolution.resolution with
+      | Resolution.Version (Version.Source source)
+      | Resolution.SourceOverride {source; _} ->
+        let sourceSpec = SourceSpec.ofSource source in
+        Hashtbl.replace tbl sourceSpec source;
+      | Resolution.Version _ -> ()
+    in
+    List.iter ~f (Resolutions.entries resolutions);
+    tbl
+  in
+
   return {
     cfg;
     pkgCache = PackageCache.make ();
@@ -242,9 +259,66 @@ let make
     resolutions;
     opamRegistry;
     npmRegistry;
-    ocamlVersion;
+    ocamlVersion = None;
     resolutionCache = ResolutionCache.make ();
+    npmDistTags = Hashtbl.create 500;
+    sourceSpecs;
   }
+
+let setOCamlVersion ocamlVersion resolver =
+  resolver.ocamlVersion <- Some ocamlVersion
+
+let sourceMatchesSpec resolver spec source =
+  match Hashtbl.find_opt resolver.sourceSpecs spec with
+  | Some resolvedSource ->
+    Source.compare resolvedSource source = 0
+  | None -> false
+
+let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
+  req.name = name &&
+  match req.spec, version with
+
+  | (VersionSpec.Npm spec, Version.Npm version) ->
+    SemverVersion.Formula.DNF.matches ~version spec
+
+  | (VersionSpec.NpmDistTag (tag, _), Version.Npm version) ->
+    begin match Hashtbl.find_opt resolver.npmDistTags req.name with
+    | Some tags ->
+      begin match StringMap.find_opt tag tags with
+      | None -> false
+      | Some taggedVersion ->
+        SemverVersion.Version.compare version taggedVersion = 0
+      end
+    | None -> false
+    end
+
+  | (VersionSpec.Opam spec, Version.Opam version) ->
+    OpamPackageVersion.Formula.DNF.matches ~version spec
+
+  | (VersionSpec.Source spec, Version.Source source) ->
+    sourceMatchesSpec resolver spec source
+
+  | (VersionSpec.Npm _, _) -> false
+  | (VersionSpec.NpmDistTag _, _) -> false
+  | (VersionSpec.Opam _, _) -> false
+  | (VersionSpec.Source _, _) -> false
+
+let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Version.t) =
+  dep.name = name &&
+  match version, dep.Package.Dep.req with
+
+  | Version.Npm version, Npm spec ->
+    SemverVersion.Constraint.matches ~version spec
+
+  | Version.Opam version, Opam spec ->
+    OpamPackageVersion.Constraint.matches ~version spec
+
+  | Version.Source source, Source spec ->
+    sourceMatchesSpec resolver spec source
+
+  | Version.Npm _, _ -> false
+  | Version.Opam _, _ -> false
+  | Version.Source _, _ -> false
 
 let ofSource ~allowEmptyPackage ~name (source : Source.t) resolver =
   let open RunAsync.Syntax in
@@ -384,47 +458,51 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
 
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
     let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
-    match sourceSpec with
-    | SourceSpec.Github {user; repo; ref; manifest;} ->
-      let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
-      let%bind commit = Git.lsRemote ?ref ~remote () in
-      begin match commit, ref with
-      | Some commit, _ ->
-        return (Source.Github {user; repo; commit; manifest;})
-      | None, Some ref ->
-        if Git.isCommitLike ref
-        then return (Source.Github {user; repo; commit = ref; manifest;})
-        else errorResolvingSource "cannot resolve commit"
-      | None, None ->
-        errorResolvingSource "cannot resolve commit"
-      end
+    let%bind source =
+      match sourceSpec with
+      | SourceSpec.Github {user; repo; ref; manifest;} ->
+        let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
+        let%bind commit = Git.lsRemote ?ref ~remote () in
+        begin match commit, ref with
+        | Some commit, _ ->
+          return (Source.Github {user; repo; commit; manifest;})
+        | None, Some ref ->
+          if Git.isCommitLike ref
+          then return (Source.Github {user; repo; commit = ref; manifest;})
+          else errorResolvingSource "cannot resolve commit"
+        | None, None ->
+          errorResolvingSource "cannot resolve commit"
+        end
 
-    | SourceSpec.Git {remote; ref; manifest;} ->
-      let%bind commit = Git.lsRemote ?ref ~remote () in
-      begin match commit, ref  with
-      | Some commit, _ ->
-        return (Source.Git {remote; commit; manifest;})
-      | None, Some ref ->
-        if Git.isCommitLike ref
-        then return (Source.Git {remote; commit = ref; manifest;})
-        else errorResolvingSource "cannot resolve commit"
-      | None, None ->
-        errorResolvingSource "cannot resolve commit"
-      end
+      | SourceSpec.Git {remote; ref; manifest;} ->
+        let%bind commit = Git.lsRemote ?ref ~remote () in
+        begin match commit, ref  with
+        | Some commit, _ ->
+          return (Source.Git {remote; commit; manifest;})
+        | None, Some ref ->
+          if Git.isCommitLike ref
+          then return (Source.Git {remote; commit = ref; manifest;})
+          else errorResolvingSource "cannot resolve commit"
+        | None, None ->
+          errorResolvingSource "cannot resolve commit"
+        end
 
-    | SourceSpec.NoSource ->
-      return (Source.NoSource)
+      | SourceSpec.NoSource ->
+        return (Source.NoSource)
 
-    | SourceSpec.Archive {url; checksum = None} ->
-      failwith ("archive sources without checksums are not implemented: " ^ url)
-    | SourceSpec.Archive {url; checksum = Some checksum} ->
-      return (Source.Archive {url; checksum})
+      | SourceSpec.Archive {url; checksum = None} ->
+        failwith ("archive sources without checksums are not implemented: " ^ url)
+      | SourceSpec.Archive {url; checksum = Some checksum} ->
+        return (Source.Archive {url; checksum})
 
-    | SourceSpec.LocalPath {path; manifest;} ->
-      return (Source.LocalPath {path; manifest;})
+      | SourceSpec.LocalPath {path; manifest;} ->
+        return (Source.LocalPath {path; manifest;})
 
-    | SourceSpec.LocalPathLink {path; manifest;} ->
-      return (Source.LocalPathLink {path; manifest;})
+      | SourceSpec.LocalPathLink {path; manifest;} ->
+        return (Source.LocalPathLink {path; manifest;})
+    in
+    Hashtbl.replace resolver.sourceSpecs sourceSpec source;
+    return source
   end
 
 let resolve' ~fullMetadata ~name ~spec resolver =
@@ -443,6 +521,8 @@ let resolve' ~fullMetadata ~name ~spec resolver =
         | None -> errorf "no npm package %s found" name
         | Some versions -> return versions
       in
+
+      Hashtbl.replace resolver.npmDistTags name distTags;
 
       let resolutions =
         let f version =
@@ -470,7 +550,8 @@ let resolve' ~fullMetadata ~name ~spec resolver =
     let resolutions =
       let tryCheckConformsToSpec resolution =
         match resolution.Resolution.resolution with
-        | Version version -> VersionSpec.matches ~version:version spec
+        | Version version ->
+          versionMatchesReq resolver (Req.make ~name ~spec) resolution.name version
         | SourceOverride _ -> true (* do not filter them out yet *)
       in
 
@@ -503,7 +584,8 @@ let resolve' ~fullMetadata ~name ~spec resolver =
     let resolutions =
       let tryCheckConformsToSpec resolution =
         match resolution.Resolution.resolution with
-        | Version version -> VersionSpec.matches ~version:version spec
+        | Version version ->
+          versionMatchesReq resolver (Req.make ~name ~spec) resolution.name version
         | SourceOverride _ -> true (* do not filter them out yet *)
       in
 

@@ -34,7 +34,6 @@ include S.COMPARABLE with type t := t
 
 val to_yojson : t -> [> `String of string ]
 val ofSource : Source.t -> t
-val matches : source:Source.t -> t -> bool
 
 val parser : t Parse.t
 val parse : string -> (t, string) result

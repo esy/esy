@@ -16,25 +16,6 @@ let pp fmt spec =
 
 let to_yojson src = `String (show src)
 
-let matches ~version spec =
-  match spec, version with
-  | Npm formula, Version.Npm version ->
-    SemverVersion.Formula.DNF.matches ~version formula
-  | Npm _, _ -> false
-
-  | NpmDistTag (_tag, Some resolvedVersion), Version.Npm version ->
-    SemverVersion.Version.compare resolvedVersion version = 0
-  | NpmDistTag (_tag, None), Version.Npm _ -> assert false
-  | NpmDistTag (_tag, _), _ -> false
-
-  | Opam formula, Version.Opam version ->
-    OpamPackageVersion.Formula.DNF.matches ~version formula
-  | Opam _, _ -> false
-
-  | Source srcSpec, Version.Source src ->
-    SourceSpec.matches ~source:src srcSpec
-  | Source _, _ -> false
-
 let ofVersion (version : Version.t) =
   match version with
   | Version.Npm v ->

@@ -161,7 +161,7 @@ module Explanation = struct
 
 end
 
-let rec findResolutionForRequest ~req = function
+let rec findResolutionForRequest resolver req = function
   | [] -> None
   | res::rest ->
     let version =
@@ -170,12 +170,13 @@ let rec findResolutionForRequest ~req = function
       | SourceOverride {source;_} -> Version.Source source
     in
     if
-      Req.matches
-        ~name:res.Resolution.name
-        ~version
+      Resolver.versionMatchesReq
+        resolver
         req
+        res.Resolution.name
+        version
     then Some res
-    else findResolutionForRequest ~req rest
+    else findResolutionForRequest resolver req rest
 
 let solutionRecordOfPkg (pkg : Package.t) =
   let open RunAsync.Syntax in
@@ -211,14 +212,9 @@ let solutionRecordOfPkg (pkg : Package.t) =
     opam;
   }
 
-let make ~cfg ?resolver ~resolutions () =
+let make ~cfg ~resolver ~resolutions () =
   let open RunAsync.Syntax in
-  let%bind resolver =
-    match resolver with
-    | None -> Resolver.make ~cfg ~resolutions ()
-    | Some resolver -> return resolver
-  in
-  let universe = ref Universe.empty in
+  let universe = ref (Universe.empty resolver) in
   return {cfg; resolver; universe = !universe; resolutions}
 
 let add ~(dependencies : Dependencies.t) solver =
@@ -482,10 +478,11 @@ let solveDependenciesNaively
     let rec findFirstMatching = function
       | [] -> None
       | pkg::pkgs ->
-        if Req.matches
-          ~name:pkg.Package.name
-          ~version:pkg.Package.version
-          req
+        if Resolver.versionMatchesReq
+            solver.resolver
+            req
+            pkg.Package.name
+            pkg.Package.version
         then Some pkg
         else findFirstMatching pkgs
     in
@@ -504,7 +501,7 @@ let solveDependenciesNaively
       | Some spec -> Req.make ~name:req.name ~spec
       | None -> req
     in
-    match findResolutionForRequest ~req resolutions with
+    match findResolutionForRequest solver.resolver req resolutions with
     | Some resolution ->
       begin match%bind Resolver.package ~resolution solver.resolver with
       | Ok pkg -> return (Some pkg)
@@ -621,15 +618,8 @@ let solveDependenciesNaively
 
   return packagesToDependencies
 
-let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
+let solveOCamlReq (req : Req.t) resolver =
   let open RunAsync.Syntax in
-  let%bind resolver =
-    Resolver.make
-      ~resolutions:sandbox.resolutions
-      ~cfg:sandbox.cfg
-      ~opamRegistry
-      ()
-  in
 
   let make resolution =
     Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution);%lwt
@@ -642,7 +632,7 @@ let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
   | VersionSpec.Npm _
   | VersionSpec.NpmDistTag _ ->
     let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
-    begin match findResolutionForRequest ~req resolutions with
+    begin match findResolutionForRequest resolver req resolutions with
     | Some resolution -> make resolution
     | None ->
       Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
@@ -668,13 +658,21 @@ let solve (sandbox : Sandbox.t) =
 
   let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in
 
+  let%bind resolver =
+    Resolver.make
+      ~opamRegistry
+      ~cfg:sandbox.cfg
+      ~resolutions:sandbox.resolutions
+      ()
+  in
+
   let%bind dependencies, ocamlVersion =
     match sandbox.ocamlReq with
     | None -> return (sandbox.dependencies, None)
     | Some ocamlReq ->
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
-          (solveOCamlReq ~sandbox ~opamRegistry ocamlReq)
+          (solveOCamlReq ocamlReq resolver)
           "resolving %a" Req.pp ocamlReq
       in
 
@@ -700,15 +698,13 @@ let solve (sandbox : Sandbox.t) =
       return (dependencies, ocamlVersionOrig)
   in
 
+  let () =
+    match ocamlVersion with
+    | Some version -> Resolver.setOCamlVersion version resolver
+    | None -> ()
+  in
+
   let%bind solver, dependencies =
-    let%bind resolver =
-      Resolver.make
-        ?ocamlVersion
-        ~opamRegistry
-        ~cfg:sandbox.cfg
-        ~resolutions:sandbox.resolutions
-        ()
-    in
     let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)

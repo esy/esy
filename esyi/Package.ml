@@ -142,16 +142,6 @@ module Dep = struct
     | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
 
-  let matches ~name ~version dep =
-    name = dep.name &&
-      match version, dep.req with
-      | Version.Npm version, Npm c -> SemverVersion.Constraint.matches ~version c
-      | Version.Npm _, _ -> false
-      | Version.Opam version, Opam c -> OpamPackageVersion.Constraint.matches ~version c
-      | Version.Opam _, _ -> false
-      | Version.Source source, Source c -> SourceSpec.matches ~source c
-      | Version.Source _, _ -> false
-
   let pp fmt {name; req;} =
     let ppReq fmt = function
       | Npm c -> SemverVersion.Constraint.pp fmt c

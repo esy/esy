@@ -12,9 +12,6 @@ let to_yojson req =
 let pp fmt req =
   Fmt.fmt "%s" fmt (show req)
 
-let matches ~name ~version req =
-  name = req.name && VersionSpec.matches ~version req.spec
-
 module Parse = struct
   include Parse
 
