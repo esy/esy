@@ -34,8 +34,6 @@
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
-    "@opam/dune": "1.1.1",
-    "@opam/seq": "0.1",
     "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
   },
   "dependencies": {
@@ -62,7 +60,7 @@
     "@opam/ppx_deriving_yojson": "*",
     "@opam/ppx_inline_test": "*",
     "@opam/ppx_let": "*",
-    "@opam/re": "1.8.0",
+    "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
