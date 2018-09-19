@@ -394,13 +394,18 @@ let ofSource ~allowEmptyPackage ~name (source : Source.t) resolver =
   let rec loop' ~allowEmptyPackage overrides source =
     match%bind resolve' ~allowEmptyPackage source with
     | Package pkg ->
-      return pkg
+      return (pkg, source)
     | PackageOverride {source = nextSource; override} ->
       let%bind nextSource = RunAsync.ofRun (rebaseSource ~base:source nextSource) in
       loop' ~allowEmptyPackage:true (override::overrides) nextSource
   in
 
-  loop' ~allowEmptyPackage [] source
+  let%bind pkg, finalSource = loop' ~allowEmptyPackage [] source in
+  (** TODO: we need to do a transitive closure here (map sources specs which map
+   *        to original sources to final sources)
+   *)
+  Hashtbl.replace resolver.sourceSpecs (SourceSpec.ofSource source) finalSource;
+  return pkg
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
