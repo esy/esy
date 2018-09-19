@@ -20,14 +20,7 @@
     "buildsInSource": "_build"
   },
   "scripts": {
-    "windows:pre-install": "npm install esy-bash@0.1.22",
-    "make:bootstrap": "esy-bash make bootstrap",
-    "make:test": "esy-bash make test",
-    "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
-    "bootstrap:build": "esy-bash make bootstrap",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
-    "bootstrap:unit-test": "esy-bash dune runtest test",
     "install:esy": "esy install",
     "build": "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash",
     "build:esy": "esy build",
