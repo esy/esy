@@ -36,7 +36,7 @@
     "@opam/merlin-extend": "0.3",
     "@opam/dune": "1.1.1",
     "@opam/seq": "0.1",
-    "ocaml": "github:esy-ocaml/ocaml#1ee7f4d3a",
+    "ocaml": "github:esy-ocaml/ocaml#118565d",
     "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
   },
   "dependencies": {
