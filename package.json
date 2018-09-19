@@ -32,6 +32,7 @@
     "postinstall": "echo Hello World!"
   },
   "resolutions": {
+    "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
     "@opam/dune": "1.1.1",
     "@opam/seq": "0.1",
