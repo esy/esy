@@ -267,7 +267,8 @@ let package ~(resolution : Resolution.t) resolver =
           path
       end
 
-    | NoSource -> error "no source"
+    | NoSource ->
+      return (makeDummyPackage resolution.name (Version.Source source) source)
   in
 
   let ofVersion (version : Version.t) =
