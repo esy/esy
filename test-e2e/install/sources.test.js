@@ -5,22 +5,22 @@ const helpers = require('../test/helpers.js');
 helpers.skipSuiteOnWindows();
 
 describe(`Tests for installations from custom sources`, () => {
-  describe('Installation from github', () => {
-    async function assertLayoutCorrect(path) {
-      await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
-        dependencies: {
-          'example-yarn-package': {
-            name: 'example-yarn-package',
-            version: '1.0.0',
-          },
-          lodash: {
-            name: 'lodash',
-            version: '4.24.0',
-          },
+  async function assertLayoutCorrect(path) {
+    await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
+      dependencies: {
+        'example-yarn-package': {
+          name: 'example-yarn-package',
+          version: '1.0.0',
         },
-      });
-    }
+        lodash: {
+          name: 'lodash',
+          version: '4.24.0',
+        },
+      },
+    });
+  }
 
+  describe('Installation from github', () => {
     test('it should install without ref', async () => {
       const fixture = [
         helpers.packageJson({
@@ -112,21 +112,6 @@ describe(`Tests for installations from custom sources`, () => {
   });
 
   describe('Installation from git', () => {
-    async function assertLayoutCorrect(path) {
-      await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
-        dependencies: {
-          'example-yarn-package': {
-            name: 'example-yarn-package',
-            version: '1.0.0',
-          },
-          lodash: {
-            name: 'lodash',
-            version: '4.24.0',
-          },
-        },
-      });
-    }
-
     test('install from git+https:// with no ref', async () => {
       const fixture = [
         helpers.packageJson({
@@ -240,5 +225,25 @@ describe(`Tests for installations from custom sources`, () => {
       await p.esy('install');
       await assertLayoutCorrect(p.projectPath);
     });
+  });
+
+  test('install from https://', async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          'example-yarn-package':
+            'https://codeload.github.com/yarnpkg/example-yarn-package/tar.gz/0b8f43#02988284bf71a3584f1809c513a2eebd51341911',
+        },
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'lodash',
+      version: '4.24.0',
+    });
+    await p.esy('install');
+    await assertLayoutCorrect(p.projectPath);
   });
 });
