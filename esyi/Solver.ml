@@ -129,7 +129,7 @@ module Explanation = struct
             let name = Universe.CudfMapping.decodePkgName name in
             let%lwt available =
               match%lwt Resolver.resolve ~name resolver with
-              | Ok (available, _) -> Lwt.return available
+              | Ok available -> Lwt.return available
               | Error _ -> Lwt.return []
             in
             let missing = Reason.Missing {name; path = pkg::path; available} in
@@ -229,15 +229,12 @@ let add ~(dependencies : Dependencies.t) solver =
       match pkg.kind with
       | Package.Esy ->
         universe := Universe.add ~pkg !universe;
-        let%bind dependencies =
+        let%bind () =
           RunAsync.contextf
             (addDependencies pkg.dependencies)
             "processing package %a" Package.pp pkg
         in
-        universe := (
-          let pkg = {pkg with dependencies} in
-          Universe.add ~pkg !universe
-        );
+        universe := Universe.add ~pkg !universe;
         return ()
       | Package.Npm -> return ()
     else return ()
@@ -245,46 +242,25 @@ let add ~(dependencies : Dependencies.t) solver =
   and addDependencies (dependencies : Dependencies.t) =
     match dependencies with
     | Dependencies.NpmFormula reqs ->
-      let%bind reqs = RunAsync.List.joinAll (
+      RunAsync.List.waitAll (
         let f (req : Req.t) = addDependency req in
         List.map ~f reqs
-      ) in
-      return (Dependencies.NpmFormula reqs)
+      )
 
-    | Dependencies.OpamFormula formula ->
-      let%bind rewrites =
-        let f rewrites (req : Req.t) =
-          let%bind nextReq = addDependency req in
-          match req.spec, nextReq.Req.spec with
-          | VersionSpec.Source prev, VersionSpec.Source next ->
-            return (SourceSpec.Map.add prev next rewrites)
-          | _ -> return rewrites
+    | Dependencies.OpamFormula _ ->
+      RunAsync.List.waitAll (
+        let f (req : Req.t) = addDependency req
         in
         let reqs = Dependencies.toApproximateRequests dependencies in
-        RunAsync.List.foldLeft ~f ~init:SourceSpec.Map.empty reqs
-      in
-
-      let formula =
-        let f (dep : Package.Dep.t) =
-          match dep.req with
-          | Package.Dep.Source src -> begin
-            match SourceSpec.Map.find_opt src rewrites with
-            | Some nextSrc -> {dep with req = Package.Dep.Source nextSrc}
-            | None -> dep
-            end
-          | _ -> dep
-        in
-        List.map ~f:(List.map ~f) formula
-      in
-
-      return (Dependencies.OpamFormula formula)
+        List.map ~f reqs
+      )
 
   and addDependency (req : Req.t) =
     let%lwt () =
       let status = Format.asprintf "%s" req.name in
       report status
     in
-    let%bind resolutions, spec =
+    let%bind resolutions =
       RunAsync.contextf (
         Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
       ) "resolving %a" Req.pp req
@@ -320,14 +296,10 @@ let add ~(dependencies : Dependencies.t) solver =
       |> RunAsync.List.waitAll
     in
 
-    return (
-      match spec with
-      | Some spec -> Req.make ~name:req.name ~spec
-      | None -> req
-    )
+    return ()
   in
 
-  let%bind dependencies = addDependencies dependencies in
+  let%bind () = addDependencies dependencies in
 
   let%lwt () = finish () in
 
@@ -495,12 +467,7 @@ let solveDependenciesNaively
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions, overrideSpec = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
-    let req =
-      match overrideSpec with
-      | Some spec -> Req.make ~name:req.name ~spec
-      | None -> req
-    in
+    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     match findResolutionForRequest solver.resolver req resolutions with
     | Some resolution ->
       begin match%bind Resolver.package ~resolution solver.resolver with
@@ -631,7 +598,7 @@ let solveOCamlReq (req : Req.t) resolver =
   match req.spec with
   | VersionSpec.Npm _
   | VersionSpec.NpmDistTag _ ->
-    let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
     begin match findResolutionForRequest resolver req resolutions with
     | Some resolution -> make resolution
     | None ->
@@ -641,7 +608,7 @@ let solveOCamlReq (req : Req.t) resolver =
   | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
   | VersionSpec.Source _ ->
     begin match%bind Resolver.resolve ~name:req.name ~spec:req.spec resolver with
-    | [resolution], _ -> make resolution
+    | [resolution] -> make resolution
     | _ -> errorf "multiple resolutions for %a, expected one" Req.pp req
     end
 

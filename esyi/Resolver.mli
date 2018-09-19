@@ -20,7 +20,7 @@ val resolve :
   -> name:string
   -> ?spec:VersionSpec.t
   -> t
-  -> (Package.Resolution.t list * VersionSpec.t option) RunAsync.t
+  -> Package.Resolution.t list RunAsync.t
 
 (**
  * Resolve source spec into source.

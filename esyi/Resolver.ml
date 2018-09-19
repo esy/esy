@@ -275,50 +275,64 @@ let sourceMatchesSpec resolver spec source =
   | None -> false
 
 let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
-  req.name = name &&
-  match req.spec, version with
+  let checkVersion () =
+    match req.spec, version with
 
-  | (VersionSpec.Npm spec, Version.Npm version) ->
-    SemverVersion.Formula.DNF.matches ~version spec
+    | (VersionSpec.Npm spec, Version.Npm version) ->
+      SemverVersion.Formula.DNF.matches ~version spec
 
-  | (VersionSpec.NpmDistTag tag, Version.Npm version) ->
-    begin match Hashtbl.find_opt resolver.npmDistTags req.name with
-    | Some tags ->
-      begin match StringMap.find_opt tag tags with
+    | (VersionSpec.NpmDistTag tag, Version.Npm version) ->
+      begin match Hashtbl.find_opt resolver.npmDistTags req.name with
+      | Some tags ->
+        begin match StringMap.find_opt tag tags with
+        | None -> false
+        | Some taggedVersion ->
+          SemverVersion.Version.compare version taggedVersion = 0
+        end
       | None -> false
-      | Some taggedVersion ->
-        SemverVersion.Version.compare version taggedVersion = 0
       end
+
+    | (VersionSpec.Opam spec, Version.Opam version) ->
+      OpamPackageVersion.Formula.DNF.matches ~version spec
+
+    | (VersionSpec.Source spec, Version.Source source) ->
+      sourceMatchesSpec resolver spec source
+
+    | (VersionSpec.Npm _, _) -> false
+    | (VersionSpec.NpmDistTag _, _) -> false
+    | (VersionSpec.Opam _, _) -> false
+    | (VersionSpec.Source _, _) -> false
+  in
+  let checkResolutions () =
+    match Resolutions.find resolver.resolutions req.name with
+    | Some _ -> true
     | None -> false
-    end
-
-  | (VersionSpec.Opam spec, Version.Opam version) ->
-    OpamPackageVersion.Formula.DNF.matches ~version spec
-
-  | (VersionSpec.Source spec, Version.Source source) ->
-    sourceMatchesSpec resolver spec source
-
-  | (VersionSpec.Npm _, _) -> false
-  | (VersionSpec.NpmDistTag _, _) -> false
-  | (VersionSpec.Opam _, _) -> false
-  | (VersionSpec.Source _, _) -> false
+  in
+  req.name = name && (checkResolutions () || checkVersion ())
 
 let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Version.t) =
-  dep.name = name &&
-  match version, dep.Package.Dep.req with
+  let checkVersion () =
+    match version, dep.Package.Dep.req with
 
-  | Version.Npm version, Npm spec ->
-    SemverVersion.Constraint.matches ~version spec
+    | Version.Npm version, Npm spec ->
+      SemverVersion.Constraint.matches ~version spec
 
-  | Version.Opam version, Opam spec ->
-    OpamPackageVersion.Constraint.matches ~version spec
+    | Version.Opam version, Opam spec ->
+      OpamPackageVersion.Constraint.matches ~version spec
 
-  | Version.Source source, Source spec ->
-    sourceMatchesSpec resolver spec source
+    | Version.Source source, Source spec ->
+      sourceMatchesSpec resolver spec source
 
-  | Version.Npm _, _ -> false
-  | Version.Opam _, _ -> false
-  | Version.Source _, _ -> false
+    | Version.Npm _, _ -> false
+    | Version.Opam _, _ -> false
+    | Version.Source _, _ -> false
+  in
+  let checkResolutions () =
+    match Resolutions.find resolver.resolutions dep.name with
+    | Some _ -> true
+    | None -> false
+  in
+  dep.name = name && (checkResolutions () || checkVersion ())
 
 let ofSource ~allowEmptyPackage ~name (source : Source.t) resolver =
   let open RunAsync.Syntax in
@@ -391,7 +405,6 @@ let ofSource ~allowEmptyPackage ~name (source : Source.t) resolver =
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
   let key = (resolution.name, resolution.resolution) in
-
 
   let ofVersion (version : Version.t) =
     match version with
@@ -512,7 +525,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
   | VersionSpec.Npm _
   | VersionSpec.NpmDistTag _ ->
 
-    let%bind resolutions, distTags =
+    let%bind resolutions =
       let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
       let%bind {NpmRegistry. versions; distTags;} =
         match%bind
@@ -532,20 +545,8 @@ let resolve' ~fullMetadata ~name ~spec resolver =
         List.map ~f versions
       in
 
-      return (resolutions, distTags)
+      return resolutions
     in
-
-    let rewrittenSpec =
-      match spec with
-      | VersionSpec.NpmDistTag tag ->
-        begin match StringMap.find_opt tag distTags with
-        | Some _version -> Some (VersionSpec.NpmDistTag tag)
-        | None -> None
-        end
-      | _ -> None
-    in
-
-    let spec = Option.orDefault ~default:spec rewrittenSpec in
 
     let resolutions =
       let tryCheckConformsToSpec resolution =
@@ -560,7 +561,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       |> List.filter ~f:tryCheckConformsToSpec
     in
 
-    return (resolutions, rewrittenSpec)
+    return resolutions
 
   | VersionSpec.Opam _ ->
     let%bind resolutions =
@@ -594,7 +595,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       |> List.filter ~f:tryCheckConformsToSpec
     in
 
-    return (resolutions, None)
+    return resolutions
 
   | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
@@ -604,21 +605,12 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       name;
       resolution = Resolution.Version version;
     } in
-    let versionSpec = VersionSpec.ofVersion version in
-    return ([resolution], Some versionSpec)
+    return [resolution]
 
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
   match Resolutions.find resolver.resolutions name with
-  | Some resolution ->
-    let spec =
-      match resolution.resolution with
-      | Version version ->
-        VersionSpec.ofVersion version
-      | SourceOverride {source; _} ->
-        VersionSpec.Source (SourceSpec.ofSource source)
-    in
-    return ([resolution], Some spec)
+  | Some resolution -> return [resolution]
   | None ->
     let spec =
       match spec with
