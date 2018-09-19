@@ -29,12 +29,12 @@
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
     "install:esy": "esy install",
+    "build": "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash",
     "build:esy": "esy build",
     "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
     "build:postinstall-esy-bash": "node node_modules/esy-bash/postinstall.js",
     "test:unit": "esy b dune runtest test",
-    "test-e2e": "jest --runInBand test-e2e",
-    "postinstall": "echo Hello World!"
+    "test:e2e": "jest --runInBand test-e2e"
   },
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
