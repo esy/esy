@@ -67,7 +67,7 @@ let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
     source = source, [];
-    override = None;
+    override = [];
     opam = None;
     kind =
       (match pkgJson.esy with

@@ -1,6 +1,6 @@
 type t = {
   source : Source.t;
-  override : Package.Override.t option [@default None];
+  override : Package.Override.t list [@default []];
   opam : Solution.Record.Opam.t option [@default None];
 } [@@deriving yojson]
 
@@ -26,7 +26,7 @@ let ofDir path =
      *)
     return {
       source = Source.LocalPathLink {path; manifest = None};
-      override = None;
+      override = [];
       opam = None;
     }
 

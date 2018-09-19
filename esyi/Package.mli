@@ -149,7 +149,7 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : Source.t * Source.t list;
-  override : Override.t option;
+  override : Override.t list;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;

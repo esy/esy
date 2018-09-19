@@ -347,7 +347,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     source = Source.NoSource, [];
-    override = None;
+    override = [];
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];

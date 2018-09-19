@@ -322,11 +322,9 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       Lwt.return (List.fold_left ~f ~init:[] dependencies)
     in
 
-    let loadDependencies ?override ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
+    let loadDependencies ~override ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let deps =
-        match override with
-        | Some override -> applyDependendenciesOverride deps override
-        | None -> deps
+        List.fold_left ~f:applyDependendenciesOverride ~init:deps (List.rev override)
       in
       let%lwt devDependencies =
         if Path.compare buildConfig.EsyBuildPackage.Config.projectPath path = 0
@@ -371,7 +369,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       then
         let%bind m = Manifest.ofSandboxSpec spec in
         let source = Source.LocalPathLink {path; manifest = None} in
-        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, None)
+        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, [])
       else
         let%bind link = EsyLinkFile.ofDir path in
         let sourcePath =
@@ -393,7 +391,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
 
         let%lwt dependencies =
           let ignoreCircularDep = Option.isNone build in
-          loadDependencies ?override ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
+          loadDependencies ~override ~ignoreCircularDep ~packagesPath (Manifest.dependencies manifest)
         in
 
         let hasDepWithSourceTypeDevelopment =
@@ -430,9 +428,10 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           } in
 
           let pkg =
-            match override with
-            | None -> pkg
-            | Some override -> applyPkgOverride pkg override
+            List.fold_left
+              ~f:applyPkgOverride
+              ~init:pkg
+              (List.rev override)
           in
 
           dependenciesByPackage :=
@@ -444,7 +443,9 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           return (`Package dependencies)
       in
       return pkg
-    | None, Some override ->
+    | None, [] ->
+      error "unable to find manifest"
+    | None, override ->
       let name  =
         match name with
         | None -> "pkg"
@@ -481,13 +482,11 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         source;
         sourceType;
       } in
-      let pkg = applyPkgOverride pkg override in
+      let pkg = List.fold_left ~f:applyPkgOverride ~init:pkg (List.rev override) in
       dependenciesByPackage :=
         Package.Map.add pkg dependencies
         !dependenciesByPackage;
       return (`PackageWithBuild (pkg, None))
-    | None, None ->
-      error "unable to find manifest"
 
   and loadPackageCached ?name (path : Path.t) stack =
     let compute () = loadPackage ?name path stack in
