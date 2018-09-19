@@ -31,6 +31,7 @@
     "install:esy": "esy install",
     "build:esy": "esy build",
     "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
+    "build:postinstall-esy-bash": "node node_modules/esy-bash/postinstall.js",
     "test:unit": "esy b dune runtest test",
     "test-e2e": "jest --runInBand test-e2e",
     "postinstall": "echo Hello World!"
@@ -67,8 +68,7 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
-    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b",
-    "esy-bash": "0.1.22"
+    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
   "peerDependencies": {
     "ocaml": "~4.6.6"

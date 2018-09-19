@@ -10,6 +10,7 @@ install:
 build_script:
      - esy build
      - npm run build:copy-frs
+     - npm run build:postinstall-esy-bash
      - npm run test:unit
 #    - npm run make:test
 #    - npm run bootstrap:make-release-package
