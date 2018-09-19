@@ -281,7 +281,7 @@ let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
   | (VersionSpec.Npm spec, Version.Npm version) ->
     SemverVersion.Formula.DNF.matches ~version spec
 
-  | (VersionSpec.NpmDistTag (tag, _), Version.Npm version) ->
+  | (VersionSpec.NpmDistTag tag, Version.Npm version) ->
     begin match Hashtbl.find_opt resolver.npmDistTags req.name with
     | Some tags ->
       begin match StringMap.find_opt tag tags with
@@ -537,9 +537,9 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 
     let rewrittenSpec =
       match spec with
-      | VersionSpec.NpmDistTag (tag, _) ->
+      | VersionSpec.NpmDistTag tag ->
         begin match StringMap.find_opt tag distTags with
-        | Some version -> Some (VersionSpec.NpmDistTag (tag, Some version))
+        | Some _version -> Some (VersionSpec.NpmDistTag tag)
         | None -> None
         end
       | _ -> None

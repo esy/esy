@@ -1,13 +1,13 @@
 type t =
   | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
+  | NpmDistTag of string
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
   [@@deriving ord]
 
 let show = function
   | Npm formula -> SemverVersion.Formula.DNF.show formula
-  | NpmDistTag (tag, _version) -> tag
+  | NpmDistTag tag -> tag
   | Opam formula -> OpamPackageVersion.Formula.DNF.show formula
   | Source src -> SourceSpec.show src
 
@@ -34,7 +34,7 @@ module Parse = struct
      * this is a simplified check for that. *)
     let p =
       let%map tag = take_while1 (fun _ -> true) in
-      NpmDistTag (tag, None)
+      NpmDistTag tag
     in
     match%bind peek_char_fail with
     | 'v' | '0'..'9' -> fail "unable to parse npm tag"

@@ -227,7 +227,7 @@ let toOpamFormula reqs =
         in
         let formula = SemverVersion.Formula.ofDnfToCnf formula in
         List.map ~f:(List.map ~f) formula
-      | VersionSpec.NpmDistTag (tag, _) ->
+      | VersionSpec.NpmDistTag tag ->
         [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
       | VersionSpec.Opam formula ->
         let f (c : OpamPackageVersion.Constraint.t) =

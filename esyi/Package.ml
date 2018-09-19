@@ -168,7 +168,7 @@ module Dependencies = struct
             let spec =
               match dep.req with
               | Dep.Npm _ -> VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag (tag, None)
+              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag tag
               | Dep.Opam _ -> VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
               | Dep.Source srcSpec -> VersionSpec.Source srcSpec
             in

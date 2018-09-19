@@ -5,7 +5,7 @@
 
 type t =
   | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
+  | NpmDistTag of string
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
 
