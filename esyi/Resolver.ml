@@ -254,7 +254,19 @@ let package ~(resolution : Resolution.t) resolver =
         ~repo
         ~ref:commit
         ()
-    | Archive _ -> error "not implemented"
+
+    | Archive _ ->
+      let%bind tarballPath = FetchStorage.fetchSource ~cfg:resolver.cfg source in
+      Fs.withTempDir begin fun path ->
+        let%bind () = Tarball.unpack ~dst:path tarballPath in
+        loadPackageOfPath
+          ~name:resolution.name
+          ~version:(Version.Source source)
+          ~allowEmptyPackage
+          ~source
+          path
+      end
+
     | NoSource -> error "no source"
   in
 
