@@ -169,6 +169,13 @@ module type MANIFEST = sig
   val sandboxEnv : t -> Env.t Run.t
 end
 
+module type QUERY_MANIFEST = sig
+  include MANIFEST
+
+  [@@@ocaml.warning "-32"]
+  val manifest : t
+end
+
 module Esy : sig
   include MANIFEST
 
@@ -597,54 +604,24 @@ module EsyOrOpamManifest : sig
     -> (t * Path.Set.t) option RunAsync.t
 
 end = struct
-  type t =
-    | Esy of Esy.t
-    | Opam of Opam.t
 
-  let name (m : t) =
-    match m with
-    | Opam m -> Opam.name m
-    | Esy m -> Esy.name m
+  module type QUERY_MANIFEST = sig
+    include MANIFEST
 
-  let version (m : t) =
-    match m with
-    | Opam m -> Opam.version m
-    | Esy m -> Esy.version m
+    val manifest : t
+  end
 
-  let description m =
-    match m with
-    | Opam m -> Opam.description m
-    | Esy m -> Esy.description m
+  type t = (module QUERY_MANIFEST)
 
-  let license m =
-    match m with
-    | Opam m -> Opam.license m
-    | Esy m -> Esy.license m
-
-  let dependencies m =
-    match m with
-    | Opam m -> Opam.dependencies m
-    | Esy m -> Esy.dependencies m
-
-  let build m =
-    match m with
-    | Opam m -> Opam.build m
-    | Esy m -> Esy.build m
-
-  let release m =
-    match m with
-    | Opam m -> Opam.release m
-    | Esy m -> Esy.release m
-
-  let scripts m =
-    match m with
-    | Opam m -> Opam.scripts m
-    | Esy m -> Esy.scripts m
-
-  let sandboxEnv m =
-    match m with
-    | Opam m -> Opam.sandboxEnv m
-    | Esy m -> Esy.sandboxEnv m
+  let name (module M : QUERY_MANIFEST) = M.name M.manifest
+  let version (module M : QUERY_MANIFEST) = M.version M.manifest
+  let description (module M : QUERY_MANIFEST) = M.description M.manifest
+  let license (module M : QUERY_MANIFEST) = M.license M.manifest
+  let dependencies (module M : QUERY_MANIFEST) = M.dependencies M.manifest
+  let build (module M : QUERY_MANIFEST) = M.build M.manifest
+  let release (module M : QUERY_MANIFEST) = M.release M.manifest
+  let scripts (module M : QUERY_MANIFEST) = M.scripts M.manifest
+  let sandboxEnv (module M : QUERY_MANIFEST) = M.sandboxEnv M.manifest
 
   let ofDir ?name ?manifest (path : Path.t) =
     let open RunAsync.Syntax in
@@ -670,7 +647,13 @@ end = struct
             match kind with
             | `Esy ->
               let%bind manifest = Esy.ofFile fname in
-              return (Some (Esy manifest, Path.Set.singleton fname))
+              let m =
+                (module struct
+                  include Esy
+                  let manifest = manifest
+                end : QUERY_MANIFEST)
+              in
+              return (Some (m, Path.Set.singleton fname))
             | `Opam ->
               let name =
                 match name with
@@ -678,7 +661,13 @@ end = struct
                 | None -> Path.basename path
               in
               let%bind manifest = Opam.ofFile ~name ~version:"dev" fname in
-              return (Some (Opam manifest, Path.Set.singleton fname))
+              let m =
+                (module struct
+                  include Opam
+                  let manifest = manifest
+                end : QUERY_MANIFEST)
+              in
+              return (Some (m, Path.Set.singleton fname))
           )
           else tryLoad rest
       in
@@ -689,7 +678,14 @@ end = struct
     match manifest with
     | None ->
       begin match%bind Opam.ofInstallation ?name path with
-      | Some m -> return (Some (Opam m, Path.Set.empty))
+      | Some manifest ->
+        let m =
+          (module struct
+            include Opam
+            let manifest = manifest
+          end : QUERY_MANIFEST)
+        in
+        return (Some (m, Path.Set.empty))
       | None -> discoverOfDir path
       end
     | Some (SandboxSpec.ManifestSpec.OpamAggregated _) ->
@@ -697,7 +693,13 @@ end = struct
     | Some (SandboxSpec.ManifestSpec.Esy fname) ->
       let path = Path.(path / fname) in
       let%bind manifest = Esy.ofFile path in
-      return (Some (Esy manifest, Path.Set.singleton path))
+      let m =
+        (module struct
+          include Esy
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (Some (m, Path.Set.singleton path))
     | Some (SandboxSpec.ManifestSpec.Opam fname) ->
       let name =
         match name with
@@ -706,7 +708,13 @@ end = struct
       in
       let path = Path.(path / fname) in
       let%bind manifest = Opam.ofFile ~name ~version:"dev" path in
-      return (Some (Opam manifest, Path.Set.singleton path))
+      let m =
+        (module struct
+          include Opam
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (Some (m, Path.Set.singleton path))
 
   let ofSandboxSpec (spec : SandboxSpec.t) =
     let open RunAsync.Syntax in
@@ -714,15 +722,33 @@ end = struct
     | SandboxSpec.ManifestSpec.Esy fname ->
       let path = Path.(spec.path / fname) in
       let%bind manifest = Esy.ofFile path in
-      return (Esy manifest, Path.Set.singleton path)
+      let m =
+        (module struct
+          include Esy
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (m, Path.Set.singleton path)
     | SandboxSpec.ManifestSpec.Opam fname ->
       let path = Path.(spec.path / fname) in
       let%bind manifest = Opam.ofFiles [path] in
-      return (Opam manifest, Path.Set.singleton path)
+      let m =
+        (module struct
+          include Opam
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (m, Path.Set.singleton path)
     | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       let%bind manifest = Opam.ofFiles paths in
-      return (Opam manifest, Path.Set.of_list paths)
+      let m =
+        (module struct
+          include Opam
+          let manifest = manifest
+        end : QUERY_MANIFEST)
+      in
+      return (m, Path.Set.of_list paths)
 
   let dirHasManifest (path : Path.t) =
     let open RunAsync.Syntax in
