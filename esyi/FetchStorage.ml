@@ -2,46 +2,32 @@ module String = Astring.String
 
 module Dist = struct
   type t = {
-    name : string;
-    version : Version.t;
     source : Source.t;
-    override : Package.Override.t option;
-    tarballPath : Path.t option;
+    record : Solution.Record.t;
   }
 
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.name Version.pp dist.version
+    Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
+
+  let tarballPath ~(cfg : Config.t) (dist : t) =
+
+    let hash vs =
+      vs
+      |> String.concat ~sep:"__"
+      |> Digest.string
+      |> Digest.to_hex
+      |> String.Sub.v ~start:0 ~stop:8
+      |> String.Sub.to_string
+    in
+
+    let id = Path.safePath (
+      let version = Version.show dist.record.version in
+      let source = Source.show dist.source in
+      Printf.sprintf "%s__%s__%s_v2" dist.record.name version (hash [source])
+    ) in
+
+    Path.(cfg.cacheTarballsPath // v id |> addExt "tgz")
 end
-
-let cacheId source (record : Solution.Record.t) =
-
-  let hash vs =
-    vs
-    |> String.concat ~sep:"__"
-    |> Digest.string
-    |> Digest.to_hex
-    |> String.Sub.v ~start:0 ~stop:8
-    |> String.Sub.to_string
-  in
-  let version = Version.show record.version in
-  let source = Source.show source in
-  match record.opam with
-  | None ->
-    Printf.sprintf "%s__%s__%s_v2" record.name version (hash [source])
-  | Some opam ->
-    let h = hash [
-      source;
-      opam.opam
-      |> Package.Opam.OpamFile.to_yojson
-      |> Yojson.Safe.to_string;
-      (match opam.override with
-      | Some override ->
-        override
-        |> Package.OpamOverride.to_yojson
-        |> Yojson.Safe.to_string
-      | None -> "");
-    ] in
-    Printf.sprintf "%s__%s__%s_v2" record.name version h
 
 let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
   let open RunAsync.Syntax in
@@ -105,73 +91,15 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
       return `Done
   in
 
-  let commit path source =
-
-    let removeEsyJsonIfExists () =
-      let esyJson = Path.(path / "esy.json") in
-      match%bind Fs.exists(esyJson) with
-      | true -> Fs.unlink(esyJson)
-      | false -> return ()
-    in
-
-    let%bind () =
-      match record.opam with
-      | Some { name; version; opam; override } ->
-        let%bind () = removeEsyJsonIfExists() in
-        let data =
-          Format.asprintf
-            "name: \"%a\"\nversion: \"%a\"\n%a"
-            Package.Opam.OpamName.pp name
-            Package.Opam.OpamPackageVersion.pp version
-            Package.Opam.OpamFile.pp opam
-        in
-        let%bind () = Fs.createDir Path.(path / "_esy") in
-        let%bind () = Fs.writeFile ~data Path.(path / "_esy" / "opam") in
-        let%bind () =
-          let info = {
-            EsyOpamFile.
-            override;
-            source;
-          } in
-          EsyOpamFile.toFile info Path.(path / "_esy" / "esy-opam.json")
-        in
-        return ()
-      | None -> return ()
-    in
-
-    let%bind () =
-      let f {Package.File. name; content; perm} =
-        let name = Path.append path name in
-        let dirname = Path.parent name in
-        let%bind () = Fs.createDir dirname in
-        (* TODO: move this to the place we read data from *)
-        let contents =
-          if String.get content (String.length content - 1) == '\n'
-          then content
-          else content ^ "\n"
-        in
-        let%bind () = Fs.writeFile ~perm ~data:contents name in
-        return()
-      in
-      List.map ~f record.files |> RunAsync.List.waitAll
-    in
-
-    return ()
-  in
-
   let doFetchIfNeeded source =
-    let unsafeKey = cacheId source record in
-    let key = EsyLib.Path.safePath unsafeKey in
-    let tarballPath = Path.(cfg.cacheTarballsPath // v key |> addExt "tgz") in
-
     let dist = {
       Dist.
-      tarballPath = Some tarballPath;
-      name = record.name;
-      version = record.version;
+      record;
       source;
-      override = record.override;
     } in
+
+    let tarballPath = Dist.tarballPath ~cfg dist in
+
     let%bind tarballIsInCache = Fs.exists tarballPath in
 
     match source, tarballIsInCache with
@@ -184,11 +112,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
         let%bind fetched =
           RunAsync.contextf (
             let%bind () = Fs.createDir sourcePath in
-            match%bind doFetch sourcePath source with
-            | `Done ->
-              let%bind () = commit sourcePath source in
-              return `Done
-            | `TryNext err -> return (`TryNext err)
+            doFetch sourcePath source
           )
           "fetching %a" Source.pp source
         in
@@ -237,9 +161,31 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
     tryFetch [] sources
 
-let install ~cfg:_ ~path dist =
+let install ~cfg ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. tarballPath; source; override; _} = dist in
+  let {Dist. source; record;} = dist in
+
+  let finishInstall path =
+
+    let%bind () =
+      let f {Package.File. name; content; perm} =
+        let name = Path.append path name in
+        let dirname = Path.parent name in
+        let%bind () = Fs.createDir dirname in
+        (* TODO: move this to the place we read data from *)
+        let contents =
+          if String.get content (String.length content - 1) == '\n'
+          then content
+          else content ^ "\n"
+        in
+        let%bind () = Fs.writeFile ~perm ~data:contents name in
+        return()
+      in
+      List.map ~f record.files |> RunAsync.List.waitAll
+    in
+
+    return ()
+  in
 
   let%bind () = Fs.createDir path in
 
@@ -254,17 +200,22 @@ let install ~cfg:_ ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; override;}
+      EsyLinkFile.{source; override = record.override; opam = record.opam}
       path
   in
 
   let%bind () =
-    match source, tarballPath with
-    | Source.LocalPathLink _, _
-    | _, None ->
+    match source with
+    | Source.LocalPathLink _ ->
       return ()
-    | _, Some tarballPath ->
-      Tarball.unpack ~dst:path tarballPath
+    | Source.NoSource ->
+      let%bind () = finishInstall path in
+      return ()
+    | _ ->
+      let tarballPath = Dist.tarballPath ~cfg dist in
+      let%bind () = Tarball.unpack ~dst:path tarballPath in
+      let%bind () = finishInstall path in
+      return ()
   in
 
   return ()

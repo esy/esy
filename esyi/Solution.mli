@@ -14,6 +14,8 @@ module Record : sig
       opam : Package.Opam.OpamFile.t;
       override : Package.OpamOverride.t option;
     }
+
+    include S.JSONABLE with type t := t
   end
 
   type t = {

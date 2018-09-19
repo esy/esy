@@ -316,9 +316,19 @@ end
 module Opam : sig
   include MANIFEST
 
-  val ofFiles : Path.t list -> t RunAsync.t
-  val ofFile :
+  val ofFiles :
     ?name:string
+    -> Path.t list
+    -> t RunAsync.t
+
+  val ofInstallation :
+    ?name:string
+    -> Path.t
+    -> t option RunAsync.t
+
+  val ofFile :
+    name:string
+    -> version:string
     -> Path.t
     -> t RunAsync.t
 
@@ -326,27 +336,25 @@ end = struct
   type t =
     | Installed of {
         name : string option;
-        opam : OpamFile.OPAM.t;
-        info : EsyInstall.EsyOpamFile.t;
+        info : EsyInstall.Solution.Record.Opam.t;
       }
-    | AggregatedRoot of (string * OpamFile.OPAM.t) list
+    | AggregatedRoot of {
+        name : string option;
+        opam : (string * OpamFile.OPAM.t) list
+      }
 
   let opamname = function
-    | Installed {opam; _} ->
-      let name = OpamFile.OPAM.name opam in
-      OpamPackage.Name.to_string name
+    | Installed {info; _} -> OpamPackage.Name.to_string info.name
     | AggregatedRoot _ -> "root"
 
   let name manifest =
     match manifest with
     | Installed {name = Some name; _} -> name
+    | AggregatedRoot {name = Some name; _} -> name
     | manifest -> "@opam/" ^ (opamname manifest)
 
   let version = function
-    | Installed {opam;_} -> (
-        try OpamPackage.Version.to_string (OpamFile.OPAM.version opam)
-        with _ -> "dev"
-      )
+    | Installed {info;_} -> OpamPackage.Version.to_string info.version
     | AggregatedRoot _ -> "dev"
 
   let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
@@ -379,8 +387,8 @@ end = struct
         dependencies
       in
       match manifest with
-      | Installed {opam; info; name = _} ->
-        let dependencies = dependsOfOpam opam in
+      | Installed {info; name = _} ->
+        let dependencies = dependsOfOpam info.opam in
         begin
         match info.override with
         | Some {EsyInstall.Package.OpamOverride. dependencies = extraDependencies; _} ->
@@ -391,10 +399,10 @@ end = struct
           List.append dependencies extraDependencies
         | None -> dependencies
         end
-      | AggregatedRoot opams ->
+      | AggregatedRoot {opam; _} ->
         let namesPresent =
           let f names (name, _) = StringSet.add ("@opam/" ^ name) names in
-          List.fold_left ~f ~init:StringSet.empty opams
+          List.fold_left ~f ~init:StringSet.empty opam
         in
         let f dependencies (_name, opam) =
           let update = dependsOfOpam opam in
@@ -408,14 +416,14 @@ end = struct
           in
           dependencies @ update
         in
-        List.fold_left ~f ~init:[] opams
+        List.fold_left ~f ~init:[] opam
     in
 
     let optDependencies =
       match manifest with
-      | Installed {opam;_} ->
+      | Installed {info;_} ->
         let dependencies =
-          let f = OpamFile.OPAM.depopts opam in
+          let f = OpamFile.OPAM.depopts info.opam in
           let dependencies =
             listPackageNamesOfFormula
               ~build:true ~test:false ~post:true ~doc:false ~dev:false
@@ -442,48 +450,48 @@ end = struct
       optDependencies;
     }
 
-  let ofFile ?name (path : Path.t) =
+  let ofInstallation ?name (path : Path.t) =
     let open RunAsync.Syntax in
-    let%bind opam =
-      let%bind data = Fs.readFile path in
-      let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
-      let opam = OpamFile.OPAM.read_from_string ~filename data in
-      let opam = OpamFormatUpgrade.opam_file ~filename opam in
-      return opam
-    in
-    let%bind info =
-      let esyOpamPath = Path.(parent path / "esy-opam.json") in
-      if%bind Fs.exists esyOpamPath
-      then EsyInstall.EsyOpamFile.ofFile esyOpamPath
-      else
-        return {
-          EsyInstall.EsyOpamFile.
-          override = None;
-          source = Source.LocalPath {path; manifest = None;};
-        }
-    in
-    return (Installed {opam; info; name})
+    match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
+    | None
+    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
+      return None
+    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
+      return (Some (Installed {info; name}))
 
-  let ofFiles paths =
+  let readOpam path =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    if String.trim data = ""
+    then return None
+    else
+      let opam = OpamFile.OPAM.read_from_string data in
+      let name = Path.(path |> remExt |> basename) in
+      return (Some (name, opam))
+
+  let ofFile ~name ~version (path : Path.t) =
+    let open RunAsync.Syntax in
+    match%bind readOpam path with
+    | None -> errorf "unable to load opam manifest at %a" Path.pp path
+    | Some (_, opam) ->
+      let version = OpamPackage.Version.of_string version in
+      return (Installed {
+        name = Some name;
+        info = {
+          EsyInstall.Solution.Record.Opam.
+          name = OpamPackage.Name.of_string "pkg"; version; opam;
+          override = None;
+        }
+      })
+
+  let ofFiles ?name paths =
     let open RunAsync.Syntax in
     let%bind opams =
-
-      let readOpam path =
-        let%bind data = Fs.readFile path in
-        if String.trim data = ""
-        then return None
-        else
-          let opam = OpamFile.OPAM.read_from_string data in
-          let name = Path.(path |> remExt |> basename) in
-          return (Some (name, opam))
-      in
-
       paths
       |> List.map ~f:readOpam
       |> RunAsync.List.joinAll
     in
-
-    return (AggregatedRoot (List.filterNone opams))
+    return (AggregatedRoot {name; opam = List.filterNone opams;})
 
   let release _ = None
 
@@ -499,9 +507,9 @@ end = struct
           Build.EsyCommands build
         | Some {EsyInstall.Package.OpamOverride. build = None; _}
         | None ->
-          Build.OpamCommands (OpamFile.OPAM.build manifest.opam)
+          Build.OpamCommands (OpamFile.OPAM.build manifest.info.opam)
         end
-      | AggregatedRoot [_name, opam] ->
+      | AggregatedRoot {opam = [_name, opam]; _} ->
         Build.OpamCommands (OpamFile.OPAM.build opam)
       | AggregatedRoot _ ->
         Build.OpamCommands []
@@ -515,9 +523,9 @@ end = struct
           Build.EsyCommands install
         | Some {EsyInstall.Package.OpamOverride. install = None; _}
         | None ->
-          Build.OpamCommands (OpamFile.OPAM.install manifest.opam)
+          Build.OpamCommands (OpamFile.OPAM.install manifest.info.opam)
         end
-      | AggregatedRoot [_name, opam] ->
+      | AggregatedRoot {opam = [_name, opam]; _} ->
         Build.OpamCommands (OpamFile.OPAM.install opam)
       | AggregatedRoot _ ->
         Build.OpamCommands []
@@ -526,7 +534,7 @@ end = struct
     let patches =
       match m with
       | Installed manifest ->
-        let patches = OpamFile.OPAM.patches manifest.opam in
+        let patches = OpamFile.OPAM.patches manifest.info.opam in
         let f (name, filter) =
           let name = Path.v (OpamFilename.Base.to_string name) in
           (name, filter)
@@ -538,7 +546,7 @@ end = struct
     let substs =
       match m with
       | Installed manifest ->
-        let names = OpamFile.OPAM.substs manifest.opam in
+        let names = OpamFile.OPAM.substs manifest.info.opam in
         let f name = Path.v (OpamFilename.Base.to_string name) in
         List.map ~f names
       | AggregatedRoot _ -> []
@@ -648,7 +656,6 @@ end = struct
         [
           `Esy, Path.v "esy.json";
           `Esy, Path.v "package.json";
-          `Opam, Path.(v "_esy" / "opam");
           `Opam, Path.(v dirname |> addExt ".opam");
           `Opam, Path.v "opam";
         ]
@@ -670,7 +677,7 @@ end = struct
                 | Some name -> name
                 | None -> Path.basename path
               in
-              let%bind manifest = Opam.ofFile ~name fname in
+              let%bind manifest = Opam.ofFile ~name ~version:"dev" fname in
               return (Some (Opam manifest, Path.Set.singleton fname))
           )
           else tryLoad rest
@@ -680,7 +687,11 @@ end = struct
     in
 
     match manifest with
-    | None -> discoverOfDir path
+    | None ->
+      begin match%bind Opam.ofInstallation ?name path with
+      | Some m -> return (Some (Opam m, Path.Set.empty))
+      | None -> discoverOfDir path
+      end
     | Some (SandboxSpec.ManifestSpec.OpamAggregated _) ->
       errorf "unable to load manifest from aggregated opam files"
     | Some (SandboxSpec.ManifestSpec.Esy fname) ->
@@ -688,8 +699,13 @@ end = struct
       let%bind manifest = Esy.ofFile path in
       return (Some (Esy manifest, Path.Set.singleton path))
     | Some (SandboxSpec.ManifestSpec.Opam fname) ->
+      let name =
+        match name with
+        | Some name -> name
+        | None -> Path.basename path
+      in
       let path = Path.(path / fname) in
-      let%bind manifest = Opam.ofFile ?name path in
+      let%bind manifest = Opam.ofFile ~name ~version:"dev" path in
       return (Some (Opam manifest, Path.Set.singleton path))
 
   let ofSandboxSpec (spec : SandboxSpec.t) =

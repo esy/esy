@@ -53,10 +53,12 @@ module Override : sig
   val of_yojson :
     (string -> Yojson.Safe.json -> ('a, string) result)
     -> Yojson.Safe.json -> ('a t, string) result
-  
+
   val to_yojson :
     ('a -> Yojson.Safe.json)
     -> 'a t -> Yojson.Safe.json
+
+  val pp : 'a Fmt.t -> 'a t Fmt.t
 
 end = struct
 
@@ -107,6 +109,15 @@ end = struct
       List.map ~f (bindings env)
     in
     `Assoc items
+
+  let pp pp_value =
+    let ppOverride fmt override =
+      match override with
+      | Drop -> Fmt.unit "remove" fmt ()
+      | Edit v -> pp_value fmt v
+    in
+    let ppItem = Fmt.(pair ~sep:(unit ": ") string ppOverride) in
+    Fmt.braces (pp ~sep:(Fmt.unit ", ") ppItem)
 
   let%test "apply: add key" =
     let orig = empty |> add "a" "b" in
