@@ -28,6 +28,8 @@
     "bootstrap:build": "esy-bash make bootstrap",
     "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
     "bootstrap:unit-test": "esy-bash dune runtest test",
+    "build:copy-frs": "esy b \"cp $(esy which fastreplacestring) bin/fastreplacestring\"",
+    "test:unit": "esy b dune runtest test",
     "test-e2e": "jest --runInBand test-e2e",
     "postinstall": "echo Hello World!"
   },
@@ -73,7 +75,6 @@
   },
   "devDependencies": {
     "@esy-ocaml/merlin": "*",
-
     "@opam/utop": "*",
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
