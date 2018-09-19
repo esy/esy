@@ -120,6 +120,7 @@ async function buildOcamlPackage() {
         build: ['true'],
         install: [
           `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
+          `cp flexlink.exe #{self.bin / 'flexlink.exe'}`,
           `chmod +x #{self.bin / '${ocamloptName}'}`,
         ],
       },
