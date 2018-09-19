@@ -1,9 +1,6 @@
 platform:
     - x64
 
-environment:
-   HOME: C:\Users\appveyor
-
 install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
@@ -12,9 +9,6 @@ install:
     - appveyor-retry appveyor-retry esy install
 
 build_script:
-# Reset %PATH% to avoid cygwin DLL conflicts with cause
-# *** fatal error - cygheap base mismatch detected
-     - echo $PATH
      - esy build
 #    - npm run make:test
 #    - npm run bootstrap:make-release-package
