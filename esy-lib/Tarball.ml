@@ -47,12 +47,13 @@ let run cmd =
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
   let unpack out = 
-    let nf = Path.toString filename in
-    let _normalizedOut = Path.toString out in
+    let nf = Fpath.to_string filename in
+    let _normalizedOut = Fpath.to_string out in
 
     let max_ocaml_int = Int64.of_int max_int in
 
     let readFile input_channel (header : Tar_cstruct.Header.t) =
+      let () = Printf.printf "user_id: %d, link_indicator: %s" header.user_id header.link_name in
       let file_size = header.file_size in
       (* If this were to happen we'd have some pretty big problems... *)
       assert (file_size <= max_ocaml_int) ;
@@ -62,7 +63,7 @@ let unpackWithTar ?stripComponents ~dst filename =
       let nameLength = String.length header.file_name in
       let maxLength = nameLength - 2 in
 
-      let filename = Filename.concat (Path.toString out) (String.sub header.file_name 2 maxLength) in
+      let filename = Filename.concat (Fpath.to_string out) (String.sub header.file_name 2 maxLength) in
 
       let filepath = match Path.ofString filename with
       | Ok path -> path
