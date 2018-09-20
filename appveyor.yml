@@ -20,6 +20,7 @@ build_script:
      - npm run build
      - npm run test:e2e
      - npm run test:unit
+     - npm run make:platform-release-package
 #    - npm run make:test
 #    - npm run bootstrap:make-release-package
 

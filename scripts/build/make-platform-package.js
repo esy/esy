@@ -1,13 +1,15 @@
 const path = require("path")
 const fs = require("fs")
 const os = require("os")
+const mkdirp = require("mkdirp");
 
 const { bashExec, toCygwinPath } = require("esy-bash")
 
 const rootFolder = path.join(__dirname, "..", "..")
+const buildFolder = path.join(rootFolder, "_build");
 const packageJson = path.join(rootFolder, "package.json")
-const packFolder = path.join(rootFolder, "_release")
-const destFolder = path.join(rootFolder, "_platformrelease")
+const destFolder = path.join(rootFolder, "_staging")
+const platformReleaseFolder = path.join(rootFolder, "_platformrelease")
 
 const version = require(packageJson).version
 
@@ -31,6 +33,11 @@ const bashExecAndThrow = async (command) => {
     }
 }
 
+const copy = async (srcFile, destFile) => {
+    mkdirp.sync(path.dirname(destFile));
+    await bashExecAndThrow(`cp "${srcFile}" "${destFile}"`)
+}
+
 const pack = async () => {
     // If we pack cygwin + all the installed dependencies, the archive by itself
     // is around 338 MB! If we pack that for both x86 + x64, we'll end up with almost 750 MB.
@@ -39,17 +46,18 @@ const pack = async () => {
     // this should happen automatically).
     console.log("Deleting cygwin from release folder...")
 
+    await copy(path.join(rootFolder, "bin", "fastreplacestring"), path.join(destFolder, "bin", "fastreplacestring"));
+    await copy(path.join(buildFolder, "default", "esy", "bin", "esyCommand.exe"), path.join(destFolder, "_build", "default", "esy", "bin", "esyCommand.exe"));
+    await copy(path.join(buildFolder, "default", "esy-build-package", "bin", "esyBuildPackageCommand.exe"), path.join(destFolder, "_build", "default", "esy-build-package", "bin", "esyBuildPackageCommand.exe"));
+
     const cygwinDestFolder = await toCygwinPath(destFolder)
-    const cygwinPackFolder = await toCygwinPath(packFolder)
+    const cygwinPlatformReleaseFolder = await toCygwinPath(platformReleaseFolder)
 
-    console.log(`- Deleting: ${cygwinPackFolder}/node_modules/esy-bash`)
-    await bashExecAndThrow(`rm -rf ${cygwinPackFolder}/node_modules/esy-bash`)
+    mkdirp.sync(platformReleaseFolder)
 
-    console.log(`Creating folder: ${cygwinDestFolder}`)
-    await bashExecAndThrow(`mkdir ${cygwinDestFolder}`)
+    console.log(`Creating archive from ${cygwinDestFolder} in ${cygwinPlatformReleaseFolder}`)
+    await bashExecAndThrow(`tar -czvf ${cygwinDestFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinPlatformReleaseFolder} .`)
 
-    console.log(`Creating archive from ${cygwinPackFolder} in ${cygwinDestFolder}.`)
-    await bashExecAndThrow(`tar -czvf ${cygwinDestFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinPackFolder} .`)
 }
 
 pack()
