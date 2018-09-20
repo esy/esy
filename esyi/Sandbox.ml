@@ -175,9 +175,9 @@ let makeEsySandbox ~cfg ~spec projectPath path =
 
 let make ~cfg (spec : SandboxSpec.t) =
   match spec.manifest with
-  | ManifestSpec.One Esy fname ->
+  | ManifestSpec.One (Esy, fname) ->
     makeEsySandbox ~cfg ~spec spec.path Path.(spec.path / fname)
-  | ManifestSpec.One Opam fname ->
+  | ManifestSpec.One (Opam, fname) ->
     makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)]
   | ManifestSpec.ManyOpam fnames ->
     let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in

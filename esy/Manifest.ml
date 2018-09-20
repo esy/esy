@@ -729,10 +729,10 @@ end = struct
     | Some spec ->
       let%bind manifest =
         match spec with
-        | ManifestSpec.Filename.Esy fname ->
+        | ManifestSpec.Filename.Esy, fname ->
           let path = Path.(path / fname) in
           loadEsyManifest path
-        | ManifestSpec.Filename.Opam fname ->
+        | ManifestSpec.Filename.Opam, fname ->
           let path = Path.(path / fname) in
           loadOpamManifest path
       in
@@ -740,10 +740,10 @@ end = struct
 
   let ofSandboxSpec (spec : SandboxSpec.t) =
     match spec.manifest with
-    | ManifestSpec.One Esy fname ->
+    | ManifestSpec.One (Esy, fname) ->
       let path = Path.(spec.path / fname) in
       loadEsyManifest path
-    | ManifestSpec.One Opam fname ->
+    | ManifestSpec.One (Opam, fname) ->
       let path = Path.(spec.path / fname) in
       loadOpamManifestOfFiles [path]
     | ManifestSpec.ManyOpam fnames ->

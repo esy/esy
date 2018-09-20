@@ -1,7 +1,10 @@
 module Filename : sig
   type t =
-    | Esy of string
-    | Opam of string
+    kind * string
+
+  and kind =
+    | Esy
+    | Opam
 
   include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t

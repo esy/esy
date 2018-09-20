@@ -1,26 +1,24 @@
 module Filename = struct
-  type t =
-    | Esy of string
-    | Opam of string
+  type t = kind * string
     [@@deriving ord]
 
-  let show = function
-    | Esy fname
-    | Opam fname -> fname
+  and kind =
+    | Esy
+    | Opam
 
-  let pp fmt = function
-    | Esy fname
-    | Opam fname -> Fmt.string fmt fname
+  let show (_, fname) = fname
+
+  let pp fmt (_, fname) = Fmt.string fmt fname
 
   let ofString fname =
     let open Result.Syntax in
     match fname with
     | "" -> errorf "empty filename"
-    | "opam" -> return (Opam "opam")
+    | "opam" -> return (Opam, "opam")
     | fname ->
       begin match Path.(getExt (v fname)) with
-      | ".json" -> return (Esy fname)
-      | ".opam" -> return (Opam fname)
+      | ".json" -> return (Esy, fname)
+      | ".opam" -> return (Opam, fname)
       | _ -> errorf "invalid manifest: %s" fname
       end
 
@@ -37,15 +35,12 @@ module Filename = struct
     in
     Parse.(take_while1 (fun _ -> true) >>= make)
 
-  let to_yojson manifest =
-    match manifest with
-    | Esy fname
-    | Opam fname -> `String fname
+  let to_yojson (_, fname) = `String fname
 
   let of_yojson json =
     let open Result.Syntax in
     match json with
-    | `String "opam" -> return (Opam "opam")
+    | `String "opam" -> return (Opam, "opam")
     | `String fname -> ofString fname
     | _ -> error "invalid manifest filename"
 
@@ -67,7 +62,7 @@ let pp fmt manifest =
 
 let to_yojson manifest =
   match manifest with
-  | One Esy fname | One Opam fname -> `String fname
+  | One (_, fname) -> `String fname
   | ManyOpam fnames ->
     let fnames = List.map ~f:(fun fname -> `String fname) fnames in
     `List fnames

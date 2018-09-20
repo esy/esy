@@ -13,14 +13,14 @@ let doesPathReferToConcreteManifest path =
 let name spec =
   match spec.manifest with
   | ManyOpam _ -> "opam"
-  | One Opam "opam" -> "opam"
-  | One Esy "package.json" | One Esy "esy.json" -> "default"
-  | One Opam fname | One Esy fname -> Path.(show (remExt (v fname)))
+  | One (Opam, "opam") -> "opam"
+  | One (Esy, "package.json") | One (Esy, "esy.json") -> "default"
+  | One (_, fname) -> Path.(show (remExt (v fname)))
 
 let isDefault spec =
   match spec.manifest with
-  | One Esy "package.json" -> true
-  | One Esy "esy.json" -> true
+  | One (Esy, "package.json") -> true
+  | One (Esy, "esy.json") -> true
   | _ -> false
 
 let localPrefixPath spec =
@@ -34,7 +34,7 @@ let buildPath spec = Path.(localPrefixPath spec / "build")
 
 let lockfilePath spec =
   match spec.manifest with
-  | One Esy "package.json" | One Esy "esy.json" -> Path.(spec.path / "esy.lock.json")
+  | One (Esy, "package.json") | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock.json")
   | _ ->
     let name = name spec in
     Path.(spec.path / ("esy." ^ name ^ ".json"))
@@ -48,9 +48,9 @@ let ofPath path =
 
     let%bind manifest =
       if StringSet.mem "esy.json" fnames
-      then return (ManifestSpec.One (Esy "esy.json"))
+      then return (ManifestSpec.One (Esy, "esy.json"))
       else if StringSet.mem "package.json" fnames
-      then return (ManifestSpec.One (Esy "package.json"))
+      then return (ManifestSpec.One (Esy, "package.json"))
       else
         let opamFnames =
           let isOpamFname fname = Path.(hasExt ".opam" (v fname)) || fname = "opam" in
@@ -58,7 +58,7 @@ let ofPath path =
         in
         begin match opamFnames with
         | [] -> errorf "no manifests found at %a" Path.pp path
-        | [fname] -> return (ManifestSpec.One (Opam fname))
+        | [fname] -> return (ManifestSpec.One (Opam, fname))
         | fnames -> return (ManifestSpec.ManyOpam fnames)
         end
     in
@@ -76,11 +76,11 @@ let ofPath path =
         then (
           if fname = "opam"
           then
-            return {path = sandboxPath; manifest = One (Opam fname);}
+            return {path = sandboxPath; manifest = One (Opam, fname);}
           else
             match Path.getExt fpath with
-            | ".json" -> return {path = sandboxPath; manifest = One (Esy fname);}
-            | ".opam" -> return {path = sandboxPath; manifest = One (Opam fname);}
+            | ".json" -> return {path = sandboxPath; manifest = One (Esy, fname);}
+            | ".opam" -> return {path = sandboxPath; manifest = One (Opam, fname);}
             | _ -> tryLoad rest
         ) else
           tryLoad rest
