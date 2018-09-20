@@ -1,5 +1,5 @@
 {
-  "hash": "e4715768d10a404e1855e9aa165a61dd",
+  "hash": "72f4d532f2c48403d3adbff71b0581dd",
   "root": "esy@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -5357,6 +5357,7 @@
         "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
+<<<<<<< HEAD
         "@opam/dune@opam:1.2.1", "@opam/fmt@opam:0.8.5",
         "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
         "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
@@ -5376,6 +5377,21 @@
         "babel-preset-env@1.7.0", "babel-preset-flow@6.23.0", "del@3.0.0",
 >>>>>>> Add esy.lock.json
         "esy-solve-cudf@0.1.6",
+=======
+        "@opam/dune@opam:1.2.1", "@opam/ezgzip@opam:0.2.1",
+        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
+        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
+        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
+        "@opam/menhir@opam:20171013", "@opam/opam-core@opam:2.0.0",
+        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
+        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/ppx_deriving_yojson@opam:3.1",
+        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
+        "@opam/re@opam:1.7.2", "@opam/tar@opam:0.9.0",
+        "@opam/tar-unix@opam:0.9.0", "@opam/utop@opam:2.2.0",
+        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
+        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
+>>>>>>> Updated lockfile
         "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
         "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1",
         "minimatch@3.0.4", "ocaml@4.6.6", "outdent@0.3.0", "prettier@1.14.3",
@@ -6033,6 +6049,7 @@
       },
       "dependencies": []
     },
+<<<<<<< HEAD
     "commander@2.8.1": {
       "record": {
         "name": "commander",
@@ -6044,6 +6061,8 @@
       },
       "dependencies": [ "graceful-readlink@1.0.1" ]
     },
+=======
+>>>>>>> Updated lockfile
     "combined-stream@1.0.7": {
       "record": {
         "name": "combined-stream",
@@ -7913,30 +7932,53 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3", "ocaml@4.6.6"
+<<<<<<< HEAD
+=======
+      ]
+    },
+    "@opam/tar-unix@opam:0.9.0": {
+      "record": {
+        "name": "@opam/tar-unix",
+        "version": "opam:0.9.0",
+        "source":
+          "archive:https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz#md5:4524e7c290530d4243e0e9429fb3d224",
+        "files": [],
+        "opam": {
+          "name": "tar-unix",
+          "version": "0.9.0",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"tar-unix\"\nversion: \"0.9.0\"\nsynopsis: \"Decode and encode tar files\"\ndescription: \"\"\"\ntar-format is a simple library to read and write tar files with an emphasis on\nstreaming.\n\nThis is pure OCaml code, no C bindings.\"\"\"\nmaintainer: \"dave@recoil.org\"\nauthors: [\"Dave Scott\" \"Thomas Gazagnaire\" \"David Allsopp\"]\ntags: [\"org:xapi-project\" \"org:mirage\"]\nhomepage: \"https://github.com/mirage/ocaml-tar\"\ndoc: \"https://mirage.github.io/ocaml-tar/\"\nbug-reports: \"https://github.com/mirage/ocaml-tar/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n  \"tar\"\n  \"cstruct\" {>= \"1.9.0\"}\n  \"cstruct-lwt\"\n  \"re\"\n  \"result\"\n  \"lwt\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-tar.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz\"\n  checksum: \"md5=4524e7c290530d4243e0e9429fb3d224\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
+        "@opam/cstruct-lwt@opam:3.2.1", "@opam/jbuilder@opam:transition",
+        "@opam/lwt@opam:4.1.0", "@opam/re@opam:1.7.2",
+        "@opam/result@opam:1.3", "@opam/tar@opam:0.9.0", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/tar@opam:0.9.0": {
       "record": {
         "name": "@opam/tar",
         "version": "opam:0.9.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/tar.0.9.0+opam.tar.gz#md5:929ad70524515c7a2c3d9638cbf2d3ee",
-          "archive:https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz#md5:4524e7c290530d4243e0e9429fb3d224"
-        ],
+        "source":
+          "archive:https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz#md5:4524e7c290530d4243e0e9429fb3d224",
         "files": [],
         "opam": {
           "name": "tar",
           "version": "0.9.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"tar\"\nversion: \"0.9.0\"\nmaintainer: \"dave@recoil.org\"\nauthors: [\"Dave Scott\" \"Thomas Gazagnaire\" \"David Allsopp\"]\ntags: [\"org:xapi-project\" \"org:mirage\"]\nhomepage: \"https://github.com/mirage/ocaml-tar\"\ndoc: \"https://mirage.github.io/ocaml-tar/\"\nbug-reports: \"https://github.com/mirage/ocaml-tar/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n  \"ppx_tools\"\n  \"ppx_cstruct\"\n  \"cstruct\" {>= \"1.9.0\"}\n  \"re\"\n  \"result\"\n]\navailable: ocaml-version >= \"4.03.0\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-tar.git\"",
+            "opam-version: \"2.0\"\nname: \"tar\"\nversion: \"0.9.0\"\nsynopsis: \"Decode and encode tar files\"\ndescription: \"\"\"\ntar-format is a simple library to read and write tar files with an emphasis on\nstreaming.\n\nThis is pure OCaml code, no C bindings.\"\"\"\nmaintainer: \"dave@recoil.org\"\nauthors: [\"Dave Scott\" \"Thomas Gazagnaire\" \"David Allsopp\"]\ntags: [\"org:xapi-project\" \"org:mirage\"]\nhomepage: \"https://github.com/mirage/ocaml-tar\"\ndoc: \"https://mirage.github.io/ocaml-tar/\"\nbug-reports: \"https://github.com/mirage/ocaml-tar/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n  \"ppx_tools\"\n  \"ppx_cstruct\"\n  \"cstruct\" {>= \"1.9.0\"}\n  \"re\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-tar.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz\"\n  checksum: \"md5=4524e7c290530d4243e0e9429fb3d224\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
         "@opam/jbuilder@opam:transition", "@opam/ppx_cstruct@opam:3.2.1",
-        "@opam/ppx_tools@opam:5.1+4.06.0", "@opam/re@opam:1.8.0",
-        "@opam/result@opam:1.3"
+        "@opam/ppx_tools@opam:5.1+4.06.0", "@opam/re@opam:1.7.2",
+        "@opam/result@opam:1.3", "ocaml@4.6.6"
       ]
     },
     "@opam/stdio@opam:v0.11.0": {
@@ -7983,22 +8025,21 @@
       "record": {
         "name": "@opam/sexplib",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/sexplib.v0.11.0+opam.tar.gz#md5:6c476dc8e7dfe15f32785d185f6e3466",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib-v0.11.0.tar.gz#md5:1d53d945914b6b9a380dc8923f19e9ae"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib-v0.11.0.tar.gz#md5:1d53d945914b6b9a380dc8923f19e9ae",
         "files": [],
         "opam": {
           "name": "sexplib",
           "version": "v0.11.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"sexplib\"\nversion: \"v0.11.0\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/janestreet/sexplib\"\nbug-reports: \"https://github.com/janestreet/sexplib/issues\"\ndepends: [\n  \"parsexp\" {>= \"v0.11\" & < \"v0.12\"}\n  \"sexplib0\" {>= \"v0.11\" & < \"v0.12\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n  \"num\"\n]\navailable: ocaml-version >= \"4.04.1\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/janestreet/sexplib.git\"",
+            "opam-version: \"2.0\"\nname: \"sexplib\"\nversion: \"v0.11.0\"\nsynopsis: \"Library for serializing OCaml values to and from S-expressions\"\ndescription: \"\"\"\nPart of Jane Street's Core library\nThe Core suite of libraries is an industrial strength alternative to\nOCaml's standard library that was developed by Jane Street, the\nlargest industrial user of OCaml.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/janestreet/sexplib\"\nbug-reports: \"https://github.com/janestreet/sexplib/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.04.1\"}\n  \"parsexp\" {>= \"v0.11\" & < \"v0.12\"}\n  \"sexplib0\" {>= \"v0.11\" & < \"v0.12\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n  \"num\"\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/janestreet/sexplib.git\"\nurl {\n  src:\n    \"https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib-v0.11.0.tar.gz\"\n  checksum: \"md5=1d53d945914b6b9a380dc8923f19e9ae\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/num@opam:1.1", "@opam/parsexp@opam:v0.11.0",
+<<<<<<< HEAD
         "@opam/sexplib0@opam:v0.11.0"
       ]
     },
@@ -8020,6 +8061,9 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "ocaml@4.6.6"
+=======
+        "@opam/sexplib0@opam:v0.11.0", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/rresult@opam:0.5.0": {
@@ -8083,46 +8127,76 @@
         "@opam/ocamlfind@opam:1.8.0", "@opam/topkg@opam:0.9.1", "ocaml@4.6.6"
       ]
     },
-    "@opam/re@opam:1.8.0": {
+    "@opam/re@opam:1.7.2": {
       "record": {
         "name": "@opam/re",
+<<<<<<< HEAD
         "version": "opam:1.8.0",
         "source":
           "archive:https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz#md5:765f6f8d3e6ab200866e719ed7e5178d",
+=======
+        "version": "opam:1.7.2",
+        "source":
+          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz#md5:d7c94a401d03f4688aabc60cd40217aa",
+>>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "re",
-          "version": "1.8.0",
+          "version": "1.7.2",
           "opam":
+<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.8.0\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"ounit\" {with-test}\n  \"seq\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-n\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz\"\n  checksum: \"md5=765f6f8d3e6ab200866e719ed7e5178d\"\n}",
+=======
+            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.7.2\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build}\n  \"base-bytes\"\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz\"\n  checksum: \"md5=d7c94a401d03f4688aabc60cd40217aa\"\n}",
+>>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
+<<<<<<< HEAD
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/seq@opam:0.1", "ocaml@4.6.6"
+=======
+        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
+        "@opam/jbuilder@opam:transition", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ppxlib@opam:0.3.1": {
       "record": {
         "name": "@opam/ppxlib",
+<<<<<<< HEAD
         "version": "opam:0.3.1",
         "source":
           "archive:https://github.com/ocaml-ppx/ppxlib/releases/download/0.3.1/ppxlib-0.3.1.tbz#md5:d83dd03bc744651d4642b84063bffcf9",
+=======
+        "version": "opam:0.3.0",
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz#md5:e6ff83b1643a44fcb6b0acde4d2aa299",
+>>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "ppxlib",
           "version": "0.3.1",
           "opam":
+<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"ppxlib\"\nversion: \"0.3.1\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\ndoc: \"https://ocaml-ppx.github.io/ppxlib/\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"base\" {>= \"v0.11.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n  \"ocaml\" {>= \"4.04.1\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"",
+=======
+            "opam-version: \"2.0\"\nname: \"ppxlib\"\nversion: \"0.3.0\"\nsynopsis: \"A comprehensive toolbox for ppx development. It features:\"\ndescription: \"\"\"\n- a OCaml AST / parser / pretty-printer snapshot,to create a full\n   frontend independent of the version of OCaml;\n- a library for library for ppx rewriters in general, and type-driven\n  code generators in particular;\n- a feature-full driver for OCaml AST transformers;\n- a quotation mechanism allowing  to write values representing the\n   OCaml AST in the OCaml syntax;\n- a generator of open recursion classes from type definitions.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.04.1\"}\n  \"base\" {>= \"v0.11.0\"}\n  \"dune\" {build}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"\nurl {\n  src: \"https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz\"\n  checksum: \"md5=e6ff83b1643a44fcb6b0acde4d2aa299\"\n}",
+>>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
+<<<<<<< HEAD
         "@opam/jbuilder@opam:transition",
         "@opam/ocaml-compiler-libs@opam:v0.11.0",
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
+=======
+        "@opam/dune@opam:1.2.1", "@opam/ocaml-compiler-libs@opam:v0.11.0",
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+>>>>>>> Updated lockfile
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0",
         "ocaml@4.6.6"
       ]
@@ -8144,7 +8218,11 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0", "ocaml@4.6.6"
+=======
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_tools@opam:5.1+4.06.0": {
@@ -8185,8 +8263,13 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
         "@opam/jbuilder@opam:transition",
+<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ppxlib@opam:0.3.1", "ocaml@4.6.6"
+=======
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/ppxlib@opam:0.3.0", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_inline_test@opam:v0.11.0": {
@@ -8207,8 +8290,13 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
         "@opam/jbuilder@opam:transition",
+<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ppxlib@opam:0.3.1", "ocaml@4.6.6"
+=======
+        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/ppxlib@opam:0.3.0", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_deriving_yojson@opam:3.1": {
@@ -8322,16 +8410,14 @@
       "record": {
         "name": "@opam/ppx_cstruct",
         "version": "opam:3.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ppx_cstruct.3.2.1+opam.tar.gz#md5:a7f673616d895840faa9c392807f133a",
-          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1"
-        ],
+        "source":
+          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1",
         "files": [],
         "opam": {
           "name": "ppx_cstruct",
           "version": "3.2.1",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ppx_cstruct\"\nversion: \"3.2.1\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta9\"}\n  \"cstruct\" {>= \"3.1.1\"}\n  \"ounit\" {test}\n  \"ppx_tools_versioned\" {>= \"5.0.1\"}\n  \"ocaml-migrate-parsetree\"\n  \"ppx_driver\" {test & >= \"v0.9.0\"}\n  \"ppx_sexp_conv\" {test}\n  \"cstruct-unix\" {test}\n]\navailable: ocaml-version >= \"4.03.0\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"",
+            "opam-version: \"2.0\"\nname: \"ppx_cstruct\"\nversion: \"3.2.1\"\nsynopsis: \"Access C-like structures directly from OCaml\"\ndescription: \"\"\"\nCstruct is a library and syntax extension to make it easier to access C-like\nstructures directly from OCaml.  It supports both reading and writing to these\nstructures, and they are accessed via the `Bigarray` module.\"\"\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta9\"}\n  \"cstruct\" {>= \"3.1.1\"}\n  \"ounit\" {with-test}\n  \"ppx_tools_versioned\" {>= \"5.0.1\"}\n  \"ocaml-migrate-parsetree\"\n  \"ppx_driver\" {with-test & >= \"v0.9.0\"}\n  \"ppx_sexp_conv\" {with-test}\n  \"cstruct-unix\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz\"\n  checksum: \"md5=c1eb6a48f3d3b0b1e358f06a8c92a4c1\"\n}",
           "override": null
         }
       },
@@ -8339,29 +8425,27 @@
         "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
         "@opam/jbuilder@opam:transition",
         "@opam/ocaml-migrate-parsetree@opam:1.0.11",
-        "@opam/ppx_tools_versioned@opam:5.2.1"
+        "@opam/ppx_tools_versioned@opam:5.2.1", "ocaml@4.6.6"
       ]
     },
     "@opam/parsexp@opam:v0.11.0": {
       "record": {
         "name": "@opam/parsexp",
         "version": "opam:v0.11.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/parsexp.v0.11.0+opam.tar.gz#md5:33f3288c68f18df2dadb471763ff8792",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/parsexp-v0.11.0.tar.gz#md5:816fce8d14b71a379296577c803bdbca"
-        ],
+        "source":
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/parsexp-v0.11.0.tar.gz#md5:816fce8d14b71a379296577c803bdbca",
         "files": [],
         "opam": {
           "name": "parsexp",
           "version": "v0.11.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"parsexp\"\nversion: \"v0.11.0\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/janestreet/parsexp\"\nbug-reports: \"https://github.com/janestreet/parsexp/issues\"\ndepends: [\n  \"sexplib0\" {>= \"v0.11\" & < \"v0.12\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n]\navailable: ocaml-version >= \"4.04.1\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/janestreet/parsexp.git\"",
+            "opam-version: \"2.0\"\nname: \"parsexp\"\nversion: \"v0.11.0\"\nsynopsis: \"S-expression parsing library\"\ndescription: \"\"\"\nThis library provides generic parsers for parsing S-expressions from\nstrings or other medium.\n\nThe library is focused on performances but still provide full generic\nparsers that can be used with strings, bigstrings, lexing buffers,\ncharacter streams or any other sources effortlessly.\n\nIt provides three different class of parsers:\n- the normal parsers, producing [Sexp.t] or [Sexp.t list] values\n- the parsers with positions, building compact position sequences so\n  that one can recover original positions in order to report properly\n  located errors at little cost\n- the Concrete Syntax Tree parsers, produce values of type\n  [Parsexp.Cst.t] which record the concrete layout of the s-expression\n  syntax, including comments\n\nThis library is portable and doesn't provide IO functions. To read\ns-expressions from files or other external sources, you should use\nparsexp_io.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/janestreet/parsexp\"\nbug-reports: \"https://github.com/janestreet/parsexp/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.04.1\"}\n  \"sexplib0\" {>= \"v0.11\" & < \"v0.12\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/janestreet/parsexp.git\"\nurl {\n  src:\n    \"https://ocaml.janestreet.com/ocaml-core/v0.11/files/parsexp-v0.11.0.tar.gz\"\n  checksum: \"md5=816fce8d14b71a379296577c803bdbca\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/sexplib0@opam:v0.11.0"
+        "@opam/sexplib0@opam:v0.11.0", "ocaml@4.6.6"
       ]
     },
     "@opam/opam-state@opam:2.0.0": {
@@ -8461,30 +8545,32 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
+<<<<<<< HEAD
         "@opam/re@opam:1.8.0", "ocaml@4.6.6"
+=======
+        "@opam/re@opam:1.7.2", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ocplib-endian@opam:1.0": {
       "record": {
         "name": "@opam/ocplib-endian",
         "version": "opam:1.0",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ocplib-endian.1.0+opam.tar.gz#md5:a67ef117deeff488c25e1d052973834f",
-          "archive:https://github.com/OCamlPro/ocplib-endian/archive/1.0.tar.gz#md5:74b45ba33e189283170a748c2a3ed477"
-        ],
+        "source":
+          "archive:https://github.com/OCamlPro/ocplib-endian/archive/1.0.tar.gz#md5:74b45ba33e189283170a748c2a3ed477",
         "files": [],
         "opam": {
           "name": "ocplib-endian",
           "version": "1.0",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ocplib-endian\"\nversion: \"1.0\"\nmaintainer: \"pierre.chambart@ocamlpro.com\"\nauthors: \"Pierre Chambart\"\nhomepage: \"https://github.com/OCamlPro/ocplib-endian\"\nbug-reports: \"https://github.com/OCamlPro/ocplib-endian/issues\"\ndepends: [\n  \"base-bytes\"\n  \"ocamlfind\"\n  \"cppo\" {>= \"1.1.0\"}\n  \"ocamlbuild\" {build}\n]\nbuild: [\n  [\"ocaml\" \"setup.ml\" \"-configure\" \"--disable-debug\" \"--prefix\" prefix]\n  [\"ocaml\" \"setup.ml\" \"-build\"]\n]\ninstall: [\"ocaml\" \"setup.ml\" \"-install\"]\nremove: [\"ocamlfind\" \"remove\" \"ocplib-endian\"]\ndev-repo: \"git+https://github.com/OCamlPro/ocplib-endian.git\"",
+            "opam-version: \"2.0\"\nname: \"ocplib-endian\"\nversion: \"1.0\"\nsynopsis:\n  \"Optimised functions to read and write int16/32/64 from strings and bigarrays, based on new primitives added in version 4.01.\"\ndescription: \"\"\"\nThe library implements three modules:\n* [EndianString](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianString.cppo.mli) works directly on strings, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;\n* [EndianBytes](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianBytes.cppo.mli) works directly on bytes, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;\n* [EndianBigstring](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianBigstring.cppo.mli) works on bigstrings (Bigarrays of chars), and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;\"\"\"\nmaintainer: \"pierre.chambart@ocamlpro.com\"\nauthors: \"Pierre Chambart\"\nhomepage: \"https://github.com/OCamlPro/ocplib-endian\"\nbug-reports: \"https://github.com/OCamlPro/ocplib-endian/issues\"\ndepends: [\n  \"ocaml\"\n  \"base-bytes\"\n  \"ocamlfind\"\n  \"cppo\" {>= \"1.1.0\"}\n  \"ocamlbuild\" {build}\n]\nflags: light-uninstall\nbuild: [\n  [\"ocaml\" \"setup.ml\" \"-configure\" \"--disable-debug\" \"--prefix\" prefix]\n  [\"ocaml\" \"setup.ml\" \"-build\"]\n]\ninstall: [\"ocaml\" \"setup.ml\" \"-install\"]\nremove: [\"ocamlfind\" \"remove\" \"ocplib-endian\"]\ndev-repo: \"git+https://github.com/OCamlPro/ocplib-endian.git\"\nurl {\n  src: \"https://github.com/OCamlPro/ocplib-endian/archive/1.0.tar.gz\"\n  checksum: \"md5=74b45ba33e189283170a748c2a3ed477\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
         "@opam/cppo@opam:1.6.5", "@opam/ocamlbuild@opam:0.12.0",
-        "@opam/ocamlfind@opam:1.8.0"
+        "@opam/ocamlfind@opam:1.8.0", "ocaml@4.6.6"
       ]
     },
     "@opam/ocamlgraph@opam:1.8.8": {
@@ -8618,21 +8704,35 @@
     "@opam/ocaml-migrate-parsetree@opam:1.1.0": {
       "record": {
         "name": "@opam/ocaml-migrate-parsetree",
+<<<<<<< HEAD
         "version": "opam:1.1.0",
         "source":
           "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz#md5:7dd4808e27af98065f63604c9658d311",
+=======
+        "version": "opam:1.0.11",
+        "source":
+          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz#md5:26bb1b038de81a79d43ed95c282b2b71",
+>>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "ocaml-migrate-parsetree",
           "version": "1.1.0",
           "opam":
+<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.1.0\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\ndoc: \"https://ocaml-ppx.github.io/ocaml-migrate-parsetree/\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"result\"\n  \"dune\" {build}\n  \"ocaml\" {>= \"4.02.0\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"",
+=======
+            "opam-version: \"2.0\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.0.11\"\nsynopsis: \"Convert OCaml parsetrees between different versions\"\ndescription: \"\"\"\nThis library converts parsetrees, outcometree and ast mappers between different OCaml versions.\nHigh-level functions help making PPX rewriters independent of a compiler version.\"\"\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"result\"\n  \"ocamlfind\" {build}\n  \"dune\" {build}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"\nurl {\n  src:\n    \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz\"\n  checksum: \"md5=26bb1b038de81a79d43ed95c282b2b71\"\n}",
+>>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.2.1",
+<<<<<<< HEAD
         "@opam/result@opam:1.3", "ocaml@4.6.6"
+=======
+        "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/ocaml-compiler-libs@opam:v0.11.0": {
@@ -8659,10 +8759,8 @@
       "record": {
         "name": "@opam/num",
         "version": "opam:1.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/num.1.1+opam.tar.gz#md5:1567cb86d261a416147807d830c22520",
-          "archive:https://github.com/ocaml/num/archive/v1.1.tar.gz#md5:710cbe18b144955687a03ebab439ff2b"
-        ],
+        "source":
+          "archive:https://github.com/ocaml/num/archive/v1.1.tar.gz#md5:710cbe18b144955687a03ebab439ff2b",
         "files": [
           {
             "name": "findlib-install.patch",
@@ -8673,15 +8771,26 @@
             "name": "installation-warning.patch",
             "content":
               "From db8d748b2cad0adc2698e9fcf28727083a711bae Mon Sep 17 00:00:00 2001\nFrom: David Allsopp <david.allsopp@metastack.com>\nDate: Wed, 24 Jan 2018 16:01:56 +0000\nSubject: [PATCH] Warn about installations broken by previous faulty package\n\n---\n Makefile | 33 +++++++++++++++++++++++++++++++++\n 1 file changed, 33 insertions(+)\n\ndiff --git a/Makefile b/Makefile\nindex b40e588..d4dcd70 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -14,9 +14,42 @@ install:\n \t$(MAKE) -C src install\n \t$(MAKE) -C toplevel install\n \n+OCAMLFIND_DIR:=$(dir $(shell command -v ocamlfind 2>/dev/null))\n+OCAMLC_DIR:=$(dir $(shell command -v ocamlc 2>/dev/null))\n+NUM_INSTALLED:=$(shell ocamlfind query num 2>/dev/null)\n+\n+ifeq ($(NUM_INSTALLED),)\n+# The num findlib package is not already present - wohoo!\n+OUR_FAULT=no\n+else\n+ifeq ($(OCAMLFIND_DIR),$(OCAMLC_DIR))\n+# The num findlib package is present, but ocamlc and ocamlfind are in the\n+# same place, which means that either we're looking at a system-installed\n+# ocamlfind (which isn't supported), or the user has done something else\n+# nefarious and doesn't deserve our sympathy (or, at least, our potentially\n+# unhelpful advice)\n+OUR_FAULT=no\n+else\n+# The num findlib package package is present, and ocamlc and ocamlfind reside\n+# in different directories, which means that we're almost certainly looking at\n+# a system switch which has been damaged by a previous num package installation\n+# on an OS which didn't protect the system lib directory.\n+OUR_FAULT=probably\n+endif\n+endif\n+\n findlib-install:\n+ifeq ($(OUR_FAULT),no)\n \t$(MAKE) -C src findlib-install\n \t$(MAKE) -C toplevel install\n+else\n+\t@echo \"\\033[0;31m[ERROR]\\033[m It appears that the num library was previously installed to your system\"\n+\t@echo \"        compiler's lib directory, probably by a faulty opam package.\"\n+\t@echo \"        You will need to remove arith_flags.*, arith_status.*, big_int.*,\"\n+\t@echo \"        int_misc.*, nat.*, num.*, ratio.*, nums.*, libnums.* and\"\n+\t@echo \"        stublibs/dllnums.* from $(shell ocamlc -where).\"\n+\t@false\n+endif\n \n uninstall:\n \t$(MAKE) -C src uninstall\n-- \n2.14.1\n\n"
+          },
+          {
+            "name": "_esy/num-1.1.patch",
+            "content":
+              "--- ./src/Makefile\n+++ ./src/Makefile\n@@ -80,7 +80,7 @@\n ifeq \"$(NATDYNLINK)\" \"true\"\n TOINSTALL+=nums.cmxs\n endif\n ifeq \"$(SUPPORTS_SHARED_LIBRARIES)\" \"true\"\n-TOINSTALL_STUBS=dllnums.$(SO)\n+TOINSTALL_STUBS=dllnums$(EXT_DLL)\n else\n TOINSTALL_STUBS=\n@@ -112,7 +112,7 @@\n endif\n \n clean:\n-\trm -f *.cm[ioxta] *.cmx[as] *.cmti *.$(O) *.$(A) *.$(SO)\n+\trm -f *.cm[ioxta] *.cmx[as] *.cmti *.$(O) *.$(A) *$(EXE_DLL)\n \n depend:\n \t$(OCAMLDEP) -slash *.mli *.ml > .depend\n"
           }
         ],
         "opam": {
           "name": "num",
           "version": "1.1",
           "opam":
-            "opam-version: \"1.2\"\nname: \"num\"\nversion: \"1.1\"\nmaintainer: \"Xavier Leroy <xavier.leroy@inria.fr>\"\nauthors: [\"Valérie Ménissier-Morain\" \"Pierre Weis\" \"Xavier Leroy\"]\nlicense: \"LGPL 2.1 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/num/\"\nbug-reports: \"https://github.com/ocaml/num/issues\"\ndepends: [\n  \"ocamlfind\" {build & >= \"1.7.3\"}\n]\nconflicts: [\"base-num\"]\navailable: ocaml-version >= \"4.06.0\"\nbuild: make\ninstall: [\n  make\n  \"install\" {!preinstalled}\n  \"findlib-install\" {preinstalled}\n]\nremove: [\n  make\n  \"uninstall\" {!preinstalled}\n  \"findlib-uninstall\" {preinstalled}\n]\npatches: [\"findlib-install.patch\" \"installation-warning.patch\"]\ndev-repo: \"git+https://github.com/ocaml/num.git\"",
+            "opam-version: \"2.0\"\nname: \"num\"\nversion: \"1.1\"\nsynopsis:\n  \"The legacy Num library for arbitrary-precision integer and rational arithmetic\"\nmaintainer: \"Xavier Leroy <xavier.leroy@inria.fr>\"\nauthors: [\"Valérie Ménissier-Morain\" \"Pierre Weis\" \"Xavier Leroy\"]\nlicense: \"LGPL 2.1 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/num/\"\nbug-reports: \"https://github.com/ocaml/num/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.06.0\"}\n  \"ocamlfind\" {build & >= \"1.7.3\"}\n]\nconflicts: [\"base-num\"]\nbuild: make\ninstall: [\n  make\n  \"install\" {!ocaml:preinstalled}\n  \"findlib-install\" {ocaml:preinstalled}\n]\nremove: [\n  make\n  \"uninstall\" {!ocaml:preinstalled}\n  \"findlib-uninstall\" {ocaml:preinstalled}\n]\npatches: [\"findlib-install.patch\" \"installation-warning.patch\"]\ndev-repo: \"git+https://github.com/ocaml/num.git\"\nextra-files: [\n  [\"installation-warning.patch\" \"md5=93c92bf6da6bae09d068da42b1bbaaac\"]\n  [\"findlib-install.patch\" \"md5=3163a4c3f8dd084653eeb64d95311a2a\"]\n]\nurl {\n  src: \"https://github.com/ocaml/num/archive/v1.1.tar.gz\"\n  checksum: \"md5=710cbe18b144955687a03ebab439ff2b\"\n}",
           "override": {
-            "build": [ [ "make" ] ],
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/num-1.1.patch' : 'true'}"
+              ],
+              [ "make" ]
+            ],
             "install": [ [ "make", "findlib-install" ] ],
             "exportedEnv": {
               "CAML_LD_LIBRARY_PATH": {
@@ -8694,7 +8803,8 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0"
+        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0",
+        "ocaml@4.6.6"
       ]
     },
     "@opam/merlin-extend@opam:0.3": {
@@ -8731,9 +8841,10 @@
         "@opam/ocamlfind@opam:1.8.0", "ocaml@4.6.6"
       ]
     },
-    "@opam/menhir@opam:20170712": {
+    "@opam/menhir@opam:20171013": {
       "record": {
         "name": "@opam/menhir",
+<<<<<<< HEAD
 <<<<<<< HEAD
         "version": "opam:20171013",
         "source":
@@ -8745,27 +8856,36 @@
           "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170712.tar.gz#md5:85a5c2aef1d3f2224dab7c53d79892e5"
         ],
 >>>>>>> Add esy.lock.json
+=======
+        "version": "opam:20171013",
+        "source":
+          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11",
+>>>>>>> Updated lockfile
         "files": [
           {
-            "name": "_esy/menhir-20170712.patch",
+            "name": "_esy/menhir-20171013.patch",
             "content":
-              "--- ./Makefile\n+++ ./Makefile\n@@ -60,10 +60,11 @@\n # If the compiler is MSVC, then the name of the executable file ends in .exe,\n # and object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n+OS_TYPE:=$(shell ocamlc -config | tr -d '\\15' | awk '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),$(filter $(OS_TYPE),Win32 Cygwin))\n   MENHIREXE    := menhir.exe\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n+  OBJ          := $(shell ocamlc -config | tr -d '\\15' | awk '/^ext_obj:/ {print $$2}' | tr -d '.')\n+# LIBSUFFIX    := $(shell ocamlc -config | tr -d '\\15' | awk '/^ext_lib:/ {print $$2}' | tr -d '.')\n else\n   MENHIREXE    := menhir\n   OBJ          := o\n@@ -85,8 +86,8 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
+              "--- ./Makefile\n+++ ./Makefile\n@@ -59,13 +59,8 @@\n \n # If the compiler is MSVC, then object file names end in .obj instead of .o.\n \n-ifneq (,$(shell ocamlc -config | grep -E \"ccomp_type: msvc\"))\n-  OBJ          := obj\n-# LIBSUFFIX    := lib\n-else\n-  OBJ          := o\n-# LIBSUFFIX    := a\n-endif\n+OBJ          := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_obj:/ {print $$2}' | tr -d '.')\n+#LIBSUFFIX   := $(shell ocamlc -config | awk -F '[\\t \\r]+' '/^ext_lib:/ {print $$2}' | tr -d '.')\n \n # If we are under Windows (regardless of whether we are using MSVC or mingw)\n # then the name of the executable file ends in .exe.\n@@ -91,8 +86,9 @@\n # performed if \"os_type\" is \"Win32\" or \"Win64\", and must not be performed if\n # \"os_type\" is \"Cygwin\" or \"Unix\".\n \n-ifneq (,$(shell ocamlc -config | grep -E \"os_type: (Win32|Win64)\"))\n-installation_libdir := $(shell cygpath -m $(libdir))\n+OS_TYPE:=\t$(shell ocamlc -config | awk -F '[\\t \\r]+' '/^os_type:/ {print $$2}')\n+ifeq ($(OS_TYPE),Win32)\n+installation_libdir := $(shell cygpath -m $(libdir) || echo $(libdir))\n else\n installation_libdir := $(libdir)\n endif\n--- ./src/cmly_write.ml\n+++ ./src/cmly_write.ml\n@@ -168,6 +168,6 @@\n   output_value oc (t : grammar)\n \n let write filename =\n-  let oc = open_out filename in\n+  let oc = open_out_bin filename in\n   write oc (encode());\n   close_out oc\n"
           }
         ],
         "opam": {
           "name": "menhir",
-          "version": "20170712",
+          "version": "20171013",
           "opam":
+<<<<<<< HEAD
 <<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"menhir\"\nversion: \"20171013\"\nsynopsis: \"LR(1) parser generator\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"\nurl {\n  src: \"http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz\"\n  checksum: \"md5=620863edea40437390ee5e5bd82fba11\"\n}",
 =======
             "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20170712\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
 >>>>>>> Add esy.lock.json
+=======
+            "opam-version: \"2.0\"\nname: \"menhir\"\nversion: \"20171013\"\nsynopsis: \"LR(1) parser generator\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"\nurl {\n  src: \"http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz\"\n  checksum: \"md5=620863edea40437390ee5e5bd82fba11\"\n}",
+>>>>>>> Updated lockfile
           "override": {
             "build": [
               [
                 "bash", "-c",
-                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20170712.patch' : 'true'}"
+                "#{os == 'windows' ? 'patch -p1 < _esy/menhir-20171013.patch' : 'true'}"
               ],
               [
                 "make", "-f", "Makefile", "PREFIX=#{self.install}",
@@ -8818,7 +8938,11 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+<<<<<<< HEAD
         "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.1.0",
+=======
+        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+>>>>>>> Updated lockfile
         "@opam/ppx_tools_versioned@opam:5.2.1", "ocaml@4.6.6"
       ]
     },
@@ -8985,23 +9109,22 @@
       "record": {
         "name": "@opam/ezgzip",
         "version": "opam:0.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/ezgzip.0.2.1+opam.tar.gz#md5:ee43edaeff8eb797beb3e21916b94ba1",
-          "archive:https://github.com/hcarty/ezgzip/archive/v0.2.1.tar.gz#md5:6a0f8aa64541a32691f9884f0ef8737f"
-        ],
+        "source":
+          "archive:https://github.com/hcarty/ezgzip/archive/v0.2.1.tar.gz#md5:6a0f8aa64541a32691f9884f0ef8737f",
         "files": [],
         "opam": {
           "name": "ezgzip",
           "version": "0.2.1",
           "opam":
-            "opam-version: \"1.2\"\nname: \"ezgzip\"\nversion: \"0.2.1\"\nmaintainer: \"Hezekiah M. Carty <hez@0ok.org>\"\nauthors: \"Hezekiah M. Carty <hez@0ok.org>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/hcarty/ezgzip\"\nbug-reports: \"https://github.com/hcarty/ezgzip/issues\"\ndepends: [\n  \"alcotest\" {test & >= \"0.8.1\"}\n  \"astring\"\n  \"benchmark\" {test & >= \"1.4\"}\n  \"jbuilder\" {build & >= \"1.0+beta13\"}\n  \"ocplib-endian\"\n  \"odoc\" {doc & >= \"1.1.1\"}\n  \"qcheck\" {test & >= \"0.7\"}\n  \"rresult\"\n  \"camlzip\"\n]\navailable: ocaml-version >= \"4.03.0\"\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/hcarty/ezgzip.git\"\nbuild-doc: [\"jbuilder\" \"build\" \"@doc\" \"-p\" name]",
+            "opam-version: \"2.0\"\nname: \"ezgzip\"\nversion: \"0.2.1\"\nsynopsis: \"# ezgzip - Simple gzip (de)compression library\"\ndescription: \"\"\"\nezgzip is a simple interface focused on `string -> string` zlib and gzip\n(de)compression.\n\nDocumentation is available\n[here](https://hcarty.github.io/ezgzip/ezgzip/index.html).\n\nAn example illustrating how to gzip compress and then decompress a string:\n```ocaml\nopen Rresult\n\nlet () =\n  let original = \"Hello world\" in\n  let compressed = Ezgzip.compress original in\n  let decompressed = R.get_ok (Ezgzip.decompress compressed) in\n  assert (original = decompressed)\n```\n\nThis library currently uses the zlib bindings provided by\n[camlzip](https://github.com/xavierleroy/camlzip).  The gzip header/footer code\nis based on the\n[upstream specification](http://www.gzip.org/zlib/rfc-gzip.html#specification).\"\"\"\nmaintainer: \"Hezekiah M. Carty <hez@0ok.org>\"\nauthors: \"Hezekiah M. Carty <hez@0ok.org>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/hcarty/ezgzip\"\nbug-reports: \"https://github.com/hcarty/ezgzip/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"astring\"\n  \"benchmark\" {with-test & >= \"1.4\"}\n  \"jbuilder\" {build & >= \"1.0+beta13\"}\n  \"ocplib-endian\"\n  \"odoc\" {with-doc & >= \"1.1.1\"}\n  \"qcheck\" {with-test & >= \"0.7\"}\n  \"rresult\"\n  \"camlzip\"\n]\nbuild: [\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n  [\"jbuilder\" \"build\" \"@doc\" \"-p\" name] {with-doc}\n]\ndev-repo: \"git+https://github.com/hcarty/ezgzip.git\"\nurl {\n  src: \"https://github.com/hcarty/ezgzip/archive/v0.2.1.tar.gz\"\n  checksum: \"md5=6a0f8aa64541a32691f9884f0ef8737f\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/astring@opam:0.8.3",
         "@opam/camlzip@opam:1.07", "@opam/jbuilder@opam:transition",
-        "@opam/ocplib-endian@opam:1.0", "@opam/rresult@opam:0.5.0"
+        "@opam/ocplib-endian@opam:1.0", "@opam/rresult@opam:0.5.0",
+        "ocaml@4.6.6"
       ]
     },
     "@opam/extlib-compat@opam:1.7.2": {
@@ -9124,7 +9247,11 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
+<<<<<<< HEAD
         "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0", "ocaml@4.6.6"
+=======
+        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.7.2", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/cudf@opam:0.9": {
@@ -9146,28 +9273,50 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
         "ocaml@4.6.6"
+<<<<<<< HEAD
+=======
+      ]
+    },
+    "@opam/cstruct-lwt@opam:3.2.1": {
+      "record": {
+        "name": "@opam/cstruct-lwt",
+        "version": "opam:3.2.1",
+        "source":
+          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1",
+        "files": [],
+        "opam": {
+          "name": "cstruct-lwt",
+          "version": "3.2.1",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"cstruct-lwt\"\nversion: \"3.2.1\"\nsynopsis: \"Access C-like structures directly from OCaml\"\ndescription: \"\"\"\nCstruct is a library and syntax extension to make it easier to access C-like\nstructures directly from OCaml.  It supports both reading and writing to these\nstructures, and they are accessed via the `Bigarray` module.\"\"\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"base-unix\"\n  \"lwt\"\n  \"cstruct\"\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz\"\n  checksum: \"md5=c1eb6a48f3d3b0b1e358f06a8c92a4c1\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/base-unix@opam:base",
+        "@opam/cstruct@opam:3.2.1", "@opam/jbuilder@opam:transition",
+        "@opam/lwt@opam:4.1.0", "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@opam/cstruct@opam:3.2.1": {
       "record": {
         "name": "@opam/cstruct",
         "version": "opam:3.2.1",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/cstruct.3.2.1+opam.tar.gz#md5:fb7d60da01be457d3ac9d10b0baff236",
-          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1"
-        ],
+        "source":
+          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1",
         "files": [],
         "opam": {
           "name": "cstruct",
           "version": "3.2.1",
           "opam":
-            "opam-version: \"1.2\"\nname: \"cstruct\"\nversion: \"3.2.1\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"sexplib\"\n  \"ounit\" {test}\n]\navailable: ocaml-version >= \"4.03.0\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"",
+            "opam-version: \"2.0\"\nname: \"cstruct\"\nversion: \"3.2.1\"\nsynopsis: \"Access C-like structures directly from OCaml\"\ndescription: \"\"\"\nCstruct is a library and syntax extension to make it easier to access C-like\nstructures directly from OCaml.  It supports both reading and writing to these\nstructures, and they are accessed via the `Bigarray` module.\"\"\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"sexplib\"\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz\"\n  checksum: \"md5=c1eb6a48f3d3b0b1e358f06a8c92a4c1\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-        "@opam/sexplib@opam:v0.11.0"
+        "@opam/sexplib@opam:v0.11.0", "ocaml@4.6.6"
       ]
     },
     "@opam/cppo_ocamlbuild@opam:1.6.0": {
@@ -9304,21 +9453,20 @@
       "record": {
         "name": "@opam/camlzip",
         "version": "opam:1.07",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/camlzip.1.07+opam.tar.gz#md5:c94e5199aa2c982e9b9c6ce8fb71bf43",
-          "archive:https://github.com/xavierleroy/camlzip/archive/rel107.zip#md5:fb6b251fe6bf129cb25b5fd9f5938514"
-        ],
+        "source":
+          "archive:https://github.com/xavierleroy/camlzip/archive/rel107.zip#md5:fb6b251fe6bf129cb25b5fd9f5938514",
         "files": [],
         "opam": {
           "name": "camlzip",
           "version": "1.07",
           "opam":
-            "opam-version: \"1.2\"\nname: \"camlzip\"\nversion: \"1.07\"\nmaintainer: \"Etienne Millon <etienne@cryptosense.com>\"\nauthors: \"Xavier Leroy\"\nlicense: \"LGPL-2.1+ with OCaml linking exception\"\nhomepage: \"https://github.com/xavierleroy/camlzip\"\nbug-reports: \"https://github.com/xavierleroy/camlzip/issues\"\ndepends: [\"ocamlfind\"]\navailable: ocaml-version >= \"4.02.0\"\nbuild: [\n  [make \"all\"]\n  [make \"allopt\"]\n]\ninstall: [make \"install-findlib\"]\nremove: [\n  [\"ocamlfind\" \"remove\" \"zip\"]\n  [\"ocamlfind\" \"remove\" \"camlzip\"]\n]\ndepexts: [\n  [\"zlib1g-dev\"] {\"debian\"}\n  [\"zlib1g-dev\"] {\"ubuntu\"}\n  [\"zlib-devel\"] {\"centos\"}\n  [\"zlib-devel\"] {\"rhel\"}\n  [\"zlib-devel\"] {\"fedora\"}\n  [\"zlib-dev\"] {\"alpine\"}\n]",
+            "opam-version: \"2.0\"\nname: \"camlzip\"\nversion: \"1.07\"\nsynopsis:\n  \"Provides easy access to compressed files in ZIP, GZIP and JAR format\"\nmaintainer: \"Etienne Millon <etienne@cryptosense.com>\"\nauthors: \"Xavier Leroy\"\nlicense: \"LGPL-2.1+ with OCaml linking exception\"\nhomepage: \"https://github.com/xavierleroy/camlzip\"\nbug-reports: \"https://github.com/xavierleroy/camlzip/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"ocamlfind\"\n]\nflags: light-uninstall\nbuild: [\n  [make \"all\"]\n  [make \"allopt\"]\n]\ninstall: [make \"install-findlib\"]\nremove: [\n  [\"ocamlfind\" \"remove\" \"zip\"]\n  [\"ocamlfind\" \"remove\" \"camlzip\"]\n]\ndepexts: [\n  [\"zlib1g-dev\"] {os-distribution = \"debian\"}\n  [\"zlib1g-dev\"] {os-distribution = \"ubuntu\"}\n  [\"zlib-devel\"] {os-distribution = \"centos\"}\n  [\"zlib-devel\"] {os-distribution = \"rhel\"}\n  [\"zlib-devel\"] {os-distribution = \"fedora\"}\n  [\"zlib-dev\"] {os-distribution = \"alpine\"}\n]\nurl {\n  src: \"https://github.com/xavierleroy/camlzip/archive/rel107.zip\"\n  checksum: \"md5=fb6b251fe6bf129cb25b5fd9f5938514\"\n}",
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0"
+        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0",
+        "ocaml@4.6.6"
       ]
     },
     "@opam/bos@opam:0.2.0": {
@@ -9510,6 +9658,7 @@
     "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f": {
       "record": {
         "name": "@opam/angstrom",
+<<<<<<< HEAD
         "version": "github:esy-ocaml/angstrom#b3a125f",
         "source": "github:esy-ocaml/angstrom#b3a125f",
         "files": [],
@@ -9517,6 +9666,24 @@
       },
       "dependencies": [
         "@opam/bigstringaf@opam:0.3.0", "@opam/jbuilder@opam:transition"
+=======
+        "version": "opam:0.10.0",
+        "source":
+          "archive:https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz#md5:51e2d9a272314671eb5fa3fb3fd5171f",
+        "files": [],
+        "opam": {
+          "name": "angstrom",
+          "version": "0.10.0",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"angstrom\"\nversion: \"0.10.0\"\nsynopsis: \"Parser combinators built for speed and memory-efficiency\"\ndescription: \"\"\"\nAngstrom is a parser-combinator library that makes it easy to write efficient,\nexpressive, and reusable parsers suitable for high-performance applications. It\nexposes monadic and applicative interfaces for composition, and supports\nincremental input through buffered and unbuffered interfaces. Both interfaces\ngive the user total control over the blocking behavior of their application,\nwith the unbuffered interface enabling zero-copy IO. Parsers are backtracking by\ndefault and support unbounded lookahead.\"\"\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/angstrom\"\nbug-reports: \"https://github.com/inhabitedtype/angstrom/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"bigstringaf\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/angstrom.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz\"\n  checksum: \"md5=51e2d9a272314671eb5fa3fb3fd5171f\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/bigstringaf@opam:0.3.0",
+        "@opam/jbuilder@opam:transition", "@opam/result@opam:1.3",
+        "ocaml@4.6.6"
+>>>>>>> Updated lockfile
       ]
     },
     "@esy-ocaml/substs@0.0.1": {
@@ -9545,8 +9712,12 @@
         "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
 =======
         "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
+<<<<<<< HEAD
         "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
 >>>>>>> Add esy.lock.json
+=======
+        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
+>>>>>>> Updated lockfile
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
