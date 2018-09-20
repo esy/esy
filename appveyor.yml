@@ -12,7 +12,7 @@ install:
     - npm install -g jest-cli
     - npm install -g esy@0.2.11
     - where esy
-    - cp bash-patched-bash-exec.js C:/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
+    - cp patched-bash-exec.js C:/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
     - appveyor-retry appveyor-retry esy install
 
 build_script:
