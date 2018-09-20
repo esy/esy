@@ -9,7 +9,6 @@ install:
     # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
     - where node
-    - which node
     - npm install -g jest-cli
     - npm install -g esy@0.2.11
     - appveyor-retry appveyor-retry esy install
