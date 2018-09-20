@@ -15,6 +15,7 @@ const ESYCOMMAND =
     : require.resolve('../../bin/esy');
 
 const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
+const flexlinkName = 'flexlink.exe';
 
 const testPath = path.join(os.homedir(), '.esytest');
 const sandboxPath = path.join(testPath, 'sandbox');
@@ -105,6 +106,15 @@ async function buildOcamlPackage() {
     }
   }
 
+  let flexlinkName = "flexlink.exe"
+  let flexlinkPath = null;
+  for (const p of PATH) {
+    if (fs.exists(path.join(p, flexlinkName))) {
+        flexlinkPath = path.join(p, flexlinkName);
+        break;
+    }
+  }
+
   if (ocamloptPath == null) {
     throw new Error('unable to initialize ocaml package for tests');
   }
@@ -137,6 +147,7 @@ async function buildOcamlPackage() {
   );
 
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
+  await fs.copyFile(flexlinkPath, path.join(ocamlPackagePath, flexlinkName));
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
@@ -149,3 +160,4 @@ module.exports.ocamlPackagePath = ocamlPackagePath;
 module.exports.ESYCOMMAND = ESYCOMMAND;
 module.exports.isWindows = isWindows;
 module.exports.ocamloptName = ocamloptName;
+module.exports.flexlinkName = flexlinkName;
