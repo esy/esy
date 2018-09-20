@@ -1,6 +1,9 @@
 platform:
     - x64
 
+cache:
+    - C:/Users/appveyor/.esy
+
 # Needed for running unit tests - blocked by ??
 environment:
     ESY_NODE_PATH: C:/Program Files/nodejs/node.exe
