@@ -35,7 +35,7 @@ module Record = struct
     name: string;
     version: Version.t;
     source: SourceWithMirrors.t;
-    override: Package.Override.t list;
+    override: Package.Override.t list [@default []];
     files : Package.File.t list;
     opam : Opam.t option;
   } [@@deriving yojson]
