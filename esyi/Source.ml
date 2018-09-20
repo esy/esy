@@ -6,21 +6,21 @@ type t =
   | Git of {
       remote : string;
       commit : string;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | Github of {
       user : string;
       repo : string;
       commit : string;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | NoSource
   [@@deriving ord]
@@ -38,21 +38,21 @@ let show = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.show manifest) commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) commit
   | Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.show manifest) commit
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) commit
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
   | LocalPathLink {path; manifest = None;} ->
     Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.show manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
   | NoSource -> "no-source:"
 
 let pp fmt src =
@@ -62,7 +62,7 @@ module Parse = struct
   include Parse
 
   let manifestFilenameBeforeSharp =
-    till (fun c -> c <> '#') ManifestSpec.parser
+    till (fun c -> c <> '#') ManifestSpec.Filename.parser
 
   let github =
     let prefix = string "github:" <|> string "gh:" in
@@ -99,7 +99,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.ofString (Path.basename path) with
+        match ManifestSpec.Filename.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
@@ -149,7 +149,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         commit = "commit";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "gh:user/repo#commit" =
@@ -164,7 +164,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         commit = "commit";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git:http://example.com/repo#commit" =
@@ -178,7 +178,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "http://example.com/repo";
         commit = "commit";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git:git://example.com/repo:lwt.opam#commit" =
@@ -187,7 +187,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "git://example.com/repo";
         commit = "commit";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "archive:http://example.com#abc123" =
@@ -215,7 +215,7 @@ let%test_module "parsing" = (module struct
       "path:/some/path/lwt.opam"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "link:/some/path" =
@@ -228,7 +228,7 @@ let%test_module "parsing" = (module struct
       "link:/some/path/lwt.opam"
       (LocalPathLink {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "no-source:" =

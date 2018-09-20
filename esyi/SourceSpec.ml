@@ -6,21 +6,21 @@ type t =
   | Git of {
       remote : string;
       ref : string option;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | Github of {
       user : string;
       repo : string;
       ref : string option;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | NoSource
   [@@deriving ord]
@@ -29,20 +29,20 @@ let show = function
   | Github {user; repo; ref = None; manifest = None;} ->
     Printf.sprintf "github:%s/%s" user repo
   | Github {user; repo; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s" user repo (ManifestSpec.show manifest)
+    Printf.sprintf "github:%s/%s:%s" user repo (ManifestSpec.Filename.show manifest)
   | Github {user; repo; ref = Some ref; manifest = None} ->
     Printf.sprintf "github:%s/%s#%s" user repo ref
   | Github {user; repo; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.show manifest) ref
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) ref
 
   | Git {remote; ref = None; manifest = None;} ->
     Printf.sprintf "git:%s" remote
   | Git {remote; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s" remote (ManifestSpec.show manifest)
+    Printf.sprintf "git:%s:%s" remote (ManifestSpec.Filename.show manifest)
   | Git {remote; ref = Some ref; manifest = None} ->
     Printf.sprintf "git:%s#%s" remote ref
   | Git {remote; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.show manifest) ref
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) ref
 
   | Archive {url; checksum = Some checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
@@ -52,12 +52,12 @@ let show = function
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
 
   | LocalPathLink {path; manifest = None;} ->
     Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.show manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
 
   | NoSource -> "no-source:"
 
@@ -83,7 +83,7 @@ module Parse = struct
   include Parse
 
   let manifestFilenameBeforeSharp =
-    till (fun c -> c <> '#') ManifestSpec.parser
+    till (fun c -> c <> '#') ManifestSpec.Filename.parser
 
   let collectString xs =
     let l = List.length xs in
@@ -144,7 +144,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.ofString (Path.basename path) with
+        match ManifestSpec.Filename.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
@@ -220,7 +220,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "github:user/repo:lwt.opam" =
@@ -230,7 +230,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = None;
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "gh:user/repo" =
@@ -246,12 +246,22 @@ let%test_module "parsing" = (module struct
   let%test "gh:user/repo:lwt.opam#ref" =
     expectParses
       "gh:user/repo:lwt.opam#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = Some (ManifestSpec.ofStringExn "lwt.opam")})
+      (Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
+      })
 
   let%test "gh:user/repo:lwt.opam" =
     expectParses
       "gh:user/repo:lwt.opam"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = Some (ManifestSpec.ofStringExn "lwt.opam")})
+      (Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
+      })
 
   let%test "git+https://example.com/repo.git" =
     expectParses
@@ -269,7 +279,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "https://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam")})
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam")})
 
   let%test "git+https://example.com/repo.git:lwt.opam" =
     expectParses
@@ -277,7 +287,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "https://example.com/repo.git";
         ref = None;
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam")
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam")
       })
 
   let%test "git+http://example.com/repo.git:lwt.opam#ref" =
@@ -286,7 +296,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "http://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git+ftp://example.com/repo.git:lwt.opam#ref" =
@@ -295,7 +305,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "ftp://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git+ssh://example.com/repo.git:lwt.opam#ref" =
@@ -304,7 +314,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "ssh://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git+rsync://example.com/repo.git:lwt.opam#ref" =
@@ -313,7 +323,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "rsync://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git://example.com/repo.git" =
@@ -332,7 +342,7 @@ let%test_module "parsing" = (module struct
       (Git {
         remote = "git://example.com/repo.git";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "git://github.com/yarnpkg/example-yarn-package.git" =
@@ -361,7 +371,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "user/repo:lwt.opam" =
@@ -371,7 +381,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = None;
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "https://example.com/pkg.tgz" =
@@ -402,17 +412,26 @@ let%test_module "parsing" = (module struct
   let%test "link:/some/path/opam" =
     expectParses
       "link:/some/path/opam"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "opam");})
+      (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
+      })
 
   let%test "link:/some/path/lwt.opam" =
     expectParses
       "link:/some/path/lwt.opam"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "lwt.opam");})
+      (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
+      })
 
   let%test "link:/some/path/package.json" =
     expectParses
       "link:/some/path/package.json"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "package.json");})
+      (LocalPathLink {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
+      })
 
   let%test "file:/some/path" =
     expectParses
@@ -422,19 +441,25 @@ let%test_module "parsing" = (module struct
   let%test "file:/some/path/opam" =
     expectParses
       "file:/some/path/opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "opam");})
+      (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
+      })
 
   let%test "file:/some/path/lwt.opam" =
     expectParses
       "file:/some/path/lwt.opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "lwt.opam");})
+      (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
+      })
 
   let%test "file:/some/path/package.json" =
     expectParses
       "file:/some/path/package.json"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "package.json");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
       })
 
   let%test "path:/some/path" =
@@ -447,7 +472,7 @@ let%test_module "parsing" = (module struct
       "path:/some/path/opam"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
       })
 
   let%test "path:/some/path/lwt.opam" =
@@ -455,7 +480,7 @@ let%test_module "parsing" = (module struct
       "path:/some/path/lwt.opam"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "path:/some/path/package.json" =
@@ -463,7 +488,7 @@ let%test_module "parsing" = (module struct
       "path:/some/path/package.json"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "package.json");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
       })
 
   let%test "/some/path" =
@@ -474,14 +499,17 @@ let%test_module "parsing" = (module struct
   let%test "/some/path/opam" =
     expectParses
       "/some/path/opam"
-      (LocalPath {path = Path.v "/some/path"; manifest = Some (ManifestSpec.ofStringExn "opam");})
+      (LocalPath {
+        path = Path.v "/some/path";
+        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
+      })
 
   let%test "/some/path/lwt.opam" =
     expectParses
       "/some/path/lwt.opam"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "/some/path/package.json" =
@@ -489,7 +517,7 @@ let%test_module "parsing" = (module struct
       "/some/path/package.json"
       (LocalPath {
         path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.ofStringExn "package.json");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
       })
 
   let%test "./some/path" =
@@ -505,7 +533,7 @@ let%test_module "parsing" = (module struct
       "./some/path/opam"
       (LocalPath {
         path = Path.v "some/path";
-        manifest = Some (ManifestSpec.ofStringExn "opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
       })
 
   let%test "./some/path/lwt.opam" =
@@ -513,7 +541,7 @@ let%test_module "parsing" = (module struct
       "./some/path/lwt.opam"
       (LocalPath {
         path = Path.v "some/path";
-        manifest = Some (ManifestSpec.ofStringExn "lwt.opam");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
       })
 
   let%test "./some/path/package.json" =
@@ -521,7 +549,7 @@ let%test_module "parsing" = (module struct
       "./some/path/package.json"
       (LocalPath {
         path = Path.v "some/path";
-        manifest = Some (ManifestSpec.ofStringExn "package.json");
+        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
       })
 
 end)

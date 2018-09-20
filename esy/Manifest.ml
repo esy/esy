@@ -627,7 +627,7 @@ module Manifest : sig
   val dirHasManifest : Path.t -> bool RunAsync.t
   val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
-    ?manifest:ManifestSpec.t
+    ?manifest:ManifestSpec.Filename.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
 
@@ -729,12 +729,10 @@ end = struct
     | Some spec ->
       let%bind manifest =
         match spec with
-        | ManifestSpec.ManyOpam _ ->
-          errorf "unable to load manifest from aggregated opam files"
-        | ManifestSpec.One Esy fname ->
+        | ManifestSpec.Filename.Esy fname ->
           let path = Path.(path / fname) in
           loadEsyManifest path
-        | ManifestSpec.One Opam fname ->
+        | ManifestSpec.Filename.Opam fname ->
           let path = Path.(path / fname) in
           loadOpamManifest path
       in

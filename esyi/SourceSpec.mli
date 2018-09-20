@@ -11,21 +11,21 @@ type t =
   | Git of {
       remote : string;
       ref : string option;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | Github of {
       user : string;
       repo : string;
       ref : string option;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | NoSource
 

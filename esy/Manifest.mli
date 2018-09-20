@@ -128,7 +128,7 @@ include MANIFEST
  * load manifest. Client code can check those paths to invalidate caches.
  *)
 val ofDir :
-  ?manifest:EsyInstall.ManifestSpec.t
+  ?manifest:EsyInstall.ManifestSpec.Filename.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
