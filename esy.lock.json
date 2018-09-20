@@ -1,5 +1,5 @@
 {
-  "hash": "2b8164521f98f6a3740aabbbbbbc0fe2",
+  "hash": "0bbc3be010bfed8fd60830ff48cb16dd",
   "root": "esy-test-build@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -4188,7 +4188,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "ci-info@1.5.1" ]
+      "dependencies": [ "ci-info@1.6.0" ]
     },
     "is-callable@1.1.4": {
       "record": {
@@ -5368,7 +5368,7 @@
         "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
         "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
         "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
-        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.22",
+        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.23",
         "esy-solve-cudf@0.1.6",
         "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
         "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1",
@@ -5388,12 +5388,12 @@
       },
       "dependencies": []
     },
-    "esy-bash@0.1.22": {
+    "esy-bash@0.1.23": {
       "record": {
         "name": "esy-bash",
-        "version": "0.1.22",
+        "version": "0.1.23",
         "source":
-          "archive:https://registry.npmjs.org/esy-bash/-/esy-bash-0.1.22.tgz#sha1:6b2c4b05705e557638b2273361820056cb600fbd",
+          "archive:https://registry.npmjs.org/esy-bash/-/esy-bash-0.1.23.tgz#sha1:7a80d479c13a53351a4119a838d2433a15ce730c",
         "files": [],
         "opam": null
       },
@@ -6153,12 +6153,12 @@
         "static-extend@0.1.2"
       ]
     },
-    "ci-info@1.5.1": {
+    "ci-info@1.6.0": {
       "record": {
         "name": "ci-info",
-        "version": "1.5.1",
+        "version": "1.6.0",
         "source":
-          "archive:https://registry.npmjs.org/ci-info/-/ci-info-1.5.1.tgz#sha1:17e8eb5de6f8b2b6038f0cbb714d410bfa9f3030",
+          "archive:https://registry.npmjs.org/ci-info/-/ci-info-1.6.0.tgz#sha1:2ca20dbb9ceb32d4524a683303313f0304b1e497",
         "files": [],
         "opam": null
       },
