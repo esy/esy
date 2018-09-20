@@ -2,12 +2,6 @@
  * Package storage.
  *)
 
-val fetchSource :
-  cfg : Config.t
-  -> Source.t
-  -> Path.t RunAsync.t
-(** Fetch source and cache a compressed tarball. *)
-
 (** Distribution. *)
 module Dist : sig
   type t

@@ -376,9 +376,13 @@ let packageOfSource ~allowEmptyPackage ~name (source : Source.t) resolver =
         ()
 
     | Archive _ ->
-      let%bind tarballPath = FetchStorage.fetchSource ~cfg:resolver.cfg source in
       Fs.withTempDir begin fun path ->
-        let%bind () = Tarball.unpack ~dst:path tarballPath in
+        let%bind () =
+          SourceStorage.fetchAndUnpack
+            ~cfg:resolver.cfg
+            ~dst:path
+            source
+        in
         loadPackageOfPath
           ~name
           ~version:(Version.Source source)
