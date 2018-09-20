@@ -729,12 +729,12 @@ end = struct
     | Some spec ->
       let%bind manifest =
         match spec with
-        | ManifestSpec.OpamAggregated _ ->
+        | ManifestSpec.ManyOpam _ ->
           errorf "unable to load manifest from aggregated opam files"
-        | ManifestSpec.Esy fname ->
+        | ManifestSpec.One Esy fname ->
           let path = Path.(path / fname) in
           loadEsyManifest path
-        | ManifestSpec.Opam fname ->
+        | ManifestSpec.One Opam fname ->
           let path = Path.(path / fname) in
           loadOpamManifest path
       in
@@ -742,13 +742,13 @@ end = struct
 
   let ofSandboxSpec (spec : SandboxSpec.t) =
     match spec.manifest with
-    | ManifestSpec.Esy fname ->
+    | ManifestSpec.One Esy fname ->
       let path = Path.(spec.path / fname) in
       loadEsyManifest path
-    | ManifestSpec.Opam fname ->
+    | ManifestSpec.One Opam fname ->
       let path = Path.(spec.path / fname) in
       loadOpamManifestOfFiles [path]
-    | ManifestSpec.OpamAggregated fnames ->
+    | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       loadOpamManifestOfFiles paths
 

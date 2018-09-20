@@ -1,29 +1,32 @@
 type t =
-| Esy of string
-| Opam of string
-| OpamAggregated of string list
-[@@deriving ord]
+  | One of filename
+  | ManyOpam of string list
+  [@@deriving ord]
+
+and filename =
+  | Esy of string
+  | Opam of string
 
 let show = function
-  | Esy fname
-  | Opam fname -> fname
-  | OpamAggregated fnames -> String.concat "," fnames
+  | One Esy fname
+  | One Opam fname -> fname
+  | ManyOpam fnames -> String.concat "," fnames
 
 let pp fmt manifest =
   match manifest with
-  | Esy fname | Opam fname -> Fmt.string fmt fname
-  | OpamAggregated fnames -> Fmt.(list ~sep:(unit ", ") string) fmt fnames
+  | One Esy fname | One Opam fname -> Fmt.string fmt fname
+  | ManyOpam fnames -> Fmt.(list ~sep:(unit ", ") string) fmt fnames
 
 let ofString fname =
   (* this deliberately doesn't handle OpamAggregated *)
   let open Result.Syntax in
   match fname with
   | "" -> errorf "empty filename"
-  | "opam" -> return (Opam "opam")
+  | "opam" -> return (One (Opam "opam"))
   | fname ->
     begin match Path.(getExt (v fname)) with
-    | ".json" -> return (Esy fname)
-    | ".opam" -> return (Opam fname)
+    | ".json" -> return (One (Esy fname))
+    | ".opam" -> return (One (Opam fname))
     | _ -> errorf "invalid manifest: %s" fname
     end
 
@@ -42,15 +45,15 @@ let parser =
 
 let to_yojson manifest =
   match manifest with
-  | Esy fname | Opam fname -> `String fname
-  | OpamAggregated fnames ->
+  | One Esy fname | One Opam fname -> `String fname
+  | ManyOpam fnames ->
     let fnames = List.map ~f:(fun fname -> `String fname) fnames in
     `List fnames
 
 let of_yojson json =
   let open Result.Syntax in
   match json with
-  | `String "opam" -> return (Opam "opam")
+  | `String "opam" -> return (One (Opam "opam"))
   | `String fname -> ofString fname
   | `List fnames ->
     let%bind fnames =
@@ -65,7 +68,7 @@ let of_yojson json =
       in
       Result.List.map ~f fnames
     in
-    return (OpamAggregated fnames)
+    return (ManyOpam fnames)
   | _ -> errorf "invalid manifest"
 
 module Set = Set.Make(struct

@@ -1,7 +1,10 @@
 type t =
-| Esy of string
-| Opam of string
-| OpamAggregated of string list
+  | One of filename
+  | ManyOpam of string list
+
+and filename =
+  | Esy of string
+  | Opam of string
 
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
