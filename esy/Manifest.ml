@@ -4,6 +4,7 @@ module BuildType = struct
 end
 
 module SandboxSpec = EsyInstall.SandboxSpec
+module ManifestSpec = EsyInstall.ManifestSpec
 module PackageJson = EsyInstall.PackageJson
 module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
@@ -626,7 +627,7 @@ module Manifest : sig
   val dirHasManifest : Path.t -> bool RunAsync.t
   val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
   val ofDir :
-    ?manifest:SandboxSpec.ManifestSpec.t
+    ?manifest:ManifestSpec.t
     -> Path.t
     -> (t * Path.Set.t) option RunAsync.t
 
@@ -728,12 +729,12 @@ end = struct
     | Some spec ->
       let%bind manifest =
         match spec with
-        | SandboxSpec.ManifestSpec.OpamAggregated _ ->
+        | ManifestSpec.OpamAggregated _ ->
           errorf "unable to load manifest from aggregated opam files"
-        | SandboxSpec.ManifestSpec.Esy fname ->
+        | ManifestSpec.Esy fname ->
           let path = Path.(path / fname) in
           loadEsyManifest path
-        | SandboxSpec.ManifestSpec.Opam fname ->
+        | ManifestSpec.Opam fname ->
           let path = Path.(path / fname) in
           loadOpamManifest path
       in
@@ -741,13 +742,13 @@ end = struct
 
   let ofSandboxSpec (spec : SandboxSpec.t) =
     match spec.manifest with
-    | SandboxSpec.ManifestSpec.Esy fname ->
+    | ManifestSpec.Esy fname ->
       let path = Path.(spec.path / fname) in
       loadEsyManifest path
-    | SandboxSpec.ManifestSpec.Opam fname ->
+    | ManifestSpec.Opam fname ->
       let path = Path.(spec.path / fname) in
       loadOpamManifestOfFiles [path]
-    | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
+    | ManifestSpec.OpamAggregated fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       loadOpamManifestOfFiles paths
 

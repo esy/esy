@@ -175,10 +175,10 @@ let makeEsySandbox ~cfg ~spec projectPath path =
 
 let make ~cfg (spec : SandboxSpec.t) =
   match spec.manifest with
-  | SandboxSpec.ManifestSpec.Esy fname ->
+  | ManifestSpec.Esy fname ->
     makeEsySandbox ~cfg ~spec spec.path Path.(spec.path / fname)
-  | SandboxSpec.ManifestSpec.Opam fname ->
+  | ManifestSpec.Opam fname ->
     makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)]
-  | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
+  | ManifestSpec.OpamAggregated fnames ->
     let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
     makeOpamSandbox ~cfg ~spec spec.path paths

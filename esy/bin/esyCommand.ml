@@ -1145,7 +1145,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
     let%bind path =
       let spec = copts.installSandbox.Sandbox.spec in
       match spec.manifest with
-      | SandboxSpec.ManifestSpec.Esy fname -> return Path.(spec.SandboxSpec.path / fname)
+      | ManifestSpec.Esy fname -> return Path.(spec.SandboxSpec.path / fname)
       | Opam _ -> error aggOpamErrorMsg
       | OpamAggregated _ -> error aggOpamErrorMsg
       in

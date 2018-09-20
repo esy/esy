@@ -108,7 +108,7 @@ let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~use
 
   let filenames =
     match manifest with
-    | Some manifest -> [SandboxSpec.ManifestSpec.show manifest]
+    | Some manifest -> [ManifestSpec.show manifest]
     | None -> ["esy.json"; "package.json"]
   in
 
@@ -195,7 +195,7 @@ let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path 
   in
   let filenames =
     match manifest with
-    | Some manifest -> [SandboxSpec.ManifestSpec.show manifest]
+    | Some manifest -> [ManifestSpec.show manifest]
     | None -> [
       "esy.json";
       "package.json";
