@@ -11,6 +11,7 @@ install:
     - where node
     - npm install -g jest-cli
     - npm install -g esy@0.2.11
+    - where esy
     - appveyor-retry appveyor-retry esy install
 
 build_script:
