@@ -1,7 +1,11 @@
 type source = {tarballPath : Path.t;}
 
 let sourceTarballPath ~cfg source =
-  let id = Path.safePath (Source.show source) in
+  let id =
+    Source.show source
+    |> Digest.string
+    |> Digest.to_hex
+  in
   Path.(cfg.Config.cacheTarballsPath // v id |> addExt "tgz")
 
 let fetchSourceIntoPath source path =
