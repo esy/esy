@@ -13,6 +13,8 @@ module Filename : sig
   val ofString : string -> (t, string) result
   val ofStringExn : string -> t
   val parser : t Parse.t
+
+  val inferPackageName : t -> string option
 end
 
 type t =

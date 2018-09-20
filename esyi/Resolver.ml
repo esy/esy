@@ -69,18 +69,6 @@ let toOpamOcamlVersion version =
   | Some (Version.Source _) -> None
   | None -> None
 
-let classifyManifest path =
-  let open Result.Syntax in
-  let basename = Path.basename path in
-  let ext = Path.getExt path in
-  match basename, ext with
-  | _, ".json" -> return `PackageJson
-  | _, ".opam" ->
-    let name = Path.(basename (remExt path)) in
-    return (`Opam (Some name))
-  | "opam", "" -> return (`Opam None)
-  | _ -> errorf "unknown manifest: %s" basename
-
 let makeDummyPackage name version source =
   {
     Package.
@@ -106,30 +94,24 @@ let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~use
     Curl.get url
   in
 
-  let filenames =
-    match manifest with
-    | Some manifest -> [ManifestSpec.Filename.show manifest]
-    | None -> ["esy.json"; "package.json"]
-  in
-
   let rec tryFilename filenames =
     match filenames with
     | [] ->
       if allowEmptyPackage
       then return (Package (makeDummyPackage name version source))
       else errorf "cannot find manifest at github:%s/%s#%s" user repo ref
-    | filename::rest ->
-      begin match%lwt fetchFile filename with
+    | (kind, fname)::rest ->
+      begin match%lwt fetchFile fname with
       | Error _ -> tryFilename rest
       | Ok data ->
-        begin match classifyManifest (Path.v filename) with
-        | Ok `PackageJson ->
+        begin match kind with
+        | ManifestSpec.Filename.Esy ->
           let%bind manifest = RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data) in
           let pkg = Package.ofPackageJson ~name ~version ~source manifest in
           return (Package pkg)
-        | Ok `Opam opamname ->
+        | ManifestSpec.Filename.Opam ->
           let opamname =
-            match opamname with
+            match ManifestSpec.Filename.inferPackageName (kind, fname) with
             | None -> repo
             | Some name -> name
           in
@@ -142,9 +124,17 @@ let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~use
           | Ok pkg -> return (Package pkg)
           | Error err -> error err
           end
-        | Error err -> error err
         end
       end
+  in
+
+  let filenames =
+    match manifest with
+    | Some manifest -> [manifest]
+    | None -> [
+      ManifestSpec.Filename.Esy, "esy.json";
+      ManifestSpec.Filename.Esy, "package.json"
+    ]
   in
 
   tryFilename filenames
@@ -158,12 +148,12 @@ let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path 
       if allowEmptyPackage
       then return (Package (makeDummyPackage name version source))
       else errorf "cannot find manifest at %a" Path.pp path
-    | filename::rest ->
-      let path = Path.(path / filename) in
+    | (kind, fname)::rest ->
+      let path = Path.(path / fname) in
       if%bind Fs.exists path
       then
-        match classifyManifest path with
-        | Ok `PackageJson ->
+        match kind with
+        | ManifestSpec.Filename.Esy ->
           let%bind json = Fs.readJsonFile path in
           begin match PackageOverride.of_yojson json with
           | Ok override ->
@@ -173,9 +163,9 @@ let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path 
             let pkg = Package.ofPackageJson ~name ~version ~source manifest in
             return (Package pkg)
           end
-        | Ok (`Opam opamname) ->
+        | ManifestSpec.Filename.Opam ->
           let opamname =
-            match opamname with
+            match ManifestSpec.Filename.inferPackageName (kind, fname) with
             | None -> Path.(basename (parent path))
             | Some name -> name
           in
@@ -188,19 +178,17 @@ let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path 
           | Ok pkg -> return (Package pkg)
           | Error err -> error err
           end
-        | Error err ->
-          error err
       else
         tryFilename rest
   in
   let filenames =
     match manifest with
-    | Some manifest -> [ManifestSpec.Filename.show manifest]
+    | Some manifest -> [manifest]
     | None -> [
-      "esy.json";
-      "package.json";
-      "opam";
-      Path.basename path ^ ".opam";
+      ManifestSpec.Filename.Esy, "esy.json";
+      ManifestSpec.Filename.Esy, "package.json";
+      ManifestSpec.Filename.Opam, "opam";
+      ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
     ]
   in
   tryFilename filenames

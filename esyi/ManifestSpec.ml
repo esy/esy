@@ -44,6 +44,10 @@ module Filename = struct
     | `String fname -> ofString fname
     | _ -> error "invalid manifest filename"
 
+  let inferPackageName = function
+    | Opam, "opam" -> None
+    | _, fname -> Some Path.(v fname |> remExt |> show)
+
 end
 
 type t =
