@@ -3,7 +3,7 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson} = helpers;
+const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows();
 
@@ -12,7 +12,11 @@ describe('complete workflow for esy sandboxes', () => {
     const p = await helpers.createTestSandbox(...fixture);
 
     // add ocaml package, required by opam sandboxes implicitly
-    await p.defineNpmPackageOfFixture(helpers.ocamlPackage().items);
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
 
     // add @esy-ocaml/substs package, required by opam sandboxes implicitly
     await p.defineNpmPackage({
@@ -43,20 +47,13 @@ describe('complete workflow for esy sandboxes', () => {
     const fixture = [
       packageJson({
         esy: {
-          build: [
-            'cp root.ml #{self.target_dir/}root.ml',
-            'ocamlopt -o #{self.target_dir/}root.exe #{self.target_dir/}root.ml',
+          install: [
+            "cp #{self.root / 'root'}.exe #{self.bin / 'root'}.exe",
+            "chmod +x #{self.bin / 'root'}.exe",
           ],
-          install: ['cp #{self.target_dir/}root.exe #{self.bin/}root.exe'],
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
       }),
-      file('root.ml', 'print_endline "__root__"'),
+      dummyExecutable('root'),
     ];
     const p = await createTestSandbox(...fixture);
     await p.esy('install --skip-repository-update');
@@ -65,46 +62,14 @@ describe('complete workflow for esy sandboxes', () => {
     expect(stdout.trim()).toEqual('__root__');
   });
 
-  it('no dependencies, only ocaml devDep', async () => {
-    const fixture = [
-      packageJson({
-        name: 'root',
-        version: '1.0.0',
-        esy: {
-          build: [
-            'cp root.ml #{self.target_dir/}root.ml',
-            'ocamlopt -o #{self.target_dir/}root.exe #{self.target_dir/}root.ml',
-          ],
-          install: ['cp #{self.target_dir/}root.exe #{self.bin/}root.exe'],
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
-        },
-      }),
-      file('root.ml', 'print_endline "__root__"'),
-    ];
-    const p = await createTestSandbox(...fixture);
-    await p.esy('install --skip-repository-update');
-    await p.esy('build');
-    const {stdout} = await p.esy('x root.exe');
-    expect(stdout.trim()).toEqual('__root__');
-  });
-
-  it('npm dependencies, only ocaml devDep', async () => {
+  it('npm dependencies', async () => {
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
       }),
     ];
@@ -115,17 +80,16 @@ describe('complete workflow for esy sandboxes', () => {
         name: 'dep',
         version: '1.0.0',
         esy: {
-          build: [
-            'cp dep.ml #{self.target_dir/}dep.ml',
-            'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+          install: [
+            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
+            'chmod +x #{self.bin / self.name}.exe',
           ],
-          install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
         },
         dependencies: {
           ocaml: '*',
         },
       }),
-      file('dep.ml', 'print_endline "__dep__"'),
+      dummyExecutable('dep'),
     ]);
 
     await p.esy('install --skip-repository-update');
@@ -145,7 +109,7 @@ describe('complete workflow for esy sandboxes', () => {
     }
   });
 
-  it('opam dependencies, only ocaml devDep', async () => {
+  it('opam dependencies', async () => {
     const fixture = [
       packageJson({
         name: 'root',
@@ -169,7 +133,7 @@ describe('complete workflow for esy sandboxes', () => {
         opam: outdent`
           opam-version: "1.2"
           build: [
-            ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+            ["chmod" "+x" "dep.exe"]
           ]
           install: [
             ["cp" "dep.exe" "%{bin}%/dep.exe"]
@@ -177,14 +141,7 @@ describe('complete workflow for esy sandboxes', () => {
         `,
         url: null,
       },
-      [
-        helpers.file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
-      ],
+      [dummyExecutable('dep')],
     );
 
     await p.esy('install --skip-repository-update');
@@ -225,20 +182,14 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ["chmod" "+x" "dep.exe"]
             ]
             install: [
               ["cp" "dep.exe" "%{bin}%/dep.exe"]
             ]
-
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
     const p = await createTestSandbox(...fixture);
@@ -281,7 +232,7 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ["chmod" "+x" "dep.exe"]
             ]
             install: [
               ["cp" "dep.exe" "%{bin}%/dep.exe"]
@@ -289,12 +240,7 @@ describe('complete workflow for esy sandboxes', () => {
 
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
     const p = await createTestSandbox(...fixture);
@@ -326,9 +272,6 @@ describe('complete workflow for esy sandboxes', () => {
           ocaml: '*',
           '@opam/dep': 'link:./dep/custom.opam',
         },
-        devDependencies: {
-          ocaml: '*',
-        },
       }),
       dir(
         'dep',
@@ -337,7 +280,7 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ["chmod" "+x" "dep.exe"]
             ]
             install: [
               ["cp" "dep.exe" "%{bin}%/dep.exe"]
@@ -345,12 +288,7 @@ describe('complete workflow for esy sandboxes', () => {
 
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
     const p = await createTestSandbox(...fixture);

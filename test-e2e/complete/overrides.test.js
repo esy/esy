@@ -3,7 +3,7 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson} = helpers;
+const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows();
 
@@ -31,29 +31,24 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'path:./dep',
             override: {
               build: [
-                'cp dep.ml #{self.target_dir/}dep.ml',
-                'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+                'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+                'chmod +x #{self.target_dir / self.name}.exe',
               ],
-              install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              install: [
+                'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+              ],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
     const p = await createTestSandbox(...fixture);
 
@@ -83,9 +78,6 @@ describe('complete workflow for esy sandboxes', () => {
         dependencies: {
           dep: '*',
         },
-        devDependencies: {
-          ocaml: '*',
-        },
         resolutions: {
           // This provides a package dep which is declared with no source and
           // just commands which need to be executed, we just copy its
@@ -105,18 +97,17 @@ describe('complete workflow for esy sandboxes', () => {
         packageJson({
           name: 'depdep',
           version: '1.0.0',
-          dependencies: {ocaml: '*'},
           esy: {
             build: [
-              'cp #{self.name}.ml #{self.target_dir / self.name}.ml',
-              'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
+              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+              'chmod +x #{self.target_dir / self.name}.exe',
             ],
             install: [
               'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
             ],
           },
         }),
-        file('depdep.ml', 'print_endline "__depdep__"'),
+        dummyExecutable('depdep'),
       ),
     ];
 
@@ -142,27 +133,20 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'path:./dep',
             override: {
               buildsInSource: true,
-              build: ['ocamlopt -o dep.exe dep.ml'],
-              install: ['cp dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              build: ['touch #{self.name}.exe', 'chmod +x #{self.name}.exe'],
+              install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
     const p = await createTestSandbox(...fixture);
 
@@ -180,29 +164,24 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'link:./dep',
             override: {
               build: [
-                'cp dep.ml #{self.target_dir/}dep.ml',
-                'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+                'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+                'chmod +x #{self.target_dir / self.name}.exe',
               ],
-              install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              install: [
+                'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+              ],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
     const p = await createTestSandbox(...fixture);
 
@@ -230,11 +209,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -251,18 +226,17 @@ describe('complete workflow for esy sandboxes', () => {
           name: 'dep',
           version: '1.0.0',
           esy: {
-            build: [
-              'cp dep.ml #{self.target_dir/}dep.ml',
-              'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
-            ],
             buildEnv: {
               SHOULD_BE_DROPPED: 'OOPS',
             },
-            install: ['cp #{self.target_dir/}dep.exe #{self.bin / $DEPNAME}.exe'],
+            build: [
+              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+              'chmod +x #{self.target_dir / self.name}.exe',
+            ],
+            install: ['cp #{self.target_dir / self.name}.exe #{self.bin / $DEPNAME}.exe'],
           },
-          dependencies: {ocaml: '*'},
         }),
-        file('dep.ml', 'print_endline "__dep__"'),
+        dummyExecutable('dep'),
       ),
     ];
     const p = await createTestSandbox(...fixture);
@@ -289,11 +263,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -319,14 +289,13 @@ describe('complete workflow for esy sandboxes', () => {
               SHOULD_BE_DROPPED: 'OOPS',
             },
             build: [
-              'cp dep.ml #{self.target_dir/}dep.ml',
-              'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+              'chmod +x #{self.target_dir / self.name}.exe',
             ],
-            install: ['cp #{self.target_dir/}dep.exe #{self.bin / $DEPNAME}.exe'],
+            install: ['cp #{self.target_dir / self.name}.exe #{self.bin / $DEPNAME}.exe'],
           },
-          dependencies: {ocaml: '*'},
         }),
-        file('dep.ml', 'print_endline "__dep__"'),
+        dummyExecutable('dep'),
       ),
     ];
     const p = await createTestSandbox(...fixture);
@@ -354,11 +323,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -385,7 +350,6 @@ describe('complete workflow for esy sandboxes', () => {
             build: [],
             install: [],
           },
-          dependencies: {ocaml: '*'},
         }),
       ),
     ];
@@ -410,11 +374,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -442,7 +402,6 @@ describe('complete workflow for esy sandboxes', () => {
             build: [],
             install: [],
           },
-          dependencies: {ocaml: '*'},
         }),
       ),
     ];
