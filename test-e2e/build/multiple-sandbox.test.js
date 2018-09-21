@@ -2,7 +2,7 @@
 
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson, exeExtension} = helpers;
+const {file, dir, packageJson} = helpers;
 
 helpers.skipSuiteOnWindows();
 

@@ -12,7 +12,11 @@ describe('complete workflow for esy sandboxes', () => {
     const p = await helpers.createTestSandbox(...fixture);
 
     // add ocaml package, required by opam sandboxes implicitly
-    await p.defineNpmPackageOfFixture(helpers.ocamlPackage().items);
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
 
     // add @esy-ocaml/substs package, required by opam sandboxes implicitly
     await p.defineNpmPackage({

@@ -1,42 +1,52 @@
 // @flow
 
+const {setup, esy, mkdirTemp, ocamlVersion} = require('./setup.js');
+const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
-
 const outdent = require('outdent');
-const {
-  createTestSandbox,
-  file,
-  dir,
-  packageJson,
-  ocamlPackage,
-  promiseExec,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const childProcess = require('child_process');
 
-skipSuiteOnWindows('Needs investigation');
+setup();
 
-const fixture = [
-  packageJson({
+const npmPrefix = mkdirTemp();
+const sandboxPath = mkdirTemp();
+
+console.log(`*** Release test at ${sandboxPath} ***`);
+
+function npm(cwd, cmd) {
+  return childProcess.execSync(`npm ${cmd}`, {
+    cwd,
+    env: {...process.env, NPM_CONFIG_PREFIX: npmPrefix},
+    stdio: 'inherit',
+  });
+}
+
+fs.writeFileSync(
+  path.join(sandboxPath, 'package.json'),
+  JSON.stringify({
     name: 'release',
     version: '0.1.0',
     license: 'MIT',
     dependencies: {
-      releaseDep: '*',
-      ocaml: '*',
+      releaseDep: './releaseDep',
+      ocaml: ocamlVersion,
     },
     esy: {
       buildsInSource: true,
-      build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-      install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+      build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
+      install: 'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
       release: {
-        releasedBinaries: ['release', 'releaseDep'],
+        releasedBinaries: ['release.exe', 'releaseDep.exe'],
         deleteFromBinaryRelease: ['ocaml-*'],
       },
     },
   }),
-  file(
-    'release.ml',
-    outdent`
+);
+
+fs.writeFileSync(
+  path.join(sandboxPath, 'release.ml'),
+  outdent`
     let () =
       let name =
         match Sys.getenv_opt "NAME" with
@@ -45,67 +55,63 @@ const fixture = [
       in
       print_endline ("RELEASE-HELLO-FROM-" ^ name)
   `,
-  ),
-  dir(
-    'node_modules',
-    dir(
-      'releaseDep',
-      packageJson({
-        name: 'releaseDep',
-        version: '0.1.0',
-        esy: {
-          buildsInSource: true,
-          build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-          install: 'cp #{self.root / self.name} #{self.bin / self.name}',
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-      }),
-      file(
-        'releaseDep.ml',
-        outdent`
-        let () =
-          print_endline "RELEASE-DEP-HELLO"
-      `,
-      ),
-    ),
-    ocamlPackage(),
-  ),
-];
+);
 
-it('Common - release', async () => {
-  const p = await createTestSandbox(...fixture);
+fs.mkdirSync(path.join(sandboxPath, 'releaseDep'));
 
-  await expect(p.esy('release')).resolves.not.toThrow();
+fs.writeFileSync(
+  path.join(sandboxPath, 'releaseDep', 'package.json'),
+  JSON.stringify({
+    name: 'releaseDep',
+    version: '0.1.0',
+    esy: {
+      buildsInSource: true,
+      build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
+      install: 'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
+    },
+    dependencies: {
+      ocaml: ocamlVersion,
+    },
+  }),
+);
 
-  // npm commands are run in the _release folder
-  await expect(p.npm('pack')).resolves.not.toThrow();
-  await expect(p.npm('-g install ./release-*.tgz')).resolves.not.toThrow();
+fs.writeFileSync(
+  path.join(sandboxPath, 'releaseDep', 'releaseDep.ml'),
+  outdent`
+    let () =
+      print_endline "RELEASE-DEP-HELLO"
+  `,
+);
 
-  await expect(
-    promiseExec(path.join(p.npmPrefixPath, 'bin', 'release'), {
-      env: {...process.env, NAME: 'ME'},
-    }),
-  ).resolves.toEqual({
-    stdout: 'RELEASE-HELLO-FROM-ME\n',
-    stderr: '',
+esy(sandboxPath, 'install');
+esy(sandboxPath, 'release');
+
+const releasePath = path.join(sandboxPath, '_release');
+
+npm(releasePath, 'pack');
+npm(releasePath, '-g install ./release-*.tgz');
+
+{
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'release.exe'), {
+    env: {
+      ...process.env,
+      NAME: 'ME',
+    },
   });
+  assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\n');
+}
 
-  await expect(
-    promiseExec(path.join(p.npmPrefixPath, 'bin', 'releaseDep')),
-  ).resolves.toEqual({
-    stdout: 'RELEASE-DEP-HELLO\n',
-    stderr: '',
-  });
+{
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'releaseDep.exe'));
+  assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
+}
 
-  // check that `release ----where` returns a path to a real `release` binary
+// check that `release ----where` returns a path to a real `release` binary
 
-  const releaseBinPath = (await promiseExec(
-    path.join(p.npmPrefixPath, 'bin', 'release ----where'),
-  )).stdout.trim();
-  await expect(promiseExec(releaseBinPath)).resolves.toEqual({
-    stdout: 'RELEASE-HELLO-FROM-name\n',
-    stderr: '',
-  });
-});
+{
+  const releaseBin = childProcess.execSync(
+    path.join(npmPrefix, 'bin', 'release.exe ----where'),
+  );
+  const stdout = childProcess.execSync(releaseBin.toString());
+  assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\n');
+}

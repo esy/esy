@@ -16,48 +16,13 @@ const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
 const outdent = require('outdent');
-const {
-  ocamlPackagePath,
-  ESYCOMMAND,
-  isWindows,
-  ocamloptName,
-  flexlinkName,
-} = require('./jestGlobalSetup.js');
 
-function getTempDir() {
-  return isWindows ? os.tmpdir() : '/tmp';
-}
+const isWindows = process.platform === 'win32';
 
-const exeExtension = isWindows ? '.exe' : '';
-
-function ocamlPackage() {
-  let esyLink = {
-    type: 'file-copy',
-    name: '_esylink',
-    path: path.join(ocamlPackagePath, '_esylink'),
-  };
-  let packageJson = {
-    type: 'file-copy',
-    name: 'package.json',
-    path: path.join(ocamlPackagePath, 'package.json'),
-  };
-  let ocamlopt = {
-    type: 'file-copy',
-    name: ocamloptName,
-    path: path.join(ocamlPackagePath, ocamloptName),
-  };
-
-  if (isWindows) {
-    let flexlink = {
-      type: 'file-copy',
-      name: flexlinkName,
-      path: path.join(ocamlPackagePath, flexlinkName),
-    }
-    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, flexlink, packageJson);
-  } else {
-    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
-  }
-}
+const ESYCOMMAND =
+  process.platform === 'win32'
+    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
+    : require.resolve('../../bin/esy');
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -221,13 +186,8 @@ module.exports = {
   symlink: FixtureUtils.symlink,
   dir: FixtureUtils.dir,
   packageJson: FixtureUtils.packageJson,
-  getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
-  exeExtension,
-  ocamloptName,
-  ocamlPackage,
-  ocamlPackagePath,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
