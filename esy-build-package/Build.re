@@ -3,6 +3,7 @@ module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 module System = EsyLib.System;
 open Run;
+open FastReplaceString;
 
 type t = {
   plan: Plan.t,
@@ -372,15 +373,7 @@ let withLock = (lockPath: Path.t, f) => {
 
 let commitBuildToStore = (config: Config.t, build: build) => {
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
-    let cmd =
-      Cmd.(
-        empty
-        % p(config.fastreplacestringPath)
-        % p(path)
-        % origPrefix
-        % destPrefix
-      );
-    Bos.OS.Cmd.run(cmd);
+    Fastreplacestring.replace(path, origPrefix, destPrefix);
   };
   let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
     let origPrefixString = Path.show(origPrefix);
@@ -389,7 +382,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     | Windows =>
       /* On Windows, the slashes could be either `/` or windows-style `\`, or even escaped like `\\` */
       /* Replace windows-style slashes: `\` */
-      let%bind () =
+      let _ =
         rewritePrefixInFile(
           ~origPrefix=origPrefixString,
           ~destPrefix=destPrefixString,
@@ -398,8 +391,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       /* Replace normalized slashes: `/` */
       let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
       let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
-      let%bind () =
-        rewritePrefixInFile(
+      let _ = rewritePrefixInFile(
           ~origPrefix=normalizedOrigPrefix,
           ~destPrefix=normalizedDestPrefix,
           path,
@@ -418,7 +410,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
           "\\\\\\\\",
           normalizedDestPrefix,
         );
-      let%bind () =
+      let _ =
         rewritePrefixInFile(
           ~origPrefix=escapedOrigPrefix,
           ~destPrefix=escapedDestPrefix,
@@ -430,7 +422,8 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         ~origPrefix=origPrefixString,
         ~destPrefix=destPrefixString,
         path,
-      )
+      );
+      ok;
     };
   };
   let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
