@@ -97,7 +97,7 @@ module Env = struct
 end
 
 module EnvOverride = struct
-  type t = Env.item StringMap.Override.t [@@deriving ord]
+  type t = Env.item StringMap.Override.t [@@deriving ord, show]
   let of_yojson = StringMap.Override.of_yojson Env.item_of_yojson
   let to_yojson = StringMap.Override.to_yojson Env.item_to_yojson
 end
@@ -185,7 +185,7 @@ module ExportedEnvOverride = struct
 
   type t =
     ExportedEnv.item StringMap.Override.t
-    [@@deriving ord]
+    [@@deriving ord, show]
 
   let of_yojson = StringMap.Override.of_yojson ExportedEnv.item_of_yojson
   let to_yojson = StringMap.Override.to_yojson ExportedEnv.item_to_yojson

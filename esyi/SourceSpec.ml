@@ -111,6 +111,7 @@ let matches ~source spec =
     String.equal url1 url2
   | Archive _, _ -> false
 
+  | NoSource, NoSource -> true
   | NoSource, _ -> false
 
 let ofSource (source : Source.t) =

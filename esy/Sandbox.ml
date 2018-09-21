@@ -380,7 +380,6 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           | _ -> path
         in
         let%bind m = Manifest.ofDir
-          ?name
           ?manifest:(Source.manifest link.source)
           sourcePath
         in

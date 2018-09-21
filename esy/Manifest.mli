@@ -128,8 +128,7 @@ include MANIFEST
  * load manifest. Client code can check those paths to invalidate caches.
  *)
 val ofDir :
-  ?name:string
-  -> ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
+  ?manifest:EsyInstall.SandboxSpec.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 

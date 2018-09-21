@@ -38,6 +38,7 @@ module EnvOverride : sig
   type t = Env.item StringMap.Override.t
 
   include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
   include S.JSONABLE with type t := t
 end
 
@@ -65,6 +66,7 @@ module ExportedEnvOverride : sig
   type t = ExportedEnv.item StringMap.Override.t
 
   include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
   include S.JSONABLE with type t := t
 end
 

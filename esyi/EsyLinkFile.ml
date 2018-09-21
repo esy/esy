@@ -1,6 +1,7 @@
 type t = {
   source : Source.t;
   override : Package.Override.t option [@default None];
+  opam : Solution.Record.Opam.t option [@default None];
 } [@@deriving yojson]
 
 let ofFile path =
@@ -26,7 +27,18 @@ let ofDir path =
     return {
       source = Source.LocalPathLink {path; manifest = None};
       override = None;
+      opam = None;
     }
+
+let ofDirIfExists path =
+  let open RunAsync.Syntax in
+  let fname = Path.(path / "_esylink") in
+  if%bind Fs.exists fname
+  then
+    let%bind link = ofFile fname in
+    return (Some link)
+  else
+    return None
 
 let toDir file path =
   toFile file Path.(path / "_esylink")

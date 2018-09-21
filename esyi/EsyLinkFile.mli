@@ -13,7 +13,13 @@ type t = {
 
   (** Optional override. *)
   override : Package.Override.t option;
+
+  (** opam metadata in case this is an installation from opam repository *)
+  opam : Solution.Record.Opam.t option;
 }
+
+val ofDirIfExists : Path.t -> t option RunAsync.t
+(** Read from path. *)
 
 val ofDir : Path.t -> t RunAsync.t
 (** Read from path. *)
