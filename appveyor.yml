@@ -4,7 +4,7 @@ platform:
 cache:
     - C:\Users\appveyor\.esy
 
-# Needed for running unit tests - blocked by ??
+# Needed for running unit tests - blocked by bryphe/esy-bash#16
 environment:
     ESY_NODE_PATH: C:/Program Files/nodejs/node.exe
 
