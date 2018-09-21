@@ -1,48 +1,28 @@
 // @flow
 
-const os = require('os');
-const path = require('path');
-
-const outdent = require('outdent');
-const {
-  createTestSandbox,
-  ocamlPackage,
-  dir,
-  packageJson,
-  file,
-  exeExtension,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
 const fixture = [
-  packageJson({
+  helpers.packageJson({
     name: 'custom-prefix',
     version: '1.0.0',
     esy: {
       build: [
-        'cp #{self.root /}test.ml #{self.target_dir /}test.ml',
-        'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir /}test.ml',
+        'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+        'chmod +x #{self.target_dir / self.name}.exe',
       ],
-      install: `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`,
-    },
-    dependencies: {
-      ocaml: '*',
+      install: ['cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe'],
     },
   }),
-  file('.esyrc', 'esy-prefix-path: ./store'),
-  file(
-    'test.ml',
-    outdent`
-    let () = print_endline "custom-prefix"
-  `,
-  ),
-  dir('node_modules', ocamlPackage()),
+  helpers.file('.esyrc', 'esy-prefix-path: ./store'),
+  helpers.dummyExecutable('custom-prefix'),
 ];
 
-it('Build - custom prefix', async () => {
-  const p = await createTestSandbox(...fixture);
+it('Can be configured to build into a custom prefix (via .esyrc)', async () => {
+  const p = await helpers.createTestSandbox(...fixture);
 
   await p.esy('build', {noEsyPrefix: true});
 
-  const {stdout} = await p.esy('x custom-prefix', {noEsyPrefix: true});
-  expect(stdout).toEqual('custom-prefix' + os.EOL);
+  const {stdout} = await p.esy('x custom-prefix.exe', {noEsyPrefix: true});
+  expect(stdout.trim()).toEqual('__custom-prefix__');
 });

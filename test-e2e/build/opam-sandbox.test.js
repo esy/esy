@@ -1,53 +1,56 @@
 // @flow
 
-const {
-  file,
-  dir,
-  packageJson,
-  createTestSandbox,
-  promiseExec,
-  ocamlPackage,
-  skipSuiteOnWindows,
-} = require('../test/helpers.js');
+const helpers = require('../test/helpers.js');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
+
+const dummyOCaml = helpers.dir(
+  'ocaml',
+  helpers.packageJson({
+    name: 'ocaml',
+    version: '0.0.0',
+  }),
+);
+
+const dummySubsts = helpers.dir(
+  '@esy-ocaml',
+  helpers.dir(
+    'substs',
+    helpers.packageJson({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+    }),
+  ),
+);
 
 describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
-    const p = await createTestSandbox(
-      file(
+    const p = await helpers.createTestSandbox(
+      helpers.file(
         'opam',
         `
         opam-version: "1.2"
         build: [
-          ["ocamlopt" "-o" "%{bin}%/hello" "hello.ml"]
+          ["chmod" "+x" "hello.exe"]
+          ["cp" "hello.exe" "%{bin}%/hello.exe"]
         ]
       `,
       ),
-      file('hello.ml', 'let () = print_endline "__hello__"'),
-      dir(
-        'node_modules',
-        ocamlPackage(),
-        dir(
-          '@esy-ocaml',
-          dir(
-            'substs',
-            packageJson({
-              name: '@esy-ocaml/substs',
-              version: '0.0.0',
-            }),
-          ),
-        ),
-      ),
+      helpers.dummyExecutable('hello'),
+      helpers.dir('node_modules', dummyOCaml, dummySubsts),
     );
 
     await p.esy('build');
-    expect((await p.esy('x hello')).stdout).toEqual(expect.stringContaining('__hello__'));
+
+    {
+      const {stdout} = await p.esy('x hello.exe');
+      expect(stdout.trim()).toEqual('__hello__');
+    }
   });
 
   it('builds an opam sandbox with multiple opam files', async () => {
-    const p = await createTestSandbox(
-      file(
+    const p = await helpers.createTestSandbox(
+      helpers.file(
         'one.opam',
         `
         opam-version: "1.2"
@@ -59,7 +62,7 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      file(
+      helpers.file(
         'two.opam',
         `
         opam-version: "1.2"
@@ -71,29 +74,15 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      dir(
-        'node_modules',
-        ocamlPackage(),
-        dir(
-          '@esy-ocaml',
-          dir(
-            'substs',
-            packageJson({
-              name: '@esy-ocaml/substs',
-              version: '0.0.0',
-            }),
-          ),
-        ),
-      ),
+      helpers.dir('node_modules', dummySubsts, dummyOCaml),
     );
 
     await p.esy('build');
-    await p.esy('build which ocamlopt');
   });
 
   it('variables stress test', async () => {
-    const p = await createTestSandbox(
-      file(
+    const p = await helpers.createTestSandbox(
+      helpers.file(
         'opam',
         `
         opam-version: "1.2"
@@ -292,24 +281,15 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      dir(
+      helpers.dir(
         'node_modules',
-        ocamlPackage(),
-        dir(
-          '@esy-ocaml',
-          dir(
-            'substs',
-            packageJson({
-              name: '@esy-ocaml/substs',
-              version: '0.0.0',
-            }),
-          ),
-        ),
-        dir(
+        dummySubsts,
+        dummyOCaml,
+        helpers.dir(
           '@opam',
-          dir(
+          helpers.dir(
             'dep',
-            file(
+            helpers.file(
               '_esylink',
               JSON.stringify({
                 source: `path:.`,

@@ -6,22 +6,13 @@ const {promisify} = require('util');
 const open = promisify(fs.open);
 const close = promisify(fs.close);
 
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  symlink,
-  ocamlPackage,
-  exeExtension,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-function makeFixture(p) {
+function makeFixture(p, buildDep) {
   return [
-    packageJson({
-      name: 'with-linked-dep',
+    helpers.packageJson({
+      name: 'with-linked-dep-_build',
       version: '1.0.0',
-      license: 'MIT',
       esy: {
         build: 'true',
       },
@@ -29,77 +20,128 @@ function makeFixture(p) {
         dep: '*',
       },
     }),
-    dir(
+    helpers.dir(
       'dep',
-      packageJson({
+      helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
-        license: 'MIT',
-        esy: {
-          build: [
-            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-            'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
-          ],
-          install: `cp #{self.target_dir / self.name}.exe #{self.bin / self.name}${exeExtension}`,
-        },
-        dependencies: {
-          ocaml: '*',
-        },
+        esy: buildDep,
       }),
-      file('dep.ml', 'let () = print_endline "__dep__"'),
+      helpers.dummyExecutable('dep'),
     ),
-    dir(
+    helpers.dir(
       'node_modules',
-      dir(
+      helpers.dir(
         'dep',
-        file(
+        helpers.file(
           '_esylink',
           JSON.stringify({
             source: `link:${path.join(p.projectPath, 'dep')}`,
           }),
         ),
-        symlink('package.json', '../../dep/package.json'),
+        helpers.symlink('package.json', '../../dep/package.json'),
       ),
-      ocamlPackage(),
     ),
   ];
 }
 
-describe('Build - with linked dep', () => {
+describe('Build with a linked dep', () => {
   let p;
 
-  beforeAll(async () => {
-    p = await createTestSandbox();
-    await p.fixture(...makeFixture(p));
-    await p.esy('build');
-  });
+  async function checkDepIsInEnv() {
+    {
+      const {stdout} = await p.esy('dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-  it('package "dep" should be visible in all envs', async () => {
-    const dep = await p.esy('dep');
-    const b = await p.esy('b dep');
-    const x = await p.esy('x dep');
+    {
+      const {stdout} = await p.esy('b dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-    const expecting = expect.stringMatching('__dep__');
+    {
+      const {stdout} = await p.esy('x dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
+  }
 
-    expect(x.stdout).toEqual(expecting);
-    expect(b.stdout).toEqual(expecting);
-    expect(dep.stdout).toEqual(expecting);
-  });
-
-  it('should not rebuild dep with no changes', async done => {
+  async function checkShouldNotRebuildIfNoChanges() {
     const noOpBuild = await p.esy('build');
     expect(noOpBuild.stdout).not.toEqual(
       expect.stringMatching('Building dep@1.0.0: starting'),
     );
+  }
 
-    done();
-  });
-
-  it('should rebuild if file has been added', async () => {
+  async function checkShouldRebuildOnChanges() {
     await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
 
     const {stdout} = await p.esy('build');
     // TODO: why is this on stderr?
     expect(stdout).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));
+  }
+
+  describe('out of source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          build: [
+            'cp #{self.root / self.name}.exe #{self.target_dir / self.name}.exe',
+            'chmod +x #{self.target_dir / self.name}.exe',
+          ],
+          install: [`cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('package "dep" should be visible in all envs', checkDepIsInEnv);
+    it('should not rebuild dep with no changes', checkShouldNotRebuildIfNoChanges);
+    it('should rebuild if file has been added', checkShouldRebuildOnChanges);
+  });
+
+  describe('in source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: true,
+          build: [
+            'touch #{self.root / self.name}.exe',
+            'chmod +x #{self.root / self.name}.exe',
+          ],
+          install: [`cp #{self.root / self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('package "dep" should be visible in all envs', checkDepIsInEnv);
+    it('should not rebuild dep with no changes', checkShouldNotRebuildIfNoChanges);
+    it('should rebuild if file has been added', checkShouldRebuildOnChanges);
+  });
+
+  describe('_build build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: '_build',
+          build: [
+            "mkdir -p #{self.root / '_build'}",
+            "cp #{self.root / self.name}.exe #{self.root / '_build' / self.name}.exe",
+            "chmod +x #{self.root / '_build' / self.name}.exe",
+          ],
+          install: [
+            `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}.exe`,
+          ],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('package "dep" should be visible in all envs', checkDepIsInEnv);
+    it('should not rebuild dep with no changes', checkShouldNotRebuildIfNoChanges);
+    it('should rebuild if file has been added', checkShouldRebuildOnChanges);
   });
 });

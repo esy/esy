@@ -1,51 +1,74 @@
 // @flow
 
-const os = require('os');
-const path = require('path');
-const outdent = require('outdent');
-const {
-  createTestSandbox,
-  ocamlPackage,
-  dir,
-  file,
-  packageJson,
-  exeExtension,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-const fixture = [
-  packageJson({
-    name: 'no-deps',
-    version: '1.0.0',
-    license: 'MIT',
-    esy: {
-      build: [
-        ['cp', '#{self.original_root /}test.ml', '#{self.target_dir /}test.ml'],
-        [
-          'ocamlopt',
-          '-o',
-          '#{self.target_dir / self.name}.exe',
-          '#{self.target_dir /}test.ml',
-        ],
-      ],
-      install: [`cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name${exeExtension}`],
-    },
-    dependencies: {
-      ocaml: '*',
-    },
-  }),
-  file(
-    'test.ml',
-    outdent`
-    let () = print_endline "no-deps"
-  `,
-  ),
-  dir('node_modules', ocamlPackage()),
-];
+function makeFixture(p, buildDep) {
+  return [
+    helpers.packageJson({
+      name: 'no-deps',
+      version: '1.0.0',
+      esy: buildDep,
+    }),
+    helpers.dummyExecutable('no-deps'),
+  ];
+}
 
-it('Build - no deps', async () => {
-  const p = await createTestSandbox(...fixture);
-  await p.esy('build');
+describe('Build simple executable with no deps', () => {
+  let p;
 
-  const {stdout} = await p.esy('x no-deps');
-  expect(stdout).toEqual('no-deps' + os.EOL);
+  async function checkIsInEnv() {
+    const {stdout} = await p.esy('x no-deps.exe');
+    expect(stdout.trim()).toEqual('__no-deps__');
+  }
+
+  describe('out of source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      p.fixture(
+        ...makeFixture(p, {
+          build: [
+            'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
+            'chmod +x #{self.target_dir / self.name}.exe',
+          ],
+          install: [`cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+    test('executable is available in sandbox env', checkIsInEnv);
+  });
+
+  describe('in source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: true,
+          build: ['touch #{self.name}.exe', 'chmod +x #{self.name}.exe'],
+          install: [`cp #{self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+    test('executable is available in sandbox env', checkIsInEnv);
+  });
+
+  describe('_build build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: '_build',
+          build: [
+            'mkdir -p _build',
+            'cp #{self.name}.exe _build/#{self.name}.exe',
+            'chmod +x _build/#{self.name}.exe',
+          ],
+          install: [`cp _build/#{self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+    test('executable is available in sandbox env', checkIsInEnv);
+  });
 });

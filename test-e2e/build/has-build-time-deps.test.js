@@ -1,128 +1,120 @@
 // @flow
 
-const childProcess = require('child_process');
-const path = require('path');
-
+const os = require('os');
 const outdent = require('outdent');
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  ocamlPackage,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
-  packageJson({
+  helpers.packageJson({
     name: 'hasBuildTimeDeps',
     version: '1.0.0',
     esy: {
       buildsInSource: true,
-      build: [
-        'buildTimeDep #{self.name}.ml',
-        'ocamlopt -o #{self.bin / self.name} unix.cmxa #{self.name}.ml',
-      ],
+      build: ['buildTimeDep.exe #{self.name}', 'chmod +x #{self.name}.exe'],
+      install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
     },
     dependencies: {
       dep: '*',
-      ocaml: '*',
     },
     buildTimeDependencies: {
       buildTimeDep: '*',
     },
   }),
-  dir(
+  helpers.dir(
     'node_modules',
-    dir(
+    helpers.dir(
       'buildTimeDep',
-      packageJson({
+      helpers.packageJson({
         name: 'buildTimeDep',
         version: '1.0.0',
         esy: {
           buildsInSource: true,
-          build: 'ocamlopt -o #{self.bin / self.name} #{self.name}.ml',
-        },
-        dependencies: {
-          ocaml: '*',
+          build: 'chmod +x #{self.name}.exe',
+          install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
         },
         '_esy.source': 'path:./',
       }),
-      file(
-        'buildTimeDep.ml',
+      helpers.file(
+        'buildTimeDep.exe',
         outdent`
-        let () =
-          let oc = open_out Sys.argv.(1) in
-          let src = "let () = print_endline \\"Built with buildTimeDep@1.0.0\\"" in
-          output_string oc src;
-          close_out oc
-      `,
+          #!${process.execPath}
+
+          var name = process.argv[2];
+          var source = \`#!${process.execPath}
+
+          console.log("Built with buildTimeDep@1.0.0");
+          console.log("__" + \${JSON.stringify(name)} + "__");
+          \`;
+
+          require('fs').writeFileSync(name + ".exe", source);
+        `,
       ),
     ),
-    dir(
+    helpers.dir(
       'dep',
-      packageJson({
+      helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
         esy: {
-          build: [
-            'buildTimeDep #{self.name}.ml',
-            'ocamlopt -o #{self.bin / self.name} unix.cmxa #{self.name}.ml',
-          ],
+          buildsInSource: true,
+          build: ['buildTimeDep.exe #{self.name}', 'chmod +x #{self.name}.exe'],
+          install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
         },
         buildTimeDependencies: {
           buildTimeDep: '*',
         },
         '_esy.source': 'path:./',
       }),
-      dir(
+      helpers.dir(
         'node_modules',
-        dir(
+        helpers.dir(
           'buildTimeDep',
-          packageJson({
+          helpers.packageJson({
             name: 'buildTimeDep',
             version: '2.0.0',
             esy: {
               buildsInSource: true,
-              build: 'ocamlopt -o #{self.bin / self.name} #{self.name}.ml',
-            },
-            dependencies: {
-              ocaml: '*',
+              build: 'chmod +x #{self.name}.exe',
+              install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
             },
             '_esy.source': 'path:./',
           }),
-          file(
-            'buildTimeDep.ml',
+          helpers.file(
+            'buildTimeDep.exe',
             outdent`
-            let () =
-              let oc = open_out Sys.argv.(1) in
-              let src = "let () = print_endline \\"Built with buildTimeDep@2.0.0\\"" in
-              output_string oc src;
-              close_out oc
-          `,
+              #!${process.execPath}
+
+              var name = process.argv[2];
+              var source = \`#!${process.execPath}
+
+              console.log("Built with buildTimeDep@2.0.0");
+              console.log("__" + \${JSON.stringify(name)} + "__");
+              \`;
+
+              require('fs').writeFileSync(name + ".exe", source);
+            `,
           ),
         ),
       ),
     ),
-    ocamlPackage(),
   ),
 ];
 
-describe('Build - has build time deps', () => {
-  it('builds', async () => {
-    const p = await createTestSandbox(...fixture);
-    await p.esy('build');
+test('Build project and dep with different version of the same buildTimeDep', async () => {
+  const p = await helpers.createTestSandbox(...fixture);
+  await p.esy('build');
 
-    {
-      const {stdout} = await p.esy('x hasBuildTimeDeps');
-      expect(stdout).toEqual(expect.stringMatching(`Built with buildTimeDep@1.0.0`));
-    }
+  {
+    const {stdout} = await p.esy('x hasBuildTimeDeps.exe');
+    expect(stdout.trim()).toEqual(
+      'Built with buildTimeDep@1.0.0' + os.EOL + '__hasBuildTimeDeps__',
+    );
+  }
 
-    {
-      const {stdout} = await p.esy('dep');
-      expect(stdout).toEqual(expect.stringMatching(`Built with buildTimeDep@2.0.0`));
-    }
-  });
+  {
+    const {stdout} = await p.esy('dep.exe');
+    expect(stdout.trim()).toEqual('Built with buildTimeDep@2.0.0' + os.EOL + '__dep__');
+  }
 });

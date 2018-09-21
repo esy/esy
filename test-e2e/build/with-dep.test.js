@@ -1,64 +1,111 @@
 // @flow
 
-const path = require('path');
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  ocamlPackage,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-const fixture = [
-  packageJson({
-    name: 'withDep',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-    },
-  }),
-  dir(
-    'node_modules',
-    dir(
-      'dep',
-      packageJson({
-        name: 'dep',
-        version: '1.0.0',
-        esy: {
-          build: [
-            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
-          ],
-          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        '_esy.source': 'path:./',
-      }),
-      file('dep.ml', 'let () = print_endline "__dep__"'),
+function makeFixture(p, buildDep) {
+  return [
+    helpers.packageJson({
+      name: 'withDep',
+      version: '1.0.0',
+      esy: {
+        build: 'true',
+      },
+      dependencies: {
+        dep: '*',
+      },
+    }),
+    helpers.dir(
+      'node_modules',
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: buildDep,
+          '_esy.source': 'path:./',
+        }),
+        helpers.dummyExecutable('dep'),
+      ),
     ),
-    ocamlPackage(),
-  ),
-];
+  ];
+}
 
-describe('Build - with dep', () => {
-  it('package "dep" should be visible in all envs', async () => {
-    const p = await createTestSandbox(...fixture);
-    await p.esy('build');
+describe('Build with dep', () => {
+  let p;
 
-    const expecting = expect.stringMatching('__dep__');
+  async function checkDepIsInEnv() {
+    {
+      const {stdout} = await p.esy('dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-    const dep = await p.esy('dep');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('b dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-    const b = await p.esy('b dep');
-    expect(b.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x dep.exe');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
+  }
 
-    const x = await p.esy('x dep');
-    expect(x.stdout).toEqual(expecting);
+  describe('out of source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          build: [
+            'cp #{self.root / self.name}.exe #{self.target_dir / self.name}.exe',
+            'chmod +x #{self.target_dir / self.name}.exe',
+          ],
+          install: [`cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('makes dep available in envs', checkDepIsInEnv);
+  });
+
+  describe('in source build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: true,
+          build: [
+            'touch #{self.root / self.name}.exe',
+            'chmod +x #{self.root / self.name}.exe',
+          ],
+          install: [`cp #{self.root / self.name}.exe #{self.bin / self.name}.exe`],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('makes dep available in envs', checkDepIsInEnv);
+  });
+
+  describe('_build build', () => {
+    beforeAll(async () => {
+      p = await helpers.createTestSandbox();
+      await p.fixture(
+        ...makeFixture(p, {
+          buildsInSource: '_build',
+          build: [
+            "mkdir -p #{self.root / '_build'}",
+            "cp #{self.root / self.name}.exe #{self.root / '_build' / self.name}.exe",
+            "chmod +x #{self.root / '_build' / self.name}.exe",
+          ],
+          install: [
+            `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}.exe`,
+          ],
+        }),
+      );
+      await p.esy('build');
+    });
+
+    it('makes dep available in envs', checkDepIsInEnv);
   });
 });

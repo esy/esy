@@ -1,52 +1,35 @@
 // @flow
 
-const os = require('os');
-const path = require('path');
 const outdent = require('outdent');
-const {
-  createTestSandbox,
-  ocamlPackage,
-  dir,
-  file,
-  packageJson,
-  exeExtension,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
 const fixture = [
-  packageJson({
+  helpers.packageJson({
     name: 'no-deps-backslash',
     version: '1.0.0',
     license: 'MIT',
     esy: {
       build: [
-        ['cp', '#{self.original_root /}test.ml', '#{self.target_dir /}test.ml'],
-        [
-          'ocamlopt',
-          '-o',
-          '#{self.target_dir / self.name}.exe',
-          '#{self.target_dir /}test.ml',
-        ],
+        ['cp', '#{self.root /}test.exe', '#{self.target_dir /}test.exe'],
+        ['chmod', '+x', '#{self.target_dir /}test.exe'],
       ],
-      install: [`cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name${exeExtension}`],
-    },
-    dependencies: {
-      ocaml: '*',
+      install: [['cp', '#{self.target_dir /}test.exe', '#{self.bin /}test.exe']],
     },
   }),
-  file(
-    'test.ml',
+  helpers.file(
+    'test.exe',
     outdent`
-    let () = print_endline "\\\\ no-deps-backslash \\\\"
+    #!${process.execPath}
+    console.log("\\\\ no-deps-backslash \\\\");
   `,
   ),
-  dir('node_modules', ocamlPackage()),
 ];
 
 it('Build - no deps backslash', async () => {
-  const p = await createTestSandbox(...fixture);
+  const p = await helpers.createTestSandbox(...fixture);
 
   await p.esy('build');
 
-  const {stdout} = await p.esy('x no-deps-backslash');
-  expect(stdout).toEqual('\\ no-deps-backslash \\' + os.EOL);
+  const {stdout} = await p.esy('x test.exe');
+  expect(stdout.trim()).toEqual('\\ no-deps-backslash \\');
 });

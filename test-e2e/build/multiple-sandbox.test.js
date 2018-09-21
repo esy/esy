@@ -26,19 +26,19 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: 'chmod +x #{self.name}.exe',
+        install: `cp #{self.name}.exe #{self.bin / self.name}.exe`,
       },
       dependencies,
       devDependencies,
       '_esy.source': 'path:./',
     }),
-    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    helpers.dummyExecutable(name),
     ...items,
   );
 }
 
-describe('projects with multiple sandboxes', function() {
+describe('Projects with multiple sandboxes', function() {
   it('can build multiple sandboxes', async () => {
     const fixture = [
       file(
@@ -61,16 +61,8 @@ describe('projects with multiple sandboxes', function() {
       ),
       dir(
         '_esy',
-        dir(
-          ['default', 'node_modules'],
-          makePackage({name: 'default-dep', dependencies: {ocaml: '*'}}),
-          helpers.ocamlPackage(),
-        ),
-        dir(
-          ['package.custom', 'node_modules'],
-          makePackage({name: 'custom-dep', dependencies: {ocaml: '*'}}),
-          helpers.ocamlPackage(),
-        ),
+        dir(['default', 'node_modules'], makePackage({name: 'default-dep'})),
+        dir(['package.custom', 'node_modules'], makePackage({name: 'custom-dep'})),
       ),
     ];
 
@@ -79,7 +71,7 @@ describe('projects with multiple sandboxes', function() {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('default-dep');
+      const {stdout} = await p.esy('default-dep.exe');
       expect(stdout.trim()).toBe('__default-dep__');
     }
 
@@ -88,15 +80,15 @@ describe('projects with multiple sandboxes', function() {
     await p.esy('@package.custom.json build');
 
     {
-      const {stdout} = await p.esy('@package.custom.json custom-dep');
+      const {stdout} = await p.esy('@package.custom.json custom-dep.exe');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
 
-    expect(p.esy('@package.custom.json default-dep')).rejects.toThrow();
+    expect(p.esy('@package.custom.json default-dep.exe')).rejects.toThrow();
 
     {
       // .json extension could be dropped
-      const {stdout} = await p.esy('@package.custom custom-dep');
+      const {stdout} = await p.esy('@package.custom custom-dep.exe');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
   });

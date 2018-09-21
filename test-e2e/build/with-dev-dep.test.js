@@ -1,17 +1,9 @@
 // @flow
 
 const path = require('path');
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  ocamlPackage,
-  exeExtension,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 function makePackage(
   {
@@ -25,28 +17,28 @@ function makePackage(
   },
   ...items
 ) {
-  return dir(
+  return helpers.dir(
     name,
-    packageJson({
+    helpers.packageJson({
       name: name,
       version: '1.0.0',
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: 'chmod +x #{self.root / self.name}.exe',
+        install: [`cp #{self.root / self.name}.exe #{self.bin / self.name}.exe`],
       },
       dependencies,
       devDependencies,
       '_esy.source': 'path:./',
     }),
-    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    helpers.dummyExecutable(name),
     ...items,
   );
 }
 
 const fixture = [
-  packageJson({
+  helpers.packageJson({
     name: 'with-dev-dep',
     version: '1.0.0',
     esy: {
@@ -59,18 +51,15 @@ const fixture = [
       devDep: '*',
     },
   }),
-  dir(
+  helpers.dir(
     'node_modules',
     makePackage({
       name: 'dep',
-      dependencies: {ocaml: '*'},
       devDependencies: {devDepOfDep: '*'},
     }),
     makePackage({
       name: 'devDep',
-      dependencies: {ocaml: '*'},
     }),
-    ocamlPackage(),
   ),
 ];
 
@@ -78,32 +67,42 @@ describe('devDep workflow', () => {
   let p;
 
   beforeEach(async () => {
-    p = await createTestSandbox(...fixture);
+    p = await helpers.createTestSandbox(...fixture);
     await p.esy('build');
   });
 
   it('package "dep" should be visible in all envs', async () => {
     const expecting = expect.stringMatching('__dep__');
 
-    const dep = await p.esy('dep');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('dep.exe');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const bDep = await p.esy('b dep');
-    expect(bDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('b dep.exe');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const xDep = await p.esy('x dep');
-    expect(xDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x dep.exe');
+      expect(stdout.trim()).toEqual(expecting);
+    }
   });
 
   it('package "dev-dep" should be visible only in command env', async () => {
     const expecting = expect.stringMatching('__devDep__');
 
-    const dep = await p.esy('devDep');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('devDep.exe');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const xDep = await p.esy('x devDep');
-    expect(xDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x devDep.exe');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    return expect(p.esy('b devDep')).rejects.toThrow();
+    return expect(p.esy('b devDep.exe')).rejects.toThrow();
   });
 });

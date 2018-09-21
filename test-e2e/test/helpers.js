@@ -15,6 +15,7 @@ const FixtureUtils = require('./FixtureUtils.js');
 const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
+const outdent = require('outdent');
 const {
   ocamlPackagePath,
   ESYCOMMAND,
@@ -56,6 +57,16 @@ function ocamlPackage() {
   } else {
     return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
   }
+}
+
+function dummyExecutable(name: string) {
+  return FixtureUtils.file(
+    `${name}.exe`,
+    outdent`
+      #!${process.execPath}
+      console.log("__" + ${JSON.stringify(name)} + "__");
+    `,
+  );
 }
 
 export type TestSandbox = {
@@ -228,4 +239,5 @@ module.exports = {
   execFile: exec.execFile,
   createTestSandbox,
   isWindows,
+  dummyExecutable,
 };

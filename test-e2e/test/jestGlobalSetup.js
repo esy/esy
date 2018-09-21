@@ -161,7 +161,7 @@ async function buildOcamlPackage() {
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
-  if (!(await fs.exists(ocamlPackagePath))) {
+  if (!(await fs.exists(ocamlPackagePath)) && !isWindows) {
     await buildOcamlPackage();
   }
 };
