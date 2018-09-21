@@ -19,13 +19,13 @@ describe('esy build-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'build-env'), env);
 
     await expect(
-      promiseExec('. ./build-env && dep', {
+      promiseExec('. ./build-env && dep.exe', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./build-env && devDep', {
+      promiseExec('. ./build-env && devDep.exe', {
         cwd: p.projectPath,
       }),
     ).rejects.toThrow();

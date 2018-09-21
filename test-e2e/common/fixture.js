@@ -1,6 +1,6 @@
 // @flow
 
-const {packageJson, dir, file, ocamlPackage} = require('../test/helpers');
+const {packageJson, dir, file, dummyExecutable} = require('../test/helpers');
 
 const simpleProject = [
   packageJson({
@@ -30,22 +30,22 @@ const simpleProject = [
         name: 'dep',
         version: '1.0.0',
         esy: {
-          buildsInSource: true,
-          build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-          install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+          install: [
+            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
+            'chmod +x #{self.bin / self.name}.exe',
+          ],
           exportedEnv: {
             dep__local: {val: 'dep__local__value'},
             dep__global: {val: 'dep__global__value', scope: 'global'},
           },
         },
         dependencies: {
-          ocaml: '*',
           depOfDep: '*',
         },
       }),
 
       file('_esylink', JSON.stringify({source: `path:.`})),
-      file('dep.ml', 'let () = print_endline "__dep__"'),
+      dummyExecutable('dep'),
     ),
     dir(
       'depOfDep',
@@ -67,22 +67,19 @@ const simpleProject = [
         name: 'devDep',
         version: '1.0.0',
         esy: {
-          buildsInSource: true,
-          build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-          install: 'cp #{self.root / self.name} #{self.bin / self.name}',
+          install: [
+            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
+            'chmod +x #{self.bin / self.name}.exe',
+          ],
           exportedEnv: {
             devDep__local: {val: 'devDep__local__value'},
             devDep__global: {val: 'devDep__global__value', scope: 'global'},
           },
         },
-        dependencies: {
-          ocaml: '*',
-        },
       }),
       file('_esylink', JSON.stringify({source: `path:.`})),
-      file('devDep.ml', 'let () = print_endline "__devDep__"'),
+      dummyExecutable('devDep'),
     ),
-    ocamlPackage(),
   ),
 ];
 

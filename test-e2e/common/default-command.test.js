@@ -1,16 +1,9 @@
 // @flow
 
-const {
-  createTestSandbox,
-  packageJson,
-  skipSuiteOnWindows,
-  dir,
-  file,
-  ocamlPackage,
-  ocamlPackagePath,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
+const {file, dir, packageJson, dummyExecutable} = helpers;
 
-skipSuiteOnWindows('Needs esyi to work');
+helpers.skipSuiteOnWindows('Needs esyi to work');
 
 const fixture = [
   packageJson({
@@ -30,25 +23,28 @@ const fixture = [
       version: '1.0.0',
       esy: {
         build: [
-          'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-          'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+          [
+            'cp',
+            '#{self.original_root / self.name}.exe',
+            '#{self.target_dir / self.name}.exe',
+          ],
+          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
         ],
-        install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
+        install: [
+          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+        ],
       },
       '_esy.source': 'path:./',
-      dependencies: {
-        ocaml: `link:${ocamlPackagePath}`,
-      },
     }),
-    file('dep.ml', 'let () = print_endline "__dep__"'),
+    dummyExecutable('dep'),
   ),
 ];
 
 it('Build - default command', async () => {
-  let p = await createTestSandbox(...fixture);
+  let p = await helpers.createTestSandbox(...fixture);
   await p.esy();
 
-  const dep = await p.esy('dep');
+  const dep = await p.esy('dep.exe');
 
   expect(dep.stdout.trim()).toEqual('__dep__');
 });

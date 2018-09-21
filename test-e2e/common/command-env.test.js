@@ -18,13 +18,13 @@ describe('esy command-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'command-env'), env);
 
     await expect(
-      promiseExec('. ./command-env && dep', {
+      promiseExec('. ./command-env && dep.exe', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./command-env && devDep', {
+      promiseExec('. ./command-env && devDep.exe', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});

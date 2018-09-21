@@ -3,18 +3,11 @@
 const path = require('path');
 const outdent = require('outdent');
 const fs = require('fs-extra');
-const {
-  createTestSandbox,
-  file,
-  dir,
-  packageJson,
-  ocamlPackagePath,
-  promiseExec,
-  ESYCOMMAND,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows('Needs investigation');
+const {file, dir, packageJson, dummyExecutable} = helpers;
+
+helpers.skipSuiteOnWindows('Needs investigation');
 
 const fixture = [
   dir(
@@ -23,29 +16,13 @@ const fixture = [
       name: 'app',
       version: '1.0.0',
       esy: {
-        build: [
-          ['cp', '#{self.original_root /}app.ml', '#{self.target_dir /}app.ml'],
-          [
-            'ocamlopt',
-            '-o',
-            '#{self.target_dir / self.name}.exe',
-            '#{self.target_dir /}app.ml',
-          ],
-        ],
-        install: ['cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name'],
+        build: 'true',
       },
       dependencies: {
         dep: 'link:../dep',
-        'another-dep': 'link:../another-dep',
-        ocaml: `link:${ocamlPackagePath}`,
+        anotherDep: 'link:../anotherDep',
       },
     }),
-    file(
-      'app.ml',
-      outdent`
-      let () = print_endline "app"
-    `,
-    ),
   ),
   dir(
     'dep',
@@ -54,59 +31,41 @@ const fixture = [
       version: '1.0.0',
       esy: {
         build: [
-          ['cp', '#{self.original_root /}dep.ml', '#{self.target_dir /}dep.ml'],
           [
-            'ocamlopt',
-            '-o',
+            'cp',
+            '#{self.original_root / self.name}.exe',
             '#{self.target_dir / self.name}.exe',
-            '#{self.target_dir /}dep.ml',
           ],
+          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
         ],
-        install: ['cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name'],
-      },
-      dependencies: {
-        ocaml: `link:${ocamlPackagePath}`,
+        install: [
+          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+        ],
       },
     }),
-    file(
-      'dep.ml',
-      outdent`
-      let () = print_endline "HELLO"
-    `,
-    ),
+    dummyExecutable('dep'),
   ),
   dir(
-    'another-dep',
+    'anotherDep',
     packageJson({
-      name: 'another-dep',
+      name: 'anotherDep',
       version: '1.0.0',
       license: 'MIT',
       esy: {
         build: [
           [
             'cp',
-            '#{self.original_root /}AnotherDep.ml',
-            '#{self.target_dir /}AnotherDep.ml',
-          ],
-          [
-            'ocamlopt',
-            '-o',
+            '#{self.original_root / self.name}.exe',
             '#{self.target_dir / self.name}.exe',
-            '#{self.target_dir /}AnotherDep.ml',
           ],
+          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
         ],
-        install: ['cp $cur__target_dir/$cur__name.exe $cur__bin/$cur__name'],
-      },
-      dependencies: {
-        ocaml: `link:${ocamlPackagePath}`,
+        install: [
+          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+        ],
       },
     }),
-    file(
-      'AnotherDep.ml',
-      outdent`
-      let () = print_endline "HELLO"
-    `,
-    ),
+    dummyExecutable('anotherDep'),
   ),
 ];
 
@@ -115,7 +74,7 @@ describe('Symlink workflow', () => {
   let appEsy;
 
   beforeEach(async () => {
-    p = await createTestSandbox(...fixture);
+    p = await helpers.createTestSandbox(...fixture);
 
     appEsy = args =>
       p.esy(`${args}`, {
@@ -127,20 +86,23 @@ describe('Symlink workflow', () => {
   });
 
   it('works without changes', async () => {
-    const dep = await appEsy('dep');
-    expect(dep.stdout).toEqual('HELLO\n');
-    const anotherDep = await appEsy('another-dep');
-    expect(anotherDep.stdout).toEqual('HELLO\n');
+    const dep = await appEsy('dep.exe');
+    expect(dep.stdout.trim()).toEqual('__dep__');
+    const anotherDep = await appEsy('anotherDep.exe');
+    expect(anotherDep.stdout.trim()).toEqual('__anotherDep__');
   });
 
   it('works with modified dep sources', async () => {
     await fs.writeFile(
-      path.join(p.projectPath, 'dep', 'dep.ml'),
-      'print_endline "HELLO_MODIFIED"',
+      path.join(p.projectPath, 'dep', 'dep.exe'),
+      outdent`
+        #!${process.execPath}
+        console.log('MODIFIED!');
+      `,
     );
 
     await appEsy('build');
-    const dep = await appEsy('dep');
-    expect(dep.stdout).toEqual('HELLO_MODIFIED\n');
+    const dep = await appEsy('dep.exe');
+    expect(dep.stdout.trim()).toEqual('MODIFIED!');
   });
 });
