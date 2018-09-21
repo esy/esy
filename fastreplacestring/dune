@@ -1,0 +1,5 @@
+(library
+    (name FastReplaceString)
+    (libraries EsyLib)
+    (cxx_flags (-static -static-libgcc -static-libstdc++ -fno-exceptions -fno-rtti))
+    (cxx_names fastreplacestring))
