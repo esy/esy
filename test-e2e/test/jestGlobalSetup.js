@@ -121,6 +121,18 @@ async function buildOcamlPackage() {
 
   await mkdirOrIgnore(ocamlPackagePath);
 
+  let installSteps = [
+    `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
+    `chmod +x #{self.bin / '${ocamloptName}'}`,
+  ];
+
+  if (isWindows) {
+    installSteps = [
+        ...installSteps,
+        `cp flexlink.exe #{self.bin / 'flexlink.exe'}`,
+    ];
+  }
+
   await fs.writeFile(
     path.join(ocamlPackagePath, 'package.json'),
     JSON.stringify({
@@ -128,12 +140,7 @@ async function buildOcamlPackage() {
       version: '1.0.0',
       esy: {
         build: ['true'],
-        install: [
-          `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
-            // TODO: Conditionally apply for other platforms
-          `cp flexlink.exe #{self.bin / 'flexlink.exe'}`,
-          `chmod +x #{self.bin / '${ocamloptName}'}`,
-        ],
+        install: installSteps,
       },
       '_esy.source': 'path:./',
     }),
