@@ -154,7 +154,10 @@ async function buildOcamlPackage() {
   );
 
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
-  await fs.copyFile(flexlinkPath, path.join(ocamlPackagePath, flexlinkName));
+
+  if (isWindows) {
+    await fs.copyFile(flexlinkPath, path.join(ocamlPackagePath, flexlinkName));
+  }
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
