@@ -11,11 +11,6 @@ install:
 script:
 - make ci
 - make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
-cache:
-  timeout: 360
-  directories:
-  - "$HOME/.esy/"
-  - "$HOME/.esytest/"
 
 deploy:
   provider: releases
