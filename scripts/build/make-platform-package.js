@@ -56,8 +56,7 @@ const pack = async () => {
     mkdirp.sync(platformReleaseFolder)
 
     console.log(`Creating archive from ${cygwinDestFolder} in ${cygwinPlatformReleaseFolder}`)
-    await bashExecAndThrow(`tar -czvf ${cygwinDestFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinPlatformReleaseFolder} .`)
-
+    await bashExecAndThrow(`tar -czvf ${cygwinPlatformReleaseFolder}/esy-v${version}-windows-${arch}.tgz -C ${cygwinDestFolder} .`)
 }
 
 pack()
