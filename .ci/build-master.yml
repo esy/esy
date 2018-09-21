@@ -1,0 +1,144 @@
+resources:
+  - repo: self
+
+phases:
+  - phase: Phase_1
+    displayName: Linux
+    condition: succeeded()
+    queue:
+      name: Hosted Ubuntu 1604
+
+    steps:
+      - task: NodeTool@0
+        displayName: 'Use Node 8.x'
+        inputs:
+          versionSpec: 8.x
+
+      - script: 'npm install -g esy --unsafe-perm'
+        displayName: 'install esy'
+
+      - script: 'make bootstrap'
+        displayName: 'make bootstrap'
+
+      - script: 'esy install'
+        displayName: 'esy install'
+
+      - script: 'esy b dune build'
+        displayName: 'esy b dune build'
+
+      - script: './node_modules/.bin/jest test-e2e'
+        displayName: 'jest test-e2e'
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: Linux'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: Linux
+
+  - phase: Phase_3
+    displayName: macOS
+    condition: succeeded()
+    queue:
+      name: Hosted macOS
+      demands: node.js
+
+    steps:
+      - task: NodeTool@0
+        displayName: 'Use Node 8.x'
+        inputs:
+          versionSpec: 8.x
+
+      - script: 'npm install -g esy --unsafe-perm'
+        displayName: 'install esy'
+
+      - script: 'make bootstrap'
+        displayName: 'make bootstrap'
+
+      - script: 'esy install'
+        displayName: 'esy install'
+
+      - script: 'esy b dune build'
+        displayName: 'esy b dune build'
+
+      - script: './node_modules/.bin/jest test-e2e'
+        displayName: 'jest test-e2e'
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: macOS'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: macOS
+
+  - phase: Phase_2
+    displayName: Windows
+    condition: succeeded()
+    queue:
+      name: Hosted VS2017
+      demands: npm
+
+    steps:
+      - task: NodeTool@0
+        displayName: 'Use Node 8.x'
+        inputs:
+          versionSpec: 8.x
+
+      - script: 'npm install -g rimraf --unsafe-prem'
+        displayName: 'npm install -g rimraf'
+
+      - powershell: './scripts/bootstrap/install-npm-dependencies.ps1'
+        displayName: 'Install npm dependencies'
+
+      - script: 'node scripts/bootstrap/copy-fastreplacestring.js'
+        displayName: 'Copy fastreplacestring'
+
+      - task: Npm@1
+        displayName: 'npm run bootstrap:install-opam'
+
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run bootstrap:install-opam'
+
+      - task: Npm@1
+        displayName: 'npm run bootstrap:install-dependencies'
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run bootstrap:install-dependencies'
+
+      - task: Npm@1
+        displayName: 'npm run bootstrap:build'
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run bootstrap:build'
+
+      - task: Npm@1
+        displayName: 'npm run bootstrap:unit-test'
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run bootstrap:unit-test'
+
+      - script: '.\_release\_build\default\esy\bin\esyCommand.exe --help'
+        displayName: '.\_release\_build\default\esy\bin\esyCommand.exe --help'
+
+      - task: Npm@1
+        displayName: 'npm run test-e2e'
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run test-e2e'
+
+      - task: Npm@1
+        displayName: 'npm run bootstrap:make-release-package'
+        inputs:
+          command: custom
+          verbose: false
+          customCommand: 'run bootstrap:make-release-package'
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: Windows'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: Windows
