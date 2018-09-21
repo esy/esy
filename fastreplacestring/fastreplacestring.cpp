@@ -1,10 +1,12 @@
 #include <cstdio>
-#include <iostream>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <string.h>
-#include <string>
 #include <vector>
+
+#include <caml/alloc.h>
+#include <caml/memory.h>
+#include <caml/mlvalues.h>
+
 using namespace std;
 
 #define REHASH(a, b, h) ((((h) - (a)*d) << 1) + (b))
@@ -44,22 +46,14 @@ int indexOf(const char *needle, size_t needleLen, const char *haystack,
   return -1;
 }
 
-int main(int argc, char **argv) {
-  if (argc != 4) {
-    cout << "usage: fastreplacestring <filename> <term> <replacement>\n";
-    return 1;
-  }
-
-  string filename = argv[argc - 3];
-  const char *old = argv[argc - 2];
-  const char *newWord = argv[argc - 1];
-  FILE *in = fopen(filename.c_str(), "rb");
+int replace(const char *filename, const char *old, const char *newWord) {
+  FILE *in = fopen(filename, "rb");
 
   // Check if file exists and can is read-write
   // This is actually a shortcut because fopen might fail for a number of
   // reasons
   if (in == NULL) {
-    cout << "error: " + filename + " doesn't exist\n";
+    /* return "error: file doesn't exist\n"; */
     return 1;
   }
 
@@ -74,8 +68,8 @@ int main(int argc, char **argv) {
   fseek(in, 0, SEEK_SET);
 
   if ((s = (char *)malloc(filelen)) == NULL) {
-    printf("malloc s filelen problem \n");
-    exit(1);
+    return 1;
+    /* return "malloc s filelen problem \n"; */
   }
 
   // Read in as much of specified file as possible
@@ -108,7 +102,7 @@ int main(int argc, char **argv) {
 
   if (c == 0) {
     free(s);
-    return 0;
+    return 0;;
   } else {
     const char *pstr = s;
     // calculate new file len & allocate memory
@@ -122,7 +116,8 @@ int main(int argc, char **argv) {
 
     if (temp == NULL) {
       free(s);
-      exit(1);
+      /* return "Unable to read file."; */
+      return 1;
     }
     // replace the bytes
     for (i = 0; i < c; i++) {
@@ -140,13 +135,13 @@ int main(int argc, char **argv) {
 
     // stat file so we can restore st_mode
     struct stat st;
-    stat(filename.c_str(), &st);
+    stat(filename, &st);
 
     // change st_mode so we can open file for writing
-    chmod(filename.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-    in = freopen(filename.c_str(), "wb", in);
+    chmod(filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    in = freopen(filename, "wb", in);
     if (in == NULL) {
-      cout << "error: " + filename + " cannot be written to.\n";
+      /* return "error: file cannot be written to.\n"; */
       return 1;
     }
 
@@ -154,8 +149,22 @@ int main(int argc, char **argv) {
     fclose(in);
 
     // restore st_mode
-    chmod(filename.c_str(), st.st_mode);
+    chmod(filename, st.st_mode);
   }
 
   return 0;
+}
+
+extern "C" {
+    CAMLprim value
+    caml_fastreplacestring(value vPath, value vOldWord, value vNewWord) {
+        CAMLparam3(vPath, vOldWord, vNewWord);
+
+        char *szPath = String_val(vPath);
+        char *szOldWord = String_val(vOldWord);
+        char *szNewWord = String_val(vNewWord);
+
+        replace(szPath, szOldWord, szNewWord);
+        CAMLreturn(Val_unit);
+    }
 }
