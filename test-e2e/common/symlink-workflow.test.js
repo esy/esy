@@ -101,6 +101,9 @@ describe('Symlink workflow', () => {
       `,
     );
 
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     await appEsy('build');
     const dep = await appEsy('dep.exe');
     expect(dep.stdout.trim()).toEqual('MODIFIED!');
