@@ -5,25 +5,19 @@ const fs = require('fs-extra');
 const tar = require('tar');
 const del = require('del');
 
-const {
-  createTestSandbox,
-  file,
-  dir,
-  packageJson,
-  ocamlPackage,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
+const {packageJson, dir, file, dummyExecutable} = helpers;
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 function makeFixture(p) {
   return [
     packageJson({
-      name: 'symlinks-into-dep',
+      name: 'app',
       version: '1.0.0',
       license: 'MIT',
       esy: {
-        build: ['ln -s #{dep.bin / dep.name} #{self.bin / self.name}'],
+        build: ['ln -s #{dep.bin / dep.name}.exe #{self.bin / self.name}.exe'],
       },
       dependencies: {
         dep: '*',
@@ -38,7 +32,7 @@ function makeFixture(p) {
           version: '1.0.0',
           license: 'MIT',
           esy: {
-            build: ['ln -s #{subdep.bin / subdep.name} #{self.bin / self.name}'],
+            build: ['ln -s #{subdep.bin / subdep.name}.exe #{self.bin / self.name}.exe'],
           },
           dependencies: {
             subdep: '*',
@@ -55,65 +49,53 @@ function makeFixture(p) {
               license: 'MIT',
               esy: {
                 buildsInSource: true,
-                build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-                install: 'cp #{self.root / self.name} #{self.bin / self.name}',
-              },
-              dependencies: {
-                ocaml: '*',
+                build: 'chmod +x #{self.name}.exe',
+                install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
               },
             }),
             file('_esylink', JSON.stringify({source: `path:.`})),
-            file('subdep.ml', 'let () = print_endline "__subdep__"'),
+            dummyExecutable('subdep'),
           ),
-          ocamlPackage(),
         ),
       ),
     ),
   ];
 }
 
-describe('export import build - import symlinks into dep', () => {
+describe('export import build - import app', () => {
   let p;
 
   beforeEach(async () => {
-    p = await createTestSandbox();
+    p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
     await p.esy('build');
   });
 
   it('package "subdep" should be visible in all envs', async () => {
-    expect.assertions(3);
-
-    const expecting = expect.stringMatching('subdep');
-
-    const subdep = await p.esy('subdep');
-    expect(subdep.stdout).toEqual(expecting);
-    const b = await p.esy('b subdep');
-    expect(b.stdout).toEqual(expecting);
-    const x = await p.esy('x subdep');
-    expect(x.stdout).toEqual(expecting);
+    const subdep = await p.esy('subdep.exe');
+    expect(subdep.stdout.trim()).toEqual('__subdep__');
+    const b = await p.esy('b subdep.exe');
+    expect(b.stdout.trim()).toEqual('__subdep__');
+    const x = await p.esy('x subdep.exe');
+    expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('same for package "dep" but it should reuse the impl of "subdep"', async () => {
-    expect.assertions(3);
-
     const expecting = expect.stringMatching('subdep');
 
-    const subdep = await p.esy('dep');
-    expect(subdep.stdout).toEqual(expecting);
-    const b = await p.esy('b dep');
-    expect(b.stdout).toEqual(expecting);
-    const x = await p.esy('x dep');
-    expect(x.stdout).toEqual(expecting);
+    const subdep = await p.esy('dep.exe');
+    expect(subdep.stdout.trim()).toEqual('__subdep__');
+    const b = await p.esy('b dep.exe');
+    expect(b.stdout.trim()).toEqual('__subdep__');
+    const x = await p.esy('x dep.exe');
+    expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('and root package links into "dep" which links into "subdep"', async () => {
-    expect.assertions(1);
-
     const expecting = expect.stringMatching('subdep');
 
-    const x = await p.esy('x symlinks-into-dep');
-    expect(x.stdout).toEqual(expecting);
+    const x = await p.esy('x app.exe');
+    expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('check that link is here', async () => {
@@ -122,14 +104,13 @@ describe('export import build - import symlinks into dep', () => {
       .then(dir => dir.filter(d => d.includes('dep-1.0.0'))[0]);
 
     const storeTarget = await fs.readlink(
-      path.join(p.projectPath, '../esy/3/i', depFolder, '/bin/dep'),
+      path.join(p.projectPath, '../esy/3/i', depFolder, '/bin/dep.exe'),
     );
 
     expect(storeTarget).toEqual(expect.stringMatching(p.esyPrefixPath));
   });
 
   it('export build from store', async () => {
-    expect.assertions(3);
     // export build from store
     // TODO: does this work in windows?
     await p.esy('export-build ../esy/3/i/dep-1.0.0-*');
@@ -147,7 +128,7 @@ describe('export import build - import symlinks into dep', () => {
     // check symlink target for exported build
     const buildFolder = tarFile.split('.tar.gz')[0];
     const exportedTarget = await fs.readlink(
-      path.join(p.projectPath, '_export', buildFolder, '/bin/dep'),
+      path.join(p.projectPath, '_export', buildFolder, '/bin/dep.exe'),
     );
     expect(exportedTarget).toEqual(expect.stringMatching('________'));
 
@@ -162,7 +143,7 @@ describe('export import build - import symlinks into dep', () => {
 
     // check symlink target for imported build
     const importedTarget = await fs.readlink(
-      path.join(p.projectPath, '../esy/3/i', buildFolder, '/bin/dep'),
+      path.join(p.projectPath, '../esy/3/i', buildFolder, '/bin/dep.exe'),
     );
     expect(importedTarget).toEqual(expect.stringMatching(p.esyPrefixPath));
   });

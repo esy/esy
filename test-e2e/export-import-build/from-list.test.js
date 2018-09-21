@@ -4,25 +4,19 @@ const path = require('path');
 const del = require('del');
 const fs = require('fs-extra');
 
-const {
-  createTestSandbox,
-  file,
-  dir,
-  packageJson,
-  ocamlPackage,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
+const {packageJson, dir, file, dummyExecutable} = helpers;
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 function makeFixture(p) {
   return [
     packageJson({
-      name: 'symlinks-into-dep',
+      name: 'app',
       version: '1.0.0',
       license: 'MIT',
       esy: {
-        build: ['ln -s #{dep.bin / dep.name} #{self.bin / self.name}'],
+        build: ['ln -s #{dep.bin / dep.name}.exe #{self.bin / self.name}.exe'],
       },
       dependencies: {
         dep: '*',
@@ -37,7 +31,7 @@ function makeFixture(p) {
           version: '1.0.0',
           license: 'MIT',
           esy: {
-            build: ['ln -s #{subdep.bin / subdep.name} #{self.bin / self.name}'],
+            build: ['ln -s #{subdep.bin / subdep.name}.exe #{self.bin / self.name}.exe'],
           },
           dependencies: {
             subdep: '*',
@@ -59,17 +53,13 @@ function makeFixture(p) {
               license: 'MIT',
               esy: {
                 buildsInSource: true,
-                build: 'ocamlopt -o #{self.root / self.name} #{self.root / self.name}.ml',
-                install: 'cp #{self.root / self.name} #{self.bin / self.name}',
-              },
-              dependencies: {
-                ocaml: '*',
+                build: 'chmod +x #{self.name}.exe',
+                install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
               },
             }),
             file('_esylink', JSON.stringify({source: `path:.`})),
-            file('subdep.ml', 'let () = print_endline "__subdep__"'),
+            dummyExecutable('subdep'),
           ),
-          ocamlPackage(),
         ),
       ),
     ),
@@ -77,7 +67,7 @@ function makeFixture(p) {
 }
 
 it('export import build - from list', async () => {
-  const p = await createTestSandbox();
+  const p = await helpers.createTestSandbox();
   await p.fixture(...makeFixture(p));
   await p.esy('build');
 
@@ -101,4 +91,17 @@ it('export import build - from list', async () => {
 
   const ls = await fs.readdir(path.join(p.esyPrefixPath, '/3/i'));
   expect(ls).toEqual(expect.arrayContaining(expected));
+
+  {
+    const {stdout} = await p.esy('subdep.exe');
+    expect(stdout.trim()).toBe('__subdep__');
+  }
+  {
+    const {stdout} = await p.esy('dep.exe');
+    expect(stdout.trim()).toBe('__subdep__');
+  }
+  {
+    const {stdout} = await p.esy('x app.exe');
+    expect(stdout.trim()).toBe('__subdep__');
+  }
 });
