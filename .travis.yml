@@ -1,21 +1,20 @@
 language: node_js
 os:
-- linux
-- osx
+  - linux
+  - osx
 node_js:
-- '8'
+  - '8'
 install:
-- travis_retry npm install -g yarn
-- travis_retry npm install -g esy@0.2.8
-- travis_wait travis_retry make bootstrap
+  - travis_retry npm install -g yarn
+  - travis_retry npm install -g esy@0.2.8
+  - travis_wait travis_retry make bootstrap
 script:
-- make ci
-- make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
+  - make ci
+  - make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
 cache:
   timeout: 360
   directories:
-  - "$HOME/.esy/"
-  - "$HOME/.esytest/"
+    - '$HOME/.esy/'
 
 deploy:
   provider: releases

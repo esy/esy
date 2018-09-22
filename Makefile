@@ -133,7 +133,6 @@ test::
 ci::
 	@$(MAKE) test
 	@if [ "$$TRAVIS_TAG" != "" ] || [ $$(echo "$$TRAVIS_COMMIT_MESSAGE" | grep "@slowtest") ]; then \
-		rm -rf ~/.esytest; \
 		$(MAKE) test-e2e-slow; \
 	fi
 
