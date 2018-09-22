@@ -2,33 +2,26 @@ platform:
     - x64
 
 cache:
-    - C:\Users\appveyor\.opam -> **\dune
-    - C:\Users\appveyor\.esytest
+    - C:\Users\appveyor\.esy
+
+# Needed for running unit tests - blocked by bryphe/esy-bash#16
+environment:
+    ESY_NODE_PATH: C:/Program Files/nodejs/node.exe
 
 install:
-    - where git
-    - npm install -g rimraf
-    - npm install -g yarn
-# This whole 'bootstrapping' duplication of our install / build will go away
-# once we have an `esy` build published for Windows that supports a minimal set of primitives
-# to support our current build system.
-    - powershell scripts/bootstrap/install-npm-dependencies.ps1
+    # The x64 is required as a workaround for esy/esy#412
     - ps: Install-Product node 8 x64
-    - node scripts/bootstrap/copy-fastreplacestring.js
-    - npm run bootstrap:install-opam
-    - npm run bootstrap:install-dependencies
+    - npm install -g jest-cli
+    - npm install -g esy@0.2.11
+      # Workaround for issue fixed in bryphe/esy-bash#18
+    - cp scripts/build/patched-bash-exec.js C:/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
+    - appveyor-retry appveyor-retry esy install
 
 build_script:
-# Reset %PATH% to avoid cygwin DLL conflicts with cause
-# *** fatal error - cygheap base mismatch detected
-    - echo $PATH
-    - set PATH=C:\Windows\System32;C:\Program Files\Git\cmd;C:\Windows;C:\Program Files\nodejs;C:\Users\appveyor\AppData\Roaming\npm;C:\projects\esy\node_modules\esy-bash\.cygwin\bin;C:\Program Files\AppVeyor\BuildAgent;C:\Windows\System32\WindowsPowerShell\v1.0;
-    - npm run bootstrap:build
-    - npm run bootstrap:unit-test
-    - C:\projects\esy\_release\_build\default\esy\bin\esyCommand.exe --help
-# TODO: Incorporate existing test suite - will we need to migrate from bash -> something else?
-    - powershell scripts/bootstrap/Test.ps1
-    - npm run bootstrap:make-release-package
+     - npm run build
+     - npm run test:e2e
+     - npm run test:unit
+     - npm run release:make-platform-package
 
 artifacts:
     - path: _platformrelease/*.tgz

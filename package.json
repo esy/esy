@@ -20,14 +20,20 @@
     "buildsInSource": "_build"
   },
   "scripts": {
-    "bootstrap:install-opam": "esy-bash ./scripts/bootstrap/install-opam-windows.sh",
-    "bootstrap:install-dependencies": "esy-bash ./scripts/bootstrap/install-opam-dependencies.sh",
-    "bootstrap:build": "esy-bash ./scripts/bootstrap/build-bootstrap.sh",
-    "bootstrap:make-release-package": "node ./scripts/bootstrap/make-release-package.js",
-    "bootstrap:unit-test": "esy-bash dune runtest test",
-    "test-e2e": "jest --runInBand test-e2e"
+    "install:esy": "esy install",
+    "build": "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash",
+    "build:esy": "esy build",
+    "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
+    "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
+    "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
+    "test:unit": "esy b dune runtest test",
+    "test:e2e": "jest --runInBand test-e2e"
   },
-  "resolutions": {"@opam/merlin-extend": "0.3"},
+  "resolutions": {
+    "@esy-ocaml/esy-installer": "0.0.1",
+    "@opam/merlin-extend": "0.3",
+    "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
+  },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "~3.2.0",
@@ -41,9 +47,9 @@
     "@opam/fpath": "^0.7.2",
     "@opam/lambda-term": "^1.11.0",
     "@opam/logs": "^0.6.2",
-    "@opam/lwt": "^4.0.0",
-    "@opam/lwt_ppx": "^1.1.0",
-    "@opam/menhir": "*",
+    "@opam/lwt": "*",
+    "@opam/lwt_ppx": "*",
+    "@opam/menhir": "20171013",
     "@opam/opam-core": "*",
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
@@ -52,31 +58,34 @@
     "@opam/ppx_deriving_yojson": "*",
     "@opam/ppx_inline_test": "*",
     "@opam/ppx_let": "*",
-    "@opam/re": "^1.7.1",
+    "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.6",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
-  "peerDependencies": {"ocaml": "~4.6.0"},
+  "peerDependencies": {
+    "ocaml": "~4.6.6"
+  },
   "devDependencies": {
-    "@opam/utop": "*",
     "@esy-ocaml/merlin": "*",
-    "ocaml": "~4.6.0",
+    "@opam/utop": "*",
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "del": "^3.0.0",
+    "esy-bash": "^0.1.23",
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
-    "prettier": "^1.13.7",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
+    "ocaml": "~4.6.6",
+    "outdent": "^0.3.0",
+    "prettier": "^1.13.7",
+    "rimraf": "^2.6.2",
     "semver": "^5.5.0",
     "super-resolve": "^1.0.0",
     "tar": "^4.4.4",
     "tar-fs": "^1.16.0",
-    "tmp": "^0.0.33",
-    "outdent": "^0.3.0",
-    "rimraf": "^2.6.2"
+    "tmp": "^0.0.33"
   }
 }

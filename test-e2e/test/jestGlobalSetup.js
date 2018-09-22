@@ -11,10 +11,11 @@ const isWindows = process.platform === 'win32';
 
 const ESYCOMMAND =
   process.platform === 'win32'
-    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
+    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../../bin/esy');
 
 const ocamloptName = isWindows ? 'ocamlopt.exe' : 'ocamlopt';
+const flexlinkName = 'flexlink.exe';
 
 const testPath = path.join(os.homedir(), '.esytest');
 const sandboxPath = path.join(testPath, 'sandbox');
@@ -105,11 +106,32 @@ async function buildOcamlPackage() {
     }
   }
 
+  let flexlinkName = "flexlink.exe"
+  let flexlinkPath = null;
+  for (const p of PATH) {
+    if (fs.exists(path.join(p, flexlinkName))) {
+        flexlinkPath = path.join(p, flexlinkName);
+        break;
+    }
+  }
+
   if (ocamloptPath == null) {
     throw new Error('unable to initialize ocaml package for tests');
   }
 
   await mkdirOrIgnore(ocamlPackagePath);
+
+  let installSteps = [
+    `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
+    `chmod +x #{self.bin / '${ocamloptName}'}`,
+  ];
+
+  if (isWindows) {
+    installSteps = [
+        ...installSteps,
+        `cp flexlink.exe #{self.bin / 'flexlink.exe'}`,
+    ];
+  }
 
   await fs.writeFile(
     path.join(ocamlPackagePath, 'package.json'),
@@ -118,10 +140,7 @@ async function buildOcamlPackage() {
       version: '1.0.0',
       esy: {
         build: ['true'],
-        install: [
-          `cp ${ocamloptName} #{self.bin / '${ocamloptName}'}`,
-          `chmod +x #{self.bin / '${ocamloptName}'}`,
-        ],
+        install: installSteps,
       },
       '_esy.source': 'path:./',
     }),
@@ -135,6 +154,10 @@ async function buildOcamlPackage() {
   );
 
   await fs.copyFile(ocamloptPath, path.join(ocamlPackagePath, ocamloptName));
+
+  if (isWindows) {
+    await fs.copyFile(flexlinkPath, path.join(ocamlPackagePath, flexlinkName));
+  }
 }
 
 module.exports = async function jestGlobalSetup(_globalConfig /* : any */) {
@@ -147,3 +170,4 @@ module.exports.ocamlPackagePath = ocamlPackagePath;
 module.exports.ESYCOMMAND = ESYCOMMAND;
 module.exports.isWindows = isWindows;
 module.exports.ocamloptName = ocamloptName;
+module.exports.flexlinkName = flexlinkName;

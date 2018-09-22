@@ -67,6 +67,12 @@ let normalizePathForCygwin = path =>
     }
   );
 
+let getNodePath = () =>
+  switch (Sys.getenv_opt("ESY_NODE_PATH")) {
+  | Some(s) => s
+  | None => "node"
+  };
+
 let toEsyBashCommand = (~env=None, cmd) => {
   open Result.Syntax;
   let environmentFilePath =
@@ -82,7 +88,7 @@ let toEsyBashCommand = (~env=None, cmd) => {
     let allCommands = List.append(environmentFilePath, commands);
     Ok(
       Bos.Cmd.of_list([
-        "node",
+        getNodePath(),
         Fpath.to_string(esyBashPath),
         ...allCommands,
       ]),

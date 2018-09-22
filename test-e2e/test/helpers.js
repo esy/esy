@@ -20,6 +20,7 @@ const {
   ESYCOMMAND,
   isWindows,
   ocamloptName,
+  flexlinkName,
 } = require('./jestGlobalSetup.js');
 
 function getTempDir() {
@@ -44,7 +45,17 @@ function ocamlPackage() {
     name: ocamloptName,
     path: path.join(ocamlPackagePath, ocamloptName),
   };
-  return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
+
+  if (isWindows) {
+    let flexlink = {
+      type: 'file-copy',
+      name: flexlinkName,
+      path: path.join(ocamlPackagePath, flexlinkName),
+    }
+    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, flexlink, packageJson);
+  } else {
+    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
+  }
 }
 
 export type TestSandbox = {
