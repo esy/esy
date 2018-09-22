@@ -2,7 +2,8 @@ platform:
     - x64
 
 cache:
-    - C:\Users\appveyor\.esy
+    - C:\Users\appveyor\.esy\3_\i
+    - C:\Users\appveyor\.esy\source-tarballs
 
 # Needed for running unit tests - blocked by bryphe/esy-bash#16
 environment:
