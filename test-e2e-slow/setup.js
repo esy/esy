@@ -11,7 +11,7 @@ const ocamlVersion = '4.6.6';
 
 const esyCommand =
   process.platform === 'win32'
-    ? require.resolve('../_release/_build/default/esy/bin/esyCommand.exe')
+    ? require.resolve('../_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../bin/esy');
 
 function getTempDir() {

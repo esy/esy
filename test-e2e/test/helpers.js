@@ -21,7 +21,7 @@ const isWindows = process.platform === 'win32';
 
 const ESYCOMMAND =
   process.platform === 'win32'
-    ? require.resolve('../../_release/_build/default/esy/bin/esyCommand.exe')
+    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
     : require.resolve('../../bin/esy');
 
 function dummyExecutable(name: string) {
