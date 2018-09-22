@@ -17,7 +17,7 @@ function makeFixture(p) {
       version: '1.0.0',
       license: 'MIT',
       esy: {
-        build: ['ln -s #{dep.bin / dep.name}.exe #{self.bin / self.name}.exe'],
+        build: ['ln -s #{dep.bin / dep.name}.cmd #{self.bin / self.name}.cmd'],
       },
       dependencies: {
         dep: '*',
@@ -32,7 +32,7 @@ function makeFixture(p) {
           version: '1.0.0',
           license: 'MIT',
           esy: {
-            build: ['ln -s #{subdep.bin / subdep.name}.exe #{self.bin / self.name}.exe'],
+            build: ['ln -s #{subdep.bin / subdep.name}.cmd #{self.bin / self.name}.cmd'],
           },
           dependencies: {
             subdep: '*',
@@ -49,8 +49,11 @@ function makeFixture(p) {
               license: 'MIT',
               esy: {
                 buildsInSource: true,
-                build: 'chmod +x #{self.name}.exe',
-                install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
+                build: helpers.buildCommand('#{self.name}.js'),
+                install: [
+                  'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                  'cp #{self.name}.js #{self.bin / self.name}.js',
+                ],
               },
             }),
             file('_esylink', JSON.stringify({source: `path:.`})),
@@ -72,29 +75,29 @@ describe('export import build - import app', () => {
   });
 
   it('package "subdep" should be visible in all envs', async () => {
-    const subdep = await p.esy('subdep.exe');
+    const subdep = await p.esy('subdep.cmd');
     expect(subdep.stdout.trim()).toEqual('__subdep__');
-    const b = await p.esy('b subdep.exe');
+    const b = await p.esy('b subdep.cmd');
     expect(b.stdout.trim()).toEqual('__subdep__');
-    const x = await p.esy('x subdep.exe');
+    const x = await p.esy('x subdep.cmd');
     expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('same for package "dep" but it should reuse the impl of "subdep"', async () => {
     const expecting = expect.stringMatching('subdep');
 
-    const subdep = await p.esy('dep.exe');
+    const subdep = await p.esy('dep.cmd');
     expect(subdep.stdout.trim()).toEqual('__subdep__');
-    const b = await p.esy('b dep.exe');
+    const b = await p.esy('b dep.cmd');
     expect(b.stdout.trim()).toEqual('__subdep__');
-    const x = await p.esy('x dep.exe');
+    const x = await p.esy('x dep.cmd');
     expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('and root package links into "dep" which links into "subdep"', async () => {
     const expecting = expect.stringMatching('subdep');
 
-    const x = await p.esy('x app.exe');
+    const x = await p.esy('x app.cmd');
     expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
@@ -104,7 +107,7 @@ describe('export import build - import app', () => {
       .then(dir => dir.filter(d => d.includes('dep-1.0.0'))[0]);
 
     const storeTarget = await fs.readlink(
-      path.join(p.projectPath, '../esy/3/i', depFolder, '/bin/dep.exe'),
+      path.join(p.projectPath, '../esy/3/i', depFolder, '/bin/dep.cmd'),
     );
 
     expect(storeTarget).toEqual(expect.stringMatching(p.esyPrefixPath));
@@ -128,7 +131,7 @@ describe('export import build - import app', () => {
     // check symlink target for exported build
     const buildFolder = tarFile.split('.tar.gz')[0];
     const exportedTarget = await fs.readlink(
-      path.join(p.projectPath, '_export', buildFolder, '/bin/dep.exe'),
+      path.join(p.projectPath, '_export', buildFolder, '/bin/dep.cmd'),
     );
     expect(exportedTarget).toEqual(expect.stringMatching('________'));
 
@@ -143,7 +146,7 @@ describe('export import build - import app', () => {
 
     // check symlink target for imported build
     const importedTarget = await fs.readlink(
-      path.join(p.projectPath, '../esy/3/i', buildFolder, '/bin/dep.exe'),
+      path.join(p.projectPath, '../esy/3/i', buildFolder, '/bin/dep.cmd'),
     );
     expect(importedTarget).toEqual(expect.stringMatching(p.esyPrefixPath));
   });

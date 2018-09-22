@@ -9,7 +9,7 @@ function makeFixture(p, buildDep) {
       version: '1.0.0',
       esy: buildDep,
     }),
-    helpers.dummyExecutable('no-deps'),
+    helpers.dummyExecutable('no-deps', 'js'),
   ];
 }
 
@@ -17,7 +17,7 @@ describe('Build simple executable with no deps', () => {
   let p;
 
   async function checkIsInEnv() {
-    const {stdout} = await p.esy('x no-deps.exe');
+    const {stdout} = await p.esy('x no-deps.cmd');
     expect(stdout.trim()).toEqual('__no-deps__');
   }
 
@@ -27,10 +27,13 @@ describe('Build simple executable with no deps', () => {
       p.fixture(
         ...makeFixture(p, {
           build: [
-            'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-            'chmod +x #{self.target_dir / self.name}.exe',
+            ['cp', '#{self.name}.js', '#{self.target_dir / self.name}.js'],
+            helpers.buildCommand('#{self.target_dir / self.name}.js'),
           ],
-          install: [`cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe`],
+          install: [
+            `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+          ],
         }),
       );
       await p.esy('build');
@@ -44,8 +47,11 @@ describe('Build simple executable with no deps', () => {
       p.fixture(
         ...makeFixture(p, {
           buildsInSource: true,
-          build: ['touch #{self.name}.exe', 'chmod +x #{self.name}.exe'],
-          install: [`cp #{self.name}.exe #{self.bin / self.name}.exe`],
+          build: [helpers.buildCommand('#{self.name}.js')],
+          install: [
+            `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.name}.js #{self.bin / self.name}.js`,
+          ],
         }),
       );
       await p.esy('build');
@@ -61,10 +67,13 @@ describe('Build simple executable with no deps', () => {
           buildsInSource: '_build',
           build: [
             'mkdir -p _build',
-            'cp #{self.name}.exe _build/#{self.name}.exe',
-            'chmod +x _build/#{self.name}.exe',
+            'cp #{self.name}.js _build/#{self.name}.js',
+            helpers.buildCommand('_build/#{self.name}.js'),
           ],
-          install: [`cp _build/#{self.name}.exe #{self.bin / self.name}.exe`],
+          install: [
+            `cp _build/#{self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp _build/#{self.name}.js #{self.bin / self.name}.js`,
+          ],
         }),
       );
       await p.esy('build');

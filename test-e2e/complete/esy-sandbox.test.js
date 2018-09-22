@@ -48,8 +48,8 @@ describe('complete workflow for esy sandboxes', () => {
       packageJson({
         esy: {
           install: [
-            "cp #{self.root / 'root'}.exe #{self.bin / 'root'}.exe",
-            "chmod +x #{self.bin / 'root'}.exe",
+            "cp #{self.root / 'root'}.js #{self.bin / 'root'}.js",
+            helpers.buildCommand("#{self.bin / 'root'}.js"),
           ],
         },
       }),
@@ -58,7 +58,7 @@ describe('complete workflow for esy sandboxes', () => {
     const p = await createTestSandbox(...fixture);
     await p.esy('install --skip-repository-update');
     await p.esy('build');
-    const {stdout} = await p.esy('x root.exe');
+    const {stdout} = await p.esy('x root.cmd');
     expect(stdout.trim()).toEqual('__root__');
   });
 
@@ -81,8 +81,8 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {
           install: [
-            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand('#{self.bin / self.name}.js'),
           ],
         },
         dependencies: {
@@ -96,15 +96,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -133,10 +133,11 @@ describe('complete workflow for esy sandboxes', () => {
         opam: outdent`
           opam-version: "1.2"
           build: [
-            ["chmod" "+x" "dep.exe"]
+            ${helpers.buildCommandInOpam('dep.js')}
           ]
           install: [
-            ["cp" "dep.exe" "%{bin}%/dep.exe"]
+            ["cp" "dep.js" "%{bin}%/dep.js"]
+            ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
           ]
         `,
         url: null,
@@ -148,15 +149,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -182,10 +183,11 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["chmod" "+x" "dep.exe"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
             ]
           `,
         ),
@@ -198,15 +200,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -232,10 +234,11 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["chmod" "+x" "dep.exe"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
             ]
 
           `,
@@ -249,15 +252,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -280,10 +283,11 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["chmod" "+x" "dep.exe"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
             ]
 
           `,
@@ -297,15 +301,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });

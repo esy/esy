@@ -7,7 +7,7 @@ const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows();
 
-describe('complete workflow for esy sandboxes', () => {
+describe('resolutions with overrides', () => {
   async function createTestSandbox(...fixture) {
     const p = await helpers.createTestSandbox(...fixture);
 
@@ -42,11 +42,12 @@ describe('complete workflow for esy sandboxes', () => {
             source: 'path:./dep',
             override: {
               build: [
-                'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-                'chmod +x #{self.target_dir / self.name}.exe',
+                'cp #{self.name}.js #{self.target_dir / self.name}.js',
+                helpers.buildCommand('#{self.target_dir / self.name}.js'),
               ],
               install: [
-                'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+                'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
               ],
             },
           },
@@ -60,15 +61,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -85,12 +86,15 @@ describe('complete workflow for esy sandboxes', () => {
         resolutions: {
           // This provides a package dep which is declared with no source and
           // just commands which need to be executed, we just copy its
-          // dependency depdep.exe as dep.exe which we then execute.
+          // dependency depdep.cmd as dep.cmd which we then execute.
           dep: {
             source: 'no-source:',
             override: {
               build: [],
-              install: ['cp #{depdep.bin / depdep.name}.exe #{self.bin / self.name}.exe'],
+              install: [
+                'cp #{depdep.bin / depdep.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{depdep.bin / depdep.name}.js #{self.bin / depdep.name}.js',
+              ],
               dependencies: {depdep: 'path:./depdep'},
             },
           },
@@ -103,11 +107,12 @@ describe('complete workflow for esy sandboxes', () => {
           version: '1.0.0',
           esy: {
             build: [
-              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-              'chmod +x #{self.target_dir / self.name}.exe',
+              'cp #{self.name}.js #{self.target_dir / self.name}.js',
+              helpers.buildCommand('#{self.target_dir / self.name}.js'),
             ],
             install: [
-              'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+              'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+              'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
             ],
           },
         }),
@@ -121,11 +126,11 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__depdep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__depdep__');
     }
   });
@@ -144,8 +149,11 @@ describe('complete workflow for esy sandboxes', () => {
             source: 'path:./dep',
             override: {
               buildsInSource: true,
-              build: ['touch #{self.name}.exe', 'chmod +x #{self.name}.exe'],
-              install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
+              build: [helpers.buildCommand('#{self.name}.js')],
+              install: [
+                'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.name}.js #{self.bin / self.name}.js',
+              ],
             },
           },
         },
@@ -157,7 +165,7 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toEqual('__dep__');
   });
 
@@ -175,11 +183,12 @@ describe('complete workflow for esy sandboxes', () => {
             source: 'link:./dep',
             override: {
               build: [
-                'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-                'chmod +x #{self.target_dir / self.name}.exe',
+                'cp #{self.name}.js #{self.target_dir / self.name}.js',
+                helpers.buildCommand('#{self.target_dir / self.name}.js'),
               ],
               install: [
-                'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+                'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
               ],
             },
           },
@@ -193,15 +202,15 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -234,10 +243,13 @@ describe('complete workflow for esy sandboxes', () => {
               SHOULD_BE_DROPPED: 'OOPS',
             },
             build: [
-              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-              'chmod +x #{self.target_dir / self.name}.exe',
+              'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
+              helpers.buildCommand('#{self.target_dir / $DEPNAME}.js'),
             ],
-            install: ['cp #{self.target_dir / self.name}.exe #{self.bin / $DEPNAME}.exe'],
+            install: [
+              'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
+              'cp #{self.target_dir / $DEPNAME}.js #{self.bin / $DEPNAME}.js',
+            ],
           },
         }),
         dummyExecutable('dep'),
@@ -249,7 +261,7 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('newdep.exe');
+      const {stdout} = await p.esy('newdep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
@@ -293,10 +305,13 @@ describe('complete workflow for esy sandboxes', () => {
               SHOULD_BE_DROPPED: 'OOPS',
             },
             build: [
-              'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-              'chmod +x #{self.target_dir / self.name}.exe',
+              'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
+              helpers.buildCommand('#{self.target_dir / $DEPNAME}.js'),
             ],
-            install: ['cp #{self.target_dir / self.name}.exe #{self.bin / $DEPNAME}.exe'],
+            install: [
+              'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
+              'cp #{self.target_dir / $DEPNAME}.js #{self.bin / $DEPNAME}.js',
+            ],
           },
         }),
         dummyExecutable('dep'),
@@ -308,7 +323,7 @@ describe('complete workflow for esy sandboxes', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('newdep.exe');
+      const {stdout} = await p.esy('newdep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 

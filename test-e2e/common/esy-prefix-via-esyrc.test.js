@@ -27,12 +27,12 @@ it('Common - esy prefix via esyrc', async () => {
 
   await p.esy('build', {noEsyPrefix: true});
 
-  await expect(p.esy('dep.exe', {noEsyPrefix: true})).resolves.toEqual({
+  await expect(p.esy('dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
     stdout: '__dep__\n',
     stderr: '',
   });
 
-  await expect(p.esy('which dep.exe', {noEsyPrefix: true})).resolves.toEqual({
+  await expect(p.esy('which dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
     stdout: expect.stringMatching(customEsyPrefix),
     stderr: '',
   });

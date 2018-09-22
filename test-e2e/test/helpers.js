@@ -26,9 +26,8 @@ const ESYCOMMAND =
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
-    `${name}.exe`,
+    `${name}.js`,
     outdent`
-      #!${process.execPath}
       console.log("__" + ${JSON.stringify(name)} + "__");
     `,
   );
@@ -178,7 +177,15 @@ function skipSuiteOnWindows(blockingIssues?: string) {
   }
 }
 
-const esyiCommands = new Set(['install', 'print-cudf-universe']);
+function buildCommand(input: string) {
+  return [process.execPath, require.resolve('./buildCmd.js'), input].join(' ');
+}
+
+function buildCommandInOpam(input: string) {
+  const genWrapper = JSON.stringify(require.resolve('./buildCmd.js'));
+  const node = JSON.stringify(process.execPath);
+  return `[${node} ${genWrapper} ${JSON.stringify(input)}]`;
+}
 
 module.exports = {
   promiseExec,
@@ -200,4 +207,6 @@ module.exports = {
   createTestSandbox,
   isWindows,
   dummyExecutable,
+  buildCommand,
+  buildCommandInOpam,
 };

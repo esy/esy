@@ -13,12 +13,12 @@ it('Common - build anycmd', async () => {
 
   await p.esy('build');
 
-  await expect(p.esy('build dep.exe')).resolves.toEqual({
+  await expect(p.esy('build dep.cmd')).resolves.toEqual({
     stdout: '__dep__' + os.EOL,
     stderr: '',
   });
 
-  await expect(p.esy('b dep.exe')).resolves.toEqual({
+  await expect(p.esy('b dep.cmd')).resolves.toEqual({
     stdout: '__dep__' + os.EOL,
     stderr: '',
   });

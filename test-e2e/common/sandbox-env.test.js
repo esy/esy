@@ -18,13 +18,13 @@ describe('esy sandbox-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'sandbox-env'), env);
 
     await expect(
-      promiseExec('. ./sandbox-env && dep.exe', {
+      promiseExec('. ./sandbox-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./sandbox-env && devDep.exe', {
+      promiseExec('. ./sandbox-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});

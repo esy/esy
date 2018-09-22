@@ -35,17 +35,17 @@ describe('Build with dep', () => {
 
   async function checkDepIsInEnv() {
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   }
@@ -56,10 +56,13 @@ describe('Build with dep', () => {
       await p.fixture(
         ...makeFixture(p, {
           build: [
-            'cp #{self.root / self.name}.exe #{self.target_dir / self.name}.exe',
-            'chmod +x #{self.target_dir / self.name}.exe',
+            'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
+            helpers.buildCommand('#{self.target_dir / self.name}.js'),
           ],
-          install: [`cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe`],
+          install: [
+            `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+          ],
         }),
       );
       await p.esy('build');
@@ -74,11 +77,11 @@ describe('Build with dep', () => {
       await p.fixture(
         ...makeFixture(p, {
           buildsInSource: true,
-          build: [
-            'touch #{self.root / self.name}.exe',
-            'chmod +x #{self.root / self.name}.exe',
+          build: helpers.buildCommand('#{self.root / self.name}.js'),
+          install: [
+            `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
           ],
-          install: [`cp #{self.root / self.name}.exe #{self.bin / self.name}.exe`],
         }),
       );
       await p.esy('build');
@@ -95,11 +98,12 @@ describe('Build with dep', () => {
           buildsInSource: '_build',
           build: [
             "mkdir -p #{self.root / '_build'}",
-            "cp #{self.root / self.name}.exe #{self.root / '_build' / self.name}.exe",
-            "chmod +x #{self.root / '_build' / self.name}.exe",
+            "cp #{self.root / self.name}.js #{self.root / '_build' / self.name}.js",
+            helpers.buildCommand("#{self.root / '_build' / self.name}.js"),
           ],
           install: [
-            `cp #{self.root / '_build' / self.name}.exe #{self.bin / self.name}.exe`,
+            `cp #{self.root / '_build' / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.root / '_build' / self.name}.js #{self.bin / self.name}.js`,
           ],
         }),
       );

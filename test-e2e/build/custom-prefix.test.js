@@ -8,10 +8,13 @@ const fixture = [
     version: '1.0.0',
     esy: {
       build: [
-        'cp #{self.name}.exe #{self.target_dir / self.name}.exe',
-        'chmod +x #{self.target_dir / self.name}.exe',
+        'cp #{self.name}.js #{self.target_dir / self.name}.js',
+        helpers.buildCommand('#{self.target_dir / self.name}.js'),
       ],
-      install: ['cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe'],
+      install: [
+        'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+        'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
+      ],
     },
   }),
   helpers.file('.esyrc', 'esy-prefix-path: ./store'),
@@ -23,6 +26,6 @@ it('Can be configured to build into a custom prefix (via .esyrc)', async () => {
 
   await p.esy('build', {noEsyPrefix: true});
 
-  const {stdout} = await p.esy('x custom-prefix.exe', {noEsyPrefix: true});
+  const {stdout} = await p.esy('x custom-prefix.cmd', {noEsyPrefix: true});
   expect(stdout.trim()).toEqual('__custom-prefix__');
 });

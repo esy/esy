@@ -62,15 +62,14 @@ function makeFixture(p) {
         version: '1.0.0',
         esy: {
           build: [
-            'cp #{self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand('#{self.bin / self.name}.js'),
           ],
         },
       }),
       helpers.file(
-        'dep.exe',
+        'dep.js',
         outdent`
-          #!${process.execPath}
           console.log(process.env.SANDBOX_ENV_VAR + "-in-dep");
         `,
       ),
@@ -82,15 +81,14 @@ function makeFixture(p) {
         version: '1.0.0',
         esy: {
           build: [
-            'cp #{self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand('#{self.bin / self.name}.js'),
           ],
         },
       }),
       helpers.file(
-        'buildTimDep.exe',
+        'buildTimDep.js',
         outdent`
-          #!${process.execPath}
           console.log(process.env.SANDBOX_ENV_VAR + "-in-buildTimDep");
         `,
       ),
@@ -103,15 +101,14 @@ function makeFixture(p) {
         license: 'MIT',
         esy: {
           build: [
-            'cp #{self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand('#{self.bin / self.name}.js'),
           ],
         },
       }),
       helpers.file(
-        'devDep.exe',
+        'devDep.js',
         outdent`
-          #!${process.execPath}
           console.log(process.env.SANDBOX_ENV_VAR + "-in-devDep");
         `,
       ),
@@ -131,28 +128,28 @@ describe('Linked deps with presence of sandboxEnv', () => {
   it("sandbox env should be visible in runtime dep's all envs", async () => {
     const expecting = expect.stringMatching('global-sandbox-env-var-in-dep');
 
-    const dep = await p.esy('dep.exe');
+    const dep = await p.esy('dep.cmd');
     expect(dep.stdout).toEqual(expecting);
 
-    const b = await p.esy('b dep.exe');
+    const b = await p.esy('b dep.cmd');
     expect(b.stdout).toEqual(expecting);
 
-    const x = await p.esy('x dep.exe');
+    const x = await p.esy('x dep.cmd');
     expect(x.stdout).toEqual(expecting);
   });
 
   it("sandbox env should not be available in build time dep's envs", async () => {
     const expecting = expect.stringMatching('-in-buildTimDep');
 
-    const dep = await p.esy('buildTimDep.exe');
+    const dep = await p.esy('buildTimDep.cmd');
     expect(dep.stdout).toEqual(expecting);
 
-    const b = await p.esy('b buildTimDep.exe');
+    const b = await p.esy('b buildTimDep.cmd');
     expect(b.stdout).toEqual(expecting);
   });
 
   it("sandbox env should not be available in dev dep's envs", async () => {
-    const dep = await p.esy('devDep.exe');
+    const dep = await p.esy('devDep.cmd');
     expect(dep.stdout).toEqual(expect.stringMatching('-in-devDep'));
   });
 });

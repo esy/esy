@@ -33,13 +33,14 @@ const fixture = [
         build: [
           [
             'cp',
-            '#{self.original_root / self.name}.exe',
-            '#{self.target_dir / self.name}.exe',
+            '#{self.original_root / self.name}.js',
+            '#{self.target_dir / self.name}.js',
           ],
-          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
+          helpers.buildCommand('#{self.target_dir / self.name}.js'),
         ],
         install: [
-          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+          ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+          ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
         ],
       },
     }),
@@ -55,13 +56,14 @@ const fixture = [
         build: [
           [
             'cp',
-            '#{self.original_root / self.name}.exe',
-            '#{self.target_dir / self.name}.exe',
+            '#{self.original_root / self.name}.js',
+            '#{self.target_dir / self.name}.js',
           ],
-          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
+          helpers.buildCommand('#{self.target_dir / self.name}.js'),
         ],
         install: [
-          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+          ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+          ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
         ],
       },
     }),
@@ -86,26 +88,25 @@ describe('Symlink workflow', () => {
   });
 
   it('works without changes', async () => {
-    const dep = await appEsy('dep.exe');
+    const dep = await appEsy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('__dep__');
-    const anotherDep = await appEsy('anotherDep.exe');
+    const anotherDep = await appEsy('anotherDep.cmd');
     expect(anotherDep.stdout.trim()).toEqual('__anotherDep__');
   });
 
   it('works with modified dep sources', async () => {
     await fs.writeFile(
-      path.join(p.projectPath, 'dep', 'dep.exe'),
+      path.join(p.projectPath, 'dep', 'dep.js'),
       outdent`
-        #!${process.execPath}
         console.log('MODIFIED!');
       `,
     );
 
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     await appEsy('build');
-    const dep = await appEsy('dep.exe');
+    const dep = await appEsy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('MODIFIED!');
   });
 });

@@ -27,8 +27,11 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'chmod +x #{self.name}.exe',
-        install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
+        build: helpers.buildCommand('#{self.name}.js'),
+        install: [
+          'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+          'cp #{self.name}.js #{self.bin / self.name}.js',
+        ],
         exportedEnv,
       },
       dependencies,
@@ -81,17 +84,17 @@ describe('dep exists as transitive and direct dep at once', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('focus.exe');
+      const {stdout} = await p.esy('focus.cmd');
       expect(stdout.trim()).toEqual('__focus__');
     }
 
     {
-      const {stdout} = await p.esy('b focus.exe');
+      const {stdout} = await p.esy('b focus.cmd');
       expect(stdout.trim()).toEqual('__focus__');
     }
 
     {
-      const {stdout} = await p.esy('x focus.exe');
+      const {stdout} = await p.esy('x focus.cmd');
       expect(stdout.trim()).toEqual('__focus__');
     }
   });

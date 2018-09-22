@@ -31,8 +31,9 @@ describe('build opam sandbox', () => {
         `
         opam-version: "1.2"
         build: [
-          ["chmod" "+x" "hello.exe"]
-          ["cp" "hello.exe" "%{bin}%/hello.exe"]
+          ${helpers.buildCommandInOpam('hello.js')}
+          ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+          ["cp" "hello.js" "%{bin}%/hello.js"]
         ]
       `,
       ),
@@ -43,7 +44,7 @@ describe('build opam sandbox', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('x hello.exe');
+      const {stdout} = await p.esy('x hello.cmd');
       expect(stdout.trim()).toEqual('__hello__');
     }
   });

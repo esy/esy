@@ -12,8 +12,8 @@ const fixture = [
     version: '1.0.0',
     esy: {
       buildsInSource: true,
-      build: ['buildTimeDep.exe #{self.name}', 'chmod +x #{self.name}.exe'],
-      install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
+      build: ['buildTimeDep.cmd #{self.name}'],
+      install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
     },
     dependencies: {
       dep: '*',
@@ -31,24 +31,45 @@ const fixture = [
         version: '1.0.0',
         esy: {
           buildsInSource: true,
-          build: 'chmod +x #{self.name}.exe',
-          install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
+          build: helpers.buildCommand('#{self.name}.js'),
+          install: [
+            'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+          ],
         },
         '_esy.source': 'path:./',
       }),
       helpers.file(
-        'buildTimeDep.exe',
+        'buildTimeDep.js',
         outdent`
-          #!${process.execPath}
-
           var name = process.argv[2];
-          var source = \`#!${process.execPath}
-
+          var source = \`
           console.log("Built with buildTimeDep@1.0.0");
           console.log("__" + \${JSON.stringify(name)} + "__");
           \`;
 
-          require('fs').writeFileSync(name + ".exe", source);
+          const path = require('path');
+          const fs = require('fs');
+          const isWindows = process.platform === 'win32';
+
+          const script = path.join(process.cwd(), name + '.js');
+          const output = path.join(process.cwd(), name + '.cmd');
+
+          fs.writeFileSync(script, source);
+          if (isWindows) {
+            fs.writeFileSync(
+              output,
+              \`@${JSON.stringify(process.execPath)} \${JSON.stringify(script)} %*\`
+            );
+          } else {
+            fs.writeFileSync(
+              output,
+              \`#!${process.execPath}
+              require(\${JSON.stringify(script)})
+              \`
+            );
+            fs.chmodSync(output, 0755);
+          }
         `,
       ),
     ),
@@ -59,8 +80,8 @@ const fixture = [
         version: '1.0.0',
         esy: {
           buildsInSource: true,
-          build: ['buildTimeDep.exe #{self.name}', 'chmod +x #{self.name}.exe'],
-          install: ['cp #{self.name}.exe #{self.bin / self.name}.exe'],
+          build: ['buildTimeDep.cmd #{self.name}'],
+          install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
         },
         buildTimeDependencies: {
           buildTimeDep: '*',
@@ -76,24 +97,45 @@ const fixture = [
             version: '2.0.0',
             esy: {
               buildsInSource: true,
-              build: 'chmod +x #{self.name}.exe',
-              install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
+              build: helpers.buildCommand('#{self.name}.js'),
+              install: [
+                'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.name}.js #{self.bin / self.name}.js',
+              ],
             },
             '_esy.source': 'path:./',
           }),
           helpers.file(
-            'buildTimeDep.exe',
+            'buildTimeDep.js',
             outdent`
-              #!${process.execPath}
-
               var name = process.argv[2];
-              var source = \`#!${process.execPath}
-
+              var source = \`
               console.log("Built with buildTimeDep@2.0.0");
               console.log("__" + \${JSON.stringify(name)} + "__");
               \`;
 
-              require('fs').writeFileSync(name + ".exe", source);
+              const path = require('path');
+              const fs = require('fs');
+              const isWindows = process.platform === 'win32';
+
+              const script = path.join(process.cwd(), name + '.js');
+              const output = path.join(process.cwd(), name + '.cmd');
+
+              fs.writeFileSync(script, source);
+              if (isWindows) {
+                fs.writeFileSync(
+                  output,
+                  \`@${JSON.stringify(process.execPath)} \${JSON.stringify(script)} %*\`
+                );
+              } else {
+                fs.writeFileSync(
+                  output,
+                  \`#!${process.execPath}
+                  require(\${JSON.stringify(script)})
+                  \`
+                );
+                fs.chmodSync(output, 0755);
+              }
             `,
           ),
         ),
@@ -107,14 +149,14 @@ test('Build project and dep with different version of the same buildTimeDep', as
   await p.esy('build');
 
   {
-    const {stdout} = await p.esy('x hasBuildTimeDeps.exe');
+    const {stdout} = await p.esy('x hasBuildTimeDeps.cmd');
     expect(stdout.trim()).toEqual(
       'Built with buildTimeDep@1.0.0' + os.EOL + '__hasBuildTimeDeps__',
     );
   }
 
   {
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toEqual('Built with buildTimeDep@2.0.0' + os.EOL + '__dep__');
   }
 });

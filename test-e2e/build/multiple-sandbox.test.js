@@ -26,8 +26,11 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'chmod +x #{self.name}.exe',
-        install: `cp #{self.name}.exe #{self.bin / self.name}.exe`,
+        build: helpers.buildCommand('#{self.name}.js'),
+        install: [
+          `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
+          `cp #{self.name}.js #{self.bin / self.name}.js`,
+        ],
       },
       dependencies,
       devDependencies,
@@ -71,7 +74,7 @@ describe('Projects with multiple sandboxes', function() {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('default-dep.exe');
+      const {stdout} = await p.esy('default-dep.cmd');
       expect(stdout.trim()).toBe('__default-dep__');
     }
 
@@ -80,15 +83,15 @@ describe('Projects with multiple sandboxes', function() {
     await p.esy('@package.custom.json build');
 
     {
-      const {stdout} = await p.esy('@package.custom.json custom-dep.exe');
+      const {stdout} = await p.esy('@package.custom.json custom-dep.cmd');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
 
-    expect(p.esy('@package.custom.json default-dep.exe')).rejects.toThrow();
+    expect(p.esy('@package.custom.json default-dep.cmd')).rejects.toThrow();
 
     {
       // .json extension could be dropped
-      const {stdout} = await p.esy('@package.custom custom-dep.exe');
+      const {stdout} = await p.esy('@package.custom custom-dep.cmd');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
   });

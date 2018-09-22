@@ -24,8 +24,11 @@ const fixture = [
         //
         // That means dep.exe should still resolvable in $PATH.
         buildsInSource: true,
-        build: 'chmod +x #{self.name}.exe',
-        install: 'cp #{self.name}.exe #{self.lib / self.name}.exe',
+        build: [helpers.buildCommand('#{self.name}.js')],
+        install: [
+          'cp #{self.name}.cmd #{self.lib / self.name}.cmd',
+          'cp #{self.name}.js #{self.lib / self.name}.js',
+        ],
         exportedEnv: {
           PATH: {
             val: '#{self.lib : $PATH}',
@@ -45,17 +48,17 @@ describe('Allows deps to aughment $PATH', () => {
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });

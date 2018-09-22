@@ -1,6 +1,12 @@
 // @flow
 
-const {packageJson, dir, file, dummyExecutable} = require('../test/helpers');
+const {
+  buildCommand,
+  packageJson,
+  dir,
+  file,
+  dummyExecutable,
+} = require('../test/helpers');
 
 const simpleProject = [
   packageJson({
@@ -31,8 +37,8 @@ const simpleProject = [
         version: '1.0.0',
         esy: {
           install: [
-            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand('#{self.bin / self.name}.js'),
           ],
           exportedEnv: {
             dep__local: {val: 'dep__local__value'},
@@ -68,8 +74,8 @@ const simpleProject = [
         version: '1.0.0',
         esy: {
           install: [
-            'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
-            'chmod +x #{self.bin / self.name}.exe',
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand('#{self.bin / self.name}.js'),
           ],
           exportedEnv: {
             devDep__local: {val: 'devDep__local__value'},

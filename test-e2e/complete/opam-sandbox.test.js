@@ -33,10 +33,11 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["chmod" "+x" "hello.exe"]
+            ${helpers.buildCommandInOpam('hello.js')}
           ]
           install: [
-            ["cp" "hello.exe" "%{bin}%/hello.exe"]
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
           ]
         `,
       ),
@@ -48,7 +49,7 @@ describe('complete flow for opam sandboxes', () => {
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
-    const {stdout} = await p.esy('x hello.exe');
+    const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual('__hello__');
   });
 
@@ -75,10 +76,11 @@ describe('complete flow for opam sandboxes', () => {
         opam: outdent`
           opam-version: "1.2"
           build: [
-            ["chmod" "+x" "dep.exe"]
+            ${helpers.buildCommandInOpam('dep.js')}
           ]
           install: [
-            ["cp" "dep.exe" "%{bin}%/dep.exe"]
+            ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+            ["cp" "dep.js" "%{bin}%/dep.js"]
           ]
         `,
         url: null,
@@ -100,7 +102,7 @@ describe('complete flow for opam sandboxes', () => {
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toEqual('__dep__');
   });
 
@@ -111,10 +113,11 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["chmod" "+x" "hello.exe"]
+            ${helpers.buildCommandInOpam('hello.js')}
           ]
           install: [
-            ["cp" "hello.exe" "%{bin}%/hello.exe"]
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
           ]
         `,
       ),
@@ -127,7 +130,7 @@ describe('complete flow for opam sandboxes', () => {
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
-    const {stdout} = await p.esy('x hello.exe');
+    const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual('__hello__');
   });
 

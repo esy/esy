@@ -10,14 +10,17 @@ const fixture = [
     license: 'MIT',
     esy: {
       build: [
-        ['cp', '#{self.root /}test.exe', '#{self.target_dir /}test.exe'],
-        ['chmod', '+x', '#{self.target_dir /}test.exe'],
+        ['cp', '#{self.root /}test.js', '#{self.target_dir /}test.js'],
+        helpers.buildCommand('#{self.target_dir /}test.js'),
       ],
-      install: [['cp', '#{self.target_dir /}test.exe', '#{self.bin /}test.exe']],
+      install: [
+        ['cp', '#{self.target_dir /}test.cmd', '#{self.bin /}test.cmd'],
+        ['cp', '#{self.target_dir /}test.js', '#{self.bin /}test.js'],
+      ],
     },
   }),
   helpers.file(
-    'test.exe',
+    'test.js',
     outdent`
     #!${process.execPath}
     console.log("\\\\ no-deps-backslash \\\\");
@@ -30,6 +33,6 @@ it('Build - no deps backslash', async () => {
 
   await p.esy('build');
 
-  const {stdout} = await p.esy('x test.exe');
+  const {stdout} = await p.esy('x test.cmd');
   expect(stdout.trim()).toEqual('\\ no-deps-backslash \\');
 });

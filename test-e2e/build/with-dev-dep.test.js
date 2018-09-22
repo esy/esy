@@ -25,8 +25,11 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'chmod +x #{self.root / self.name}.exe',
-        install: [`cp #{self.root / self.name}.exe #{self.bin / self.name}.exe`],
+        build: helpers.buildCommand('#{self.root / self.name}.js'),
+        install: [
+          `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
+          `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
+        ],
       },
       dependencies,
       devDependencies,
@@ -75,17 +78,17 @@ describe('devDep workflow', () => {
     const expecting = expect.stringMatching('__dep__');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual(expecting);
     }
 
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual(expecting);
     }
 
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual(expecting);
     }
   });
@@ -94,15 +97,15 @@ describe('devDep workflow', () => {
     const expecting = expect.stringMatching('__devDep__');
 
     {
-      const {stdout} = await p.esy('devDep.exe');
+      const {stdout} = await p.esy('devDep.cmd');
       expect(stdout.trim()).toEqual(expecting);
     }
 
     {
-      const {stdout} = await p.esy('x devDep.exe');
+      const {stdout} = await p.esy('x devDep.cmd');
       expect(stdout.trim()).toEqual(expecting);
     }
 
-    return expect(p.esy('b devDep.exe')).rejects.toThrow();
+    return expect(p.esy('b devDep.cmd')).rejects.toThrow();
   });
 });

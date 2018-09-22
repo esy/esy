@@ -18,8 +18,11 @@ describe('Variables available for builds', () => {
         },
         esy: {
           buildsInSource: true,
-          build: 'chmod +x hello.exe',
-          install: "cp hello.exe #{self.bin / 'hello.exe'}",
+          build: helpers.buildCommand('hello.js'),
+          install: [
+            "cp hello.cmd #{self.bin / 'hello.cmd'}",
+            "cp hello.js #{self.bin / 'hello.js'}",
+          ],
           buildEnv: {
             build_root_id: '#{self.id}',
             build_root_name: '#{self.name}',
@@ -59,10 +62,8 @@ describe('Variables available for builds', () => {
         },
       }),
       file(
-        'hello.exe',
+        'hello.js',
         outdent`
-          #!${process.execPath}
-
           let names = [
             "build_root_id",
             "build_root_name",
@@ -192,7 +193,7 @@ describe('Variables available for builds', () => {
     const rootId = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan ./node_modules/dep')).stdout).id;
 
-    const {stdout} = await p.esy('x hello.exe');
+    const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual(outdent`
 build_root_id=<novalue>
 build_root_name=<novalue>

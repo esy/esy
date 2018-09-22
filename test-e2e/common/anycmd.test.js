@@ -19,11 +19,11 @@ describe('Common - anycmd', () => {
   });
 
   it('normal case works', async () => {
-    await expect(p.esy('dep.exe')).resolves.toEqual({
+    await expect(p.esy('dep.cmd')).resolves.toEqual({
       stdout: '__dep__' + os.EOL,
       stderr: '',
     });
-    await expect(p.esy('devDep.exe')).resolves.toEqual({
+    await expect(p.esy('devDep.cmd')).resolves.toEqual({
       stdout: '__devDep__' + os.EOL,
       stderr: '',
     });

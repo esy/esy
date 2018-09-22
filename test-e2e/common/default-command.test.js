@@ -25,13 +25,14 @@ const fixture = [
         build: [
           [
             'cp',
-            '#{self.original_root / self.name}.exe',
-            '#{self.target_dir / self.name}.exe',
+            '#{self.original_root / self.name}.js',
+            '#{self.target_dir / self.name}.js',
           ],
-          ['chmod', '+x', '#{self.target_dir / self.name}.exe'],
+          helpers.buildCommand('#{self.target_dir / self.name}.js'),
         ],
         install: [
-          ['cp', '#{self.target_dir / self.name}.exe', '#{self.bin / self.name}.exe'],
+          ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+          ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
         ],
       },
       '_esy.source': 'path:./',
@@ -44,7 +45,7 @@ it('Build - default command', async () => {
   let p = await helpers.createTestSandbox(...fixture);
   await p.esy();
 
-  const dep = await p.esy('dep.exe');
+  const dep = await p.esy('dep.cmd');
 
   expect(dep.stdout.trim()).toEqual('__dep__');
 });

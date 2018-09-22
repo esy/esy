@@ -16,7 +16,7 @@ function makeFixture(p) {
       version: '1.0.0',
       license: 'MIT',
       esy: {
-        build: ['ln -s #{dep.bin / dep.name}.exe #{self.bin / self.name}.exe'],
+        build: ['ln -s #{dep.bin / dep.name}.cmd #{self.bin / self.name}.cmd'],
       },
       dependencies: {
         dep: '*',
@@ -31,7 +31,7 @@ function makeFixture(p) {
           version: '1.0.0',
           license: 'MIT',
           esy: {
-            build: ['ln -s #{subdep.bin / subdep.name}.exe #{self.bin / self.name}.exe'],
+            build: ['ln -s #{subdep.bin / subdep.name}.cmd #{self.bin / self.name}.cmd'],
           },
           dependencies: {
             subdep: '*',
@@ -53,8 +53,11 @@ function makeFixture(p) {
               license: 'MIT',
               esy: {
                 buildsInSource: true,
-                build: 'chmod +x #{self.name}.exe',
-                install: 'cp #{self.name}.exe #{self.bin / self.name}.exe',
+                build: helpers.buildCommand('#{self.name}.js'),
+                install: [
+                  'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                  'cp #{self.name}.js #{self.bin / self.name}.js',
+                ],
               },
             }),
             file('_esylink', JSON.stringify({source: `path:.`})),
@@ -93,15 +96,15 @@ it('export import build - from list', async () => {
   expect(ls).toEqual(expect.arrayContaining(expected));
 
   {
-    const {stdout} = await p.esy('subdep.exe');
+    const {stdout} = await p.esy('subdep.cmd');
     expect(stdout.trim()).toBe('__subdep__');
   }
   {
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toBe('__subdep__');
   }
   {
-    const {stdout} = await p.esy('x app.exe');
+    const {stdout} = await p.esy('x app.cmd');
     expect(stdout.trim()).toBe('__subdep__');
   }
 });
