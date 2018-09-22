@@ -9,7 +9,7 @@ function makeFixture(p, buildDep) {
       version: '1.0.0',
       esy: buildDep,
     }),
-    helpers.dummyExecutable('no-deps', 'js'),
+    helpers.dummyExecutable('no-deps'),
   ];
 }
 
@@ -22,7 +22,7 @@ describe('Build simple executable with no deps', () => {
   }
 
   describe('out of source build', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       p = await helpers.createTestSandbox();
       p.fixture(
         ...makeFixture(p, {
@@ -42,7 +42,7 @@ describe('Build simple executable with no deps', () => {
   });
 
   describe('in source build', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       p = await helpers.createTestSandbox();
       p.fixture(
         ...makeFixture(p, {
@@ -60,7 +60,7 @@ describe('Build simple executable with no deps', () => {
   });
 
   describe('_build build', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       p = await helpers.createTestSandbox();
       p.fixture(
         ...makeFixture(p, {
