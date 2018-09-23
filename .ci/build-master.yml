@@ -9,28 +9,7 @@ phases:
       name: Hosted Ubuntu 1604
 
     steps:
-      - task: NodeTool@0
-        displayName: 'Use Node 8.x'
-        inputs:
-          versionSpec: 8.x
-
-      - script: 'npm install -g esy@0.2.11 --unsafe-perm'
-        displayName: 'install esy'
-
-      - script: 'make bootstrap'
-        displayName: 'make bootstrap'
-
-      - script: 'esy install'
-        displayName: 'esy install'
-
-      - script: 'esy b dune build'
-        displayName: 'esy b dune build'
-
-      - script: './node_modules/.bin/jest test-e2e'
-        displayName: 'jest test-e2e'
-
-      - script: 'make build platform-release'
-        displayName: 'make ESY_RELEASE_TAG="${Build.SourceVersion}" build platform-release'
+      - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Linux'
@@ -46,28 +25,7 @@ phases:
       demands: node.js
 
     steps:
-      - task: NodeTool@0
-        displayName: 'Use Node 8.x'
-        inputs:
-          versionSpec: 8.x
-
-      - script: 'npm install -g esy@0.2.11 --unsafe-perm'
-        displayName: 'install esy'
-
-      - script: 'make bootstrap'
-        displayName: 'make bootstrap'
-
-      - script: 'esy install'
-        displayName: 'esy install'
-
-      - script: 'esy b dune build'
-        displayName: 'esy b dune build'
-
-      - script: './node_modules/.bin/jest test-e2e'
-        displayName: 'jest test-e2e'
-
-      - script: 'make build platform-release'
-        displayName: 'make ESY_RELEASE_TAG="${Build.SourceVersion}" build platform-release'
+      - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: macOS'
@@ -83,50 +41,7 @@ phases:
       demands: npm
 
     steps:
-      - task: NodeTool@0
-        displayName: 'Use Node 8.x'
-        inputs:
-          versionSpec: 8.x
-
-      - script: 'npm install -g jest-cli'
-        displayName: 'npm install -g jest-cli --unsafe-perm'
-
-      - script: 'npm install -g esy@0.2.11'
-        displayName: 'npm install -g esy@0.2.11 --unsafe-perm'
-
-      - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
-        displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
-
-      - script: 'esy install'
-        displayName: 'esy install'
-
-      - task: Npm@1
-        displayName: 'npm run build'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run build'
-
-      - task: Npm@1
-        displayName: 'npm run test:e2e'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run test:e2e'
-
-      - task: Npm@1
-        displayName: 'npm run test:unit'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run test:unit'
-
-      - task: Npm@1
-        displayName: 'npm run bootstrap:make-release-package'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run bootstrap:make-release-package'
+      - template: build-windows.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Windows'
