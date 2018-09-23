@@ -14,7 +14,7 @@ phases:
         inputs:
           versionSpec: 8.x
 
-      - script: 'npm install -g esy --unsafe-perm'
+      - script: 'npm install -g esy@0.2.11 --unsafe-perm'
         displayName: 'install esy'
 
       - script: 'make bootstrap'
@@ -48,7 +48,7 @@ phases:
         inputs:
           versionSpec: 8.x
 
-      - script: 'npm install -g esy --unsafe-perm'
+      - script: 'npm install -g esy@0.2.11 --unsafe-perm'
         displayName: 'install esy'
 
       - script: 'make bootstrap'
@@ -82,53 +82,38 @@ phases:
         inputs:
           versionSpec: 8.x
 
-      - script: 'npm install -g rimraf --unsafe-prem'
-        displayName: 'npm install -g rimraf'
+      - script: 'npm install -g jest-cli'
+        displayName: 'npm install -g jest-cli --unsafe-perm'
 
-      - powershell: './scripts/bootstrap/install-npm-dependencies.ps1'
-        displayName: 'Install npm dependencies'
+      - script: 'npm install -g esy@0.2.11'
+        displayName: 'npm install -g esy@0.2.11 --unsafe-perm'
 
-      - script: 'node scripts/bootstrap/copy-fastreplacestring.js'
-        displayName: 'Copy fastreplacestring'
+      - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
+        displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
+
+      - script: 'esy install'
+        displayName: 'esy install'
 
       - task: Npm@1
-        displayName: 'npm run bootstrap:install-opam'
-
+        displayName: 'npm run build'
         inputs:
           command: custom
           verbose: false
-          customCommand: 'run bootstrap:install-opam'
+          customCommand: 'run build'
 
       - task: Npm@1
-        displayName: 'npm run bootstrap:install-dependencies'
+        displayName: 'npm run test:e2e'
         inputs:
           command: custom
           verbose: false
-          customCommand: 'run bootstrap:install-dependencies'
+          customCommand: 'run test:e2e'
 
       - task: Npm@1
-        displayName: 'npm run bootstrap:build'
+        displayName: 'npm run test:unit'
         inputs:
           command: custom
           verbose: false
-          customCommand: 'run bootstrap:build'
-
-      - task: Npm@1
-        displayName: 'npm run bootstrap:unit-test'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run bootstrap:unit-test'
-
-      - script: '.\_release\_build\default\esy\bin\esyCommand.exe --help'
-        displayName: '.\_release\_build\default\esy\bin\esyCommand.exe --help'
-
-      - task: Npm@1
-        displayName: 'npm run test-e2e'
-        inputs:
-          command: custom
-          verbose: false
-          customCommand: 'run test-e2e'
+          customCommand: 'run test:unit'
 
       - task: Npm@1
         displayName: 'npm run bootstrap:make-release-package'
