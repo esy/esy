@@ -29,6 +29,9 @@ phases:
       - script: './node_modules/.bin/jest test-e2e'
         displayName: 'jest test-e2e'
 
+      - script: 'make build platform-release'
+        displayName: 'make ESY_RELEASE_TAG="${Build.SourceVersion}" build platform-release'
+
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Linux'
         inputs:
@@ -62,6 +65,9 @@ phases:
 
       - script: './node_modules/.bin/jest test-e2e'
         displayName: 'jest test-e2e'
+
+      - script: 'make build platform-release'
+        displayName: 'make ESY_RELEASE_TAG="${Build.SourceVersion}" build platform-release'
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: macOS'
