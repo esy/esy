@@ -254,16 +254,17 @@ let current =
     {Binding. name; value = ExpandedValue value; origin = None;}
   in
   (* Filter bash function which are being exported in env *)
-  let filterFunctions {Binding. name; _} =
+  let filterInvalidNames {Binding. name; _} =
     let starting = "BASH_FUNC_" in
     let ending = "%%" in
     not (
       String.length name > String.length starting
       && Str.first_chars name (String.length starting) = starting
       && Str.last_chars name (String.length ending) = ending
+      && String.contains name '.'
     )
   in
   Unix.environment ()
   |> Array.map parseEnv
   |> Array.to_list
-  |> List.filter ~f:filterFunctions
+  |> List.filter ~f:filterInvalidNames
