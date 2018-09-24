@@ -132,7 +132,12 @@ let resolveCmd path cmd =
   match cmd.[0] with
   | '.'
   | '/' -> Ok cmd
-  | _ -> resolve allPaths
+  | _ ->
+    (* try to check if it's valid path segment and if not - resolve *)
+    begin match Path.(v "cmd" / cmd) with
+    | exception Invalid_argument _ -> return cmd
+    | _ -> resolve allPaths
+    end
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in
