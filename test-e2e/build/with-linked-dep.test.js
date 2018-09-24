@@ -72,7 +72,7 @@ describe('Build with a linked dep', () => {
 
   async function checkShouldRebuildOnChanges(p) {
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
 
