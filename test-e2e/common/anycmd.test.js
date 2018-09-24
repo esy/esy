@@ -13,7 +13,8 @@ describe('Common - anycmd', () => {
   let prevEnv = {...process.env};
 
   async function createTestSandbox() {
-    const p = await helpers.createTestSandbox(...fixture.simpleProject);
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
     return p;
   }

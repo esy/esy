@@ -8,8 +8,8 @@ const {file, dir, packageJson, dummyExecutable} = helpers;
 helpers.skipSuiteOnWindows();
 
 describe('complete workflow for esy sandboxes', () => {
-  async function createTestSandbox(...fixture) {
-    const p = await helpers.createTestSandbox(...fixture);
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
 
     // add ocaml package, required by opam sandboxes implicitly
     await p.defineNpmPackage({
@@ -38,24 +38,27 @@ describe('complete workflow for esy sandboxes', () => {
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+
+    await p.fixture(...fixture);
     await p.esy('install');
     await p.esy('build');
   });
 
   it('no package name, no package version', async () => {
+    const p = await createTestSandbox();
     const fixture = [
       packageJson({
         esy: {
           install: [
             "cp #{self.root / 'root'}.js #{self.bin / 'root'}.js",
-            helpers.buildCommand("#{self.bin / 'root'}.js"),
+            helpers.buildCommand(p, "#{self.bin / 'root'}.js"),
           ],
         },
       }),
       dummyExecutable('root'),
     ];
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
     await p.esy('install --skip-repository-update');
     await p.esy('build');
     const {stdout} = await p.esy('x root.cmd');
@@ -73,7 +76,8 @@ describe('complete workflow for esy sandboxes', () => {
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.defineNpmPackageOfFixture([
       packageJson({
@@ -82,7 +86,7 @@ describe('complete workflow for esy sandboxes', () => {
         esy: {
           install: [
             'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
-            helpers.buildCommand('#{self.bin / self.name}.js'),
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
         },
         dependencies: {
@@ -124,7 +128,8 @@ describe('complete workflow for esy sandboxes', () => {
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.defineOpamPackageOfFixture(
       {
@@ -194,7 +199,8 @@ describe('complete workflow for esy sandboxes', () => {
         dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -246,7 +252,8 @@ describe('complete workflow for esy sandboxes', () => {
         dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -295,7 +302,8 @@ describe('complete workflow for esy sandboxes', () => {
         dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');

@@ -7,6 +7,7 @@ const {file, dir, packageJson} = helpers;
 helpers.skipSuiteOnWindows();
 
 function makePackage(
+  p,
   {
     name,
     dependencies = {},
@@ -26,7 +27,7 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: helpers.buildCommand('#{self.name}.js'),
+        build: [helpers.buildCommand(p, '#{self.name}.js')],
         install: [
           `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
           `cp #{self.name}.js #{self.bin / self.name}.js`,
@@ -43,7 +44,8 @@ function makePackage(
 
 describe('Projects with multiple sandboxes', function() {
   it('can build multiple sandboxes', async () => {
-    const fixture = [
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
       file(
         'package.json',
         `
@@ -64,12 +66,10 @@ describe('Projects with multiple sandboxes', function() {
       ),
       dir(
         '_esy',
-        dir(['default', 'node_modules'], makePackage({name: 'default-dep'})),
-        dir(['package.custom', 'node_modules'], makePackage({name: 'custom-dep'})),
+        dir(['default', 'node_modules'], makePackage(p, {name: 'default-dep'})),
+        dir(['package.custom', 'node_modules'], makePackage(p, {name: 'custom-dep'})),
       ),
-    ];
-
-    const p = await helpers.createTestSandbox(...fixture);
+    );
 
     await p.esy('build');
 

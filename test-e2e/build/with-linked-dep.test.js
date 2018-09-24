@@ -88,7 +88,7 @@ describe('Build with a linked dep', () => {
           ...makeFixture(p, {
             build: [
               'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
-              helpers.buildCommand('#{self.target_dir / self.name}.js'),
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
             ],
             install: [
               `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
@@ -116,7 +116,7 @@ describe('Build with a linked dep', () => {
         await p.fixture(
           ...makeFixture(p, {
             buildsInSource: true,
-            build: helpers.buildCommand('#{self.root / self.name}.js'),
+            build: [helpers.buildCommand(p, '#{self.root / self.name}.js')],
             install: [
               `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
               `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
@@ -146,7 +146,7 @@ describe('Build with a linked dep', () => {
             build: [
               "mkdir -p #{self.root / '_build'}",
               "cp #{self.root / self.name}.js #{self.root / '_build' / self.name}.js",
-              helpers.buildCommand("#{self.root / '_build' / self.name}.js"),
+              helpers.buildCommand(p, "#{self.root / '_build' / self.name}.js"),
             ],
             install: [
               `cp #{self.root / '_build' / self.name}.cmd #{self.bin / self.name}.cmd`,

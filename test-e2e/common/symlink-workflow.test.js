@@ -9,71 +9,74 @@ const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows('Needs investigation');
 
-const fixture = [
-  dir(
-    'app',
-    packageJson({
-      name: 'app',
-      version: '1.0.0',
-      esy: {
-        build: 'true',
-      },
-      dependencies: {
-        dep: 'link:../dep',
-        anotherDep: 'link:../anotherDep',
-      },
-    }),
-  ),
-  dir(
-    'dep',
-    packageJson({
-      name: 'dep',
-      version: '1.0.0',
-      esy: {
-        build: [
-          [
-            'cp',
-            '#{self.original_root / self.name}.js',
-            '#{self.target_dir / self.name}.js',
+function makeFixture(p) {
+  return [
+    dir(
+      'app',
+      packageJson({
+        name: 'app',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+        },
+        dependencies: {
+          dep: 'link:../dep',
+          anotherDep: 'link:../anotherDep',
+        },
+      }),
+    ),
+    dir(
+      'dep',
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          build: [
+            [
+              'cp',
+              '#{self.original_root / self.name}.js',
+              '#{self.target_dir / self.name}.js',
+            ],
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
           ],
-          helpers.buildCommand('#{self.target_dir / self.name}.js'),
-        ],
-        install: [
-          ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
-          ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
-        ],
-      },
-    }),
-    dummyExecutable('dep'),
-  ),
-  dir(
-    'anotherDep',
-    packageJson({
-      name: 'anotherDep',
-      version: '1.0.0',
-      license: 'MIT',
-      esy: {
-        build: [
-          [
-            'cp',
-            '#{self.original_root / self.name}.js',
-            '#{self.target_dir / self.name}.js',
+          install: [
+            ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+            ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
           ],
-          helpers.buildCommand('#{self.target_dir / self.name}.js'),
-        ],
-        install: [
-          ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
-          ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
-        ],
-      },
-    }),
-    dummyExecutable('anotherDep'),
-  ),
-];
+        },
+      }),
+      dummyExecutable('dep'),
+    ),
+    dir(
+      'anotherDep',
+      packageJson({
+        name: 'anotherDep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          build: [
+            [
+              'cp',
+              '#{self.original_root / self.name}.js',
+              '#{self.target_dir / self.name}.js',
+            ],
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+          ],
+          install: [
+            ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+            ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+          ],
+        },
+      }),
+      dummyExecutable('anotherDep'),
+    ),
+  ];
+}
 
 describe('Symlink workflow', () => {
   async function createTestSandbox() {
-    const p = await helpers.createTestSandbox(...fixture);
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...makeFixture(p));
 
     const esy = args =>
       p.esy(`${args}`, {

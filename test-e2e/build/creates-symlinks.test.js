@@ -4,47 +4,47 @@ const helpers = require('../test/helpers');
 
 helpers.skipSuiteOnWindows();
 
-const fixture = [
-  helpers.packageJson({
-    name: 'creates-symlinks',
-    version: '1.0.0',
-    esy: {
-      buildsInSource: true,
-      build: helpers.buildCommand('#{self.name}.js'),
-      install: [
-        'cp #{self.name}.cmd #{self.lib / self.name}.cmd',
-        'cp #{self.name}.js #{self.lib / self.name}.js',
-        'ln -s #{self.lib / self.name}.cmd #{self.bin / self.name}.cmd',
-      ],
-    },
-    dependencies: {
-      dep: '*',
-    },
-  }),
-  helpers.dummyExecutable('creates-symlinks'),
-  helpers.dir(
-    ['node_modules', 'dep'],
+it('Correctly handles symlinks within the installation', async () => {
+  const p = await helpers.createTestSandbox();
+
+  await p.fixture(
     helpers.packageJson({
-      name: 'dep',
+      name: 'creates-symlinks',
       version: '1.0.0',
-      license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: helpers.buildCommand('#{self.name}.js'),
+        build: [helpers.buildCommand(p, '#{self.name}.js')],
         install: [
           'cp #{self.name}.cmd #{self.lib / self.name}.cmd',
           'cp #{self.name}.js #{self.lib / self.name}.js',
           'ln -s #{self.lib / self.name}.cmd #{self.bin / self.name}.cmd',
         ],
       },
-      '_esy.source': 'path:.',
+      dependencies: {
+        dep: '*',
+      },
     }),
-    helpers.dummyExecutable('dep'),
-  ),
-];
-
-it('Correctly handles symlinks within the installation', async () => {
-  const p = await helpers.createTestSandbox(...fixture);
+    helpers.dummyExecutable('creates-symlinks'),
+    helpers.dir(
+      ['node_modules', 'dep'],
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          buildsInSource: true,
+          build: [helpers.buildCommand(p, '#{self.name}.js')],
+          install: [
+            'cp #{self.name}.cmd #{self.lib / self.name}.cmd',
+            'cp #{self.name}.js #{self.lib / self.name}.js',
+            'ln -s #{self.lib / self.name}.cmd #{self.bin / self.name}.cmd',
+          ],
+        },
+        '_esy.source': 'path:.',
+      }),
+      helpers.dummyExecutable('dep'),
+    ),
+  );
 
   await p.esy('build');
 

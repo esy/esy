@@ -10,7 +10,8 @@ skipSuiteOnWindows('#301');
 
 describe('esy build-env', () => {
   it('generates an environment as bash source', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('build');
 
@@ -32,7 +33,8 @@ describe('esy build-env', () => {
   });
 
   it('generates an environment in JSON', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('build');
 

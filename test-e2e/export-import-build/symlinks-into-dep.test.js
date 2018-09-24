@@ -49,7 +49,7 @@ function makeFixture(p) {
               license: 'MIT',
               esy: {
                 buildsInSource: true,
-                build: helpers.buildCommand('#{self.name}.js'),
+                build: [helpers.buildCommand(p, '#{self.name}.js')],
                 install: [
                   'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
                   'cp #{self.name}.js #{self.bin / self.name}.js',

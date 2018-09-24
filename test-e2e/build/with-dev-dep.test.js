@@ -6,6 +6,7 @@ const helpers = require('../test/helpers');
 helpers.skipSuiteOnWindows('Needs investigation');
 
 function makePackage(
+  p,
   {
     name,
     dependencies = {},
@@ -25,7 +26,7 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: helpers.buildCommand('#{self.root / self.name}.js'),
+        build: [helpers.buildCommand(p, '#{self.root / self.name}.js')],
         install: [
           `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
           `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
@@ -40,35 +41,38 @@ function makePackage(
   );
 }
 
-const fixture = [
-  helpers.packageJson({
-    name: 'with-dev-dep',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-    },
-    devDependencies: {
-      devDep: '*',
-    },
-  }),
-  helpers.dir(
-    'node_modules',
-    makePackage({
-      name: 'dep',
-      devDependencies: {devDepOfDep: '*'},
+function makeFixture(p) {
+  return [
+    helpers.packageJson({
+      name: 'with-dev-dep',
+      version: '1.0.0',
+      esy: {
+        build: 'true',
+      },
+      dependencies: {
+        dep: '*',
+      },
+      devDependencies: {
+        devDep: '*',
+      },
     }),
-    makePackage({
-      name: 'devDep',
-    }),
-  ),
-];
+    helpers.dir(
+      'node_modules',
+      makePackage(p, {
+        name: 'dep',
+        devDependencies: {devDepOfDep: '*'},
+      }),
+      makePackage(p, {
+        name: 'devDep',
+      }),
+    ),
+  ];
+}
 
 describe('devDep workflow', () => {
   async function createTestSandbox() {
-    const p = await helpers.createTestSandbox(...fixture);
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('build');
     return p;
   }

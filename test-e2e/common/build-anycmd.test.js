@@ -9,7 +9,8 @@ const fixture = require('./fixture.js');
 skipSuiteOnWindows();
 
 it('Common - build anycmd', async () => {
-  const p = await createTestSandbox(...fixture.simpleProject);
+  const p = await createTestSandbox();
+  await p.fixture(...fixture.makeSimpleProject(p));
 
   await p.esy('build');
 

@@ -29,6 +29,7 @@ describe('resolutions with overrides', () => {
   }
 
   it('turning a dir into esy package', async () => {
+    const p = await createTestSandbox();
     const fixture = [
       packageJson({
         name: 'root',
@@ -43,7 +44,7 @@ describe('resolutions with overrides', () => {
             override: {
               build: [
                 'cp #{self.name}.js #{self.target_dir / self.name}.js',
-                helpers.buildCommand('#{self.target_dir / self.name}.js'),
+                helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
               ],
               install: [
                 'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
@@ -55,7 +56,7 @@ describe('resolutions with overrides', () => {
       }),
       dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -75,6 +76,8 @@ describe('resolutions with overrides', () => {
   });
 
   it('synthesizing a package with no-source:', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -108,7 +111,7 @@ describe('resolutions with overrides', () => {
           esy: {
             build: [
               'cp #{self.name}.js #{self.target_dir / self.name}.js',
-              helpers.buildCommand('#{self.target_dir / self.name}.js'),
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
             ],
             install: [
               'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
@@ -120,7 +123,7 @@ describe('resolutions with overrides', () => {
       ),
     ];
 
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -136,6 +139,8 @@ describe('resolutions with overrides', () => {
   });
 
   it('buildType override', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -149,7 +154,7 @@ describe('resolutions with overrides', () => {
             source: 'path:./dep',
             override: {
               buildsInSource: true,
-              build: [helpers.buildCommand('#{self.name}.js')],
+              build: [helpers.buildCommand(p, '#{self.name}.js')],
               install: [
                 'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
                 'cp #{self.name}.js #{self.bin / self.name}.js',
@@ -160,7 +165,8 @@ describe('resolutions with overrides', () => {
       }),
       dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -170,6 +176,8 @@ describe('resolutions with overrides', () => {
   });
 
   it('turning a linked dir into esy package', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -184,7 +192,7 @@ describe('resolutions with overrides', () => {
             override: {
               build: [
                 'cp #{self.name}.js #{self.target_dir / self.name}.js',
-                helpers.buildCommand('#{self.target_dir / self.name}.js'),
+                helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
               ],
               install: [
                 'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
@@ -196,7 +204,8 @@ describe('resolutions with overrides', () => {
       }),
       dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -216,6 +225,8 @@ describe('resolutions with overrides', () => {
   });
 
   it('handles buildEnv', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -244,7 +255,7 @@ describe('resolutions with overrides', () => {
             },
             build: [
               'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
-              helpers.buildCommand('#{self.target_dir / $DEPNAME}.js'),
+              helpers.buildCommand(p, '#{self.target_dir / $DEPNAME}.js'),
             ],
             install: [
               'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
@@ -255,7 +266,8 @@ describe('resolutions with overrides', () => {
         dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -273,6 +285,8 @@ describe('resolutions with overrides', () => {
   });
 
   it('handles buildEnvOverride', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -306,7 +320,7 @@ describe('resolutions with overrides', () => {
             },
             build: [
               'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
-              helpers.buildCommand('#{self.target_dir / $DEPNAME}.js'),
+              helpers.buildCommand(p, '#{self.target_dir / $DEPNAME}.js'),
             ],
             install: [
               'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
@@ -317,7 +331,8 @@ describe('resolutions with overrides', () => {
         dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');

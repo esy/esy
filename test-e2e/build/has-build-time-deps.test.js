@@ -6,42 +6,43 @@ const helpers = require('../test/helpers');
 
 helpers.skipSuiteOnWindows('Needs investigation');
 
-const fixture = [
-  helpers.packageJson({
-    name: 'hasBuildTimeDeps',
-    version: '1.0.0',
-    esy: {
-      buildsInSource: true,
-      build: ['buildTimeDep.cmd #{self.name}'],
-      install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
-    },
-    dependencies: {
-      dep: '*',
-    },
-    buildTimeDependencies: {
-      buildTimeDep: '*',
-    },
-  }),
-  helpers.dir(
-    'node_modules',
+function makeFixture(p) {
+  return [
+    helpers.packageJson({
+      name: 'hasBuildTimeDeps',
+      version: '1.0.0',
+      esy: {
+        buildsInSource: true,
+        build: ['buildTimeDep.cmd #{self.name}'],
+        install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
+      },
+      dependencies: {
+        dep: '*',
+      },
+      buildTimeDependencies: {
+        buildTimeDep: '*',
+      },
+    }),
     helpers.dir(
-      'buildTimeDep',
-      helpers.packageJson({
-        name: 'buildTimeDep',
-        version: '1.0.0',
-        esy: {
-          buildsInSource: true,
-          build: helpers.buildCommand('#{self.name}.js'),
-          install: [
-            'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
-            'cp #{self.name}.js #{self.bin / self.name}.js',
-          ],
-        },
-        '_esy.source': 'path:./',
-      }),
-      helpers.file(
-        'buildTimeDep.js',
-        outdent`
+      'node_modules',
+      helpers.dir(
+        'buildTimeDep',
+        helpers.packageJson({
+          name: 'buildTimeDep',
+          version: '1.0.0',
+          esy: {
+            buildsInSource: true,
+            build: [helpers.buildCommand(p, '#{self.name}.js')],
+            install: [
+              'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+              'cp #{self.name}.js #{self.bin / self.name}.js',
+            ],
+          },
+          '_esy.source': 'path:./',
+        }),
+        helpers.file(
+          'buildTimeDep.js',
+          outdent`
           var name = process.argv[2];
           var source = \`
           console.log("Built with buildTimeDep@1.0.0");
@@ -71,43 +72,43 @@ const fixture = [
             fs.chmodSync(output, 0755);
           }
         `,
+        ),
       ),
-    ),
-    helpers.dir(
-      'dep',
-      helpers.packageJson({
-        name: 'dep',
-        version: '1.0.0',
-        esy: {
-          buildsInSource: true,
-          build: ['buildTimeDep.cmd #{self.name}'],
-          install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
-        },
-        buildTimeDependencies: {
-          buildTimeDep: '*',
-        },
-        '_esy.source': 'path:./',
-      }),
       helpers.dir(
-        'node_modules',
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {
+            buildsInSource: true,
+            build: ['buildTimeDep.cmd #{self.name}'],
+            install: ['cp #{self.name}.cmd #{self.bin / self.name}.cmd'],
+          },
+          buildTimeDependencies: {
+            buildTimeDep: '*',
+          },
+          '_esy.source': 'path:./',
+        }),
         helpers.dir(
-          'buildTimeDep',
-          helpers.packageJson({
-            name: 'buildTimeDep',
-            version: '2.0.0',
-            esy: {
-              buildsInSource: true,
-              build: helpers.buildCommand('#{self.name}.js'),
-              install: [
-                'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
-                'cp #{self.name}.js #{self.bin / self.name}.js',
-              ],
-            },
-            '_esy.source': 'path:./',
-          }),
-          helpers.file(
-            'buildTimeDep.js',
-            outdent`
+          'node_modules',
+          helpers.dir(
+            'buildTimeDep',
+            helpers.packageJson({
+              name: 'buildTimeDep',
+              version: '2.0.0',
+              esy: {
+                buildsInSource: true,
+                build: [helpers.buildCommand(p, '#{self.name}.js')],
+                install: [
+                  'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                  'cp #{self.name}.js #{self.bin / self.name}.js',
+                ],
+              },
+              '_esy.source': 'path:./',
+            }),
+            helpers.file(
+              'buildTimeDep.js',
+              outdent`
               var name = process.argv[2];
               var source = \`
               console.log("Built with buildTimeDep@2.0.0");
@@ -137,15 +138,17 @@ const fixture = [
                 fs.chmodSync(output, 0755);
               }
             `,
+            ),
           ),
         ),
       ),
     ),
-  ),
-];
+  ];
+}
 
 test('Build project and dep with different version of the same buildTimeDep', async () => {
-  const p = await helpers.createTestSandbox(...fixture);
+  const p = await helpers.createTestSandbox();
+  await p.fixture(...makeFixture(p));
   await p.esy('build');
 
   {

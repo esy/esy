@@ -9,7 +9,8 @@ skipSuiteOnWindows('mixed slashes and backslashes in paths');
 
 describe('Variables available for builds', () => {
   it('provides esy variables via #{..} syntax', async () => {
-    const fixture = [
+    const p = await createTestSandbox();
+    await p.fixture(
       packageJson({
         name: 'root',
         version: '0.1.0',
@@ -18,7 +19,7 @@ describe('Variables available for builds', () => {
         },
         esy: {
           buildsInSource: true,
-          build: helpers.buildCommand('hello.js'),
+          build: [helpers.buildCommand(p, 'hello.js')],
           install: [
             "cp hello.cmd #{self.bin / 'hello.cmd'}",
             "cp hello.js #{self.bin / 'hello.js'}",
@@ -183,8 +184,7 @@ describe('Variables available for builds', () => {
           }),
         ),
       ),
-    ];
-    const p = await createTestSandbox(...fixture);
+    );
     await p.esy('build');
 
     const localStorePath = (...segments) =>

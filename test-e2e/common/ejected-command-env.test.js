@@ -10,7 +10,8 @@ skipSuiteOnWindows('#301');
 
 describe('ejected command-env', () => {
   it('check that `esy build` ejects a command-env which contains deps and devDeps in $PATH', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
 
     await expect(

@@ -63,7 +63,7 @@ function makeFixture(p) {
         esy: {
           build: [
             'cp #{self.name}.js #{self.bin / self.name}.js',
-            helpers.buildCommand('#{self.bin / self.name}.js'),
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
         },
       }),
@@ -82,7 +82,7 @@ function makeFixture(p) {
         esy: {
           build: [
             'cp #{self.name}.js #{self.bin / self.name}.js',
-            helpers.buildCommand('#{self.bin / self.name}.js'),
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
         },
       }),
@@ -102,7 +102,7 @@ function makeFixture(p) {
         esy: {
           build: [
             'cp #{self.name}.js #{self.bin / self.name}.js',
-            helpers.buildCommand('#{self.bin / self.name}.js'),
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
         },
       }),
