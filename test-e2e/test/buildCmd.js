@@ -20,7 +20,7 @@ if (isWindows) {
   fs.writeFileSync(
     output,
     outdent`
-      @${JSON.stringify(process.execPath)} ${JSON.stringify(script)} %*
+      @${JSON.stringify(process.execPath)} ${JSON.stringify('%~dp0\\' + script)} %*
     `,
   );
 } else {
