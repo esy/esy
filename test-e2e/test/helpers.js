@@ -94,6 +94,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
+  if (isWindows) {
+    await fs.copyFile(process.execPath, path.join(binPath, 'node.exe'));
+  }
+
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
   const opamRegistry = await OpamRegistryMock.initialize();
@@ -181,12 +185,14 @@ function singleQuote(item) {
   return `'${item}'`;
 }
 
-function buildCommand(input: string) {
-  return [
-    singleQuote(process.execPath),
-    singleQuote(require.resolve('./buildCmd.js')),
-    input,
-  ].join(' ');
+function buildCommand(p: TestSandbox, input: string) {
+  let node;
+  if (isWindows) {
+    node = path.join(p.binPath, 'node.exe');
+  } else {
+    node = process.execPath;
+  }
+  return [singleQuote(node), singleQuote(require.resolve('./buildCmd.js')), input];
 }
 
 function buildCommandInOpam(input: string) {

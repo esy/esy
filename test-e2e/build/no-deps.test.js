@@ -27,7 +27,7 @@ describe('Build simple executable with no deps', () => {
           ...makeFixture(p, {
             build: [
               ['cp', '#{self.name}.js', '#{self.target_dir / self.name}.js'],
-              helpers.buildCommand('#{self.target_dir / self.name}.js'),
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
             ],
             install: [
               `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
@@ -50,7 +50,7 @@ describe('Build simple executable with no deps', () => {
         p.fixture(
           ...makeFixture(p, {
             buildsInSource: true,
-            build: [helpers.buildCommand('#{self.name}.js')],
+            build: [helpers.buildCommand(p, '#{self.name}.js')],
             install: [
               `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
               `cp #{self.name}.js #{self.bin / self.name}.js`,
@@ -74,7 +74,7 @@ describe('Build simple executable with no deps', () => {
             build: [
               'mkdir -p _build',
               'cp #{self.name}.js _build/#{self.name}.js',
-              helpers.buildCommand('_build/#{self.name}.js'),
+              helpers.buildCommand(p, '_build/#{self.name}.js'),
             ],
             install: [
               `cp _build/#{self.name}.cmd #{self.bin / self.name}.cmd`,
