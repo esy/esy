@@ -181,10 +181,6 @@ function skipSuiteOnWindows(blockingIssues?: string) {
   }
 }
 
-function singleQuote(item) {
-  return `'${item}'`;
-}
-
 function buildCommand(p: TestSandbox, input: string) {
   let node;
   if (isWindows) {
@@ -192,7 +188,7 @@ function buildCommand(p: TestSandbox, input: string) {
   } else {
     node = process.execPath;
   }
-  return [singleQuote(node), singleQuote(require.resolve('./buildCmd.js')), input];
+  return [node, require.resolve('./buildCmd.js'), input];
 }
 
 function buildCommandInOpam(input: string) {
