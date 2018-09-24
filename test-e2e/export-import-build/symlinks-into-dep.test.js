@@ -66,15 +66,16 @@ function makeFixture(p) {
 }
 
 describe('export import build - import app', () => {
-  let p;
-
-  beforeEach(async () => {
-    p = await helpers.createTestSandbox();
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
     await p.esy('build');
-  });
+    return p;
+  }
 
   it('package "subdep" should be visible in all envs', async () => {
+    const p = await createTestSandbox();
+
     const subdep = await p.esy('subdep.cmd');
     expect(subdep.stdout.trim()).toEqual('__subdep__');
     const b = await p.esy('b subdep.cmd');
@@ -84,7 +85,7 @@ describe('export import build - import app', () => {
   });
 
   it('same for package "dep" but it should reuse the impl of "subdep"', async () => {
-    const expecting = expect.stringMatching('subdep');
+    const p = await createTestSandbox();
 
     const subdep = await p.esy('dep.cmd');
     expect(subdep.stdout.trim()).toEqual('__subdep__');
@@ -95,13 +96,15 @@ describe('export import build - import app', () => {
   });
 
   it('and root package links into "dep" which links into "subdep"', async () => {
-    const expecting = expect.stringMatching('subdep');
+    const p = await createTestSandbox();
 
     const x = await p.esy('x app.cmd');
     expect(x.stdout.trim()).toEqual('__subdep__');
   });
 
   it('check that link is here', async () => {
+    const p = await createTestSandbox();
+
     const depFolder = await fs
       .readdir(path.join(p.projectPath, '../esy/3/i'))
       .then(dir => dir.filter(d => d.includes('dep-1.0.0'))[0]);
@@ -114,6 +117,8 @@ describe('export import build - import app', () => {
   });
 
   it('export build from store', async () => {
+    const p = await createTestSandbox();
+
     // export build from store
     // TODO: does this work in windows?
     await p.esy('export-build ../esy/3/i/dep-1.0.0-*');

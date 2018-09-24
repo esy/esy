@@ -31,9 +31,7 @@ function makeFixture(p, buildDep) {
 }
 
 describe('Build with dep', () => {
-  let p;
-
-  async function checkDepIsInEnv() {
+  async function checkDepIsInEnv(p) {
     {
       const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
@@ -51,65 +49,71 @@ describe('Build with dep', () => {
   }
 
   describe('out of source build', () => {
-    beforeEach(async () => {
-      p = await helpers.createTestSandbox();
-      await p.fixture(
-        ...makeFixture(p, {
-          build: [
-            'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
-            helpers.buildCommand('#{self.target_dir / self.name}.js'),
-          ],
-          install: [
-            `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
-            `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
-          ],
-        }),
-      );
-      await p.esy('build');
-    });
+    function withProject(assertions) {
+      return async () => {
+        const p = await helpers.createTestSandbox();
+        await p.fixture(
+          ...makeFixture(p, {
+            build: [
+              'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
+              helpers.buildCommand('#{self.target_dir / self.name}.js'),
+            ],
+            install: [
+              `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }),
+        );
+        await p.esy('build');
+        await assertions(p);
+      };
+    }
 
-    it('makes dep available in envs', checkDepIsInEnv);
+    it('makes dep available in envs', withProject(checkDepIsInEnv));
   });
 
   describe('in source build', () => {
-    beforeEach(async () => {
-      p = await helpers.createTestSandbox();
-      await p.fixture(
-        ...makeFixture(p, {
-          buildsInSource: true,
-          build: helpers.buildCommand('#{self.root / self.name}.js'),
-          install: [
-            `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
-            `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
-          ],
-        }),
-      );
-      await p.esy('build');
-    });
+    function withProject(assertions) {
+      return async () => {
+        const p = await helpers.createTestSandbox();
+        await p.fixture(
+          ...makeFixture(p, {
+            buildsInSource: true,
+            build: helpers.buildCommand('#{self.root / self.name}.js'),
+            install: [
+              `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }),
+        );
+        await p.esy('build');
+      };
+    }
 
-    it('makes dep available in envs', checkDepIsInEnv);
+    it('makes dep available in envs', withProject(checkDepIsInEnv));
   });
 
   describe('_build build', () => {
-    beforeEach(async () => {
-      p = await helpers.createTestSandbox();
-      await p.fixture(
-        ...makeFixture(p, {
-          buildsInSource: '_build',
-          build: [
-            "mkdir -p #{self.root / '_build'}",
-            "cp #{self.root / self.name}.js #{self.root / '_build' / self.name}.js",
-            helpers.buildCommand("#{self.root / '_build' / self.name}.js"),
-          ],
-          install: [
-            `cp #{self.root / '_build' / self.name}.cmd #{self.bin / self.name}.cmd`,
-            `cp #{self.root / '_build' / self.name}.js #{self.bin / self.name}.js`,
-          ],
-        }),
-      );
-      await p.esy('build');
-    });
-
-    it('makes dep available in envs', checkDepIsInEnv);
+    function withProject(assertions) {
+      return async () => {
+        const p = await helpers.createTestSandbox();
+        await p.fixture(
+          ...makeFixture(p, {
+            buildsInSource: '_build',
+            build: [
+              "mkdir -p #{self.root / '_build'}",
+              "cp #{self.root / self.name}.js #{self.root / '_build' / self.name}.js",
+              helpers.buildCommand("#{self.root / '_build' / self.name}.js"),
+            ],
+            install: [
+              `cp #{self.root / '_build' / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.root / '_build' / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }),
+        );
+        await p.esy('build');
+      };
+    }
+    it('makes dep available in envs', withProject(checkDepIsInEnv));
   });
 });

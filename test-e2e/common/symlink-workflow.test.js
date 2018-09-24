@@ -72,29 +72,30 @@ const fixture = [
 ];
 
 describe('Symlink workflow', () => {
-  let p;
-  let appEsy;
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox(...fixture);
 
-  beforeEach(async () => {
-    p = await helpers.createTestSandbox(...fixture);
-
-    appEsy = args =>
+    const esy = args =>
       p.esy(`${args}`, {
         cwd: path.join(p.projectPath, 'app'),
       });
 
-    await appEsy('install');
-    await appEsy('build');
-  });
+    await esy('install');
+    await esy('build');
+
+    return {...p, esy};
+  }
 
   it('works without changes', async () => {
-    const dep = await appEsy('dep.cmd');
+    const p = await createTestSandbox();
+    const dep = await p.esy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('__dep__');
-    const anotherDep = await appEsy('anotherDep.cmd');
+    const anotherDep = await p.esy('anotherDep.cmd');
     expect(anotherDep.stdout.trim()).toEqual('__anotherDep__');
   });
 
   it('works with modified dep sources', async () => {
+    const p = await createTestSandbox();
     await fs.writeFile(
       path.join(p.projectPath, 'dep', 'dep.js'),
       outdent`
@@ -105,8 +106,8 @@ describe('Symlink workflow', () => {
     // wait, on macOS sometimes it doesn't pick up changes
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    await appEsy('build');
-    const dep = await appEsy('dep.cmd');
+    await p.esy('build');
+    const dep = await p.esy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('MODIFIED!');
   });
 });

@@ -117,15 +117,15 @@ function makeFixture(p) {
 }
 
 describe('Linked deps with presence of sandboxEnv', () => {
-  let p;
-
-  beforeEach(async () => {
-    p = await helpers.createTestSandbox();
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
     await p.esy('build');
-  });
+    return p;
+  }
 
   it("sandbox env should be visible in runtime dep's all envs", async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('global-sandbox-env-var-in-dep');
 
     const dep = await p.esy('dep.cmd');
@@ -139,6 +139,7 @@ describe('Linked deps with presence of sandboxEnv', () => {
   });
 
   it("sandbox env should not be available in build time dep's envs", async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('-in-buildTimDep');
 
     const dep = await p.esy('buildTimDep.cmd');
@@ -149,6 +150,7 @@ describe('Linked deps with presence of sandboxEnv', () => {
   });
 
   it("sandbox env should not be available in dev dep's envs", async () => {
+    const p = await createTestSandbox();
     const dep = await p.esy('devDep.cmd');
     expect(dep.stdout).toEqual(expect.stringMatching('-in-devDep'));
   });

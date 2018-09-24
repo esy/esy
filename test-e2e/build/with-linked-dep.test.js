@@ -94,6 +94,7 @@ describe('Build with a linked dep', () => {
           }),
         );
         await p.esy('build');
+        await assertions(p);
       };
     }
 
@@ -120,6 +121,7 @@ describe('Build with a linked dep', () => {
           }),
         );
         await p.esy('build');
+        await assertions(p);
       };
     }
 

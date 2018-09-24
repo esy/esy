@@ -67,14 +67,14 @@ const fixture = [
 ];
 
 describe('devDep workflow', () => {
-  let p;
-
-  beforeEach(async () => {
-    p = await helpers.createTestSandbox(...fixture);
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox(...fixture);
     await p.esy('build');
-  });
+    return p;
+  }
 
   it('package "dep" should be visible in all envs', async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('__dep__');
 
     {
@@ -94,6 +94,7 @@ describe('devDep workflow', () => {
   });
 
   it('package "dev-dep" should be visible only in command env', async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('__devDep__');
 
     {
