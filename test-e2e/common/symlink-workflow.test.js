@@ -104,7 +104,7 @@ describe('Symlink workflow', () => {
     );
 
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await p.esy('build');
     const dep = await p.esy('dep.cmd');
