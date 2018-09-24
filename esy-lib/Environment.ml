@@ -258,10 +258,12 @@ let current =
     let starting = "BASH_FUNC_" in
     let ending = "%%" in
     not (
-      String.length name > String.length starting
-      && Str.first_chars name (String.length starting) = starting
-      && Str.last_chars name (String.length ending) = ending
-      && String.contains name '.'
+      (
+        String.length name > String.length starting
+        && Str.first_chars name (String.length starting) = starting
+        && Str.last_chars name (String.length ending) = ending
+      )
+      || String.contains name '.'
     )
   in
   Unix.environment ()
