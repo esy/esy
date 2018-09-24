@@ -177,8 +177,16 @@ function skipSuiteOnWindows(blockingIssues?: string) {
   }
 }
 
+function singleQuote(item) {
+  return `'${item}'`;
+}
+
 function buildCommand(input: string) {
-  return [process.execPath, require.resolve('./buildCmd.js'), input].join(' ');
+  return [
+    singleQuote(process.execPath),
+    singleQuote(require.resolve('./buildCmd.js')),
+    input,
+  ].join(' ');
 }
 
 function buildCommandInOpam(input: string) {
