@@ -133,11 +133,14 @@ let resolveCmd path cmd =
   | '.'
   | '/' -> Ok cmd
   | _ ->
-    (* try to check if it's valid path segment and if not - resolve *)
-    begin match Path.(v "cmd" / cmd) with
-    | exception Invalid_argument _ -> return cmd
-    | _ -> resolve allPaths
-    end
+    let isSep = function
+      | '/' -> true
+      | '\\' -> true
+      | _ -> false
+    in
+    if Astring.String.exists isSep cmd
+    then return cmd
+    else resolve allPaths
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in
