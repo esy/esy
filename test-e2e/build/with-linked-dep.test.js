@@ -71,10 +71,10 @@ describe('Build with a linked dep', () => {
   }
 
   async function checkShouldRebuildOnChanges(p) {
-    await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
-
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
 
     const {stdout} = await p.esy('build');
     expect(stdout).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));

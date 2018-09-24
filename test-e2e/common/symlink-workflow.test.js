@@ -96,15 +96,16 @@ describe('Symlink workflow', () => {
 
   it('works with modified dep sources', async () => {
     const p = await createTestSandbox();
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     await fs.writeFile(
       path.join(p.projectPath, 'dep', 'dep.js'),
       outdent`
         console.log('MODIFIED!');
       `,
     );
-
-    // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await p.esy('build');
     const dep = await p.esy('dep.cmd');
