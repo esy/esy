@@ -3,16 +3,20 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson} = helpers;
+const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows();
 
-describe('complete workflow for esy sandboxes', () => {
+describe('resolutions with overrides', () => {
   async function createTestSandbox(...fixture) {
     const p = await helpers.createTestSandbox(...fixture);
 
     // add ocaml package, required by opam sandboxes implicitly
-    await p.defineNpmPackageOfFixture(helpers.ocamlPackage().items);
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
 
     // add @esy-ocaml/substs package, required by opam sandboxes implicitly
     await p.defineNpmPackage({
@@ -25,56 +29,55 @@ describe('complete workflow for esy sandboxes', () => {
   }
 
   it('turning a dir into esy package', async () => {
+    const p = await createTestSandbox();
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'path:./dep',
             override: {
               build: [
-                'cp dep.ml #{self.target_dir/}dep.ml',
-                'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+                'cp #{self.name}.js #{self.target_dir / self.name}.js',
+                helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
               ],
-              install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              install: [
+                'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
+              ],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
 
   it('synthesizing a package with no-source:', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
@@ -83,18 +86,18 @@ describe('complete workflow for esy sandboxes', () => {
         dependencies: {
           dep: '*',
         },
-        devDependencies: {
-          ocaml: '*',
-        },
         resolutions: {
           // This provides a package dep which is declared with no source and
           // just commands which need to be executed, we just copy its
-          // dependency depdep.exe as dep.exe which we then execute.
+          // dependency depdep.cmd as dep.cmd which we then execute.
           dep: {
             source: 'no-source:',
             override: {
               build: [],
-              install: ['cp #{depdep.bin / depdep.name}.exe #{self.bin / self.name}.exe'],
+              install: [
+                'cp #{depdep.bin / depdep.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{depdep.bin / depdep.name}.js #{self.bin / depdep.name}.js',
+              ],
               dependencies: {depdep: 'path:./depdep'},
             },
           },
@@ -105,136 +108,132 @@ describe('complete workflow for esy sandboxes', () => {
         packageJson({
           name: 'depdep',
           version: '1.0.0',
-          dependencies: {ocaml: '*'},
           esy: {
             build: [
-              'cp #{self.name}.ml #{self.target_dir / self.name}.ml',
-              'ocamlopt -o #{self.target_dir / self.name}.exe #{self.target_dir / self.name}.ml',
+              'cp #{self.name}.js #{self.target_dir / self.name}.js',
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
             ],
             install: [
-              'cp #{self.target_dir / self.name}.exe #{self.bin / self.name}.exe',
+              'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+              'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
             ],
           },
         }),
-        file('depdep.ml', 'print_endline "__depdep__"'),
+        dummyExecutable('depdep'),
       ),
     ];
 
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__depdep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__depdep__');
     }
   });
 
   it('buildType override', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'path:./dep',
             override: {
               buildsInSource: true,
-              build: ['ocamlopt -o dep.exe dep.ml'],
-              install: ['cp dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              build: [helpers.buildCommand(p, '#{self.name}.js')],
+              install: [
+                'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.name}.js #{self.bin / self.name}.js',
+              ],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toEqual('__dep__');
   });
 
   it('turning a linked dir into esy package', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
             source: 'link:./dep',
             override: {
               build: [
-                'cp dep.ml #{self.target_dir/}dep.ml',
-                'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+                'cp #{self.name}.js #{self.target_dir / self.name}.js',
+                helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
               ],
-              install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
-              dependencies: {
-                ocaml: '*',
-              },
+              install: [
+                'cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd',
+                'cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js',
+              ],
             },
           },
         },
       }),
-      dir('dep', file('dep.ml', 'print_endline "__dep__"')),
+      dir('dep', dummyExecutable('dep')),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
 
   it('handles buildEnv', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -251,27 +250,30 @@ describe('complete workflow for esy sandboxes', () => {
           name: 'dep',
           version: '1.0.0',
           esy: {
-            build: [
-              'cp dep.ml #{self.target_dir/}dep.ml',
-              'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
-            ],
             buildEnv: {
               SHOULD_BE_DROPPED: 'OOPS',
             },
-            install: ['cp #{self.target_dir/}dep.exe #{self.bin / $DEPNAME}.exe'],
+            build: [
+              'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
+              helpers.buildCommand(p, '#{self.target_dir / $DEPNAME}.js'),
+            ],
+            install: [
+              'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
+              'cp #{self.target_dir / $DEPNAME}.js #{self.bin / $DEPNAME}.js',
+            ],
           },
-          dependencies: {ocaml: '*'},
         }),
-        file('dep.ml', 'print_endline "__dep__"'),
+        dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('newdep.exe');
+      const {stdout} = await p.esy('newdep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
@@ -283,17 +285,15 @@ describe('complete workflow for esy sandboxes', () => {
   });
 
   it('handles buildEnvOverride', async () => {
+    const p = await createTestSandbox();
+
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -319,23 +319,26 @@ describe('complete workflow for esy sandboxes', () => {
               SHOULD_BE_DROPPED: 'OOPS',
             },
             build: [
-              'cp dep.ml #{self.target_dir/}dep.ml',
-              'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+              'cp #{self.name}.js #{self.target_dir / $DEPNAME}.js',
+              helpers.buildCommand(p, '#{self.target_dir / $DEPNAME}.js'),
             ],
-            install: ['cp #{self.target_dir/}dep.exe #{self.bin / $DEPNAME}.exe'],
+            install: [
+              'cp #{self.target_dir / $DEPNAME}.cmd #{self.bin / $DEPNAME}.cmd',
+              'cp #{self.target_dir / $DEPNAME}.js #{self.bin / $DEPNAME}.js',
+            ],
           },
-          dependencies: {ocaml: '*'},
         }),
-        file('dep.ml', 'print_endline "__dep__"'),
+        dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('newdep.exe');
+      const {stdout} = await p.esy('newdep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
 
@@ -354,11 +357,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -385,7 +384,6 @@ describe('complete workflow for esy sandboxes', () => {
             build: [],
             install: [],
           },
-          dependencies: {ocaml: '*'},
         }),
       ),
     ];
@@ -410,11 +408,7 @@ describe('complete workflow for esy sandboxes', () => {
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
         resolutions: {
           dep: {
@@ -442,7 +436,6 @@ describe('complete workflow for esy sandboxes', () => {
             build: [],
             install: [],
           },
-          dependencies: {ocaml: '*'},
         }),
       ),
     ];

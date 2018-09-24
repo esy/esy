@@ -3,30 +3,27 @@
 const path = require('path');
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
-const {
-  file,
-  dir,
-  packageJson,
-  createTestSandbox,
-  ocamlPackage,
-  skipSuiteOnWindows,
-} = helpers;
+const {file, dir, packageJson, createTestSandbox, skipSuiteOnWindows} = helpers;
 
 skipSuiteOnWindows('mixed slashes and backslashes in paths');
 
 describe('Variables available for builds', () => {
   it('provides esy variables via #{..} syntax', async () => {
-    const fixture = [
+    const p = await createTestSandbox();
+    await p.fixture(
       packageJson({
         name: 'root',
         version: '0.1.0',
         dependencies: {
-          ocaml: '*',
           dep: '*',
         },
         esy: {
           buildsInSource: true,
-          build: [['ocamlopt', '-o', '#{self.bin/}hello.exe', './hello.ml']],
+          build: [helpers.buildCommand(p, 'hello.js')],
+          install: [
+            "cp hello.cmd #{self.bin / 'hello.cmd'}",
+            "cp hello.js #{self.bin / 'hello.js'}",
+          ],
           buildEnv: {
             build_root_id: '#{self.id}',
             build_root_name: '#{self.name}',
@@ -66,89 +63,81 @@ describe('Variables available for builds', () => {
         },
       }),
       file(
-        'hello.ml',
+        'hello.js',
         outdent`
-
-          let var_names = [
-            "build_root_id";
-            "build_root_name";
-            "build_root_version";
-            "build_root_root";
-            "build_root_original_root";
-            "build_root_target_dir";
-            "build_root_install";
-            "build_root_bin";
-            "build_root_sbin";
-            "build_root_lib";
-            "build_root_man";
-            "build_root_doc";
-            "build_root_stublibs";
-            "build_root_toplevel";
-            "build_root_share";
-            "build_root_etc";
-            "build_dep_name";
-            "build_dep_version";
-            "build_dep_root";
-            "build_dep_original_root";
-            "build_dep_target_dir";
-            "build_dep_install";
-            "build_dep_bin";
-            "build_dep_sbin";
-            "build_dep_lib";
-            "build_dep_man";
-            "build_dep_doc";
-            "build_dep_stublibs";
-            "build_dep_toplevel";
-            "build_dep_share";
-            "build_dep_etc";
-            "export_root_id";
-            "export_root_name";
-            "export_root_version";
-            "export_root_root";
-            "export_root_original_root";
-            "export_root_target_dir";
-            "export_root_install";
-            "export_root_bin";
-            "export_root_sbin";
-            "export_root_lib";
-            "export_root_man";
-            "export_root_doc";
-            "export_root_stublibs";
-            "export_root_toplevel";
-            "export_root_share";
-            "export_root_etc";
-            "export_dep_name";
-            "export_dep_version";
-            "export_dep_root";
-            "export_dep_original_root";
-            "export_dep_target_dir";
-            "export_dep_install";
-            "export_dep_bin";
-            "export_dep_sbin";
-            "export_dep_lib";
-            "export_dep_man";
-            "export_dep_doc";
-            "export_dep_stublibs";
-            "export_dep_toplevel";
-            "export_dep_share";
-            "export_dep_etc";
+          let names = [
+            "build_root_id",
+            "build_root_name",
+            "build_root_version",
+            "build_root_root",
+            "build_root_original_root",
+            "build_root_target_dir",
+            "build_root_install",
+            "build_root_bin",
+            "build_root_sbin",
+            "build_root_lib",
+            "build_root_man",
+            "build_root_doc",
+            "build_root_stublibs",
+            "build_root_toplevel",
+            "build_root_share",
+            "build_root_etc",
+            "build_dep_name",
+            "build_dep_version",
+            "build_dep_root",
+            "build_dep_original_root",
+            "build_dep_target_dir",
+            "build_dep_install",
+            "build_dep_bin",
+            "build_dep_sbin",
+            "build_dep_lib",
+            "build_dep_man",
+            "build_dep_doc",
+            "build_dep_stublibs",
+            "build_dep_toplevel",
+            "build_dep_share",
+            "build_dep_etc",
+            "export_root_id",
+            "export_root_name",
+            "export_root_version",
+            "export_root_root",
+            "export_root_original_root",
+            "export_root_target_dir",
+            "export_root_install",
+            "export_root_bin",
+            "export_root_sbin",
+            "export_root_lib",
+            "export_root_man",
+            "export_root_doc",
+            "export_root_stublibs",
+            "export_root_toplevel",
+            "export_root_share",
+            "export_root_etc",
+            "export_dep_name",
+            "export_dep_version",
+            "export_dep_root",
+            "export_dep_original_root",
+            "export_dep_target_dir",
+            "export_dep_install",
+            "export_dep_bin",
+            "export_dep_sbin",
+            "export_dep_lib",
+            "export_dep_man",
+            "export_dep_doc",
+            "export_dep_stublibs",
+            "export_dep_toplevel",
+            "export_dep_share",
+            "export_dep_etc"
           ]
 
-          let () =
-            let f name =
-              let v =
-                match Sys.getenv_opt name with
-                | Some v -> v
-                | None -> "<novalue>"
-              in
-              print_endline (name ^ "=" ^ v)
-            in
-            List.iter f var_names
+          names.forEach(name => {
+            let value = process.env[name] || '<novalue>';
+            console.log(name + "=" + value);
+          });
         `,
       ),
       dir(
         'node_modules',
-        ocamlPackage(),
         dir(
           'dep',
           packageJson({
@@ -195,8 +184,7 @@ describe('Variables available for builds', () => {
           }),
         ),
       ),
-    ];
-    const p = await createTestSandbox(...fixture);
+    );
     await p.esy('build');
 
     const localStorePath = (...segments) =>
@@ -205,7 +193,7 @@ describe('Variables available for builds', () => {
     const rootId = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan ./node_modules/dep')).stdout).id;
 
-    const {stdout} = await p.esy('x hello.exe');
+    const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual(outdent`
 build_root_id=<novalue>
 build_root_name=<novalue>

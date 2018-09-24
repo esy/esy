@@ -3,33 +3,35 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {createTestSandbox, skipSuiteOnWindows} = require('../test/helpers');
+const helpers = require('../test/helpers');
 const fixture = require('./fixture.js');
 
-skipSuiteOnWindows();
+helpers.skipSuiteOnWindows();
 
 describe('Common - x anycmd', () => {
-  let p;
   let prevEnv = {...process.env};
 
-  beforeEach(async () => {
-    p = await createTestSandbox(...fixture.simpleProject);
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
-  });
+    return p;
+  }
 
   it('normal case works', async () => {
-    await expect(p.esy('x dep')).resolves.toEqual({
+    const p = await createTestSandbox();
+    await expect(p.esy('x dep.cmd')).resolves.toEqual({
       stdout: '__dep__\n',
       stderr: '',
     });
-    await expect(p.esy('x devDep')).resolves.toEqual({
+    await expect(p.esy('x devDep.cmd')).resolves.toEqual({
       stdout: '__devDep__\n',
       stderr: '',
     });
   });
 
   it('Make sure we can pass environment from the outside dynamically', async () => {
-    expect.assertions(2);
+    const p = await createTestSandbox();
 
     process.env.X = '1';
     await expect(p.esy('x bash -c "echo $X"')).resolves.toEqual({
@@ -47,7 +49,7 @@ describe('Common - x anycmd', () => {
   });
 
   it('Make sure exit code is preserved', async () => {
-    expect.assertions(2);
+    const p = await createTestSandbox();
 
     await expect(p.esy("x bash -c 'exit 1'")).rejects.toEqual(
       expect.objectContaining({code: 1}),
@@ -58,7 +60,7 @@ describe('Common - x anycmd', () => {
   });
 
   it('Make sure we can run commands out of subdirectories', async () => {
-    expect.assertions(1);
+    const p = await createTestSandbox();
 
     await fs.mkdir(path.join(p.projectPath, 'subdir'));
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');

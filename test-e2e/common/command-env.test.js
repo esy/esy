@@ -10,7 +10,8 @@ skipSuiteOnWindows('#301');
 
 describe('esy command-env', () => {
   it('generates env as a bash source', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
 
     const env = (await p.esy('command-env')).stdout;
@@ -18,20 +19,21 @@ describe('esy command-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'command-env'), env);
 
     await expect(
-      promiseExec('. ./command-env && dep', {
+      promiseExec('. ./command-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./command-env && devDep', {
+      promiseExec('. ./command-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 
   it('generates env as JSON', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
 
     const env = JSON.parse((await p.esy('command-env --json')).stdout);

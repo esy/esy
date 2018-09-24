@@ -1,16 +1,10 @@
 // @flow
 
 const path = require('path');
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  ocamlPackage,
-  exeExtension,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
 function makePackage(
+  p,
   {
     name,
     dependencies = {},
@@ -26,16 +20,19 @@ function makePackage(
   },
   ...items
 ) {
-  return dir(
+  return helpers.dir(
     name,
-    packageJson({
+    helpers.packageJson({
       name: name,
       version: '1.0.0',
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: [helpers.buildCommand(p, '#{self.name}.js')],
+        install: [
+          'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+          'cp #{self.name}.js #{self.bin / self.name}.js',
+        ],
         exportedEnv,
       },
       dependencies,
@@ -43,70 +40,72 @@ function makePackage(
       devDependencies,
       '_esy.source': 'path:.',
     }),
-    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    helpers.dummyExecutable(name),
     ...items,
   );
 }
 
-const fixture = [
-  packageJson({
-    name: 'withDep',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-      focus: '*',
-    },
-  }),
-  dir(
-    'node_modules',
-    makePackage({
-      name: 'dep',
-      dependencies: {
-        focus: '*',
-        depOfDep: '*',
-        ocaml: '*',
+async function createTestSandbox() {
+  const p = await helpers.createTestSandbox();
+  await p.fixture(
+    helpers.packageJson({
+      name: 'withDep',
+      version: '1.0.0',
+      esy: {
+        build: 'true',
       },
-    }),
-    makePackage({
-      name: 'depOfDep',
       dependencies: {
-        ocaml: '*',
+        dep: '*',
         focus: '*',
       },
     }),
-    makePackage({
-      name: 'focus',
-      dependencies: {
-        ocaml: '*',
-      },
-      exportedEnv: {direct__val: {val: '__focus__', scope: 'local'}},
-    }),
-    ocamlPackage(),
-  ),
-];
+    helpers.dir(
+      'node_modules',
+      makePackage(p, {
+        name: 'dep',
+        dependencies: {
+          focus: '*',
+          depOfDep: '*',
+        },
+      }),
+      makePackage(p, {
+        name: 'depOfDep',
+        dependencies: {
+          focus: '*',
+        },
+      }),
+      makePackage(p, {
+        name: 'focus',
+        exportedEnv: {direct__val: {val: '__focus__', scope: 'local'}},
+      }),
+    ),
+  );
+  return p;
+}
 
 describe('dep exists as transitive and direct dep at once', () => {
   it('package focus should be visible in all envs', async () => {
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
     await p.esy('build');
 
-    const expecting = expect.stringMatching('__focus__');
+    {
+      const {stdout} = await p.esy('focus.cmd');
+      expect(stdout.trim()).toEqual('__focus__');
+    }
 
-    const dep = await p.esy('focus');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('b focus.cmd');
+      expect(stdout.trim()).toEqual('__focus__');
+    }
 
-    const b = await p.esy('b focus');
-    expect(b.stdout).toEqual(expecting);
-
-    const x = await p.esy('x focus');
-    expect(x.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x focus.cmd');
+      expect(stdout.trim()).toEqual('__focus__');
+    }
   });
 
   it('package focus local exports should be available', async () => {
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
     const env = JSON.parse((await p.esy('build-env --json')).stdout);
     expect(env.direct__val).toBe('__focus__');
   });

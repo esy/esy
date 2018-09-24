@@ -3,16 +3,20 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson} = helpers;
+const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows();
 
 describe('complete workflow for esy sandboxes', () => {
-  async function createTestSandbox(...fixture) {
-    const p = await helpers.createTestSandbox(...fixture);
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
 
     // add ocaml package, required by opam sandboxes implicitly
-    await p.defineNpmPackageOfFixture(helpers.ocamlPackage().items);
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
 
     // add @esy-ocaml/substs package, required by opam sandboxes implicitly
     await p.defineNpmPackage({
@@ -34,118 +38,82 @@ describe('complete workflow for esy sandboxes', () => {
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+
+    await p.fixture(...fixture);
     await p.esy('install');
     await p.esy('build');
   });
 
   it('no package name, no package version', async () => {
+    const p = await createTestSandbox();
     const fixture = [
       packageJson({
         esy: {
-          build: [
-            'cp root.ml #{self.target_dir/}root.ml',
-            'ocamlopt -o #{self.target_dir/}root.exe #{self.target_dir/}root.ml',
+          install: [
+            "cp #{self.root / 'root'}.js #{self.bin / 'root'}.js",
+            helpers.buildCommand(p, "#{self.bin / 'root'}.js"),
           ],
-          install: ['cp #{self.target_dir/}root.exe #{self.bin/}root.exe'],
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
       }),
-      file('root.ml', 'print_endline "__root__"'),
+      dummyExecutable('root'),
     ];
-    const p = await createTestSandbox(...fixture);
+    await p.fixture(...fixture);
     await p.esy('install --skip-repository-update');
     await p.esy('build');
-    const {stdout} = await p.esy('x root.exe');
+    const {stdout} = await p.esy('x root.cmd');
     expect(stdout.trim()).toEqual('__root__');
   });
 
-  it('no dependencies, only ocaml devDep', async () => {
-    const fixture = [
-      packageJson({
-        name: 'root',
-        version: '1.0.0',
-        esy: {
-          build: [
-            'cp root.ml #{self.target_dir/}root.ml',
-            'ocamlopt -o #{self.target_dir/}root.exe #{self.target_dir/}root.ml',
-          ],
-          install: ['cp #{self.target_dir/}root.exe #{self.bin/}root.exe'],
-        },
-        dependencies: {
-          ocaml: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
-        },
-      }),
-      file('root.ml', 'print_endline "__root__"'),
-    ];
-    const p = await createTestSandbox(...fixture);
-    await p.esy('install --skip-repository-update');
-    await p.esy('build');
-    const {stdout} = await p.esy('x root.exe');
-    expect(stdout.trim()).toEqual('__root__');
-  });
-
-  it('npm dependencies, only ocaml devDep', async () => {
+  it('npm dependencies', async () => {
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          ocaml: '*',
           dep: '*',
-        },
-        devDependencies: {
-          ocaml: '*',
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.defineNpmPackageOfFixture([
       packageJson({
         name: 'dep',
         version: '1.0.0',
         esy: {
-          build: [
-            'cp dep.ml #{self.target_dir/}dep.ml',
-            'ocamlopt -o #{self.target_dir/}dep.exe #{self.target_dir/}dep.ml',
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
-          install: ['cp #{self.target_dir/}dep.exe #{self.bin/}dep.exe'],
         },
         dependencies: {
           ocaml: '*',
         },
       }),
-      file('dep.ml', 'print_endline "__dep__"'),
+      dummyExecutable('dep'),
     ]);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
 
-  it('opam dependencies, only ocaml devDep', async () => {
+  it('opam dependencies', async () => {
     const fixture = [
       packageJson({
         name: 'root',
@@ -160,7 +128,8 @@ describe('complete workflow for esy sandboxes', () => {
         },
       }),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.defineOpamPackageOfFixture(
       {
@@ -169,37 +138,31 @@ describe('complete workflow for esy sandboxes', () => {
         opam: outdent`
           opam-version: "1.2"
           build: [
-            ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+            ${helpers.buildCommandInOpam('dep.js')}
           ]
           install: [
-            ["cp" "dep.exe" "%{bin}%/dep.exe"]
+            ["cp" "dep.js" "%{bin}%/dep.js"]
+            ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
           ]
         `,
         url: null,
       },
-      [
-        helpers.file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
-      ],
+      [dummyExecutable('dep')],
     );
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -225,37 +188,33 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
             ]
-
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -281,37 +240,34 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
             ]
 
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
@@ -326,9 +282,6 @@ describe('complete workflow for esy sandboxes', () => {
           ocaml: '*',
           '@opam/dep': 'link:./dep/custom.opam',
         },
-        devDependencies: {
-          ocaml: '*',
-        },
       }),
       dir(
         'dep',
@@ -337,37 +290,34 @@ describe('complete workflow for esy sandboxes', () => {
           outdent`
             opam-version: "1.2"
             build: [
-              ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+              ${helpers.buildCommandInOpam('dep.js')}
             ]
             install: [
-              ["cp" "dep.exe" "%{bin}%/dep.exe"]
+              ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+              ["cp" "dep.js" "%{bin}%/dep.js"]
             ]
 
           `,
         ),
-        file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
+        dummyExecutable('dep'),
       ),
     ];
-    const p = await createTestSandbox(...fixture);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('dep.exe');
+      const {stdout} = await p.esy('dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('b dep.exe');
+      const {stdout} = await p.esy('b dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
     {
-      const {stdout} = await p.esy('x dep.exe');
+      const {stdout} = await p.esy('x dep.cmd');
       expect(stdout.trim()).toEqual('__dep__');
     }
   });

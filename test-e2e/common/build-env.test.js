@@ -10,7 +10,8 @@ skipSuiteOnWindows('#301');
 
 describe('esy build-env', () => {
   it('generates an environment as bash source', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('build');
 
@@ -19,20 +20,21 @@ describe('esy build-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'build-env'), env);
 
     await expect(
-      promiseExec('. ./build-env && dep', {
+      promiseExec('. ./build-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./build-env && devDep', {
+      promiseExec('. ./build-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).rejects.toThrow();
   });
 
   it('generates an environment in JSON', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('build');
 

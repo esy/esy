@@ -10,7 +10,8 @@ skipSuiteOnWindows('#301');
 
 describe('esy sandbox-env', () => {
   it('generates env as a bash source', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
 
     const env = (await p.esy('sandbox-env')).stdout;
@@ -18,20 +19,21 @@ describe('esy sandbox-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'sandbox-env'), env);
 
     await expect(
-      promiseExec('. ./sandbox-env && dep', {
+      promiseExec('. ./sandbox-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./sandbox-env && devDep', {
+      promiseExec('. ./sandbox-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 
   it('generates env as JSON', async () => {
-    const p = await createTestSandbox(...fixture.simpleProject);
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('build');
 
     const env = JSON.parse((await p.esy('sandbox-env --json')).stdout);

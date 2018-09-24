@@ -15,7 +15,8 @@ it('Common - esy prefix via esyrc', async () => {
   const tmpPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
   const customEsyPrefix = path.join(tmpPath, 'prefix');
 
-  const p = await createTestSandbox(...fixture.simpleProject);
+  const p = await createTestSandbox();
+  await p.fixture(...fixture.makeSimpleProject(p));
 
   await fs.writeFile(
     path.join(p.projectPath, '.esyrc'),
@@ -27,12 +28,12 @@ it('Common - esy prefix via esyrc', async () => {
 
   await p.esy('build', {noEsyPrefix: true});
 
-  await expect(p.esy('dep', {noEsyPrefix: true})).resolves.toEqual({
+  await expect(p.esy('dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
     stdout: '__dep__\n',
     stderr: '',
   });
 
-  await expect(p.esy('which dep', {noEsyPrefix: true})).resolves.toEqual({
+  await expect(p.esy('which dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
     stdout: expect.stringMatching(customEsyPrefix),
     stderr: '',
   });

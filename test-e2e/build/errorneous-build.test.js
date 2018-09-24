@@ -1,10 +1,10 @@
 // @flow
 const path = require('path');
 
-const {createTestSandbox, packageJson, dir} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
 const fixture = [
-  packageJson({
+  helpers.packageJson({
     name: 'errorneous-build',
     version: '1.0.0',
     license: 'MIT',
@@ -14,8 +14,8 @@ const fixture = [
   }),
 ];
 
-it('Build - errorneous build', async () => {
-  const p = await createTestSandbox(...fixture);
+it('Exists with a non-zero exit code if build fails', async () => {
+  const p = await helpers.createTestSandbox(...fixture);
   try {
     await p.esy('build');
   } catch (err) {

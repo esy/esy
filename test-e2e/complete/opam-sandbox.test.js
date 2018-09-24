@@ -10,7 +10,11 @@ describe('complete flow for opam sandboxes', () => {
     const p = await helpers.createTestSandbox(...fixture);
 
     // add ocaml package, required by opam sandboxes implicitly
-    await p.defineNpmPackageOfFixture(helpers.ocamlPackage().items);
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
 
     // add @esy-ocaml/substs package, required by opam sandboxes implicitly
     await p.defineNpmPackage({
@@ -29,19 +33,15 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["ocamlopt" "-o" "hello.exe" "hello.ml"]
+            ${helpers.buildCommandInOpam('hello.js')}
           ]
           install: [
-            ["cp" "hello.exe" "%{bin}%/hello.exe"]
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
           ]
         `,
       ),
-      helpers.file(
-        'hello.ml',
-        outdent`
-          let () = print_endline "__opam__"
-        `,
-      ),
+      helpers.dummyExecutable('hello'),
     ];
 
     const p = await createTestSandbox(...fixture);
@@ -49,8 +49,8 @@ describe('complete flow for opam sandboxes', () => {
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
-    const {stdout} = await p.esy('x hello.exe');
-    expect(stdout.trim()).toEqual('__opam__');
+    const {stdout} = await p.esy('x hello.cmd');
+    expect(stdout.trim()).toEqual('__hello__');
   });
 
   it('single opam file, has dependencies', async () => {
@@ -76,22 +76,16 @@ describe('complete flow for opam sandboxes', () => {
         opam: outdent`
           opam-version: "1.2"
           build: [
-            ["ocamlopt" "-o" "dep.exe" "dep.ml"]
+            ${helpers.buildCommandInOpam('dep.js')}
           ]
           install: [
-            ["cp" "dep.exe" "%{bin}%/dep.exe"]
+            ["cp" "dep.cmd" "%{bin}%/dep.cmd"]
+            ["cp" "dep.js" "%{bin}%/dep.js"]
           ]
         `,
         url: null,
       },
-      [
-        helpers.file(
-          'dep.ml',
-          outdent`
-            let () = print_endline "__dep__"
-          `,
-        ),
-      ],
+      [helpers.dummyExecutable('dep')],
     );
 
     await p.defineOpamPackage({
@@ -108,7 +102,7 @@ describe('complete flow for opam sandboxes', () => {
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
-    const {stdout} = await p.esy('dep.exe');
+    const {stdout} = await p.esy('dep.cmd');
     expect(stdout.trim()).toEqual('__dep__');
   });
 
@@ -119,19 +113,15 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["ocamlopt" "-o" "hello.exe" "hello.ml"]
+            ${helpers.buildCommandInOpam('hello.js')}
           ]
           install: [
-            ["cp" "hello.exe" "%{bin}%/hello.exe"]
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
           ]
         `,
       ),
-      helpers.file(
-        'hello.ml',
-        outdent`
-          let () = print_endline "__opam__"
-        `,
-      ),
+      helpers.dummyExecutable('hello'),
     ];
 
     const p = await createTestSandbox(...fixture);
@@ -140,8 +130,8 @@ describe('complete flow for opam sandboxes', () => {
 
     // build should execute build commands from pkg.opam file
     await p.esy('build');
-    const {stdout} = await p.esy('x hello.exe');
-    expect(stdout.trim()).toEqual('__opam__');
+    const {stdout} = await p.esy('x hello.cmd');
+    expect(stdout.trim()).toEqual('__hello__');
   });
 
   it('multiple <pkg>.opam files', async () => {
@@ -168,12 +158,6 @@ describe('complete flow for opam sandboxes', () => {
           ]
         `,
       ),
-      helpers.file(
-        'hello.ml',
-        outdent`
-          let () = print_endline "__opam__"
-        `,
-      ),
     ];
 
     const p = await createTestSandbox(...fixture);
@@ -181,10 +165,5 @@ describe('complete flow for opam sandboxes', () => {
 
     // build shouldn't execute build commands from *.opam files
     await p.esy('build');
-
-    // we should be able to use ocaml and build stuff
-    await p.esy('build ocamlopt -o hello.exe ./hello.ml');
-    const {stdout} = await p.esy('./hello.exe');
-    expect(stdout.trim()).toEqual('__opam__');
   });
 });

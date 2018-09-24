@@ -1,5 +1,6 @@
 // @flow
 
+const {esyPrefixPath, esy, mkdirTemp} = require('./setup.js');
 const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -56,14 +57,10 @@ const cases = [
 let p;
 let reposUpdated = false;
 
-const esyPrefixPath = fs.mkdtempSync('/tmp/esy-prefix');
-
 for (let c of cases) {
   console.log(`*** installing ${c.name}`);
-  const sandboxPath = fs.mkdtempSync('/tmp/esy-project');
+  const sandboxPath = mkdirTemp();
   console.log(`*** sandboxPath: ${sandboxPath}`);
-
-  const esy = path.join(__dirname, '..', 'bin', 'esy');
 
   const packageJson = {
     name: `test-${c.name}`,
@@ -79,17 +76,8 @@ for (let c of cases) {
     JSON.stringify(packageJson, null, 2),
   );
 
-  child_process.execSync(`${esy} install`, {
-    cwd: sandboxPath,
-    env: {...process.env, ESY__PREFIX: esyPrefixPath},
-    stdio: 'inherit',
-  });
-
-  child_process.execSync(`${esy} build`, {
-    cwd: sandboxPath,
-    env: {...process.env, ESY__PREFIX: esyPrefixPath},
-    stdio: 'inherit',
-  });
+  esy(sandboxPath, 'install');
+  esy(sandboxPath, 'build');
 
   if (c.test != null) {
     const test = c.test;

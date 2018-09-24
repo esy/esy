@@ -1,24 +1,15 @@
 // @flow
 
 const path = require('path');
-const fs = require('fs');
 
 const outdent = require('outdent');
-const {
-  createTestSandbox,
-  ocamlPackage,
-  packageJson,
-  symlink,
-  file,
-  dir,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 function makeFixture(p) {
   return [
-    packageJson({
+    helpers.packageJson({
       name: 'with-linked-dep-sandbox-env',
       version: '1.0.0',
       esy: {
@@ -31,153 +22,136 @@ function makeFixture(p) {
         dep: '*',
       },
       buildTimeDependencies: {
-        dep2: '*',
+        buildTimDep: '*',
       },
       devDependencies: {
-        dep3: '*',
+        devDep: '*',
       },
     }),
-    dir(
+    helpers.dir(
       'node_modules',
-      dir(
+      helpers.dir(
         'dep',
-        symlink('package.json', path.join('..', '..', 'dep')),
-        file(
+        helpers.symlink('package.json', path.join('..', '..', 'dep')),
+        helpers.file(
           '_esylink',
           JSON.stringify({source: `link:${path.join(p.projectPath, 'dep')}`}),
         ),
       ),
-      dir(
-        'dep2',
-        symlink('package.json', path.join('..', '..', 'dep2')),
-        file(
+      helpers.dir(
+        'buildTimDep',
+        helpers.symlink('package.json', path.join('..', '..', 'buildTimDep')),
+        helpers.file(
           '_esylink',
-          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep2')}`}),
+          JSON.stringify({source: `link:${path.join(p.projectPath, 'buildTimDep')}`}),
         ),
       ),
-      dir(
-        'dep3',
-        symlink('package.json', path.join('..', '..', 'dep3')),
-        file(
+      helpers.dir(
+        'devDep',
+        helpers.symlink('package.json', path.join('..', '..', 'devDep')),
+        helpers.file(
           '_esylink',
-          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep3')}`}),
+          JSON.stringify({source: `link:${path.join(p.projectPath, 'devDep')}`}),
         ),
       ),
-      ocamlPackage(),
     ),
-    dir(
+    helpers.dir(
       'dep',
-      packageJson({
+      helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
         esy: {
           build: [
-            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
-          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-        },
-        dependencies: {
-          ocaml: '*',
         },
       }),
-      file(
-        'dep.ml',
+      helpers.file(
+        'dep.js',
         outdent`
-      let () =
-        let v = Sys.getenv "SANDBOX_ENV_VAR" in
-        print_endline (v ^ "-in-dep");
-    `,
+          console.log(process.env.SANDBOX_ENV_VAR + "-in-dep");
+        `,
       ),
     ),
-    dir(
-      'dep2',
-      packageJson({
-        name: 'dep2',
+    helpers.dir(
+      'buildTimDep',
+      helpers.packageJson({
+        name: 'buildTimDep',
         version: '1.0.0',
         esy: {
           build: [
-            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
-          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-        },
-        dependencies: {
-          ocaml: '*',
         },
       }),
-      file(
-        'dep2.ml',
+      helpers.file(
+        'buildTimDep.js',
         outdent`
-      let () =
-        let v = Sys.getenv "SANDBOX_ENV_VAR" in
-        print_endline (v ^ "-in-dep2");
-    `,
+          console.log(process.env.SANDBOX_ENV_VAR + "-in-buildTimDep");
+        `,
       ),
     ),
-    dir(
-      'dep3',
-      packageJson({
-        name: 'dep3',
+    helpers.dir(
+      'devDep',
+      helpers.packageJson({
+        name: 'devDep',
         version: '1.0.0',
         license: 'MIT',
         esy: {
           build: [
-            'cp #{self.root / self.name}.ml #{self.target_dir / self.name}.ml',
-            'ocamlopt -o #{self.target_dir / self.name} #{self.target_dir / self.name}.ml',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
           ],
-          install: 'cp #{self.target_dir / self.name} #{self.bin / self.name}',
-        },
-        dependencies: {
-          ocaml: '*',
         },
       }),
-      file(
-        'dep3.ml',
+      helpers.file(
+        'devDep.js',
         outdent`
-      let () =
-        let v = Sys.getenv "SANDBOX_ENV_VAR" in
-        print_endline (v ^ "-in-dep3");
-    `,
+          console.log(process.env.SANDBOX_ENV_VAR + "-in-devDep");
+        `,
       ),
     ),
   ];
 }
 
-describe('Linked deps with presen', () => {
-  let p;
-
-  beforeEach(async () => {
-    p = await createTestSandbox();
+describe('Linked deps with presence of sandboxEnv', () => {
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
     await p.esy('build');
-  });
+    return p;
+  }
 
   it("sandbox env should be visible in runtime dep's all envs", async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('global-sandbox-env-var-in-dep');
 
-    const dep = await p.esy('dep');
+    const dep = await p.esy('dep.cmd');
     expect(dep.stdout).toEqual(expecting);
 
-    const b = await p.esy('b dep');
+    const b = await p.esy('b dep.cmd');
     expect(b.stdout).toEqual(expecting);
 
-    const x = await p.esy('x dep');
+    const x = await p.esy('x dep.cmd');
     expect(x.stdout).toEqual(expecting);
   });
 
   it("sandbox env should not be available in build time dep's envs", async () => {
-    const expecting = expect.stringMatching('-in-dep2');
+    const p = await createTestSandbox();
+    const expecting = expect.stringMatching('-in-buildTimDep');
 
-    const dep = await p.esy('dep2');
+    const dep = await p.esy('buildTimDep.cmd');
     expect(dep.stdout).toEqual(expecting);
 
-    const b = await p.esy('b dep2');
+    const b = await p.esy('b buildTimDep.cmd');
     expect(b.stdout).toEqual(expecting);
   });
 
   it("sandbox env should not be available in dev dep's envs", async () => {
-    const dep = await p.esy('dep3');
-    expect(dep.stdout).toEqual(expect.stringMatching('-in-dep3'));
+    const p = await createTestSandbox();
+    const dep = await p.esy('devDep.cmd');
+    expect(dep.stdout).toEqual(expect.stringMatching('-in-devDep'));
   });
 });

@@ -132,7 +132,15 @@ let resolveCmd path cmd =
   match cmd.[0] with
   | '.'
   | '/' -> Ok cmd
-  | _ -> resolve allPaths
+  | _ ->
+    let isSep = function
+      | '/' -> true
+      | '\\' -> true
+      | _ -> false
+    in
+    if Astring.String.exists isSep cmd
+    then return cmd
+    else resolve allPaths
 
 let resolveInvocation path (tool, args) =
   let open Result.Syntax in

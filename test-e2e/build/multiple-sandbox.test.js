@@ -2,11 +2,12 @@
 
 const helpers = require('../test/helpers.js');
 
-const {file, dir, packageJson, exeExtension} = helpers;
+const {file, dir, packageJson} = helpers;
 
 helpers.skipSuiteOnWindows();
 
 function makePackage(
+  p,
   {
     name,
     dependencies = {},
@@ -26,21 +27,25 @@ function makePackage(
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: [helpers.buildCommand(p, '#{self.name}.js')],
+        install: [
+          `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
+          `cp #{self.name}.js #{self.bin / self.name}.js`,
+        ],
       },
       dependencies,
       devDependencies,
       '_esy.source': 'path:./',
     }),
-    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    helpers.dummyExecutable(name),
     ...items,
   );
 }
 
-describe('projects with multiple sandboxes', function() {
+describe('Projects with multiple sandboxes', function() {
   it('can build multiple sandboxes', async () => {
-    const fixture = [
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
       file(
         'package.json',
         `
@@ -61,25 +66,15 @@ describe('projects with multiple sandboxes', function() {
       ),
       dir(
         '_esy',
-        dir(
-          ['default', 'node_modules'],
-          makePackage({name: 'default-dep', dependencies: {ocaml: '*'}}),
-          helpers.ocamlPackage(),
-        ),
-        dir(
-          ['package.custom', 'node_modules'],
-          makePackage({name: 'custom-dep', dependencies: {ocaml: '*'}}),
-          helpers.ocamlPackage(),
-        ),
+        dir(['default', 'node_modules'], makePackage(p, {name: 'default-dep'})),
+        dir(['package.custom', 'node_modules'], makePackage(p, {name: 'custom-dep'})),
       ),
-    ];
-
-    const p = await helpers.createTestSandbox(...fixture);
+    );
 
     await p.esy('build');
 
     {
-      const {stdout} = await p.esy('default-dep');
+      const {stdout} = await p.esy('default-dep.cmd');
       expect(stdout.trim()).toBe('__default-dep__');
     }
 
@@ -88,15 +83,15 @@ describe('projects with multiple sandboxes', function() {
     await p.esy('@package.custom.json build');
 
     {
-      const {stdout} = await p.esy('@package.custom.json custom-dep');
+      const {stdout} = await p.esy('@package.custom.json custom-dep.cmd');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
 
-    expect(p.esy('@package.custom.json default-dep')).rejects.toThrow();
+    expect(p.esy('@package.custom.json default-dep.cmd')).rejects.toThrow();
 
     {
       // .json extension could be dropped
-      const {stdout} = await p.esy('@package.custom custom-dep');
+      const {stdout} = await p.esy('@package.custom custom-dep.cmd');
       expect(stdout.trim()).toBe('__custom-dep__');
     }
   });

@@ -15,47 +15,22 @@ const FixtureUtils = require('./FixtureUtils.js');
 const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
-const {
-  ocamlPackagePath,
-  ESYCOMMAND,
-  isWindows,
-  ocamloptName,
-  flexlinkName,
-} = require('./jestGlobalSetup.js');
+const outdent = require('outdent');
 
-function getTempDir() {
-  return isWindows ? os.tmpdir() : '/tmp';
-}
+const isWindows = process.platform === 'win32';
 
-const exeExtension = isWindows ? '.exe' : '';
+const ESYCOMMAND =
+  process.platform === 'win32'
+    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
+    : require.resolve('../../bin/esy');
 
-function ocamlPackage() {
-  let esyLink = {
-    type: 'file-copy',
-    name: '_esylink',
-    path: path.join(ocamlPackagePath, '_esylink'),
-  };
-  let packageJson = {
-    type: 'file-copy',
-    name: 'package.json',
-    path: path.join(ocamlPackagePath, 'package.json'),
-  };
-  let ocamlopt = {
-    type: 'file-copy',
-    name: ocamloptName,
-    path: path.join(ocamlPackagePath, ocamloptName),
-  };
-
-  if (isWindows) {
-    let flexlink = {
-      type: 'file-copy',
-      name: flexlinkName,
-      path: path.join(ocamlPackagePath, flexlinkName),
-    }
-    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, flexlink, packageJson);
-  } else {
-    return FixtureUtils.dir('ocaml', esyLink, ocamlopt, packageJson);
-  }
+function dummyExecutable(name: string) {
+  return FixtureUtils.file(
+    `${name}.js`,
+    outdent`
+      console.log("__" + ${JSON.stringify(name)} + "__");
+    `,
+  );
 }
 
 export type TestSandbox = {
@@ -118,6 +93,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
+
+  if (isWindows) {
+    await fs.copyFile(process.execPath, path.join(binPath, 'node.exe'));
+  }
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
@@ -202,7 +181,21 @@ function skipSuiteOnWindows(blockingIssues?: string) {
   }
 }
 
-const esyiCommands = new Set(['install', 'print-cudf-universe']);
+function buildCommand(p: TestSandbox, input: string) {
+  let node;
+  if (isWindows) {
+    node = path.join(p.binPath, 'node.exe');
+  } else {
+    node = process.execPath;
+  }
+  return [node, require.resolve('./buildCmd.js'), input];
+}
+
+function buildCommandInOpam(input: string) {
+  const genWrapper = JSON.stringify(require.resolve('./buildCmd.js'));
+  const node = JSON.stringify(process.execPath);
+  return `[${node} ${genWrapper} ${JSON.stringify(input)}]`;
+}
 
 module.exports = {
   promiseExec,
@@ -210,13 +203,8 @@ module.exports = {
   symlink: FixtureUtils.symlink,
   dir: FixtureUtils.dir,
   packageJson: FixtureUtils.packageJson,
-  getTempDir,
   skipSuiteOnWindows,
   ESYCOMMAND,
-  exeExtension,
-  ocamloptName,
-  ocamlPackage,
-  ocamlPackagePath,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
@@ -228,4 +216,7 @@ module.exports = {
   execFile: exec.execFile,
   createTestSandbox,
   isWindows,
+  dummyExecutable,
+  buildCommand,
+  buildCommandInOpam,
 };

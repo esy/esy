@@ -1,19 +1,12 @@
 // @flow
 
 const path = require('path');
-const {
-  createTestSandbox,
-  packageJson,
-  dir,
-  file,
-  ocamlPackage,
-  exeExtension,
-  skipSuiteOnWindows,
-} = require('../test/helpers');
+const helpers = require('../test/helpers');
 
-skipSuiteOnWindows('Needs investigation');
+helpers.skipSuiteOnWindows('Needs investigation');
 
 function makePackage(
+  p,
   {
     name,
     dependencies = {},
@@ -25,85 +18,99 @@ function makePackage(
   },
   ...items
 ) {
-  return dir(
+  return helpers.dir(
     name,
-    packageJson({
+    helpers.packageJson({
       name: name,
       version: '1.0.0',
       license: 'MIT',
       esy: {
         buildsInSource: true,
-        build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
-        install: `cp #{self.root / self.name}.exe #{self.bin / self.name}${exeExtension}`,
+        build: [helpers.buildCommand(p, '#{self.root / self.name}.js')],
+        install: [
+          `cp #{self.root / self.name}.cmd #{self.bin / self.name}.cmd`,
+          `cp #{self.root / self.name}.js #{self.bin / self.name}.js`,
+        ],
       },
       dependencies,
       devDependencies,
       '_esy.source': 'path:./',
     }),
-    file(`${name}.ml`, `let () = print_endline "__${name}__"`),
+    helpers.dummyExecutable(name),
     ...items,
   );
 }
 
-const fixture = [
-  packageJson({
-    name: 'with-dev-dep',
-    version: '1.0.0',
-    esy: {
-      build: 'true',
-    },
-    dependencies: {
-      dep: '*',
-    },
-    devDependencies: {
-      devDep: '*',
-    },
-  }),
-  dir(
-    'node_modules',
-    makePackage({
-      name: 'dep',
-      dependencies: {ocaml: '*'},
-      devDependencies: {devDepOfDep: '*'},
+function makeFixture(p) {
+  return [
+    helpers.packageJson({
+      name: 'with-dev-dep',
+      version: '1.0.0',
+      esy: {
+        build: 'true',
+      },
+      dependencies: {
+        dep: '*',
+      },
+      devDependencies: {
+        devDep: '*',
+      },
     }),
-    makePackage({
-      name: 'devDep',
-      dependencies: {ocaml: '*'},
-    }),
-    ocamlPackage(),
-  ),
-];
+    helpers.dir(
+      'node_modules',
+      makePackage(p, {
+        name: 'dep',
+        devDependencies: {devDepOfDep: '*'},
+      }),
+      makePackage(p, {
+        name: 'devDep',
+      }),
+    ),
+  ];
+}
 
 describe('devDep workflow', () => {
-  let p;
-
-  beforeEach(async () => {
-    p = await createTestSandbox(...fixture);
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('build');
-  });
+    return p;
+  }
 
   it('package "dep" should be visible in all envs', async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('__dep__');
 
-    const dep = await p.esy('dep');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('dep.cmd');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const bDep = await p.esy('b dep');
-    expect(bDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('b dep.cmd');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const xDep = await p.esy('x dep');
-    expect(xDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x dep.cmd');
+      expect(stdout.trim()).toEqual(expecting);
+    }
   });
 
   it('package "dev-dep" should be visible only in command env', async () => {
+    const p = await createTestSandbox();
     const expecting = expect.stringMatching('__devDep__');
 
-    const dep = await p.esy('devDep');
-    expect(dep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('devDep.cmd');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    const xDep = await p.esy('x devDep');
-    expect(xDep.stdout).toEqual(expecting);
+    {
+      const {stdout} = await p.esy('x devDep.cmd');
+      expect(stdout.trim()).toEqual(expecting);
+    }
 
-    return expect(p.esy('b devDep')).rejects.toThrow();
+    return expect(p.esy('b devDep.cmd')).rejects.toThrow();
   });
 });
