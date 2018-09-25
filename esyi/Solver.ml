@@ -344,6 +344,7 @@ let printCudfDoc doc =
   IO.close_out o
 
 let parseCudfSolution ~cudfUniverse data =
+  print_endline ("Parse CUDF solution: " ^ data);
   let i = IO.input_string data in
   let p = Cudf_parser.from_IO_in_channel i in
   let solution = Cudf_parser.load_solution p cudfUniverse in
@@ -418,6 +419,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
     Fs.withTempDir (fun path ->
+      print_endline ("CUDF files at: " ^ (Fpath.to_string path));
       let%bind filenameIn =
         let filename = Path.(path / "in.cudf") in
         let%bind () = Fs.writeFile ~data:(printCudfDoc cudf) filename in
@@ -434,7 +436,8 @@ let solveDependencies ~installed ~strategy dependencies solver =
         if String.length dataOut = 0
         then return None
         else (
-          let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
+            let normalizedData = Str.global_replace (Str.regexp_string "\r\n") "\n" dataOut in
+          let solution = parseCudfSolution ~cudfUniverse (normalizedData ^ "\n") in
           return (Some solution)
         )
       in
