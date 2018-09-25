@@ -51,8 +51,8 @@ jobs:
           PathtoPublish: '_platformrelease'
           ArtifactName: Windows
 
-  - job: Bundle
-    displayName: Bundle
+  - job: Release
+    displayName: Release
     dependsOn:
       - Linux
       - macOS
@@ -69,3 +69,71 @@ jobs:
         inputs:
           PathtoPublish: '_release'
           ArtifactName: Release
+
+  - job: TestInstallLinux
+    displayName: Test install Linux
+    dependsOn:
+      - Release
+
+    pool:
+      vmImage: ubuntu-16.04
+
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: 'Download release'
+        inputs:
+          artifactName: Release
+          downloadPath: 'release'
+
+      - script: 'npm i -g ./esy-*.tgz'
+        displayName: 'install release'
+        workingDirectory: 'release'
+
+      - script: 'esy --help'
+        displayName: 'esy --help'
+
+  - job: TestInstallmacOS
+    displayName: Test install macOS
+    dependsOn:
+      - Release
+
+    pool:
+      vmImage: macOS-10.13
+      demands: node.js
+
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: 'Download release'
+        inputs:
+          artifactName: Release
+          downloadPath: 'release'
+
+      - script: 'npm i -g ./esy-*.tgz'
+        displayName: 'install release'
+        workingDirectory: 'release'
+
+      - script: 'esy --help'
+        displayName: 'esy --help'
+
+  - job: TestInstallWindows
+    displayName: Test install Windows
+    dependsOn:
+      - Release
+
+    pool:
+      vmImage: vs2017-win2016
+      demands: npm
+
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: 'Download release'
+        inputs:
+          artifactName: Release
+          downloadPath: 'release'
+
+      - script: 'npm i -g ./esy-*.tgz'
+        displayName: 'install release'
+        workingDirectory: 'release'
+
+      - script: 'esy --help'
+        displayName: 'esy --help'
