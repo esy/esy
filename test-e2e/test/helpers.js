@@ -120,12 +120,14 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
     if (!options.noEsyPrefix) {
       env = {
-        ...env,
         ESY__PREFIX: esyPrefixPath,
         ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
         ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
         NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+        // The order here is important... the env variable limit can be exhausted,
+        // so we want to apply our overrides first!
+        ...env,
       };
     }
 
