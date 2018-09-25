@@ -62,7 +62,7 @@ jobs:
       vmImage: ubuntu-16.04
 
     steps:
-      - template: bundle.yml
+      - template: release.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Release'

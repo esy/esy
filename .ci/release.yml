@@ -11,9 +11,6 @@ steps:
   - script: 'tar -xzf _release/Linux/*.tgz -C _release/platform-linux'
     displayName: 'untar Linux'
 
-  - script: 'rm -rf _release/Linux'
-    displayName: 'Remove Linux artifacts'
-
   - task: DownloadBuildArtifacts@0
     displayName: 'Download macOS Artifacts'
     inputs:
@@ -25,9 +22,6 @@ steps:
 
   - script: 'tar -xzf _release/macOS/*.tgz -C _release/platform-darwin'
     displayName: 'untar macOS'
-
-  - script: 'rm -rf _release/macOS'
-    displayName: 'Remove macOS artifacts'
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Windows Artifacts'
@@ -44,18 +38,5 @@ steps:
     displayName: 'untar Windows'
     continueOnError: true
 
-  - script: 'rm -rf _release/Windows'
-    displayName: 'Remove Windows artifacts'
-    continueOnError: true
-
-  - script: 'cp LICENSE _release/LICENSE'
-    displayName: 'copy LICENSE'
-
-  - script: 'cp README.md _release/README.md'
-    displayName: 'copy README.md'
-
-  - script: 'cp scripts/release-postinstall.js _release/postinstall.js'
-    displayName: 'copy postinstall.js'
-
-  - script: 'node scripts/create-release-package-json.js > _release/package.json'
-    displayName: 'Create package.json'
+  - script: 'node scripts/pipelines-release.js'
+    displayName: 'node scripts/pipelines-release.js'
