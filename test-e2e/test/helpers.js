@@ -120,7 +120,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
     if (!options.noEsyPrefix) {
       env = {
-        PATH: env.PATH,
+        ...env,
         ESY__PREFIX: esyPrefixPath,
         ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
@@ -128,6 +128,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
         NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
       };
     }
+
 
     const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
     return promiseExec(execCommand, {cwd, env});
