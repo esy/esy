@@ -66,7 +66,11 @@ module Parse = struct
 
   let fieldOptWith ~name parse json =
     match fieldOpt ~name json with
-    | Ok (Some v) -> parse v
+    | Ok (Some v) ->
+      begin match parse v with
+      | Ok v -> Ok (Some v)
+      | Error err -> Error err
+      end
     | Ok None -> Ok None
     | Error err -> Error err
 

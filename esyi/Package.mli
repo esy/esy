@@ -86,47 +86,6 @@ module NpmFormula : sig
   include S.JSONABLE with type t := t
 end
 
-module Override : sig
-
-  type t = {
-    buildType : BuildType.t option;
-    build : CommandList.t option;
-    install : CommandList.t option;
-    exportedEnv: ExportedEnv.t option;
-    exportedEnvOverride: ExportedEnvOverride.t option;
-    buildEnv: Env.t option;
-    buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormula.t option;
-  }
-
-  include S.JSONABLE with type t := t
-end
-
-(** Overrides collection. *)
-module Overrides : sig
-  type t
-
-  val isEmpty : t -> bool
-  (** If overrides are empty. *)
-
-  val empty : t
-  (** Empty overrides. *)
-
-  val add : Override.t -> t -> t
-  (* [add overrides override] adds single e[override] on top of [overrides]. *)
-
-  val addMany : t -> t -> t
-  (* [addMany overrides newOverrides] adds [newOverrides] on top of [overrides]. *)
-
-  val apply : t -> ('v -> Override.t -> 'v) -> 'v -> 'v
-  (**
-   * [apply overrides f v] applies [overrides] one at a time in a specific
-   * order to [v] using [f] and returns a modified (overridden) value.
-   *)
-
-  include S.JSONABLE with type t := t
-end
-
 module Resolution : sig
   type t = {
     name : string;
@@ -135,7 +94,19 @@ module Resolution : sig
 
   and resolution =
     | Version of Version.t
-    | SourceOverride of {source : Source.t; override : Override.t}
+    | SourceOverride of {source : Source.t; override : override}
+
+  and override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : resolution StringMap.t option;
+  }
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
@@ -145,6 +116,7 @@ module Resolutions : sig
   type t
 
   val empty : t
+  val add : string -> Resolution.resolution -> t -> t
   val find : t -> string -> Resolution.t option
 
   val entries : t -> Resolution.t list
@@ -154,6 +126,47 @@ module Resolutions : sig
 
   val digest : t -> string
 end
+
+(** Overrides collection. *)
+module Overrides : sig
+  type t
+
+  type override = Resolution.override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : Resolution.resolution StringMap.t option;
+  }
+
+  val isEmpty : t -> bool
+  (** If overrides are empty. *)
+
+  val empty : t
+  (** Empty overrides. *)
+
+  val add : override -> t -> t
+  (* [add overrides override] adds single e[override] on top of [overrides]. *)
+
+  val addMany : t -> t -> t
+  (* [addMany overrides newOverrides] adds [newOverrides] on top of [overrides]. *)
+
+  val apply : t -> ('v -> override -> 'v) -> 'v -> 'v
+  (**
+   * [apply overrides f v] applies [overrides] one at a time in a specific
+   * order to [v] using [f] and returns a modified (overridden) value.
+   *)
+
+  include S.JSONABLE with type t := t
+
+  val override_of_yojson : override Json.decoder
+  val override_to_yojson : override Json.encoder
+end
+
 
 module Dep : sig
   type t = {

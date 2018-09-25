@@ -1,5 +1,4 @@
 module Source = EsyInstall.Source
-module Override = EsyInstall.Package.Override
 module Overrides = EsyInstall.Package.Overrides
 module EsyLinkFile = EsyInstall.EsyLinkFile
 
@@ -121,10 +120,10 @@ let rec resolvePackage (name : string) (basedir : Path.t) =
 
   resolve basedir
 
-let applyPkgOverride (pkg : Package.t) (override : Override.t) =
+let applyPkgOverride (pkg : Package.t) (override : Overrides.override) =
 
   let {
-    Override.
+    Overrides.
     buildType;
     build;
     install;
@@ -132,7 +131,9 @@ let applyPkgOverride (pkg : Package.t) (override : Override.t) =
     exportedEnvOverride;
     buildEnv;
     buildEnvOverride;
+
     dependencies = _;
+    resolutions = _;
   } = override in
 
   let pkg =
@@ -224,9 +225,24 @@ let applyPkgOverride (pkg : Package.t) (override : Override.t) =
   pkg
 
 
-let applyDependendenciesOverride (deps : Manifest.Dependencies.t) (override : Override.t) =
+let applyDependendenciesOverride (deps : Manifest.Dependencies.t) (override : Overrides.override) =
+
+  let {
+    Overrides.
+    buildType = _;
+    build = _;
+    install = _;
+    exportedEnv = _;
+    exportedEnvOverride = _;
+    buildEnv = _;
+    buildEnvOverride = _;
+
+    dependencies;
+    resolutions = _;
+  } = override in
+
   let deps =
-    match override.dependencies with
+    match dependencies with
     | Some dependenciesOverride ->
       let dependenciesOverride =
         let f req = [req.EsyInstall.Req.name] in

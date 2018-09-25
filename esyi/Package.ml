@@ -240,46 +240,12 @@ module NpmFormula = struct
     List.find_opt ~f reqs
 end
 
-module Override = struct
+module Resolution = struct
+
   module BuildType = struct
     include EsyLib.BuildType
     include EsyLib.BuildType.AsInPackageJson
   end
-
-  type t = {
-    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
-    build : CommandList.t option [@default None];
-    install : CommandList.t option [@default None];
-    exportedEnv: ExportedEnv.t option [@default None];
-    exportedEnvOverride: ExportedEnvOverride.t option [@default None];
-    buildEnv: Env.t option [@default None];
-    buildEnvOverride: EnvOverride.t option [@default None];
-    dependencies : NpmFormula.t option [@default None];
-  } [@@deriving yojson, ord]
-end
-
-module Overrides = struct
-  type t =
-    Override.t list
-    [@@deriving yojson]
-
-  let isEmpty = function
-    | [] -> true
-    | _ -> false
-
-  let empty = []
-
-  let add override overrides =
-    override::overrides
-
-  let addMany newOverrides overrides =
-    newOverrides @ overrides
-
-  let apply overrides f init =
-    List.fold_left ~f ~init (List.rev overrides)
-end
-
-module Resolution = struct
 
   type t = {
     name : string;
@@ -289,18 +255,85 @@ module Resolution = struct
 
   and resolution =
     | Version of Version.t
-    | SourceOverride of {source : Source.t; override : Override.t}
+    | SourceOverride of {source : Source.t; override : override}
 
-  let resolution_to_yojson resolution =
+  and override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : resolution StringMap.t option;
+  }
+
+  let rec override_to_yojson override =
+    let addIfSome to_yojson key value fields =
+      match value with
+      | None -> fields
+      | Some value -> (key, to_yojson value)::fields
+    in
+
+    let {
+      buildType;
+      build;
+      install;
+      exportedEnv;
+      exportedEnvOverride;
+      buildEnv;
+      buildEnvOverride;
+      dependencies;
+      resolutions;
+    } = override in
+    `Assoc (
+      []
+      |> addIfSome BuildType.to_yojson "buildsInSource" buildType
+      |> addIfSome CommandList.to_yojson "build" build
+      |> addIfSome CommandList.to_yojson "install" install
+      |> addIfSome ExportedEnv.to_yojson "exportedEnv" exportedEnv
+      |> addIfSome ExportedEnvOverride.to_yojson "exportedEnvOverride" exportedEnvOverride
+      |> addIfSome Env.to_yojson "buildEnv" buildEnv
+      |> addIfSome EnvOverride.to_yojson "buildEnvOverride" buildEnvOverride
+      |> addIfSome NpmFormula.to_yojson "dependencies" dependencies
+      |> addIfSome (StringMap.to_yojson resolution_to_yojson) "resolutions" resolutions
+    )
+
+  and resolution_to_yojson resolution =
     match resolution with
     | Version v -> `String (Version.show v)
     | SourceOverride {source; override} ->
       `Assoc [
         "source", Source.to_yojson source;
-        "override", Override.to_yojson override;
+        "override", override_to_yojson override;
       ]
 
-  let resolution_of_yojson json =
+  let rec override_of_yojson json =
+    let open Result.Syntax in
+    let field = Json.Parse.fieldOptWith in
+    let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
+    let%bind build = field ~name:"build" CommandList.of_yojson json in
+    let%bind install = field ~name:"install" CommandList.of_yojson json in
+    let%bind exportedEnv = field ~name:"exportedEnv" ExportedEnv.of_yojson json in
+    let%bind exportedEnvOverride = field ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
+    let%bind buildEnv = field ~name:"buildEnv" Env.of_yojson json in
+    let%bind buildEnvOverride = field ~name:"buildEnvOverride" EnvOverride.of_yojson json in
+    let%bind dependencies = field ~name:"dependencies" NpmFormula.of_yojson json in
+    let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
+    return {
+      buildType;
+      build;
+      install;
+      exportedEnv;
+      exportedEnvOverride;
+      buildEnv;
+      buildEnvOverride;
+      dependencies;
+      resolutions;
+    }
+
+  and resolution_of_yojson json =
     let open Result.Syntax in
     match json with
     | `String v ->
@@ -308,10 +341,9 @@ module Resolution = struct
       return (Version version)
     | `Assoc _ ->
       let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
-      let%bind override = Json.Parse.fieldWith ~name:"override" Override.of_yojson json in
+      let%bind override = Json.Parse.fieldWith ~name:"override" override_of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"
-
 
   let digest {name; resolution} =
     let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
@@ -337,6 +369,9 @@ module Resolutions = struct
 
   let find resolutions name =
     StringMap.find_opt name resolutions
+
+  let add name resolution resolutions =
+    StringMap.add name {Resolution.name; resolution} resolutions
 
   let entries = StringMap.values
 
@@ -384,6 +419,42 @@ module Resolutions = struct
       Result.List.foldLeft ~f ~init:empty items
     | _ -> Error "expected object"
 
+end
+
+module Overrides = struct
+  type t =
+    Resolution.override list
+    [@@deriving yojson]
+
+  type override = Resolution.override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : Resolution.resolution StringMap.t option;
+  }
+
+  let override_of_yojson = Resolution.override_of_yojson
+  let override_to_yojson = Resolution.override_to_yojson
+
+  let isEmpty = function
+    | [] -> true
+    | _ -> false
+
+  let empty = []
+
+  let add override overrides =
+    override::overrides
+
+  let addMany newOverrides overrides =
+    newOverrides @ overrides
+
+  let apply overrides f init =
+    List.fold_left ~f ~init (List.rev overrides)
 end
 
 module Dep = struct

@@ -19,7 +19,7 @@ end)
 module PackageOverride = struct
   type t = {
     source : Source.t;
-    override : Package.Override.t;
+    override : Package.Overrides.override;
   } [@@deriving of_yojson]
 
 end
@@ -448,13 +448,36 @@ let package ~(resolution : Resolution.t) resolver =
   in
 
   let applyOverride pkg override =
+    let {
+      Package.Overrides.
+      buildType = _;
+      build = _;
+      install = _;
+      exportedEnv = _;
+      exportedEnvOverride = _;
+      buildEnv = _;
+      buildEnvOverride = _;
+
+      dependencies;
+      resolutions;
+    } = override in
     let pkg =
-      match override.Package.Override.dependencies with
+      match dependencies with
       | Some dependencies -> {
           pkg with
           Package.
           dependencies = Package.Dependencies.NpmFormula dependencies
         }
+      | None -> pkg
+    in
+    let pkg =
+      match resolutions with
+      | Some resolutions ->
+        let resolutions =
+          let f = Resolutions.add in
+          StringMap.fold f resolutions Resolutions.empty
+        in
+        {pkg with Package.resolutions;}
       | None -> pkg
     in
     pkg
