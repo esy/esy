@@ -423,7 +423,6 @@ let solveDependencies ~installed ~strategy dependencies solver =
       Some preamble, Cudf.get_packages cudfUniverse, request
     in
     Fs.withTempDir (fun path ->
-      print_endline ("CUDF files at: " ^ (Fpath.to_string path));
       let%bind filenameIn =
         let filename = Path.(path / "in.cudf") in
         let%bind () = Fs.writeFile ~data:(printCudfDoc cudf) filename in
