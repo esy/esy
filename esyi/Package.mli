@@ -32,6 +32,31 @@ module Override : sig
   include S.JSONABLE with type t := t
 end
 
+(** Overrides collection. *)
+module Overrides : sig
+  type t
+
+  val isEmpty : t -> bool
+  (** If overrides are empty. *)
+
+  val empty : t
+  (** Empty overrides. *)
+
+  val add : Override.t -> t -> t
+  (* [add overrides override] adds single e[override] on top of [overrides]. *)
+
+  val addMany : t -> t -> t
+  (* [addMany overrides newOverrides] adds [newOverrides] on top of [overrides]. *)
+
+  val apply : t -> ('v -> Override.t -> 'v) -> 'v -> 'v
+  (**
+   * [apply overrides f v] applies [overrides] one at a time in a specific
+   * order to [v] using [f] and returns a modified (overridden) value.
+   *)
+
+  include S.JSONABLE with type t := t
+end
+
 module Resolution : sig
   type t = {
     name : string;
@@ -149,7 +174,7 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : Source.t * Source.t list;
-  override : Override.t list;
+  override : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
@@ -161,6 +186,7 @@ and kind =
   | Npm
 
 val isOpamPackageName : string -> bool
+
 val pp : t Fmt.t
 val compare : t -> t -> int
 

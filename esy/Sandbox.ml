@@ -1,5 +1,6 @@
 module Source = EsyInstall.Source
 module Override = EsyInstall.Package.Override
+module Overrides = EsyInstall.Package.Overrides
 module EsyLinkFile = EsyInstall.EsyLinkFile
 
 module Package = struct
@@ -324,7 +325,10 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
 
     let loadDependencies ~override ~packagesPath ~ignoreCircularDep (deps : Manifest.Dependencies.t) =
       let deps =
-        List.fold_left ~f:applyDependendenciesOverride ~init:deps (List.rev override)
+        Overrides.apply
+          override
+          applyDependendenciesOverride
+          deps
       in
       let%lwt devDependencies =
         if Path.compare buildConfig.EsyBuildPackage.Config.projectPath path = 0
@@ -369,7 +373,8 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       then
         let%bind m = Manifest.ofSandboxSpec spec in
         let source = Source.LocalPathLink {path; manifest = None} in
-        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, [])
+        let override = EsyInstall.Package.Overrides.empty in
+        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, override)
       else
         let%bind link = EsyLinkFile.ofDir path in
         let sourcePath =
@@ -428,10 +433,10 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           } in
 
           let pkg =
-            List.fold_left
-              ~f:applyPkgOverride
-              ~init:pkg
-              (List.rev override)
+            Overrides.apply
+              override
+              applyPkgOverride
+              pkg
           in
 
           dependenciesByPackage :=
@@ -443,7 +448,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           return (`Package dependencies)
       in
       return pkg
-    | None, [] ->
+    | None, override when Overrides.isEmpty override ->
       error "unable to find manifest"
     | None, override ->
       let name  =
@@ -482,7 +487,12 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         source;
         sourceType;
       } in
-      let pkg = List.fold_left ~f:applyPkgOverride ~init:pkg (List.rev override) in
+      let pkg =
+        Overrides.apply
+          override
+          applyPkgOverride
+          pkg
+      in
       dependenciesByPackage :=
         Package.Map.add pkg dependencies
         !dependenciesByPackage;

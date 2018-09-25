@@ -22,7 +22,7 @@ module Record : sig
     name: string;
     version: Version.t;
     source: Source.t * Source.t list;
-    override: Package.Override.t list;
+    override: Package.Overrides.t;
     files : Package.File.t list;
     opam : Opam.t option;
   }

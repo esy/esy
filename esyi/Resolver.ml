@@ -76,7 +76,7 @@ let makeDummyPackage name version source =
     version;
     originalVersion = None;
     source = source, [];
-    override = [];
+    override = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     opam = None;
@@ -322,7 +322,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~allowEmptyPackage ~name (source : Source.t) resolver =
+let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
   let resolve' ~allowEmptyPackage (source : Source.t) =
@@ -383,21 +383,32 @@ let packageOfSource ~allowEmptyPackage ~name (source : Source.t) resolver =
       return (Package (makeDummyPackage name (Version.Source source) source))
   in
 
-  let rec loop' ~allowEmptyPackage overrides source =
+  let rec loop' ~allowEmptyPackage ~overrides source =
     match%bind resolve' ~allowEmptyPackage source with
     | Package pkg ->
-      return (pkg, overrides, source)
+      let pkg = {
+        pkg with
+        Package.override = Package.Overrides.addMany pkg.override overrides
+      } in
+      return (pkg, source)
     | PackageOverride {source = nextSource; override} ->
       let%bind nextSource = RunAsync.ofRun (rebaseSource ~base:source nextSource) in
-      loop' ~allowEmptyPackage:true (override::overrides) nextSource
+      let overrides = Package.Overrides.add override overrides in
+      loop' ~allowEmptyPackage:true ~overrides nextSource
   in
 
-  let%bind pkg, override, finalSource = loop' ~allowEmptyPackage [] source in
+  let%bind pkg, finalSource =
+    loop'
+      ~allowEmptyPackage
+      ~overrides
+      source
+  in
+
   (** TODO: we need to do a transitive closure here (map sources specs which map
    *        to original sources to final sources)
    *)
   Hashtbl.replace resolver.sourceSpecs (SourceSpec.ofSource source) finalSource;
-  return {pkg with Package.override = override @ pkg.Package.override}
+  return pkg
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
@@ -406,7 +417,13 @@ let package ~(resolution : Resolution.t) resolver =
   let ofVersion (version : Version.t) =
     match version with
     | Version.Source source ->
-      let%bind pkg = packageOfSource ~allowEmptyPackage:false ~name:resolution.name source resolver in
+      let%bind pkg =
+        packageOfSource
+          ~allowEmptyPackage:false
+          ~overrides:Package.Overrides.empty
+          ~name:resolution.name
+          source
+          resolver in
       return (Ok pkg)
 
     | Version.Npm version ->
@@ -435,7 +452,6 @@ let package ~(resolution : Resolution.t) resolver =
   in
 
   let applyOverride pkg override =
-    let pkg = {pkg with Package. override = override::pkg.Package.override} in
     let pkg =
       match override.Package.Override.dependencies with
       | Some dependencies -> {
@@ -452,8 +468,21 @@ let package ~(resolution : Resolution.t) resolver =
     match resolution.resolution with
     | Version version -> ofVersion version
     | SourceOverride {source; override} ->
-      let%bind pkg = packageOfSource ~allowEmptyPackage:true ~name:resolution.name source resolver in
-      let pkg = applyOverride pkg override in
+      let overrides = Package.Overrides.(empty |> add override) in
+      let%bind pkg =
+        packageOfSource
+          ~allowEmptyPackage:true
+          ~name:resolution.name
+          ~overrides
+          source
+          resolver
+      in
+      let pkg =
+        Package.Overrides.apply
+          pkg.Package.override
+          applyOverride
+          pkg
+        in
       return (Ok pkg)
   end
 
