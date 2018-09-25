@@ -204,7 +204,8 @@ type t = {
   resolutionCache : ResolutionCache.t;
 
   npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
-  sourceSpecs : (SourceSpec.t, Source.t) Hashtbl.t;
+  sourceSpecToSource : (SourceSpec.t, Source.t) Hashtbl.t;
+  sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
 let make
@@ -226,7 +227,7 @@ let make
     | None -> NpmRegistry.make ~url:cfg.Config.npmRegistry ()
   in
 
-  let sourceSpecs =
+  let sourceSpecToSource =
     let tbl = Hashtbl.create 500 in
     let f resolution =
       match resolution.Resolution.resolution with
@@ -250,16 +251,23 @@ let make
     ocamlVersion = None;
     resolutionCache = ResolutionCache.make ();
     npmDistTags = Hashtbl.create 500;
-    sourceSpecs;
+    sourceSpecToSource;
+    sourceToSource = Hashtbl.create 500;
   }
 
 let setOCamlVersion ocamlVersion resolver =
   resolver.ocamlVersion <- Some ocamlVersion
 
 let sourceMatchesSpec resolver spec source =
-  match Hashtbl.find_opt resolver.sourceSpecs spec with
+  match Hashtbl.find_opt resolver.sourceSpecToSource spec with
   | Some resolvedSource ->
-    Source.compare resolvedSource source = 0
+    if Source.compare resolvedSource source = 0
+    then true
+    else
+      begin match Hashtbl.find_opt resolver.sourceToSource resolvedSource with
+      | Some resolvedSource -> Source.compare resolvedSource source = 0
+      | None -> false
+      end
   | None -> false
 
 let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
@@ -404,10 +412,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
       source
   in
 
-  (** TODO: we need to do a transitive closure here (map sources specs which map
-   *        to original sources to final sources)
-   *)
-  Hashtbl.replace resolver.sourceSpecs (SourceSpec.ofSource source) finalSource;
+  Hashtbl.replace resolver.sourceToSource source finalSource;
   return pkg
 
 let package ~(resolution : Resolution.t) resolver =
@@ -540,7 +545,7 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
       | SourceSpec.LocalPathLink {path; manifest;} ->
         return (Source.LocalPathLink {path; manifest;})
     in
-    Hashtbl.replace resolver.sourceSpecs sourceSpec source;
+    Hashtbl.replace resolver.sourceSpecToSource sourceSpec source;
     return source
   end
 
