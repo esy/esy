@@ -362,30 +362,18 @@ let solveDependencies ~installed ~strategy dependencies solver =
       % p filenameOut
     ) in
 
-    let f p =
-      let readAndClose ic =
-        Lwt.finalize
-          (fun () -> Lwt_io.read ic)
-          (fun () -> Lwt_io.close ic)
-      in
-      let%lwt stdout = readAndClose p#stdout
-          and stderr = readAndClose p#stderr in
-      match%lwt p#status with
-      | Unix.WEXITED 0 ->
-        RunAsync.return ()
-      | _ ->
-        RunAsync.errorf
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-    in
-
-    let cmd = Cmd.getToolAndLine cmd in
     try%lwt
       let currentEnv = Sys.getenv "PATH" in
       print_endline ("ENV2:" ^ currentEnv);
       let%bind mingwRuntime = EsyLib.EsyBashLwt.getMingwRuntimePath () in
-      let env = [|("PATH=" ^ (Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)|] in
-      EsyBashLwt.with_process_full ~env cmd f
+      print_endline ("MINGW2: " ^ (Fpath.to_string mingwRuntime));
+      (*let env = [|("PATH=" ^ (Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)|] in *)
+      let env =
+          `CurrentEnvOverride Astring.String.Map.(
+            empty |>
+            add "PATH" ((Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)
+        ) in
+      ChildProcess.run ~env cmd
     with
     | Unix.Unix_error (err, _, _) ->
       let msg = Unix.error_message err in
