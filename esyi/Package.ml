@@ -308,7 +308,7 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : Source.t * Source.t list;
-  override : Overrides.t;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   opam : Opam.t option;
@@ -354,7 +354,7 @@ let ofPackageJson ~name ~version ~source (pkgJson : PackageJson.t) =
     dependencies = Dependencies.NpmFormula dependencies;
     devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
     source = source, [];
-    override = Overrides.empty;
+    overrides = Overrides.empty;
     opam = None;
     kind = if Option.isSome pkgJson.esy then Esy else Npm;
   }

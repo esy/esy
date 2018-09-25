@@ -324,7 +324,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalVersion = None;
       kind = Package.Esy;
       source;
-      override = Package.Overrides.empty;
+      overrides = Package.Overrides.empty;
       opam = Some {
         Package.Opam.
         name = manifest.name;

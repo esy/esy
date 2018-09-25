@@ -82,7 +82,7 @@ let install ~cfg ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; override = record.override; opam = record.opam}
+      EsyLinkFile.{source; overrides = record.overrides; opam = record.opam}
       path
   in
 

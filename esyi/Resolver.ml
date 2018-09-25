@@ -76,7 +76,7 @@ let makeDummyPackage name version source =
     version;
     originalVersion = None;
     source = source, [];
-    override = Package.Overrides.empty;
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     opam = None;
@@ -396,7 +396,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
     | Package pkg ->
       let pkg = {
         pkg with
-        Package.override = Package.Overrides.addMany pkg.override overrides
+        Package.overrides = Package.Overrides.addMany pkg.overrides overrides
       } in
       return (pkg, source)
     | PackageOverride {source = nextSource; override} ->
@@ -484,7 +484,7 @@ let package ~(resolution : Resolution.t) resolver =
       in
       let pkg =
         Package.Overrides.apply
-          pkg.Package.override
+          pkg.Package.overrides
           applyOverride
           pkg
         in

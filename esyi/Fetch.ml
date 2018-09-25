@@ -240,7 +240,7 @@ module Layout = struct
       name;
       version = Version.Npm (parseVersionExn version);
       source = Source.NoSource, [];
-      override = Package.Overrides.empty;
+      overrides = Package.Overrides.empty;
       files = [];
       opam = None;
     } : Record.t)

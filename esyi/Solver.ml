@@ -206,7 +206,7 @@ let solutionRecordOfPkg (pkg : Package.t) =
     Solution.Record.
     name = pkg.name;
     version = pkg.version;
-    override = pkg.override;
+    overrides = pkg.overrides;
     source = pkg.source;
     files;
     opam;
@@ -347,7 +347,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     source = Source.NoSource, [];
-    override = Package.Overrides.empty;
+    overrides = Package.Overrides.empty;
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];

@@ -386,7 +386,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
           ?manifest:(Source.manifest link.source)
           sourcePath
         in
-        return (m, link.source, sourcePath, path, link.override)
+        return (m, link.source, sourcePath, path, link.overrides)
     in
     match manifest, override with
     | Some (manifest, originPath), _ ->
