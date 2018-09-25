@@ -27,8 +27,7 @@
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
     "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
-    "test:unit": "esy b dune runtest test",
-    "test:e2e": "jest --runInBand test-e2e"
+    "test:unit": "esy b dune runtest test"
   },
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
