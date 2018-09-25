@@ -129,7 +129,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       };
     }
 
-
     const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
     return promiseExec(execCommand, {cwd, env});
   }
