@@ -32,7 +32,7 @@ let rebaseSource ~(base : Source.t) (source : Source.t) =
   | LocalPath info, LocalPathLink {path = basePath; _} ->
     let path = Path.(basePath // info.path |> normalizeAndRemoveEmptySeg) in
     return (Source.LocalPath {info with path;})
-  | LocalPath _, _ -> failwith "not implemented"
+  | LocalPath _, _ -> failwith "TODO"
   | source, _ -> return source
 
 type resolutionInProgress =
