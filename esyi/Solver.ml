@@ -344,7 +344,6 @@ let printCudfDoc doc =
   IO.close_out o
 
 let parseCudfSolution ~cudfUniverse data =
-  print_endline ("Parse CUDF solution: " ^ data);
   let i = IO.input_string data in
   let p = Cudf_parser.from_IO_in_channel i in
   let solution = Cudf_parser.load_solution p cudfUniverse in
