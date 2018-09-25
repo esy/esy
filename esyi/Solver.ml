@@ -414,6 +414,11 @@ let solveDependencies ~installed ~strategy dependencies solver =
   } in
   let preamble = Cudf.default_preamble in
 
+  (* The solution has CRLF on Windows, which breaks the parser *)
+  let normalizeSolutionData s = 
+      Str.global_replace (Str.regexp_string ("\r\n")) "\n" s 
+  in
+
   let solution =
     let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
@@ -436,7 +441,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         if String.length dataOut = 0
         then return None
         else (
-            let normalizedData = Str.global_replace (Str.regexp_string "\r\n") "\n" dataOut in
+          let dataOut = normalizeSolutionData dataOut in
           let solution = parseCudfSolution ~cudfUniverse (normalizedData ^ "\n") in
           return (Some solution)
         )
