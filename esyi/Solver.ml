@@ -639,7 +639,7 @@ let solve (sandbox : Sandbox.t) =
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = PackageJson.Dependencies.override reqs [ocamlReq] in
+          let reqs = Package.NpmFormula.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =

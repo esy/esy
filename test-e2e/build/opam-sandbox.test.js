@@ -23,7 +23,7 @@ const dummySubsts = helpers.dir(
   ),
 );
 
-describe('build opam sandbox', () => {
+describe.skip('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
     const p = await helpers.createTestSandbox(
       helpers.file(

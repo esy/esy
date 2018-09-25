@@ -5,13 +5,13 @@ end
 
 module SandboxSpec = EsyInstall.SandboxSpec
 module ManifestSpec = EsyInstall.ManifestSpec
-module PackageJson = EsyInstall.PackageJson
+module Package = EsyInstall.Package
 module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
-module Command = PackageJson.Command
-module CommandList = PackageJson.CommandList
-module ExportedEnv = PackageJson.ExportedEnv
-module Env = PackageJson.Env
+module Command = Package.Command
+module CommandList = Package.CommandList
+module ExportedEnv = Package.ExportedEnv
+module Env = Package.Env
 
 module Build = struct
 
@@ -199,15 +199,15 @@ end = struct
 
   module JsonManifest = struct
     type t = {
-      name : (string option [@default None]);
-      version : (string option [@default None]);
-      description : (string option [@default None]);
-      license : (Json.t option [@default None]);
-      dependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
-      peerDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
-      devDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
-      optDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
-      buildTimeDependencies : (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
+      name : string option [@default None];
+      version : string option [@default None];
+      description : string option [@default None];
+      license : Json.t option [@default None];
+      dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+      peerDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+      devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+      optDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+      buildTimeDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
       esy: EsyManifest.t option [@default None];
     } [@@deriving (of_yojson {strict = false})]
   end
@@ -217,11 +217,11 @@ end = struct
     version : string;
     description : string option;
     license : Json.t option;
-    dependencies : PackageJson.Dependencies.t;
-    peerDependencies : PackageJson.Dependencies.t;
-    devDependencies : PackageJson.Dependencies.t;
-    optDependencies : PackageJson.Dependencies.t;
-    buildTimeDependencies : PackageJson.Dependencies.t;
+    dependencies : Package.NpmFormula.t;
+    peerDependencies : Package.NpmFormula.t;
+    devDependencies : Package.NpmFormula.t;
+    optDependencies : Package.NpmFormula.t;
+    buildTimeDependencies : Package.NpmFormula.t;
     esy: EsyManifest.t option;
   }
 

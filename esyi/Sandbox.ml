@@ -153,7 +153,7 @@ let makeEsySandbox ~cfg ~spec projectPath path =
     let source = Source.LocalPath {path = Path.v "."; manifest = None;} in
     let version = Version.Source source in
     let name = Path.basename projectPath in
-    Package.ofPackageJson ~name ~version ~source pkgJson
+    PackageJson.toPackage ~name ~version ~source pkgJson
   in
 
   let sandboxDependencies, ocamlReq =
@@ -161,9 +161,9 @@ let makeEsySandbox ~cfg ~spec projectPath path =
     | Package.Dependencies.OpamFormula _ ->
       root.dependencies, Some ocamlReqAny
     | Package.Dependencies.NpmFormula reqs ->
-      let reqs = PackageJson.Dependencies.override reqs pkgJson.devDependencies in
+      let reqs = Package.NpmFormula.override reqs pkgJson.devDependencies in
       Package.Dependencies.NpmFormula reqs,
-      PackageJson.Dependencies.find ~name:"ocaml" reqs
+      Package.NpmFormula.find ~name:"ocaml" reqs
   in
 
   let%bind resolver = Resolver.make ~cfg () in
@@ -203,8 +203,8 @@ let ofSource ~cfg ~spec source =
       | Package.Dependencies.OpamFormula _, Package.Dependencies.OpamFormula _ ->
         root.dependencies, Some ocamlReqAny
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
-        let deps = PackageJson.Dependencies.override deps devDeps in
-        let ocamlReq = PackageJson.Dependencies.find ~name:"ocaml" deps in
+        let deps = Package.NpmFormula.override deps devDeps in
+        let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
         Package.Dependencies.NpmFormula deps, ocamlReq
       | Package.Dependencies.NpmFormula _, _
       | Package.Dependencies.OpamFormula _, _  ->

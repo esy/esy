@@ -1,32 +1,102 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
-module Dep : sig
-  type t = {
+module Command : sig
+  type t =
+    | Parsed of string list
+    | Unparsed of string
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module CommandList : sig
+
+  type t = Command.t list
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+  val empty : t
+end
+
+module Env : sig
+  type t = item StringMap.t
+
+  and item = {
     name : string;
-    req : req;
+    value : string;
   }
 
-  and req =
-    | Npm of SemverVersion.Constraint.t
-    | NpmDistTag of string
-    | Opam of OpamPackageVersion.Constraint.t
-    | Source of SourceSpec.t
+  val empty : t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module EnvOverride : sig
+  type t = Env.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
+module ExportedEnv : sig
+  type t = item StringMap.t
+
+  and item = {
+    name : string;
+    value : string;
+    scope : scope;
+    exclusive : bool;
+  }
+
+  and scope = Local | Global
+
+  val empty : t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+end
+
+module ExportedEnvOverride : sig
+  type t = ExportedEnv.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
+module NpmFormula : sig
+  type t = Req.t list
+  val empty : t
+
+  val override : t -> t -> t
+  val find : name:string -> t -> Req.t option
 
   val pp : t Fmt.t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
 end
 
 module Override : sig
 
   type t = {
     buildType : BuildType.t option;
-    build : PackageJson.CommandList.t option;
-    install : PackageJson.CommandList.t option;
-    exportedEnv: PackageJson.ExportedEnv.t option;
-    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option;
-    buildEnv: PackageJson.Env.t option;
-    buildEnvOverride: PackageJson.EnvOverride.t option;
-    dependencies : PackageJson.Dependencies.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
   }
 
   include S.JSONABLE with type t := t
@@ -85,10 +155,25 @@ module Resolutions : sig
   val digest : t -> string
 end
 
+module Dep : sig
+  type t = {
+    name : string;
+    req : req;
+  }
+
+  and req =
+    | Npm of SemverVersion.Constraint.t
+    | NpmDistTag of string
+    | Opam of OpamPackageVersion.Constraint.t
+    | Source of SourceSpec.t
+
+  val pp : t Fmt.t
+end
+
 module Dependencies : sig
   type t =
     | OpamFormula of Dep.t disj conj
-    | NpmFormula of Req.t conj
+    | NpmFormula of NpmFormula.t
 
   include S.PRINTABLE with type t := t
 
@@ -122,11 +207,11 @@ module OpamOverride : sig
   end
 
   type t = {
-    build : PackageJson.CommandList.t option;
-    install : PackageJson.CommandList.t option;
-    dependencies : PackageJson.Dependencies.t;
-    peerDependencies : PackageJson.Dependencies.t;
-    exportedEnv : PackageJson.ExportedEnv.t;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    dependencies : NpmFormula.t;
+    peerDependencies : NpmFormula.t;
+    exportedEnv : ExportedEnv.t;
     opam : Opam.t;
   }
 
@@ -190,14 +275,6 @@ val isOpamPackageName : string -> bool
 
 val pp : t Fmt.t
 val compare : t -> t -> int
-
-val ofPackageJson :
-  name:string
-  -> version:Version.t
-  -> source:Source.t
-  -> PackageJson.t
-  -> t
-(** Convert package.json into a package *)
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

@@ -6,10 +6,10 @@ module BuildType : module type of EsyLib.BuildType
 module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyInstall.Source
-module Command : module type of EsyInstall.PackageJson.Command
-module CommandList : module type of EsyInstall.PackageJson.CommandList
-module ExportedEnv : module type of EsyInstall.PackageJson.ExportedEnv
-module Env : module type of EsyInstall.PackageJson.Env
+module Command : module type of EsyInstall.Package.Command
+module CommandList : module type of EsyInstall.Package.CommandList
+module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
+module Env : module type of EsyInstall.Package.Env
 
 module Scripts : sig
   type t = script StringMap.t
