@@ -323,7 +323,10 @@ let withTempDir ?tempDir f =
   let%lwt () = Lwt_unix.mkdir (Path.show path) 0o700 in
   Lwt.finalize
     (fun () -> f path)
-    (fun () -> Lwt.return())
+    (fun () -> 
+       (* never fail on removing a temp folder. *)
+       try%lwt rmPathLwt path
+       with Unix.Unix_error _ -> Lwt.return ())
 
 let withTempFile ~data f =
   let path = Filename.temp_file "esy" "tmp" in
