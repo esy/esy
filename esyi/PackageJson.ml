@@ -1,44 +1,36 @@
-
 module EsyPackageJson = struct
   type t = {
     _dependenciesForNewEsyInstaller : Package.NpmFormula.t option [@default None];
   } [@@deriving of_yojson { strict = false }]
 end
 
-type t = {
-  name : string option [@default None];
-  version : SemverVersion.Version.t option [@default None];
-  dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-  devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-  esy : EsyPackageJson.t option [@default None];
-} [@@deriving of_yojson { strict = false }]
+module Manifest = struct
+  type t = {
+    name : string option [@default None];
+    version : SemverVersion.Version.t option [@default None];
+    dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    esy : EsyPackageJson.t option [@default None];
+    dist : dist option [@default None]
+  } [@@deriving of_yojson { strict = false }]
 
-let findInDir (path : Path.t) =
-  let open RunAsync.Syntax in
-  let esyJson = Path.(path / "esy.json") in
-  let packageJson = Path.(path / "package.json") in
-  if%bind Fs.exists esyJson
-  then return (Some esyJson)
-  else if%bind Fs.exists packageJson
-  then return (Some packageJson)
-  else return None
+  and dist = {
+    tarball : string;
+    shasum : string;
+  }
+end
 
-let ofFile path =
-  let open RunAsync.Syntax in
-  let%bind json = Fs.readJsonFile path in
-  RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+module ResolutionsOfManifest = struct
+  type t = {
+    resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
+  } [@@deriving of_yojson { strict = false }]
+end
 
-let ofDir path =
-  let open RunAsync.Syntax in
-  match%bind findInDir path with
-  | Some filename ->
-    let%bind json = Fs.readJsonFile filename in
-    RunAsync.ofRun (Json.parseJsonWith of_yojson json)
-  | None -> error "no package.json (or esy.json) found"
-
-let toPackage ~name ~version ~source (pkgJson : t) =
+let packageOfJson ?(parseResolutions=false) ?source ~name ~version json =
+  let open Run.Syntax in
+  let%bind pkgJson = Json.parseJsonWith Manifest.of_yojson json in
   let originalVersion =
-    match pkgJson.version with
+    match pkgJson.Manifest.version with
     | Some version -> Some (Version.Npm version)
     | None -> None
   in
@@ -50,17 +42,38 @@ let toPackage ~name ~version ~source (pkgJson : t) =
     | Some {EsyPackageJson. _dependenciesForNewEsyInstaller= Some dependencies} ->
       dependencies
   in
-  {
+  let%bind resolutions =
+    match parseResolutions with
+    | false -> return Package.Resolutions.empty
+    | true ->
+      let%bind {ResolutionsOfManifest. resolutions} =
+        Json.parseJsonWith ResolutionsOfManifest.of_yojson json
+      in
+      return resolutions
+  in
+
+  let%bind source =
+    match source, pkgJson.dist with
+    | Some source, _ -> return source
+    | None, Some dist ->
+      return (Source.Archive {
+        url = dist.tarball;
+        checksum = Checksum.Sha1, dist.shasum;
+      })
+    | None, None ->
+      error "unable to determine package source, missing 'dist' metadata"
+  in
+
+  return {
     Package.
     name;
     version;
     originalVersion;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
-    resolutions = Package.Resolutions.empty;
+    resolutions;
     source = source, [];
     overrides = Package.Overrides.empty;
     opam = None;
     kind = if Option.isSome pkgJson.esy then Esy else Npm;
   }
-

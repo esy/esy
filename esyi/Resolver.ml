@@ -107,9 +107,19 @@ let loadPackageOfGithub ?manifest ~allowEmptyPackage ~name ~version ~source ~use
       | Ok data ->
         begin match kind with
         | ManifestSpec.Filename.Esy ->
-          let%bind manifest = RunAsync.ofRun (Json.parseStringWith PackageJson.of_yojson data) in
-          let pkg = PackageJson.toPackage ~name ~version ~source manifest in
-          return (Package pkg)
+          RunAsync.ofRun (
+            let open Run.Syntax in
+            let%bind json = Json.parse data in
+            let%bind pkg =
+              PackageJson.packageOfJson
+                ~parseResolutions:true
+                ~name
+                ~version
+                ~source
+                json
+            in
+            return (Package pkg)
+          )
         | ManifestSpec.Filename.Opam ->
           let opamname =
             match ManifestSpec.Filename.inferPackageName (kind, fname) with
@@ -160,9 +170,18 @@ let loadPackageOfPath ?manifest ~allowEmptyPackage ~name ~version ~source (path 
           | Ok override ->
             return (PackageOverride override)
           | Error _ ->
-            let%bind manifest = RunAsync.ofStringError (PackageJson.of_yojson json) in
-            let pkg = PackageJson.toPackage ~name ~version ~source manifest in
-            return (Package pkg)
+            RunAsync.ofRun (
+              let open Run.Syntax in
+              let%bind pkg =
+                PackageJson.packageOfJson
+                  ~parseResolutions:true
+                  ~name
+                  ~version
+                  ~source
+                  json
+              in
+              return (Package pkg)
+            )
           end
         | ManifestSpec.Filename.Opam ->
           let opamname =

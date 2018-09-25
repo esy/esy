@@ -8,6 +8,10 @@ let of_yojson x = Ok x
 
 let pp = Yojson.Safe.pretty_print
 
+let parse data =
+  try Run.return (Yojson.Safe.from_string data)
+  with Yojson.Json_error msg -> Run.errorf "error parsing JSON: %s" msg
+
 let parseJsonWith parser json =
   Run.ofStringError (parser json)
 

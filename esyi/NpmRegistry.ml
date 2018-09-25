@@ -1,83 +1,9 @@
-module Esy = PackageJson.EsyPackageJson
-
-module PackageJson = struct
-  type t = {
-    name : string;
-    version : string;
-    dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-    devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-    dist : dist;
-    esy : (PackageJson.EsyPackageJson.t option [@default None]);
-  } [@@deriving of_yojson { strict = false }]
-
-  and dist = {
-    tarball : string;
-    shasum : string;
-  }
-end
-
 module Packument = struct
   type t = {
-    versions : PackageJson.t StringMap.t;
+    versions : Json.t StringMap.t;
     distTags : SemverVersion.Version.t StringMap.t [@key "dist-tags"];
   } [@@deriving of_yojson { strict = false }]
 end
-
-let packageJsonToPackage ?name ?version (pkgJson : PackageJson.t) =
-  let open Run.Syntax in
-  let name =
-    match name with
-    | Some name -> name
-    | None -> pkgJson.name
-  in
-  let%bind originalVersion = Run.ofStringError (
-    let open Result.Syntax in
-    let%bind version = SemverVersion.Version.parse pkgJson.version in
-    return (Version.Npm version)
-  ) in
-  let version =
-    match version with
-    | Some version -> Version.Npm version
-    | None -> originalVersion
-  in
-  let source =
-    match version with
-    | Version.Source src -> src
-    | _ ->
-      Source.Archive {
-        url = pkgJson.dist.tarball;
-        checksum = Checksum.Sha1, pkgJson.dist.shasum;
-      }
-  in
-
-  let dependencies =
-    match pkgJson.esy with
-    | None
-    | Some {Esy. _dependenciesForNewEsyInstaller= None} ->
-      pkgJson.dependencies
-    | Some {Esy. _dependenciesForNewEsyInstaller= Some dependencies} ->
-      dependencies
-  in
-
-  let pkg = {
-    Package.
-    name;
-    version;
-    originalVersion = Some originalVersion;
-    dependencies = Package.Dependencies.NpmFormula dependencies;
-    devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
-    source = source, [];
-    overrides = Package.Overrides.empty;
-    resolutions = Package.Resolutions.empty;
-    opam = None;
-    kind =
-      (match pkgJson.esy with
-        | Some _ -> Esy
-        | None -> Npm);
-  } in
-
-  return pkg
-
 
 type versions = {
   versions : SemverVersion.Version.t list;
@@ -152,7 +78,8 @@ let versions ?(fullMetadata= false) ~name registry () =
           let open Result.Syntax in
           let%bind version = SemverVersion.Version.parse version in
           PackageCache.ensureComputed registry.pkgCache (name, version) begin fun () ->
-            RunAsync.ofRun (packageJsonToPackage ~version packageJson)
+            let version = Version.Npm version in
+            RunAsync.ofRun (PackageJson.packageOfJson ~name ~version packageJson)
           end;
           return version
         in
@@ -177,8 +104,9 @@ let package ~name ~version registry () =
     in
     RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind pkgJson = Json.parseStringWith PackageJson.of_yojson data in
-      let%bind pkg = packageJsonToPackage pkgJson in
+      let%bind json = Json.parse data in
+      let version = Version.Npm version in
+      let%bind pkg = PackageJson.packageOfJson ~name ~version json in
       return pkg
     )
   in
