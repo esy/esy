@@ -5,12 +5,12 @@ type t
 val make :
   ?npmRegistry:NpmRegistry.t
   -> ?opamRegistry:OpamRegistry.t
-  -> resolutions:Package.Resolutions.t
   -> cfg:Config.t
   -> unit
   -> t RunAsync.t
 
 val setOCamlVersion : Version.t -> t -> unit
+val setResolutions : Package.Resolutions.t -> t -> unit
 
 (**
  * Resolve package request into a list of resolutions

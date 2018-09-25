@@ -629,9 +629,10 @@ let solve (sandbox : Sandbox.t) =
     Resolver.make
       ~opamRegistry
       ~cfg:sandbox.cfg
-      ~resolutions:sandbox.resolutions
       ()
   in
+
+  Resolver.setResolutions sandbox.resolutions resolver;
 
   let%bind dependencies, ocamlVersion =
     match sandbox.ocamlReq with

@@ -197,10 +197,10 @@ type t = {
   cfg: Config.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
-  resolutions : Resolutions.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
   mutable ocamlVersion : Version.t option;
+  mutable resolutions : Package.Resolutions.t;
   resolutionCache : ResolutionCache.t;
 
   npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
@@ -211,7 +211,6 @@ type t = {
 let make
   ?npmRegistry
   ?opamRegistry
-  ~resolutions
   ~cfg
   ()
   =
@@ -227,36 +226,25 @@ let make
     | None -> NpmRegistry.make ~url:cfg.Config.npmRegistry ()
   in
 
-  let sourceSpecToSource =
-    let tbl = Hashtbl.create 500 in
-    let f resolution =
-      match resolution.Resolution.resolution with
-      | Resolution.Version (Version.Source source)
-      | Resolution.SourceOverride {source; _} ->
-        let sourceSpec = SourceSpec.ofSource source in
-        Hashtbl.replace tbl sourceSpec source;
-      | Resolution.Version _ -> ()
-    in
-    List.iter ~f (Resolutions.entries resolutions);
-    tbl
-  in
-
   return {
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
-    resolutions;
     opamRegistry;
     npmRegistry;
     ocamlVersion = None;
+    resolutions = Package.Resolutions.empty;
     resolutionCache = ResolutionCache.make ();
     npmDistTags = Hashtbl.create 500;
-    sourceSpecToSource;
+    sourceSpecToSource = Hashtbl.create 500;
     sourceToSource = Hashtbl.create 500;
   }
 
 let setOCamlVersion ocamlVersion resolver =
   resolver.ocamlVersion <- Some ocamlVersion
+
+let setResolutions resolutions resolver =
+  resolver.resolutions <- resolutions
 
 let sourceMatchesSpec resolver spec source =
   match Hashtbl.find_opt resolver.sourceSpecToSource spec with
