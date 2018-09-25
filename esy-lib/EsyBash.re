@@ -46,13 +46,23 @@ let getEsyBashPath = () =>
     }
   );
 
-let getMingwRuntimePath = () => 
-    Result.Syntax.(
+let getMingwRuntimePath = () =>
+  Result.Syntax.(
     {
-        let%bind rootPath = getEsyBashRootPath();
-        Ok(Fpath.(rootPath / ".cygwin" / "usr" / "x86_64-w64-mingw32" / "sys-root" / "mingw" / "bin"))
+      let%bind rootPath = getEsyBashRootPath();
+      Ok(
+        Fpath.(
+          rootPath
+          / ".cygwin"
+          / "usr"
+          / "x86_64-w64-mingw32"
+          / "sys-root"
+          / "mingw"
+          / "bin"
+        ),
+      );
     }
-    );
+  );
 
 /**
 * Helper utility to normalize paths to a cygwin style,
