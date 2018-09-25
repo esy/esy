@@ -40,3 +40,13 @@ steps:
 
   - script: 'node scripts/pipelines-release.js'
     displayName: 'node scripts/pipelines-release.js'
+
+  - script: 'npm pack'
+    displayName: 'npm pack'
+    workingDirectory: '_release'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish packaged release'
+    inputs:
+      PathtoPublish: '_release/esy-*.tgz'
+      ArtifactName: release
