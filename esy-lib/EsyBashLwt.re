@@ -7,6 +7,14 @@ let toRunAsyncCommand = cmd => {
   };
 };
 
+let getMingwRuntimePath = () => {
+    let runtimePath = EsyBash.getMingwRuntimePath();
+    switch (runtimePath) {
+    | Ok(v) => RunAsync.return(v);
+    | _ => RunAsync.error("Error locating mingw runtime path.")
+    };
+};
+
 /**
  * Helper utility to run a command with 'esy-bash', via Lwt.
  * This is meant to replace Lwt's with_process_full in the case

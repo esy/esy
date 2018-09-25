@@ -381,7 +381,11 @@ let solveDependencies ~installed ~strategy dependencies solver =
 
     let cmd = Cmd.getToolAndLine cmd in
     try%lwt
-      Lwt_process.with_process_full cmd f
+      let currentEnv = Sys.getenv "PATH" in
+      print_endline ("ENV2:" ^ currentEnv);
+      let%bind mingwRuntime = EsyLib.EsyBashLwt.getMingwRuntimePath () in
+      let env = [|("PATH=" ^ (Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)|] in
+      EsyBashLwt.with_process_full ~env cmd f
     with
     | Unix.Unix_error (err, _, _) ->
       let msg = Unix.error_message err in
