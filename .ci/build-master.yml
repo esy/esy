@@ -37,8 +37,8 @@ jobs:
           ArtifactName: macOS
 
   - job: Windows
-    timeoutInMinutes: 120
     pool:
+      timeoutInMinutes: 120
       vmImage: vs2017-win2016
       demands: npm
 
