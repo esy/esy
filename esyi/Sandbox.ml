@@ -171,7 +171,7 @@ let ofSource ~cfg ~spec source =
       dependencies;
       resolver;
     }
-  | Error msg -> errorf "unable to construct sandbox; %s" msg
+  | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
   match spec.manifest with
