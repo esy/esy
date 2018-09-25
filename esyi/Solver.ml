@@ -363,16 +363,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     ) in
 
     try%lwt
-      let currentEnv = Sys.getenv "PATH" in
-      print_endline ("ENV2:" ^ currentEnv);
-      let%bind mingwRuntime = EsyLib.EsyBashLwt.getMingwRuntimePath () in
-      print_endline ("MINGW2: " ^ (Fpath.to_string mingwRuntime));
-      (*let env = [|("PATH=" ^ (Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)|] in *)
-      let env =
-          `CurrentEnvOverride Astring.String.Map.(
-            empty |>
-            add "PATH" ((Fpath.to_string mingwRuntime) ^ ";" ^ currentEnv)
-        ) in
+      let%bind env = EsyLib.EsyBashLwt.getMingwEnvironmentOverride () in
       ChildProcess.run ~env cmd
     with
     | Unix.Unix_error (err, _, _) ->
