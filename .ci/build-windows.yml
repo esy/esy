@@ -34,13 +34,21 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
-  - script: "jest --runInBand test-e2e"
+  - task: Npm@1
+    displayName: 'npm run test:unit'
+    continueOnError: true
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: 'run test:unit'
+
+  - script: 'jest --runInBand test-e2e'
     displayName: 'test-e2e'
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
     continueOnError: true
 
-  - script: "npm run platform-release"
-    displayName: "npm run platform-release"
+  - script: 'npm run platform-release'
+    displayName: 'npm run platform-release'
     continueOnError: true
