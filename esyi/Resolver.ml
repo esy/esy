@@ -411,6 +411,7 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
 
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
     let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
+
     let%bind source =
       match sourceSpec with
       | SourceSpec.Github {user; repo; ref; manifest;} ->
@@ -538,6 +539,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
     return resolutions
 
   | VersionSpec.Source sourceSpec ->
+    print_endline "SOURCE PACKAGE";
     let%bind source = resolveSource ~name ~sourceSpec resolver in
     let version = Version.Source source in
     let resolution = {

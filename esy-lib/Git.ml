@@ -4,20 +4,20 @@ type commit = string
 type remote = string
 
 let runGit cmd =
+  print_endline "RUNNING GIT COMMAND";
   let f p =
     let%lwt stdout = Lwt_io.read p#stdout
     and stderr = Lwt_io.read p#stderr in
     match%lwt p#status with
     | Unix.WEXITED 0 ->
-      RunAsync.return ()
+      RunAsync.return (stdout)
     | _ ->
       RunAsync.errorf
         "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
         Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
   in
   try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
+    EsyBashLwt.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -26,6 +26,7 @@ let runGit cmd =
     RunAsync.errorf "cannot execute command: %a" Cmd.pp cmd
 
 let clone ?branch ?depth ~dst ~remote () =
+  let open RunAsync.Syntax in
   let cmd =
     let open Cmd in
     let cmd = v "git" % "clone" in
@@ -39,9 +40,11 @@ let clone ?branch ?depth ~dst ~remote () =
     in
     Cmd.(cmd % remote % p dst)
   in
-  runGit cmd
+  let%bind _ = runGit cmd in
+  return ()
 
 let pull ?(force=false) ?(ffOnly=false) ?depth ~remote ~repo ~branchSpec () =
+  let open RunAsync.Syntax in
   let cmd =
     let open Cmd in
     let cmd = v "git" % "-C" % p repo % "pull" in
@@ -59,11 +62,14 @@ let pull ?(force=false) ?(ffOnly=false) ?depth ~remote ~repo ~branchSpec () =
     in
     Cmd.(cmd % remote % branchSpec)
   in
-  runGit cmd
+  let%bind _ = runGit cmd in
+  return ()
 
 let checkout ~ref ~repo () =
+  let open RunAsync.Syntax in
   let cmd = Cmd.(v "git" % "-C" % p repo % "checkout" % ref) in
-  runGit cmd
+  let%bind _ = runGit cmd in
+  return ()
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
@@ -73,7 +79,7 @@ let lsRemote ?ref ~remote () =
     | Some ref -> Cmd.(cmd % ref)
     | None -> cmd
   in
-  let%bind out = ChildProcess.runOut cmd in
+  let%bind out = runGit cmd in
   match out |> String.trim |> String.split_on_char '\n' with
   | [] ->
     return None
@@ -113,7 +119,7 @@ module ShallowClone = struct
             ()
           in
           match%lwt pulling with
-          | Ok () -> return ()
+          | Ok (_) -> return ()
           | Error _ when retry ->
             let%bind () = Fs.rmPath dst in
             aux ~retry:false ()
@@ -121,6 +127,7 @@ module ShallowClone = struct
         )
       else
         let%bind () = Fs.createDir (Path.parent dst) in
-        clone ~branch ~depth:1 ~remote:source ~dst ()
+        let%bind _ = clone ~branch ~depth:1 ~remote:source ~dst () in
+        return ();
     in aux ()
 end
