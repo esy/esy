@@ -442,7 +442,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         then return None
         else (
           let dataOut = normalizeSolutionData dataOut in
-          let solution = parseCudfSolution ~cudfUniverse (normalizedData ^ "\n") in
+          let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )
       in
