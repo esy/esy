@@ -1,5 +1,10 @@
+name: Build npm release
+
 resources:
   - repo: self
+
+trigger:
+  - master
 
 phases:
   - phase: Phase_1
