@@ -311,6 +311,7 @@ type t = {
   overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
+  resolutions : Resolutions.t;
   opam : Opam.t option;
   kind : kind;
 }
@@ -353,6 +354,7 @@ let ofPackageJson ~name ~version ~source (pkgJson : PackageJson.t) =
     originalVersion;
     dependencies = Dependencies.NpmFormula dependencies;
     devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
+    resolutions = Resolutions.empty;
     source = source, [];
     overrides = Overrides.empty;
     opam = None;

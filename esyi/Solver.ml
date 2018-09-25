@@ -351,6 +351,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
+    resolutions = Resolutions.empty;
     kind = Esy;
   } in
 
@@ -623,24 +624,13 @@ let solve (sandbox : Sandbox.t) =
         Explanation.pp explanation
   in
 
-  let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in
-
-  let%bind resolver =
-    Resolver.make
-      ~opamRegistry
-      ~cfg:sandbox.cfg
-      ()
-  in
-
-  Resolver.setResolutions sandbox.resolutions resolver;
-
   let%bind dependencies, ocamlVersion =
     match sandbox.ocamlReq with
     | None -> return (sandbox.dependencies, None)
     | Some ocamlReq ->
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
-          (solveOCamlReq ocamlReq resolver)
+          (solveOCamlReq ocamlReq sandbox.resolver)
           "resolving %a" Req.pp ocamlReq
       in
 
@@ -668,12 +658,17 @@ let solve (sandbox : Sandbox.t) =
 
   let () =
     match ocamlVersion with
-    | Some version -> Resolver.setOCamlVersion version resolver
+    | Some version -> Resolver.setOCamlVersion version sandbox.resolver
     | None -> ()
   in
 
   let%bind solver, dependencies =
-    let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
+    let%bind solver = make
+      ~resolver:sandbox.resolver
+      ~cfg:sandbox.cfg
+      ~resolutions:sandbox.resolutions
+      ()
+    in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
   in

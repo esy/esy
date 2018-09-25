@@ -177,6 +177,7 @@ type t = {
   overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
+  resolutions : Resolutions.t;
   opam : Opam.t option;
   kind : kind;
 }

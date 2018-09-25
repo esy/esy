@@ -340,4 +340,5 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       };
       dependencies;
       devDependencies;
+      resolutions = Package.Resolutions.empty;
     })

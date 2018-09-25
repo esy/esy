@@ -79,6 +79,7 @@ let makeDummyPackage name version source =
     overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
+    resolutions = Package.Resolutions.empty;
     opam = None;
     kind = Esy;
   }
@@ -208,30 +209,13 @@ type t = {
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
-let make
-  ?npmRegistry
-  ?opamRegistry
-  ~cfg
-  ()
-  =
-  let open RunAsync.Syntax in
-  let opamRegistry =
-    match opamRegistry with
-    | Some opamRegistry -> opamRegistry
-    | None -> OpamRegistry.make ~cfg ()
-  in
-  let npmRegistry =
-    match npmRegistry with
-    | Some npmRegistry -> npmRegistry
-    | None -> NpmRegistry.make ~url:cfg.Config.npmRegistry ()
-  in
-
-  return {
+let make ~cfg () =
+  RunAsync.return {
     cfg;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
-    opamRegistry;
-    npmRegistry;
+    opamRegistry = OpamRegistry.make ~cfg ();
+    npmRegistry = NpmRegistry.make ~url:cfg.Config.npmRegistry ();
     ocamlVersion = None;
     resolutions = Package.Resolutions.empty;
     resolutionCache = ResolutionCache.make ();

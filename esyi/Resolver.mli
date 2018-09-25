@@ -3,9 +3,7 @@ type t
 
 (** Make new resolver *)
 val make :
-  ?npmRegistry:NpmRegistry.t
-  -> ?opamRegistry:OpamRegistry.t
-  -> cfg:Config.t
+  cfg:Config.t
   -> unit
   -> t RunAsync.t
 

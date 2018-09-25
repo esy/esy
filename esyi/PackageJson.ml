@@ -233,8 +233,6 @@ module Dependencies = struct
     List.find_opt ~f reqs
 end
 
-
-
 module EsyPackageJson = struct
   type t = {
     _dependenciesForNewEsyInstaller : (Dependencies.t option [@default None]);

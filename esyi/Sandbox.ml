@@ -5,6 +5,7 @@ type t = {
   dependencies : Package.Dependencies.t;
   resolutions : Package.Resolutions.t;
   ocamlReq : Req.t option;
+  resolver : Resolver.t;
 }
 
 module PackageJsonWithResolutions = struct
@@ -17,124 +18,125 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
-  let open RunAsync.Syntax in
+(* let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) = *)
+(*   let open RunAsync.Syntax in *)
 
-  let%bind opams =
+(*   let%bind opams = *)
 
-    let readOpam (path : Path.t) =
-      let%bind data = Fs.readFile path in
-      if String.trim data = ""
-      then return None
-      else
-        let name = Path.(path |> remExt |> basename) in
-        let%bind manifest =
-          let version = OpamPackage.Version.of_string "dev" in
-          OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path
-        in
-        return (Some (name, manifest, path))
-    in
+(*     let readOpam (path : Path.t) = *)
+(*       let%bind data = Fs.readFile path in *)
+(*       if String.trim data = "" *)
+(*       then return None *)
+(*       else *)
+(*         let name = Path.(path |> remExt |> basename) in *)
+(*         let%bind manifest = *)
+(*           let version = OpamPackage.Version.of_string "dev" in *)
+(*           OpamManifest.ofPath ~name:(OpamPackage.Name.of_string name) ~version path *)
+(*         in *)
+(*         return (Some (name, manifest, path)) *)
+(*     in *)
 
-    let%bind opams =
-      paths
-      |> List.map ~f:readOpam
-      |> RunAsync.List.joinAll
-    in
+(*     let%bind opams = *)
+(*       paths *)
+(*       |> List.map ~f:readOpam *)
+(*       |> RunAsync.List.joinAll *)
+(*     in *)
 
-    return (List.filterNone opams)
-  in
+(*     return (List.filterNone opams) *)
+(*   in *)
 
-  let namesPresent =
-    let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in
-    List.fold_left ~f ~init:StringSet.empty opams
-  in
+(*   let namesPresent = *)
+(*     let f names (name, _, _) = StringSet.add ("@opam/" ^ name) names in *)
+(*     List.fold_left ~f ~init:StringSet.empty opams *)
+(*   in *)
 
-  let filterFormulaWithNamesPresent (deps : Package.Dep.t list list) =
-    let filterDep (dep : Package.Dep.t) = not (StringSet.mem dep.name namesPresent) in
-    let filterDisj deps =
-      match List.filter ~f:filterDep deps with
-      | [] -> None
-      | f -> Some f
-    in
-    deps
-    |> List.map ~f:filterDisj
-    |> List.filterNone
-  in
+(*   let filterFormulaWithNamesPresent (deps : Package.Dep.t list list) = *)
+(*     let filterDep (dep : Package.Dep.t) = not (StringSet.mem dep.name namesPresent) in *)
+(*     let filterDisj deps = *)
+(*       match List.filter ~f:filterDep deps with *)
+(*       | [] -> None *)
+(*       | f -> Some f *)
+(*     in *)
+(*     deps *)
+(*     |> List.map ~f:filterDisj *)
+(*     |> List.filterNone *)
+(*   in *)
 
-  let source = Source.LocalPath {
-    path = Path.v ".";
-    manifest = None;
-  } in
-  let version = Version.Source source in
+(*   let source = Source.LocalPath { *)
+(*     path = Path.v "."; *)
+(*     manifest = None; *)
+(*   } in *)
+(*   let version = Version.Source source in *)
 
-  match opams with
-  | [] ->
-    let dependencies = Package.Dependencies.NpmFormula [] in
-    return {
-      cfg;
-      spec;
-      root = {
-        name = "empty";
-        version;
-        originalVersion = None;
-        source = source, [];
-        overrides = Package.Overrides.empty;
-        dependencies;
-        devDependencies = dependencies;
-        opam = None;
-        kind = Esy;
-      };
-      resolutions = Package.Resolutions.empty;
-      dependencies = Package.Dependencies.NpmFormula [];
-      ocamlReq = Some ocamlReqAny;
-    }
-  | opams ->
-    let%bind pkgs =
-      let f (name, opam, _) =
-        match%bind OpamManifest.toPackage ~name ~version opam with
-        | Ok pkg -> return pkg
-        | Error err -> error err
-      in
-      RunAsync.List.joinAll (List.map ~f opams)
-    in
-    let dependencies, devDependencies =
-      let f (dependencies, devDependencies) (pkg : Package.t) =
-        match pkg.dependencies, pkg.devDependencies with
-        | Package.Dependencies.OpamFormula du, Package.Dependencies.OpamFormula ddu ->
-          (filterFormulaWithNamesPresent du) @ dependencies,
-          (filterFormulaWithNamesPresent ddu) @ devDependencies
-        | _ -> assert false
-      in
-      List.fold_left ~f ~init:([], []) pkgs
-    in
-    let root = {
-      Package.
-      name = "root";
-      version;
-      originalVersion = None;
-      source = source, [];
-      overrides = Package.Overrides.empty;
-      dependencies = Package.Dependencies.OpamFormula dependencies;
-      devDependencies = Package.Dependencies.OpamFormula devDependencies;
-      opam = None;
-      kind = Package.Esy;
-    } in
+(*   match opams with *)
+(*   | [] -> *)
+(*     let dependencies = Package.Dependencies.NpmFormula [] in *)
+(*     return { *)
+(*       cfg; *)
+(*       spec; *)
+(*       root = { *)
+(*         name = "empty"; *)
+(*         version; *)
+(*         originalVersion = None; *)
+(*         source = source, []; *)
+(*         overrides = Package.Overrides.empty; *)
+(*         dependencies; *)
+(*         devDependencies = dependencies; *)
+(*         opam = None; *)
+(*         kind = Esy; *)
+(*       }; *)
+(*       resolutions = Package.Resolutions.empty; *)
+(*       dependencies = Package.Dependencies.NpmFormula []; *)
+(*       ocamlReq = Some ocamlReqAny; *)
+(*     } *)
+(*   | opams -> *)
+(*     let%bind pkgs = *)
+(*       let f (name, opam, _) = *)
+(*         match%bind OpamManifest.toPackage ~name ~version opam with *)
+(*         | Ok pkg -> return pkg *)
+(*         | Error err -> error err *)
+(*       in *)
+(*       RunAsync.List.joinAll (List.map ~f opams) *)
+(*     in *)
+(*     let dependencies, devDependencies = *)
+(*       let f (dependencies, devDependencies) (pkg : Package.t) = *)
+(*         match pkg.dependencies, pkg.devDependencies with *)
+(*         | Package.Dependencies.OpamFormula du, Package.Dependencies.OpamFormula ddu -> *)
+(*           (filterFormulaWithNamesPresent du) @ dependencies, *)
+(*           (filterFormulaWithNamesPresent ddu) @ devDependencies *)
+(*         | _ -> assert false *)
+(*       in *)
+(*       List.fold_left ~f ~init:([], []) pkgs *)
+(*     in *)
+(*     let root = { *)
+(*       Package. *)
+(*       name = "root"; *)
+(*       version; *)
+(*       originalVersion = None; *)
+(*       source = source, []; *)
+(*       overrides = Package.Overrides.empty; *)
+(*       dependencies = Package.Dependencies.OpamFormula dependencies; *)
+(*       devDependencies = Package.Dependencies.OpamFormula devDependencies; *)
+(*       opam = None; *)
+(*       kind = Package.Esy; *)
+(*     } in *)
 
-    let dependencies =
-      Package.Dependencies.OpamFormula (dependencies @ devDependencies)
-    in
+(*     let dependencies = *)
+(*       Package.Dependencies.OpamFormula (dependencies @ devDependencies) *)
+(*     in *)
 
-    return {
-      cfg;
-      spec;
-      root;
-      resolutions = Package.Resolutions.empty;
-      dependencies;
-      ocamlReq = Some ocamlReqAny;
-    }
+(*     return { *)
+(*       cfg; *)
+(*       spec; *)
+(*       root; *)
+(*       resolutions = Package.Resolutions.empty; *)
+(*       dependencies; *)
+(*       ocamlReq = Some ocamlReqAny; *)
+(*     } *)
 
 let makeEsySandbox ~cfg ~spec projectPath path =
   let open RunAsync.Syntax in
+
   let%bind json = Fs.readJsonFile path in
 
   let%bind pkgJson = RunAsync.ofRun (
@@ -164,6 +166,8 @@ let makeEsySandbox ~cfg ~spec projectPath path =
       PackageJson.Dependencies.find ~name:"ocaml" reqs
   in
 
+  let%bind resolver = Resolver.make ~cfg () in
+
   return {
     cfg;
     spec;
@@ -171,14 +175,65 @@ let makeEsySandbox ~cfg ~spec projectPath path =
     resolutions;
     ocamlReq;
     dependencies = sandboxDependencies;
+    resolver;
   }
+
+let ofSource ~cfg ~spec source =
+  let open RunAsync.Syntax in
+
+  let%bind resolution =
+    let version = Version.Source source in
+    return {
+      Package.Resolution.
+      name = "root";
+      resolution = Version version;
+    }
+  in
+
+  let%bind resolver =
+    Resolver.make ~cfg ()
+  in
+
+  let%bind root = Resolver.package ~resolution resolver in
+  match root with
+  | Ok root ->
+
+    let dependencies, ocamlReq =
+      match root.Package.dependencies, root.devDependencies with
+      | Package.Dependencies.OpamFormula _, Package.Dependencies.OpamFormula _ ->
+        root.dependencies, Some ocamlReqAny
+      | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
+        let deps = PackageJson.Dependencies.override deps devDeps in
+        let ocamlReq = PackageJson.Dependencies.find ~name:"ocaml" deps in
+        Package.Dependencies.NpmFormula deps, ocamlReq
+      | Package.Dependencies.NpmFormula _, _
+      | Package.Dependencies.OpamFormula _, _  ->
+        failwith "mixing npm and opam dependencies"
+    in
+
+    let resolutions = Package.Resolutions.empty in
+
+    Resolver.setResolutions resolutions resolver;
+
+    return {
+      cfg;
+      spec;
+      root;
+      resolutions;
+      ocamlReq;
+      dependencies;
+      resolver;
+    }
+  | Error msg -> errorf "unable to construct sandbox; %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
   match spec.manifest with
   | ManifestSpec.One (Esy, fname) ->
     makeEsySandbox ~cfg ~spec spec.path Path.(spec.path / fname)
-  | ManifestSpec.One (Opam, fname) ->
-    makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)]
-  | ManifestSpec.ManyOpam fnames ->
-    let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
-    makeOpamSandbox ~cfg ~spec spec.path paths
+  | ManifestSpec.One (Opam, _fname) ->
+    (* makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)] *)
+    assert false
+  | ManifestSpec.ManyOpam _fnames ->
+    (* let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in *)
+    (* makeOpamSandbox ~cfg ~spec spec.path paths *)
+    assert false
