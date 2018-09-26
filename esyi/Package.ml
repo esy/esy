@@ -5,6 +5,11 @@ type 'a disj = 'a list
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list
 
+let isOpamPackageName name =
+  match String.cut ~sep:"/" name with
+  | Some ("@opam", _) -> true
+  | _ -> false
+
 module Command = struct
 
   [@@@ocaml.warning "-32"]
@@ -240,6 +245,32 @@ module NpmFormula = struct
     List.find_opt ~f reqs
 end
 
+module NpmFormulaOverride = struct
+  type t = Req.t StringMap.Override.t [@@deriving ord, show]
+
+  let of_yojson =
+    let req_of_yojson name json =
+      let open Result.Syntax in
+      let%bind spec = Json.Parse.string json in
+      let%bind spec =
+        let parseSpec =
+          if isOpamPackageName name
+          then VersionSpec.parserOpam
+          else VersionSpec.parserNpm
+        in
+        Parse.(parse parseSpec) spec
+      in
+      return (Req.make ~name ~spec)
+    in
+    StringMap.Override.of_yojson req_of_yojson
+
+  let to_yojson =
+    let req_to_yojson req =
+      VersionSpec.to_yojson req.Req.spec
+    in
+    StringMap.Override.to_yojson req_to_yojson
+end
+
 module Resolution = struct
 
   module BuildType = struct
@@ -265,8 +296,8 @@ module Resolution = struct
     exportedEnvOverride: ExportedEnvOverride.t option;
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormula.t option;
-    devDependencies : NpmFormula.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
     resolutions : resolution StringMap.t option;
   }
 
@@ -298,8 +329,8 @@ module Resolution = struct
       |> addIfSome ExportedEnvOverride.to_yojson "exportedEnvOverride" exportedEnvOverride
       |> addIfSome Env.to_yojson "buildEnv" buildEnv
       |> addIfSome EnvOverride.to_yojson "buildEnvOverride" buildEnvOverride
-      |> addIfSome NpmFormula.to_yojson "dependencies" dependencies
-      |> addIfSome NpmFormula.to_yojson "devDependencies" devDependencies
+      |> addIfSome NpmFormulaOverride.to_yojson "dependencies" dependencies
+      |> addIfSome NpmFormulaOverride.to_yojson "devDependencies" devDependencies
       |> addIfSome (StringMap.to_yojson resolution_to_yojson) "resolutions" resolutions
     )
 
@@ -322,8 +353,8 @@ module Resolution = struct
     let%bind exportedEnvOverride = field ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
     let%bind buildEnv = field ~name:"buildEnv" Env.of_yojson json in
     let%bind buildEnvOverride = field ~name:"buildEnvOverride" EnvOverride.of_yojson json in
-    let%bind dependencies = field ~name:"dependencies" NpmFormula.of_yojson json in
-    let%bind devDependencies = field ~name:"devDependencies" NpmFormula.of_yojson json in
+    let%bind dependencies = field ~name:"dependencies" NpmFormulaOverride.of_yojson json in
+    let%bind devDependencies = field ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
     let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
     return {
       buildType;
@@ -439,8 +470,8 @@ module Overrides = struct
     exportedEnvOverride: ExportedEnvOverride.t option;
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormula.t option;
-    devDependencies : NpmFormula.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
     resolutions : Resolution.resolution StringMap.t option;
   }
 
@@ -631,11 +662,6 @@ type t = {
 and kind =
   | Esy
   | Npm
-
-let isOpamPackageName name =
-  match String.cut ~sep:"/" name with
-  | Some ("@opam", _) -> true
-  | _ -> false
 
 let pp fmt pkg =
   Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
