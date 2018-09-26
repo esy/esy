@@ -50,7 +50,7 @@ let make ?(concurrency=40) ?url () =
     queue = LwtTaskQueue.create ~concurrency ();
   }
 
-let versions ?(fullMetadata= false) ~name registry () =
+let versions ?(fullMetadata=false) ~name registry () =
   let open RunAsync.Syntax in
   let fetchVersions () =
     let fetch =
@@ -95,21 +95,7 @@ let versions ?(fullMetadata= false) ~name registry () =
 
 let package ~name ~version registry () =
   let open RunAsync.Syntax in
-  let fetchPackage () =
-    let desc = Format.asprintf "fetch %s@%a" name SemverVersion.Version.pp version in
-    let name = Str.global_replace (Str.regexp "/") "%2f" name in
-    let%bind data =
-      let url = registry.url ^ "/" ^ name ^ "/" ^ SemverVersion.Version.show version in
-      retryInCaseOfError ~num:3 ~desc (fun () -> Curl.get url)
-    in
-    RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind json = Json.parse data in
-      let version = Version.Npm version in
-      let%bind pkg = PackageJson.packageOfJson ~name ~version json in
-      return pkg
-    )
-  in
-  fetchPackage
-  |> LwtTaskQueue.queued registry.queue
-  |> PackageCache.compute registry.pkgCache (name, version)
+  let%bind _: versions option = versions ~fullMetadata:true ~name registry () in
+  match PackageCache.get registry.pkgCache (name, version) with
+  | None -> errorf "no package found on npm %s@%a" name SemverVersion.Version.pp version
+  | Some pkg -> pkg
