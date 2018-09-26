@@ -9,6 +9,21 @@ let cfg =
   let storePath = Path.v "/tmp/__prefix__/store" in
   {
     Config.
+    installCfg = {
+      EsyInstall.Config.
+      esySolveCmd = Cmd.v "esy-solve-cudf";
+
+      cacheTarballsPath = Path.(prefixPath / "source-tarballs");
+      opamArchivesIndexPath = Path.(prefixPath / "opam-urls.txt");
+
+      esyOpamOverride = Local Path.(prefixPath / "esy-opam-override.git");
+      opamRepository = Local Path.(prefixPath / "opam-repository.git");
+      npmRegistry = "https://packages.npmjs.org";
+
+      solveTimeout = 10000.0;
+
+      skipRepositoryUpdate = false;
+    };
     esyVersion = "0.x.x";
     prefixPath;
     storePath;
