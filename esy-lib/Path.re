@@ -68,7 +68,6 @@ let show = (p) => {
     normalizePathSlashes(ret);
 };
 
-
 let pp = Fpath.pp;
 let toPrettyString = p =>
   Run.Syntax.(

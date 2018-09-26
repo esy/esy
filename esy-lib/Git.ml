@@ -4,7 +4,6 @@ type commit = string
 type remote = string
 
 let runGit cmd =
-  print_endline "RUNNING GIT COMMAND";
   let f p =
     let%lwt stdout = Lwt_io.read p#stdout
     and stderr = Lwt_io.read p#stderr in
