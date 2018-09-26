@@ -133,6 +133,7 @@ let applyPkgOverride (pkg : Package.t) (override : Overrides.override) =
     buildEnvOverride;
 
     dependencies = _;
+    devDependencies = _;
     resolutions = _;
   } = override in
 
@@ -238,22 +239,55 @@ let applyDependendenciesOverride (deps : Manifest.Dependencies.t) (override : Ov
     buildEnvOverride = _;
 
     dependencies;
+    devDependencies;
     resolutions = _;
   } = override in
 
+  let applyNpmFormulaOverride dependencies override =
+    (* we should filter only StringMap.Override.Drop here as we are not
+     * interested in edits *)
+    let dependencies =
+      let f name =
+        match StringMap.find_opt name override with
+        | Some StringMap.Override.Drop -> false
+        | Some StringMap.Override.Edit _ -> true
+        | None -> true
+      in
+      dependencies
+      |> List.map ~f:(List.filter ~f)
+      |> List.filter ~f:(function [] -> false | _ -> true)
+    in
+    (* now add edits *)
+    let dependencies =
+      let edits =
+        let f name override edits =
+          match override with
+          | StringMap.Override.Drop -> edits
+          | StringMap.Override.Edit _ -> [name]::edits
+        in
+        StringMap.fold f override []
+      in
+      dependencies @ edits
+    in
+    dependencies
+  in
+
   let deps =
     match dependencies with
-    | Some dependenciesOverride ->
-      let dependenciesOverride =
-        let f req = [req.EsyInstall.Req.name] in
-        List.map ~f dependenciesOverride
-      in
-      {
-        deps with
-        Manifest.Dependencies. dependencies = dependenciesOverride;
-      }
+    | Some override ->
+      let dependencies = applyNpmFormulaOverride deps.dependencies override in
+      {deps with Manifest.Dependencies. dependencies;}
     | None -> deps
   in
+
+  let deps =
+    match devDependencies with
+    | Some override ->
+      let devDependencies = applyNpmFormulaOverride deps.devDependencies override in
+      {deps with Manifest.Dependencies. devDependencies;}
+    | None -> deps
+  in
+
   deps
 
 let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =

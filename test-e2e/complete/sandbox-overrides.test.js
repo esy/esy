@@ -58,6 +58,58 @@ describe('Sandbox overrides', function() {
     });
   });
 
+  it('allows to override sandbox with devDependencies', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '2.0.0',
+    });
+
+    await p.fixture(
+      file(
+        'package.json',
+        JSON.stringify({
+          name: 'root',
+          devDependencies: {
+            dep: '1.0.0',
+          },
+        }),
+      ),
+      file(
+        'another.json',
+        JSON.stringify({
+          source: 'path:./package.json',
+          override: {
+            devDependencies: {
+              dep: '2.0.0',
+            },
+          },
+        }),
+      ),
+    );
+
+    await p.esy('install');
+    await p.esy('@another install');
+
+    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+      dependencies: {
+        dep: {name: 'dep', version: '1.0.0'},
+      },
+    });
+
+    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+      dependencies: {
+        dep: {name: 'dep', version: '2.0.0'},
+      },
+    });
+  });
+
   it('allows to override sandbox with resolutions', async function() {
     const p = await helpers.createTestSandbox();
 

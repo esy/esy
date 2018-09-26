@@ -285,14 +285,80 @@ let package ~(resolution : Resolution.t) resolver =
       buildEnvOverride = _;
 
       dependencies;
+      devDependencies;
       resolutions;
     } = override in
+
+    let applyNpmFormulaOverride dependencies override =
+      match dependencies with
+      | Package.Dependencies.NpmFormula formula ->
+        let formula =
+          let dependencies =
+            let f map req = StringMap.add req.Req.name req map in
+            List.fold_left ~f ~init:StringMap.empty formula
+          in
+          let dependencies =
+            StringMap.Override.apply dependencies override
+          in
+          StringMap.values dependencies
+        in
+        Package.Dependencies.NpmFormula formula
+      | Package.Dependencies.OpamFormula formula ->
+        (* remove all terms which we override *)
+        let formula =
+          let filter dep =
+            match StringMap.find_opt dep.Package.Dep.name override with
+            | None -> true
+            | Some _ -> false
+          in
+          formula
+          |> List.map ~f:(List.filter ~f:filter)
+          |> List.filter ~f:(function [] -> false | _ -> true)
+        in
+        (* now add all edits *)
+        let formula =
+          let edits =
+            let f _name override edits =
+              match override with
+              | StringMap.Override.Drop -> edits
+              | StringMap.Override.Edit req ->
+                begin match req.Req.spec with
+                | VersionSpec.Npm formula ->
+                  let f (c : SemverVersion.Constraint.t) =
+                    {Package.Dep. name = req.name; req = Npm c}
+                  in
+                  let formula = SemverVersion.Formula.ofDnfToCnf formula in
+                  (List.map ~f:(List.map ~f) formula) @ edits
+                | VersionSpec.Opam _ ->
+                  failwith "cannot override with opam version"
+                | VersionSpec.NpmDistTag _ ->
+                  failwith "cannot override opam with npm dist tag"
+                | VersionSpec.Source spec ->
+                  [{Package.Dep. name = req.name; req = Source spec}]::edits
+                end
+            in
+            StringMap.fold f override []
+          in
+          formula @ edits
+        in
+        Package.Dependencies.OpamFormula formula
+    in
+
     let pkg =
       match dependencies with
-      | Some dependencies -> {
+      | Some override -> {
           pkg with
           Package.
-          dependencies = Package.Dependencies.NpmFormula dependencies
+          dependencies = applyNpmFormulaOverride pkg.Package.dependencies override;
+        }
+      | None -> pkg
+    in
+    let pkg =
+      match devDependencies with
+      | Some override -> {
+          pkg with
+          Package.
+          devDependencies = applyNpmFormulaOverride pkg.Package.devDependencies override;
         }
       | None -> pkg
     in

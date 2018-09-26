@@ -86,6 +86,14 @@ module NpmFormula : sig
   include S.JSONABLE with type t := t
 end
 
+module NpmFormulaOverride : sig
+  type t = Req.t StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
 module Resolution : sig
   type t = {
     name : string;
@@ -104,7 +112,8 @@ module Resolution : sig
     exportedEnvOverride: ExportedEnvOverride.t option;
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormula.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
     resolutions : resolution StringMap.t option;
   }
 
@@ -139,7 +148,8 @@ module Overrides : sig
     exportedEnvOverride: ExportedEnvOverride.t option;
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormula.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
     resolutions : Resolution.resolution StringMap.t option;
   }
 
