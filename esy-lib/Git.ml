@@ -16,7 +16,8 @@ let runGit cmd =
         Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
   in
   try%lwt
-    EsyBashLwt.with_process_full cmd f
+    let cmd = Cmd.getToolAndLine cmd in
+    Lwt_process.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -26,8 +27,6 @@ let runGit cmd =
 
 let clone ?branch ?depth ~dst ~remote () =
   let open RunAsync.Syntax in
-  print_endline ("Git::clone");
-  let%bind cygPath = EsyBashLwt.normalizePathForCygwin (Path.show dst) in
   let cmd =
     let open Cmd in
     let cmd = v "git" % "clone" in
@@ -39,14 +38,13 @@ let clone ?branch ?depth ~dst ~remote () =
       | Some depth -> cmd % "--depth" % string_of_int depth
       | None -> cmd
     in
-    Cmd.(cmd % remote % cygPath)
+    Cmd.(cmd % remote % p dst)
   in
   let%bind _ = runGit cmd in
   return ()
 
 let pull ?(force=false) ?(ffOnly=false) ?depth ~remote ~repo ~branchSpec () =
   let open RunAsync.Syntax in
-  print_endline ("Git::pull");
   let cmd =
     let open Cmd in
     let cmd = v "git" % "-C" % p repo % "pull" in
@@ -75,9 +73,7 @@ let checkout ~ref ~repo () =
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
-  print_endline ("Git::lsRemote" ^ remote);
-  let%bind r = EsyBashLwt.normalizePathForCygwin remote in
-  let cmd = Cmd.(v "git"  % "ls-remote" % r) in
+  let cmd = Cmd.(v "git"  % "ls-remote" % remote) in
   let cmd =
     match ref with
     | Some ref -> Cmd.(cmd % ref)
