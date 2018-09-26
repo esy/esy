@@ -53,7 +53,6 @@ let unpackWithTar ?stripComponents ~dst filename =
     let max_ocaml_int = Int64.of_int max_int in
 
     let readFile input_channel (header : Tar_cstruct.Header.t) =
-      let () = Printf.printf "user_id: %d, link_indicator: %s" header.user_id header.link_name in
       let file_size = header.file_size in
       (* If this were to happen we'd have some pretty big problems... *)
       assert (file_size <= max_ocaml_int) ;
