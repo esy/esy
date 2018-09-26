@@ -7,8 +7,6 @@ type t = {
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
-  createProgressReporter:
-    (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
 and checkout =
   | Local(Path.t)
@@ -39,7 +37,6 @@ let make =
       ~esyOpamOverride=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
-      ~createProgressReporter,
       ~skipRepositoryUpdate,
       (),
     ) =>
@@ -82,7 +79,6 @@ let make =
         Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
       return({
-        createProgressReporter,
         esySolveCmd,
         cacheTarballsPath,
         opamArchivesIndexPath,

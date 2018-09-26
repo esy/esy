@@ -221,7 +221,7 @@ let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let universe = ref solver.universe in
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving esy packages" () in
+  let report, finish = Cli.createProgressReporter ~name:"resolving esy packages" () in
 
   let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -381,7 +381,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         return filename
       in
       let filenameOut = Path.(path / "out.cudf") in
-      let report, finish = solver.cfg.createProgressReporter ~name:"solving esy constraints" () in
+      let report, finish = Cli.createProgressReporter ~name:"solving esy constraints" () in
       let%lwt () = report "running solver" in
       let%bind () = runSolver filenameIn filenameOut in
       let%lwt () = finish () in
@@ -434,7 +434,7 @@ let solveDependenciesNaively
   (solver : t) =
   let open RunAsync.Syntax in
 
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
+  let report, finish = Cli.createProgressReporter ~name:"resolving npm packages" () in
 
   let installed =
     let tbl = Hashtbl.create 100 in

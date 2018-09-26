@@ -218,6 +218,23 @@ module CommonOptions = struct
             return rc.EsyRc.prefixPath
         in
 
+        let%bind installCfg =
+          let%bind esySolveCmd =
+            let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
+            return Cmd.(v (p cmd))
+          in
+          EsyInstall.Config.make
+            ~esySolveCmd
+            ~skipRepositoryUpdate
+            ?cachePath
+            ?cacheTarballsPath
+            ?npmRegistry
+            ?opamRepository
+            ?esyOpamOverride
+            ?solveTimeout
+            ()
+        in
+
         let%bind cfg =
           let%bind esyBuildPackageCommand =
             let%bind cmd = EsyRuntime.esyBuildPackageCommand in
@@ -238,38 +255,9 @@ module CommonOptions = struct
         in
 
         let%bind installSandbox =
-          let open EsyInstall in
-          let createProgressReporter ~name () =
-            let progress msg =
-              let status = Format.asprintf ".... %s %s" name msg in
-              Cli.ProgressReporter.setStatus status
-            in
-            let finish () =
-              let%lwt () = Cli.ProgressReporter.clearStatus () in
-              Logs_lwt.app (fun m -> m "%s: done" name)
-            in
-            (progress, finish)
-          in
-          let%bind esySolveCmd =
-              let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
-              return Cmd.(v (p cmd))
-          in
-          let%bind cfg =
-            Config.make
-              ~esySolveCmd
-              ~createProgressReporter
-              ~skipRepositoryUpdate
-              ?cachePath
-              ?cacheTarballsPath
-              ?npmRegistry
-              ?opamRepository
-              ?esyOpamOverride
-              ?solveTimeout
-              ()
-          in
-
-          Sandbox.make ~cfg spec
+          EsyInstall.Sandbox.make ~cfg:installCfg spec
         in
+
         return {cfg; installSandbox; spec;}
       in
       match Lwt_main.run copts with

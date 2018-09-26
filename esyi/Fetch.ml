@@ -644,7 +644,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
-    let report, finish = sandbox.cfg.Config.createProgressReporter ~name:"fetching" () in
+    let report, finish = Cli.createProgressReporter ~name:"fetching" () in
     let%bind items =
       let fetch record =
         let%bind dist =
@@ -675,7 +675,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
   let%bind installed =
     let queue = LwtTaskQueue.create ~concurrency:4 () in
-    let report, finish = sandbox.cfg.Config.createProgressReporter ~name:"installing" () in
+    let report, finish = Cli.createProgressReporter ~name:"installing" () in
     let f ({Layout.path; sourcePath;record;_} as installation) () =
       match Record.Map.find_opt record dists with
       | Some dist ->

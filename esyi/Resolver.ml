@@ -280,7 +280,6 @@ let package ~(resolution : Resolution.t) resolver =
       dependencies;
       resolutions;
     } = override in
-    Format.printf "B %a@." Package.Dependencies.pp pkg.Package.dependencies;
     let pkg =
       match dependencies with
       | Some dependencies -> {
@@ -300,7 +299,6 @@ let package ~(resolution : Resolution.t) resolver =
         {pkg with Package.resolutions;}
       | None -> pkg
     in
-    Format.printf "A %a@." Package.Dependencies.pp pkg.Package.dependencies;
     pkg
   in
 
