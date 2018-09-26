@@ -47,9 +47,6 @@ let run cmd =
 let unpackWithTar ?stripComponents ~dst filename =
   let open RunAsync.Syntax in
   let unpack out = 
-    let nf = Fpath.to_string filename in
-    let _normalizedOut = Fpath.to_string out in
-
     let max_ocaml_int = Int64.of_int max_int in
 
     let readFile input_channel (header : Tar_cstruct.Header.t) =
@@ -59,18 +56,17 @@ let unpackWithTar ?stripComponents ~dst filename =
       let buf = Cstruct.create (Int64.to_int file_size) in
       Tar_cstruct.really_read input_channel buf ;
 
-      let nameLength = String.length header.file_name in
-      let maxLength = nameLength - 2 in
-
-      let filename = Filename.concat (Fpath.to_string out) (String.sub header.file_name 2 maxLength) in
-
-      let filepath = match Path.ofString filename with
-      | Ok path -> path
-      | Error `Msg message -> failwith message
+      let removeLastCharIfSlash s =
+        match String.rindex_opt s '/' with
+        | Some i when i = String.length s - 1 -> String.sub s 0 (String.length s - 1)
+        | _ -> s
       in
+
       match Cstruct.to_string buf with
-      | "" -> Fs.createDir filepath
-      | data -> Fs.writeFile ~data filepath
+      | "" ->
+        let cleanedFoldername = removeLastCharIfSlash header.file_name in
+        Fs.createDir Path.(out // (v cleanedFoldername))
+      | data -> Fs.writeFile ~data Path.(out // (v header.file_name))
     in
 
     let rec readFiles ic =
@@ -85,7 +81,7 @@ let unpackWithTar ?stripComponents ~dst filename =
     in
 
     try
-      let ic = open_in_bin nf in
+      let ic = open_in_bin (Path.show filename) in
       let length = in_channel_length ic in
       let rawTarGz = really_input_string ic length in
 
