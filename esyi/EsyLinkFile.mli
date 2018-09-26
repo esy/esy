@@ -12,7 +12,7 @@ type t = {
   source : Source.t;
 
   (** Optional override. *)
-  override : Package.Override.t option;
+  overrides : Package.Overrides.t;
 
   (** opam metadata in case this is an installation from opam repository *)
   opam : Solution.Record.Opam.t option;

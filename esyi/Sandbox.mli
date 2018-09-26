@@ -22,6 +22,10 @@ type t = {
 
   (** OCaml version request defined for the sandbox. *)
   ocamlReq : Req.t option;
+
+  (** Resolver associated with a sandbox. *)
+  resolver : Resolver.t;
 }
 
 val make : cfg:Config.t -> SandboxSpec.t -> t RunAsync.t
+val ofSource : cfg:Config.t -> spec:SandboxSpec.t -> Source.t -> t RunAsync.t

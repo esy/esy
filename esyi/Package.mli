@@ -1,6 +1,173 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
+module Command : sig
+  type t =
+    | Parsed of string list
+    | Unparsed of string
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module CommandList : sig
+
+  type t = Command.t list
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+  val empty : t
+end
+
+module Env : sig
+  type t = item StringMap.t
+
+  and item = {
+    name : string;
+    value : string;
+  }
+
+  val empty : t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module EnvOverride : sig
+  type t = Env.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
+module ExportedEnv : sig
+  type t = item StringMap.t
+
+  and item = {
+    name : string;
+    value : string;
+    scope : scope;
+    exclusive : bool;
+  }
+
+  and scope = Local | Global
+
+  val empty : t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+
+end
+
+module ExportedEnvOverride : sig
+  type t = ExportedEnv.item StringMap.Override.t
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
+module NpmFormula : sig
+  type t = Req.t list
+  val empty : t
+
+  val override : t -> t -> t
+  val find : name:string -> t -> Req.t option
+
+  val pp : t Fmt.t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
+module Resolution : sig
+  type t = {
+    name : string;
+    resolution : resolution;
+  }
+
+  and resolution =
+    | Version of Version.t
+    | SourceOverride of {source : Source.t; override : override}
+
+  and override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : resolution StringMap.t option;
+  }
+
+  include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+end
+
+module Resolutions : sig
+  type t
+
+  val empty : t
+  val add : string -> Resolution.resolution -> t -> t
+  val find : t -> string -> Resolution.t option
+
+  val entries : t -> Resolution.t list
+
+  val to_yojson : t Json.encoder
+  val of_yojson : t Json.decoder
+
+  val digest : t -> string
+end
+
+(** Overrides collection. *)
+module Overrides : sig
+  type t
+
+  type override = Resolution.override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormula.t option;
+    resolutions : Resolution.resolution StringMap.t option;
+  }
+
+  val isEmpty : t -> bool
+  (** If overrides are empty. *)
+
+  val empty : t
+  (** Empty overrides. *)
+
+  val add : override -> t -> t
+  (* [add overrides override] adds single e[override] on top of [overrides]. *)
+
+  val addMany : t -> t -> t
+  (* [addMany overrides newOverrides] adds [newOverrides] on top of [overrides]. *)
+
+  val apply : t -> ('v -> override -> 'v) -> 'v -> 'v
+  (**
+   * [apply overrides f v] applies [overrides] one at a time in a specific
+   * order to [v] using [f] and returns a modified (overridden) value.
+   *)
+
+  include S.JSONABLE with type t := t
+
+  val override_of_yojson : override Json.decoder
+  val override_to_yojson : override Json.encoder
+end
+
+
 module Dep : sig
   type t = {
     name : string;
@@ -14,57 +181,12 @@ module Dep : sig
     | Source of SourceSpec.t
 
   val pp : t Fmt.t
-  val matches : name : string -> version : Version.t -> t -> bool
-end
-
-module Override : sig
-
-  type t = {
-    buildType : BuildType.t option;
-    build : PackageJson.CommandList.t option;
-    install : PackageJson.CommandList.t option;
-    exportedEnv: PackageJson.ExportedEnv.t option;
-    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option;
-    buildEnv: PackageJson.Env.t option;
-    buildEnvOverride: PackageJson.EnvOverride.t option;
-    dependencies : PackageJson.Dependencies.t option;
-  }
-
-  include S.JSONABLE with type t := t
-end
-
-module Resolution : sig
-  type t = {
-    name : string;
-    resolution : resolution;
-  }
-
-  and resolution =
-    | Version of Version.t
-    | SourceOverride of {source : Source.t; override : Override.t}
-
-  include S.COMPARABLE with type t := t
-  include S.PRINTABLE with type t := t
-end
-
-module Resolutions : sig
-  type t
-
-  val empty : t
-  val find : t -> string -> Resolution.t option
-
-  val entries : t -> Resolution.t list
-
-  val to_yojson : t Json.encoder
-  val of_yojson : t Json.decoder
-
-  val digest : t -> string
 end
 
 module Dependencies : sig
   type t =
     | OpamFormula of Dep.t disj conj
-    | NpmFormula of Req.t conj
+    | NpmFormula of NpmFormula.t
 
   include S.PRINTABLE with type t := t
 
@@ -98,11 +220,11 @@ module OpamOverride : sig
   end
 
   type t = {
-    build : PackageJson.CommandList.t option;
-    install : PackageJson.CommandList.t option;
-    dependencies : PackageJson.Dependencies.t;
-    peerDependencies : PackageJson.Dependencies.t;
-    exportedEnv : PackageJson.ExportedEnv.t;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    dependencies : NpmFormula.t;
+    peerDependencies : NpmFormula.t;
+    exportedEnv : ExportedEnv.t;
     opam : Opam.t;
   }
 
@@ -150,9 +272,10 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : Source.t * Source.t list;
-  override : Override.t option;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
+  resolutions : Resolutions.t;
   opam : Opam.t option;
   kind : kind;
 }
@@ -162,16 +285,9 @@ and kind =
   | Npm
 
 val isOpamPackageName : string -> bool
+
 val pp : t Fmt.t
 val compare : t -> t -> int
-
-val ofPackageJson :
-  name:string
-  -> version:Version.t
-  -> source:Source.t
-  -> PackageJson.t
-  -> t
-(** Convert package.json into a package *)
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

@@ -218,6 +218,23 @@ module CommonOptions = struct
             return rc.EsyRc.prefixPath
         in
 
+        let%bind installCfg =
+          let%bind esySolveCmd =
+            let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
+            return Cmd.(v (p cmd))
+          in
+          EsyInstall.Config.make
+            ~esySolveCmd
+            ~skipRepositoryUpdate
+            ?cachePath
+            ?cacheTarballsPath
+            ?npmRegistry
+            ?opamRepository
+            ?esyOpamOverride
+            ?solveTimeout
+            ()
+        in
+
         let%bind cfg =
           let%bind esyBuildPackageCommand =
             let%bind cmd = EsyRuntime.esyBuildPackageCommand in
@@ -228,7 +245,8 @@ module CommonOptions = struct
             return (Cmd.v cmd)
           in
           RunAsync.ofRun (
-            Config.create
+            Config.make
+              ~installCfg
               ~esyBuildPackageCommand
               ~fastreplacestringCommand
               ~esyVersion:EsyRuntime.version
@@ -238,38 +256,9 @@ module CommonOptions = struct
         in
 
         let%bind installSandbox =
-          let open EsyInstall in
-          let createProgressReporter ~name () =
-            let progress msg =
-              let status = Format.asprintf ".... %s %s" name msg in
-              Cli.ProgressReporter.setStatus status
-            in
-            let finish () =
-              let%lwt () = Cli.ProgressReporter.clearStatus () in
-              Logs_lwt.app (fun m -> m "%s: done" name)
-            in
-            (progress, finish)
-          in
-          let%bind esySolveCmd =
-              let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
-              return Cmd.(v (p cmd))
-          in
-          let%bind cfg =
-            Config.make
-              ~esySolveCmd
-              ~createProgressReporter
-              ~skipRepositoryUpdate
-              ?cachePath
-              ?cacheTarballsPath
-              ?npmRegistry
-              ?opamRepository
-              ?esyOpamOverride
-              ?solveTimeout
-              ()
-          in
-
-          Sandbox.make ~cfg spec
+          EsyInstall.Sandbox.make ~cfg:installCfg spec
         in
+
         return {cfg; installSandbox; spec;}
       in
       match Lwt_main.run copts with
@@ -289,7 +278,6 @@ module CommonOptions = struct
     ))
 
 end
-
 
 module SandboxInfo = struct
   type t = {
@@ -1145,9 +1133,9 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
     let%bind path =
       let spec = copts.installSandbox.Sandbox.spec in
       match spec.manifest with
-      | SandboxSpec.ManifestSpec.Esy fname -> return Path.(spec.SandboxSpec.path / fname)
-      | Opam _ -> error aggOpamErrorMsg
-      | OpamAggregated _ -> error aggOpamErrorMsg
+      | ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
+      | One (Opam, _) -> error aggOpamErrorMsg
+      | ManyOpam _ -> error aggOpamErrorMsg
       in
       return (addedDependencies, path)
     in

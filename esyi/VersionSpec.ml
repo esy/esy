@@ -1,13 +1,13 @@
 type t =
   | Npm of SemverVersion.Formula.DNF.t
-  | NpmDistTag of string * SemverVersion.Version.t option
+  | NpmDistTag of string
   | Opam of OpamPackageVersion.Formula.DNF.t
   | Source of SourceSpec.t
   [@@deriving ord]
 
 let show = function
   | Npm formula -> SemverVersion.Formula.DNF.show formula
-  | NpmDistTag (tag, _version) -> tag
+  | NpmDistTag tag -> tag
   | Opam formula -> OpamPackageVersion.Formula.DNF.show formula
   | Source src -> SourceSpec.show src
 
@@ -15,25 +15,6 @@ let pp fmt spec =
   Fmt.string fmt (show spec)
 
 let to_yojson src = `String (show src)
-
-let matches ~version spec =
-  match spec, version with
-  | Npm formula, Version.Npm version ->
-    SemverVersion.Formula.DNF.matches ~version formula
-  | Npm _, _ -> false
-
-  | NpmDistTag (_tag, Some resolvedVersion), Version.Npm version ->
-    SemverVersion.Version.compare resolvedVersion version = 0
-  | NpmDistTag (_tag, None), Version.Npm _ -> assert false
-  | NpmDistTag (_tag, _), _ -> false
-
-  | Opam formula, Version.Opam version ->
-    OpamPackageVersion.Formula.DNF.matches ~version formula
-  | Opam _, _ -> false
-
-  | Source srcSpec, Version.Source src ->
-    SourceSpec.matches ~source:src srcSpec
-  | Source _, _ -> false
 
 let ofVersion (version : Version.t) =
   match version with
@@ -53,7 +34,7 @@ module Parse = struct
      * this is a simplified check for that. *)
     let p =
       let%map tag = take_while1 (fun _ -> true) in
-      NpmDistTag (tag, None)
+      NpmDistTag tag
     in
     match%bind peek_char_fail with
     | 'v' | '0'..'9' -> fail "unable to parse npm tag"

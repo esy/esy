@@ -5,13 +5,8 @@ type t = {
   dependencies : Package.Dependencies.t;
   resolutions : Package.Resolutions.t;
   ocamlReq : Req.t option;
+  resolver : Resolver.t;
 }
-
-module PackageJsonWithResolutions = struct
-  type t = {
-    resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
-  } [@@deriving of_yojson { strict = false }]
-end
 
 let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
@@ -19,6 +14,8 @@ let ocamlReqAny =
 
 let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
+
+  let%bind resolver = Resolver.make ~cfg () in
 
   let%bind opams =
 
@@ -78,12 +75,14 @@ let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         source = source, [];
-        override = None;
+        overrides = Package.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
+        resolutions = Package.Resolutions.empty;
         opam = None;
         kind = Esy;
       };
+      resolver;
       resolutions = Package.Resolutions.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       ocamlReq = Some ocamlReqAny;
@@ -113,9 +112,10 @@ let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       source = source, [];
-      override = None;
+      overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
+      resolutions = Package.Resolutions.empty;
       opam = None;
       kind = Package.Esy;
     } in
@@ -129,56 +129,65 @@ let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
       spec;
       root;
       resolutions = Package.Resolutions.empty;
+      resolver;
       dependencies;
       ocamlReq = Some ocamlReqAny;
     }
 
-let makeEsySandbox ~cfg ~spec projectPath path =
+let ofSource ~cfg ~spec source =
   let open RunAsync.Syntax in
-  let%bind json = Fs.readJsonFile path in
 
-  let%bind pkgJson = RunAsync.ofRun (
-    Json.parseJsonWith PackageJson.of_yojson json
-  ) in
-
-  let%bind resolutions = RunAsync.ofRun (
-    let open Run.Syntax in
-    let%bind data = Json.parseJsonWith PackageJsonWithResolutions.of_yojson json in
-    return data.PackageJsonWithResolutions.resolutions
-  ) in
-
-  let root =
-    let source = Source.LocalPath {path = Path.v "."; manifest = None;} in
+  let%bind resolution =
     let version = Version.Source source in
-    let name = Path.basename projectPath in
-    Package.ofPackageJson ~name ~version ~source pkgJson
+    return {
+      Package.Resolution.
+      name = "root";
+      resolution = Version version;
+    }
   in
 
-  let sandboxDependencies, ocamlReq =
-    match root.Package.dependencies with
-    | Package.Dependencies.OpamFormula _ ->
-      root.dependencies, Some ocamlReqAny
-    | Package.Dependencies.NpmFormula reqs ->
-      let reqs = PackageJson.Dependencies.override reqs pkgJson.devDependencies in
-      Package.Dependencies.NpmFormula reqs,
-      PackageJson.Dependencies.find ~name:"ocaml" reqs
+  let%bind resolver =
+    Resolver.make ~cfg ()
   in
 
-  return {
-    cfg;
-    spec;
-    root;
-    resolutions;
-    ocamlReq;
-    dependencies = sandboxDependencies;
-  }
+  match%bind Resolver.package ~resolution resolver with
+  | Ok root ->
+
+    let dependencies, ocamlReq =
+      match root.Package.dependencies, root.devDependencies with
+      | Package.Dependencies.OpamFormula _, Package.Dependencies.OpamFormula _ ->
+        root.dependencies, Some ocamlReqAny
+      | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
+        let deps = Package.NpmFormula.override deps devDeps in
+        let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
+        Package.Dependencies.NpmFormula deps, ocamlReq
+      | Package.Dependencies.NpmFormula _, _
+      | Package.Dependencies.OpamFormula _, _  ->
+        failwith "mixing npm and opam dependencies"
+    in
+
+    Resolver.setResolutions root.resolutions resolver;
+
+    return {
+      cfg;
+      spec;
+      root;
+      resolutions = root.resolutions;
+      ocamlReq;
+      dependencies;
+      resolver;
+    }
+  | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
   match spec.manifest with
-  | SandboxSpec.ManifestSpec.Esy fname ->
-    makeEsySandbox ~cfg ~spec spec.path Path.(spec.path / fname)
-  | SandboxSpec.ManifestSpec.Opam fname ->
-    makeOpamSandbox ~cfg ~spec spec.path [Path.(spec.path / fname)]
-  | SandboxSpec.ManifestSpec.OpamAggregated fnames ->
+  | ManifestSpec.One (Esy, fname)
+  | ManifestSpec.One (Opam, fname) ->
+    let source = "path:" ^ Path.(spec.path / fname |> show) in
+    begin match Source.parse source with
+    | Ok source -> ofSource ~cfg ~spec source
+    | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
+    end
+  | ManifestSpec.ManyOpam fnames ->
     let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
     makeOpamSandbox ~cfg ~spec spec.path paths
