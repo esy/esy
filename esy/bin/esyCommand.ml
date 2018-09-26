@@ -245,7 +245,8 @@ module CommonOptions = struct
             return (Cmd.v cmd)
           in
           RunAsync.ofRun (
-            Config.create
+            Config.make
+              ~installCfg
               ~esyBuildPackageCommand
               ~fastreplacestringCommand
               ~esyVersion:EsyRuntime.version
@@ -277,7 +278,6 @@ module CommonOptions = struct
     ))
 
 end
-
 
 module SandboxInfo = struct
   type t = {

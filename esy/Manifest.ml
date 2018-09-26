@@ -12,6 +12,8 @@ module Command = Package.Command
 module CommandList = Package.CommandList
 module ExportedEnv = Package.ExportedEnv
 module Env = Package.Env
+module SourceResolver = EsyInstall.SourceResolver
+module Overrides = EsyInstall.Package.Overrides
 
 module Build = struct
 
@@ -181,6 +183,7 @@ module EsyManifest : sig
   include MANIFEST
 
   val ofFile : Path.t -> t RunAsync.t
+  val ofString : filename:string -> string -> t Run.t
 end = struct
 
   module EsyManifest = struct
@@ -286,11 +289,11 @@ end = struct
       substs = [];
     }
 
-  let ofJsonManifest (jsonManifest: JsonManifest.t) (path: Path.t) =
+  let ofJsonManifest ~defaultName (jsonManifest: JsonManifest.t) =
     let name =
       match jsonManifest.name with
       | Some name  -> name
-      | None -> Path.basename path
+      | None -> defaultName
     in
     let version =
       match jsonManifest.version with
@@ -310,13 +313,26 @@ end = struct
       esy = jsonManifest.esy;
     }
 
+  let ofString ~filename (data : string) =
+    let open Run.Syntax in
+    let%bind json = Json.parse data in
+    let%bind jsonManifest = Json.parseJsonWith JsonManifest.of_yojson json in
+    let manifest =
+      let defaultName = Path.(v filename |> remExt |> show) in
+      ofJsonManifest ~defaultName jsonManifest
+    in
+    return (manifest, json)
+
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind json = Fs.readJsonFile path in
     let%bind jsonManifest =
       RunAsync.ofRun (Json.parseJsonWith JsonManifest.of_yojson json)
     in
-    let manifest = ofJsonManifest jsonManifest path in
+    let manifest =
+      let defaultName = Path.basename path in
+      ofJsonManifest ~defaultName jsonManifest
+    in
     return (manifest, json)
 
 end
@@ -336,21 +352,25 @@ let listPackageNamesOfFormula ~build ~test ~post ~doc ~dev formula =
   in
   List.map ~f:(List.map ~f) cnf
 
+let parseOpam data =
+  if String.trim data = ""
+  then None
+  else Some (OpamFile.OPAM.read_from_string data)
+
 let readOpam path =
   let open RunAsync.Syntax in
   let%bind data = Fs.readFile path in
-  if String.trim data = ""
-  then return None
-  else
-    let opam = OpamFile.OPAM.read_from_string data in
-    let name = Path.(path |> remExt |> basename) in
-    return (Some (name, opam))
+  let name = Path.(path |> remExt |> basename) in
+  match parseOpam data with
+  | Some opam -> return (Some (name, opam))
+  | None -> return None
 
 module OpamManifest : sig
   include MANIFEST
 
   val ofInstallationDir : Path.t -> t option RunAsync.t
   val ofFile : Path.t -> t RunAsync.t
+  val ofString : filename:string -> string -> t Run.t
 end = struct
   type t = EsyInstall.Solution.Record.Opam.t
 
@@ -493,6 +513,21 @@ end = struct
     | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
       return (Some info)
 
+  let ofString ~filename (data : string) =
+    let open Run.Syntax in
+    let name = Path.(v filename |> remExt |> show) in
+    match parseOpam data with
+    | None -> error "empty opam file"
+    | Some opam ->
+      let version = "dev" in
+      return {
+        EsyInstall.Solution.Record.Opam.
+        name = OpamPackage.Name.of_string name;
+        version = OpamPackage.Version.of_string version;
+        opam;
+        override = None;
+      }
+
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     match%bind readOpam path with
@@ -625,7 +660,10 @@ module Manifest : sig
   include MANIFEST
 
   val dirHasManifest : Path.t -> bool RunAsync.t
-  val ofSandboxSpec : SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+  val ofSandboxSpec :
+    cfg:Config.t
+    -> SandboxSpec.t
+    -> (t * EsyInstall.Package.Overrides.t * Path.Set.t) RunAsync.t
   val ofDir :
     ?manifest:ManifestSpec.Filename.t
     -> Path.t
@@ -672,7 +710,7 @@ end = struct
         let manifest = manifest
       end : QUERY_MANIFEST)
     in
-    return (m, Path.Set.of_list paths)
+    return (m, Overrides.empty, Path.Set.of_list paths)
 
   let loadOpamManifestOfInstallation path =
     let open RunAsync.Syntax in
@@ -738,14 +776,36 @@ end = struct
       in
       return (Some manifest)
 
-  let ofSandboxSpec (spec : SandboxSpec.t) =
+  let ofSandboxSpec ~cfg (spec : SandboxSpec.t) =
+
+    let readManifest ~path overrides {SourceResolver. kind; filename; data} =
+      let open Run.Syntax in
+      match kind with
+      | ManifestSpec.Filename.Esy ->
+        let%bind manifest = EsyManifest.ofString ~filename data in
+        let m = (module struct include EsyManifest let manifest = manifest end : QUERY_MANIFEST) in
+        return (m, overrides, Path.Set.singleton path)
+      | ManifestSpec.Filename.Opam ->
+        let%bind manifest = OpamManifest.ofString ~filename data in
+        let m = (module struct include OpamManifest let manifest = manifest end : QUERY_MANIFEST) in
+        return (m, overrides, Path.Set.singleton path)
+    in
+
     match spec.manifest with
-    | ManifestSpec.One (Esy, fname) ->
+    | ManifestSpec.One (_, fname) ->
+      let open RunAsync.Syntax in
       let path = Path.(spec.path / fname) in
-      loadEsyManifest path
-    | ManifestSpec.One (Opam, fname) ->
-      let path = Path.(spec.path / fname) in
-      loadOpamManifestOfFiles [path]
+      let%bind source = RunAsync.ofStringError (
+        let source = "path:" ^ (Path.show path) in
+        EsyInstall.Source.parse source
+      ) in
+      let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
+        SourceResolver.resolve ~cfg:cfg.Config.installCfg source
+      in
+      begin match manifest with
+      | None -> errorf "no manifest found at %a" Source.pp resolvedSource
+      | Some manifest -> RunAsync.ofRun (readManifest ~path overrides manifest)
+      end
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       loadOpamManifestOfFiles paths

@@ -387,10 +387,9 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       let asRoot = Path.compare path spec.path = 0 in
       if asRoot
       then
-        let%bind m = Manifest.ofSandboxSpec spec in
+        let%bind m, override, paths = Manifest.ofSandboxSpec ~cfg spec in
         let source = Source.LocalPathLink {path; manifest = None} in
-        let override = EsyInstall.Package.Overrides.empty in
-        return (Some m, source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, override)
+        return (Some (m, paths), source, path, EsyInstall.SandboxSpec.nodeModulesPath spec, override)
       else
         let%bind link = EsyLinkFile.ofDir path in
         let sourcePath =

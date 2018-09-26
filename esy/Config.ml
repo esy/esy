@@ -6,11 +6,13 @@ type t = {
   storePath : Path.t;
   fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
+  installCfg : EsyInstall.Config.t;
 }
 
 let defaultPrefixPath = Path.v "~/.esy"
 
-let create
+let make
+  ~installCfg
   ~fastreplacestringCommand
   ~esyBuildPackageCommand
   ~esyVersion
@@ -31,6 +33,7 @@ let create
     let storePath = Path.(prefixPath / (Store.version ^ padding)) in
 
     return {
+      installCfg;
       esyVersion;
       prefixPath;
       storePath;

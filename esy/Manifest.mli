@@ -132,6 +132,9 @@ val ofDir :
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
 
-val ofSandboxSpec : EsyInstall.SandboxSpec.t -> (t * Path.Set.t) RunAsync.t
+val ofSandboxSpec :
+  cfg:Config.t
+  -> EsyInstall.SandboxSpec.t
+  -> (t * EsyInstall.Package.Overrides.t * Path.Set.t) RunAsync.t
 
 val dirHasManifest : Fpath.t -> bool RunAsync.t
