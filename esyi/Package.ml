@@ -266,6 +266,7 @@ module Resolution = struct
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
     dependencies : NpmFormula.t option;
+    devDependencies : NpmFormula.t option;
     resolutions : resolution StringMap.t option;
   }
 
@@ -285,6 +286,7 @@ module Resolution = struct
       buildEnv;
       buildEnvOverride;
       dependencies;
+      devDependencies;
       resolutions;
     } = override in
     `Assoc (
@@ -297,6 +299,7 @@ module Resolution = struct
       |> addIfSome Env.to_yojson "buildEnv" buildEnv
       |> addIfSome EnvOverride.to_yojson "buildEnvOverride" buildEnvOverride
       |> addIfSome NpmFormula.to_yojson "dependencies" dependencies
+      |> addIfSome NpmFormula.to_yojson "devDependencies" devDependencies
       |> addIfSome (StringMap.to_yojson resolution_to_yojson) "resolutions" resolutions
     )
 
@@ -320,6 +323,7 @@ module Resolution = struct
     let%bind buildEnv = field ~name:"buildEnv" Env.of_yojson json in
     let%bind buildEnvOverride = field ~name:"buildEnvOverride" EnvOverride.of_yojson json in
     let%bind dependencies = field ~name:"dependencies" NpmFormula.of_yojson json in
+    let%bind devDependencies = field ~name:"devDependencies" NpmFormula.of_yojson json in
     let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
     return {
       buildType;
@@ -330,6 +334,7 @@ module Resolution = struct
       buildEnv;
       buildEnvOverride;
       dependencies;
+      devDependencies;
       resolutions;
     }
 
@@ -435,6 +440,7 @@ module Overrides = struct
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
     dependencies : NpmFormula.t option;
+    devDependencies : NpmFormula.t option;
     resolutions : Resolution.resolution StringMap.t option;
   }
 

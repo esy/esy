@@ -133,6 +133,7 @@ let applyPkgOverride (pkg : Package.t) (override : Overrides.override) =
     buildEnvOverride;
 
     dependencies = _;
+    devDependencies = _;
     resolutions = _;
   } = override in
 
@@ -238,6 +239,7 @@ let applyDependendenciesOverride (deps : Manifest.Dependencies.t) (override : Ov
     buildEnvOverride = _;
 
     dependencies;
+    devDependencies;
     resolutions = _;
   } = override in
 
@@ -254,6 +256,21 @@ let applyDependendenciesOverride (deps : Manifest.Dependencies.t) (override : Ov
       }
     | None -> deps
   in
+
+  let deps =
+    match devDependencies with
+    | Some dependenciesOverride ->
+      let dependenciesOverride =
+        let f req = [req.EsyInstall.Req.name] in
+        List.map ~f dependenciesOverride
+      in
+      {
+        deps with
+        Manifest.Dependencies. devDependencies = dependenciesOverride;
+      }
+    | None -> deps
+  in
+
   deps
 
 let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =

@@ -285,6 +285,7 @@ let package ~(resolution : Resolution.t) resolver =
       buildEnvOverride = _;
 
       dependencies;
+      devDependencies;
       resolutions;
     } = override in
     let pkg =
@@ -293,6 +294,15 @@ let package ~(resolution : Resolution.t) resolver =
           pkg with
           Package.
           dependencies = Package.Dependencies.NpmFormula dependencies
+        }
+      | None -> pkg
+    in
+    let pkg =
+      match devDependencies with
+      | Some devDependencies -> {
+          pkg with
+          Package.
+          devDependencies = Package.Dependencies.NpmFormula devDependencies
         }
       | None -> pkg
     in

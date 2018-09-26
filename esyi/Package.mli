@@ -105,6 +105,7 @@ module Resolution : sig
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
     dependencies : NpmFormula.t option;
+    devDependencies : NpmFormula.t option;
     resolutions : resolution StringMap.t option;
   }
 
@@ -140,6 +141,7 @@ module Overrides : sig
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
     dependencies : NpmFormula.t option;
+    devDependencies : NpmFormula.t option;
     resolutions : Resolution.resolution StringMap.t option;
   }
 
