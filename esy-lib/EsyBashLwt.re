@@ -15,6 +15,14 @@ let getMingwRuntimePath = () => {
   };
 };
 
+let normalizePathForCygwin = (p) => {
+  let outputPath = EsyBash.normalizePathForCygwin(Fpath.to_string(p));
+  switch (outputPath) {
+  | Ok(v) => RunAsync.return(Fpath.v(v))
+  | _ => RunAsync.return(p)
+    };
+}
+
 let getMingwEnvironmentOverride = () =>
   RunAsync.Syntax.(
     switch (System.Platform.host) {

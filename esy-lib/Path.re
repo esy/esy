@@ -63,7 +63,12 @@ let compare = Fpath.compare;
 
 /* PRINTABLE */
 
-let show = Fpath.to_string;
+let show = (p) => {
+    let ret = Fpath.to_string(p);
+    normalizePathSlashes(ret);
+};
+
+
 let pp = Fpath.pp;
 let toPrettyString = p =>
   Run.Syntax.(

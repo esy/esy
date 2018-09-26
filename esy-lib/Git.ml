@@ -27,6 +27,7 @@ let runGit cmd =
 
 let clone ?branch ?depth ~dst ~remote () =
   let open RunAsync.Syntax in
+  let%bind cygPath = EsyBashLwt.normalizePathForCygwin dst in
   let cmd =
     let open Cmd in
     let cmd = v "git" % "clone" in
@@ -38,7 +39,7 @@ let clone ?branch ?depth ~dst ~remote () =
       | Some depth -> cmd % "--depth" % string_of_int depth
       | None -> cmd
     in
-    Cmd.(cmd % remote % p dst)
+    Cmd.(cmd % remote % p cygPath)
   in
   let%bind _ = runGit cmd in
   return ()
@@ -73,7 +74,8 @@ let checkout ~ref ~repo () =
 
 let lsRemote ?ref ~remote () =
   let open RunAsync.Syntax in
-  let cmd = Cmd.(v "git"  % "ls-remote" % remote) in
+  let%bind r = EsyBashLwt.normalizePathForCygwin (Fpath.v remote) in
+  let cmd = Cmd.(v "git"  % "ls-remote" % p r) in
   let cmd =
     match ref with
     | Some ref -> Cmd.(cmd % ref)

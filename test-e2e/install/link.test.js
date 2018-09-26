@@ -5,8 +5,6 @@ const helpers = require('../test/helpers');
 
 const {packageJson, file, dir} = helpers;
 
-helpers.skipSuiteOnWindows();
-
 describe(`installing linked packages`, () => {
   test('it should install linked packages', async () => {
     const fixture = [
