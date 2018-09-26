@@ -63,9 +63,9 @@ let compare = Fpath.compare;
 
 /* PRINTABLE */
 
-let show = (p) => {
-    let ret = Fpath.to_string(p);
-    normalizePathSlashes(ret);
+let show = p => {
+  let ret = Fpath.to_string(p);
+  normalizePathSlashes(ret);
 };
 
 let pp = Fpath.pp;
