@@ -76,7 +76,9 @@ let unpackWithTar ?stripComponents ~dst filename =
 
     let rec readFiles ic =
       match Tar_cstruct.Archive.with_next_file ic readFile with
-      | exception Tar_cstruct.Header.Checksum_mismatch -> readFiles ic
+      | exception Tar_cstruct.Header.Checksum_mismatch ->
+        let () = print_endline "Checksum mismatch found" in
+        readFiles ic
       | exception Tar_cstruct.Header.End_of_stream -> RunAsync.return ()
       | run -> 
         let%bind() = run in
