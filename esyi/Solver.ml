@@ -362,26 +362,9 @@ let solveDependencies ~installed ~strategy dependencies solver =
       % p filenameOut
     ) in
 
-    let f p =
-      let readAndClose ic =
-        Lwt.finalize
-          (fun () -> Lwt_io.read ic)
-          (fun () -> Lwt_io.close ic)
-      in
-      let%lwt stdout = readAndClose p#stdout
-          and stderr = readAndClose p#stderr in
-      match%lwt p#status with
-      | Unix.WEXITED 0 ->
-        RunAsync.return ()
-      | _ ->
-        RunAsync.errorf
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-    in
-
-    let cmd = Cmd.getToolAndLine cmd in
     try%lwt
-      Lwt_process.with_process_full cmd f
+      let%bind env = EsyLib.EsyBashLwt.getMingwEnvironmentOverride () in
+      ChildProcess.run ~env cmd
     with
     | Unix.Unix_error (err, _, _) ->
       let msg = Unix.error_message err in
@@ -413,6 +396,11 @@ let solveDependencies ~installed ~strategy dependencies solver =
   } in
   let preamble = Cudf.default_preamble in
 
+  (* The solution has CRLF on Windows, which breaks the parser *)
+  let normalizeSolutionData s = 
+      Str.global_replace (Str.regexp_string ("\r\n")) "\n" s 
+  in
+
   let solution =
     let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
@@ -434,6 +422,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         if String.length dataOut = 0
         then return None
         else (
+          let dataOut = normalizeSolutionData dataOut in
           let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )

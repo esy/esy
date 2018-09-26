@@ -20,7 +20,7 @@ install:
 
 build_script:
      - npm run build
-     - npm run test:e2e
+     - jest --runInBand test-e2e
      - npm run test:unit
      - npm run release:make-platform-package
 

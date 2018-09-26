@@ -251,10 +251,6 @@ module CommonOptions = struct
             (progress, finish)
           in
           let%bind esySolveCmd =
-            match System.Platform.host with
-            | Windows ->
-              return (Cmd.v "esy-solve-cudf/esySolveCudfCommand.exe")
-            | _ ->
               let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
               return Cmd.(v (p cmd))
           in
