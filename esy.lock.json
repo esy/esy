@@ -1,5 +1,5 @@
 {
-  "hash": "72f4d532f2c48403d3adbff71b0581dd",
+  "hash": "e21e73932b49f6d81f458d65159a4c2a",
   "root": "esy@path:.",
   "node": {
     "yauzl@2.10.0": {
@@ -287,7 +287,7 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "browser-process-hrtime@0.1.2" ]
+      "dependencies": [ "browser-process-hrtime@0.1.3" ]
     },
     "verror@1.10.0": {
       "record": {
@@ -654,12 +654,12 @@
         "read-pkg-up@1.0.1", "require-main-filename@1.0.1"
       ]
     },
-    "tar-stream@1.6.1": {
+    "tar-stream@1.6.2": {
       "record": {
         "name": "tar-stream",
-        "version": "1.6.1",
+        "version": "1.6.2",
         "source":
-          "archive:https://registry.npmjs.org/tar-stream/-/tar-stream-1.6.1.tgz#sha1:f84ef1696269d6223ca48f6e1eeede3f7e81f395",
+          "archive:https://registry.npmjs.org/tar-stream/-/tar-stream-1.6.2.tgz#sha1:8ea55dab37972253d9a9af90fdcd559ae435c555",
         "files": [],
         "opam": null
       },
@@ -679,7 +679,7 @@
         "opam": null
       },
       "dependencies": [
-        "chownr@1.1.1", "mkdirp@0.5.1", "pump@1.0.3", "tar-stream@1.6.1"
+        "chownr@1.1.1", "mkdirp@0.5.1", "pump@1.0.3", "tar-stream@1.6.2"
       ]
     },
     "tar@4.4.6": {
@@ -2176,7 +2176,7 @@
         "name": "p-is-promise",
         "version": "1.1.0",
         "source":
-          "archive:https://registry.npmjs.org/p-is-promise/-/p-is-promise-1.1.0.tgz#sha1:9c9456989e9f6588017b0434d56097675c3da05e",
+          "archive:http://registry.npmjs.org/p-is-promise/-/p-is-promise-1.1.0.tgz#sha1:9c9456989e9f6588017b0434d56097675c3da05e",
         "files": [],
         "opam": null
       },
@@ -2546,7 +2546,7 @@
         "opam": null
       },
       "dependencies": [
-        "detect-libc@1.0.3", "mkdirp@0.5.1", "needle@2.2.3", "nopt@4.0.1",
+        "detect-libc@1.0.3", "mkdirp@0.5.1", "needle@2.2.4", "nopt@4.0.1",
         "npm-packlist@1.1.11", "npmlog@4.1.2", "rc@1.2.8", "rimraf@2.6.2",
         "semver@5.5.1", "tar@4.4.6"
       ]
@@ -2575,12 +2575,12 @@
       },
       "dependencies": []
     },
-    "needle@2.2.3": {
+    "needle@2.2.4": {
       "record": {
         "name": "needle",
-        "version": "2.2.3",
+        "version": "2.2.4",
         "source":
-          "archive:https://registry.npmjs.org/needle/-/needle-2.2.3.tgz#sha1:c1b04da378cd634d8befe2de965dc2cfb0fd65ca",
+          "archive:https://registry.npmjs.org/needle/-/needle-2.2.4.tgz#sha1:51931bff82533b1928b7d1d69e01f1b00ffd2a4e",
         "files": [],
         "opam": null
       },
@@ -3832,16 +3832,16 @@
       },
       "dependencies": []
     },
-    "is-symbol@1.0.1": {
+    "is-symbol@1.0.2": {
       "record": {
         "name": "is-symbol",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "source":
-          "archive:https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.1.tgz#sha1:3cc59f00025194b6ab2e38dbae6689256b660572",
+          "archive:https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.2.tgz#sha1:a055f6ae57192caee329e7a860118b497a950f38",
         "files": [],
         "opam": null
       },
-      "dependencies": []
+      "dependencies": [ "has-symbols@1.0.0" ]
     },
     "is-stream@1.1.0": {
       "record": {
@@ -4512,6 +4512,17 @@
         "opam": null
       },
       "dependencies": [ "has-symbol-support-x@1.4.2" ]
+    },
+    "has-symbols@1.0.0": {
+      "record": {
+        "name": "has-symbols",
+        "version": "1.0.0",
+        "source":
+          "archive:https://registry.npmjs.org/has-symbols/-/has-symbols-1.0.0.tgz#sha1:ba1a8f1af2a0fc39650f5c850367704122063b44",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
     },
     "has-symbol-support-x@1.4.2": {
       "record": {
@@ -5343,68 +5354,12 @@
       },
       "dependencies": [ "merge@1.2.0" ]
     },
-    "esy-test-build@path:.": {
-      "record": {
-        "name": "esy-test-build",
-        "version": "path:.",
-        "source": "path:.",
-        "files": [],
-        "opam": null
-      },
-      "dependencies": [
-        "@esy-ocaml/esy-installer@0.0.1", "@esy-ocaml/merlin@3.0.5005",
-        "@esy-ocaml/reason@3.2.0",
-        "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f",
-        "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
-        "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
-<<<<<<< HEAD
-        "@opam/dune@opam:1.2.1", "@opam/fmt@opam:0.8.5",
-        "@opam/fpath@opam:0.7.2", "@opam/lambda-term@opam:1.13",
-        "@opam/logs@opam:0.6.2", "@opam/lwt@opam:4.1.0",
-        "@opam/lwt_ppx@opam:1.2.1", "@opam/menhir@opam:20171013",
-        "@opam/opam-core@opam:2.0.0", "@opam/opam-file-format@opam:2.0.0",
-        "@opam/opam-format@opam:2.0.0", "@opam/opam-state@opam:2.0.0",
-        "@opam/ppx_deriving@opam:4.2.1",
-        "@opam/ppx_deriving_yojson@opam:3.1",
-        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-<<<<<<< HEAD
-        "@opam/re@opam:1.8.0", "@opam/utop@opam:2.2.0",
-        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
-        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-bash@0.1.23",
-=======
-        "@opam/re@opam:1.8.0", "@opam/tar@opam:0.9.0",
-        "@opam/utop@opam:2.2.0", "@opam/yojson@opam:1.4.1",
-        "babel-preset-env@1.7.0", "babel-preset-flow@6.23.0", "del@3.0.0",
->>>>>>> Add esy.lock.json
-        "esy-solve-cudf@0.1.6",
-=======
-        "@opam/dune@opam:1.2.1", "@opam/ezgzip@opam:0.2.1",
-        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
-        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
-        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
-        "@opam/menhir@opam:20171013", "@opam/opam-core@opam:2.0.0",
-        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
-        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
-        "@opam/ppx_deriving_yojson@opam:3.1",
-        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
-        "@opam/re@opam:1.7.2", "@opam/tar@opam:0.9.0",
-        "@opam/tar-unix@opam:0.9.0", "@opam/utop@opam:2.2.0",
-        "@opam/yojson@opam:1.4.1", "babel-preset-env@1.7.0",
-        "babel-preset-flow@6.23.0", "del@3.0.0", "esy-solve-cudf@0.1.6",
->>>>>>> Updated lockfile
-        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
-        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1",
-        "minimatch@3.0.4", "ocaml@4.6.6", "outdent@0.3.0", "prettier@1.14.3",
-        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
-        "tar-fs@1.16.3", "tmp@0.0.33"
-      ]
-    },
-    "esy-solve-cudf@0.1.6": {
+    "esy-solve-cudf@0.1.8": {
       "record": {
         "name": "esy-solve-cudf",
-        "version": "0.1.6",
+        "version": "0.1.8",
         "source":
-          "archive:https://registry.npmjs.org/esy-solve-cudf/-/esy-solve-cudf-0.1.6.tgz#sha1:e5fe6e16be1e71964e1bfe3cdb80688e072dbe0f",
+          "archive:https://registry.npmjs.org/esy-solve-cudf/-/esy-solve-cudf-0.1.8.tgz#sha1:cf95a889c655a7c588659a6ca2c73e7e09f3a53e",
         "files": [],
         "opam": null
       },
@@ -5420,6 +5375,40 @@
         "opam": null
       },
       "dependencies": [ "download@7.1.0", "mkdirp@0.5.1" ]
+    },
+    "esy@path:.": {
+      "record": {
+        "name": "esy",
+        "version": "path:.",
+        "source": "path:.",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [
+        "@esy-ocaml/esy-installer@0.0.1", "@esy-ocaml/merlin@3.0.5005",
+        "@esy-ocaml/reason@3.2.0",
+        "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f",
+        "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
+        "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
+        "@opam/dune@opam:1.3.0", "@opam/ezgzip@opam:0.2.1",
+        "@opam/fmt@opam:0.8.5", "@opam/fpath@opam:0.7.2",
+        "@opam/lambda-term@opam:1.13", "@opam/logs@opam:0.6.2",
+        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
+        "@opam/menhir@opam:20171013", "@opam/opam-core@opam:2.0.0",
+        "@opam/opam-file-format@opam:2.0.0", "@opam/opam-format@opam:2.0.0",
+        "@opam/opam-state@opam:2.0.0", "@opam/ppx_deriving@opam:4.2.1",
+        "@opam/ppx_deriving_yojson@opam:3.1",
+        "@opam/ppx_inline_test@opam:v0.11.0", "@opam/ppx_let@opam:v0.11.0",
+        "@opam/re@opam:1.8.0", "@opam/tar@opam:0.9.0",
+        "@opam/utop@opam:2.2.0", "@opam/yojson@opam:1.4.1",
+        "babel-preset-env@1.7.0", "babel-preset-flow@6.23.0", "del@3.0.0",
+        "esy-bash@0.1.23", "esy-solve-cudf@0.1.8",
+        "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b",
+        "flow-bin@0.77.0", "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1",
+        "minimatch@3.0.4", "ocaml@4.6.6", "outdent@0.3.0", "prettier@1.14.3",
+        "rimraf@2.6.2", "semver@5.5.1", "super-resolve@1.0.0", "tar@4.4.6",
+        "tar-fs@1.16.3", "tmp@0.0.33"
+      ]
     },
     "esutils@2.0.2": {
       "record": {
@@ -5500,7 +5489,7 @@
         "opam": null
       },
       "dependencies": [
-        "is-callable@1.1.4", "is-date-object@1.0.1", "is-symbol@1.0.1"
+        "is-callable@1.1.4", "is-date-object@1.0.1", "is-symbol@1.0.2"
       ]
     },
     "es-abstract@1.12.0": {
@@ -5806,7 +5795,7 @@
         "opam": null
       },
       "dependencies": [
-        "file-type@5.2.0", "is-stream@1.1.0", "tar-stream@1.6.1"
+        "file-type@5.2.0", "is-stream@1.1.0", "tar-stream@1.6.2"
       ]
     },
     "decompress-response@3.3.0": {
@@ -6049,7 +6038,6 @@
       },
       "dependencies": []
     },
-<<<<<<< HEAD
     "commander@2.8.1": {
       "record": {
         "name": "commander",
@@ -6061,8 +6049,6 @@
       },
       "dependencies": [ "graceful-readlink@1.0.1" ]
     },
-=======
->>>>>>> Updated lockfile
     "combined-stream@1.0.7": {
       "record": {
         "name": "combined-stream",
@@ -6264,12 +6250,12 @@
       },
       "dependencies": [ "rsvp@3.6.2" ]
     },
-    "caniuse-lite@1.0.30000885": {
+    "caniuse-lite@1.0.30000887": {
       "record": {
         "name": "caniuse-lite",
-        "version": "1.0.30000885",
+        "version": "1.0.30000887",
         "source":
-          "archive:https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000885.tgz#sha1:e889e9f8e7e50e769f2a49634c932b8aee622984",
+          "archive:https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000887.tgz#sha1:1769458c27bbdcf61b0cb6b5072bb6cd11fd9c23",
         "files": [],
         "opam": null
       },
@@ -6428,7 +6414,7 @@
         "opam": null
       },
       "dependencies": [
-        "caniuse-lite@1.0.30000885", "electron-to-chromium@1.3.70"
+        "caniuse-lite@1.0.30000887", "electron-to-chromium@1.3.70"
       ]
     },
     "browser-resolve@1.11.3": {
@@ -6442,12 +6428,12 @@
       },
       "dependencies": [ "resolve@1.1.7" ]
     },
-    "browser-process-hrtime@0.1.2": {
+    "browser-process-hrtime@0.1.3": {
       "record": {
         "name": "browser-process-hrtime",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "source":
-          "archive:https://registry.npmjs.org/browser-process-hrtime/-/browser-process-hrtime-0.1.2.tgz#sha1:425d68a58d3447f02a04aa894187fce8af8b7b8e",
+          "archive:https://registry.npmjs.org/browser-process-hrtime/-/browser-process-hrtime-0.1.3.tgz#sha1:616f00faef1df7ec1b5bf9cfe2bdc3170f26c7b4",
         "files": [],
         "opam": null
       },
@@ -7757,14 +7743,14 @@
         "files": [],
         "opam": null
       },
-      "dependencies": [ "acorn@6.0.1", "acorn-walk@6.0.1" ]
+      "dependencies": [ "acorn@6.0.2", "acorn-walk@6.0.1" ]
     },
-    "acorn@6.0.1": {
+    "acorn@6.0.2": {
       "record": {
         "name": "acorn",
-        "version": "6.0.1",
+        "version": "6.0.2",
         "source":
-          "archive:https://registry.npmjs.org/acorn/-/acorn-6.0.1.tgz#sha1:66e6147e1027704479dc6d9b20d884c572db3cc1",
+          "archive:https://registry.npmjs.org/acorn/-/acorn-6.0.2.tgz#sha1:6a459041c320ab17592c6317abbfdf4bbaa98ca4",
         "files": [],
         "opam": null
       },
@@ -7932,31 +7918,6 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3", "ocaml@4.6.6"
-<<<<<<< HEAD
-=======
-      ]
-    },
-    "@opam/tar-unix@opam:0.9.0": {
-      "record": {
-        "name": "@opam/tar-unix",
-        "version": "opam:0.9.0",
-        "source":
-          "archive:https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz#md5:4524e7c290530d4243e0e9429fb3d224",
-        "files": [],
-        "opam": {
-          "name": "tar-unix",
-          "version": "0.9.0",
-          "opam":
-            "opam-version: \"2.0\"\nname: \"tar-unix\"\nversion: \"0.9.0\"\nsynopsis: \"Decode and encode tar files\"\ndescription: \"\"\"\ntar-format is a simple library to read and write tar files with an emphasis on\nstreaming.\n\nThis is pure OCaml code, no C bindings.\"\"\"\nmaintainer: \"dave@recoil.org\"\nauthors: [\"Dave Scott\" \"Thomas Gazagnaire\" \"David Allsopp\"]\ntags: [\"org:xapi-project\" \"org:mirage\"]\nhomepage: \"https://github.com/mirage/ocaml-tar\"\ndoc: \"https://mirage.github.io/ocaml-tar/\"\nbug-reports: \"https://github.com/mirage/ocaml-tar/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n  \"tar\"\n  \"cstruct\" {>= \"1.9.0\"}\n  \"cstruct-lwt\"\n  \"re\"\n  \"result\"\n  \"lwt\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-tar.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-tar/releases/download/v0.9.0/tar-0.9.0.tbz\"\n  checksum: \"md5=4524e7c290530d4243e0e9429fb3d224\"\n}",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
-        "@opam/cstruct-lwt@opam:3.2.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@opam:4.1.0", "@opam/re@opam:1.7.2",
-        "@opam/result@opam:1.3", "@opam/tar@opam:0.9.0", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/tar@opam:0.9.0": {
@@ -7977,7 +7938,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
         "@opam/jbuilder@opam:transition", "@opam/ppx_cstruct@opam:3.2.1",
-        "@opam/ppx_tools@opam:5.1+4.06.0", "@opam/re@opam:1.7.2",
+        "@opam/ppx_tools@opam:5.1+4.06.0", "@opam/re@opam:1.8.0",
         "@opam/result@opam:1.3", "ocaml@4.6.6"
       ]
     },
@@ -8039,8 +8000,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/num@opam:1.1", "@opam/parsexp@opam:v0.11.0",
-<<<<<<< HEAD
-        "@opam/sexplib0@opam:v0.11.0"
+        "@opam/sexplib0@opam:v0.11.0", "ocaml@4.6.6"
       ]
     },
     "@opam/seq@opam:0.1": {
@@ -8061,9 +8021,6 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/ocamlbuild@opam:0.12.0",
         "@opam/ocamlfind@opam:1.8.0", "ocaml@4.6.6"
-=======
-        "@opam/sexplib0@opam:v0.11.0", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/rresult@opam:0.5.0": {
@@ -8127,76 +8084,46 @@
         "@opam/ocamlfind@opam:1.8.0", "@opam/topkg@opam:0.9.1", "ocaml@4.6.6"
       ]
     },
-    "@opam/re@opam:1.7.2": {
+    "@opam/re@opam:1.8.0": {
       "record": {
         "name": "@opam/re",
-<<<<<<< HEAD
         "version": "opam:1.8.0",
         "source":
           "archive:https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz#md5:765f6f8d3e6ab200866e719ed7e5178d",
-=======
-        "version": "opam:1.7.2",
-        "source":
-          "archive:https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz#md5:d7c94a401d03f4688aabc60cd40217aa",
->>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "re",
-          "version": "1.7.2",
+          "version": "1.8.0",
           "opam":
-<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.8.0\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"ounit\" {with-test}\n  \"seq\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-n\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz\"\n  checksum: \"md5=765f6f8d3e6ab200866e719ed7e5178d\"\n}",
-=======
-            "opam-version: \"2.0\"\nname: \"re\"\nversion: \"1.7.2\"\nsynopsis: \"RE is a regular expression library for OCaml\"\ndescription: \"\"\"\nPure OCaml regular expressions with:\n* Perl-style regular expressions (module Re.Perl)\n* Posix extended regular expressions (module Re.Posix)\n* Emacs-style regular expressions (module Re.Emacs)\n* Shell-style file globbing (module Re.Glob)\n* Compatibility layer for OCaml's built-in Str module (module Re.Str)\"\"\"\nmaintainer: \"rudi.grinberg@gmail.com\"\nauthors: [\n  \"Jerome Vouillon\"\n  \"Thomas Gazagnaire\"\n  \"Anil Madhavapeddy\"\n  \"Rudi Grinberg\"\n  \"Gabriel Radanne\"\n]\nlicense: \"LGPL-2.0 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/ocaml-re\"\nbug-reports: \"https://github.com/ocaml/ocaml-re/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build}\n  \"base-bytes\"\n  \"ounit\" {with-test}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/ocaml/ocaml-re.git\"\nurl {\n  src:\n    \"https://github.com/ocaml/ocaml-re/releases/download/1.7.2/re-1.7.2.tbz\"\n  checksum: \"md5=d7c94a401d03f4688aabc60cd40217aa\"\n}",
->>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
-<<<<<<< HEAD
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/seq@opam:0.1", "ocaml@4.6.6"
-=======
-        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
-        "@opam/jbuilder@opam:transition", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ppxlib@opam:0.3.1": {
       "record": {
         "name": "@opam/ppxlib",
-<<<<<<< HEAD
         "version": "opam:0.3.1",
         "source":
           "archive:https://github.com/ocaml-ppx/ppxlib/releases/download/0.3.1/ppxlib-0.3.1.tbz#md5:d83dd03bc744651d4642b84063bffcf9",
-=======
-        "version": "opam:0.3.0",
-        "source":
-          "archive:https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz#md5:e6ff83b1643a44fcb6b0acde4d2aa299",
->>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "ppxlib",
           "version": "0.3.1",
           "opam":
-<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"ppxlib\"\nversion: \"0.3.1\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\ndoc: \"https://ocaml-ppx.github.io/ppxlib/\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"base\" {>= \"v0.11.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta18.1\"}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n  \"ocaml\" {>= \"4.04.1\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"",
-=======
-            "opam-version: \"2.0\"\nname: \"ppxlib\"\nversion: \"0.3.0\"\nsynopsis: \"A comprehensive toolbox for ppx development. It features:\"\ndescription: \"\"\"\n- a OCaml AST / parser / pretty-printer snapshot,to create a full\n   frontend independent of the version of OCaml;\n- a library for library for ppx rewriters in general, and type-driven\n  code generators in particular;\n- a feature-full driver for OCaml AST transformers;\n- a quotation mechanism allowing  to write values representing the\n   OCaml AST in the OCaml syntax;\n- a generator of open recursion classes from type definitions.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"Apache-2.0\"\nhomepage: \"https://github.com/ocaml-ppx/ppxlib\"\nbug-reports: \"https://github.com/ocaml-ppx/ppxlib/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.04.1\"}\n  \"base\" {>= \"v0.11.0\"}\n  \"dune\" {build}\n  \"ocaml-compiler-libs\" {>= \"v0.11.0\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.9\"}\n  \"ppx_derivers\" {>= \"1.0\"}\n  \"stdio\" {>= \"v0.11.0\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ppxlib.git\"\nurl {\n  src: \"https://github.com/ocaml-ppx/ppxlib/archive/0.3.0.tar.gz\"\n  checksum: \"md5=e6ff83b1643a44fcb6b0acde4d2aa299\"\n}",
->>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
-<<<<<<< HEAD
         "@opam/jbuilder@opam:transition",
         "@opam/ocaml-compiler-libs@opam:v0.11.0",
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
-=======
-        "@opam/dune@opam:1.2.1", "@opam/ocaml-compiler-libs@opam:v0.11.0",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
->>>>>>> Updated lockfile
         "@opam/ppx_derivers@opam:1.0", "@opam/stdio@opam:v0.11.0",
         "ocaml@4.6.6"
       ]
@@ -8218,11 +8145,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0", "ocaml@4.6.6"
-=======
-        "@opam/ocaml-migrate-parsetree@opam:1.0.11", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_tools@opam:5.1+4.06.0": {
@@ -8263,13 +8186,8 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
         "@opam/jbuilder@opam:transition",
-<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ppxlib@opam:0.3.1", "ocaml@4.6.6"
-=======
-        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
-        "@opam/ppxlib@opam:0.3.0", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_inline_test@opam:v0.11.0": {
@@ -8290,13 +8208,8 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.11.1",
         "@opam/jbuilder@opam:transition",
-<<<<<<< HEAD
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ppxlib@opam:0.3.1", "ocaml@4.6.6"
-=======
-        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
-        "@opam/ppxlib@opam:0.3.0", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ppx_deriving_yojson@opam:3.1": {
@@ -8424,7 +8337,7 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/cstruct@opam:3.2.1",
         "@opam/jbuilder@opam:transition",
-        "@opam/ocaml-migrate-parsetree@opam:1.0.11",
+        "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ppx_tools_versioned@opam:5.2.1", "ocaml@4.6.6"
       ]
     },
@@ -8545,11 +8458,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/base-bigarray@opam:base",
         "@opam/base-unix@opam:base", "@opam/cppo@opam:1.6.5",
         "@opam/jbuilder@opam:transition", "@opam/ocamlgraph@opam:1.8.8",
-<<<<<<< HEAD
         "@opam/re@opam:1.8.0", "ocaml@4.6.6"
-=======
-        "@opam/re@opam:1.7.2", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ocplib-endian@opam:1.0": {
@@ -8704,35 +8613,21 @@
     "@opam/ocaml-migrate-parsetree@opam:1.1.0": {
       "record": {
         "name": "@opam/ocaml-migrate-parsetree",
-<<<<<<< HEAD
         "version": "opam:1.1.0",
         "source":
           "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz#md5:7dd4808e27af98065f63604c9658d311",
-=======
-        "version": "opam:1.0.11",
-        "source":
-          "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz#md5:26bb1b038de81a79d43ed95c282b2b71",
->>>>>>> Updated lockfile
         "files": [],
         "opam": {
           "name": "ocaml-migrate-parsetree",
           "version": "1.1.0",
           "opam":
-<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.1.0\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\ndoc: \"https://ocaml-ppx.github.io/ocaml-migrate-parsetree/\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"result\"\n  \"dune\" {build}\n  \"ocaml\" {>= \"4.02.0\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"",
-=======
-            "opam-version: \"2.0\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.0.11\"\nsynopsis: \"Convert OCaml parsetrees between different versions\"\ndescription: \"\"\"\nThis library converts parsetrees, outcometree and ast mappers between different OCaml versions.\nHigh-level functions help making PPX rewriters independent of a compiler version.\"\"\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"result\"\n  \"ocamlfind\" {build}\n  \"dune\" {build}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"\nurl {\n  src:\n    \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.0.11/ocaml-migrate-parsetree-1.0.11.tbz\"\n  checksum: \"md5=26bb1b038de81a79d43ed95c282b2b71\"\n}",
->>>>>>> Updated lockfile
           "override": null
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.2.1",
-<<<<<<< HEAD
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.3.0",
         "@opam/result@opam:1.3", "ocaml@4.6.6"
-=======
-        "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/ocaml-compiler-libs@opam:v0.11.0": {
@@ -8844,23 +8739,9 @@
     "@opam/menhir@opam:20171013": {
       "record": {
         "name": "@opam/menhir",
-<<<<<<< HEAD
-<<<<<<< HEAD
         "version": "opam:20171013",
         "source":
           "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11",
-=======
-        "version": "opam:20170712",
-        "source": [
-          "archive:https://opam.ocaml.org/archives/menhir.20170712+opam.tar.gz#md5:18aaf814e51aeb4fbfd8b7c1fb7ffbba",
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20170712.tar.gz#md5:85a5c2aef1d3f2224dab7c53d79892e5"
-        ],
->>>>>>> Add esy.lock.json
-=======
-        "version": "opam:20171013",
-        "source":
-          "archive:http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz#md5:620863edea40437390ee5e5bd82fba11",
->>>>>>> Updated lockfile
         "files": [
           {
             "name": "_esy/menhir-20171013.patch",
@@ -8872,15 +8753,7 @@
           "name": "menhir",
           "version": "20171013",
           "opam":
-<<<<<<< HEAD
-<<<<<<< HEAD
             "opam-version: \"2.0\"\nname: \"menhir\"\nversion: \"20171013\"\nsynopsis: \"LR(1) parser generator\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"\nurl {\n  src: \"http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz\"\n  checksum: \"md5=620863edea40437390ee5e5bd82fba11\"\n}",
-=======
-            "opam-version: \"1.2\"\nname: \"menhir\"\nversion: \"20170712\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\navailable: ocaml-version >= \"4.02\"\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"",
->>>>>>> Add esy.lock.json
-=======
-            "opam-version: \"2.0\"\nname: \"menhir\"\nversion: \"20171013\"\nsynopsis: \"LR(1) parser generator\"\nmaintainer: \"francois.pottier@inria.fr\"\nauthors: [\n  \"François Pottier <francois.pottier@inria.fr>\"\n  \"Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>\"\n]\nhomepage: \"http://gallium.inria.fr/~fpottier/menhir/\"\nbug-reports: \"menhir@inria.fr\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"ocamlfind\"\n  \"ocamlbuild\" {build}\n]\nbuild: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"PREFIX=%{prefix}%\"\n  \"USE_OCAMLFIND=true\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ninstall: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"install\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\nremove: [\n  make\n  \"-f\"\n  \"Makefile\"\n  \"uninstall\"\n  \"PREFIX=%{prefix}%\"\n  \"docdir=%{doc}%/menhir\"\n  \"libdir=%{lib}%/menhir\"\n  \"mandir=%{man}%/man1\"\n]\ndev-repo: \"git+https://gitlab.inria.fr/fpottier/menhir.git\"\nurl {\n  src: \"http://gallium.inria.fr/~fpottier/menhir/menhir-20171013.tar.gz\"\n  checksum: \"md5=620863edea40437390ee5e5bd82fba11\"\n}",
->>>>>>> Updated lockfile
           "override": {
             "build": [
               [
@@ -8938,11 +8811,7 @@
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
-<<<<<<< HEAD
         "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.1.0",
-=======
-        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.0.11",
->>>>>>> Updated lockfile
         "@opam/ppx_tools_versioned@opam:5.2.1", "ocaml@4.6.6"
       ]
     },
@@ -9059,7 +8928,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.2.1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.3.0",
         "@opam/ocamlfind@opam:1.8.0", "ocaml@4.6.6"
       ]
     },
@@ -9169,18 +9038,18 @@
         "ocaml@4.6.6"
       ]
     },
-    "@opam/dune@opam:1.2.1": {
+    "@opam/dune@opam:1.3.0": {
       "record": {
         "name": "@opam/dune",
-        "version": "opam:1.2.1",
+        "version": "opam:1.3.0",
         "source":
-          "archive:https://github.com/ocaml/dune/releases/download/1.2.1/dune-1.2.1.tbz#md5:f96bdf1a893a2178c2ad9c388439bd18",
+          "archive:https://github.com/ocaml/dune/releases/download/1.3.0/dune-1.3.0.tbz#md5:d7c926bd6b7549cb54d5463aaccf0c91",
         "files": [],
         "opam": {
           "name": "dune",
-          "version": "1.2.1",
+          "version": "1.3.0",
           "opam":
-            "opam-version: \"2.0\"\nname: \"dune\"\nversion: \"1.2.1\"\nsynopsis: \"Fast, portable and opinionated build system\"\ndescription: \"\"\"\ndune is a build system that was designed to simplify the release of\nJane Street packages. It reads metadata from \"dune\" files following a\nvery simple s-expression syntax.\n\ndune is fast, it has very low-overhead and support parallel builds on\nall platforms. It has no system dependencies, all you need to build\ndune and packages using dune is OCaml. You don't need or make or bash\nas long as the packages themselves don't use bash explicitly.\n\ndune supports multi-package development by simply dropping multiple\nrepositories into the same directory.\n\nIt also supports multi-context builds, such as building against\nseveral opam roots/switches simultaneously. This helps maintaining\npackages across several versions of OCaml and gives cross-compilation\nfor free.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n]\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n]\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib] {opam-version < \"2\"}\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"\nurl {\n  src: \"https://github.com/ocaml/dune/releases/download/1.2.1/dune-1.2.1.tbz\"\n  checksum: \"md5=f96bdf1a893a2178c2ad9c388439bd18\"\n}",
+            "opam-version: \"2.0\"\nname: \"dune\"\nversion: \"1.3.0\"\nsynopsis: \"Fast, portable and opinionated build system\"\ndescription: \"\"\"\ndune is a build system that was designed to simplify the release of\nJane Street packages. It reads metadata from \"dune\" files following a\nvery simple s-expression syntax.\n\ndune is fast, it has very low-overhead and support parallel builds on\nall platforms. It has no system dependencies, all you need to build\ndune and packages using dune is OCaml. You don't need or make or bash\nas long as the packages themselves don't use bash explicitly.\n\ndune supports multi-package development by simply dropping multiple\nrepositories into the same directory.\n\nIt also supports multi-context builds, such as building against\nseveral opam roots/switches simultaneously. This helps maintaining\npackages across several versions of OCaml and gives cross-compilation\nfor free.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n]\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n]\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib] {opam-version < \"2\"}\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"\nurl {\n  src: \"https://github.com/ocaml/dune/releases/download/1.3.0/dune-1.3.0.tbz\"\n  checksum: \"md5=d7c926bd6b7549cb54d5463aaccf0c91\"\n}",
           "override": {
             "build": [
               [ "ocaml", "bootstrap.ml" ],
@@ -9247,11 +9116,7 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/cppo@opam:1.6.5", "@opam/cudf@opam:0.9",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
-<<<<<<< HEAD
         "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.8.0", "ocaml@4.6.6"
-=======
-        "@opam/ocamlgraph@opam:1.8.8", "@opam/re@opam:1.7.2", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/cudf@opam:0.9": {
@@ -9273,30 +9138,6 @@
         "@esy-ocaml/substs@0.0.1", "@opam/conf-perl@opam:1",
         "@opam/extlib-compat@opam:1.7.2", "@opam/ocamlbuild@opam:0.12.0",
         "ocaml@4.6.6"
-<<<<<<< HEAD
-=======
-      ]
-    },
-    "@opam/cstruct-lwt@opam:3.2.1": {
-      "record": {
-        "name": "@opam/cstruct-lwt",
-        "version": "opam:3.2.1",
-        "source":
-          "archive:https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz#md5:c1eb6a48f3d3b0b1e358f06a8c92a4c1",
-        "files": [],
-        "opam": {
-          "name": "cstruct-lwt",
-          "version": "3.2.1",
-          "opam":
-            "opam-version: \"2.0\"\nname: \"cstruct-lwt\"\nversion: \"3.2.1\"\nsynopsis: \"Access C-like structures directly from OCaml\"\ndescription: \"\"\"\nCstruct is a library and syntax extension to make it easier to access C-like\nstructures directly from OCaml.  It supports both reading and writing to these\nstructures, and they are accessed via the `Bigarray` module.\"\"\"\nmaintainer: \"anil@recoil.org\"\nauthors: [\n  \"Anil Madhavapeddy\"\n  \"Richard Mortier\"\n  \"Thomas Gazagnaire\"\n  \"Pierre Chambart\"\n  \"David Kaloper\"\n  \"Jeremy Yallop\"\n  \"David Scott\"\n  \"Mindy Preston\"\n  \"Thomas Leonard\"\n]\nlicense: \"ISC\"\ntags: [\"org:mirage\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/mirage/ocaml-cstruct\"\nbug-reports: \"https://github.com/mirage/ocaml-cstruct/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"base-unix\"\n  \"lwt\"\n  \"cstruct\"\n  \"jbuilder\" {build & >= \"1.0+beta7\"}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name \"--name\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/mirage/ocaml-cstruct.git\"\nurl {\n  src:\n    \"https://github.com/mirage/ocaml-cstruct/releases/download/v3.2.1/cstruct-3.2.1.tbz\"\n  checksum: \"md5=c1eb6a48f3d3b0b1e358f06a8c92a4c1\"\n}",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/base-unix@opam:base",
-        "@opam/cstruct@opam:3.2.1", "@opam/jbuilder@opam:transition",
-        "@opam/lwt@opam:4.1.0", "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@opam/cstruct@opam:3.2.1": {
@@ -9370,11 +9211,11 @@
           "name": "conf-which",
           "version": "1",
           "opam":
-            "opam-version: \"2.0\"\nname: \"conf-which\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on which\"\ndescription:\n  \"This package can only install if the which program is installed on the system.\"\nmaintainer: \"unixjunkie@sdf.org\"\nauthors: \"Carlo Wood\"\nlicense: \"GPL-2+\"\nhomepage: \"http://www.gnu.org/software/which/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\ndepends: [\"ocaml\"]\nbuild: [\"which\" \"which\"]\ndepexts: [\n  [\"which\"] {os-distribution = \"centos\"}\n  [\"which\"] {os-distribution = \"fedora\"}\n  [\"which\"] {os-distribution = \"opensuse\"}\n  [\"debianutils\"] {os-distribution = \"debian\"}\n  [\"debianutils\"] {os-distribution = \"ubuntu\"}\n  [\"which\"] {os-distribution = \"nixos\"}\n  [\"which\"] {os-distribution = \"archlinux\"}\n]",
+            "opam-version: \"2.0\"\nname: \"conf-which\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on which\"\ndescription:\n  \"This package can only install if the which program is installed on the system.\"\nmaintainer: \"unixjunkie@sdf.org\"\nauthors: \"Carlo Wood\"\nlicense: \"GPL-2+\"\nhomepage: \"http://www.gnu.org/software/which/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nbuild: [\"which\" \"which\"]\ndepexts: [\n  [\"which\"] {os-distribution = \"centos\"}\n  [\"which\"] {os-distribution = \"fedora\"}\n  [\"which\"] {os-distribution = \"opensuse\"}\n  [\"debianutils\"] {os-distribution = \"debian\"}\n  [\"debianutils\"] {os-distribution = \"ubuntu\"}\n  [\"which\"] {os-distribution = \"nixos\"}\n  [\"which\"] {os-distribution = \"archlinux\"}\n]",
           "override": null
         }
       },
-      "dependencies": [ "@esy-ocaml/substs@0.0.1", "ocaml@4.6.6" ]
+      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
     },
     "@opam/conf-perl@opam:1": {
       "record": {
@@ -9386,11 +9227,11 @@
           "name": "conf-perl",
           "version": "1",
           "opam":
-            "opam-version: \"2.0\"\nname: \"conf-perl\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on perl\"\ndescription:\n  \"This package can only install if the perl program is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nlicense: \"GPL-1+\"\nhomepage: \"https://www.perl.org/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\ndepends: [\"ocaml\"]\nbuild: [\"perl\" \"--version\"]\ndepexts: [\n  [\"perl\"] {os-distribution = \"debian\"}\n  [\"perl\"] {os-distribution = \"ubuntu\"}\n  [\"perl\"] {os-distribution = \"alpine\"}\n  [\"perl\"] {os-distribution = \"nixos\"}\n  [\"perl\"] {os-distribution = \"archlinux\"}\n  [\"perl-Pod-Html\"] {os-distribution = \"fedora\"}\n]",
+            "opam-version: \"2.0\"\nname: \"conf-perl\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on perl\"\ndescription:\n  \"This package can only install if the perl program is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nauthors: \"Larry Wall\"\nlicense: \"GPL-1+\"\nhomepage: \"https://www.perl.org/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nbuild: [\"perl\" \"--version\"]\ndepexts: [\n  [\"perl\"] {os-distribution = \"debian\"}\n  [\"perl\"] {os-distribution = \"ubuntu\"}\n  [\"perl\"] {os-distribution = \"alpine\"}\n  [\"perl\"] {os-distribution = \"nixos\"}\n  [\"perl\"] {os-distribution = \"archlinux\"}\n  [\"perl-Pod-Html\"] {os-distribution = \"fedora\"}\n]",
           "override": null
         }
       },
-      "dependencies": [ "@esy-ocaml/substs@0.0.1", "ocaml@4.6.6" ]
+      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
     },
     "@opam/conf-m4@opam:1": {
       "record": {
@@ -9402,11 +9243,11 @@
           "name": "conf-m4",
           "version": "1",
           "opam":
-            "opam-version: \"2.0\"\nname: \"conf-m4\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on m4\"\ndescription:\n  \"This package can only install if the m4 binary is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nlicense: \"GPL-3\"\nhomepage: \"http://www.gnu.org/software/m4/m4.html\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\ndepends: [\"ocaml\"]\nbuild: [\"sh\" \"-exc\" \"echo | m4\"]\ndepexts: [\n  [\"m4\"] {os-distribution = \"debian\"}\n  [\"m4\"] {os-distribution = \"ubuntu\"}\n  [\"m4\"] {os-distribution = \"fedora\"}\n  [\"m4\"] {os-distribution = \"rhel\"}\n  [\"m4\"] {os-distribution = \"centos\"}\n  [\"m4\"] {os-distribution = \"alpine\"}\n  [\"m4\"] {os-distribution = \"nixos\"}\n  [\"m4\"] {os-distribution = \"opensuse\"}\n  [\"m4\"] {os-distribution = \"oraclelinux\"}\n  [\"m4\"] {os-distribution = \"archlinux\"}\n]",
+            "opam-version: \"2.0\"\nname: \"conf-m4\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on m4\"\ndescription:\n  \"This package can only install if the m4 binary is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nauthors: \"GNU Project\"\nlicense: \"GPL-3\"\nhomepage: \"http://www.gnu.org/software/m4/m4.html\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nbuild: [\"sh\" \"-exc\" \"echo | m4\"]\ndepexts: [\n  [\"m4\"] {os-distribution = \"debian\"}\n  [\"m4\"] {os-distribution = \"ubuntu\"}\n  [\"m4\"] {os-distribution = \"fedora\"}\n  [\"m4\"] {os-distribution = \"rhel\"}\n  [\"m4\"] {os-distribution = \"centos\"}\n  [\"m4\"] {os-distribution = \"alpine\"}\n  [\"m4\"] {os-distribution = \"nixos\"}\n  [\"m4\"] {os-distribution = \"opensuse\"}\n  [\"m4\"] {os-distribution = \"oraclelinux\"}\n  [\"m4\"] {os-distribution = \"archlinux\"}\n]",
           "override": null
         }
       },
-      "dependencies": [ "@esy-ocaml/substs@0.0.1", "ocaml@4.6.6" ]
+      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
     },
     "@opam/cmdliner@opam:1.0.2": {
       "record": {
@@ -9658,7 +9499,6 @@
     "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f": {
       "record": {
         "name": "@opam/angstrom",
-<<<<<<< HEAD
         "version": "github:esy-ocaml/angstrom#b3a125f",
         "source": "github:esy-ocaml/angstrom#b3a125f",
         "files": [],
@@ -9666,24 +9506,6 @@
       },
       "dependencies": [
         "@opam/bigstringaf@opam:0.3.0", "@opam/jbuilder@opam:transition"
-=======
-        "version": "opam:0.10.0",
-        "source":
-          "archive:https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz#md5:51e2d9a272314671eb5fa3fb3fd5171f",
-        "files": [],
-        "opam": {
-          "name": "angstrom",
-          "version": "0.10.0",
-          "opam":
-            "opam-version: \"2.0\"\nname: \"angstrom\"\nversion: \"0.10.0\"\nsynopsis: \"Parser combinators built for speed and memory-efficiency\"\ndescription: \"\"\"\nAngstrom is a parser-combinator library that makes it easy to write efficient,\nexpressive, and reusable parsers suitable for high-performance applications. It\nexposes monadic and applicative interfaces for composition, and supports\nincremental input through buffered and unbuffered interfaces. Both interfaces\ngive the user total control over the blocking behavior of their application,\nwith the unbuffered interface enabling zero-copy IO. Parsers are backtracking by\ndefault and support unbounded lookahead.\"\"\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/angstrom\"\nbug-reports: \"https://github.com/inhabitedtype/angstrom/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"bigstringaf\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/angstrom.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz\"\n  checksum: \"md5=51e2d9a272314671eb5fa3fb3fd5171f\"\n}",
-          "override": null
-        }
-      },
-      "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/bigstringaf@opam:0.3.0",
-        "@opam/jbuilder@opam:transition", "@opam/result@opam:1.3",
-        "ocaml@4.6.6"
->>>>>>> Updated lockfile
       ]
     },
     "@esy-ocaml/substs@0.0.1": {
@@ -9707,17 +9529,8 @@
         "opam": null
       },
       "dependencies": [
-<<<<<<< HEAD
         "@esy-ocaml/esy-installer@0.0.1", "@esy-ocaml/substs@0.0.1",
         "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
-=======
-        "@esy-ocaml/esy-installer@0.0.0", "@esy-ocaml/substs@0.0.1",
-<<<<<<< HEAD
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20170712",
->>>>>>> Add esy.lock.json
-=======
-        "@opam/jbuilder@opam:transition", "@opam/menhir@opam:20171013",
->>>>>>> Updated lockfile
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3"
