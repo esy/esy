@@ -154,50 +154,52 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let emptyPackage ~name ~source () =
-  {
-    Package.
-    name;
-    version = Version.Source source;
-    originalVersion = None;
-    source = source, [];
-    overrides = Package.Overrides.empty;
-    dependencies = Package.Dependencies.NpmFormula [];
-    devDependencies = Package.Dependencies.NpmFormula [];
-    resolutions = Package.Resolutions.empty;
-    opam = None;
-    kind = Esy;
-  }
-
-let readPackage ~name ~source {SourceResolver. kind; filename; data} =
-  let open RunAsync.Syntax in
-  match kind with
-  | ManifestSpec.Filename.Esy ->
-    let%bind pkg = RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind json = Json.parse data in
-      PackageJson.packageOfJson
-        ~parseResolutions:true
-        ~name
-        ~version:(Version.Source source)
-        ~source
-        json
-    ) in
-    return (Ok pkg)
-  | ManifestSpec.Filename.Opam ->
-    let%bind opamname = RunAsync.ofRun (
-      match ManifestSpec.Filename.inferPackageName (kind, filename) with
-      | None -> opamname name
-      | Some name -> Run.return (OpamPackage.Name.of_string name)
-    ) in
-    let%bind manifest = RunAsync.ofRun (
-      let version = OpamPackage.Version.of_string "dev" in
-      OpamManifest.ofString ~name:opamname ~version data
-    ) in
-    OpamManifest.toPackage ~name ~version:(Version.Source source) ~source manifest
-
 let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) resolver =
   let open RunAsync.Syntax in
+
+  let readPackage ~name ~source {SourceResolver. kind; filename; data} =
+    let open RunAsync.Syntax in
+    match kind with
+    | ManifestSpec.Filename.Esy ->
+      let%bind pkg = RunAsync.ofRun (
+        let open Run.Syntax in
+        let%bind json = Json.parse data in
+        PackageJson.packageOfJson
+          ~parseResolutions:true
+          ~name
+          ~version:(Version.Source source)
+          ~source
+          json
+      ) in
+      return (Ok pkg)
+    | ManifestSpec.Filename.Opam ->
+      let%bind opamname = RunAsync.ofRun (
+        match ManifestSpec.Filename.inferPackageName (kind, filename) with
+        | None -> opamname name
+        | Some name -> Run.return (OpamPackage.Name.of_string name)
+      ) in
+      let%bind manifest = RunAsync.ofRun (
+        let version = OpamPackage.Version.of_string "dev" in
+        OpamManifest.ofString ~name:opamname ~version data
+      ) in
+      OpamManifest.toPackage ~name ~version:(Version.Source source) ~source manifest
+  in
+
+  let emptyPackage ~name ~source () =
+    {
+      Package.
+      name;
+      version = Version.Source source;
+      originalVersion = None;
+      source = source, [];
+      overrides = Package.Overrides.empty;
+      dependencies = Package.Dependencies.NpmFormula [];
+      devDependencies = Package.Dependencies.NpmFormula [];
+      resolutions = Package.Resolutions.empty;
+      opam = None;
+      kind = Esy;
+    }
+  in
 
   let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
     SourceResolver.resolve ~cfg:resolver.cfg ~overrides source

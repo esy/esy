@@ -21,15 +21,6 @@ val resolve :
   -> Package.Resolution.t list RunAsync.t
 
 (**
- * Resolve source spec into source.
- *)
-val resolveSource :
-  name:string
-  -> sourceSpec:SourceSpec.t
-  -> t
-  -> Source.t RunAsync.t
-
-(**
  * Fetch the package metadata given the resolution.
  *
  * This returns an error in not valid package cannot be obtained via resolutions
