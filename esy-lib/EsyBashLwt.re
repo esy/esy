@@ -16,9 +16,9 @@ let getMingwRuntimePath = () => {
 };
 
 let normalizePathForCygwin = p => {
-  let outputPath = EsyBash.normalizePathForCygwin(Fpath.to_string(p));
+  let outputPath = EsyBash.normalizePathForCygwin(p);
   switch (outputPath) {
-  | Ok(v) => RunAsync.return(Fpath.v(v))
+  | Ok(v) => RunAsync.return(v)
   | _ => RunAsync.return(p)
   };
 };
