@@ -23,7 +23,7 @@ const dummySubsts = helpers.dir(
   ),
 );
 
-describe.skip('build opam sandbox', () => {
+describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
     const p = await helpers.createTestSandbox(
       helpers.file(
@@ -84,7 +84,7 @@ describe.skip('build opam sandbox', () => {
   it('variables stress test', async () => {
     const p = await helpers.createTestSandbox(
       helpers.file(
-        'opam',
+        'root.opam',
         `
         opam-version: "1.2"
         depends: ["dep"]

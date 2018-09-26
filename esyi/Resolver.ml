@@ -16,11 +16,18 @@ module ResolutionCache = Memoize.Make(struct
   type value = Resolution.t list RunAsync.t
 end)
 
-let opamname name =
+let requireOpamName name =
   let open Run.Syntax in
   match Astring.String.cut ~sep:"@opam/" name with
   | Some ("", name) -> return (OpamPackage.Name.of_string name)
   | _ -> errorf "invalid opam package name: %s" name
+
+let ensureOpamName name =
+  let open Run.Syntax in
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", name) -> return (OpamPackage.Name.of_string name)
+  | Some _
+  | None -> return (OpamPackage.Name.of_string name)
 
 let toOpamOcamlVersion version =
   match version with
@@ -175,7 +182,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
     | ManifestSpec.Filename.Opam ->
       let%bind opamname = RunAsync.ofRun (
         match ManifestSpec.Filename.inferPackageName (kind, filename) with
-        | None -> opamname name
+        | None -> ensureOpamName name
         | Some name -> Run.return (OpamPackage.Name.of_string name)
       ) in
       let%bind manifest = RunAsync.ofRun (
@@ -251,7 +258,7 @@ let package ~(resolution : Resolution.t) resolver =
       return (Ok pkg)
     | Version.Opam version ->
       begin match%bind
-        let%bind name = RunAsync.ofRun (opamname resolution.name) in
+        let%bind name = RunAsync.ofRun (requireOpamName resolution.name) in
         OpamRegistry.version
           ~name
           ~version
@@ -435,7 +442,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       ResolutionCache.compute resolver.resolutionCache name begin fun () ->
         let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
         let%bind versions =
-          let%bind name = RunAsync.ofRun (opamname name) in
+          let%bind name = RunAsync.ofRun (requireOpamName name) in
           OpamRegistry.versions
             ?ocamlVersion:(toOpamOcamlVersion resolver.ocamlVersion)
             ~name
