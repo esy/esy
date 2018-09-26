@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('Installing devDependencies', function() {
   test(`it should install devDependencies`, async () => {
     const fixture = [

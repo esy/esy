@@ -24,7 +24,7 @@ type t = private {
 (** Make new solver *)
 val make :
   cfg:Config.t
-  -> ?resolver:Resolver.t
+  -> resolver:Resolver.t
   -> resolutions:Package.Resolutions.t
   -> unit
   -> t RunAsync.t

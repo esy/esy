@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows('Needs investigation');
-
 describe(`Basic tests`, () => {
   test(`it should correctly install a single dependency that contains no sub-dependencies`, async () => {
     const fixture = [

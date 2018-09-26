@@ -3,8 +3,6 @@
 const path = require('path');
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('adding dependencies', function() {
   test(`simply add a new dep`, async () => {
     const fixture = [

@@ -6,12 +6,14 @@ type t = {
   storePath : Path.t;
   fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
+  installCfg : EsyInstall.Config.t;
 }
 
 val defaultPrefixPath : Path.t
 
-val create :
-  fastreplacestringCommand:Cmd.t
+val make :
+  installCfg:EsyInstall.Config.t
+  -> fastreplacestringCommand:Cmd.t
   -> esyBuildPackageCommand:Cmd.t
   -> esyVersion:string
   -> prefixPath:Fpath.t option

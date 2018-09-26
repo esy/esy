@@ -6,7 +6,7 @@ let return: 'v => t('v, _);
 let error: 'err => t(_, 'err);
 let errorf : format4('a, Format.formatter, unit, t(_, string)) => 'a;
 
-let map : ('a => 'b, result('a, 'err)) => result('b, 'err);
+let map : (~f:'a => 'b, result('a, 'err)) => result('b, 'err);
 let join : t(t('a, 'b), 'b) => t('a, 'b);
 
 module List : {
@@ -21,6 +21,7 @@ module Syntax : {
 
   module Let_syntax: {
     let bind: (~f: 'a => t('b, 'err), t('a, 'err)) => t('b, 'err);
+    let map: (~f: 'a => 'b, t('a, 'err)) => t('b, 'err);
     module Open_on_rhs: {
       let return: 'a => t('a, 'b);
     };

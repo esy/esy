@@ -13,9 +13,6 @@ type t = {
   solveTimeout: float,
 
   skipRepositoryUpdate: bool,
-
-  createProgressReporter:
-    (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
 }
 
 /** This described how a reposoitory should be used */
@@ -37,8 +34,6 @@ let make : (
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
-    ~createProgressReporter:
-      (~name: string, unit) => (string => Lwt.t(unit), unit => Lwt.t(unit)),
     ~skipRepositoryUpdate: bool,
     unit
   ) => RunAsync.t(t)

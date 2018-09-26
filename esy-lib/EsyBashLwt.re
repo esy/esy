@@ -7,6 +7,35 @@ let toRunAsyncCommand = cmd => {
   };
 };
 
+let getMingwRuntimePath = () => {
+  let runtimePath = EsyBash.getMingwRuntimePath();
+  switch (runtimePath) {
+  | Ok(v) => RunAsync.return(v)
+  | _ => RunAsync.error("Error locating mingw runtime path.")
+  };
+};
+
+let getMingwEnvironmentOverride = () =>
+  RunAsync.Syntax.(
+    switch (System.Platform.host) {
+    | Windows =>
+      let currentPath = Sys.getenv("PATH");
+      let%bind mingwRuntime = getMingwRuntimePath();
+      return(
+        `CurrentEnvOverride(
+          Astring.String.Map.(
+            add(
+              "PATH",
+              Fpath.to_string(mingwRuntime) ++ ";" ++ currentPath,
+              empty,
+            )
+          ),
+        ),
+      );
+    | _ => return(`CurrentEnv)
+    }
+  );
+
 /**
  * Helper utility to run a command with 'esy-bash', via Lwt.
  * This is meant to replace Lwt's with_process_full in the case

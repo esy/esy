@@ -8,6 +8,10 @@ let of_yojson x = Ok x
 
 let pp = Yojson.Safe.pretty_print
 
+let parse data =
+  try Run.return (Yojson.Safe.from_string data)
+  with Yojson.Json_error msg -> Run.errorf "error parsing JSON: %s" msg
+
 let parseJsonWith parser json =
   Run.ofStringError (parser json)
 
@@ -62,7 +66,11 @@ module Parse = struct
 
   let fieldOptWith ~name parse json =
     match fieldOpt ~name json with
-    | Ok (Some v) -> parse v
+    | Ok (Some v) ->
+      begin match parse v with
+      | Ok v -> Ok (Some v)
+      | Error err -> Error err
+      end
     | Ok None -> Ok None
     | Error err -> Error err
 

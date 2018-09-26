@@ -20,7 +20,5 @@ val parse : string -> (t, string) result
 
 val make : name:string -> spec:VersionSpec.t -> t
 
-val matches : name:string -> version:Version.t -> t -> bool
-
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

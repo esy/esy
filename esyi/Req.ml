@@ -12,9 +12,6 @@ let to_yojson req =
 let pp fmt req =
   Fmt.fmt "%s" fmt (show req)
 
-let matches ~name ~version req =
-  name = req.name && VersionSpec.matches ~version req.spec
-
 module Parse = struct
   include Parse
 
@@ -338,22 +335,22 @@ let%test_module "parsing" = (module struct
     "pkg@latest",
     {
       name = "pkg";
-      spec = VersionSpec.NpmDistTag ("latest", None);
+      spec = VersionSpec.NpmDistTag "latest";
     };
     "pkg@next",
     {
       name = "pkg";
-      spec = VersionSpec.NpmDistTag ("next", None);
+      spec = VersionSpec.NpmDistTag "next";
     };
     "pkg@alpha",
     {
       name = "pkg";
-      spec = VersionSpec.NpmDistTag ("alpha", None);
+      spec = VersionSpec.NpmDistTag "alpha";
     };
     "pkg@beta",
     {
       name = "pkg";
-      spec = VersionSpec.NpmDistTag ("beta", None);
+      spec = VersionSpec.NpmDistTag "beta";
     };
   ]
 

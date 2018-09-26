@@ -33,7 +33,7 @@ steps:
       customCommand: 'run build'
 
   - task: Npm@1
-    displayName: 'npm run test:e2e'
+    displayName: 'jest --runInBand test-e2e'
     inputs:
       command: custom
       verbose: false

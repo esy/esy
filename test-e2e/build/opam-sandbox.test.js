@@ -84,7 +84,7 @@ describe('build opam sandbox', () => {
   it('variables stress test', async () => {
     const p = await helpers.createTestSandbox(
       helpers.file(
-        'opam',
+        'root.opam',
         `
         opam-version: "1.2"
         depends: ["dep"]

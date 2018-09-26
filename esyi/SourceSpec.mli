@@ -11,21 +11,21 @@ type t =
   | Git of {
       remote : string;
       ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | Github of {
       user : string;
       repo : string;
       ref : string option;
-      manifest : SandboxSpec.ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
       path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : SandboxSpec.ManifestSpec.t option;
+      manifest : ManifestSpec.Filename.t option;
     }
   | NoSource
 
@@ -34,7 +34,6 @@ include S.COMPARABLE with type t := t
 
 val to_yojson : t -> [> `String of string ]
 val ofSource : Source.t -> t
-val matches : source:Source.t -> t -> bool
 
 val parser : t Parse.t
 val parse : string -> (t, string) result

@@ -227,7 +227,7 @@ let toOpamFormula reqs =
         in
         let formula = SemverVersion.Formula.ofDnfToCnf formula in
         List.map ~f:(List.map ~f) formula
-      | VersionSpec.NpmDistTag (tag, _) ->
+      | VersionSpec.NpmDistTag tag ->
         [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
       | VersionSpec.Opam formula ->
         let f (c : OpamPackageVersion.Constraint.t) =
@@ -324,7 +324,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalVersion = None;
       kind = Package.Esy;
       source;
-      override = None;
+      overrides = Package.Overrides.empty;
       opam = Some {
         Package.Opam.
         name = manifest.name;
@@ -340,4 +340,5 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       };
       dependencies;
       devDependencies;
+      resolutions = Package.Resolutions.empty;
     })

@@ -103,9 +103,9 @@ let safeSeg = {
     |> String.lowercase_ascii
     |> Str.global_replace(replaceAt, "")
     |> Str.global_replace(replaceUnderscore, "__")
-    |> Str.global_replace(replaceSlash, "__slash__")
-    |> Str.global_replace(replaceDot, "__dot__")
-    |> Str.global_replace(replaceColon, "__colon__")
+    |> Str.global_replace(replaceSlash, "__s__")
+    |> Str.global_replace(replaceDot, "__d__")
+    |> Str.global_replace(replaceColon, "__c__")
     |> Str.global_replace(replaceDash, "_");
   make;
 };
@@ -115,7 +115,7 @@ let safePath = {
   let replaceColon = Str.regexp(":");
   let make = name =>
     name
-    |> Str.global_replace(replaceSlash, "__slash__")
-    |> Str.global_replace(replaceColon, "__colon__");
+    |> Str.global_replace(replaceSlash, "__s__")
+    |> Str.global_replace(replaceColon, "__c__");
   make;
 };

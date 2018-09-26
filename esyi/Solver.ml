@@ -129,7 +129,7 @@ module Explanation = struct
             let name = Universe.CudfMapping.decodePkgName name in
             let%lwt available =
               match%lwt Resolver.resolve ~name resolver with
-              | Ok (available, _) -> Lwt.return available
+              | Ok available -> Lwt.return available
               | Error _ -> Lwt.return []
             in
             let missing = Reason.Missing {name; path = pkg::path; available} in
@@ -161,7 +161,7 @@ module Explanation = struct
 
 end
 
-let rec findResolutionForRequest ~req = function
+let rec findResolutionForRequest resolver req = function
   | [] -> None
   | res::rest ->
     let version =
@@ -170,12 +170,13 @@ let rec findResolutionForRequest ~req = function
       | SourceOverride {source;_} -> Version.Source source
     in
     if
-      Req.matches
-        ~name:res.Resolution.name
-        ~version
+      Resolver.versionMatchesReq
+        resolver
         req
+        res.Resolution.name
+        version
     then Some res
-    else findResolutionForRequest ~req rest
+    else findResolutionForRequest resolver req rest
 
 let solutionRecordOfPkg (pkg : Package.t) =
   let open RunAsync.Syntax in
@@ -205,27 +206,22 @@ let solutionRecordOfPkg (pkg : Package.t) =
     Solution.Record.
     name = pkg.name;
     version = pkg.version;
-    override = pkg.override;
+    overrides = pkg.overrides;
     source = pkg.source;
     files;
     opam;
   }
 
-let make ~cfg ?resolver ~resolutions () =
+let make ~cfg ~resolver ~resolutions () =
   let open RunAsync.Syntax in
-  let%bind resolver =
-    match resolver with
-    | None -> Resolver.make ~cfg ~resolutions ()
-    | Some resolver -> return resolver
-  in
-  let universe = ref Universe.empty in
+  let universe = ref (Universe.empty resolver) in
   return {cfg; resolver; universe = !universe; resolutions}
 
 let add ~(dependencies : Dependencies.t) solver =
   let open RunAsync.Syntax in
 
   let universe = ref solver.universe in
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving esy packages" () in
+  let report, finish = Cli.createProgressReporter ~name:"resolving esy packages" () in
 
   let rec addPackage (pkg : Package.t) =
     if not (Universe.mem ~pkg !universe)
@@ -233,15 +229,12 @@ let add ~(dependencies : Dependencies.t) solver =
       match pkg.kind with
       | Package.Esy ->
         universe := Universe.add ~pkg !universe;
-        let%bind dependencies =
+        let%bind () =
           RunAsync.contextf
             (addDependencies pkg.dependencies)
             "processing package %a" Package.pp pkg
         in
-        universe := (
-          let pkg = {pkg with dependencies} in
-          Universe.add ~pkg !universe
-        );
+        universe := Universe.add ~pkg !universe;
         return ()
       | Package.Npm -> return ()
     else return ()
@@ -249,46 +242,25 @@ let add ~(dependencies : Dependencies.t) solver =
   and addDependencies (dependencies : Dependencies.t) =
     match dependencies with
     | Dependencies.NpmFormula reqs ->
-      let%bind reqs = RunAsync.List.joinAll (
+      RunAsync.List.waitAll (
         let f (req : Req.t) = addDependency req in
         List.map ~f reqs
-      ) in
-      return (Dependencies.NpmFormula reqs)
+      )
 
-    | Dependencies.OpamFormula formula ->
-      let%bind rewrites =
-        let f rewrites (req : Req.t) =
-          let%bind nextReq = addDependency req in
-          match req.spec, nextReq.Req.spec with
-          | VersionSpec.Source prev, VersionSpec.Source next ->
-            return (SourceSpec.Map.add prev next rewrites)
-          | _ -> return rewrites
+    | Dependencies.OpamFormula _ ->
+      RunAsync.List.waitAll (
+        let f (req : Req.t) = addDependency req
         in
         let reqs = Dependencies.toApproximateRequests dependencies in
-        RunAsync.List.foldLeft ~f ~init:SourceSpec.Map.empty reqs
-      in
-
-      let formula =
-        let f (dep : Package.Dep.t) =
-          match dep.req with
-          | Package.Dep.Source src -> begin
-            match SourceSpec.Map.find_opt src rewrites with
-            | Some nextSrc -> {dep with req = Package.Dep.Source nextSrc}
-            | None -> dep
-            end
-          | _ -> dep
-        in
-        List.map ~f:(List.map ~f) formula
-      in
-
-      return (Dependencies.OpamFormula formula)
+        List.map ~f reqs
+      )
 
   and addDependency (req : Req.t) =
     let%lwt () =
       let status = Format.asprintf "%s" req.name in
       report status
     in
-    let%bind resolutions, spec =
+    let%bind resolutions =
       RunAsync.contextf (
         Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
       ) "resolving %a" Req.pp req
@@ -324,14 +296,10 @@ let add ~(dependencies : Dependencies.t) solver =
       |> RunAsync.List.waitAll
     in
 
-    return (
-      match spec with
-      | Some spec -> Req.make ~name:req.name ~spec
-      | None -> req
-    )
+    return ()
   in
 
-  let%bind dependencies = addDependencies dependencies in
+  let%bind () = addDependencies dependencies in
 
   let%lwt () = finish () in
 
@@ -362,26 +330,9 @@ let solveDependencies ~installed ~strategy dependencies solver =
       % p filenameOut
     ) in
 
-    let f p =
-      let readAndClose ic =
-        Lwt.finalize
-          (fun () -> Lwt_io.read ic)
-          (fun () -> Lwt_io.close ic)
-      in
-      let%lwt stdout = readAndClose p#stdout
-          and stderr = readAndClose p#stderr in
-      match%lwt p#status with
-      | Unix.WEXITED 0 ->
-        RunAsync.return ()
-      | _ ->
-        RunAsync.errorf
-          "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-          Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-    in
-
-    let cmd = Cmd.getToolAndLine cmd in
     try%lwt
-      Lwt_process.with_process_full cmd f
+      let%bind env = EsyLib.EsyBashLwt.getMingwEnvironmentOverride () in
+      ChildProcess.run ~env cmd
     with
     | Unix.Unix_error (err, _, _) ->
       let msg = Unix.error_message err in
@@ -396,10 +347,11 @@ let solveDependencies ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     source = Source.NoSource, [];
-    override = None;
+    overrides = Package.Overrides.empty;
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
+    resolutions = Resolutions.empty;
     kind = Esy;
   } in
 
@@ -413,6 +365,11 @@ let solveDependencies ~installed ~strategy dependencies solver =
   } in
   let preamble = Cudf.default_preamble in
 
+  (* The solution has CRLF on Windows, which breaks the parser *)
+  let normalizeSolutionData s = 
+      Str.global_replace (Str.regexp_string ("\r\n")) "\n" s 
+  in
+
   let solution =
     let cudf =
       Some preamble, Cudf.get_packages cudfUniverse, request
@@ -424,7 +381,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         return filename
       in
       let filenameOut = Path.(path / "out.cudf") in
-      let report, finish = solver.cfg.createProgressReporter ~name:"solving esy constraints" () in
+      let report, finish = Cli.createProgressReporter ~name:"solving esy constraints" () in
       let%lwt () = report "running solver" in
       let%bind () = runSolver filenameIn filenameOut in
       let%lwt () = finish () in
@@ -434,6 +391,7 @@ let solveDependencies ~installed ~strategy dependencies solver =
         if String.length dataOut = 0
         then return None
         else (
+          let dataOut = normalizeSolutionData dataOut in
           let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )
@@ -476,7 +434,7 @@ let solveDependenciesNaively
   (solver : t) =
   let open RunAsync.Syntax in
 
-  let report, finish = solver.cfg.Config.createProgressReporter ~name:"resolving npm packages" () in
+  let report, finish = Cli.createProgressReporter ~name:"resolving npm packages" () in
 
   let installed =
     let tbl = Hashtbl.create 100 in
@@ -493,10 +451,11 @@ let solveDependenciesNaively
     let rec findFirstMatching = function
       | [] -> None
       | pkg::pkgs ->
-        if Req.matches
-          ~name:pkg.Package.name
-          ~version:pkg.Package.version
-          req
+        if Resolver.versionMatchesReq
+            solver.resolver
+            req
+            pkg.Package.name
+            pkg.Package.version
         then Some pkg
         else findFirstMatching pkgs
     in
@@ -509,13 +468,8 @@ let solveDependenciesNaively
       let status = Format.asprintf "%a" Req.pp req in
       report status
     in
-    let%bind resolutions, overrideSpec = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
-    let req =
-      match overrideSpec with
-      | Some spec -> Req.make ~name:req.name ~spec
-      | None -> req
-    in
-    match findResolutionForRequest ~req resolutions with
+    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
+    match findResolutionForRequest solver.resolver req resolutions with
     | Some resolution ->
       begin match%bind Resolver.package ~resolution solver.resolver with
       | Ok pkg -> return (Some pkg)
@@ -632,15 +586,8 @@ let solveDependenciesNaively
 
   return packagesToDependencies
 
-let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
+let solveOCamlReq (req : Req.t) resolver =
   let open RunAsync.Syntax in
-  let%bind resolver =
-    Resolver.make
-      ~resolutions:sandbox.resolutions
-      ~cfg:sandbox.cfg
-      ~opamRegistry
-      ()
-  in
 
   let make resolution =
     Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution);%lwt
@@ -652,8 +599,8 @@ let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
   match req.spec with
   | VersionSpec.Npm _
   | VersionSpec.NpmDistTag _ ->
-    let%bind resolutions, _ = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
-    begin match findResolutionForRequest ~req resolutions with
+    let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
+    begin match findResolutionForRequest resolver req resolutions with
     | Some resolution -> make resolution
     | None ->
       Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
@@ -662,7 +609,7 @@ let solveOCamlReq ~(sandbox : Sandbox.t) ~opamRegistry (req : Req.t) =
   | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
   | VersionSpec.Source _ ->
     begin match%bind Resolver.resolve ~name:req.name ~spec:req.spec resolver with
-    | [resolution], _ -> make resolution
+    | [resolution] -> make resolution
     | _ -> errorf "multiple resolutions for %a, expected one" Req.pp req
     end
 
@@ -677,15 +624,13 @@ let solve (sandbox : Sandbox.t) =
         Explanation.pp explanation
   in
 
-  let opamRegistry = OpamRegistry.make ~cfg:sandbox.cfg () in
-
   let%bind dependencies, ocamlVersion =
     match sandbox.ocamlReq with
     | None -> return (sandbox.dependencies, None)
     | Some ocamlReq ->
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
-          (solveOCamlReq ~sandbox ~opamRegistry ocamlReq)
+          (solveOCamlReq ocamlReq sandbox.resolver)
           "resolving %a" Req.pp ocamlReq
       in
 
@@ -694,7 +639,7 @@ let solve (sandbox : Sandbox.t) =
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = PackageJson.Dependencies.override reqs [ocamlReq] in
+          let reqs = Package.NpmFormula.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =
@@ -711,16 +656,19 @@ let solve (sandbox : Sandbox.t) =
       return (dependencies, ocamlVersionOrig)
   in
 
+  let () =
+    match ocamlVersion with
+    | Some version -> Resolver.setOCamlVersion version sandbox.resolver
+    | None -> ()
+  in
+
   let%bind solver, dependencies =
-    let%bind resolver =
-      Resolver.make
-        ?ocamlVersion
-        ~opamRegistry
-        ~cfg:sandbox.cfg
-        ~resolutions:sandbox.resolutions
-        ()
+    let%bind solver = make
+      ~resolver:sandbox.resolver
+      ~cfg:sandbox.cfg
+      ~resolutions:sandbox.resolutions
+      ()
     in
-    let%bind solver = make ~resolver ~cfg:sandbox.cfg ~resolutions:sandbox.resolutions () in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
   in

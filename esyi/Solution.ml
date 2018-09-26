@@ -35,7 +35,7 @@ module Record = struct
     name: string;
     version: Version.t;
     source: SourceWithMirrors.t;
-    override: Package.Override.t option;
+    overrides: Package.Overrides.t [@default Package.Overrides.empty];
     files : Package.File.t list;
     opam : Opam.t option;
   } [@@deriving yojson]
@@ -214,7 +214,7 @@ module LockfileV1 = struct
           match spec with
           | VersionSpec.Npm f ->
             ppDnf SemverVersion.Constraint.pp fmt f
-          | VersionSpec.NpmDistTag (tag, _version) ->
+          | VersionSpec.NpmDistTag tag ->
             Fmt.string fmt tag
           | VersionSpec.Opam f ->
             ppDnf OpamPackageVersion.Constraint.pp fmt f

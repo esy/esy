@@ -68,6 +68,17 @@ end = struct
     else Lwt.return ()
 end
 
+let createProgressReporter ~name () =
+  let progress msg =
+    let status = Format.asprintf ".... %s %s" name msg in
+    ProgressReporter.setStatus status
+  in
+  let finish () =
+    let%lwt () = ProgressReporter.clearStatus () in
+    Logs_lwt.app (fun m -> m "%s: done" name)
+  in
+  (progress, finish)
+
 let pathConv =
   let open Cmdliner in
   let parse = Path.ofString in

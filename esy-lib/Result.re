@@ -14,7 +14,7 @@ let join = rr =>
   | Error(msg) => Error(msg)
   };
 
-let map = f =>
+let map = (~f) =>
   fun
   | Ok(v) => Ok(f(v))
   | Error(err) => Error(err);
@@ -32,7 +32,7 @@ module List = {
         }
       | error => error
       };
-    xs |> List.fold_left(~f, ~init=Ok([])) |> map(List.rev);
+    xs |> List.fold_left(~f, ~init=Ok([])) |> map(~f=List.rev);
   };
   let foldLeft = (~f: ('a, 'b) => result('a, 'e), ~init: 'a, xs: list('b)) => {
     let rec fold = (acc, xs) =>
@@ -51,6 +51,7 @@ module Syntax = {
   let errorf = errorf;
 
   module Let_syntax = {
+    let map = map;
     let bind = (~f, v) =>
       switch (v) {
       | Ok(v) => f(v)

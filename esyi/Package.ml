@@ -5,25 +5,278 @@ type 'a disj = 'a list
 [@@@ocaml.warning "-32"]
 type 'a conj = 'a list
 
-module Override = struct
+let isOpamPackageName name =
+  match String.cut ~sep:"/" name with
+  | Some ("@opam", _) -> true
+  | _ -> false
+
+module Command = struct
+
+  [@@@ocaml.warning "-32"]
+  type t =
+    | Parsed of string list
+    | Unparsed of string
+    [@@deriving show, ord]
+
+  let of_yojson (json : Json.t) =
+    match json with
+    | `String command -> Ok (Unparsed command)
+    | `List command ->
+      begin match Json.Parse.(list string (`List command)) with
+      | Ok args -> Ok (Parsed args)
+      | Error err -> Error err
+      end
+    | _ -> Error "expected either a string or an array of strings"
+
+  let to_yojson v =
+    match v with
+    | Parsed args -> `List (List.map ~f:(fun arg -> `String arg) args)
+    | Unparsed line -> `String line
+
+end
+
+module CommandList = struct
+
+  [@@@ocaml.warning "-32"]
+  type t =
+    Command.t list
+    [@@deriving show, ord]
+
+  let empty = []
+
+  let of_yojson (json : Json.t) =
+    let open Result.Syntax in
+    match json with
+    | `Null -> return []
+    | `List commands ->
+      Json.Parse.list Command.of_yojson (`List commands)
+    | `String command ->
+      let%bind command = Command.of_yojson (`String command) in
+      return [command]
+    | _ -> Error "expected either a null, a string or an array"
+
+  let to_yojson commands = `List (List.map ~f:Command.to_yojson commands)
+
+end
+
+module Env = struct
+
+  [@@@ocaml.warning "-32"]
+  type item = {
+    name : string;
+    value : string;
+  }
+  [@@deriving show, ord]
+
+  type t =
+    item StringMap.t
+    [@@deriving ord]
+
+  let empty = StringMap.empty
+
+  let item_of_yojson name json =
+    match json with
+    | `String value -> Ok {name; value;}
+    | _ -> Error "expected string"
+
+  let of_yojson =
+    let open Result.Syntax in
+    function
+    | `Assoc items ->
+      let f items (name, json) =
+        let%bind item = item_of_yojson name json in
+        return (StringMap.add name item items)
+      in
+      Result.List.foldLeft ~f ~init:StringMap.empty items
+    | _ -> Error "expected object"
+
+  let item_to_yojson {value;_} = `String value
+
+  let to_yojson env =
+    let items =
+      let f (name, item) = name, item_to_yojson item in
+      List.map ~f (StringMap.bindings env)
+    in
+    `Assoc items
+
+  let pp =
+    let ppItem fmt (name, {value;_}) =
+      Fmt.pf fmt "%s: %s" name value
+    in
+    StringMap.pp ~sep:(Fmt.unit ", ") ppItem
+
+  let show env = Format.asprintf "%a" pp env
+end
+
+module EnvOverride = struct
+  type t = Env.item StringMap.Override.t [@@deriving ord, show]
+  let of_yojson = StringMap.Override.of_yojson Env.item_of_yojson
+  let to_yojson = StringMap.Override.to_yojson Env.item_to_yojson
+end
+
+module ExportedEnv = struct
+
+  [@@@ocaml.warning "-32"]
+  type scope =
+    | Local
+    | Global
+    [@@deriving show, ord]
+
+  let scope_of_yojson = function
+    | `String "global" -> Ok Global
+    | `String "local" -> Ok Local
+    | _ -> Error "expected either \"local\" or \"global\""
+
+  let scope_to_yojson = function
+    | Local -> `String "local"
+    | Global -> `String "global"
+
+  module Item = struct
+    type t = {
+      value : string [@key "val"];
+      scope : (scope [@default Local]);
+      exclusive : (bool [@default false]);
+    }
+    [@@deriving yojson]
+  end
+
+  [@@@ocaml.warning "-32"]
+  type item = {
+    name : string;
+    value : string;
+    scope : scope;
+    exclusive : bool;
+  }
+  [@@deriving show, ord]
+
+  type t = item StringMap.t
+    [@@deriving ord]
+
+  let empty = StringMap.empty
+
+  let item_of_yojson name json =
+    let open Result.Syntax in
+    let%bind {Item. value; scope; exclusive} = Item.of_yojson json in
+    return ({name; value; scope; exclusive})
+
+  let of_yojson = function
+    | `Assoc items ->
+      let open Result.Syntax in
+      let f items (name, json) =
+        let%bind item = item_of_yojson name json in
+        return (StringMap.add name item items)
+      in
+      Result.List.foldLeft ~f ~init:StringMap.empty items
+    | _ -> Error "expected an object"
+
+  let item_to_yojson item =
+    `Assoc [
+      "val", `String item.value;
+      "scope", scope_to_yojson item.scope;
+      "exclusive", `Bool item.exclusive;
+    ]
+
+  let to_yojson env =
+    let items =
+      let f (name, item) = name, item_to_yojson item in
+      List.map ~f (StringMap.bindings env)
+    in
+    `Assoc items
+
+  let pp =
+    let ppItem fmt (name, item) =
+      Fmt.pf fmt "%s: %a" name pp_item item
+    in
+    StringMap.pp ~sep:(Fmt.unit ", ") ppItem
+
+  let show env = Format.asprintf "%a" pp env
+
+end
+
+module ExportedEnvOverride = struct
+
+  type t =
+    ExportedEnv.item StringMap.Override.t
+    [@@deriving ord, show]
+
+  let of_yojson = StringMap.Override.of_yojson ExportedEnv.item_of_yojson
+  let to_yojson = StringMap.Override.to_yojson ExportedEnv.item_to_yojson
+
+end
+
+module NpmFormula = struct
+
+  type t = Req.t list [@@deriving ord]
+
+  let empty = []
+
+  let pp fmt deps =
+    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
+
+  let of_yojson json =
+    let open Result.Syntax in
+    let%bind items = Json.Parse.assoc json in
+    let f deps (name, json) =
+      let%bind spec = Json.Parse.string json in
+      let%bind req = Req.parse (name ^ "@" ^ spec) in
+      return (req::deps)
+    in
+    Result.List.foldLeft ~f ~init:empty items
+
+  let to_yojson (reqs : t) =
+    let items =
+      let f (req : Req.t) = (req.name, VersionSpec.to_yojson req.spec) in
+      List.map ~f reqs
+    in
+    `Assoc items
+
+  let override deps update =
+    let map =
+      let f map (req : Req.t) = StringMap.add req.name req map in
+      let map = StringMap.empty in
+      let map = List.fold_left ~f ~init:map deps in
+      let map = List.fold_left ~f ~init:map update in
+      map
+    in
+    StringMap.values map
+
+  let find ~name reqs =
+    let f (req : Req.t) = req.name = name in
+    List.find_opt ~f reqs
+end
+
+module NpmFormulaOverride = struct
+  type t = Req.t StringMap.Override.t [@@deriving ord, show]
+
+  let of_yojson =
+    let req_of_yojson name json =
+      let open Result.Syntax in
+      let%bind spec = Json.Parse.string json in
+      let%bind spec =
+        let parseSpec =
+          if isOpamPackageName name
+          then VersionSpec.parserOpam
+          else VersionSpec.parserNpm
+        in
+        Parse.(parse parseSpec) spec
+      in
+      return (Req.make ~name ~spec)
+    in
+    StringMap.Override.of_yojson req_of_yojson
+
+  let to_yojson =
+    let req_to_yojson req =
+      VersionSpec.to_yojson req.Req.spec
+    in
+    StringMap.Override.to_yojson req_to_yojson
+end
+
+module Resolution = struct
+
   module BuildType = struct
     include EsyLib.BuildType
     include EsyLib.BuildType.AsInPackageJson
   end
-
-  type t = {
-    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
-    build : PackageJson.CommandList.t option [@default None];
-    install : PackageJson.CommandList.t option [@default None];
-    exportedEnv: PackageJson.ExportedEnv.t option [@default None];
-    exportedEnvOverride: PackageJson.ExportedEnvOverride.t option [@default None];
-    buildEnv: PackageJson.Env.t option [@default None];
-    buildEnvOverride: PackageJson.EnvOverride.t option [@default None];
-    dependencies : PackageJson.Dependencies.t option [@default None];
-  } [@@deriving yojson, ord]
-end
-
-module Resolution = struct
 
   type t = {
     name : string;
@@ -33,18 +286,90 @@ module Resolution = struct
 
   and resolution =
     | Version of Version.t
-    | SourceOverride of {source : Source.t; override : Override.t}
+    | SourceOverride of {source : Source.t; override : override}
 
-  let resolution_to_yojson resolution =
+  and override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
+    resolutions : resolution StringMap.t option;
+  }
+
+  let rec override_to_yojson override =
+    let addIfSome to_yojson key value fields =
+      match value with
+      | None -> fields
+      | Some value -> (key, to_yojson value)::fields
+    in
+
+    let {
+      buildType;
+      build;
+      install;
+      exportedEnv;
+      exportedEnvOverride;
+      buildEnv;
+      buildEnvOverride;
+      dependencies;
+      devDependencies;
+      resolutions;
+    } = override in
+    `Assoc (
+      []
+      |> addIfSome BuildType.to_yojson "buildsInSource" buildType
+      |> addIfSome CommandList.to_yojson "build" build
+      |> addIfSome CommandList.to_yojson "install" install
+      |> addIfSome ExportedEnv.to_yojson "exportedEnv" exportedEnv
+      |> addIfSome ExportedEnvOverride.to_yojson "exportedEnvOverride" exportedEnvOverride
+      |> addIfSome Env.to_yojson "buildEnv" buildEnv
+      |> addIfSome EnvOverride.to_yojson "buildEnvOverride" buildEnvOverride
+      |> addIfSome NpmFormulaOverride.to_yojson "dependencies" dependencies
+      |> addIfSome NpmFormulaOverride.to_yojson "devDependencies" devDependencies
+      |> addIfSome (StringMap.to_yojson resolution_to_yojson) "resolutions" resolutions
+    )
+
+  and resolution_to_yojson resolution =
     match resolution with
     | Version v -> `String (Version.show v)
     | SourceOverride {source; override} ->
       `Assoc [
         "source", Source.to_yojson source;
-        "override", Override.to_yojson override;
+        "override", override_to_yojson override;
       ]
 
-  let resolution_of_yojson json =
+  let rec override_of_yojson json =
+    let open Result.Syntax in
+    let field = Json.Parse.fieldOptWith in
+    let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
+    let%bind build = field ~name:"build" CommandList.of_yojson json in
+    let%bind install = field ~name:"install" CommandList.of_yojson json in
+    let%bind exportedEnv = field ~name:"exportedEnv" ExportedEnv.of_yojson json in
+    let%bind exportedEnvOverride = field ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
+    let%bind buildEnv = field ~name:"buildEnv" Env.of_yojson json in
+    let%bind buildEnvOverride = field ~name:"buildEnvOverride" EnvOverride.of_yojson json in
+    let%bind dependencies = field ~name:"dependencies" NpmFormulaOverride.of_yojson json in
+    let%bind devDependencies = field ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
+    let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
+    return {
+      buildType;
+      build;
+      install;
+      exportedEnv;
+      exportedEnvOverride;
+      buildEnv;
+      buildEnvOverride;
+      dependencies;
+      devDependencies;
+      resolutions;
+    }
+
+  and resolution_of_yojson json =
     let open Result.Syntax in
     match json with
     | `String v ->
@@ -52,10 +377,9 @@ module Resolution = struct
       return (Version version)
     | `Assoc _ ->
       let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
-      let%bind override = Json.Parse.fieldWith ~name:"override" Override.of_yojson json in
+      let%bind override = Json.Parse.fieldWith ~name:"override" override_of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"
-
 
   let digest {name; resolution} =
     let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
@@ -81,6 +405,9 @@ module Resolutions = struct
 
   let find resolutions name =
     StringMap.find_opt name resolutions
+
+  let add name resolution resolutions =
+    StringMap.add name {Resolution.name; resolution} resolutions
 
   let entries = StringMap.values
 
@@ -130,6 +457,43 @@ module Resolutions = struct
 
 end
 
+module Overrides = struct
+  type t =
+    Resolution.override list
+    [@@deriving yojson]
+
+  type override = Resolution.override = {
+    buildType : BuildType.t option;
+    build : CommandList.t option;
+    install : CommandList.t option;
+    exportedEnv: ExportedEnv.t option;
+    exportedEnvOverride: ExportedEnvOverride.t option;
+    buildEnv: Env.t option;
+    buildEnvOverride: EnvOverride.t option;
+    dependencies : NpmFormulaOverride.t option;
+    devDependencies : NpmFormulaOverride.t option;
+    resolutions : Resolution.resolution StringMap.t option;
+  }
+
+  let override_of_yojson = Resolution.override_of_yojson
+  let override_to_yojson = Resolution.override_to_yojson
+
+  let isEmpty = function
+    | [] -> true
+    | _ -> false
+
+  let empty = []
+
+  let add override overrides =
+    override::overrides
+
+  let addMany newOverrides overrides =
+    newOverrides @ overrides
+
+  let apply overrides f init =
+    List.fold_left ~f ~init (List.rev overrides)
+end
+
 module Dep = struct
   type t = {
     name : string;
@@ -141,16 +505,6 @@ module Dep = struct
     | NpmDistTag of string
     | Opam of OpamPackageVersion.Constraint.t
     | Source of SourceSpec.t
-
-  let matches ~name ~version dep =
-    name = dep.name &&
-      match version, dep.req with
-      | Version.Npm version, Npm c -> SemverVersion.Constraint.matches ~version c
-      | Version.Npm _, _ -> false
-      | Version.Opam version, Opam c -> OpamPackageVersion.Constraint.matches ~version c
-      | Version.Opam _, _ -> false
-      | Version.Source source, Source c -> SourceSpec.matches ~source c
-      | Version.Source _, _ -> false
 
   let pp fmt {name; req;} =
     let ppReq fmt = function
@@ -167,7 +521,7 @@ module Dependencies = struct
 
   type t =
     | OpamFormula of Dep.t disj conj
-    | NpmFormula of Req.t conj
+    | NpmFormula of NpmFormula.t
 
   let toApproximateRequests = function
     | NpmFormula reqs -> reqs
@@ -178,7 +532,7 @@ module Dependencies = struct
             let spec =
               match dep.req with
               | Dep.Npm _ -> VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag (tag, None)
+              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag tag
               | Dep.Opam _ -> VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
               | Dep.Source srcSpec -> VersionSpec.Source srcSpec
             in
@@ -200,7 +554,7 @@ module Dependencies = struct
         | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Dep.pp) deps
       in
       Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
-    | NpmFormula deps -> PackageJson.Dependencies.pp fmt deps
+    | NpmFormula deps -> NpmFormula.pp fmt deps
 
   let show deps =
     Format.asprintf "%a" pp deps
@@ -234,21 +588,21 @@ module OpamOverride = struct
   end
 
   type t = {
-    build: (PackageJson.CommandList.t option [@default None]);
-    install: (PackageJson.CommandList.t option [@default None]);
-    dependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]);
-    peerDependencies: (PackageJson.Dependencies.t [@default PackageJson.Dependencies.empty]) ;
-    exportedEnv: (PackageJson.ExportedEnv.t [@default PackageJson.ExportedEnv.empty]);
-    opam: (Opam.t [@default Opam.empty]);
+    build: CommandList.t option [@default None];
+    install: CommandList.t option [@default None];
+    dependencies: NpmFormula.t [@default NpmFormula.empty];
+    peerDependencies: NpmFormula.t [@default NpmFormula.empty];
+    exportedEnv: ExportedEnv.t [@default ExportedEnv.empty];
+    opam: Opam.t [@default Opam.empty];
   } [@@deriving yojson, ord, show]
 
   let empty =
     {
       build = None;
       install = None;
-      dependencies = PackageJson.Dependencies.empty;
-      peerDependencies = PackageJson.Dependencies.empty;
-      exportedEnv = PackageJson.ExportedEnv.empty;
+      dependencies = NpmFormula.empty;
+      peerDependencies = NpmFormula.empty;
+      exportedEnv = ExportedEnv.empty;
       opam = Opam.empty;
     }
 end
@@ -297,9 +651,10 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   source : Source.t * Source.t list;
-  override : Override.t option;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
+  resolutions : Resolutions.t;
   opam : Opam.t option;
   kind : kind;
 }
@@ -307,11 +662,6 @@ type t = {
 and kind =
   | Esy
   | Npm
-
-let isOpamPackageName name =
-  match String.cut ~sep:"/" name with
-  | Some ("@opam", _) -> true
-  | _ -> false
 
 let pp fmt pkg =
   Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
@@ -321,32 +671,6 @@ let compare pkga pkgb =
   if name = 0
   then Version.compare pkga.version pkgb.version
   else name
-
-let ofPackageJson ~name ~version ~source (pkgJson : PackageJson.t) =
-  let originalVersion =
-    match pkgJson.version with
-    | Some version -> Some (Version.Npm version)
-    | None -> None
-  in
-  let dependencies =
-    match pkgJson.esy with
-    | None
-    | Some {PackageJson.EsyPackageJson. _dependenciesForNewEsyInstaller= None} ->
-      pkgJson.dependencies
-    | Some {PackageJson.EsyPackageJson. _dependenciesForNewEsyInstaller= Some dependencies} ->
-      dependencies
-  in
-  {
-    name;
-    version;
-    originalVersion;
-    dependencies = Dependencies.NpmFormula dependencies;
-    devDependencies = Dependencies.NpmFormula pkgJson.devDependencies;
-    source = source, [];
-    override = None;
-    opam = None;
-    kind = if Option.isSome pkgJson.esy then Esy else Npm;
-  }
 
 module Map = Map.Make(struct
   type nonrec t = t

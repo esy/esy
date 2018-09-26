@@ -7,7 +7,7 @@ type t
 type univ = t
 
 (** Empty package universe. *)
-val empty : t
+val empty : Resolver.t -> t
 
 (** Add package to the package universe. *)
 val add : pkg:Package.t -> t -> t

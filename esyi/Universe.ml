@@ -15,12 +15,14 @@ end
 
 type t = {
   pkgs : Package.t Version.Map.t StringMap.t;
+  resolver : Resolver.t;
 }
 
 type univ = t
 
-let empty = {
+let empty resolver = {
   pkgs = StringMap.empty;
+  resolver;
 }
 
 let add ~pkg (univ : t) =
@@ -31,7 +33,7 @@ let add ~pkg (univ : t) =
     | Some versions -> versions
   in
   let pkgs = StringMap.add name (Version.Map.add version pkg versions) univ.pkgs in
-  {pkgs}
+  {univ with pkgs}
 
 let mem ~pkg (univ : t) =
   match StringMap.find pkg.Package.name univ.pkgs with
@@ -218,10 +220,11 @@ let toCudf ?(installed=Package.Set.empty) univ =
       updateVersionMap versions;
     );
     let matches pkg =
-      Package.Dep.matches
-        ~name:pkg.Package.name
-        ~version:pkg.Package.version
+      Resolver.versionMatchesDep
+        univ.resolver
         dep
+        pkg.Package.name
+        pkg.Package.version
     in
     CudfMapping.encodeDepExn
       ~name:dep.name
@@ -236,12 +239,16 @@ let toCudf ?(installed=Package.Set.empty) univ =
       updateVersionMap versions;
     );
     let matches pkg =
-      Req.matches
-        ~name:pkg.Package.name
-        ~version:pkg.Package.version
+      Resolver.versionMatchesReq
+        univ.resolver
         req
+        pkg.Package.name
+        pkg.Package.version
     in
-    CudfMapping.encodeDepExn ~name:req.name ~matches (univ, cudfUniv, cudfVersionMap)
+    CudfMapping.encodeDepExn
+      ~name:req.name
+      ~matches
+      (univ, cudfUniv, cudfVersionMap)
   in
 
   let encodeDeps (deps : Dependencies.t) =
