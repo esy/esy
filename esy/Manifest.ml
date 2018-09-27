@@ -758,23 +758,29 @@ end = struct
   let ofDir ?manifest (path : Path.t) =
     let open RunAsync.Syntax in
 
-    match manifest with
-    | None ->
-      begin match%bind loadOpamManifestOfInstallation path with
-      | Some manifest -> return (Some manifest)
-      | None -> discoverManifest path
-      end
-    | Some spec ->
-      let%bind manifest =
-        match spec with
-        | ManifestSpec.Filename.Esy, fname ->
-          let path = Path.(path / fname) in
-          loadEsyManifest path
-        | ManifestSpec.Filename.Opam, fname ->
-          let path = Path.(path / fname) in
-          loadOpamManifest path
+    let manifest =
+      match manifest with
+      | None ->
+        begin match%bind loadOpamManifestOfInstallation path with
+        | Some manifest -> return (Some manifest)
+        | None -> discoverManifest path
+        end
+      | Some spec ->
+        let%bind manifest =
+          match spec with
+          | ManifestSpec.Filename.Esy, fname ->
+            let path = Path.(path / fname) in
+            loadEsyManifest path
+          | ManifestSpec.Filename.Opam, fname ->
+            let path = Path.(path / fname) in
+            loadOpamManifest path
+        in
+        return (Some manifest)
       in
-      return (Some manifest)
+
+      RunAsync.contextf manifest
+        "reading manifest at %a"
+        Path.pp (Path.tryRelativizeToCurrent path)
 
   let ofSandboxSpec ~cfg (spec : SandboxSpec.t) =
 
@@ -804,7 +810,11 @@ end = struct
       in
       begin match manifest with
       | None -> errorf "no manifest found at %a" Source.pp resolvedSource
-      | Some manifest -> RunAsync.ofRun (readManifest ~path overrides manifest)
+      | Some manifest ->
+        let manifest = RunAsync.ofRun (readManifest ~path overrides manifest) in
+        RunAsync.contextf
+          manifest
+          "reading manifest at %a" Path.pp (Path.tryRelativizeToCurrent path)
       end
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
