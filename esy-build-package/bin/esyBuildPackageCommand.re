@@ -157,8 +157,13 @@ let runToCompletion = (~forceExitOnError=false, run) =>
     if (forceExitOnError) {
       exit(exitCode);
     } else {
-      let msg = Format.asprintf("@\ncommand failed:@\n%a", Cmd.pp, cmd);
-      `Error((false, msg));
+      Format.fprintf(
+        Format.err_formatter,
+        "@[<h>error: command failed: %a@]@.",
+        Cmd.pp,
+        cmd,
+      );
+      `Error((false, "exiting with errors above..."));
     };
   | _ => `Ok()
   };
