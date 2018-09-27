@@ -2,7 +2,7 @@
 
 const { execSync } = require("child_process");
 
-const latestCommit = execSync("git -log 1").toString("utf8");
+const latestCommit = execSync("git log --oneline -n1").toString("utf8");
 
 if (latestCommit.indexOf("@slowtest") >= 0) {
     // run slow tests
