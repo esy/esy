@@ -64,12 +64,6 @@ let getMingwRuntimePath = () =>
     }
   );
 
-let stringStartsWith = (start, str) => {
-    print_endline ("startsWith: " ++ start ++ " | " ++ str);
-    let firstPart = Str.first_chars(str, String.length(start));
-    firstPart == start
-};
-
 /**
 * Helper utility to normalize paths to a cygwin style,
 * ie, "C:\temp" -> "/cygdrive/c/temp"
@@ -77,23 +71,17 @@ let stringStartsWith = (start, str) => {
 */
 let normalizePathForCygwin = path =>
   Result.Syntax.(
-
-    if (stringStartsWith("http", path)) {
-         print_endline("SKIPPING");
-        Ok(path);
-    } else {
-        switch (System.Platform.host) {
-        | System.Platform.Windows =>
-          let%bind rootPath = getCygPath();
-          let ic =
-            Unix.open_process_in(
-              Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"",
-            );
-          let result = String.trim(input_line(ic));
-          let () = close_in(ic);
-          Ok(result);
-        | _ => Ok(path)
-        }
+    switch (System.Platform.host) {
+    | System.Platform.Windows =>
+      let%bind rootPath = getCygPath();
+      let ic =
+        Unix.open_process_in(
+          Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"",
+        );
+      let result = String.trim(input_line(ic));
+      let () = close_in(ic);
+      Ok(result);
+    | _ => Ok(path)
     }
   );
 
