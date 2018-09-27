@@ -2,6 +2,7 @@ include EsyLib.Curl
 
 module Fs = EsyLib.Fs
 module Path = EsyLib.Path
+module System = EsyLib.System
 
 let%test "copyPathLwt - copy simple file" =
     let test () =
@@ -23,7 +24,6 @@ let%test "copyPathLwt - copy simple file" =
     in
     TestLwt.runLwtTest test
 
-
 let%test "copyPathLwt - copy nested file" =
     let test () =
         let f tempPath =
@@ -40,6 +40,27 @@ let%test "copyPathLwt - copy nested file" =
             let%lwt exists = Fs.exists dst in
             match exists with
             | Ok v -> Lwt.return v
+            | _ -> Lwt.return false
+        in
+        Fs.withTempDir f
+    in
+    TestLwt.runLwtTest test
+
+let%test "rmPathLwt - delete read only file" =
+    let test () =
+        let f tempPath =
+            let src = Path.(tempPath / "test.txt") in
+            let data = "test" in
+            let%lwt _ = Fs.writeFile ~data src in
+
+            (* Set file as read only, and verify we can still delete it *)
+            (* Tested on Windows, this sets the read-only flag there too *)
+            let _ = Unix.chmod (Path.show src) 0o444 in
+
+            let%lwt _ = Fs.rmPath src in
+            let%lwt exists = Fs.exists src in
+            match exists with
+            | Ok v -> Lwt.return (v == false)
             | _ -> Lwt.return false
         in
         Fs.withTempDir f

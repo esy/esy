@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe(`Tests for installations from custom sources`, () => {
   async function assertLayoutCorrect(path) {
     await expect(helpers.crawlLayout(path)).resolves.toMatchObject({

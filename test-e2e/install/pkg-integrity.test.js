@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows('Needs investigation.');
-
 describe('Testing integrity of downloaded packages', function() {
   test(`it should fail on corrupted tarballs`, async () => {
     const fixture = [

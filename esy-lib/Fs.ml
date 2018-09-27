@@ -278,6 +278,7 @@ let rec rmPathLwt path =
 
     Lwt_unix.rmdir pathS
   | _ ->
+    let%lwt () = Lwt_unix.chmod pathS 0o640 in
     Lwt_unix.unlink pathS
 
 let copyFile ~src ~dst =

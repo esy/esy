@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe(`Installing with resolutions`, () => {
   test(`it should prefer resolution over dependencies for the root`, async () => {
     const fixture = [
