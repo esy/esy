@@ -1401,6 +1401,7 @@ let makeCommand
       match Lwt_main.run res with
       | Ok () -> `Ok ()
       | Error error ->
+        Lwt_main.run (Cli.ProgressReporter.clearStatus ());
         let msg = Run.formatError error in
         let msg = Printf.sprintf "error, exiting...\n%s" msg in
         `Error (false, msg)
