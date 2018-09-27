@@ -1,5 +1,13 @@
 open Esy
 
+let runAsyncToCmdlinerRet res =
+  match Lwt_main.run res with
+  | Ok v -> `Ok v
+  | Error error ->
+    Lwt_main.run (Cli.ProgressReporter.clearStatus ());
+    Format.fprintf Format.err_formatter "@[%a@]@." Run.ppError error;
+    `Error (false, "exiting due to errors above")
+
 (**
  * This module encapsulates info about esy runtime - its version, current
  * working directory and so on.
@@ -255,9 +263,7 @@ module CommonOptions = struct
 
         return {cfg; installSandbox; spec;}
       in
-      match Lwt_main.run copts with
-      | Ok v -> `Ok v
-      | Error msg -> `Error (false, Run.formatError msg)
+      runAsyncToCmdlinerRet copts
     in
     Term.(ret (
       const parse
@@ -1388,17 +1394,10 @@ let makeCommand
 
   let cmd =
     let f comp =
-      let res =
+      runAsyncToCmdlinerRet (
         printHeader ();%lwt
         comp
-      in
-      match Lwt_main.run res with
-      | Ok () -> `Ok ()
-      | Error error ->
-        Lwt_main.run (Cli.ProgressReporter.clearStatus ());
-        let msg = Run.formatError error in
-        let msg = Printf.sprintf "error, exiting...\n%s" msg in
-        `Error (false, msg)
+      )
     in
     Cmdliner.Term.(ret (app (const f) cmd))
   in
