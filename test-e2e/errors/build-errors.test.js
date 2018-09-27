@@ -4,6 +4,8 @@ const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const {packageJson, dir} = helpers;
 
+helpers.skipSuiteOnWindows('needs fixes for path pretty printing');
+
 type ChildProcessError = {
   stderr: string,
 };
