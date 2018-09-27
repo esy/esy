@@ -54,20 +54,13 @@ let%test "rmPathLwt - delete read only file" =
             let%lwt _ = Fs.writeFile ~data src in
 
             (* Set file as read only, and verify we can still delete it *)
-            let%lwt _ = match System.Platform.host with
-            | System.Platform.Windows -> 
-                let ic = Unix.open_process_in ("attrib +r " ^ (Path.show src)) in
-                let _ = input_line ic in
-                Lwt.return (close_in ic)
-            | _ -> 
-                let _ = Fs.chmod 000 src in
-                Lwt.return ()
-            in
+            (* Tested on Windows, this sets the read-only flag there too *)
+            let _ = Unix.chmod (Path.show src) 0o444 in
 
             let%lwt _ = Fs.rmPath src in
             let%lwt exists = Fs.exists src in
             match exists with
-            | Ok _ -> Lwt.return true
+            | Ok v -> Lwt.return (v == false)
             | _ -> Lwt.return false
         in
         Fs.withTempDir f
