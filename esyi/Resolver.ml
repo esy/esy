@@ -208,31 +208,36 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
     }
   in
 
-  let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
-    SourceResolver.resolve ~cfg:resolver.cfg ~overrides source
+  let pkg =
+    let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
+      SourceResolver.resolve ~cfg:resolver.cfg ~overrides source
+    in
+
+    let%bind pkg =
+      match manifest with
+      | Some manifest ->
+        readPackage ~name ~source:resolvedSource manifest
+      | None ->
+        if allowEmptyPackage
+        then
+          let pkg = emptyPackage ~name ~source:resolvedSource () in
+          return (Ok pkg)
+        else errorf "no manifest found at %a" Source.pp source
+    in
+
+    Hashtbl.replace resolver.sourceToSource source resolvedSource;
+
+    match pkg with
+    | Ok pkg ->
+      return (Ok {
+        pkg with Package.
+        overrides = Package.Overrides.addMany overrides pkg.Package.overrides
+      })
+    | err -> return err
   in
 
-  let%bind pkg =
-    match manifest with
-    | Some manifest ->
-      readPackage ~name ~source:resolvedSource manifest
-    | None ->
-      if allowEmptyPackage
-      then
-        let pkg = emptyPackage ~name ~source:resolvedSource () in
-        return (Ok pkg)
-      else errorf "no manifest found at %a" Source.pp source
-  in
-
-  Hashtbl.replace resolver.sourceToSource source resolvedSource;
-
-  match pkg with
-  | Ok pkg ->
-    return (Ok {
-      pkg with Package.
-      overrides = Package.Overrides.addMany overrides pkg.Package.overrides
-    })
-  | err -> return err
+  RunAsync.contextf pkg
+    "reading package metadata from %a" Source.ppPretty source
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in

@@ -92,7 +92,7 @@ let build
   | _, Some (logPath, fd) ->
     UnixLabels.close fd;
     let%bind log = Fs.readFile logPath in
-    RunAsync.withContextOfLog ~header:"Build log:" log (error "build failed")
+    RunAsync.withContextOfLog ~header:"build log:" log (error "build failed")
   | _, None ->
     error "build failed"
 

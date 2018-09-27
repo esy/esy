@@ -66,7 +66,7 @@ describe('Build with a linked dep', () => {
   async function checkShouldNotRebuildIfNoChanges(p) {
     const noOpBuild = await p.esy('build');
     expect(noOpBuild.stdout).not.toEqual(
-      expect.stringMatching('Building dep@1.0.0: starting'),
+      expect.stringMatching('building dep@1.0.0: starting'),
     );
   }
 
@@ -77,7 +77,7 @@ describe('Build with a linked dep', () => {
     await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
 
     const {stdout} = await p.esy('build');
-    expect(stdout).toEqual(expect.stringMatching('Building dep@1.0.0: starting'));
+    expect(stdout).toEqual(expect.stringMatching('building dep@1.0.0: starting'));
   }
 
   describe('out of source build', () => {

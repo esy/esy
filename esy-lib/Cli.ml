@@ -210,8 +210,3 @@ let setupLogTerm =
     const setupLog
     $ Fmt_cli.style_renderer ()
     $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
-
-let eval ?(argv=Sys.argv) ~defaultCommand ~commands () =
-  let result = Cmdliner.Term.eval_choice ~argv defaultCommand commands in
-  Lwt_main.run (ProgressReporter.clearStatus ());
-  result

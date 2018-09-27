@@ -15,10 +15,11 @@ let ppContextItem fmt = function
   | LogOutput (filename, out) ->
     Fmt.pf fmt "@[<h 2>%s@\n%a@]" filename Fmt.text out
 
-let ppContext = Fmt.(list ~sep:(unit "@\n") ppContextItem)
+let ppContext fmt context =
+  Fmt.(list ~sep:(unit "@\n") ppContextItem) fmt (List.rev context)
 
 let ppError fmt (msg, context) =
-  Fmt.pf fmt "@[<v 2>@[<h>%a@]@\n%a@]" Fmt.text msg ppContext context
+  Fmt.pf fmt "@[<v 2>@[<h>error: %a@]@\n%a@]" Fmt.text msg ppContext context
 
 let return v =
   Ok v
