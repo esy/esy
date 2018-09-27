@@ -111,7 +111,7 @@ refmt::
 # Test
 #
 
-JEST = $(BIN)/jest --runInBand
+JEST = $(BIN)/jest
 
 test-unit::
 	@esy b dune build @runtest
