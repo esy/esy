@@ -26,6 +26,8 @@ type t =
 
 include S.COMMON with type t := t
 
+val ppPretty : t Fmt.t
+
 val parser : t Parse.t
 val parse : string -> (t, string) result
 

@@ -34,7 +34,7 @@ let manifest (src : t) =
   | Archive _ -> None
   | NoSource -> None
 
-let show = function
+let show' ~showPath = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
@@ -46,17 +46,23 @@ let show = function
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.show path)
+    Printf.sprintf "path:%s" (showPath path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
   | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.show path)
+    Printf.sprintf "link:%s" (showPath path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
   | NoSource -> "no-source:"
+
+let show = show' ~showPath:Path.show
+let showPretty = show' ~showPath:Path.showPretty
 
 let pp fmt src =
   Fmt.pf fmt "%s" (show src)
+
+let ppPretty fmt src =
+  Fmt.pf fmt "%s" (showPretty src)
 
 module Parse = struct
   include Parse
