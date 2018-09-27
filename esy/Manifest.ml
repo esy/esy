@@ -779,8 +779,8 @@ end = struct
       in
 
       RunAsync.contextf manifest
-        "reading manifest at %a"
-        Path.pp (Path.tryRelativizeToCurrent path)
+        "reading package metadata from %a"
+        Path.ppPretty path
 
   let ofSandboxSpec ~cfg (spec : SandboxSpec.t) =
 
@@ -814,7 +814,7 @@ end = struct
         let manifest = RunAsync.ofRun (readManifest ~path overrides manifest) in
         RunAsync.contextf
           manifest
-          "reading manifest at %a" Path.pp (Path.tryRelativizeToCurrent path)
+          "reading package metadata from %a" Path.ppPretty path
       end
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in

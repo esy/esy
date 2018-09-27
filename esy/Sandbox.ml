@@ -552,7 +552,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
       let pkg = loadPackage ?name path stack in
       let asRoot = Path.compare path spec.path = 0 in
       if asRoot
-      then RunAsync.contextf pkg "loading package metadata at %a" Path.pp (Path.tryRelativizeToCurrent path)
+      then RunAsync.contextf pkg "loading package metadata at %a" Path.ppPretty path
       else RunAsync.contextf pkg "loading root package metadata"
     in
     Memoize.compute packageCache (path, name) compute
