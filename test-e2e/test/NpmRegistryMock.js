@@ -397,8 +397,6 @@ async function initialize(
     statusCode: number,
     errorMessage: string,
   ): boolean {
-    console.error(errorMessage);
-
     res.writeHead(statusCode);
     res.end(errorMessage);
 
