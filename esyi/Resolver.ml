@@ -254,7 +254,7 @@ let package ~(resolution : Resolution.t) resolver =
     match version with
     | Version.Source source ->
       packageOfSource
-        ~allowEmptyPackage:false
+        ~allowEmptyPackage:true
         ~overrides:Package.Overrides.empty
         ~name:resolution.name
         source
