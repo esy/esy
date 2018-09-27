@@ -62,13 +62,9 @@ let fetchSourceIntoPath source path =
     Fs.withTempDir f
 
   | Source.Git git ->
-          print_endline ("**SOURCE.GIT**");
     let%bind () = Git.clone ~dst:path ~remote:git.remote () in
-    print_endline ("- Clone success");
     let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
-    print_endline ("- Checkout success");
     let%bind () = Fs.rmPath Path.(path / ".git") in
-    print_endline ("- clear git success");
     return (Ok ())
 
 let fetchSourceIntoCache ~cfg source =

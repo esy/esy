@@ -275,9 +275,10 @@ let rec rmPathLwt path =
       (fun () -> traverseDir dir)
       (fun () -> Lwt_unix.closedir dir)
     in
+
     Lwt_unix.rmdir pathS
   | _ ->
-    let%lwt () = Lwt_unix.chmod pathS 0o640 in
+    let%lwt () = Lwt.unix.chmod pathS 0o640 in
     Lwt_unix.unlink pathS
 
 let copyFile ~src ~dst =
@@ -323,7 +324,10 @@ let withTempDir ?tempDir f =
   let%lwt () = Lwt_unix.mkdir (Path.show path) 0o700 in
   Lwt.finalize
     (fun () -> f path)
-    (fun () -> Lwt.return ())
+    (fun () -> 
+       (* never fail on removing a temp folder. *)
+       try%lwt rmPathLwt path
+       with Unix.Unix_error _ -> Lwt.return ())
 
 let withTempFile ~data f =
   let path = Filename.temp_file "esy" "tmp" in

@@ -15,14 +15,6 @@ let getMingwRuntimePath = () => {
   };
 };
 
-let normalizePathForCygwin = p => {
-  let outputPath = EsyBash.normalizePathForCygwin(p);
-  switch (outputPath) {
-  | Ok(v) => RunAsync.return(v)
-  | _ => RunAsync.return(p)
-  };
-};
-
 let getMingwEnvironmentOverride = () =>
   RunAsync.Syntax.(
     switch (System.Platform.host) {
