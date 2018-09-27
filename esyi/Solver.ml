@@ -232,7 +232,7 @@ let add ~(dependencies : Dependencies.t) solver =
         let%bind () =
           RunAsync.contextf
             (addDependencies pkg.dependencies)
-            "processing package %a" Package.pp pkg
+            "resolving %a" Package.pp pkg
         in
         universe := Universe.add ~pkg !universe;
         return ()
