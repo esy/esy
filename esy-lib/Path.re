@@ -47,6 +47,23 @@ let parent = Fpath.parent;
 let basename = Fpath.basename;
 let append = Fpath.append;
 
+let tryRelativize = (~root, p) =>
+  switch (relativize(~root, p)) {
+  | Some(p) => p
+  | None => p
+  };
+
+let tryRelativizeToCurrent = p =>
+  switch (current()) {
+  | Ok(root) =>
+    if (Fpath.equal(root, p)) {
+      Fpath.v(".");
+    } else {
+      tryRelativize(~root, p);
+    }
+  | Error(_) => p
+  };
+
 let normalizePathSlashes = {
   let backSlashRegex = Str.regexp("\\\\");
   p => Str.global_replace(backSlashRegex, "/", p);
@@ -65,17 +82,18 @@ let compare = Fpath.compare;
 
 let show = Fpath.to_string;
 let pp = Fpath.pp;
-let toPrettyString = p =>
-  Run.Syntax.(
-    {
-      let%bind path =
-        switch (remPrefix(homePath(), p)) {
-        | Some(p) => return(Fpath.append(Fpath.v("~"), p))
-        | None => return(p)
-        };
-      return(Fpath.to_string(path));
-    }
-  );
+
+let showPretty = p => {
+  let p =
+    switch (remPrefix(homePath(), p)) {
+    | Some(p) => Fpath.append(Fpath.v("~"), p)
+    | None => p
+    };
+  let p = tryRelativizeToCurrent(p);
+  show(p);
+};
+
+let ppPretty = (fmt, p) => Fmt.string(fmt, showPretty(p));
 
 /* JSONABLE */
 

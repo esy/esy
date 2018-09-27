@@ -172,13 +172,7 @@ module CommonOptions = struct
         let parent = Path.parent path in
         if not (Path.compare path parent = 0)
         then climb (Path.parent path)
-        else
-          let%bind msg = RunAsync.ofRun (
-            let open Run.Syntax in
-            let%bind currentPath = Path.toPrettyString currentPath in
-            let msg = Printf.sprintf "No sandbox found (from %s and up)" currentPath in
-            return msg
-          ) in error msg
+        else errorf "No sandbox found (from %a and up)" Path.ppPretty currentPath
     in
     climb currentPath
 
