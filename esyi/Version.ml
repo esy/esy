@@ -2,7 +2,7 @@ type t =
   | Npm of SemverVersion.Version.t
   | Opam of OpamPackageVersion.Version.t
   | Source of Source.t
-  [@@deriving ord]
+  [@@deriving ord, sexp_of]
 
 let show v =
   match v with
@@ -42,43 +42,32 @@ let parse ?(tryAsOpam=false) =
 
 let%test_module "parsing" = (module struct
 
-  let expectParses = Parse.Test.expectParses ~pp ~compare
+  let parse ?tryAsOpam =
+    Parse.Test.parse ~sexp_of:sexp_of_t (parse ?tryAsOpam)
 
-  let%test "1.0.0" =
-    expectParses
-      parse
-      "1.0.0"
-      (Npm (SemverVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    parse "1.0.0";
+    [%expect {| (Npm ((major 1) (minor 0) (patch 0) (prerelease ()) (build ()))) |}]
 
-  let%test "opam:1.0.0" =
-    expectParses
-      parse
-      "opam:1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "opam:1.0.0" =
+    parse "opam:1.0.0";
+    [%expect {| (Opam (opam-version 1.0.0)) |}]
 
-  let%test "1.0.0" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    (parse ~tryAsOpam:true) "1.0.0";
+    [%expect {| (Opam (opam-version 1.0.0)) |}]
 
-  let%test "1.0.0" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "opam:1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    (parse ~tryAsOpam:true) "opam:1.0.0";
+    [%expect {| (Opam (opam-version 1.0.0)) |}]
 
-  let%test "no-source:" =
-    expectParses
-      parse
-      "no-source:"
-      (Source Source.NoSource)
+  let%expect_test "no-source:" =
+    parse "no-source:";
+    [%expect {| (Source NoSource) |}]
 
-  let%test "no-source:" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "no-source:"
-      (Source Source.NoSource)
+  let%expect_test "no-source:" =
+    (parse ~tryAsOpam:true) "no-source:";
+    [%expect {| (Source NoSource) |}]
 end)
 
 let parseExn v =

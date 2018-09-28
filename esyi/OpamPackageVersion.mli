@@ -1,5 +1,7 @@
 module Version : sig
   include VersionBase.VERSION with type t = OpamPackage.Version.t
+
+  val sexp_of_t : t -> Sexplib0.Sexp.t
 end
 
 module Constraint :

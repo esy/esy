@@ -1,13 +1,15 @@
 module P = Parse
 
 module Version = struct
+  open Sexplib0.Sexp_conv
+
   type t = {
     major : int;
     minor : int;
     patch : int;
     prerelease : prerelease;
     build : build;
-  }
+  } [@@deriving sexp_of]
 
   and prerelease = segment list
 
