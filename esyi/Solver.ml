@@ -27,7 +27,7 @@ module Explanation = struct
     val pp : t Fmt.t
 
     val conflict : chain -> chain -> t
-    val missing : ?available:Resolution.t list -> string -> trace -> t
+    val missing : ?available:Resolution.t list -> chain -> t
 
     module Set : Set.S with type elt := t
 
@@ -35,7 +35,7 @@ module Explanation = struct
 
     type t =
       | Conflict of chain * chain
-      | Missing of {name : string; path : trace; available : Resolution.t list}
+      | Missing of {chain : chain; available : Resolution.t list}
       [@@deriving ord]
 
     and chain = {constr : Dependencies.t; trace : trace;}
@@ -47,8 +47,8 @@ module Explanation = struct
       then Conflict (left, right)
       else Conflict (right, left)
 
-    let missing ?(available=[]) name path =
-      Missing {name; path; available;}
+    let missing ?(available=[]) chain =
+      Missing {chain; available;}
 
     let ppTrace fmt path =
       let ppPkgName fmt pkg =
@@ -64,11 +64,10 @@ module Explanation = struct
       | trace -> Fmt.pf fmt "%a -> %a" ppTrace trace Dependencies.pp constr
 
     let pp fmt = function
-      | Missing {name; path; available;} ->
+      | Missing {chain; available;} ->
         Fmt.pf fmt
-          "No package matching:@;@[<v 2>@;%s (required by %a)@;@;Versions available:@;@[<v 2>@;%a@]@]"
-          name
-          ppTrace path
+          "No package matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
+          ppChain chain
           (Fmt.list Resolution.pp) available
       | Conflict (left, right) ->
         Fmt.pf fmt
@@ -164,12 +163,11 @@ module Explanation = struct
           else return reasons
         | Algo.Diagnostic.Missing (pkg, vpkglist) ->
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
-          let path =
+          let requestor, path = resolveDepChain pkg in
+          let trace =
             if pkg.Package.name = root.Package.name
             then []
-            else
-              let requestor, path = resolveDepChain pkg in
-              requestor::path
+            else requestor::path
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName name in
@@ -178,7 +176,8 @@ module Explanation = struct
               | Ok available -> Lwt.return available
               | Error _ -> Lwt.return []
             in
-            let missing = Reason.missing ~available name path in
+            let constr = Dependencies.filterDependenciesByName ~name requestor.dependencies in
+            let missing = Reason.missing ~available {constr; trace} in
             if not (Reason.Set.mem missing reasons)
             then return (Reason.Set.add missing reasons)
             else return reasons
