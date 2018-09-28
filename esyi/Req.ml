@@ -451,6 +451,17 @@ let%test_module "parsing" = (module struct
       name = "pkg";
       spec = VersionSpec.NpmDistTag "beta";
     };
+
+    "fastreplacestring@esy-ocaml/FastReplaceString#95f408b",
+    {
+      name = "fastreplacestring";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "esy-ocaml";
+        repo = "FastReplaceString";
+        ref = Some "95f408b";
+        manifest = None;
+      })
+    };
   ]
 
   let expectParsesTo input e =
