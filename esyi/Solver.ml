@@ -318,7 +318,7 @@ let parseCudfSolution ~cudfUniverse data =
   IO.close_in i;
   solution
 
-let solveDependencies ~installed ~strategy dependencies solver =
+let solveDependencies ~root ~installed ~strategy dependencies solver =
   let open RunAsync.Syntax in
 
   let runSolver filenameIn filenameOut =
@@ -343,9 +343,10 @@ let solveDependencies ~installed ~strategy dependencies solver =
 
   let dummyRoot = {
     Package.
-    name = "ROOT";
+    name = root.Package.name;
     version = Version.parseExn "0.0.0";
     originalVersion = None;
+    originalName = root.originalName;
     source = Source.NoSource, [];
     overrides = Package.Overrides.empty;
     opam = None;
@@ -677,6 +678,7 @@ let solve (sandbox : Sandbox.t) =
   let%bind installed =
     let%bind res =
       solveDependencies
+        ~root:sandbox.root
         ~installed:Package.Set.empty
         ~strategy:Strategy.trendy
         dependencies

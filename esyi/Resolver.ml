@@ -198,6 +198,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
       name;
       version = Version.Source source;
       originalVersion = None;
+      originalName = None;
       source = source, [];
       overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.NpmFormula [];

@@ -69,6 +69,7 @@ let packageOfJson ?(parseResolutions=false) ?source ~name ~version json =
     name;
     version;
     originalVersion;
+    originalName = pkgJson.name;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula pkgJson.devDependencies;
     resolutions;

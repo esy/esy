@@ -322,6 +322,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       name;
       version;
       originalVersion = None;
+      originalName = None;
       kind = Package.Esy;
       source;
       overrides = Package.Overrides.empty;

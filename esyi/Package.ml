@@ -650,6 +650,7 @@ type t = {
   name : string;
   version : Version.t;
   originalVersion : Version.t option;
+  originalName : string option;
   source : Source.t * Source.t list;
   overrides : Overrides.t;
   dependencies: Dependencies.t;
