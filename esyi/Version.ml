@@ -90,7 +90,7 @@ let to_yojson v = `String (show v)
 
 let of_yojson json =
   let open Result.Syntax in
-  let%bind v = Json.Parse.string json in
+  let%bind v = Json.Decode.string json in
   parse v
 
 module Map = Map.Make(struct

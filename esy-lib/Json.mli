@@ -14,7 +14,7 @@ val parseStringWith : 'a decoder -> string -> 'a Run.t
 
 val mergeAssoc : (string * t) list -> (string * t) list -> (string * t) list
 
-module Parse : sig
+module Decode : sig
   val string : t -> (string, string) result
   val assoc : t -> ((string * t) list, string) result
 

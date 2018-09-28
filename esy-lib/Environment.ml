@@ -173,7 +173,7 @@ module V = Make(struct
   include String
   type ctx = unit
   let v v = v
-  let of_yojson = Json.Parse.string
+  let of_yojson = Json.Decode.string
   let to_yojson v = `String v
   let show v = v
   let pp = Fmt.string

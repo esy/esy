@@ -115,7 +115,7 @@ module Scripts = struct
         end
       | Error err -> Error err
     in
-    Json.Parse.stringMap script
+    Json.Decode.stringMap script
 
   let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
 end
