@@ -28,6 +28,8 @@ The good news is that the majority of OCaml build tools do support building from
 
 Note that, even though our build commands on Windows are executed in a `cygwin` shell, the __binaries that are produced are truly native__. This applies both to all the packages we build, as well as the resultant binary for your project itself. Cygwin provides two compilers - a cygwin `gcc` compiler, and a `mingw` cross-compiler that compiles to native windows executables. We leverage the latter so the result is that `esy build` on Windows gives you native executables. This means that you can use `esy` to build apps natively for any platform!
 
+## Platform Differences
+
 ### Path considerations
 
 A major difference with Windows vs OSX/Linux is the path separator - `\` vs `/`. Windows can actually work with _either_ path separator (for the most part). 
@@ -49,7 +51,17 @@ Another difference in Windows vs OSX/Linux is how the environment variables sepa
 
 Because our __built artifacts are native__, we must use native Windows paths in our environment variables (normalized with forward slash).
 
-### Other considerations
+### Symlinks
+
+Symlinks on Windows are not well-supported today. To create symlinks, a Windows user either needs to be running as _administrator_, or set up a special developer mode - neither which is the default behavior on the system.
+
+Therefore, at this time, we should avoid using symlinks in cross-platform code.
+
+### File Permission Model
+
+The file permission models between Windows and OSX/Linux are significantly different - the OCaml API attempts to emulate some of the behavior of `stat` and `chmod`, but use caution when getting / setting file permissions in cross-platform code.
+
+### PATH limit
 
 - Windows has a `PATH` limit of `260`. Newer APIs no longer have this limit, but they are opt-in. You can also set a registry key to fix this, but again, it's opt-in. Something to be mindful of if your tool creates lots of nested paths!
 
