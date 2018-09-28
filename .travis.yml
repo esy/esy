@@ -15,6 +15,12 @@ cache:
   timeout: 360
   directories:
     - '$HOME/.esy/'
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
 
 deploy:
   provider: releases
