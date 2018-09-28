@@ -1,3 +1,5 @@
+open Sexplib0.Sexp_conv
+
 type t =
   | Archive of {
       url : string;
@@ -23,7 +25,7 @@ type t =
       manifest : ManifestSpec.Filename.t option;
     }
   | NoSource
-  [@@deriving ord]
+  [@@deriving ord, sexp_of]
 
 let show = function
   | Github {user; repo; ref = None; manifest = None;} ->
@@ -195,362 +197,220 @@ let parse =
 
 let%test_module "parsing" = (module struct
 
-  let expectParses =
-    Parse.Test.expectParses ~pp ~compare parse
+  let parse =
+    Parse.Test.parse ~sexp_of:sexp_of_t parse
 
-  let%test "github:user/repo" =
-    expectParses
-      "github:user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+  let%expect_test "github:user/repo" =
+    parse "github:user/repo";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ())) |}]
 
-  let%test "github:user/repo.git" =
-    expectParses
-      "github:user/repo.git"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+  let%expect_test "github:user/repo.git" =
+    parse "github:user/repo.git";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ())) |}]
 
-  let%test "github:user/repo#ref" =
-    expectParses
-      "github:user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+  let%expect_test "github:user/repo#ref" =
+    parse "github:user/repo#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ())) |}]
 
-  let%test "github:user/repo:lwt.opam#ref" =
-    expectParses
-      "github:user/repo:lwt.opam#ref"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "github:user/repo:lwt.opam#ref" =
+    parse "github:user/repo:lwt.opam#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "github:user/repo:lwt.opam" =
-    expectParses
-      "github:user/repo:lwt.opam"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = None;
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "github:user/repo:lwt.opam" =
+    parse "github:user/repo:lwt.opam";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "gh:user/repo" =
-    expectParses
-      "gh:user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+  let%expect_test "gh:user/repo" =
+    parse "gh:user/repo";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ())) |}]
 
-  let%test "gh:user/repo#ref" =
-    expectParses
-      "gh:user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+  let%expect_test "gh:user/repo#ref" =
+    parse "gh:user/repo#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ())) |}]
 
-  let%test "gh:user/repo:lwt.opam#ref" =
-    expectParses
-      "gh:user/repo:lwt.opam#ref"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "gh:user/repo:lwt.opam#ref" =
+    parse "gh:user/repo:lwt.opam#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "gh:user/repo:lwt.opam" =
-    expectParses
-      "gh:user/repo:lwt.opam"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = None;
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "gh:user/repo:lwt.opam" =
+    parse "gh:user/repo:lwt.opam";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+https://example.com/repo.git" =
-    expectParses
-      "git+https://example.com/repo.git"
-      (Git {remote = "https://example.com/repo.git"; ref = None; manifest = None})
+  let%expect_test "git+https://example.com/repo.git" =
+    parse "git+https://example.com/repo.git";
+    [%expect {| (Git (remote https://example.com/repo.git) (ref ()) (manifest ())) |}]
 
-  let%test "git+https://example.com/repo.git#ref" =
-    expectParses
-      "git+https://example.com/repo.git#ref"
-      (Git {remote = "https://example.com/repo.git"; ref = Some "ref"; manifest = None})
+  let%expect_test "git+https://example.com/repo.git#ref" =
+    parse "git+https://example.com/repo.git#ref";
+    [%expect {| (Git (remote https://example.com/repo.git) (ref (ref)) (manifest ())) |}]
 
-  let%test "git+https://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git+https://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "https://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam")})
+  let%expect_test "git+https://example.com/repo.git:lwt.opam#ref" =
+    parse "git+https://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote https://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+https://example.com/repo.git:lwt.opam" =
-    expectParses
-      "git+https://example.com/repo.git:lwt.opam"
-      (Git {
-        remote = "https://example.com/repo.git";
-        ref = None;
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam")
-      })
+  let%expect_test "git+https://example.com/repo.git:lwt.opam" =
+    parse "git+https://example.com/repo.git:lwt.opam";
+    [%expect {|
+      (Git (remote https://example.com/repo.git) (ref ())
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+http://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git+http://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "http://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "git+http://example.com/repo.git:lwt.opam#ref" =
+    parse "git+http://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote http://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+ftp://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git+ftp://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "ftp://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "git+ftp://example.com/repo.git:lwt.opam#ref" =
+    parse "git+ftp://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote ftp://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+ssh://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git+ssh://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "ssh://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "git+ssh://example.com/repo.git:lwt.opam#ref" =
+    parse "git+ssh://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote ssh://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git+rsync://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git+rsync://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "rsync://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "git+rsync://example.com/repo.git:lwt.opam#ref" =
+    parse "git+rsync://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote rsync://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git://example.com/repo.git" =
-    expectParses
-      "git://example.com/repo.git"
-      (Git {remote = "git://example.com/repo.git"; ref = None; manifest = None;})
+  let%expect_test "git://example.com/repo.git" =
+    parse "git://example.com/repo.git";
+    [%expect {| (Git (remote git://example.com/repo.git) (ref ()) (manifest ())) |}]
 
-  let%test "git://example.com/repo.git#ref" =
-    expectParses
-      "git://example.com/repo.git#ref"
-      (Git {remote = "git://example.com/repo.git"; ref = Some "ref"; manifest = None;})
+  let%expect_test "git://example.com/repo.git#ref" =
+    parse "git://example.com/repo.git#ref";
+    [%expect {| (Git (remote git://example.com/repo.git) (ref (ref)) (manifest ())) |}]
 
-  let%test "git://example.com/repo.git:lwt.opam#ref" =
-    expectParses
-      "git://example.com/repo.git:lwt.opam#ref"
-      (Git {
-        remote = "git://example.com/repo.git";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "git://example.com/repo.git:lwt.opam#ref" =
+    parse "git://example.com/repo.git:lwt.opam#ref";
+    [%expect {|
+      (Git (remote git://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "git://github.com/yarnpkg/example-yarn-package.git" =
-    expectParses
-      "git://github.com/yarnpkg/example-yarn-package.git"
-      (Git {
-        remote = "git://github.com/yarnpkg/example-yarn-package.git";
-        ref = None;
-        manifest = None;
-      })
+  let%expect_test "git://github.com/yarnpkg/example-yarn-package.git" =
+    parse "git://github.com/yarnpkg/example-yarn-package.git";
+    [%expect {|
+      (Git (remote git://github.com/yarnpkg/example-yarn-package.git) (ref ())
+       (manifest ())) |}]
 
-  let%test "user/repo" =
-    expectParses
-      "user/repo"
-      (Github {user = "user"; repo = "repo"; ref = None; manifest = None})
+  let%expect_test "user/repo" =
+    parse "user/repo";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ())) |}]
 
-  let%test "user/repo#ref" =
-    expectParses
-      "user/repo#ref"
-      (Github {user = "user"; repo = "repo"; ref = Some "ref"; manifest = None})
+  let%expect_test "user/repo#ref" =
+    parse "user/repo#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ())) |}]
 
-  let%test "user/repo:lwt.opam#ref" =
-    expectParses
-      "user/repo:lwt.opam#ref"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "user/repo:lwt.opam#ref" =
+    parse "user/repo:lwt.opam#ref";
+    [%expect {| (Github (user user) (repo repo) (ref (ref)) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "user/repo:lwt.opam" =
-    expectParses
-      "user/repo:lwt.opam"
-      (Github {
-        user = "user";
-        repo = "repo";
-        ref = None;
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "user/repo:lwt.opam" =
+    parse "user/repo:lwt.opam";
+    [%expect {| (Github (user user) (repo repo) (ref ()) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "https://example.com/pkg.tgz" =
-    expectParses
-      "https://example.com/pkg.tgz"
-      (Archive {url = "https://example.com/pkg.tgz"; checksum = None})
+  let%expect_test "https://example.com/pkg.tgz" =
+    parse "https://example.com/pkg.tgz";
+    [%expect {| (Archive (url https://example.com/pkg.tgz) (checksum ())) |}]
 
-  let%test "https://example.com/pkg.tgz#abc123" =
-    expectParses
-      "https://example.com/pkg.tgz#abc123"
-      (Archive {url = "https://example.com/pkg.tgz"; checksum = Some (Sha1, "abc123")})
+  let%expect_test "https://example.com/pkg.tgz#abc123" =
+    parse "https://example.com/pkg.tgz#abc123";
+    [%expect {| (Archive (url https://example.com/pkg.tgz) (checksum ((Sha1 abc123)))) |}]
 
-  let%test "http://example.com/pkg.tgz" =
-    expectParses
-      "http://example.com/pkg.tgz"
-      (Archive {url = "http://example.com/pkg.tgz"; checksum = None})
+  let%expect_test "http://example.com/pkg.tgz" =
+    parse "http://example.com/pkg.tgz";
+    [%expect {| (Archive (url http://example.com/pkg.tgz) (checksum ())) |}]
 
-  let%test "http://example.com/pkg.tgz#abc123" =
-    expectParses
-      "http://example.com/pkg.tgz#abc123"
-      (Archive {url = "http://example.com/pkg.tgz"; checksum = Some (Sha1, "abc123")})
+  let%expect_test "http://example.com/pkg.tgz#abc123" =
+    parse "http://example.com/pkg.tgz#abc123";
+    [%expect {| (Archive (url http://example.com/pkg.tgz) (checksum ((Sha1 abc123)))) |}]
 
-  let%test "link:/some/path" =
-    expectParses
-      "link:/some/path"
-      (LocalPathLink {path = Path.v "/some/path"; manifest = None;})
+  let%expect_test "link:/some/path" =
+    parse "link:/some/path";
+    [%expect {| (LocalPathLink (path /some/path) (manifest ())) |}]
 
-  let%test "link:/some/path/opam" =
-    expectParses
-      "link:/some/path/opam"
-      (LocalPathLink {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
-      })
+  let%expect_test "link:/some/path/opam" =
+    parse "link:/some/path/opam";
+    [%expect {| (LocalPathLink (path /some/path) (manifest ((Opam opam)))) |}]
 
-  let%test "link:/some/path/lwt.opam" =
-    expectParses
-      "link:/some/path/lwt.opam"
-      (LocalPathLink {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "link:/some/path/lwt.opam" =
+    parse "link:/some/path/lwt.opam";
+    [%expect {| (LocalPathLink (path /some/path) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "link:/some/path/package.json" =
-    expectParses
-      "link:/some/path/package.json"
-      (LocalPathLink {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
-      })
+  let%expect_test "link:/some/path/package.json" =
+    parse "link:/some/path/package.json";
+    [%expect {| (LocalPathLink (path /some/path) (manifest ((Esy package.json)))) |}]
 
-  let%test "file:/some/path" =
-    expectParses
-      "file:/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+  let%expect_test "file:/some/path" =
+    parse "file:/some/path";
+    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
 
-  let%test "file:/some/path/opam" =
-    expectParses
-      "file:/some/path/opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
-      })
+  let%expect_test "file:/some/path/opam" =
+    parse "file:/some/path/opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam opam)))) |}]
 
-  let%test "file:/some/path/lwt.opam" =
-    expectParses
-      "file:/some/path/lwt.opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "file:/some/path/lwt.opam" =
+    parse "file:/some/path/lwt.opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "file:/some/path/package.json" =
-    expectParses
-      "file:/some/path/package.json"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
-      })
+  let%expect_test "file:/some/path/package.json" =
+    parse "file:/some/path/package.json";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Esy package.json)))) |}]
 
-  let%test "path:/some/path" =
-    expectParses
-      "path:/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+  let%expect_test "path:/some/path" =
+    parse "path:/some/path";
+    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
 
-  let%test "path:/some/path/opam" =
-    expectParses
-      "path:/some/path/opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
-      })
+  let%expect_test "path:/some/path/opam" =
+    parse "path:/some/path/opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam opam)))) |}]
 
-  let%test "path:/some/path/lwt.opam" =
-    expectParses
-      "path:/some/path/lwt.opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "path:/some/path/lwt.opam" =
+    parse "path:/some/path/lwt.opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "path:/some/path/package.json" =
-    expectParses
-      "path:/some/path/package.json"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
-      })
+  let%expect_test "path:/some/path/package.json" =
+    parse "path:/some/path/package.json";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Esy package.json)))) |}]
 
-  let%test "/some/path" =
-    expectParses
-      "/some/path"
-      (LocalPath {path = Path.v "/some/path"; manifest = None;})
+  let%expect_test "/some/path" =
+    parse "/some/path";
+    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
 
-  let%test "/some/path/opam" =
-    expectParses
-      "/some/path/opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
-      })
+  let%expect_test "/some/path/opam" =
+    parse "/some/path/opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam opam)))) |}]
 
-  let%test "/some/path/lwt.opam" =
-    expectParses
-      "/some/path/lwt.opam"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "/some/path/lwt.opam" =
+    parse "/some/path/lwt.opam";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "/some/path/package.json" =
-    expectParses
-      "/some/path/package.json"
-      (LocalPath {
-        path = Path.v "/some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
-      })
+  let%expect_test "/some/path/package.json" =
+    parse "/some/path/package.json";
+    [%expect {| (LocalPath (path /some/path) (manifest ((Esy package.json)))) |}]
 
-  let%test "./some/path" =
-    expectParses
-      "./some/path"
-      (LocalPath {
-        path = Path.v "some/path";
-        manifest = None;
-      })
+  let%expect_test "./some/path" =
+    parse "./some/path";
+    [%expect {| (LocalPath (path some/path) (manifest ())) |}]
 
-  let%test "./some/path/opam" =
-    expectParses
-      "./some/path/opam"
-      (LocalPath {
-        path = Path.v "some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "opam");
-      })
+  let%expect_test "./some/path/opam" =
+    parse "./some/path/opam";
+    [%expect {| (LocalPath (path some/path) (manifest ((Opam opam)))) |}]
 
-  let%test "./some/path/lwt.opam" =
-    expectParses
-      "./some/path/lwt.opam"
-      (LocalPath {
-        path = Path.v "some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "lwt.opam");
-      })
+  let%expect_test "./some/path/lwt.opam" =
+    parse "./some/path/lwt.opam";
+    [%expect {| (LocalPath (path some/path) (manifest ((Opam lwt.opam)))) |}]
 
-  let%test "./some/path/package.json" =
-    expectParses
-      "./some/path/package.json"
-      (LocalPath {
-        path = Path.v "some/path";
-        manifest = Some (ManifestSpec.Filename.ofStringExn "package.json");
-      })
+  let%expect_test "./some/path/package.json" =
+    parse "./some/path/package.json";
+    [%expect {| (LocalPath (path some/path) (manifest ((Esy package.json)))) |}]
 
 end)
 
