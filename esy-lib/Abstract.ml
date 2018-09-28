@@ -43,7 +43,7 @@ module String = struct
 
     let compare = String.compare
 
-    let of_yojson = Json.Parse.string
+    let of_yojson = Json.Decode.string
     let to_yojson v = `String v
   end
 end

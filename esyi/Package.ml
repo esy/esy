@@ -22,7 +22,7 @@ module Command = struct
     match json with
     | `String command -> Ok (Unparsed command)
     | `List command ->
-      begin match Json.Parse.(list string (`List command)) with
+      begin match Json.Decode.(list string (`List command)) with
       | Ok args -> Ok (Parsed args)
       | Error err -> Error err
       end
@@ -49,7 +49,7 @@ module CommandList = struct
     match json with
     | `Null -> return []
     | `List commands ->
-      Json.Parse.list Command.of_yojson (`List commands)
+      Json.Decode.list Command.of_yojson (`List commands)
     | `String command ->
       let%bind command = Command.of_yojson (`String command) in
       return [command]
@@ -215,9 +215,9 @@ module NpmFormula = struct
 
   let of_yojson json =
     let open Result.Syntax in
-    let%bind items = Json.Parse.assoc json in
+    let%bind items = Json.Decode.assoc json in
     let f deps (name, json) =
-      let%bind spec = Json.Parse.string json in
+      let%bind spec = Json.Decode.string json in
       let%bind req = Req.parse (name ^ "@" ^ spec) in
       return (req::deps)
     in
@@ -251,7 +251,7 @@ module NpmFormulaOverride = struct
   let of_yojson =
     let req_of_yojson name json =
       let open Result.Syntax in
-      let%bind spec = Json.Parse.string json in
+      let%bind spec = Json.Decode.string json in
       let%bind spec =
         let parseSpec =
           if isOpamPackageName name
@@ -345,7 +345,7 @@ module Resolution = struct
 
   let rec override_of_yojson json =
     let open Result.Syntax in
-    let field = Json.Parse.fieldOptWith in
+    let field = Json.Decode.fieldOptWith in
     let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
     let%bind build = field ~name:"build" CommandList.of_yojson json in
     let%bind install = field ~name:"install" CommandList.of_yojson json in
@@ -376,8 +376,8 @@ module Resolution = struct
       let%bind version = Version.parse v in
       return (Version version)
     | `Assoc _ ->
-      let%bind source = Json.Parse.fieldWith ~name:"source" Source.of_yojson json in
-      let%bind override = Json.Parse.fieldWith ~name:"override" override_of_yojson json in
+      let%bind source = Json.Decode.fieldWith ~name:"source" Source.of_yojson json in
+      let%bind override = Json.Decode.fieldWith ~name:"override" override_of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"
 
