@@ -1,9 +1,9 @@
 module String = Astring.String
 
 [@@@ocaml.warning "-32"]
-type 'a disj = 'a list
+type 'a disj = 'a list [@@deriving ord]
 [@@@ocaml.warning "-32"]
-type 'a conj = 'a list
+type 'a conj = 'a list [@@deriving ord]
 
 let isOpamPackageName name =
   match String.cut ~sep:"/" name with
@@ -211,7 +211,7 @@ module NpmFormula = struct
   let empty = []
 
   let pp fmt deps =
-    Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
+    Fmt.pf fmt "@[<h>%a@]" (Fmt.list ~sep:(Fmt.unit ", ") Req.pp) deps
 
   let of_yojson json =
     let open Result.Syntax in
@@ -498,7 +498,7 @@ module Dep = struct
   type t = {
     name : string;
     req : req;
-  }
+  } [@@deriving ord]
 
   and req =
     | Npm of SemverVersion.Constraint.t
@@ -522,6 +522,7 @@ module Dependencies = struct
   type t =
     | OpamFormula of Dep.t disj conj
     | NpmFormula of NpmFormula.t
+    [@@deriving ord]
 
   let toApproximateRequests = function
     | NpmFormula reqs -> reqs
@@ -553,11 +554,27 @@ module Dependencies = struct
         | [dep] -> Dep.pp fmt dep
         | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Dep.pp) deps
       in
-      Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
+      Fmt.pf fmt "@[<h>%a@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
     | NpmFormula deps -> NpmFormula.pp fmt deps
 
   let show deps =
     Format.asprintf "%a" pp deps
+
+  let filterDependenciesByName ~name deps =
+    let findInNpmFormula reqs =
+      let f req = req.Req.name = name in
+      List.filter ~f reqs
+    in
+    let findInOpamFormula cnf =
+      let f disj =
+        let f dep = dep.Dep.name = name in
+        List.exists ~f disj
+      in
+      List.filter ~f cnf
+    in
+    match deps with
+    | NpmFormula f -> NpmFormula (findInNpmFormula f)
+    | OpamFormula f -> OpamFormula (findInOpamFormula f)
 end
 
 module File = struct
