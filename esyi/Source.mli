@@ -31,6 +31,9 @@ val ppPretty : t Fmt.t
 val parser : t Parse.t
 val parse : string -> (t, string) result
 
+val parserRelaxed : t Parse.t
+val parseRelaxed : string -> (t, string) result
+
 val manifest : t -> ManifestSpec.Filename.t option
 
 module Map : Map.S with type key := t
