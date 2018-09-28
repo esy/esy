@@ -103,7 +103,7 @@ module Parse = struct
     in
     (lift3 make) proto (host <* char '#') Checksum.parser
 
-  let pathLike make =
+  let pathLike ~requirePathSep make =
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
@@ -124,7 +124,7 @@ module Parse = struct
     in
 
     let%bind path, seenPathSep = path in
-    if seenPathSep
+    if not requirePathSep || seenPathSep
     then return (make path)
     else fail "not a path"
 
@@ -149,14 +149,14 @@ module Parse = struct
     <|> withPrefix "github:" github
     <|> withPrefix "gh:" github
     <|> withPrefix "archive:" archive
-    <|> withPrefix "path:" path
-    <|> withPrefix "link:" link
+    <|> withPrefix "path:" (path ~requirePathSep:false)
+    <|> withPrefix "link:" (link ~requirePathSep:false)
     <|> noSource
 
   let parserRelaxed =
     archive
     <|> github
-    <|> path
+    <|> (path ~requirePathSep:true)
 end
 
 let parser = Parse.parser
@@ -246,6 +246,14 @@ let%test_module "parsing" = (module struct
   let%expect_test "link:/some/path/lwt.opam" =
     parse "link:/some/path/lwt.opam";
     [%expect {| (LocalPathLink (path /some/path) (manifest ((Opam lwt.opam)))) |}]
+
+  let%expect_test "path:some" =
+    parse "path:some";
+    [%expect {| (LocalPath (path some) (manifest ())) |}]
+
+  let%expect_test "link:some" =
+    parse "link:some";
+    [%expect {| (LocalPathLink (path some) (manifest ())) |}]
 
   let%expect_test "no-source:" =
     parse "no-source:";
