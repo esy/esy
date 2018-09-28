@@ -31,6 +31,7 @@ let parse p input =
   parse_string (p <* end_of_input) input
 
 module Test = struct
+
   let expectParses ~pp ~compare parse input expectation =
     match parse input with
     | Error err ->
@@ -42,4 +43,13 @@ module Test = struct
       "Error parsing '%s':@\n  expected: %a@\n  got:      %a@\n"
         input pp expectation pp v;
       false
+
+  let parse ~sexp_of parse input =
+    match parse input with
+    | Error err ->
+      Format.printf "Error parsing '%s': %s@." input err
+    | Ok v ->
+      let sexp = sexp_of v in
+      Format.printf "%a@." Sexplib0.Sexp.pp_hum sexp
+
 end

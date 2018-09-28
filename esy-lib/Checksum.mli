@@ -10,6 +10,7 @@ include S.JSONABLE with type t := t
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
 
+val sexp_of_t : t -> Sexplib0.Sexp.t
 val parser : t Parse.t
 val parse : string -> (t, string) result
 

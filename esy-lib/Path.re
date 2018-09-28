@@ -21,6 +21,8 @@ let ofString = v => {
   (v: result(t, [ | `Msg(string)]) :> result(t, [> | `Msg(string)]));
 };
 
+let sexp_of_t = p => Sexplib0.Sexp.Atom(Fpath.to_string(p));
+
 let isAbs = Fpath.is_abs;
 let isPrefix = Fpath.is_prefix;
 let remPrefix = Fpath.rem_prefix;

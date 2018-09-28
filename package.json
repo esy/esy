@@ -5,28 +5,29 @@
   "license": "MIT",
   "esy": {
     "build": [
-      ["dune", "build", "-j", "4"],
+      [ "dune", "build", "-j", "4" ],
       [
-        "dune",
-        "build",
-        "esy/bin/esyCommand.exe",
+        "dune", "build", "esy/bin/esyCommand.exe",
         "esy-build-package/bin/esyBuildPackageCommand.exe"
       ]
     ],
     "install": [
-      ["esy-installer", "./esy-build-package.install"],
-      ["esy-installer", "./esy.install"]
+      [ "esy-installer", "./esy-build-package.install" ],
+      [ "esy-installer", "./esy.install" ]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "install:esy": "esy install",
-    "build": "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
+    "build":
+      "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
     "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
-    "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
-    "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
+    "build:postinstall-esy-solve-cudf":
+      "cd node_modules/esy-solve-cudf && npm install",
+    "release:make-platform-package":
+      "node ./scripts/build/make-platform-package.js",
     "test:unit": "esy b dune runtest test"
   },
   "resolutions": {
@@ -37,8 +38,8 @@
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "~3.2.0",
-    "@opam/bos": "^0.2.0",
     "@opam/angstrom": "*",
+    "@opam/bos": "^0.2.0",
     "@opam/cmdliner": "^1.0.2",
     "@opam/cudf": "0.9",
     "@opam/dose3": "*",
@@ -56,16 +57,16 @@
     "@opam/opam-state": "*",
     "@opam/ppx_deriving": "*",
     "@opam/ppx_deriving_yojson": "*",
+    "@opam/ppx_expect": "v0.11.0",
     "@opam/ppx_inline_test": "*",
     "@opam/ppx_let": "*",
+    "@opam/ppx_sexp_conv": "v0.11.2",
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.8",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
-  "peerDependencies": {
-    "ocaml": "~4.6.6"
-  },
+  "peerDependencies": { "ocaml": "~4.6.6" },
   "devDependencies": {
     "@esy-ocaml/merlin": "*",
     "@opam/utop": "*",

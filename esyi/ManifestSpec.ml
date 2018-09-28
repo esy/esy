@@ -1,6 +1,8 @@
+open Sexplib0.Sexp_conv
+
 module Filename = struct
   type t = kind * string
-    [@@deriving ord]
+    [@@deriving ord, sexp_of]
 
   and kind =
     | Esy
