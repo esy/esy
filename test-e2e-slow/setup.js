@@ -105,6 +105,7 @@ function buildOCaml() {
 
   sandbox.esy('install');
   sandbox.esy('build');
+  sandbox.dispose();
 }
 
 function setup(_globalConfig /* : any */) {
