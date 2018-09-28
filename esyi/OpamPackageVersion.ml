@@ -29,7 +29,7 @@ module Version = struct
     parse v
 
   let sexp_of_t v =
-    Sexplib0.Sexp.(List [Atom "opam-version"; Atom (show v);])
+    Sexplib0.Sexp.(List [Atom "Opam"; Atom (show v);])
 end
 
 let caretRange v =
