@@ -174,14 +174,14 @@ for (let c of shuffle(cases)) {
       JSON.stringify(packageJson, null, 2),
     );
 
-    let install = `install`;
+    let install = [`install`];
     if (reposUpdated) {
-      install = `install --skip-repository-update`;
+      install = ['install', '--skip-repository-update'];
     } else {
       reposUpdated = true;
     }
 
-    sandbox.esy(install);
+    sandbox.esy(...install);
     sandbox.esy('build');
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
