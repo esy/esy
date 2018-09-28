@@ -130,7 +130,10 @@ module Formula = struct
     ParseUtils.disjunction ~parse:parseSimple v
 
   let parse v =
-    Ok (parseExn v)
+    try Ok (parseExn v)
+    with _ ->
+      let msg = "unable to parse formula: " ^ v in
+      Error msg
 
   let parserDnf =
     P.(

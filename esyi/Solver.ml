@@ -164,10 +164,11 @@ module Explanation = struct
         | Algo.Diagnostic.Missing (pkg, vpkglist) ->
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
           let requestor, path = resolveDepChain pkg in
+          prerr_endline pkg.name;
           let trace =
             if pkg.Package.name = root.Package.name
             then []
-            else requestor::path
+            else pkg::requestor::path
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName name in
@@ -176,7 +177,7 @@ module Explanation = struct
               | Ok available -> Lwt.return available
               | Error _ -> Lwt.return []
             in
-            let constr = Dependencies.filterDependenciesByName ~name requestor.dependencies in
+            let constr = Dependencies.filterDependenciesByName ~name pkg.dependencies in
             let missing = Reason.missing ~available {constr; trace} in
             if not (Reason.Set.mem missing reasons)
             then return (Reason.Set.add missing reasons)
