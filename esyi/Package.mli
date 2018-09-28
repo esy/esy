@@ -199,8 +199,11 @@ module Dependencies : sig
     | NpmFormula of NpmFormula.t
 
   include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
 
   val toApproximateRequests : t -> Req.t list
+
+  val filterDependenciesByName : name:string -> t -> t
 end
 
 module File : sig
@@ -281,6 +284,7 @@ type t = {
   name : string;
   version : Version.t;
   originalVersion : Version.t option;
+  originalName : string option;
   source : Source.t * Source.t list;
   overrides : Overrides.t;
   dependencies: Dependencies.t;
