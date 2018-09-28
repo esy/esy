@@ -1,6 +1,6 @@
 // @flow
 
-const {setup, esy, mkdirTemp, ocamlVersion} = require('./setup.js');
+const {setup, createSandbox, mkdirTemp, ocamlVersion} = require('./setup.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -10,9 +10,9 @@ const childProcess = require('child_process');
 setup();
 
 const npmPrefix = mkdirTemp();
-const sandboxPath = mkdirTemp();
+const sandbox = createSandbox();
 
-console.log(`*** Release test at ${sandboxPath} ***`);
+console.log(`*** Release test at ${sandbox.path} ***`);
 
 function npm(cwd, cmd) {
   return childProcess.execSync(`npm ${cmd}`, {
@@ -23,7 +23,7 @@ function npm(cwd, cmd) {
 }
 
 fs.writeFileSync(
-  path.join(sandboxPath, 'package.json'),
+  path.join(sandbox.path, 'package.json'),
   JSON.stringify({
     name: 'release',
     version: '0.1.0',
@@ -45,7 +45,7 @@ fs.writeFileSync(
 );
 
 fs.writeFileSync(
-  path.join(sandboxPath, 'release.ml'),
+  path.join(sandbox.path, 'release.ml'),
   outdent`
     let () =
       let name =
@@ -57,10 +57,10 @@ fs.writeFileSync(
   `,
 );
 
-fs.mkdirSync(path.join(sandboxPath, 'releaseDep'));
+fs.mkdirSync(path.join(sandbox.path, 'releaseDep'));
 
 fs.writeFileSync(
-  path.join(sandboxPath, 'releaseDep', 'package.json'),
+  path.join(sandbox.path, 'releaseDep', 'package.json'),
   JSON.stringify({
     name: 'releaseDep',
     version: '0.1.0',
@@ -76,17 +76,17 @@ fs.writeFileSync(
 );
 
 fs.writeFileSync(
-  path.join(sandboxPath, 'releaseDep', 'releaseDep.ml'),
+  path.join(sandbox.path, 'releaseDep', 'releaseDep.ml'),
   outdent`
     let () =
       print_endline "RELEASE-DEP-HELLO"
   `,
 );
 
-esy(sandboxPath, 'install');
-esy(sandboxPath, 'release');
+sandbox.esy('install');
+sandbox.esy('release');
 
-const releasePath = path.join(sandboxPath, '_release');
+const releasePath = path.join(sandbox.path, '_release');
 
 npm(releasePath, 'pack');
 npm(releasePath, '-g install ./release-*.tgz');
