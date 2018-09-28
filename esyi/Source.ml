@@ -104,7 +104,6 @@ module Parse = struct
     (lift3 make) proto (host <* char '#') Checksum.parser
 
   let pathLike make =
-    let path = take_while1 (fun c -> c <> '#') in
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
@@ -117,7 +116,17 @@ module Parse = struct
       in
       make path manifest
     in
-    make <$> path
+
+    let path =
+      scan
+        false
+        (fun seenPathSep c -> Some (seenPathSep || c = '/'))
+    in
+
+    let%bind path, seenPathSep = path in
+    if seenPathSep
+    then return (make path)
+    else fail "not a path"
 
   let path =
     let make path manifest =
@@ -269,5 +278,8 @@ let%test_module "parsing" = (module struct
     parseRelaxedd "/some/path";
     [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
 
+  let%expect_test "some" =
+    parseRelaxedd "some";
+    [%expect {| Error parsing 'some': : not a path |}]
 
 end)
