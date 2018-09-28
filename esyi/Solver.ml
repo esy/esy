@@ -164,7 +164,6 @@ module Explanation = struct
         | Algo.Diagnostic.Missing (pkg, vpkglist) ->
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
           let requestor, path = resolveDepChain pkg in
-          prerr_endline pkg.name;
           let trace =
             if pkg.Package.name = root.Package.name
             then []

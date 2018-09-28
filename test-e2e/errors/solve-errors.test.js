@@ -177,10 +177,14 @@ describe('"esy solve" errors', function() {
       outdent`
       error: No solution found:
 
-      Conflicting constraints:
-        root -> dep -> @opam/conflict@<opam:2.0.0
-        root -> @opam/conflict@=opam:2.0.0
-
+      No package matching:
+     
+        root -> dep -> @opam/conflict@>opam:1.0.0
+        
+        Versions available:
+        
+          @opam/conflict@opam:1.0.0
+     
         
       esy: exiting due to errors above
       `,
