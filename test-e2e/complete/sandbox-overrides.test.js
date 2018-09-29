@@ -310,7 +310,6 @@ describe('Sandbox overrides', function() {
     expect(await helpers.crawlLayout(p.projectPath)).toMatchObject({
       dependencies: {
         devDep: {name: 'devDep'},
-        ocaml: {name: 'ocaml'},
         '@esy-ocaml/substs': {name: '@esy-ocaml/substs'},
       },
     });
