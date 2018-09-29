@@ -154,11 +154,11 @@ let ofSource ~cfg ~spec source =
 
   match%bind Resolver.package ~resolution resolver with
   | Ok root ->
-
     let dependencies, ocamlReq =
       match root.Package.dependencies, root.devDependencies with
-      | Package.Dependencies.OpamFormula _, Package.Dependencies.OpamFormula _ ->
-        root.dependencies, Some ocamlReqAny
+      | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->
+        let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
+        deps, Some ocamlReqAny
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
         let deps = Package.NpmFormula.override deps devDeps in
         let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
