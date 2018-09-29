@@ -158,7 +158,7 @@ let ofSource ~cfg ~spec source =
       match root.Package.dependencies, root.devDependencies with
       | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->
         let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
-        deps, Some ocamlReqAny
+        deps, None
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
         let deps = Package.NpmFormula.override deps devDeps in
         let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
