@@ -1,7 +1,8 @@
 // @flow
 
+const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
-const {file, dummyExecutable} = helpers;
+const {file, json, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows("esy-solve-cudf isn't ready");
 
@@ -266,5 +267,52 @@ describe('Sandbox overrides', function() {
       const {stdout} = await p.esy('esy @another x new-hello.cmd');
       expect(stdout.trim()).toBe('__hello__');
     }
+  });
+
+  it('allows to override opam sandbox with devDependencies', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'devDep',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.fixture(
+      json('package.json', {
+        source: 'path:pkg.opam',
+        override: {
+          devDependencies: {devDep: '*'},
+        },
+      }),
+      file(
+        'pkg.opam',
+        outdent`
+        opam-version: "2.0"
+        depends: []
+        `,
+      ),
+    );
+
+    await p.esy('install');
+    expect(await helpers.crawlLayout(p.projectPath)).toMatchObject({
+      dependencies: {
+        devDep: {name: 'devDep'},
+        ocaml: {name: 'ocaml'},
+        '@esy-ocaml/substs': {name: '@esy-ocaml/substs'},
+      },
+    });
   });
 });
