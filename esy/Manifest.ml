@@ -400,7 +400,7 @@ end = struct
             ~build:true ~test:false ~post:true ~doc:false ~dev:false
             f
         in
-        let dependencies = ["ocaml"]::["@esy-ocaml/substs"]::dependencies in
+        let dependencies = ["@esy-ocaml/substs"]::dependencies in
 
         dependencies
       in
