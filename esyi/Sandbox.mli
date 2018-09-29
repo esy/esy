@@ -28,4 +28,3 @@ type t = {
 }
 
 val make : cfg:Config.t -> SandboxSpec.t -> t RunAsync.t
-val ofSource : cfg:Config.t -> spec:SandboxSpec.t -> Source.t -> t RunAsync.t

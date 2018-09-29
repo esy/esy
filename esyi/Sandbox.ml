@@ -182,7 +182,7 @@ let ofSource ~cfg ~spec source =
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
-  let sandbox =
+  RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
@@ -194,7 +194,4 @@ let make ~cfg (spec : SandboxSpec.t) =
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
       makeOpamSandbox ~cfg ~spec spec.path paths
-  in
-  RunAsync.contextf
-    sandbox
-    "loading root package metadata"
+  ) "loading root package metadata"
