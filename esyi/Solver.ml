@@ -102,7 +102,7 @@ module Explanation = struct
     * Note that there can be multiple paths in the dependency graph but we only
     * consider one of them.
     *)
-    let resolveDepChain =
+    let resolveDepChain pkg =
 
       let map =
         let f map = function
@@ -122,7 +122,7 @@ module Explanation = struct
 
       let resolve pkg =
         if pkg.Package.name = root.Package.name
-        then failwith "inconsistent state: root package was not expected"
+        then pkg, []
         else
           let rec aux path pkg =
             match Package.Map.find_opt pkg map with
@@ -135,7 +135,7 @@ module Explanation = struct
           | _::requestor::path -> (requestor, path)
       in
 
-      resolve
+      resolve pkg
     in
 
     let resolveReqViaDepChain pkg =
