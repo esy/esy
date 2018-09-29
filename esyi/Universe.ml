@@ -267,7 +267,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       List.map ~f:encodeNpmReq reqs
   in
 
-  let encodePkg (pkg : Package.t) =
+  let encodePkg pkgSize (pkg : Package.t) =
     let cudfVersion =
       CudfVersionMap.findCudfVersionExn
         ~name:pkg.name
@@ -276,6 +276,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
     in
 
     let depends = encodeDeps pkg.dependencies in
+    let staleness = pkgSize - cudfVersion in
     let cudfName = CudfName.ofString pkg.name in
     let cudfPkg = {
       Cudf.default_package with
@@ -283,6 +284,10 @@ let toCudf ?(installed=Package.Set.empty) univ =
       version = cudfVersion;
       conflicts = [cudfName, None];
       installed = Package.Set.mem pkg installed;
+      pkg_extra = [
+        "staleness", `Int staleness;
+        "original-version", `String (Version.show pkg.version)
+      ];
       depends;
     }
     in
@@ -292,7 +297,8 @@ let toCudf ?(installed=Package.Set.empty) univ =
   StringMap.iter (fun name _ ->
     let versions = findVersions ~name univ in
     updateVersionMap versions;
-    List.iter ~f:encodePkg versions;
+    let size = List.length versions in
+    List.iter ~f:(encodePkg size) versions;
   ) univ.pkgs;
 
   cudfUniv, (univ, cudfUniv, cudfVersionMap)

@@ -3,7 +3,7 @@ module Resolutions = Package.Resolutions
 module Resolution = Package.Resolution
 
 module Strategy = struct
-  let trendy = "-removed,-notuptodate,-new"
+  let trendy = "-count[staleness,solution],-removed,-notuptodate,-new"
   (* let minimalAddition = "-removed,-changed,-notuptodate" *)
 end
 
@@ -409,7 +409,16 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     Cudf.default_request with
     install = [cudfRoot.Cudf.package, Some (`Eq, cudfRoot.Cudf.version)]
   } in
-  let preamble = Cudf.default_preamble in
+
+  let preamble =
+    {
+      Cudf.default_preamble with
+      property =
+        ("staleness", `Int None)
+        ::("original-version", `String None)
+        ::Cudf.default_preamble.property
+    }
+  in
 
   (* The solution has CRLF on Windows, which breaks the parser *)
   let normalizeSolutionData s = 
