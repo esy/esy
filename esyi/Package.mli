@@ -208,7 +208,7 @@ end
 
 module File : sig
   type t = {
-    name : Path.t;
+    name : string;
     content : string;
     perm : int;
   }

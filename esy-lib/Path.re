@@ -85,6 +85,11 @@ let compare = Fpath.compare;
 let show = Fpath.to_string;
 let pp = Fpath.pp;
 
+let showNormalized = p => {
+  let p = show(p);
+  normalizePathSlashes(p);
+};
+
 let showPretty = p => {
   let p =
     switch (remPrefix(homePath(), p)) {

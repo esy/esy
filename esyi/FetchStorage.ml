@@ -51,7 +51,7 @@ let install ~cfg ~path dist =
 
     let%bind () =
       let f {Package.File. name; content; perm} =
-        let name = Path.append path name in
+        let name = Path.append path (Fpath.v name) in
         let dirname = Path.parent name in
         let%bind () = Fs.createDir dirname in
         (* TODO: move this to the place we read data from *)

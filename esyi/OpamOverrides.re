@@ -101,6 +101,7 @@ let load = baseDir => {
           let%bind content = Fs.readFile(path)
           and stat = Fs.stat(path);
           let content = System.Environment.normalizeNewLines(content);
+          let name = Path.showNormalized(name);
           let file = {Package.File.name, content, perm: stat.Unix.st_perm};
           return([file, ...files]);
         | None =>

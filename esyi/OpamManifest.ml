@@ -43,6 +43,7 @@ let readFiles (path : Path.t) () =
         let%bind content = Fs.readFile filePath
         and stats = Fs.stat filePath in
         let content = System.Environment.normalizeNewLines content in
+        let name = Path.showNormalized name in
         return ({Package.File. name; content; perm = stats.Unix.st_perm}::files)
       | None -> return files
     in
