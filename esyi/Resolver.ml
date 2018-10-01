@@ -473,25 +473,25 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 
     let%bind resolutions =
       let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
-      let%bind {NpmRegistry. versions; distTags;} =
-        match%bind
-          NpmRegistry.versions ~fullMetadata ~name resolver.npmRegistry ()
-        with
-        | None -> errorf "no npm package %s found" name
-        | Some versions -> return versions
-      in
+      match%bind
+        NpmRegistry.versions ~fullMetadata ~name resolver.npmRegistry ()
+      with
 
-      Hashtbl.replace resolver.npmDistTags name distTags;
+      | Some {NpmRegistry. versions; distTags;} ->
 
-      let resolutions =
-        let f version =
-          let version = Version.Npm version in
-          {Resolution. name; resolution = Version version}
+        Hashtbl.replace resolver.npmDistTags name distTags;
+
+        let resolutions =
+          let f version =
+            let version = Version.Npm version in
+            {Resolution. name; resolution = Version version}
+          in
+          List.map ~f versions
         in
-        List.map ~f versions
-      in
 
-      return resolutions
+        return resolutions
+
+      | None -> return []
     in
 
     let resolutions =
