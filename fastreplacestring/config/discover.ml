@@ -10,6 +10,12 @@ let () =
           "-ccopt"; "-Ofast";
           "-ccopt"; "-lstdc++";
         ]
+      | Some "mingw64" -> [
+          "-ccopt"; "-lstdc++";
+          "-ccopt"; "-link -static";
+          "-ccopt"; "-link -static-libgcc";
+          "-ccopt"; "-link -static-libstdc++";
+        ]
       | Some _
       | None -> [
           "-ccopt"; "-Ofast";
