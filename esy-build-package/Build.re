@@ -3,7 +3,6 @@ module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 module System = EsyLib.System;
 open Run;
-open FastReplaceString;
 
 type t = {
   plan: Plan.t,
@@ -372,9 +371,8 @@ let withLock = (lockPath: Path.t, f) => {
 };
 
 let commitBuildToStore = (config: Config.t, build: build) => {
-  let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
+  let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) =>
     Fastreplacestring.replace(path, origPrefix, destPrefix);
-  };
   let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
     let origPrefixString = Path.show(origPrefix);
     let destPrefixString = Path.show(destPrefix);
@@ -391,7 +389,8 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       /* Replace normalized slashes: `/` */
       let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
       let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
-      let _ = rewritePrefixInFile(
+      let _ =
+        rewritePrefixInFile(
           ~origPrefix=normalizedOrigPrefix,
           ~destPrefix=normalizedDestPrefix,
           path,

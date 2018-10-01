@@ -5,7 +5,7 @@
   (libraries
             EsyLib
             EsyInstaller
-            FastReplaceString
+            fastreplacestring
             cmdliner
             yojson
             bos

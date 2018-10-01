@@ -1,6 +1,7 @@
 (library
-    (name FastReplaceString)
-    (flags (-ccopt "-link -static" -ccopt "-link -static-libgcc" -ccopt "-link -static-libstdc++" -ccopt -lstdc++))
-    (libraries EsyLib)
-    (cxx_flags (-static -static-libgcc -static-libstdc++ -lstdc++ -fno-exceptions -fno-rtti))
-    (cxx_names fastreplacestring))
+  (name fastreplacestring)
+  (flags (:include config/dune.flags))
+  (libraries EsyLib)
+  (modules fastreplacestring)
+  (cxx_flags (:include config/dune.cxx_flags))
+  (cxx_names fastreplacestring))
