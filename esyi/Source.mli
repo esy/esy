@@ -26,10 +26,14 @@ type t =
 
 include S.COMMON with type t := t
 
+val sexp_of_t : t -> Sexplib0.Sexp.t
 val ppPretty : t Fmt.t
 
 val parser : t Parse.t
 val parse : string -> (t, string) result
+
+val parserRelaxed : t Parse.t
+val parseRelaxed : string -> (t, string) result
 
 val manifest : t -> ManifestSpec.Filename.t option
 

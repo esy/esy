@@ -293,6 +293,105 @@ let%test_module "parsing" = (module struct
       });
     };
 
+    (* user/repo *)
+
+    "pkg@user/repo",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = None;
+      });
+    };
+    "pkg@user/repo#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = None;
+      });
+    };
+    "pkg@user/repo:lwt.opam#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+      });
+    };
+
+    (* github:user/repo *)
+
+    "pkg@github:user/repo",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = None;
+      });
+    };
+    "pkg@github:user/repo#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = None;
+      });
+    };
+    "pkg@github:user/repo:lwt.opam#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+      });
+    };
+
+    (* gh:user/repo *)
+
+    "pkg@gh:user/repo",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = None;
+        manifest = None;
+      });
+    };
+    "pkg@gh:user/repo#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = None;
+      });
+    };
+    "pkg@gh:user/repo:lwt.opam#ref",
+    {
+      name = "pkg";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "user";
+        repo = "repo";
+        ref = Some "ref";
+        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+      });
+    };
+
     "eslint@git+https://github.com/eslint/eslint.git#9d6223040316456557e0a2383afd96be90d28c5a",
     {
       name = "eslint";
@@ -351,6 +450,17 @@ let%test_module "parsing" = (module struct
     {
       name = "pkg";
       spec = VersionSpec.NpmDistTag "beta";
+    };
+
+    "fastreplacestring@esy-ocaml/FastReplaceString#95f408b",
+    {
+      name = "fastreplacestring";
+      spec = VersionSpec.Source (SourceSpec.Github {
+        user = "esy-ocaml";
+        repo = "FastReplaceString";
+        ref = Some "95f408b";
+        manifest = None;
+      })
     };
   ]
 

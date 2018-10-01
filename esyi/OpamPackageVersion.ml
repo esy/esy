@@ -27,6 +27,9 @@ module Version = struct
   let ofSemver v =
     let v = SemverVersion.Version.show v in
     parse v
+
+  let sexp_of_t v =
+    Sexplib0.Sexp.(List [Atom "Opam"; Atom (show v);])
 end
 
 let caretRange v =

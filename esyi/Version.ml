@@ -2,7 +2,7 @@ type t =
   | Npm of SemverVersion.Version.t
   | Opam of OpamPackageVersion.Version.t
   | Source of Source.t
-  [@@deriving ord]
+  [@@deriving ord, sexp_of]
 
 let show v =
   match v with
@@ -30,55 +30,88 @@ module Parse = struct
   let source =
     let%map source = Source.parser in
     Source source
+
+  let sourceRelaxed =
+    let%map source = Source.parserRelaxed in
+    Source source
 end
 
 let parse ?(tryAsOpam=false) =
   let parser =
     if tryAsOpam
-    then Parse.(source <|> opamWithPrefix <|> opam)
-    else Parse.(source <|> opamWithPrefix <|> npm)
+    then Parse.(source <|> opamWithPrefix <|> opam <|> sourceRelaxed)
+    else Parse.(source <|> opamWithPrefix <|> npm <|> sourceRelaxed)
   in
   Parse.parse parser
 
 let%test_module "parsing" = (module struct
 
-  let expectParses = Parse.Test.expectParses ~pp ~compare
+  let parse ?tryAsOpam =
+    Parse.Test.parse ~sexp_of:sexp_of_t (parse ?tryAsOpam)
 
-  let%test "1.0.0" =
-    expectParses
-      parse
-      "1.0.0"
-      (Npm (SemverVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    parse "1.0.0";
+    [%expect {| (Npm ((major 1) (minor 0) (patch 0) (prerelease ()) (build ()))) |}]
 
-  let%test "opam:1.0.0" =
-    expectParses
-      parse
-      "opam:1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "opam:1.0.0" =
+    parse "opam:1.0.0";
+    [%expect {| (Opam (Opam 1.0.0)) |}]
 
-  let%test "1.0.0" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    parse ~tryAsOpam:true "1.0.0";
+    [%expect {| (Opam (Opam 1.0.0)) |}]
 
-  let%test "1.0.0" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "opam:1.0.0"
-      (Opam (OpamPackageVersion.Version.parseExn "1.0.0"))
+  let%expect_test "1.0.0" =
+    parse ~tryAsOpam:true "opam:1.0.0";
+    [%expect {| (Opam (Opam 1.0.0)) |}]
 
-  let%test "no-source:" =
-    expectParses
-      parse
-      "no-source:"
-      (Source Source.NoSource)
+  let%expect_test "no-source:" =
+    parse "no-source:";
+    [%expect {| (Source NoSource) |}]
 
-  let%test "no-source:" =
-    expectParses
-      (parse ~tryAsOpam:true)
-      "no-source:"
-      (Source Source.NoSource)
+  let%expect_test "no-source:" =
+    parse ~tryAsOpam:true "no-source:";
+    [%expect {| (Source NoSource) |}]
+
+  let%expect_test "user/repo#commit" =
+    parse "user/repo#commit";
+    [%expect {| (Source (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
+
+  let%expect_test "user/repo#commit" =
+    parse ~tryAsOpam:true "user/repo#commit";
+    [%expect {| (Source (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
+
+  let%expect_test "./some/path" =
+    parse "./some/path";
+    [%expect {| (Source (LocalPath (path some/path) (manifest ()))) |}]
+
+  let%expect_test "./some/path" =
+    parse ~tryAsOpam:true "./some/path";
+    [%expect {| (Source (LocalPath (path some/path) (manifest ()))) |}]
+
+  let%expect_test "/some/path" =
+    parse "/some/path";
+    [%expect {| (Source (LocalPath (path /some/path) (manifest ()))) |}]
+
+  let%expect_test "/some/path" =
+    parse ~tryAsOpam:true "/some/path";
+    [%expect {| (Source (LocalPath (path /some/path) (manifest ()))) |}]
+
+  let%expect_test "some/path" =
+    parse "some/path";
+    [%expect {| (Source (LocalPath (path some/path) (manifest ()))) |}]
+
+  let%expect_test "some/path" =
+    parse ~tryAsOpam:true "some/path";
+    [%expect {| (Source (LocalPath (path some/path) (manifest ()))) |}]
+
+  let%expect_test "some" =
+    parse "some";
+    [%expect {| Error parsing 'some': : not a path |}]
+
+  let%expect_test "some" =
+    parse ~tryAsOpam:true "some";
+    [%expect {| (Opam (Opam some)) |}]
 end)
 
 let parseExn v =

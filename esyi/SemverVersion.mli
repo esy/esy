@@ -13,6 +13,7 @@ module Version : sig
   include VersionBase.VERSION with type t := t
 
   val parse : string -> (t, string) result
+  val sexp_of_t : t -> Sexplib0.Sexp.t
 end
 
 module Constraint :

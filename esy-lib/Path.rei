@@ -43,6 +43,8 @@ include S.PRINTABLE with type t := t;
 include S.COMPARABLE with type t := t;
 include S.JSONABLE with type t := t;
 
+let sexp_of_t: t => Sexplib0.Sexp.t;
+
 module Set: (module type of Fpath.Set);
 
 let safeSeg: string => string;
