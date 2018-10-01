@@ -48,6 +48,11 @@ function file(name: string, data: string): FixtureFile {
   return {type: 'file', name, data};
 }
 
+function json(name, json: Object): FixtureFile {
+  const data = JSON.stringify(json, null, 2);
+  return {type: 'file', name, data};
+}
+
 function symlink(name: string, path: string): FixtureSymlink {
   return {type: 'symlink', name, path};
 }
@@ -81,5 +86,6 @@ module.exports = {
   dir,
   file,
   symlink,
+  json,
   packageJson,
 };

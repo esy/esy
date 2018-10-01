@@ -102,7 +102,7 @@ module Explanation = struct
     * Note that there can be multiple paths in the dependency graph but we only
     * consider one of them.
     *)
-    let resolveDepChain =
+    let resolveDepChain pkg =
 
       let map =
         let f map = function
@@ -122,7 +122,7 @@ module Explanation = struct
 
       let resolve pkg =
         if pkg.Package.name = root.Package.name
-        then failwith "inconsistent state: root package was not expected"
+        then pkg, []
         else
           let rec aux path pkg =
             match Package.Map.find_opt pkg map with
@@ -135,7 +135,7 @@ module Explanation = struct
           | _::requestor::path -> (requestor, path)
       in
 
-      resolve
+      resolve pkg
     in
 
     let resolveReqViaDepChain pkg =
@@ -439,7 +439,9 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     Fs.withTempDir (fun path ->
       let%bind filenameIn =
         let filename = Path.(path / "in.cudf") in
-        let%bind () = Fs.writeFile ~data:(printCudfDoc cudf) filename in
+        let cudfData = printCudfDoc cudf in
+        Logs_lwt.debug (fun m -> m "CUDF REQ:@[<2>@;%a@]" Fmt.text cudfData);%lwt
+        let%bind () = Fs.writeFile ~data:cudfData filename in
         return filename
       in
       let filenameOut = Path.(path / "out.cudf") in
@@ -454,6 +456,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
         then return None
         else (
           let dataOut = normalizeSolutionData dataOut in
+          Logs_lwt.debug (fun m -> m "CUDF RES:@[<2>@;%a@]" Fmt.text dataOut);%lwt
           let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )

@@ -203,6 +203,7 @@ module.exports = {
   symlink: FixtureUtils.symlink,
   dir: FixtureUtils.dir,
   packageJson: FixtureUtils.packageJson,
+  json: FixtureUtils.json,
   skipSuiteOnWindows,
   ESYCOMMAND,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,

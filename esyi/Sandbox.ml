@@ -12,7 +12,7 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
+let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
   let%bind resolver = Resolver.make ~cfg ~root:spec.path () in
@@ -154,11 +154,11 @@ let ofSource ~cfg ~spec source =
 
   match%bind Resolver.package ~resolution resolver with
   | Ok root ->
-
     let dependencies, ocamlReq =
       match root.Package.dependencies, root.devDependencies with
-      | Package.Dependencies.OpamFormula _, Package.Dependencies.OpamFormula _ ->
-        root.dependencies, Some ocamlReqAny
+      | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->
+        let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
+        deps, None
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
         let deps = Package.NpmFormula.override deps devDeps in
         let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
@@ -182,7 +182,7 @@ let ofSource ~cfg ~spec source =
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
-  let sandbox =
+  RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
@@ -193,8 +193,5 @@ let make ~cfg (spec : SandboxSpec.t) =
       end
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
-      makeOpamSandbox ~cfg ~spec spec.path paths
-  in
-  RunAsync.contextf
-    sandbox
-    "loading root package metadata"
+      ofMultiplOpamFiles ~cfg ~spec spec.path paths
+  ) "loading root package metadata"

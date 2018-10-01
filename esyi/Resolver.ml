@@ -254,7 +254,7 @@ let package ~(resolution : Resolution.t) resolver =
     match version with
     | Version.Source source ->
       packageOfSource
-        ~allowEmptyPackage:false
+        ~allowEmptyPackage:true
         ~overrides:Package.Overrides.empty
         ~name:resolution.name
         source
@@ -478,11 +478,10 @@ let resolve' ~fullMetadata ~name ~spec resolver =
   | VersionSpec.NpmDistTag _ ->
 
     let%bind resolutions =
-      let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
+      let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name VersionSpec.pp spec) in
       match%bind
         NpmRegistry.versions ~fullMetadata ~name resolver.npmRegistry ()
       with
-
       | Some {NpmRegistry. versions; distTags;} ->
 
         Hashtbl.replace resolver.npmDistTags name distTags;
@@ -518,7 +517,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
   | VersionSpec.Opam _ ->
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun () ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s" name) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s %a" name VersionSpec.pp spec) in
         let%bind versions =
           let%bind name = RunAsync.ofRun (requireOpamName name) in
           OpamRegistry.versions
