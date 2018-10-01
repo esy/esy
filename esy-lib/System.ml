@@ -107,4 +107,6 @@ module Environment = struct
     | Some path -> String.split_on_char sep.[0] path
     | None -> []
 
+  let normalizeNewLines s =
+    Str.global_replace (Str.regexp_string "\r\n") "\n" s
 end

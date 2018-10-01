@@ -42,6 +42,7 @@ let readFiles (path : Path.t) () =
       | Some name ->
         let%bind content = Fs.readFile filePath
         and stats = Fs.stat filePath in
+        let content = System.Environment.normalizeNewLines content in
         return ({Package.File. name; content; perm = stats.Unix.st_perm}::files)
       | None -> return files
     in
