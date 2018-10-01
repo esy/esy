@@ -12,7 +12,7 @@ let ocamlReqAny =
   let spec = VersionSpec.Npm SemverVersion.Formula.any in
   Req.make ~name:"ocaml" ~spec
 
-let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
+let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
   let%bind resolver = Resolver.make ~cfg ~root:spec.path () in
@@ -193,5 +193,5 @@ let make ~cfg (spec : SandboxSpec.t) =
       end
     | ManifestSpec.ManyOpam fnames ->
       let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
-      makeOpamSandbox ~cfg ~spec spec.path paths
+      ofMultiplOpamFiles ~cfg ~spec spec.path paths
   ) "loading root package metadata"
