@@ -51,26 +51,16 @@ let rewritePrefixesInFile ~origPrefix ~destPrefix path =
 
 let rewriteTargetInSymlink ~origPrefix ~destPrefix path =
   let open Result.Syntax in
-  let%bind targetPath = Bos.OS.Path.symlink_target path in
+  let%bind targetPath = Run.readlink path in
   match Path.remPrefix origPrefix targetPath with
   | Some basePath ->
     let nextTargetPath = Path.append destPrefix basePath in
-    let%bind () = Bos.OS.Path.delete ~must_exist:false ~recurse:true path in
+    let%bind () = Run.rm path in
     let%bind () = Run.symlink ~target:nextTargetPath path in
     return ()
   | None -> return ()
 
-let traverse path f =
-  let open Result.Syntax in
-  let visit path = function
-    | Ok () ->
-      let%bind stats = Bos.OS.Path.symlink_stat path in
-      f path stats
-    | error -> error
-  in
-  Result.join (Bos.OS.Path.fold ~dotfiles:true visit (Ok ()) [path])
-
-let rewritePrefix ~origPrefix ~destPrefix path =
+let rewritePrefix ~origPrefix ~destPrefix rootPath =
   let relocate path stats =
     match stats.Unix.st_kind with
     | Unix.S_REG ->
@@ -85,7 +75,7 @@ let rewritePrefix ~origPrefix ~destPrefix path =
         path
     | _ -> Ok ()
   in
-  traverse path relocate
+  Run.traverse rootPath relocate
 
 module CLI = struct
   open Cmdliner
@@ -120,8 +110,8 @@ module CLI = struct
     )
 
   let defaultCommand =
-    let doc = "Solve CUDF dependency problem" in
-    let info = Term.info "esy-solve" ~version ~doc ~sdocs ~exits in
+    let doc = "Rewrite prefix in a directory" in
+    let info = Term.info "esy-rewrite-prefix" ~version ~doc ~sdocs ~exits in
     let cmd origPrefix destPrefix path =
       match rewritePrefix ~origPrefix ~destPrefix path with
       | Ok () ->
