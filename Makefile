@@ -70,7 +70,6 @@ else
 endif
 	@make build-dev
 	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
-	@make -C site bootstrap
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
