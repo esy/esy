@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <vector>
