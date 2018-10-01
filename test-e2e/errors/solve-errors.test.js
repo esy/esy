@@ -190,4 +190,42 @@ describe('"esy solve" errors', function() {
       `,
     );
   });
+
+  it('reports errors about missing npm packages', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineOpamPackage({
+      name: 'conflict',
+      version: '1.0.0',
+      opam: outdent`
+        opam-version: "2.0"
+      `,
+      url: null,
+    });
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          conflict: '>1.0.0',
+        },
+      }),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: No solution found:
+
+      No package matching:
+     
+        root -> conflict@>1.0.0
+        
+
+        resolving request conflict@>1.0.0
+      esy: exiting due to errors above
+      `,
+    );
+  });
 });

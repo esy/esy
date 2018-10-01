@@ -62,6 +62,10 @@ end = struct
     | trace -> Fmt.pf fmt "%a -> %a" ppTrace trace Dependencies.pp constr
 
   let pp fmt = function
+    | Missing {chain; available = [];} ->
+      Fmt.pf fmt
+        "No package matching:@;@[<v 2>@;%a@;@]"
+        ppChain chain
     | Missing {chain; available;} ->
       Fmt.pf fmt
         "No package matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
@@ -85,8 +89,11 @@ module Explanation = struct
   let empty = []
 
   let pp fmt reasons =
-    let sep = Fmt.unit "@;@;" in
-    Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep Reason.pp) reasons
+    let ppReasons fmt reasons =
+      let sep = Fmt.unit "@;@;" in
+      Fmt.pf fmt "@[<v>%a@;@]" (Fmt.list ~sep Reason.pp) reasons
+    in
+    Fmt.pf fmt "@[<v>No solution found:@;@;%a@]" ppReasons reasons
 
   let collectReasons ~resolver ~cudfMapping ~root reasons =
     let open RunAsync.Syntax in
@@ -534,11 +541,15 @@ let solveDependenciesNaively
     | None -> return None
   in
 
-  let resolve (req : Req.t) =
+  let resolve trace (req : Req.t) =
     let%bind pkg =
       match resolveOfInstalled req with
       | None -> begin match%bind resolveOfOutside req with
-        | None -> errorf "unable to find a match for %a" Req.pp req
+        | None ->
+          let explanation = [
+            Reason.missing {constr = Dependencies.NpmFormula [req]; trace;}
+          ] in
+          errorf "%a" Explanation.pp explanation
         | Some pkg -> return pkg
         end
       | Some pkg -> return pkg
@@ -558,7 +569,7 @@ let solveDependenciesNaively
     lookup, register
   in
 
-  let solveDependencies dependencies =
+  let solveDependencies trace dependencies =
     let reqs =
       match dependencies with
       | Dependencies.NpmFormula reqs -> reqs
@@ -577,7 +588,7 @@ let solveDependenciesNaively
       let f req =
         let%bind pkg =
           RunAsync.contextf
-            (resolve req)
+            (resolve trace req)
             "resolving request %a" Req.pp req
         in
         addToInstalled pkg;
@@ -590,27 +601,27 @@ let solveDependenciesNaively
     return (Package.Set.elements (Package.Set.of_list pkgs))
   in
 
-  let rec loop seen = function
+  let rec loop trace seen = function
     | pkg::rest ->
       begin match Package.Set.mem pkg seen with
       | true ->
-        loop seen rest
+        loop trace seen rest
       | false ->
         let seen = Package.Set.add pkg seen in
         let%bind dependencies =
           RunAsync.contextf
-            (solveDependencies pkg.dependencies)
+            (solveDependencies (pkg::trace) pkg.dependencies)
             "solving dependencies of %a" Package.pp pkg
         in
         addDependencies pkg dependencies;
-        loop seen (rest @ dependencies)
+        loop trace seen (rest @ dependencies)
       end
     | [] -> return ()
   in
 
   let%bind () =
-    let%bind dependencies = solveDependencies dependencies in
-    let%bind () = loop Package.Set.empty dependencies in
+    let%bind dependencies = solveDependencies [root] dependencies in
+    let%bind () = loop [root] Package.Set.empty dependencies in
     addDependencies root dependencies;
     return ()
   in
@@ -674,9 +685,7 @@ let solve (sandbox : Sandbox.t) =
   let getResultOrExplain = function
     | Ok dependencies -> return dependencies
     | Error explanation ->
-      errorf
-        "@[<v>No solution found:@;@;%a@]"
-        Explanation.pp explanation
+      errorf "%a" Explanation.pp explanation
   in
 
   let%bind dependencies, ocamlVersion =
