@@ -507,31 +507,15 @@ module Graph = DependencyGraph.Make(struct
 let isRoot ~sandbox task =
   sandbox.Sandbox.root.id = task.pkg.id
 
-let rewritePrefix ~(cfg : Config.t) ~origPrefix ~destPrefix rootPath =
-  let open RunAsync.Syntax in
-  let rewritePrefixInFile path =
-    let cmd = Cmd.(cfg.fastreplacestringCommand % p path % p origPrefix % p destPrefix) in
-    ChildProcess.run cmd
-  in
-  let rewriteTargetInSymlink path =
-    let%bind link = Fs.readlink path in
-    match Path.remPrefix origPrefix link with
-    | Some basePath ->
-      let nextTargetPath = Path.(destPrefix // basePath) in
-      let%bind () = Fs.unlink path in
-      let%bind () = Fs.symlink ~src:nextTargetPath path in
-      return ()
-    | None -> return ()
-  in
-  let rewrite (path : Path.t) (stats : Unix.stats) =
-    match stats.st_kind with
-    | Unix.S_REG ->
-      rewritePrefixInFile path
-    | Unix.S_LNK ->
-      rewriteTargetInSymlink path
-    | _ -> return ()
-  in
-  Fs.traverse ~f:rewrite rootPath
+let rewritePrefix ~cfg:_cfg ~origPrefix ~destPrefix rootPath =
+  ChildProcess.run Cmd.(
+    v "esy-rewrite-prefix"
+    % "--orig-prefix"
+    % p origPrefix
+    % "--dest-prefix"
+    % p destPrefix
+    % p rootPath
+  )
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in
@@ -544,7 +528,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     return (Path.v prevStorePrefix, Path.v nextStorePrefix)
   in
   let%bind stagePath =
-    let path = Path.(cfg.storePath / "s" / buildId) in
+    let path = Path.(cfg.Config.storePath / "s" / buildId) in
     let%bind () = Fs.rmPath path in
     let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path

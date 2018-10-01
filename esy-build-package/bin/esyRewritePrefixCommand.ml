@@ -1,19 +1,5 @@
 open EsyLib
-
-let symlink ?force  ~target  dest =
-  let open Result.Syntax in
-  let result = Bos.OS.Path.symlink ?force ~target dest in
-  match System.Platform.host with
-  | Windows ->
-    let errorRegex = Str.regexp ".*?The operation completed successfully.*?" in
-    begin match result with
-    | Ok _ -> result
-    | Error (`Msg msg) ->
-      let r = Str.string_match errorRegex msg 0 in
-      if r then return () else result
-    | _ -> result
-    end
-  | _ -> result
+module Run = EsyBuildPackage.Run
 
 let rewritePrefixInFile' ~origPrefix ~destPrefix path =
   Fastreplacestring.replace path origPrefix destPrefix
@@ -70,7 +56,7 @@ let rewriteTargetInSymlink ~origPrefix ~destPrefix path =
   | Some basePath ->
     let nextTargetPath = Path.append destPrefix basePath in
     let%bind () = Bos.OS.Path.delete ~must_exist:false ~recurse:true path in
-    let%bind () = symlink ~target:nextTargetPath path in
+    let%bind () = Run.symlink ~target:nextTargetPath path in
     return ()
   | None -> return ()
 
@@ -130,7 +116,7 @@ module CLI = struct
     Arg.(
       required
       & pos 0  (some EsyLib.Cli.pathConv) None
-      & info [] ~doc ~docv:"INPUT.CUDF"
+      & info [] ~doc ~docv:"PATH"
     )
 
   let defaultCommand =
@@ -138,8 +124,12 @@ module CLI = struct
     let info = Term.info "esy-solve" ~version ~doc ~sdocs ~exits in
     let cmd origPrefix destPrefix path =
       match rewritePrefix ~origPrefix ~destPrefix path with
-      | Ok () -> `Ok ()
-      | Error (`Msg err) -> `Error (false, err)
+      | Ok () ->
+        `Ok ()
+      | Error (`Msg err) ->
+        `Error (false, err)
+      | Error (`CommandError (cmd, _)) ->
+        `Error (false, "error running command: " ^ Bos.Cmd.to_string cmd)
     in
     Term.(ret (const cmd $ origPrefix $ destPrefix $ path)), info
 
@@ -147,3 +137,5 @@ module CLI = struct
     Printexc.record_backtrace true;
     Term.(exit (eval ~argv:Sys.argv defaultCommand))
 end
+
+let () = CLI.run()

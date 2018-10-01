@@ -371,93 +371,25 @@ let withLock = (lockPath: Path.t, f) => {
 };
 
 let commitBuildToStore = (config: Config.t, build: build) => {
-  let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) =>
-    Fastreplacestring.replace(path, origPrefix, destPrefix);
-  let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
-    let origPrefixString = Path.show(origPrefix);
-    let destPrefixString = Path.show(destPrefix);
-    switch (System.Platform.host) {
-    | Windows =>
-      /* On Windows, the slashes could be either `/` or windows-style `\`, or even escaped like `\\` */
-      /* Replace windows-style slashes: `\` */
-      let _ =
-        rewritePrefixInFile(
-          ~origPrefix=origPrefixString,
-          ~destPrefix=destPrefixString,
-          path,
-        );
-      /* Replace normalized slashes: `/` */
-      let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
-      let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
-      let _ =
-        rewritePrefixInFile(
-          ~origPrefix=normalizedOrigPrefix,
-          ~destPrefix=normalizedDestPrefix,
-          path,
-        );
-      /* Replace escaped slashes: `\\` (#399) */
-      let forwardSlashRegex = Str.regexp("/");
-      let escapedOrigPrefix =
-        Str.global_replace(
-          forwardSlashRegex,
-          "\\\\\\\\",
-          normalizedOrigPrefix,
-        );
-      let escapedDestPrefix =
-        Str.global_replace(
-          forwardSlashRegex,
-          "\\\\\\\\",
-          normalizedDestPrefix,
-        );
-      let _ =
-        rewritePrefixInFile(
-          ~origPrefix=escapedOrigPrefix,
-          ~destPrefix=escapedDestPrefix,
-          path,
-        );
-      ok;
-    | _ =>
-      rewritePrefixInFile(
-        ~origPrefix=origPrefixString,
-        ~destPrefix=destPrefixString,
-        path,
-      );
-      ok;
-    };
-  };
-  let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
-    let%bind targetPath = readlink(path);
-    switch (Path.remPrefix(origPrefix, targetPath)) {
-    | Some(basePath) =>
-      let nextTargetPath = Path.append(destPrefix, basePath);
-      let%bind () = rm(path);
-      let%bind () = symlink(~target=nextTargetPath, path);
-      ok;
-    | None => ok
-    };
-  };
-  let relocate = (path: Path.t, stats: Unix.stats) =>
-    switch (stats.st_kind) {
-    | Unix.S_REG =>
-      rewritePrefixesInFile(
-        ~origPrefix=build.stagePath,
-        ~destPrefix=build.installPath,
-        path,
-      )
-    | Unix.S_LNK =>
-      rewriteTargetInSymlink(
-        ~origPrefix=build.stagePath,
-        ~destPrefix=build.installPath,
-        path,
-      )
-    | _ => Ok()
-    };
   let%bind () =
     write(
       ~data=Path.show(config.storePath),
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
-  let%bind () = traverse(build.stagePath, relocate);
+
+  let%bind () =
+    Bos.OS.Cmd.run(
+      Cmd.(
+        empty
+        % "esy-rewrite-prefix"
+        % "--orig-prefix"
+        % p(build.stagePath)
+        % "--dest-prefix"
+        % p(build.installPath)
+        % p(build.stagePath)
+      ),
+    );
+
   let%bind () = mv(build.stagePath, build.installPath);
   ok;
 };

@@ -1,7 +1,6 @@
 module Store = EsyLib.Store;
 
 type t = {
-  fastreplacestringPath: Fpath.t,
   projectPath: Fpath.t,
   buildPath: Fpath.t,
   storePath: Fpath.t,
@@ -12,15 +11,7 @@ type config = t;
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
-let make =
-    (
-      ~fastreplacestringPath=?,
-      ~storePath=?,
-      ~projectPath,
-      ~buildPath,
-      ~localStorePath,
-      (),
-    ) =>
+let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) =>
   Run.(
     {
       let%bind storePath =
@@ -32,18 +23,7 @@ let make =
           let%bind padding = Store.getPadding(prefixPath);
           return(prefixPath / (Store.version ++ padding));
         };
-      let fastreplacestringPath =
-        switch (fastreplacestringPath) {
-        | Some(p) => p
-        | None => Fpath.v("fastreplacestring.exe")
-        };
-      return({
-        fastreplacestringPath,
-        projectPath,
-        storePath,
-        localStorePath,
-        buildPath,
-      });
+      return({projectPath, storePath, localStorePath, buildPath});
     }
   );
 

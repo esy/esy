@@ -27,7 +27,6 @@ let cfg =
     esyVersion = "0.x.x";
     prefixPath;
     storePath;
-    fastreplacestringCommand = Cmd.v "fastreplacestring.exe";
     esyBuildPackageCommand = Cmd.v "esy-build-package";
   }
 

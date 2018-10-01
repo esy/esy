@@ -42,9 +42,6 @@ module EsyRuntime = struct
     let%bind path = resolve req in
     return (path |> Cmd.p)
 
-  let fastreplacestringCommand =
-    resolveCommand "../../../../bin/fastreplacestring"
-
   let esyBuildPackageCommand =
     resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
@@ -242,15 +239,10 @@ module CommonOptions = struct
             let%bind cmd = EsyRuntime.esyBuildPackageCommand in
             return (Cmd.v cmd)
           in
-          let%bind fastreplacestringCommand =
-            let%bind cmd = EsyRuntime.fastreplacestringCommand in
-            return (Cmd.v cmd)
-          in
           RunAsync.ofRun (
             Config.make
               ~installCfg
               ~esyBuildPackageCommand
-              ~fastreplacestringCommand
               ~esyVersion:EsyRuntime.version
               ~prefixPath
               ()

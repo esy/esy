@@ -19,10 +19,7 @@ const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
-const ESYCOMMAND =
-  process.platform === 'win32'
-    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
-    : require.resolve('../../bin/esy');
+const esyBin = path.join(__dirname, '..', '..', '_build', 'install', 'default', 'bin');
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -92,7 +89,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
-  await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
 
   if (isWindows) {
     await fs.copyFile(process.execPath, path.join(binPath, 'node.exe'));
@@ -121,6 +117,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     if (!options.noEsyPrefix) {
       env = {
         ...env,
+        PATH: `${esyBin}${path.delimiter}${process.env.PATH || ''}`,
         ESY__PREFIX: esyPrefixPath,
         ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
@@ -129,7 +126,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       };
     }
 
-    const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
+    const execCommand = args != null ? `esy ${args}` : 'esy';
     return promiseExec(execCommand, {cwd, env});
   }
 
@@ -204,7 +201,6 @@ module.exports = {
   dir: FixtureUtils.dir,
   packageJson: FixtureUtils.packageJson,
   skipSuiteOnWindows,
-  ESYCOMMAND,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,

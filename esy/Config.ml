@@ -4,7 +4,6 @@ type t = {
   esyVersion : string;
   prefixPath : Path.t;
   storePath : Path.t;
-  fastreplacestringCommand : Cmd.t;
   esyBuildPackageCommand : Cmd.t;
   installCfg : EsyInstall.Config.t;
 }
@@ -13,7 +12,6 @@ let defaultPrefixPath = Path.v "~/.esy"
 
 let make
   ~installCfg
-  ~fastreplacestringCommand
   ~esyBuildPackageCommand
   ~esyVersion
   ~prefixPath
@@ -37,7 +35,6 @@ let make
       esyVersion;
       prefixPath;
       storePath;
-      fastreplacestringCommand;
       esyBuildPackageCommand;
     }
   in

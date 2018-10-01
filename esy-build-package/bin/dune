@@ -2,6 +2,7 @@
   (name esyBuildPackageCommand)
   (public_name esy-build-package)
   (package esy-build-package)
+  (modules esyBuildPackageCommand)
   (flags (:standard (-w -39)))
   (preprocess (pps ppx_let))
   (libraries
@@ -18,5 +19,20 @@
             fmt.tty
             ppx_deriving_yojson.runtime
             rresult
+            )
+  )
+
+(executable
+  (name esyRewritePrefixCommand)
+  (public_name esy-rewrite-prefix)
+  (package esy-build-package)
+  (modules esyRewritePrefixCommand)
+  (flags (:standard (-w -39)))
+  (preprocess (pps ppx_let))
+  (libraries
+            EsyBuildPackage
+            fastreplacestring
+            cmdliner
+            bos
             )
   )
