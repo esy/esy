@@ -15,7 +15,7 @@ let ocamlReqAny =
 let makeOpamSandbox ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
-  let%bind resolver = Resolver.make ~cfg () in
+  let%bind resolver = Resolver.make ~cfg ~root:spec.path () in
 
   let%bind opams =
 
@@ -149,7 +149,7 @@ let ofSource ~cfg ~spec source =
   in
 
   let%bind resolver =
-    Resolver.make ~cfg ()
+    Resolver.make ~cfg ~root:spec.path ()
   in
 
   match%bind Resolver.package ~resolution resolver with
@@ -186,7 +186,7 @@ let make ~cfg (spec : SandboxSpec.t) =
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
-      let source = "path:" ^ Path.(spec.path / fname |> show) in
+      let source = "path:" ^ fname in
       begin match Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg

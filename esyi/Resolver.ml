@@ -55,6 +55,7 @@ let toOpamOcamlVersion version =
 
 type t = {
   cfg: Config.t;
+  root: Path.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
@@ -68,9 +69,10 @@ type t = {
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
-let make ~cfg () =
+let make ~cfg ~root () =
   RunAsync.return {
     cfg;
+    root;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
     opamRegistry = OpamRegistry.make ~cfg ();
@@ -211,7 +213,11 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
 
   let pkg =
     let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
-      SourceResolver.resolve ~cfg:resolver.cfg ~overrides source
+      SourceResolver.resolve
+        ~cfg:resolver.cfg
+        ~overrides
+        ~root:resolver.root
+        source
     in
 
     let%bind pkg =
