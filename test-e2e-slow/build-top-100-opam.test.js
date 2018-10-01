@@ -140,7 +140,7 @@ function shuffle(array) {
 }
 
 const startTime = new Date();
-const runtimeLimit = 20 * 60 * 1000;
+const runtimeLimit = 17 * 60 * 1000;
 
 setup();
 
