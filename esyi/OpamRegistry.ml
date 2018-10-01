@@ -194,7 +194,7 @@ let versions ?ocamlVersion ~(name : OpamPackage.Name.t) registry =
 
   let%bind registry = initRegistry registry in
   match%bind getPackageVersionIndex registry ~name with
-  | None -> errorf "no opam package %s found" (OpamPackage.Name.to_string name)
+  | None -> return []
   | Some index ->
     let queue = LwtTaskQueue.create ~concurrency:2 () in
     let%bind resolutions =
