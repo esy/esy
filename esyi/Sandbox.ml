@@ -186,7 +186,7 @@ let make ~cfg (spec : SandboxSpec.t) =
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
-      let source = "path:" ^ Path.(spec.path / fname |> show) in
+      let source = "path:" ^ fname in
       begin match Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
