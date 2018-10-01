@@ -22,9 +22,10 @@ type File = {
 
 type Node = Dir | File;
 
+const umask = process.umask();
 // seems like in Windows we always get 0o666
-const perm755 = !isWindows ? 0o755 : 0o666;
-const perm644 = !isWindows ? 0o644 : 0o666;
+const perm755 = !isWindows ? 0o777 - umask : 0o666;
+const perm644 = !isWindows ? 0o666 - umask : 0o666;
 
 async function crawl(p: string): Promise<?Node> {
   if (!(await fsUtils.exists(p))) {
