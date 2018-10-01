@@ -106,7 +106,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   function esy(args, options) {
     options = options || {};
-    let env = process.env;
+    let env = {
+      ...process.env,
+      PATH: `${esyBin}${path.delimiter}${process.env.PATH || ''}`,
+    };
     if (options.env != null) {
       env = {...env, ...options.env};
     }
@@ -117,7 +120,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     if (!options.noEsyPrefix) {
       env = {
         ...env,
-        PATH: `${esyBin}${path.delimiter}${process.env.PATH || ''}`,
         ESY__PREFIX: esyPrefixPath,
         ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
         ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
