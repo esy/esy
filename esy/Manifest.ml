@@ -806,7 +806,10 @@ end = struct
         EsyInstall.Source.parse source
       ) in
       let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
-        SourceResolver.resolve ~cfg:cfg.Config.installCfg source
+        SourceResolver.resolve
+          ~cfg:cfg.Config.installCfg
+          ~root:spec.path
+          source
       in
       begin match manifest with
       | None -> errorf "no manifest found at %a" Source.pp resolvedSource

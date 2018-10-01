@@ -109,6 +109,7 @@ let ofPath ?manifest (path : Path.t)
 let resolve
   ?(overrides=Package.Overrides.empty)
   ~cfg
+  ~root
   (source : Source.t) =
   let open RunAsync.Syntax in
 
@@ -117,7 +118,7 @@ let resolve
     match source with
     | LocalPath {path; manifest}
     | LocalPathLink {path; manifest} ->
-      let%bind pkg = ofPath ?manifest path in
+      let%bind pkg = ofPath ?manifest Path.(root // path) in
       return pkg
     | Git {remote; commit; manifest;} ->
       Fs.withTempDir begin fun repo ->
