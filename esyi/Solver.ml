@@ -14,71 +14,71 @@ type t = {
   resolutions : Resolutions.t;
 }
 
+module Reason : sig
+
+  type t
+
+  and chain = {constr : Dependencies.t; trace : trace;}
+
+  and trace = Package.t list
+
+  val pp : t Fmt.t
+
+  val conflict : chain -> chain -> t
+  val missing : ?available:Resolution.t list -> chain -> t
+
+  module Set : Set.S with type elt := t
+
+end = struct
+
+  type t =
+    | Conflict of chain * chain
+    | Missing of {chain : chain; available : Resolution.t list}
+    [@@deriving ord]
+
+  and chain = {constr : Dependencies.t; trace : trace;}
+
+  and trace = Package.t list
+
+  let conflict left right =
+    if compare_chain left right <= 0
+    then Conflict (left, right)
+    else Conflict (right, left)
+
+  let missing ?(available=[]) chain =
+    Missing {chain; available;}
+
+  let ppTrace fmt path =
+    let ppPkgName fmt pkg =
+      let name = Option.orDefault ~default:pkg.Package.name pkg.originalName in
+      Fmt.string fmt name
+    in
+    let sep = Fmt.unit " -> " in
+    Fmt.(hbox (list ~sep ppPkgName)) fmt (List.rev path)
+
+  let ppChain fmt {constr; trace} =
+    match trace with
+    | [] -> Fmt.pf fmt "%a" Dependencies.pp constr
+    | trace -> Fmt.pf fmt "%a -> %a" ppTrace trace Dependencies.pp constr
+
+  let pp fmt = function
+    | Missing {chain; available;} ->
+      Fmt.pf fmt
+        "No package matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
+        ppChain chain
+        (Fmt.list Resolution.pp) available
+    | Conflict (left, right) ->
+      Fmt.pf fmt
+        "@[<v 2>Conflicting constraints:@;%a@;%a@]"
+        ppChain left ppChain right
+
+  module Set = Set.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+end
+
 module Explanation = struct
-
-  module Reason : sig
-
-    type t
-
-    and chain = {constr : Dependencies.t; trace : trace;}
-
-    and trace = Package.t list
-
-    val pp : t Fmt.t
-
-    val conflict : chain -> chain -> t
-    val missing : ?available:Resolution.t list -> chain -> t
-
-    module Set : Set.S with type elt := t
-
-  end = struct
-
-    type t =
-      | Conflict of chain * chain
-      | Missing of {chain : chain; available : Resolution.t list}
-      [@@deriving ord]
-
-    and chain = {constr : Dependencies.t; trace : trace;}
-
-    and trace = Package.t list
-
-    let conflict left right =
-      if compare_chain left right <= 0
-      then Conflict (left, right)
-      else Conflict (right, left)
-
-    let missing ?(available=[]) chain =
-      Missing {chain; available;}
-
-    let ppTrace fmt path =
-      let ppPkgName fmt pkg =
-        let name = Option.orDefault ~default:pkg.Package.name pkg.originalName in
-        Fmt.string fmt name
-      in
-      let sep = Fmt.unit " -> " in
-      Fmt.(hbox (list ~sep ppPkgName)) fmt (List.rev path)
-
-    let ppChain fmt {constr; trace} =
-      match trace with
-      | [] -> Fmt.pf fmt "%a" Dependencies.pp constr
-      | trace -> Fmt.pf fmt "%a -> %a" ppTrace trace Dependencies.pp constr
-
-    let pp fmt = function
-      | Missing {chain; available;} ->
-        Fmt.pf fmt
-          "No package matching:@;@[<v 2>@;%a@;@;Versions available:@;@[<v 2>@;%a@]@]"
-          ppChain chain
-          (Fmt.list Resolution.pp) available
-      | Conflict (left, right) ->
-        Fmt.pf fmt
-          "@[<v 2>Conflicting constraints:@;%a@;%a@]"
-          ppChain left ppChain right
-
-    module Set = Set.Make(struct
-      type nonrec t = t
-      let compare = compare
-    end)
-  end
 
   type t = Reason.t list
 
