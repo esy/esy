@@ -1,6 +1,12 @@
 // @flow
 
-const {esy, mkdirTemp, setup, ocamlVersion, esyPrefixPath} = require('./setup.js');
+const {
+  createSandbox,
+  mkdirTemp,
+  setup,
+  ocamlVersion,
+  esyPrefixPath,
+} = require('./setup.js');
 const fs = require('fs');
 const path = require('path');
 const rmSync = require('rimraf').sync;
@@ -134,7 +140,7 @@ function shuffle(array) {
 }
 
 const startTime = new Date();
-const runtimeLimit = 20 * 60 * 1000;
+const runtimeLimit = 17 * 60 * 1000;
 
 setup();
 
@@ -148,8 +154,8 @@ for (let c of shuffle(cases)) {
 
     console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
 
-    const sandboxPath = mkdirTemp();
-    console.log(`*** sandboxPath: ${sandboxPath}`);
+    const sandbox = createSandbox();
+    console.log(`*** sandbox.path: ${sandbox.path}`);
 
     const packageJson = {
       name: `test-${c.name}`,
@@ -164,21 +170,21 @@ for (let c of shuffle(cases)) {
     };
 
     fs.writeFileSync(
-      path.join(sandboxPath, 'package.json'),
+      path.join(sandbox.path, 'package.json'),
       JSON.stringify(packageJson, null, 2),
     );
 
-    let install = `install`;
+    let install = [`install`];
     if (reposUpdated) {
-      install = `install --skip-repository-update`;
+      install = ['install', '--skip-repository-update'];
     } else {
       reposUpdated = true;
     }
 
-    esy(sandboxPath, install);
-    esy(sandboxPath, 'build');
+    sandbox.esy(...install);
+    sandbox.esy('build');
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
-    rmSync(sandboxPath);
+    sandbox.dispose();
   }
 }

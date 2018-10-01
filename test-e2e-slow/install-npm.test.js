@@ -1,10 +1,8 @@
 // @flow
 
-const {esyPrefixPath, esy, mkdirTemp} = require('./setup.js');
-const child_process = require('child_process');
+const {createSandbox} = require('./setup.js');
 const fs = require('fs');
 const path = require('path');
-const rmSync = require('rimraf').sync;
 
 const cases = [
   {
@@ -59,8 +57,8 @@ let reposUpdated = false;
 
 for (let c of cases) {
   console.log(`*** installing ${c.name}`);
-  const sandboxPath = mkdirTemp();
-  console.log(`*** sandboxPath: ${sandboxPath}`);
+  const sandbox = createSandbox();
+  console.log(`*** sandboxPath: ${sandbox.path}`);
 
   const packageJson = {
     name: `test-${c.name}`,
@@ -72,21 +70,18 @@ for (let c of cases) {
   };
 
   fs.writeFileSync(
-    path.join(sandboxPath, 'package.json'),
+    path.join(sandbox.path, 'package.json'),
     JSON.stringify(packageJson, null, 2),
   );
 
-  esy(sandboxPath, 'install');
-  esy(sandboxPath, 'build');
+  sandbox.esy('install');
+  sandbox.esy('build');
 
   if (c.test != null) {
     const test = c.test;
-    fs.writeFileSync(path.join(sandboxPath, 'test.js'), test);
-    child_process.execSync(`node ./test.js`, {
-      cwd: sandboxPath,
-      stdio: 'inherit',
-    });
+    fs.writeFileSync(path.join(sandbox.path, 'test.js'), test);
+    sandbox.exec('node', './test.js');
   }
 
-  rmSync(sandboxPath);
+  sandbox.dispose();
 }
