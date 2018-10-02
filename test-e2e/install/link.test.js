@@ -90,4 +90,154 @@ describe(`installing linked packages`, () => {
     const binContents = await helpers.readFile(binPath);
     expect(binContents.toString()).toEqual('something');
   });
+
+  test('it should install local packages of dependencies (path: -> path:)', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          dep: 'path:./dep',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+          dependencies: {
+            linkedDep: 'path:../linkedDep',
+          },
+        }),
+      ),
+      dir(
+        'linkedDep',
+        packageJson({
+          name: 'linkedDep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        linkedDep: {
+          name: 'linkedDep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
+
+  test('it should install local packages of dependencies (path: -> link:)', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          dep: 'path:./dep',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+          dependencies: {
+            linkedDep: 'link:../linkedDep',
+          },
+        }),
+      ),
+      dir(
+        'linkedDep',
+        packageJson({
+          name: 'linkedDep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        linkedDep: {
+          name: 'linkedDep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
+
+  test('it should install local packages of dependencies (link: -> link:)', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          dep: 'link:./dep',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+          dependencies: {
+            linkedDep: 'link:../linkedDep',
+          },
+        }),
+      ),
+      dir(
+        'linkedDep',
+        packageJson({
+          name: 'linkedDep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        linkedDep: {
+          name: 'linkedDep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
 });
