@@ -1,5 +1,7 @@
 // @flow
 
+const path = require('path');
+const fs = require('../test/fs.js');
 const helpers = require('../test/helpers.js');
 
 const {file, packageJson} = helpers;
@@ -41,6 +43,8 @@ describe('projects with multiple sandboxes', function() {
       esy: {},
     });
 
+    // install default sandbox
+
     await p.esy('install');
 
     expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
@@ -48,6 +52,10 @@ describe('projects with multiple sandboxes', function() {
         'default-dep': {name: 'default-dep', version: '0.0.0'},
       },
     });
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
+
+    // install custom sandbox
+
     await p.esy('@package.custom.json install');
 
     expect(await helpers.crawlLayout(p.projectPath, 'package.custom')).toMatchObject({
@@ -55,5 +63,8 @@ describe('projects with multiple sandboxes', function() {
         'custom-dep': {name: 'custom-dep', version: '0.0.0'},
       },
     });
+    expect(
+      await fs.exists(path.join(p.projectPath, 'package.custom.esy.lock.json')),
+    ).toBeTruthy();
   });
 });

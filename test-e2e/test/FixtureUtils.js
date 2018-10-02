@@ -48,7 +48,7 @@ function file(name: string, data: string): FixtureFile {
   return {type: 'file', name, data};
 }
 
-function json(name, json: Object): FixtureFile {
+function json(name: string, json: Object): FixtureFile {
   const data = JSON.stringify(json, null, 2);
   return {type: 'file', name, data};
 }
