@@ -98,11 +98,7 @@ let load = baseDir => {
       let f = (files, path, _stat) =>
         switch (Path.relativize(~root=filesPath, path)) {
         | Some(name) =>
-          let%bind content = Fs.readFile(path)
-          and stat = Fs.stat(path);
-          let content = System.Environment.normalizeNewLines(content);
-          let name = Path.showNormalized(name);
-          let file = {Package.File.name, content, perm: stat.Unix.st_perm};
+          let%bind file = Package.File.readOfPath(~stripPrefix=filesPath, name);
           return([file, ...files]);
         | None =>
           /* This case isn't really possible but... */

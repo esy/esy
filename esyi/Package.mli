@@ -207,11 +207,10 @@ module Dependencies : sig
 end
 
 module File : sig
-  type t = {
-    name : string;
-    content : string;
-    perm : int;
-  }
+  type t
+
+  val readOfPath : stripPrefix:Path.t -> Path.t -> t RunAsync.t
+  val writeToDir : Path.t -> t -> unit RunAsync.t
 
   include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
