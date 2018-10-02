@@ -169,7 +169,15 @@ let to_yojson v =
 
 let of_yojson json =
   match json with
-  | `String string -> parse string
+  | `String string ->
+    parse string
+  | _ -> Error "expected string"
+
+let relaxed_of_yojson json =
+  match json with
+  | `String string ->
+    let parse = Parse.(parse (parser <|> parserRelaxed)) in
+    parse string
   | _ -> Error "expected string"
 
 module Map = Map.Make(struct

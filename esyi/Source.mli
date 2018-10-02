@@ -26,6 +26,8 @@ type t =
 
 include S.COMMON with type t := t
 
+val relaxed_of_yojson : t Json.decoder
+
 val sexp_of_t : t -> Sexplib0.Sexp.t
 val ppPretty : t Fmt.t
 
