@@ -305,4 +305,50 @@ describe('"esy solve" errors', function() {
       `,
     );
   });
+
+  it('reports errors about missing link: packages (path does not exist)', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          missing: 'path:./missing',
+        },
+      }),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: path 'missing' does not exist
+        resolving missing@path:missing
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('reports errors about missing link: packages (path does not exist)', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          missing: 'link:./missing',
+        },
+      }),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: path 'missing' does not exist
+        resolving missing@link:missing
+      esy: exiting due to errors above
+      `,
+    );
+  });
 });
