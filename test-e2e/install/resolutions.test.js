@@ -271,7 +271,7 @@ describe(`Installing with resolutions`, () => {
             override: {
               dependencies: {
                 // this path should be resolved against this location
-                depdep: 'path:../depdep',
+                depdep: 'path:./depdep',
               },
             },
           },
