@@ -1,7 +1,8 @@
 /* @flow */
 
-const path = require('path');
 const helpers = require('../test/helpers.js');
+const path = require('path');
+const fs = require('../test/fs.js');
 
 helpers.skipSuiteOnWindows();
 
@@ -17,6 +18,8 @@ describe(`Basic tests for npm packages`, () => {
 
     const p = await helpers.createTestSandbox(...fixture);
     await p.esy('install');
+
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
 
     await expect(
       p.runJavaScriptInNodeAndReturnJson(`require('no-deps')`),
