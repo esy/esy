@@ -325,7 +325,6 @@ describe(`Installing with resolutions`, () => {
     const url = await helpers.getPackageHttpArchivePath(p.npmRegistry, 'dep', '1.0.0');
     const hash = await helpers.getPackageArchiveHash(p.npmRegistry, 'dep', '1.0.0');
     const source = `${url}#${hash}`;
-    console.log(source);
 
     await p.fixture(
       helpers.packageJson({
