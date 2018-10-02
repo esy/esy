@@ -70,12 +70,14 @@ function createSandbox() /* : TestSandbox */ {
     console.log(`CWD: ${cwd}`);
   }
 
+  const normalizePath = (s) => s.split("\\").join("/");
+
   return {
     path: sandboxPath,
     exec: exec,
     cd,
     esy(...args /* : Array<string> */) {
-      return exec(esyCommand, ...args);
+      return exec(normalizePath(esyCommand), ...args);
     },
     dispose: () => {
       rmSync(sandboxPath);
