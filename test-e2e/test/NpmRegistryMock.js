@@ -462,6 +462,7 @@ module.exports = {
   getPackageDirectoryPath,
   getPackageHttpArchivePath,
   getPackageArchivePath,
+  getPackageArchiveHash,
   definePackage,
   definePackageOfFixture,
   defineLocalPackage,

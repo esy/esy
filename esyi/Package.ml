@@ -376,7 +376,7 @@ module Resolution = struct
       let%bind version = Version.parse v in
       return (Version version)
     | `Assoc _ ->
-      let%bind source = Json.Decode.fieldWith ~name:"source" Source.of_yojson json in
+      let%bind source = Json.Decode.fieldWith ~name:"source" Source.relaxed_of_yojson json in
       let%bind override = Json.Decode.fieldWith ~name:"override" override_of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"

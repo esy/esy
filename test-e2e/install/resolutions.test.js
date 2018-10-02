@@ -207,4 +207,168 @@ describe(`Installing with resolutions`, () => {
       },
     });
   });
+
+  test(`resolutions could have linked packages`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {dep: '1.0.0'},
+        resolutions: {dep: 'link:./dep'},
+      }),
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+          dependencies: {
+            // this path should be resolved against this location
+            depdep: 'link:../depdep',
+          },
+        }),
+      ),
+      helpers.dir(
+        'depdep',
+        helpers.packageJson({
+          name: 'depdep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        depdep: {
+          name: 'depdep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
+
+  test(`resolutions overrides could inject linked packages`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {dep: '1.0.0'},
+        resolutions: {
+          dep: {
+            source: 'path:./dep',
+            override: {
+              dependencies: {
+                // this path should be resolved against this location
+                depdep: 'path:./depdep',
+              },
+            },
+          },
+        },
+      }),
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+      helpers.dir(
+        'depdep',
+        helpers.packageJson({
+          name: 'depdep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        depdep: {
+          name: 'depdep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
+
+  test(`resolutions overrides could inject linked packages to non local packages`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+    });
+
+    const url = await helpers.getPackageHttpArchivePath(p.npmRegistry, 'dep', '1.0.0');
+    const hash = await helpers.getPackageArchiveHash(p.npmRegistry, 'dep', '1.0.0');
+    const source = `${url}#${hash}`;
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {dep: '1.0.0'},
+        resolutions: {
+          dep: {
+            source: `${url}#${hash}`,
+            override: {
+              dependencies: {
+                // this path should be resolved against dep's location
+                depdep: 'path:./depdep',
+              },
+            },
+          },
+        },
+      }),
+      helpers.dir(
+        'depdep',
+        helpers.packageJson({
+          name: 'depdep',
+          version: '1.0.0',
+          esy: {},
+        }),
+      ),
+    );
+
+    await p.esy(`install`);
+
+    const layout = await helpers.crawlLayout(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+        },
+        depdep: {
+          name: 'depdep',
+          version: '1.0.0',
+        },
+      },
+    });
+  });
 });
