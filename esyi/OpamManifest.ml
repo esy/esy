@@ -40,7 +40,7 @@ let readFiles (path : Path.t) () =
     let collect files filePath _fileStats =
       match Path.relativize ~root:filesPath filePath with
       | Some name ->
-        let%bind file = Package.File.readOfPath ~stripPrefix:filesPath name in
+        let%bind file = Package.File.readOfPath ~prefixPath:filesPath ~filePath:name in
         return (file::files)
       | None -> return files
     in

@@ -586,20 +586,20 @@ module File = struct
     perm : (int [@default 0o644]);
   } [@@deriving yojson, show, ord]
 
-  let readOfPath ~stripPrefix p =
+  let readOfPath ~prefixPath ~filePath =
       let open RunAsync.Syntax in
-      let fullPath = Path.append stripPrefix p in
-      let%bind content = Fs.readFile fullPath
-      and stat = Fs.stat fullPath in
+      let p = Path.append prefixPath filePath in
+      let%bind content = Fs.readFile p
+      and stat = Fs.stat p in
       let content = System.Environment.normalizeNewLines content in
       let perm = stat.Unix.st_perm in
-      let name = Path.showNormalized p in
+      let name = Path.showNormalized filePath in
       return {name; content; perm}
 
-  let writeToDir p file =
+  let writeToDir ~destinationDir file =
       let open RunAsync.Syntax in
       let {name; content; perm} = file in
-      let fullPath = Path.append p (Fpath.v name) in
+      let dest = Path.append destinationDir (Fpath.v name) in
       let dirname = Path.parent (Fpath.v name) in
       let%bind () = Fs.createDir dirname in
       let content =
@@ -607,7 +607,7 @@ module File = struct
           then content
           else content ^ "\n"
       in
-      let%bind () = Fs.writeFile ~perm:perm ~data:content fullPath in
+      let%bind () = Fs.writeFile ~perm:perm ~data:content dest in
       return()
 end
 

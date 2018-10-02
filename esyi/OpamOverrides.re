@@ -98,7 +98,7 @@ let load = baseDir => {
       let f = (files, path, _stat) =>
         switch (Path.relativize(~root=filesPath, path)) {
         | Some(name) =>
-          let%bind file = Package.File.readOfPath(~stripPrefix=filesPath, name);
+          let%bind file = Package.File.readOfPath(~prefixPath=filesPath, ~filePath=name);
           return([file, ...files]);
         | None =>
           /* This case isn't really possible but... */

@@ -51,7 +51,7 @@ let install ~cfg ~path dist =
 
     let%bind () =
       let f file =
-        let%bind _ = Package.File.writeToDir path file in
+        let%bind _ = Package.File.writeToDir ~destinationDir:path file in
         return()
       in
       List.map ~f record.files |> RunAsync.List.waitAll
