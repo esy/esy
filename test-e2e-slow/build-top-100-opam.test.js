@@ -181,7 +181,14 @@ for (let c of shuffle(cases)) {
       reposUpdated = true;
     }
 
-    sandbox.esy(...install);
+    for (let i = 0; i < 5; i++) {
+        console.log("Iteration: " + i.toString());
+        try {
+            sandbox.esy(...install);
+        } catch (ex) {
+            console.warn(ex);
+        }
+    }
     sandbox.esy('build');
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
