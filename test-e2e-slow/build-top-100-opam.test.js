@@ -125,8 +125,8 @@ let reposUpdated = false;
 
 function selectCases(array) {
     if (os.platform() == "win32") {
-        // Start with top 10 on windows
-        return array.slice(0, 10);
+        // Start with top 8 on windows, and work through to enable more!
+        return array.slice(0, 8);
     } else {
         return shuffle(array);
     }
