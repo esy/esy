@@ -28,7 +28,7 @@ const esyPrefixPath =
 
 function mkdir(path) {
   try {
-    fs.mkdirSync(path);
+    fs.mkdirpSync(path);
   } catch (e) {
     // doesn't matter if it exists
   }
@@ -36,7 +36,7 @@ function mkdir(path) {
 
 function mkdirTemp() {
   const p = path.join(getTempDir(), crypto.randomBytes(20).toString('hex'));
-  fs.mkdirSync(p);
+  fs.mkdirpSync(p);
   return p;
 }
 
