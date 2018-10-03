@@ -40,11 +40,8 @@ let readFiles (path : Path.t) () =
     let collect files filePath _fileStats =
       match Path.relativize ~root:filesPath filePath with
       | Some name ->
-        let%bind content = Fs.readFile filePath
-        and stats = Fs.stat filePath in
-        let content = System.Environment.normalizeNewLines content in
-        let name = Path.showNormalized name in
-        return ({Package.File. name; content; perm = stats.Unix.st_perm}::files)
+        let%bind file = Package.File.readOfPath ~prefixPath:filesPath ~filePath:name in
+        return (file::files)
       | None -> return files
     in
     Fs.fold ~init:[] ~f:collect filesPath

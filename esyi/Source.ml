@@ -169,7 +169,15 @@ let to_yojson v =
 
 let of_yojson json =
   match json with
-  | `String string -> parse string
+  | `String string ->
+    parse string
+  | _ -> Error "expected string"
+
+let relaxed_of_yojson json =
+  match json with
+  | `String string ->
+    let parse = Parse.(parse (parser <|> parserRelaxed)) in
+    parse string
   | _ -> Error "expected string"
 
 module Map = Map.Make(struct
@@ -259,35 +267,41 @@ let%test_module "parsing" = (module struct
     parse "no-source:";
     [%expect {| NoSource |}]
 
-  let parseRelaxedd =
+  let parseRelaxed =
     Parse.Test.parse ~sexp_of:sexp_of_t parseRelaxed
 
   let%expect_test "user/repo#commit" =
-    parseRelaxedd "user/repo#commit";
+    parseRelaxed "user/repo#commit";
     [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ())) |}]
 
   let%expect_test "user/repo:lwt.opam#commit" =
-    parseRelaxedd "user/repo:lwt.opam#commit";
+    parseRelaxed "user/repo:lwt.opam#commit";
     [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ((Opam lwt.opam)))) |}]
 
   let%expect_test "http://example.com#abc123" =
-    parseRelaxedd "http://example.com#abc123";
+    parseRelaxed "http://example.com#abc123";
     [%expect {| (Archive (url http://example.com) (checksum (Sha1 abc123))) |}]
 
   let%expect_test "https://example.com#abc123" =
-    parseRelaxedd "https://example.com#abc123";
+    parseRelaxed "https://example.com#abc123";
     [%expect {| (Archive (url https://example.com) (checksum (Sha1 abc123))) |}]
 
   let%expect_test "https://example.com#md5:abc123" =
-    parseRelaxedd "https://example.com#md5:abc123";
+    parseRelaxed "https://example.com#md5:abc123";
     [%expect {| (Archive (url https://example.com) (checksum (Md5 abc123))) |}]
 
+  let%expect_test "http://localhost:56886/dep/-/dep-1.0.0.tgz#fabe490fb72a10295d554037341d8c7d5497cde9" =
+    parseRelaxed "http://localhost:56886/dep/-/dep-1.0.0.tgz#fabe490fb72a10295d554037341d8c7d5497cde9";
+    [%expect {|
+      (Archive (url http://localhost:56886/dep/-/dep-1.0.0.tgz)
+       (checksum (Sha1 fabe490fb72a10295d554037341d8c7d5497cde9))) |}]
+
   let%expect_test "/some/path" =
-    parseRelaxedd "/some/path";
+    parseRelaxed "/some/path";
     [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
 
   let%expect_test "some" =
-    parseRelaxedd "some";
+    parseRelaxed "some";
     [%expect {| Error parsing 'some': : not a path |}]
 
 end)

@@ -376,7 +376,7 @@ module Resolution = struct
       let%bind version = Version.parse v in
       return (Version version)
     | `Assoc _ ->
-      let%bind source = Json.Decode.fieldWith ~name:"source" Source.of_yojson json in
+      let%bind source = Json.Decode.fieldWith ~name:"source" Source.relaxed_of_yojson json in
       let%bind override = Json.Decode.fieldWith ~name:"override" override_of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"
@@ -585,6 +585,30 @@ module File = struct
     (* file, permissions add 0o644 default for backward compat. *)
     perm : (int [@default 0o644]);
   } [@@deriving yojson, show, ord]
+
+  let readOfPath ~prefixPath ~filePath =
+      let open RunAsync.Syntax in
+      let p = Path.append prefixPath filePath in
+      let%bind content = Fs.readFile p
+      and stat = Fs.stat p in
+      let content = System.Environment.normalizeNewLines content in
+      let perm = stat.Unix.st_perm in
+      let name = Path.showNormalized filePath in
+      return {name; content; perm}
+
+  let writeToDir ~destinationDir file =
+      let open RunAsync.Syntax in
+      let {name; content; perm} = file in
+      let dest = Path.append destinationDir (Fpath.v name) in
+      let dirname = Path.parent dest in
+      let%bind () = Fs.createDir dirname in
+      let content =
+          if String.get content (String.length content - 1) == '\n'
+          then content
+          else content ^ "\n"
+      in
+      let%bind () = Fs.writeFile ~perm:perm ~data:content dest in
+      return()
 end
 
 module OpamOverride = struct

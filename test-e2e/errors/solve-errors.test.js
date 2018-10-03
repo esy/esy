@@ -66,6 +66,47 @@ describe('"esy solve" errors', function() {
     );
   });
 
+  it('reports errors about conflict (two links)', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          dep: './dep',
+          conflict: 'link:./conflict',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          esy: {},
+          dependencies: {
+            conflict: 'link:../conflict-other',
+          },
+        }),
+      ),
+      dir('conflict'),
+      dir('conflict-other'),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: No solution found:
+     
+      Conflicting constraints:
+        root -> conflict@link:conflict
+        root -> dep -> conflict@link:conflict-other
+     
+        
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
   it('reports errors about conflict (one side is opam package)', async () => {
     const p = await helpers.createTestSandbox();
 
@@ -301,6 +342,52 @@ describe('"esy solve" errors', function() {
         
 
         resolving request missing@>1.0.0
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('reports errors about missing link: packages (path does not exist)', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          missing: 'path:./missing',
+        },
+      }),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: path 'missing' does not exist
+        resolving missing@path:missing
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('reports errors about missing link: packages (path does not exist)', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          missing: 'link:./missing',
+        },
+      }),
+    );
+
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: path 'missing' does not exist
+        resolving missing@link:missing
       esy: exiting due to errors above
       `,
     );
