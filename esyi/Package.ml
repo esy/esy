@@ -600,7 +600,7 @@ module File = struct
       let open RunAsync.Syntax in
       let {name; content; perm} = file in
       let dest = Path.append destinationDir (Fpath.v name) in
-      let dirname = Path.parent (Fpath.v name) in
+      let dirname = Path.parent dest in
       let%bind () = Fs.createDir dirname in
       let content =
           if String.get content (String.length content - 1) == '\n'
