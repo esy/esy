@@ -1061,6 +1061,14 @@ let fetch {CommonOptions. installSandbox = sandbox; _} () =
   | Some solution -> Fetch.fetch ~sandbox solution
   | None -> error "no lockfile found, run 'esy solve' first"
 
+let fetchPnp {CommonOptions. installSandbox = sandbox; _} () =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
+  match%bind Solution.LockfileV1.ofFile ~sandbox lockfilePath with
+  | Some solution -> Fetch.fetchPnP ~sandbox solution
+  | None -> error "no lockfile found, run 'esy solve' first"
+
 let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
@@ -1701,6 +1709,15 @@ let makeCommands ~sandbox () =
       ~doc:"Fetch dependencies using the solution in a lockfile"
       Term.(
         const fetch
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"fetch-pnp"
+      ~doc:"Fetch dependencies using the solution in a lockfile"
+      Term.(
+        const fetchPnp
         $ commonOpts
         $ Cli.setupLogTerm
       );

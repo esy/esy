@@ -840,98 +840,43 @@ let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
-    let%bind items =
-      let fetch record () =
-        let%lwt () =
-          let status = Format.asprintf "%a" Record.pp record in
-          report status
-        in
-        let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg record in
-        let%bind path = FetchStorage.unpack ~cfg:sandbox.cfg dist in
-        return (record, dist, path)
+
+    let fetch record () =
+      let%lwt () =
+        let status = Format.asprintf "%a" Record.pp record in
+        report status
       in
+      let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg record in
+      let%bind path = FetchStorage.unpack ~cfg:sandbox.cfg dist in
+      return (dist, path)
+    in
+    let%bind dists =
       records
       |> Record.Set.elements
       |> List.map ~f:(fun record -> LwtTaskQueue.submit queue (fetch record))
       |> RunAsync.List.joinAll
     in
     let%lwt () = finish () in
-    let map =
-      let f map (record, dist, path) = Record.Map.add record (dist, path) map in
-      List.fold_left ~f ~init:Record.Map.empty items
-    in
-    return map
+    return dists
   in
 
   let installation =
-
-    let rec addRecord record installation =
-      let id = Record.id record in
-      if Installation.mem id installation
-      then installation
-      else
-        let dist, sourcePath =
-          try Record.Map.find record dists
-          with Not_found -> failwith (Format.asprintf "cannot find %a" Record.pp record)
-        in
-        let installation, dependencies =
-          addDependencies
-            (Solution.dependencies record solution)
-            installation
-        in
-        let source =
-          match FetchStorage.Dist.source dist with
-          | Source.LocalPathLink {path; manifest} ->
-            Installation.Package.Link {path; manifest;}
-          | _ -> Installation.Package.Install {path = sourcePath;}
-        in
-        let pkg = {
-          Installation.Package.
-          id = Record.id record;
-          name = record.Record.name;
-          version = record.Record.version;
-          opam = record.Record.opam;
-          overrides = record.Record.overrides;
-          source;
-          dependencies;
-        } in
-        Installation.add pkg dependencies installation
-
-    and addDependencies dependencies installation =
-      let f (installation, dependencies) record =
-        let id = Record.id record in
-        let packages = addRecord record installation in
-        packages, id::dependencies
-      in
-      List.fold_left ~f ~init:(installation, []) dependencies 
-    in
-
     let installation =
       Installation.empty
-        (Record.id root)
+      |> Installation.add
+          (Record.id root)
+          (Installation.Link {path = Path.v "."; manifest = None;})
     in
-    let installation, dependencies =
-      addDependencies
-        (Solution.dependencies root solution)
-        installation
+    let f installation (dist, sourcePath) =
+      let source =
+        match Dist.source dist with
+        | Source.LocalPathLink {path; manifest} ->
+          Installation.Link {path; manifest;}
+        | _ -> Installation.Install {path = sourcePath;}
+      in
+      Installation.add (Dist.id dist) source installation
     in
-    let installation =
-      Installation.add
-        {
-          Installation.Package.
-          id = Record.id root;
-          name = root.Record.name;
-          version = root.Record.version;
-          source = Installation.Package.Link {path = Path.v "."; manifest = None;};
-          opam = None;
-          overrides = Package.Overrides.empty;
-          dependencies;
-        }
-        dependencies
-        installation
-    in
-
-    installation
+    List.fold_left ~f ~init:installation dists
   in
 
   let%bind () =

@@ -7,6 +7,7 @@ module Dist = struct
     record : Solution.Record.t;
   }
 
+  let id dist = Solution.Record.id dist.record
   let source dist = dist.source
   let pp fmt dist =
     Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
