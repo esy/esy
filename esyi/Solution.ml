@@ -1,3 +1,62 @@
+module Id = struct
+  type t = string * Version.t [@@deriving ord]
+
+  let rec parse v =
+    let open Result.Syntax in
+    match Astring.String.cut ~sep:"@" v with
+    | Some ("", name) ->
+      let%bind name, version = parse name in
+      return ("@" ^ name, version)
+    | Some (name, version) ->
+      let%bind version = Version.parse version in
+      return (name, version)
+    | None -> Error "invalid id"
+
+  let show (name, version) = name ^ "@" ^ Version.show version
+  let pp fmt id = Fmt.pf fmt "%s" (show id)
+
+  let to_yojson id =
+    `String (show id)
+
+  let of_yojson = function
+    | `String v -> parse v
+    | _ -> Error "expected string"
+
+  module Set = Set.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
+  module Map = struct
+    include Map.Make(struct
+      type nonrec t = t
+      let compare = compare
+    end)
+
+    let to_yojson v_to_yojson map =
+      let items =
+        let f (name, version) v items =
+          let k = name ^ "@" ^ Version.show version in
+          (k, v_to_yojson v)::items
+        in
+        fold f map []
+      in
+      `Assoc items
+
+    let of_yojson v_of_yojson =
+      let open Result.Syntax in
+      function
+      | `Assoc items ->
+        let f map (k, v) =
+          let%bind k = parse k in
+          let%bind v = v_of_yojson v in
+          return (add k v map)
+        in
+        Result.List.foldLeft ~f ~init:empty items
+      | _ -> error "expected an object"
+  end
+end
+
 module Record = struct
 
   module Opam = struct
@@ -40,6 +99,8 @@ module Record = struct
     opam : Opam.t option;
   } [@@deriving yojson]
 
+  let id r = r.name, r.version
+
   let compare a b =
     let c = String.compare a.name b.name in
     if c = 0
@@ -55,122 +116,12 @@ module Record = struct
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
-module Id = struct
-  type t = string * Version.t [@@deriving ord]
+include Graph.Make(struct
+  include Record
+  module Id = Id
+end)
 
-  let rec parse v =
-    let open Result.Syntax in
-    match Astring.String.cut ~sep:"@" v with
-    | Some ("", name) ->
-      let%bind name, version = parse name in
-      return ("@" ^ name, version)
-    | Some (name, version) ->
-      let%bind version = Version.parse version in
-      return (name, version)
-    | None -> Error "invalid id"
-
-  let to_yojson (name, version) =
-    `String (name ^ "@" ^ Version.show version)
-
-  let of_yojson = function
-    | `String v -> parse v
-    | _ -> Error "expected string"
-
-  let ofRecord (record : Record.t) =
-    record.name, record.version
-
-  module Set = Set.Make(struct
-    type nonrec t = t
-    let compare = compare
-  end)
-
-  module Map = struct
-    include Map.Make(struct
-      type nonrec t = t
-      let compare = compare
-    end)
-
-    let to_yojson v_to_yojson map =
-      let items =
-        let f (name, version) v items =
-          let k = name ^ "@" ^ Version.show version in
-          (k, v_to_yojson v)::items
-        in
-        fold f map []
-      in
-      `Assoc items
-
-    let of_yojson v_of_yojson =
-      let open Result.Syntax in
-      function
-      | `Assoc items ->
-        let f map (k, v) =
-          let%bind k = parse k in
-          let%bind v = v_of_yojson v in
-          return (add k v map)
-        in
-        Result.List.foldLeft ~f ~init:empty items
-      | _ -> error "expected an object"
-  end
-end
-
-[@@@ocaml.warning "-32"]
 type solution = t
-
-and t = {
-  root : Id.t option;
-  records : Record.t Id.Map.t;
-  dependencies : Id.Set.t Id.Map.t;
-}
-
-let root sol =
-  match sol.root with
-  | Some id -> Id.Map.find_opt id sol.records
-  | None -> None
-
-let dependencies (r : Record.t) sol =
-  let id = Id.ofRecord r in
-  match Id.Map.find_opt id sol.dependencies with
-  | None -> Record.Set.empty
-  | Some ids ->
-    let f id set =
-      let record =
-        try Id.Map.find id sol.records
-        with Not_found ->
-          let msg =
-            Format.asprintf
-              "inconsistent solution, missing record for %a"
-              Fmt.(pair ~sep:(unit "@") string Version.pp) id
-          in
-          failwith msg
-      in
-      Record.Set.add record set
-    in
-    Id.Set.fold f ids Record.Set.empty
-
-let records sol =
-  let f _k record records = Record.Set.add record records in
-  Id.Map.fold f sol.records Record.Set.empty
-
-let empty = {
-  root = None;
-  records = Id.Map.empty;
-  dependencies = Id.Map.empty;
-}
-
-let add ~(record : Record.t) ~dependencies sol =
-  let id = Id.ofRecord record in
-  let dependencies = Id.Set.of_list dependencies in
-  {
-    sol with
-    records = Id.Map.add id record sol.records;
-    dependencies = Id.Map.add id dependencies sol.dependencies;
-  }
-
-let addRoot ~(record : Record.t) ~dependencies sol =
-  let sol = add ~record ~dependencies sol in
-  let id = Id.ofRecord record in
-  {sol with root = Some id;}
 
 module LockfileV1 = struct
 
@@ -252,27 +203,23 @@ module LockfileV1 = struct
     Digest.to_hex digest
 
   let solutionOfLockfile root node =
-    let f id {record; dependencies} sol =
-      if Id.compare root id = 0
-      then addRoot ~record ~dependencies sol
-      else add ~record ~dependencies sol
+    let f _id {record; dependencies} solution =
+      add record dependencies solution
     in
-    Id.Map.fold f node empty
+    Id.Map.fold f node (empty root)
 
   let lockfileOfSolution (sol : solution) =
     let node =
-      let f id record nodes =
-        let dependencies = Id.Map.find id sol.dependencies in
-        Id.Map.add id {record; dependencies = Id.Set.elements dependencies} nodes
+      let f record dependencies nodes =
+        let dependencies = List.map ~f:Record.id dependencies in
+        Id.Map.add
+          (Record.id record)
+          {record; dependencies}
+          nodes
       in
-      Id.Map.fold f sol.records Id.Map.empty
+      fold ~f ~init:Id.Map.empty sol
     in
-    let root =
-      match sol.root with
-      | Some root -> root
-      | None -> failwith "empty solution"
-    in
-    root, node
+    root sol, node
 
   let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
     let open RunAsync.Syntax in
@@ -304,7 +251,7 @@ module LockfileV1 = struct
   let toFile ~sandbox ~(solution : solution) (path : Path.t) =
     let root, node = lockfileOfSolution solution in
     let hash = computeSandboxChecksum sandbox in
-    let lockfile = {hash; node; root} in
+    let lockfile = {hash; node; root = Record.id root;} in
     let json = to_yojson lockfile in
     Fs.writeJsonFile ~json path
 end

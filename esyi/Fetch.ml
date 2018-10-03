@@ -99,11 +99,12 @@ module Layout = struct
     Fmt.(list ~sep:(unit "@\n") pp_installation)
 
   let ofSolution ~nodeModulesPath sandboxPath (sol : Solution.t) =
-    match Solution.root sol with
-    | None -> []
-    | Some root ->
+    let root = Solution.root sol in
       let isDirectDependencyOfRoot =
-        let directDependencies = Solution.dependencies root sol in
+        let directDependencies =
+          let deps = Solution.dependencies root sol in
+          Record.Set.of_list deps
+        in
         fun record -> Record.Set.mem record directDependencies
       in
 
@@ -194,12 +195,12 @@ module Layout = struct
         (* layout direct dependencies first, they can be relocated so this is
          * why get dependenciesWithBreadcrumbs as a result *)
         let layout, dependenciesWithBreadcrumbs =
-          let f r (layout, dependenciesWithBreadcrumbs) =
+          let f (layout, dependenciesWithBreadcrumbs) r =
             match layoutRecord ~this ~breadcrumb ~layout r with
             | Some (layout, breadcrumb) -> layout, (r, breadcrumb)::dependenciesWithBreadcrumbs
             | None -> layout, dependenciesWithBreadcrumbs
           in
-          Record.Set.fold f dependencies (layout, [])
+          List.fold_left ~f ~init:(layout, []) dependencies
         in
 
         (* now layout dependencies of dependencies *)
@@ -267,10 +268,10 @@ module Layout = struct
 
     let%test "simple" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "a" "1") []
+        |> add (r "b" "1") []
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -280,10 +281,10 @@ module Layout = struct
 
     let%test "simple2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "a" "1") []
+        |> add (r "b" "1") [id "a" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -293,11 +294,11 @@ module Layout = struct
 
     let%test "simple3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "c" "1") []
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "b" "1") [id "c" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -308,11 +309,11 @@ module Layout = struct
 
     let%test "conflict" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "a" "2") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "a" "1") []
+        |> add (r "a" "2") []
+        |> add (r "b" "1") [id "a" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -323,12 +324,12 @@ module Layout = struct
 
     let%test "conflict2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "shared" "1") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "shared" "1") []
+        |> add (r "a" "1") [id "shared" "1"]
+        |> add (r "a" "2") [id "shared" "1"]
+        |> add (r "b" "1") [id "a" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -340,13 +341,13 @@ module Layout = struct
 
     let%test "conflict3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "shared" "1") ~dependencies:[]
-        |> add ~record:(r "shared" "2") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "2"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "shared" "1") []
+        |> add (r "shared" "2") []
+        |> add (r "a" "1") [id "shared" "1"]
+        |> add (r "a" "2") [id "shared" "2"]
+        |> add (r "b" "1") [id "a" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -359,12 +360,12 @@ module Layout = struct
 
     let%test "conflict4" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "c" "2") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "c" "1") []
+        |> add (r "c" "2") []
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "b" "1") [id "c" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -376,12 +377,12 @@ module Layout = struct
 
     let%test "nested" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "c" "1") [id "d" "1"]
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "b" "1") [id "c" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -393,13 +394,13 @@ module Layout = struct
 
     let%test "nested conflict" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "c" "1") [id "d" "1"]
+        |> add (r "c" "2") [id "d" "1"]
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "b" "1") [id "c" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -412,14 +413,14 @@ module Layout = struct
 
     let%test "nested conflict 2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "d" "2") []
+        |> add (r "c" "1") [id "d" "1"]
+        |> add (r "c" "2") [id "d" "2"]
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "b" "1") [id "c" "2"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -433,12 +434,12 @@ module Layout = struct
 
     let%test "nested conflict 3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "d" "2"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "d" "2") []
+        |> add (r "b" "1") [id "d" "1"]
+        |> add (r "a" "1") [id "b" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "d" "2"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -450,13 +451,13 @@ module Layout = struct
 
     let%test "nested conflict 4" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "c" "1") [id "d" "1"]
+        |> add (r "c" "2") [id "d" "1"]
+        |> add (r "b" "1") [id "c" "2"]
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -469,14 +470,14 @@ module Layout = struct
 
     let%test "nested conflict 5" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "d" "1") []
+        |> add (r "d" "2") []
+        |> add (r "c" "1") [id "d" "1"]
+        |> add (r "c" "2") [id "d" "2"]
+        |> add (r "b" "1") [id "c" "2"]
+        |> add (r "a" "1") [id "c" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -490,12 +491,12 @@ module Layout = struct
 
     let%test "nested conflict 6" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "punycode" "1") ~dependencies:[]
-        |> add ~record:(r "punycode" "2") ~dependencies:[]
-        |> add ~record:(r "url" "1") ~dependencies:[id "punycode" "2"]
-        |> add ~record:(r "browserify" "1") ~dependencies:[id "punycode" "1"; id "url" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "browserify" "1"]
+        empty (id "root" "1")
+        |> add (r "punycode" "1") []
+        |> add (r "punycode" "2") []
+        |> add (r "url" "1") [id "punycode" "2"]
+        |> add (r "browserify" "1") [id "punycode" "1"; id "url" "1"]
+        |> add (r "root" "1") [id "browserify" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -507,10 +508,10 @@ module Layout = struct
 
     let%test "loop 1" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "b" "1") [id "a" "1"]
+        |> add (r "a" "1") [id "b" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -520,11 +521,11 @@ module Layout = struct
 
     let%test "loop 2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"; id "c" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "c" "1") []
+        |> add (r "b" "1") [id "a" "1"; id "c" "1"]
+        |> add (r "a" "1") [id "b" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -535,11 +536,11 @@ module Layout = struct
 
     let%test "loop 3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"; id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> add (r "c" "1") [id "a" "1"]
+        |> add (r "b" "1") [id "a" "1"]
+        |> add (r "a" "1") [id "b" "1"; id "c" "1"]
+        |> add (r "root" "1") [id "a" "1"; id "b" "1"]
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -641,12 +642,12 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () = Fs.createDir nodeModulesPath in
 
   let records =
-    match Solution.root solution with
-    | Some root ->
-      let all = Solution.records solution in
-      Record.Set.remove root all
-    | None ->
-      Solution.records solution
+    let root = Solution.root solution in
+    let all =
+      let f record _ records = Record.Set.add record records in
+      Solution.fold ~f ~init:Record.Set.empty solution
+    in
+    Record.Set.remove root all
   in
 
   (* Fetch all records *)

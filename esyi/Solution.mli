@@ -2,6 +2,22 @@
  * This module represents a solution.
  *)
 
+module Id : sig
+  type t = string * Version.t
+
+  include S.JSONABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.COMPARABLE with type t := t
+
+  module Map : sig
+    include Map.S with type key := t
+
+    val to_yojson : 'a Json.encoder -> 'a t Json.encoder
+    val of_yojson : 'a Json.decoder -> 'a t Json.decoder
+  end
+  module Set : Set.S with type elt := t
+end
+
 (**
  * This is minimal info needed to fetch and build a package.
  *)
@@ -27,33 +43,24 @@ module Record : sig
     opam : Opam.t option;
   }
 
+  val id : t -> Id.t
+
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
 
-  module Map : Map.S with type key := t
-  module Set : Set.S with type elt := t
-end
-
-module Id : sig
-  type t = string * Version.t
-
-  module Map : Map.S with type key := t
+  module Map : sig
+    include Map.S with type key := t
+  end
   module Set : Set.S with type elt := t
 end
 
 (**
  * This represent an isolated dependency root.
  *)
-type t
-
-val root : t -> Record.t option
-val dependencies : Record.t -> t -> Record.Set.t
-val records : t -> Record.Set.t
-
-val empty : t
-
-val addRoot : record : Record.t -> dependencies : Id.t list -> t -> t
-val add : record : Record.t -> dependencies : Id.t list -> t -> t
+include Graph.GRAPH
+  with
+    type node = Record.t
+    and type id = Id.t
 
 (** This is an on disk format for storing solutions. *)
 module LockfileV1 : sig

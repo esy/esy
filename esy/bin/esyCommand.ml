@@ -1108,10 +1108,10 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
 
   let%bind addedDependencies, configPath =
     let records =
-      let f (record : Solution.Record.t) map =
+      let f (record : Solution.Record.t) _ map =
         StringMap.add record.name record map
       in
-      Solution.Record.Set.fold f (Solution.records solution) StringMap.empty
+      Solution.fold ~f ~init:StringMap.empty solution
     in
     let addedDependencies =
       let f {Req. name; _} =

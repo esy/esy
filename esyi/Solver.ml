@@ -760,21 +760,23 @@ let solve (sandbox : Sandbox.t) =
       solver
   in
 
-  let%bind sol =
-    let%bind sol =
+  let%bind solution =
+    let%bind root = solutionRecordOfPkg sandbox.root in
+    let solution = Solution.empty (Solution.Record.id root) in
+    let%bind solution =
       let f solution (pkg, dependencies) =
         let%bind record = solutionRecordOfPkg pkg in
-        let solution = Solution.add ~record ~dependencies solution in
+        let solution = Solution.add record dependencies solution in
         return solution
       in
       packagesToDependencies
       |> Package.Map.bindings
-      |> RunAsync.List.foldLeft ~f ~init:Solution.empty
+      |> RunAsync.List.foldLeft ~f ~init:solution
     in
 
-    let%bind record = solutionRecordOfPkg sandbox.root in
     let dependencies = Package.Map.find sandbox.root packagesToDependencies in
-    return (Solution.addRoot ~record ~dependencies sol)
+    let solution = Solution.add root dependencies solution in
+    return solution
   in
 
-  return sol
+  return solution
