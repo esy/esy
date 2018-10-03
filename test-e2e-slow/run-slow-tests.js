@@ -10,7 +10,9 @@ console.log("Running test suite: e2e (slow tests)");
 
 // INVESTIGATE
 // require("./install-npm.test.js");
-require("./reason.test.js");
+
+// Blocked by esy installer issue...
+// require("./reason.test.js");
 
 require("./esy.test.js");
 
