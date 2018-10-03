@@ -7,6 +7,7 @@ module Dist = struct
     record : Solution.Record.t;
   }
 
+  let source dist = dist.source
   let pp fmt dist =
     Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
 end
@@ -90,3 +91,24 @@ let install ~cfg ~path dist =
   in
 
   return ()
+
+let path ~cfg dist =
+  let id =
+    Source.show dist.Dist.source
+    |> Digest.string
+    |> Digest.to_hex
+  in
+  Path.(cfg.Config.cacheSourcesPath // v id)
+
+let unpack ~cfg dist =
+  (** TODO: need to sync here so no two same tasks are running at the same time *)
+  let open RunAsync.Syntax in
+  let path = path ~cfg dist in
+  if%bind Fs.exists path
+  then return path
+  else
+    let tempPath = Path.(path |> addExt ".tmp") in
+    let%bind () = Fs.rmPath tempPath in
+    let%bind () = install ~cfg ~path:tempPath dist in
+    let%bind () = Fs.rename ~src:tempPath path in
+    return path

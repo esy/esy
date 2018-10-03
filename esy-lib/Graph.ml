@@ -71,20 +71,20 @@ module Make (Node : GRAPH_NODE) : GRAPH
     | Some {node;dependencies;} -> Some (node, dependencies)
     | None -> None
 
-  let findExn id graph =
+  let findExn' id graph =
     match Node.Id.Map.find_opt id graph.nodes with
     | Some {node;dependencies;} -> node, dependencies
     | None -> raise Not_found
 
   let root graph =
-    let node, _ = findExn graph.root graph in
+    let node, _ = findExn' graph.root graph in
     node
 
   let mem id graph = Node.Id.Map.mem id graph.nodes
 
   let dependencies node graph =
     let {dependencies; node = _;} = Node.Id.Map.find (Node.id node) graph.nodes in
-    let f id = let node, _ = findExn id graph in node in
+    let f id = let node, _ = findExn' id graph in node in
     (List.map ~f dependencies)
 
   let find id graph =
@@ -95,7 +95,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
   let fold ~f ~init graph =
     let f _id payload v =
       let dependencies =
-        let f id = let node, _ = findExn id graph in node in
+        let f id = let node, _ = findExn' id graph in node in
         List.map ~f payload.dependencies
       in
       f payload.node dependencies v

@@ -5,6 +5,7 @@
 (** Distribution. *)
 module Dist : sig
   type t
+  val source : t -> Source.t
   val pp : Format.formatter -> t -> unit
 end
 
@@ -17,11 +18,19 @@ val fetch :
  * return it.
  *)
 
+val unpack :
+  cfg : Config.t
+  -> Dist.t
+  -> Path.t RunAsync.t
+(**
+ * Unpack fetched dist from storage into source cache and return path.
+ *)
+
 val install :
   cfg : Config.t
   -> path : Path.t
   -> Dist.t
   -> unit RunAsync.t
 (**
- * Install package from storage into destination.
+ * Install fetched dist from storage into destination.
  *)

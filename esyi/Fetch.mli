@@ -10,6 +10,15 @@ val fetch :
   -> unit RunAsync.t
 (** Fetch & install solution for the currently configured sandbox. *)
 
+val fetchPnP :
+  sandbox:Sandbox.t
+  -> Solution.t
+  -> unit RunAsync.t
+(**
+ * Fetch & install solution for the currently configured sandbox using pnp.js
+ * installation strategy.
+ *)
+
 val isInstalled :
   sandbox:Sandbox.t
   -> Solution.t

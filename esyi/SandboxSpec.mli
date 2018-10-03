@@ -15,6 +15,7 @@ val isDefault : t -> bool
 val cachePath : t -> Path.t
 val storePath : t -> Path.t
 val buildPath : t -> Path.t
+val installationPath : t -> Path.t
 val nodeModulesPath : t -> Path.t
 val lockfilePath : t -> Path.t
 
