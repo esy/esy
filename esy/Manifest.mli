@@ -47,7 +47,7 @@ module Build : sig
   }
 
   val empty : t
-  val to_yojson : t -> Json.t
+  val to_yojson : t Json.encoder
 end
 
 (**
