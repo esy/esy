@@ -18,13 +18,9 @@ let readFile (path : Path.t) =
 let writeFile ?perm ~data (path : Path.t) =
   let path = Path.show path in
   let desc = Printf.sprintf "Unable to write file %s" path in
-  let p = match System.Platform.host with
-      | Windows -> None
-      | _ -> perm
-  in
   toRunAsync ~desc (fun () ->
     let f oc = Lwt_io.write oc data in
-    Lwt_io.with_file ?perm:p ~mode:Lwt_io.Output path f
+    Lwt_io.with_file ?perm ~mode:Lwt_io.Output path f
   )
 
 let openFile ~mode ~perm path =
