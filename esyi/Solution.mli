@@ -3,19 +3,20 @@
  *)
 
 module Id : sig
-  type t = string * Version.t
+  type t
 
-  include S.JSONABLE with type t := t
-  include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t
+  include S.PRINTABLE with type t := t
+  include S.JSONABLE with type t := t
 
+  val make : string -> Version.t -> t
+
+  module Set : Set.S with type elt = t
   module Map : sig
-    include Map.S with type key := t
-
+    include Map.S with type key = t
     val to_yojson : 'a Json.encoder -> 'a t Json.encoder
     val of_yojson : 'a Json.decoder -> 'a t Json.decoder
   end
-  module Set : Set.S with type elt := t
 end
 
 (**

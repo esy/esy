@@ -250,7 +250,7 @@ module Layout = struct
     let id name version =
       let version = version ^ ".0.0" in
       let version = Version.Npm (parseVersionExn version) in
-      ((name, version) : Solution.Id.t)
+      Solution.Id.make name version
 
     let expect layout expectation =
       let convert =
