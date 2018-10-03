@@ -16,7 +16,9 @@ const esyCommand =
     : require.resolve('../bin/esy');
 
 function getTempDir() {
-  return isWindows ? os.tmpdir() : '/tmp';
+  // APPVEYOR TEST
+  const temp = "C:/esy-test-1";
+  return isWindows ? temp : '/tmp';
 }
 
 const esyPrefixPath =
