@@ -35,4 +35,6 @@ module Environment : sig
   (** Value of $PATH environment variable. *)
   val path : string list
 
+  (** Helper method to normalize CRLF (Windows) text-context to LF (POSIX) *)
+  val normalizeNewLines : string -> string
 end

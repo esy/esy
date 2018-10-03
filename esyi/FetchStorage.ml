@@ -50,18 +50,8 @@ let install ~cfg ~path dist =
   let finishInstall path =
 
     let%bind () =
-      let f {Package.File. name; content; perm} =
-        let name = Path.append path name in
-        let dirname = Path.parent name in
-        let%bind () = Fs.createDir dirname in
-        (* TODO: move this to the place we read data from *)
-        let contents =
-          if String.get content (String.length content - 1) == '\n'
-          then content
-          else content ^ "\n"
-        in
-        let%bind () = Fs.writeFile ~perm ~data:contents name in
-        return()
+      let f file =
+        Package.File.writeToDir ~destinationDir:path file
       in
       List.map ~f record.files |> RunAsync.List.waitAll
     in
