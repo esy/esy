@@ -1,6 +1,6 @@
 type t
 
-type source =
+type location =
   | Link of {
       path : Path.t;
       manifest : ManifestSpec.Filename.t option;
@@ -12,7 +12,7 @@ type source =
 include S.JSONABLE with type t := t
 
 val mem : Solution.Id.t -> t -> bool
-val find : Solution.Id.t -> t -> source option
+val find : Solution.Id.t -> t -> location option
 
 val empty : t
-val add : Solution.Id.t -> source -> t -> t
+val add : Solution.Id.t -> location -> t -> t

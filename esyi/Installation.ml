@@ -1,4 +1,4 @@
-type source =
+type location =
   | Link of {
       path : Path.t;
       manifest : ManifestSpec.Filename.t option;
@@ -7,8 +7,8 @@ type source =
       path : Path.t;
     }
 
-let source_to_yojson source =
-  match source with
+let location_to_yojson location =
+  match location with
   | Link {path; manifest;} ->
     `Assoc [
       "type", `String "link";
@@ -21,7 +21,7 @@ let source_to_yojson source =
       "path", Path.to_yojson path;
     ]
 
-let source_of_yojson json =
+let location_of_yojson json =
   let open Result.Syntax in
   match%bind Json.Decode.(fieldWith ~name:"type" string json) with
   | "link" ->
@@ -49,7 +49,7 @@ let source_of_yojson json =
   | typ -> errorf "unknown package type %s" typ
 
 type t =
-  source Solution.Id.Map.t
+  location Solution.Id.Map.t
   [@@deriving yojson]
 
 let empty = Solution.Id.Map.empty
