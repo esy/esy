@@ -8,6 +8,7 @@ const {
   esyPrefixPath,
 } = require('./setup.js');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const rmSync = require('rimraf').sync;
 const isCi = require('is-ci');
@@ -122,6 +123,15 @@ const cases = [
 
 let reposUpdated = false;
 
+function selectCases(array) {
+    if (os.platform() == "win32") {
+        // Start with top 10 on windows
+        return array.slice(0, 10);
+    } else {
+        return shuffle(array);
+    }
+}
+
 function shuffle(array) {
   array = array.slice(0);
   let counter = array.length;
@@ -144,7 +154,7 @@ const runtimeLimit = 17 * 60 * 1000;
 
 setup();
 
-for (let c of shuffle(cases)) {
+for (let c of selectCases(cases)) {
   for (let toolchain of c.toolchains) {
     const nowTime = new Date();
     if (isCi && nowTime - startTime > runtimeLimit) {
