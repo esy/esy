@@ -1,4 +1,5 @@
 module Task : sig
+
   type t = {
     id : string;
     name : string;
@@ -6,14 +7,19 @@ module Task : sig
     env : Sandbox.Environment.t;
     buildCommands : Sandbox.Value.t list list;
     installCommands : Sandbox.Value.t list list;
+    buildType : Manifest.BuildType.t;
     sourceType : Manifest.SourceType.t;
+    sourcePath : Sandbox.Path.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
+
 end
 
-type t = Task.t EsyInstall.PackageId.Map.t
+type t =
+  Task.t option EsyInstall.PackageId.Map.t
+(** A collection of tasks. *)
 
 val make :
   platform : System.Platform.t
@@ -22,4 +28,6 @@ val make :
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
   -> unit
-  -> Task.t option RunAsync.t
+  -> t RunAsync.t
+
+val plan : Task.t -> EsyBuildPackage.Plan.t

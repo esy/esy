@@ -12,14 +12,16 @@ module Task = struct
     env : Sandbox.Environment.t;
     buildCommands : Sandbox.Value.t list list;
     installCommands : Sandbox.Value.t list list;
+    buildType : Manifest.BuildType.t;
     sourceType : Manifest.SourceType.t;
+    sourcePath : Sandbox.Path.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
 end
 
-type t = Task.t PackageId.Map.t
+type t = Task.t option PackageId.Map.t
 
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
@@ -234,6 +236,7 @@ let make'
     in
 
     let id = buildId Manifest.Env.empty build source dependencies in
+    let sourcePath = Sandbox.Path.ofPath buildConfig sourcePath in
 
     let exportedScope, buildScope =
 
@@ -250,7 +253,7 @@ let make'
           ~sandboxEnv
           ~id
           ~sourceType
-          ~sourcePath:(Sandbox.Path.ofPath buildConfig sourcePath)
+          ~sourcePath
           ~buildIsInProgress:false
           build
       in
@@ -261,7 +264,7 @@ let make'
           ~sandboxEnv
           ~id
           ~sourceType
-          ~sourcePath:(Sandbox.Path.ofPath buildConfig sourcePath)
+          ~sourcePath
           ~buildIsInProgress:true
           build
       in
@@ -334,7 +337,9 @@ let make'
       buildCommands;
       installCommands;
       env = buildEnv;
+      buildType = build.buildType;
       sourceType;
+      sourcePath;
       platform;
       exportedScope;
       buildScope;
@@ -346,7 +351,9 @@ let make'
 
   in
 
-  aux (Solution.root solution)
+  let%bind (_ : Task.t option) = aux (Solution.root solution) in
+
+  return !tasks
 
 let make
   ~platform
@@ -356,7 +363,7 @@ let make
   ~(installation : Installation.t) () =
   let open RunAsync.Syntax in
   let%bind _manifestsPath, manifests = readManifests installation in
-  let%bind plan = RunAsync.ofRun (
+  RunAsync.ofRun (
     make'
       ~platform
       ~buildConfig
@@ -365,5 +372,18 @@ let make
       ~installation
       ~manifests
       ()
-  ) in
-  return plan
+  )
+
+let plan (t : Task.t) =
+  {
+    EsyBuildPackage.Plan.
+    id = t.id;
+    name = t.name;
+    version = EsyInstall.Version.show t.version;
+    sourceType = t.sourceType;
+    buildType = t.buildType;
+    build = t.buildCommands;
+    install = t.installCommands;
+    sourcePath = Sandbox.Path.toValue t.sourcePath;
+    env = t.env;
+  }
