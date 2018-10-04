@@ -54,6 +54,33 @@ function mkdirTemp() {
 
 */
 
+// Workaround for some current & intermittent failures on esy:
+// - https://github.com/esy/esy/issues/462
+// - https://github.com/esy/esy/issues/414
+// - https://github.com/esy/esy/issues/413
+function retry(fn) {
+    if (os.platform() !== "win32") {
+        return fn();
+    }
+
+    let iterations = 1;
+    let lastException = null;
+    while (iterations <= 3) {
+        try {
+            console.log(" ** Iteration: " + iterations.toString());
+            let ret = fn();
+            return ret;
+        } catch (ex) {
+            console.warn("Exception: " + ex.toString());
+            lastException = ex;
+        }
+
+        iterations++;
+    }
+
+    throw(lastException);
+}
+
 function createSandbox() /* : TestSandbox */ {
   const sandboxPath = mkdirTemp();
 
@@ -80,7 +107,7 @@ function createSandbox() /* : TestSandbox */ {
     exec: exec,
     cd,
     esy(...args /* : Array<string> */) {
-      return exec(esyCommand, ...args);
+      return retry(() => exec(esyCommand, ...args));
     },
     dispose: () => {
       rmSync(sandboxPath);

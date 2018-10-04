@@ -200,14 +200,7 @@ for (let c of selectCases(cases)) {
       reposUpdated = true;
     }
 
-    for (let i = 0; i < 5; i++) {
-        console.log("Iteration: " + i.toString());
-        try {
-            sandbox.esy(...install);
-        } catch (ex) {
-            console.warn(ex);
-        }
-    }
+    sandbox.esy(...install);
     sandbox.esy('build');
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
