@@ -643,7 +643,7 @@ let solveDependenciesNaively
           let res =
             let deps =
               let f deps pkg =
-                let id = Solution.Id.make pkg.Package.name pkg.Package.version in
+                let id = PackageId.make pkg.Package.name pkg.Package.version in
                 StringMap.add pkg.Package.name id deps
               in
               List.fold_left ~f ~init:StringMap.empty deps

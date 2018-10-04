@@ -49,13 +49,13 @@ let location_of_yojson json =
   | typ -> errorf "unknown package type %s" typ
 
 type t =
-  location Solution.Id.Map.t
+  location PackageId.Map.t
   [@@deriving yojson]
 
-let empty = Solution.Id.Map.empty
-let add = Solution.Id.Map.add
+let empty = PackageId.Map.empty
+let add = PackageId.Map.add
 
-let mem = Solution.Id.Map.mem
-let find = Solution.Id.Map.find_opt
-let findExn = Solution.Id.Map.find
-let entries = Solution.Id.Map.bindings
+let mem = PackageId.Map.mem
+let find = PackageId.Map.find_opt
+let findExn = PackageId.Map.find
+let entries = PackageId.Map.bindings

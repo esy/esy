@@ -1,83 +1,3 @@
-module Id : sig
-  type t
-
-  include S.COMPARABLE with type t := t
-  include S.PRINTABLE with type t := t
-  include S.JSONABLE with type t := t
-
-  val make : string -> Version.t -> t
-  val name : t -> string
-  val version : t -> Version.t
-
-  module Set : Set.S with type elt = t
-  module Map : sig
-    include Map.S with type key = t
-    val to_yojson : 'a Json.encoder -> 'a t Json.encoder
-    val of_yojson : 'a Json.decoder -> 'a t Json.decoder
-  end
-end = struct
-  type t = string * Version.t [@@deriving ord]
-
-  let make name version = name, version
-  let name (name, _version) = name
-  let version (_name, version) = version
-
-  let rec parse v =
-    let open Result.Syntax in
-    match Astring.String.cut ~sep:"@" v with
-    | Some ("", name) ->
-      let%bind name, version = parse name in
-      return ("@" ^ name, version)
-    | Some (name, version) ->
-      let%bind version = Version.parse version in
-      return (name, version)
-    | None -> Error "invalid id"
-
-  let show (name, version) = name ^ "@" ^ Version.show version
-  let pp fmt id = Fmt.pf fmt "%s" (show id)
-
-  let to_yojson id =
-    `String (show id)
-
-  let of_yojson = function
-    | `String v -> parse v
-    | _ -> Error "expected string"
-
-  module Set = Set.Make(struct
-    type nonrec t = t
-    let compare = compare
-  end)
-
-  module Map = struct
-    include Map.Make(struct
-      type nonrec t = t
-      let compare = compare
-    end)
-
-    let to_yojson v_to_yojson map =
-      let items =
-        let f (name, version) v items =
-          let k = name ^ "@" ^ Version.show version in
-          (k, v_to_yojson v)::items
-        in
-        fold f map []
-      in
-      `Assoc items
-
-    let of_yojson v_of_yojson =
-      let open Result.Syntax in
-      function
-      | `Assoc items ->
-        let f map (k, v) =
-          let%bind k = parse k in
-          let%bind v = v_of_yojson v in
-          return (add k v map)
-        in
-        Result.List.foldLeft ~f ~init:empty items
-      | _ -> error "expected an object"
-  end
-end
-
 module Record = struct
 
   module Opam = struct
@@ -120,7 +40,7 @@ module Record = struct
     opam : Opam.t option;
   } [@@deriving yojson]
 
-  let id r = Id.make r.name r.version
+  let id r = PackageId.make r.name r.version
 
   let compare a b =
     let c = String.compare a.name b.name in
@@ -139,7 +59,7 @@ end
 
 include Graph.Make(struct
   include Record
-  module Id = Id
+  module Id = PackageId
 end)
 
 type solution = t
@@ -150,9 +70,9 @@ module LockfileV1 = struct
     (* This is hash of all dependencies/resolutios, used as a checksum. *)
     hash : string;
     (* Id of the root package. *)
-    root : Id.t;
+    root : PackageId.t;
     (* Map from ids to nodes. *)
-    node : node Id.Map.t
+    node : node PackageId.Map.t
   }
 
   (* Each package is represented as node. *)
@@ -160,7 +80,7 @@ module LockfileV1 = struct
     (* Actual package record. *)
     record : Record.t;
     (* List of dependency ids. *)
-    dependencies : Id.t StringMap.t;
+    dependencies : PackageId.t StringMap.t;
   } [@@deriving yojson]
 
   let computeSandboxChecksum (sandbox : Sandbox.t) =
@@ -227,18 +147,18 @@ module LockfileV1 = struct
     let f _id {record; dependencies} solution =
       add record dependencies solution
     in
-    Id.Map.fold f node (empty root)
+    PackageId.Map.fold f node (empty root)
 
   let lockfileOfSolution (sol : solution) =
     let node =
       let f record dependencies nodes =
         let dependencies = StringMap.map Record.id dependencies in
-        Id.Map.add
+        PackageId.Map.add
           (Record.id record)
           {record; dependencies}
           nodes
       in
-      fold ~f ~init:Id.Map.empty sol
+      fold ~f ~init:PackageId.Map.empty sol
     in
     root sol, node
 

@@ -1,4 +1,3 @@
-module Id = Solution.Id
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
 
@@ -251,12 +250,12 @@ module Layout = struct
     let id name version =
       let version = version ^ ".0.0" in
       let version = Version.Npm (parseVersionExn version) in
-      Solution.Id.make name version
+      PackageId.make name version
 
     let addToSolution record deps =
       let deps =
         let f deps id =
-          let name = Solution.Id.name id in
+          let name = PackageId.name id in
           StringMap.add name id deps
         in
         List.fold_left ~f ~init:StringMap.empty deps

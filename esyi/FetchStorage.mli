@@ -5,7 +5,7 @@
 (** Distribution. *)
 module Dist : sig
   type t
-  val id : t -> Solution.Id.t
+  val id : t -> PackageId.t
   val source : t -> Source.t
   val pp : Format.formatter -> t -> unit
 end
