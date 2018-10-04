@@ -7,6 +7,7 @@ type location =
     }
   | Install of {
       path : Path.t;
+      source : Source.t;
     }
 
 include S.JSONABLE with type t := t

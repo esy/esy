@@ -5,6 +5,7 @@ type location =
     }
   | Install of {
       path : Path.t;
+      source : Source.t;
     }
 
 let location_to_yojson location =
@@ -15,10 +16,11 @@ let location_to_yojson location =
       "path", Path.to_yojson path;
       "manifest", Json.Encode.opt ManifestSpec.Filename.to_yojson manifest;
     ]
-  | Install {path;} ->
+  | Install {path; source;} ->
     `Assoc [
       "type", `String "install";
       "path", Path.to_yojson path;
+      "source", Source.to_yojson source;
     ]
 
 let location_of_yojson json =
@@ -45,7 +47,13 @@ let location_of_yojson json =
         Path.of_yojson
         json
     in
-    return (Install {path;})
+    let%bind source =
+      Json.Decode.fieldWith
+        ~name:"source"
+        Source.of_yojson
+        json
+    in
+    return (Install {path; source;})
   | typ -> errorf "unknown package type %s" typ
 
 type t =

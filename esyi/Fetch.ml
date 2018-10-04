@@ -879,10 +879,11 @@ let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
     in
     let f installation (dist, sourcePath) =
       let source =
-        match Dist.source dist with
+        let source = Dist.source dist in
+        match source with
         | Source.LocalPathLink {path; manifest} ->
           Installation.Link {path; manifest;}
-        | _ -> Installation.Install {path = sourcePath;}
+        | _ -> Installation.Install {path = sourcePath; source;}
       in
       Installation.add (Dist.id dist) source installation
     in
