@@ -57,3 +57,5 @@ let add = Solution.Id.Map.add
 
 let mem = Solution.Id.Map.mem
 let find = Solution.Id.Map.find_opt
+let findExn = Solution.Id.Map.find
+let entries = Solution.Id.Map.bindings
