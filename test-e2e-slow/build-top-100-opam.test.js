@@ -152,7 +152,7 @@ function shuffle(array) {
 function selectCases(array) {
     if (os.platform() == "win32") {
         // Start with a subset on Windows...
-        return array.slice(0, 25);
+        return array.slice(0, 3);
     } else {
         return shuffle(array);
     }
