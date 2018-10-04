@@ -13,6 +13,7 @@ with the following fields:
 
 - [`esy.build`](#esybuild)
 - [`esy.install`](#esyinstall)
+- [`resolutions`](#override-solved-package-versions)
 - [`esy.buildsInSource`](#esybuildsinsource)
 - [`esy.exportedEnv`](#esy.exportedenv)
 - [`esy.buildEnv`](#esy.buildenv)
@@ -78,6 +79,22 @@ should move built artifacts to `#{self.install}` location.
 
 [esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare install commands.
+
+## Override solved package versions
+
+It's sometimes necessary to override the package version determined by the solver, particularly so when
+the latest patches (semantically versioned and tagged) are not compatible with the other packages in the project.
+In such a case, use `resolutions` field in the package.json and [specify the last good configuration](https://github.com/esy-ocaml/hello-reason/commit/20c756f4454d90054612b1d7e983e1a793517d4c#diff-b9cfc7f2cdf78a7f4b91a753d10865a2R30).
+
+
+```
+{
+  "resolutions": {
+    "@opam/menhir": "20171013"
+  }
+}
+```
+
 
 ## Enforcing Out Of Source Builds
 
