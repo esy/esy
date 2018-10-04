@@ -9,9 +9,9 @@ val build :
   ?force:bool
   -> ?buildOnly:bool
   -> ?quiet:bool
-  -> ?stderrout:[ `Keep | `Log ]
+  -> ?logPath:Sandbox.Path.t
   -> Sandbox.t
-  -> Task.t
+  -> EsyBuildPackage.Plan.t
   -> unit RunAsync.t
 
 (*
@@ -19,7 +19,7 @@ val build :
  *)
 val buildShell :
   Sandbox.t
-  -> Task.t
+  -> EsyBuildPackage.Plan.t
   -> Unix.process_status RunAsync.t
 
 (*
@@ -27,6 +27,6 @@ val buildShell :
  *)
 val buildExec :
   Sandbox.t
-  -> Task.t
+  -> EsyBuildPackage.Plan.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t

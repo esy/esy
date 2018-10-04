@@ -5,7 +5,7 @@ let waitForDependencies dependencies =
   |> List.map ~f:(fun (_, dep) -> dep)
   |> RunAsync.List.waitAll
 
-let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly sandbox (task : Task.t) =
+let buildTask ?(quiet=false) ?force ?logPath ~buildOnly sandbox (task : Task.t) =
   let pkg = Task.pkg task in
   let f () =
     let open RunAsync.Syntax in
@@ -18,7 +18,7 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly sandbox (task : Task.t
     in
     let%bind () =
       RunAsync.context (
-        PackageBuilder.build ~quiet ?stderrout ?force ~buildOnly sandbox task
+        PackageBuilder.build ~quiet ?logPath ?force ~buildOnly sandbox (Task.plan task)
       ) context
     in
     let%lwt () = if not quiet

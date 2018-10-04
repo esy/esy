@@ -30,7 +30,7 @@ val buildDependencies :
 val buildTask :
   ?quiet:bool
   -> ?force:bool
-  -> ?stderrout:[`Keep | `Log]
+  -> ?logPath:Sandbox.Path.t
   -> buildOnly:bool
   -> Sandbox.t
   -> Task.t

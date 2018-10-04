@@ -1,11 +1,11 @@
 
 let run
     ?(stdin=`Null)
-    ?(stderrout=`Log)
     ?(args=[])
+    ?logPath
     action
     (sandbox : Sandbox.t)
-    (task : Task.t) =
+    (plan : EsyBuildPackage.Plan.t) =
   let open RunAsync.Syntax in
 
   let action = match action with
@@ -34,18 +34,19 @@ let run
     | `Keep -> `FD_copy Unix.stdin
     in
 
-    let%bind stdout, stderr, log = match stderrout with
-    | `Log ->
-      let logPath = Sandbox.Path.toPath sandbox.buildConfig (Task.logPath task) in
-      let%lwt fd = Lwt_unix.openfile
-        (Path.show logPath)
-        Lwt_unix.[O_WRONLY; O_CREAT]
-        0o644
-      in
-      let fd = Lwt_unix.unix_file_descr fd in
-      return (`FD_copy fd, `FD_copy fd, Some (logPath, fd))
-    | `Keep ->
-      return (`FD_copy Unix.stdout, `FD_copy Unix.stderr, None)
+    let%bind stdout, stderr, log =
+      match logPath with
+      | Some logPath ->
+        let logPath = Sandbox.Path.toPath sandbox.buildConfig logPath in
+        let%lwt fd = Lwt_unix.openfile
+          (Path.show logPath)
+          Lwt_unix.[O_WRONLY; O_CREAT]
+          0o644
+        in
+        let fd = Lwt_unix.unix_file_descr fd in
+        return (`FD_copy fd, `FD_copy fd, Some (logPath, fd))
+      | None ->
+        return (`FD_copy Unix.stdout, `FD_copy Unix.stderr, None)
     in
 
     let waitForProcess process =
@@ -59,7 +60,7 @@ let run
   in
 
   let buildJson =
-    let json = EsyBuildPackage.Plan.to_yojson (Task.plan task) in
+    let json = EsyBuildPackage.Plan.to_yojson plan in
     Yojson.Safe.to_string json
   in
   Fs.withTempFile ~data:buildJson runProcess
@@ -68,9 +69,9 @@ let build
     ?(force=false)
     ?(buildOnly=false)
     ?(quiet=false)
-    ?(stderrout : [`Keep | `Log] option)
+    ?logPath
     sandbox
-    task
+    plan
     =
   let open RunAsync.Syntax in
   let args =
@@ -82,7 +83,7 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  let%bind status, log = run ~args ?stderrout `Build sandbox task in
+  let%bind status, log = run ?logPath ~args `Build sandbox plan in
   match status, log with
   | Unix.WEXITED 0, Some (_, fd)  ->
     UnixLabels.close fd;
@@ -96,14 +97,14 @@ let build
   | _, None ->
     error "build failed"
 
-let buildShell sandbox task =
+let buildShell sandbox plan =
   let open RunAsync.Syntax in
-  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Shell sandbox task in
+  let%bind status, _log = run ~stdin:`Keep `Shell sandbox plan in
   return status
 
-let buildExec sandbox task cmd =
+let buildExec sandbox plan cmd =
   let open RunAsync.Syntax in
   let tool, args = Cmd.getToolAndArgs cmd in
   let args = "--"::tool::args in
-  let%bind status, _log = run ~stdin:`Keep ~stderrout:`Keep `Exec ~args sandbox task in
+  let%bind status, _log = run ~stdin:`Keep `Exec ~args sandbox plan in
   return status
