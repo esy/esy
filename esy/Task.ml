@@ -217,47 +217,47 @@ let ofSandbox
         let map = Sandbox.Package.Map.add dpkg (direct, (dkind, dtask)) map in
         let order = dpkg::order in
         return (map, order)
-      in
+    in
 
-      let%bind map, order =
-        let deps = Sandbox.dependencies pkg sandbox in
-        let acc = Sandbox.Package.Map.empty, [] in
-        let%bind acc =
-          Result.List.foldLeft
-            ~f:(aux ~direct:true Dependency)
-            ~init:acc
-            deps.dependencies
-        in
-        let%bind acc =
-          Result.List.foldLeft
-            ~f:(aux ~direct:true BuildTimeDependency)
-            ~init:acc
-            deps.buildTimeDependencies
-        in
-        let%bind acc =
-          Result.List.foldLeft
-            ~f:(aux ~direct:true DevDependency)
-            ~init:acc
-            deps.devDependencies
-        in
-        return acc
+    let%bind map, order =
+      let deps = Sandbox.dependencies pkg sandbox in
+      let acc = Sandbox.Package.Map.empty, [] in
+      let%bind acc =
+        Result.List.foldLeft
+          ~f:(aux ~direct:true Dependency)
+          ~init:acc
+          deps.dependencies
       in
+      let%bind acc =
+        Result.List.foldLeft
+          ~f:(aux ~direct:true BuildTimeDependency)
+          ~init:acc
+          deps.buildTimeDependencies
+      in
+      let%bind acc =
+        Result.List.foldLeft
+          ~f:(aux ~direct:true DevDependency)
+          ~init:acc
+          deps.devDependencies
+      in
+      return acc
+    in
 
-      return (
-        let f dpkg =
-          let task =
-            let open Option.Syntax in
-            let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
-            return (direct, task)
-          in
-          match task with
-          | Some v -> v
-          | None ->
-            let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp dpkg in
-            failwith msg
+    return (
+      let f dpkg =
+        let task =
+          let open Option.Syntax in
+          let%bind direct, task = Sandbox.Package.Map.find_opt dpkg map in
+          return (direct, task)
         in
-        List.rev_map ~f order
-      )
+        match task with
+        | Some v -> v
+        | None ->
+          let msg = Format.asprintf "task wasn't found: %a" Sandbox.Package.pp dpkg in
+          failwith msg
+      in
+      List.rev_map ~f order
+    )
 
   and taskOfPackage (pkg : Sandbox.Package.t) =
 
