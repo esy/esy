@@ -390,15 +390,15 @@ let plan (t : Task.t) =
 
 let shell ~buildConfig task =
   let plan = plan task in
-  PackageBuilder.buildShell ~buildConfig plan
+  EsyBuildPackageApi.buildShell ~buildConfig plan
 
 let exec ~buildConfig task cmd =
   let plan = plan task in
-  PackageBuilder.buildExec ~buildConfig plan cmd
+  EsyBuildPackageApi.buildExec ~buildConfig plan cmd
 
 let build ?force ?quiet ?buildOnly ?logPath ~buildConfig task =
   let plan = plan task in
-  PackageBuilder.build ?force ?quiet ?buildOnly ?logPath ~buildConfig plan
+  EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~buildConfig plan
 
 let buildDependencies ?(concurrency=1) ~buildConfig ~solution plan =
   let queue = LwtTaskQueue.create ~concurrency () in

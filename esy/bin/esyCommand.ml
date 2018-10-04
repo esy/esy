@@ -628,7 +628,7 @@ let buildShell copts packagePath () =
         task
     in
     let p =
-      PackageBuilder.buildShell
+      EsyBuildPackageApi.buildShell
         ~buildConfig:info.sandbox.buildConfig
         (Task.plan task)
     in
@@ -678,7 +678,7 @@ let build ?(buildOnly=true) copts cmd () =
         task
     in
     let p =
-      PackageBuilder.buildExec
+      EsyBuildPackageApi.buildExec
         ~buildConfig:sandbox.buildConfig
         (Task.plan task)
         cmd

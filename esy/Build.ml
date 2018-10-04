@@ -18,7 +18,7 @@ let buildTask ?(quiet=false) ?force ?logPath ~buildOnly sandbox (task : Task.t) 
     in
     let%bind () =
       RunAsync.context (
-        PackageBuilder.build
+        EsyBuildPackageApi.build
           ~quiet
           ?logPath
           ?force
