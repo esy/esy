@@ -350,8 +350,6 @@ let ofSandbox
           ~platform
           ~sandboxEnv
           ~id
-          ~name:pkg.name
-          ~version:pkg.version
           ~sourceType
           ~sourcePath:pkg.sourcePath
           ~buildIsInProgress:false
@@ -363,8 +361,6 @@ let ofSandbox
           ~platform
           ~sandboxEnv
           ~id
-          ~name:pkg.name
-          ~version:pkg.version
           ~sourceType
           ~sourcePath:pkg.sourcePath
           ~buildIsInProgress:true

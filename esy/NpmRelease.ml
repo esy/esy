@@ -184,6 +184,8 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
           version = pkg.version;
           build = {
             Manifest.Build.
+            name = pkg.name;
+            version = pkg.version;
             buildEnv = Manifest.Env.empty;
             buildCommands = Manifest.Build.EsyCommands [];
             installCommands = Manifest.Build.EsyCommands [];

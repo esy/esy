@@ -5,8 +5,6 @@ module PackageScope : sig
   val make :
     id:string
     -> buildIsInProgress:bool
-    -> name : string
-    -> version : string
     -> sourceType : Manifest.SourceType.t
     -> sourcePath : Sandbox.Path.t
     -> Manifest.Build.t
@@ -36,8 +34,6 @@ module PackageScope : sig
 end = struct
   type t = {
     id: string;
-    name : string;
-    version : string;
     sourcePath : Sandbox.Path.t;
     sourceType : Manifest.SourceType.t;
     build : Manifest.Build.t;
@@ -49,8 +45,6 @@ end = struct
   let make
     ~id
     ~buildIsInProgress
-    ~name
-    ~version
     ~sourceType
     ~sourcePath
     (build : Manifest.Build.t) =
@@ -97,8 +91,6 @@ end = struct
 
     {
       id;
-      name;
-      version;
       sourceType;
       sourcePath;
       build;
@@ -108,8 +100,8 @@ end = struct
     }
 
   let id scope = scope.id
-  let name scope = scope.name
-  let version scope = scope.version
+  let name scope = scope.build.name
+  let version scope = scope.build.version
   let sourceType scope = scope.sourceType
   let buildIsInProgress scope = scope.buildIsInProgress
 
@@ -166,8 +158,8 @@ end = struct
     in
     match id with
     | "id" -> s scope.id
-    | "name" -> s scope.name
-    | "version" -> s scope.version
+    | "name" -> s scope.build.name
+    | "version" -> s scope.build.version
     | "root" -> p (rootPath scope)
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
@@ -199,8 +191,8 @@ end = struct
     (* add builtins *)
     let env =
       [
-        "cur__name", scope.name;
-        "cur__version", scope.version;
+        "cur__name", scope.build.name;
+        "cur__version", scope.build.version;
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
@@ -249,8 +241,6 @@ let make
   ~platform
   ~sandboxEnv
   ~id
-  ~name
-  ~version
   ~sourceType
   ~sourcePath
   ~buildIsInProgress
@@ -258,8 +248,6 @@ let make
   let self =
     PackageScope.make
       ~id
-      ~name
-      ~version
       ~sourceType
       ~sourcePath
       ~buildIsInProgress

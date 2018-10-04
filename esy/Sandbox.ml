@@ -530,7 +530,7 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         id = Path.show path;
         name;
         version = Source.show source;
-        build = Manifest.Build.empty;
+        build = Manifest.Build.empty name (Source.show source);
         sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
         originPath = Path.Set.empty;
         source;

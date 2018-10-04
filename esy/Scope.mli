@@ -4,8 +4,6 @@ val make :
   platform:System.Platform.t
   -> sandboxEnv:Sandbox.Environment.Bindings.t
   -> id:string
-  -> name:string
-  -> version:string
   -> sourceType:Manifest.SourceType.t
   -> sourcePath:Sandbox.Path.t
   -> buildIsInProgress:bool

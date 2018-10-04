@@ -37,6 +37,8 @@ module Build : sig
     | EsyCommands of CommandList.t
 
   type t = {
+    name : string;
+    version : string;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -46,7 +48,7 @@ module Build : sig
     buildEnv : Env.t;
   }
 
-  val empty : t
+  val empty : string -> string -> t
   val to_yojson : t Json.encoder
 end
 

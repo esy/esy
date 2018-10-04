@@ -46,6 +46,8 @@ module Build = struct
     `Assoc ["path", Path.to_yojson path; "filter", filter]
 
   type t = {
+    name : string;
+    version : string;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -55,7 +57,9 @@ module Build = struct
     buildEnv : Env.t;
   } [@@deriving to_yojson]
 
-  let empty = {
+  let empty name version = {
+    name;
+    version;
     buildType = BuildType.OutOfSource;
     buildCommands = EsyCommands [];
     installCommands = EsyCommands [];
@@ -280,6 +284,8 @@ end = struct
     let%bind esy = m.esy in
     Some {
       Build.
+      name = m.name;
+      version = m.version;
       buildType = esy.EsyManifest.buildsInSource;
       exportedEnv = esy.EsyManifest.exportedEnv;
       buildEnv = esy.EsyManifest.buildEnv;
@@ -499,6 +505,8 @@ end = struct
 
     Some {
       Build.
+      name = name manifest;
+      version = version manifest;
       (* we assume opam installations are built in source *)
       buildType = BuildType.InSource;
       exportedEnv;
@@ -641,6 +649,8 @@ end = struct
 
     Some {
       Build.
+      name = name m;
+      version = version m;
       buildType = BuildType.Unsafe;
       exportedEnv = ExportedEnv.empty;
       buildEnv = Env.empty;
