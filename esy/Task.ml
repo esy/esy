@@ -63,7 +63,7 @@ let plan t =
     EsyBuildPackage.Plan.
     id = t.id;
     name = t.pkg.name;
-    version = t.pkg.version;
+    version = EsyInstall.Version.show t.pkg.version;
     sourceType = t.sourceType;
     buildType = t.pkg.build.buildType;
     build = t.build;
@@ -73,14 +73,16 @@ let plan t =
   }
 
 let toOCamlVersion version =
-  match String.split_on_char '.' version with
-  | major::minor::patch::[] ->
+  match version with
+  | EsyInstall.Version.Npm version ->
     let patch =
-      let v = try int_of_string patch with _ -> 0 in
-      if v < 1000 then v else v / 1000
+      if version.patch < 1000
+      then version.patch
+      else version.patch / 1000
     in
-    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
-  | _ -> version
+    let version = {version with EsyInstall.SemverVersion.Version. patch;} in
+    EsyInstall.SemverVersion.Version.show version
+  | version -> EsyInstall.Version.show version
 
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
@@ -313,7 +315,11 @@ let ofSandbox
         |> fun hash -> String.sub hash 0 8
       in
 
-      Printf.sprintf "%s-%s-%s" (Path.safeSeg pkg.name) (Path.safePath pkg.version) hash
+      Printf.sprintf
+        "%s-%s-%s"
+        (Path.safeSeg pkg.name)
+        (Path.safePath (EsyInstall.Version.show pkg.version))
+        hash
     in
 
     let sourceType =
@@ -448,8 +454,9 @@ let ofSandbox
   and taskOfPackageCached (pkg : Sandbox.Package.t) =
     Run.contextf
       (Memoize.compute cache pkg.id (fun () -> taskOfPackage pkg))
-      "processing package: %s@%s"
+      "processing package: %s@%a"
       pkg.name
+      EsyInstall.Version.pp
       pkg.version
   in
 

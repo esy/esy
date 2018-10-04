@@ -2,7 +2,7 @@ module StringSet = Set.Make(String)
 
 type config = {
   name : string;
-  version : string;
+  version : EsyInstall.Version.t;
   license : Json.t option;
   description : string option;
   releasedBinaries : string list;
@@ -269,7 +269,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
       let pkgJson =
         let items = [
           "name", `String releaseCfg.name;
-          "version", `String releaseCfg.version;
+          "version", EsyInstall.Version.to_yojson releaseCfg.version;
           "scripts", `Assoc [
             "postinstall", `String "node ./esyInstallRelease.js"
           ];

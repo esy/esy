@@ -1,3 +1,4 @@
+module Version = EsyInstall.Version
 module Source = EsyInstall.Source
 module Overrides = EsyInstall.Package.Overrides
 module EsyLinkFile = EsyInstall.EsyLinkFile
@@ -6,7 +7,7 @@ module Package = struct
   type t = {
     id : string;
     name : string;
-    version : string;
+    version : Version.t;
     build : Manifest.Build.t;
     originPath : Path.Set.t;
     source : Manifest.Source.t;
@@ -525,12 +526,13 @@ let make ~(cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
         | false, Source.LocalPathLink _ -> Manifest.SourceType.Transient
         | false, _ -> Manifest.SourceType.Immutable
       in
+      let version = Version.parseExn "0.0.0" in
       let pkg = {
         Package.
         id = Path.show path;
         name;
-        version = Source.show source;
-        build = Manifest.Build.empty name (Source.show source);
+        version;
+        build = Manifest.Build.empty name version;
         sourcePath = EsyBuildPackage.Config.Path.ofPath buildConfig sourcePath;
         originPath = Path.Set.empty;
         source;

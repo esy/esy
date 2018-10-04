@@ -6,7 +6,7 @@ module Package : sig
   type t = {
     id : string;
     name : string;
-    version : string;
+    version : EsyInstall.Version.t;
     build : Manifest.Build.t;
     originPath : Path.Set.t;
     source : Manifest.Source.t;

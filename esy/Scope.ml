@@ -1,3 +1,5 @@
+module Version = EsyInstall.Version
+
 (** Scope exported by a package. *)
 module PackageScope : sig
   type t
@@ -12,7 +14,7 @@ module PackageScope : sig
 
   val id : t -> string
   val name : t -> string
-  val version : t -> string
+  val version : t -> Version.t
   val sourceType : t -> Manifest.SourceType.t
 
   val buildIsInProgress : t -> bool
@@ -159,7 +161,7 @@ end = struct
     match id with
     | "id" -> s scope.id
     | "name" -> s scope.build.name
-    | "version" -> s scope.build.version
+    | "version" -> s (Version.show scope.build.version)
     | "root" -> p (rootPath scope)
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
@@ -192,7 +194,7 @@ end = struct
     let env =
       [
         "cur__name", scope.build.name;
-        "cur__version", scope.build.version;
+        "cur__version", (Version.show scope.build.version);
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
@@ -337,7 +339,7 @@ let makeEnvBindings bindings scope =
   let origin =
     let name = PackageScope.name scope.self in
     let version = PackageScope.version scope.self in
-    Printf.sprintf "%s@%s" name version
+    Printf.sprintf "%s@%s" name (Version.show version)
   in
   let f (name, value) =
     let%bind value =
@@ -442,7 +444,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
 
     | _, "hash" -> Some (string "")
     | _, "name" -> Some (string opamname)
-    | _, "version" -> Some (string (PackageScope.version scope))
+    | _, "version" -> Some (string (Version.show (PackageScope.version scope)))
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
       match PackageScope.sourceType scope with
@@ -493,7 +495,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   | Full.Global, "toplevel" -> Some (configPath Sandbox.Path.(installPath / "toplevel"))
   | Full.Global, "lib" -> Some (configPath Sandbox.Path.(installPath / "lib"))
   | Full.Global, "libexec" -> Some (configPath Sandbox.Path.(installPath / "lib"))
-  | Full.Global, "version" -> Some (string (PackageScope.version scope.self))
+  | Full.Global, "version" -> Some (string (Version.show (PackageScope.version scope.self)))
   | Full.Global, "name" -> Some (string (opamname scope.self))
 
   | Full.Global, _ -> None

@@ -1,5 +1,7 @@
 open Esy
 
+module Version = EsyInstall.Version
+
 let runAsyncToCmdlinerRet res =
   match Lwt_main.run res with
   | Ok v -> `Ok v
@@ -333,7 +335,9 @@ module SandboxInfo = struct
           let%bind commandEnv = RunAsync.ofRun (
             let header =
               let pkg = info.sandbox.root in
-              Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
+              Format.asprintf
+                "# Command environment for %s@%a"
+                pkg.name Version.pp pkg.version
             in
             Environment.renderToShellSource ~header info.commandEnv
           ) in
@@ -704,7 +708,9 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
 let buildEnv =
   let open Run.Syntax in
   let header (pkg : Sandbox.Package.t) =
-    Printf.sprintf "# Build environment for %s@%s" pkg.name pkg.version
+    Format.asprintf
+      "# Build environment for %s@%a"
+      pkg.name Version.pp pkg.version
   in
   let computeEnv (info : SandboxInfo.t) task =
     let%bind env = Task.buildEnv task in
@@ -716,7 +722,9 @@ let buildEnv =
 let commandEnv =
   let open Run.Syntax in
   let header (pkg : Sandbox.Package.t) =
-    Printf.sprintf "# Command environment for %s@%s" pkg.name pkg.version
+    Format.asprintf
+      "# Command environment for %s@%a"
+      pkg.name Version.pp pkg.version
   in
   let computeEnv (info : SandboxInfo.t) task =
     let%bind env = Task.commandEnv task in
@@ -728,7 +736,7 @@ let commandEnv =
 let sandboxEnv =
   let open Run.Syntax in
   let header (pkg : Sandbox.Package.t) =
-    Printf.sprintf "# Sandbox environment for %s@%s" pkg.name pkg.version
+    Format.asprintf "# Sandbox environment for %s@%a" pkg.name Version.pp pkg.version
   in
   let computeEnv (info : SandboxInfo.t) task =
     let%bind env = Task.sandboxEnv task in
@@ -890,7 +898,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
 let formatPackageInfo ~built:(built : bool)  (task : Task.t) =
   let open RunAsync.Syntax in
   let pkg = Task.pkg task in
-  let version = Chalk.grey ("@" ^ pkg.version) in
+  let version = Chalk.grey ("@" ^ Version.show pkg.version) in
   let status =
     match (Task.sourceType task), built with
     | Manifest.SourceType.Immutable, true ->
@@ -1217,7 +1225,7 @@ let exportDependencies copts () =
   let exportBuild (task : Task.t) =
     let pkg = Task.pkg task in
     let aux () =
-      let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%s" pkg.name pkg.version) in
+      let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
       let buildPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
       if%bind Fs.exists buildPath
       then
@@ -1225,9 +1233,8 @@ let exportDependencies copts () =
         Task.exportBuild ~outputPrefixPath ~cfg:copts.CommonOptions.cfg buildPath
       else (
         errorf
-          "%s@%s was not built, run 'esy build' first"
-          pkg.name
-          pkg.version
+          "%s@%a was not built, run 'esy build' first"
+          pkg.name Version.pp pkg.version
       )
     in LwtTaskQueue.submit queue aux
   in

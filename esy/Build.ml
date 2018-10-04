@@ -9,7 +9,9 @@ let buildTask ?(quiet=false) ?force ?stderrout ~buildOnly sandbox (task : Task.t
   let pkg = Task.pkg task in
   let f () =
     let open RunAsync.Syntax in
-    let context = Printf.sprintf "building %s@%s" pkg.name pkg.version in
+    let context =
+      Format.asprintf "building %s@%a" pkg.name EsyInstall.Version.pp pkg.version
+    in
     let%lwt () = if not quiet
       then Logs_lwt.app(fun m -> m "%s: starting" context)
       else Lwt.return ()

@@ -6,6 +6,7 @@ end
 module SandboxSpec = EsyInstall.SandboxSpec
 module ManifestSpec = EsyInstall.ManifestSpec
 module Package = EsyInstall.Package
+module Version = EsyInstall.Version
 module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
 module Command = Package.Command
@@ -47,7 +48,7 @@ module Build = struct
 
   type t = {
     name : string;
-    version : string;
+    version : Version.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -137,7 +138,7 @@ module type MANIFEST = sig
   val name : t -> string
 
   (** Version. *)
-  val version : t -> string
+  val version : t -> Version.t
 
   (** License. *)
   val license : t -> Json.t option
@@ -235,7 +236,7 @@ end = struct
   type t = manifest * Json.t
 
   let name (manifest, _) = manifest.name
-  let version (manifest, _) = manifest.version
+  let version (manifest, _) = Version.parseExn manifest.version
   let description (manifest, _) = manifest.description
   let license (manifest, _) = manifest.license
 
@@ -279,13 +280,13 @@ end = struct
     | None -> Run.return Env.empty
     | Some m -> Run.return m.sandboxEnv
 
-  let build (m, _) =
+  let build (m, json) =
     let open Option.Syntax in
     let%bind esy = m.esy in
     Some {
       Build.
-      name = m.name;
-      version = m.version;
+      name = name (m, json);
+      version = version (m, json);
       buildType = esy.EsyManifest.buildsInSource;
       exportedEnv = esy.EsyManifest.exportedEnv;
       buildEnv = esy.EsyManifest.buildEnv;
@@ -394,7 +395,7 @@ end = struct
       try OpamFile.OPAM.version manifest.opam
       with _ -> manifest.version
     in
-    OpamPackage.Version.to_string version
+    Version.Opam version
 
   let dependencies (manifest : t) =
     let dependencies =
@@ -582,7 +583,7 @@ end = struct
     | {name = Some name; _} -> name
     | manifest -> "@opam/" ^ (opamname manifest)
 
-  let version _ = "dev"
+  let version _ = Version.parseExn "0.0.0"
 
   let dependencies manifest =
     let dependencies =

@@ -6,6 +6,7 @@ module BuildType : module type of EsyLib.BuildType
 module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyInstall.Source
+module Version : module type of EsyInstall.Version
 module Command : module type of EsyInstall.Package.Command
 module CommandList : module type of EsyInstall.Package.CommandList
 module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
@@ -38,7 +39,7 @@ module Build : sig
 
   type t = {
     name : string;
-    version : string;
+    version : Version.t;
     buildType : BuildType.t;
     buildCommands : commands;
     installCommands : commands;
@@ -48,7 +49,7 @@ module Build : sig
     buildEnv : Env.t;
   }
 
-  val empty : string -> string -> t
+  val empty : string -> Version.t -> t
   val to_yojson : t Json.encoder
 end
 
@@ -79,7 +80,7 @@ module type MANIFEST = sig
   val name : t -> string
 
   (** Version. *)
-  val version : t -> string
+  val version : t -> Version.t
 
   (** License. *)
   val license : t -> Json.t option
