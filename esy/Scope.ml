@@ -4,9 +4,12 @@ module PackageScope : sig
 
   val make :
     id:string
-    -> sourceType:Manifest.SourceType.t
     -> buildIsInProgress:bool
-    -> Sandbox.Package.t
+    -> name : string
+    -> version : string
+    -> sourceType : Manifest.SourceType.t
+    -> sourcePath : Sandbox.Path.t
+    -> Manifest.Build.t
     -> t
 
   val id : t -> string
@@ -33,14 +36,24 @@ module PackageScope : sig
 end = struct
   type t = {
     id: string;
-    pkg : Sandbox.Package.t;
+    name : string;
+    version : string;
+    sourcePath : Sandbox.Path.t;
     sourceType : Manifest.SourceType.t;
+    build : Manifest.Build.t;
     buildIsInProgress : bool;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
   }
 
-  let make ~id ~sourceType ~buildIsInProgress (pkg : Sandbox.Package.t) =
+  let make
+    ~id
+    ~buildIsInProgress
+    ~name
+    ~version
+    ~sourceType
+    ~sourcePath
+    (build : Manifest.Build.t) =
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
@@ -59,7 +72,7 @@ end = struct
             let exportedEnvLocal = (name, value)::exportedEnvLocal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
         in
-        StringMap.fold f pkg.build.exportedEnv (true, [], []) 
+        StringMap.fold f build.exportedEnv (true, [], []) 
       in
 
       let exportedEnvGlobal =
@@ -82,16 +95,26 @@ end = struct
       exportedEnvGlobal, exportedEnvLocal
     in
 
-    {id; sourceType; pkg; exportedEnvLocal; exportedEnvGlobal; buildIsInProgress}
+    {
+      id;
+      name;
+      version;
+      sourceType;
+      sourcePath;
+      build;
+      exportedEnvLocal;
+      exportedEnvGlobal;
+      buildIsInProgress
+    }
 
   let id scope = scope.id
-  let name scope = scope.pkg.name
-  let version scope = scope.pkg.version
+  let name scope = scope.name
+  let version scope = scope.version
   let sourceType scope = scope.sourceType
   let buildIsInProgress scope = scope.buildIsInProgress
 
   let sourcePath scope =
-    scope.pkg.sourcePath
+    scope.sourcePath
 
   let storePath scope =
     match scope.sourceType with
@@ -121,13 +144,13 @@ end = struct
     Sandbox.Path.(storePath / Store.buildTree / basename)
 
   let rootPath scope =
-    match scope.pkg.build.buildType, scope.sourceType with
+    match scope.build.buildType, scope.sourceType with
     | InSource, _  -> buildPath scope
     | JbuilderLike, Immutable -> buildPath scope
-    | JbuilderLike, Transient -> scope.pkg.sourcePath
-    | OutOfSource, _ -> scope.pkg.sourcePath
+    | JbuilderLike, Transient -> scope.sourcePath
+    | OutOfSource, _ -> scope.sourcePath
     | Unsafe, Immutable  -> buildPath scope
-    | Unsafe, _  -> scope.pkg.sourcePath
+    | Unsafe, _  -> scope.sourcePath
 
   let exportedEnvLocal scope = scope.exportedEnvLocal
   let exportedEnvGlobal scope = scope.exportedEnvGlobal
@@ -143,8 +166,8 @@ end = struct
     in
     match id with
     | "id" -> s scope.id
-    | "name" -> s scope.pkg.name
-    | "version" -> s scope.pkg.version
+    | "name" -> s scope.name
+    | "version" -> s scope.version
     | "root" -> p (rootPath scope)
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
@@ -176,8 +199,8 @@ end = struct
     (* add builtins *)
     let env =
       [
-        "cur__name", scope.pkg.name;
-        "cur__version", scope.pkg.version;
+        "cur__name", scope.name;
+        "cur__version", scope.version;
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
@@ -199,11 +222,11 @@ end = struct
 
     let env =
       let f _name {Manifest.Env. name; value;} env = (name, value)::env in
-      StringMap.fold f scope.pkg.build.buildEnv env
+      StringMap.fold f scope.build.buildEnv env
     in
 
     let env =
-      match scope.pkg.build.buildType with
+      match scope.build.buildType with
       | Manifest.BuildType.OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
       | _ -> env
     in
@@ -222,13 +245,25 @@ type t = {
   finalEnv : Sandbox.Environment.Bindings.t;
 }
 
-let make ~platform ~sandboxEnv ~id ~sourceType ~buildIsInProgress pkg =
+let make
+  ~platform
+  ~sandboxEnv
+  ~id
+  ~name
+  ~version
+  ~sourceType
+  ~sourcePath
+  ~buildIsInProgress
+  build =
   let self =
     PackageScope.make
       ~id
+      ~name
+      ~version
       ~sourceType
+      ~sourcePath
       ~buildIsInProgress
-      pkg
+      build
   in
   {
     platform;

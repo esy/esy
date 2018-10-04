@@ -4,9 +4,12 @@ val make :
   platform:System.Platform.t
   -> sandboxEnv:Sandbox.Environment.Bindings.t
   -> id:string
+  -> name:string
+  -> version:string
   -> sourceType:Manifest.SourceType.t
+  -> sourcePath:Sandbox.Path.t
   -> buildIsInProgress:bool
-  -> Sandbox.Package.t
+  -> Manifest.Build.t
   -> t
 (** An initial scope for the package. *)
 

@@ -350,9 +350,12 @@ let ofSandbox
           ~platform
           ~sandboxEnv
           ~id
+          ~name:pkg.name
+          ~version:pkg.version
           ~sourceType
+          ~sourcePath:pkg.sourcePath
           ~buildIsInProgress:false
-          pkg
+          pkg.build
       in
 
       let buildScope =
@@ -360,9 +363,12 @@ let ofSandbox
           ~platform
           ~sandboxEnv
           ~id
+          ~name:pkg.name
+          ~version:pkg.version
           ~sourceType
+          ~sourcePath:pkg.sourcePath
           ~buildIsInProgress:true
-          pkg
+          pkg.build
       in
 
       let _, exportedScope, buildScope =
