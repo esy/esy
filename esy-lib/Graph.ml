@@ -9,7 +9,9 @@ module type GRAPH = sig
   val root : t -> node
   val mem : id -> t -> bool
   val find : id -> t -> node option
+  val findExn : id -> t -> node
   val dependencies : node -> t -> node list
+  val allDependencies : node -> t -> node list
 
   val fold : f:(node -> node list -> 'v -> 'v) -> init:'v -> t -> 'v
 
@@ -30,6 +32,10 @@ module type GRAPH_NODE = sig
 
       val to_yojson : 'a Json.encoder -> 'a t Json.encoder
       val of_yojson : 'a Json.decoder -> 'a t Json.decoder
+    end
+
+    module Set : sig
+      include Set.S with type elt := t
     end
 
   end
@@ -72,9 +78,8 @@ module Make (Node : GRAPH_NODE) : GRAPH
     | None -> None
 
   let findExn' id graph =
-    match Node.Id.Map.find_opt id graph.nodes with
-    | Some {node;dependencies;} -> node, dependencies
-    | None -> raise Not_found
+    let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
+    node, dependencies
 
   let root graph =
     let node, _ = findExn' graph.root graph in
@@ -87,10 +92,39 @@ module Make (Node : GRAPH_NODE) : GRAPH
     let f id = let node, _ = findExn' id graph in node in
     (List.map ~f dependencies)
 
+  let allDependencies node graph =
+    let rec visitNode (seen, acc) id =
+      if Node.Id.Set.mem id seen
+      then seen, acc
+      else
+        let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
+        let seen = Node.Id.Set.add id seen in
+        let acc = node::acc in
+        let seen, acc = visitDependencies (seen, acc) dependencies in
+        seen, acc
+
+    and visitDependencies (seen, acc) dependencies =
+      List.fold_left ~f:visitNode ~init:(seen, acc) dependencies
+
+    in
+
+    let {dependencies; node = _;} =
+      Node.Id.Map.find (Node.id node) graph.nodes
+    in
+
+    let _, dependencies =
+      visitDependencies (Node.Id.Set.empty, []) dependencies
+    in 
+    dependencies
+
   let find id graph =
     match find' id graph with
     | Some (node, _) -> Some node
     | None -> None
+
+  let findExn id graph =
+    let node, _ = findExn' id graph in
+    node
 
   let fold ~f ~init graph =
     let f _id payload v =
