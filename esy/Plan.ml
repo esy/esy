@@ -387,3 +387,38 @@ let plan (t : Task.t) =
     sourcePath = Sandbox.Path.toValue t.sourcePath;
     env = t.env;
   }
+
+let shell ~buildConfig task =
+  let plan = plan task in
+  PackageBuilder.buildShell ~buildConfig plan
+
+let exec ~buildConfig task cmd =
+  let plan = plan task in
+  PackageBuilder.buildExec ~buildConfig plan cmd
+
+let build ?force ?quiet ?buildOnly ?logPath ~buildConfig task =
+  let plan = plan task in
+  PackageBuilder.build ?force ?quiet ?buildOnly ?logPath ~buildConfig plan
+
+let buildDependencies ?(concurrency=1) ~buildConfig ~solution plan =
+  let queue = LwtTaskQueue.create ~concurrency () in
+  let build task () = build ~buildConfig task in
+  let submit (_, record) =
+    let id = Record.id record in
+    match PackageId.Map.find id plan with
+    | Some task -> LwtTaskQueue.submit queue (build task)
+    | None -> RunAsync.return ()
+  in
+  solution
+  |> Solution.allDependencies (Solution.root solution)
+  |> List.rev
+  |> List.map ~f:submit
+  |> RunAsync.List.waitAll
+
+let buildAll ?concurrency ~buildConfig ~solution plan =
+  let open RunAsync.Syntax in
+  let%bind () = buildDependencies ?concurrency ~buildConfig ~solution plan in
+  let root = Solution.root solution in
+  match PackageId.Map.find (Record.id root) plan with
+  | Some task -> build ~buildConfig ~buildOnly:true ~force:true task
+  | None -> return ()
