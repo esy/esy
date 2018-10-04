@@ -18,7 +18,13 @@ let buildTask ?(quiet=false) ?force ?logPath ~buildOnly sandbox (task : Task.t) 
     in
     let%bind () =
       RunAsync.context (
-        PackageBuilder.build ~quiet ?logPath ?force ~buildOnly sandbox (Task.plan task)
+        PackageBuilder.build
+          ~quiet
+          ?logPath
+          ?force
+          ~buildOnly
+          ~buildConfig:sandbox.Sandbox.buildConfig
+          (Task.plan task)
       ) context
     in
     let%lwt () = if not quiet

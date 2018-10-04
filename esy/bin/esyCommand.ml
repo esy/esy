@@ -627,7 +627,12 @@ let buildShell copts packagePath () =
         info.sandbox
         task
     in
-    match%bind PackageBuilder.buildShell info.sandbox (Task.plan task) with
+    let p =
+      PackageBuilder.buildShell
+        ~buildConfig:info.sandbox.buildConfig
+        (Task.plan task)
+    in
+    match%bind p with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
     | Unix.WSTOPPED n
@@ -672,7 +677,13 @@ let build ?(buildOnly=true) copts cmd () =
         sandbox
         task
     in
-    match%bind PackageBuilder.buildExec sandbox (Task.plan task) cmd with
+    let p =
+      PackageBuilder.buildExec
+        ~buildConfig:sandbox.buildConfig
+        (Task.plan task)
+        cmd
+    in
+    match%bind p with
     | Unix.WEXITED 0 -> return ()
     | Unix.WEXITED n
     | Unix.WSTOPPED n

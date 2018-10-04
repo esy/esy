@@ -3,8 +3,8 @@ let run
     ?(stdin=`Null)
     ?(args=[])
     ?logPath
+    ~(buildConfig : EsyBuildPackage.Config.t)
     action
-    (sandbox : Sandbox.t)
     (plan : EsyBuildPackage.Plan.t) =
   let open RunAsync.Syntax in
 
@@ -18,12 +18,12 @@ let run
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
       return Cmd.(
-        sandbox.cfg.esyBuildPackageCommand
+        v "esy-build-package"
         % action
-        % "--store-path" % p sandbox.buildConfig.storePath
-        % "--local-store-path" % p sandbox.buildConfig.localStorePath
-        % "--project-path" % p sandbox.buildConfig.projectPath
-        % "--build-path" % p sandbox.buildConfig.buildPath
+        % "--store-path" % p buildConfig.storePath
+        % "--local-store-path" % p buildConfig.localStorePath
+        % "--project-path" % p buildConfig.projectPath
+        % "--build-path" % p buildConfig.buildPath
         % "--plan" % p buildJsonFilename
         |> addArgs args
       )
@@ -37,7 +37,7 @@ let run
     let%bind stdout, stderr, log =
       match logPath with
       | Some logPath ->
-        let logPath = Sandbox.Path.toPath sandbox.buildConfig logPath in
+        let logPath = Sandbox.Path.toPath buildConfig logPath in
         let%lwt fd = Lwt_unix.openfile
           (Path.show logPath)
           Lwt_unix.[O_WRONLY; O_CREAT]
@@ -70,7 +70,7 @@ let build
     ?(buildOnly=false)
     ?(quiet=false)
     ?logPath
-    sandbox
+    ~buildConfig
     plan
     =
   let open RunAsync.Syntax in
@@ -83,7 +83,7 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  let%bind status, log = run ?logPath ~args `Build sandbox plan in
+  let%bind status, log = run ?logPath ~args ~buildConfig `Build plan in
   match status, log with
   | Unix.WEXITED 0, Some (_, fd)  ->
     UnixLabels.close fd;
@@ -97,14 +97,14 @@ let build
   | _, None ->
     error "build failed"
 
-let buildShell sandbox plan =
+let buildShell ~buildConfig plan =
   let open RunAsync.Syntax in
-  let%bind status, _log = run ~stdin:`Keep `Shell sandbox plan in
+  let%bind status, _log = run ~stdin:`Keep ~buildConfig `Shell plan in
   return status
 
-let buildExec sandbox plan cmd =
+let buildExec ~buildConfig plan cmd =
   let open RunAsync.Syntax in
   let tool, args = Cmd.getToolAndArgs cmd in
   let args = "--"::tool::args in
-  let%bind status, _log = run ~stdin:`Keep `Exec ~args sandbox plan in
+  let%bind status, _log = run ~stdin:`Keep ~args ~buildConfig `Exec  plan in
   return status
