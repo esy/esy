@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const childProcess = require('child_process');
 const rmSync = require('rimraf').sync;
+const isCi = require("is-ci");
 
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.6';
@@ -16,9 +17,10 @@ const esyCommand =
     : require.resolve('../bin/esy');
 
 function getTempDir() {
-  // APPVEYOR TEST
-  const temp = "C:/esy-test-1";
-  return isWindows ? temp : '/tmp';
+  // The appveyor temp folder has some permission issues - 
+  // so in that environment, we'll run these tests from a root folder.
+  const appVeyorTempFolder = "C:/esy-ci-temp";
+  return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';
 }
 
 const esyPrefixPath =
@@ -59,10 +61,8 @@ function createSandbox() /* : TestSandbox */ {
 
   function exec(...args /* : Array<string> */) {
     const argsLine = args.map(arg => `'${arg.replace(/'/, '\\')}'`).join(' ');
-    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
-    const cmd = normalizedArgs.join(" ");
     console.log(`EXEC: ${cmd}`);
-    childProcess.execSync(cmd, {
+    childProcess.execSync(argsLine, {
       cwd: cwd,
       env: {...process.env, ESY__PREFIX: esyPrefixPath},
       stdio: 'inherit',
@@ -74,14 +74,12 @@ function createSandbox() /* : TestSandbox */ {
     console.log(`CWD: ${cwd}`);
   }
 
-  const normalizePath = (s) => s.split("\\").join("/");
-
   return {
     path: sandboxPath,
     exec: exec,
     cd,
     esy(...args /* : Array<string> */) {
-      return exec(normalizePath(esyCommand), ...args);
+      return exec(esyCommand, ...args);
     },
     dispose: () => {
       rmSync(sandboxPath);
