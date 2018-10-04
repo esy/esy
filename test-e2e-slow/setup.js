@@ -60,9 +60,10 @@ function createSandbox() /* : TestSandbox */ {
   let cwd = sandboxPath;
 
   function exec(...args /* : Array<string> */) {
-    const argsLine = args.map(arg => `'${arg.replace(/'/, '\\')}'`).join(' ');
-    console.log(`EXEC: ${argsLine}`);
-    childProcess.execSync(argsLine, {
+    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
+    const cmd = normalizedArgs.join(" ");
+    console.log(`EXEC: ${cmd}`);
+    childProcess.execSync(cmd, {
       cwd: cwd,
       env: {...process.env, ESY__PREFIX: esyPrefixPath},
       stdio: 'inherit',
