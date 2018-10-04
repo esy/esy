@@ -14,6 +14,8 @@ console.log("-- Running test suite: e2e (slow tests) --");
 require("./esy.test.js");
 require("./build-top-100-opam.test.js");
 
-// TODO: Unblock these tests
+// Reason test blocked by: https://github.com/facebook/reason/pull/2209
 // require("./reason.test.js");
-// require("./install-npm.test.js");
+
+// Needs investigation:
+require("./install-npm.test.js");
