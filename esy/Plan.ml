@@ -17,9 +17,6 @@ module Task = struct
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
-
-  let id b = PackageId.make b.name b.version
-  let compare a b = PackageId.compare (id a) (id b)
 end
 
 type t = Task.t PackageId.Map.t
