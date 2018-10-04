@@ -11,7 +11,7 @@ module type GRAPH = sig
   val find : id -> t -> node option
   val findExn : id -> t -> node
   val dependencies : node -> t -> node StringMap.t
-  val allDependencies : node -> t -> node list
+  val allDependencies : node -> t -> (bool * node) list
 
   val fold : f:(node -> node StringMap.t -> 'v -> 'v) -> init:'v -> t -> 'v
 
@@ -93,18 +93,18 @@ module Make (Node : GRAPH_NODE) : GRAPH
     StringMap.map f dependencies
 
   let allDependencies node graph =
-    let rec visitNode _label id (seen, acc) =
+    let rec visitNode ~direct _label id (seen, acc) =
       if Node.Id.Set.mem id seen
       then seen, acc
       else
         let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
         let seen = Node.Id.Set.add id seen in
-        let acc = node::acc in
-        let seen, acc = visitDependencies dependencies (seen, acc) in
+        let acc = (direct, node)::acc in
+        let seen, acc = visitDependencies ~direct:false dependencies (seen, acc) in
         seen, acc
 
-    and visitDependencies dependencies (seen, acc) =
-      StringMap.fold visitNode dependencies (seen, acc)
+    and visitDependencies ~direct dependencies (seen, acc) =
+      StringMap.fold (visitNode ~direct) dependencies (seen, acc)
 
     in
 
@@ -113,8 +113,8 @@ module Make (Node : GRAPH_NODE) : GRAPH
     in
 
     let _, dependencies =
-      visitDependencies dependencies (Node.Id.Set.empty, [])
-    in 
+      visitDependencies ~direct:true dependencies (Node.Id.Set.empty, [])
+    in
     dependencies
 
   let find id graph =
@@ -129,7 +129,10 @@ module Make (Node : GRAPH_NODE) : GRAPH
   let fold ~f ~init graph =
     let f _id payload v =
       let dependencies =
-        let f id = let node, _ = findExn' id graph in node in
+        let f id =
+          let {node; dependencies = _;} = Node.Id.Map.find id graph.nodes in
+          node
+        in
         StringMap.map f payload.dependencies
       in
       f payload.node dependencies v
