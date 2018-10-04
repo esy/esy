@@ -10,6 +10,8 @@ module Id : sig
   include S.JSONABLE with type t := t
 
   val make : string -> Version.t -> t
+  val name : t -> string
+  val version : t -> Version.t
 
   module Set : Set.S with type elt = t
   module Map : sig

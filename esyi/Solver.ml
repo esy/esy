@@ -641,8 +641,13 @@ let solveDependenciesNaively
             | None -> assert false
           in
           let res =
-            let f pkg = Solution.Id.make pkg.Package.name pkg.Package.version in
-            let deps = List.map ~f deps in
+            let deps =
+              let f deps pkg =
+                let id = Solution.Id.make pkg.Package.name pkg.Package.version in
+                StringMap.add pkg.Package.name id deps
+              in
+              List.fold_left ~f ~init:StringMap.empty deps
+            in
             Package.Map.add pkg deps res
           in
           aux res (rest @ deps)

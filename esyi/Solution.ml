@@ -6,6 +6,8 @@ module Id : sig
   include S.JSONABLE with type t := t
 
   val make : string -> Version.t -> t
+  val name : t -> string
+  val version : t -> Version.t
 
   module Set : Set.S with type elt = t
   module Map : sig
@@ -17,6 +19,8 @@ end = struct
   type t = string * Version.t [@@deriving ord]
 
   let make name version = name, version
+  let name (name, _version) = name
+  let version (_name, version) = version
 
   let rec parse v =
     let open Result.Syntax in
@@ -156,7 +160,7 @@ module LockfileV1 = struct
     (* Actual package record. *)
     record : Record.t;
     (* List of dependency ids. *)
-    dependencies : Id.t list;
+    dependencies : Id.t StringMap.t;
   } [@@deriving yojson]
 
   let computeSandboxChecksum (sandbox : Sandbox.t) =
@@ -228,7 +232,7 @@ module LockfileV1 = struct
   let lockfileOfSolution (sol : solution) =
     let node =
       let f record dependencies nodes =
-        let dependencies = List.map ~f:Record.id dependencies in
+        let dependencies = StringMap.map Record.id dependencies in
         Id.Map.add
           (Record.id record)
           {record; dependencies}

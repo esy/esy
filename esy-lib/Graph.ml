@@ -4,16 +4,16 @@ module type GRAPH = sig
   type id
 
   val empty : id -> t
-  val add : node -> id list -> t -> t
+  val add : node -> id StringMap.t -> t -> t
 
   val root : t -> node
   val mem : id -> t -> bool
   val find : id -> t -> node option
   val findExn : id -> t -> node
-  val dependencies : node -> t -> node list
+  val dependencies : node -> t -> node StringMap.t
   val allDependencies : node -> t -> node list
 
-  val fold : f:(node -> node list -> 'v -> 'v) -> init:'v -> t -> 'v
+  val fold : f:(node -> node StringMap.t -> 'v -> 'v) -> init:'v -> t -> 'v
 
   include S.JSONABLE with type t := t
 end
@@ -62,7 +62,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
   and payload = {
     node : Node.t;
-    dependencies : Node.Id.t list;
+    dependencies : Node.Id.t StringMap.t;
   }
 
   let empty root = {nodes = Node.Id.Map.empty; root}
@@ -90,21 +90,21 @@ module Make (Node : GRAPH_NODE) : GRAPH
   let dependencies node graph =
     let {dependencies; node = _;} = Node.Id.Map.find (Node.id node) graph.nodes in
     let f id = let node, _ = findExn' id graph in node in
-    (List.map ~f dependencies)
+    StringMap.map f dependencies
 
   let allDependencies node graph =
-    let rec visitNode (seen, acc) id =
+    let rec visitNode _label id (seen, acc) =
       if Node.Id.Set.mem id seen
       then seen, acc
       else
         let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
         let seen = Node.Id.Set.add id seen in
         let acc = node::acc in
-        let seen, acc = visitDependencies (seen, acc) dependencies in
+        let seen, acc = visitDependencies dependencies (seen, acc) in
         seen, acc
 
-    and visitDependencies (seen, acc) dependencies =
-      List.fold_left ~f:visitNode ~init:(seen, acc) dependencies
+    and visitDependencies dependencies (seen, acc) =
+      StringMap.fold visitNode dependencies (seen, acc)
 
     in
 
@@ -113,7 +113,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
     in
 
     let _, dependencies =
-      visitDependencies (Node.Id.Set.empty, []) dependencies
+      visitDependencies dependencies (Node.Id.Set.empty, [])
     in 
     dependencies
 
@@ -130,7 +130,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
     let f _id payload v =
       let dependencies =
         let f id = let node, _ = findExn' id graph in node in
-        List.map ~f payload.dependencies
+        StringMap.map f payload.dependencies
       in
       f payload.node dependencies v
     in
