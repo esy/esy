@@ -13,10 +13,10 @@ with the following fields:
 
 - [`esy.build`](#esybuild)
 - [`esy.install`](#esyinstall)
-- [`resolutions`](#override-solved-package-versions)
 - [`esy.buildsInSource`](#esybuildsinsource)
-- [`esy.exportedEnv`](#esy.exportedenv)
-- [`esy.buildEnv`](#esy.buildenv)
+- [`esy.exportedEnv`](#esyexportedenv)
+- [`esy.buildEnv`](#esybuildenv)
+- [`resolutions`](#resolutions)
 - [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
@@ -80,22 +80,6 @@ should move built artifacts to `#{self.install}` location.
 [esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare install commands.
 
-## Override solved package versions
-
-It's sometimes necessary to override the package version determined by the solver, particularly so when
-the latest patches (semantically versioned and tagged) are not compatible with the other packages in the project.
-In such a case, use `resolutions` field in the package.json and [specify the last good configuration](https://github.com/esy-ocaml/hello-reason/commit/20c756f4454d90054612b1d7e983e1a793517d4c#diff-b9cfc7f2cdf78a7f4b91a753d10865a2R30).
-
-
-```
-{
-  "resolutions": {
-    "@opam/menhir": "20171013"
-  }
-}
-```
-
-
 ## Enforcing Out Of Source Builds
 
 esy requires packages to be built "out of source".
@@ -143,37 +127,6 @@ those modes work:
 
   This is the mode which should be used as the last resort as it degrades
   performance of the builds greatly by placing correctness as a priority.
-
-## Project Specific Commands
-
-### `scripts`
-
-Similar to npm and yarn, esy supports custom project specific commands via
-`scripts` section inside `package.json`.
-
-```
-"scripts": {
-  "build-dev": "esy build dune build --dev",
-  "test": "dune runtest",
-}
-```
-
-The example above defines two new commands.
-
-The command `esy build-dev` is configured to be a shortcut for the following
-invocation:
-
-```bash
-esy build dune build
-```
-
-While the command `esy test` is defined to be a shortcut for:
-
-```bash
-esy dune runtest
-```
-
-Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
 
 ## Exported Environment
 
@@ -258,3 +211,52 @@ jbuilder) based project:
   }
 }
 ```
+
+## Override dependency resolutions
+
+### `resolutions`
+
+It's sometimes necessary to override the package version determined by the
+solver. In such a case, use `resolutions` field in the `package.json`.
+
+```
+"resolutions": {
+  "@opam/menhir": "20171013"
+}
+```
+
+This feature works similar to yarn's [Selective dependency resolutions][yarn-resolutions]
+but nested patterns (which contain `**` or `*` are not supported).
+
+[yarn-resolutions]: https://yarnpkg.com/lang/en/docs/selective-version-resolutions/
+
+## Project Specific Commands
+
+### `scripts`
+
+Similar to npm and yarn, esy supports custom project specific commands via
+`scripts` section inside `package.json`.
+
+```
+"scripts": {
+  "build-dev": "esy build dune build --dev",
+  "test": "dune runtest",
+}
+```
+
+The example above defines two new commands.
+
+The command `esy build-dev` is configured to be a shortcut for the following
+invocation:
+
+```bash
+esy build dune build
+```
+
+While the command `esy test` is defined to be a shortcut for:
+
+```bash
+esy dune runtest
+```
+
+Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
