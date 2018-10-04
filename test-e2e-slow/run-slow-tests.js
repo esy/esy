@@ -11,10 +11,8 @@ if (latestCommit.indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
 
 console.log("-- Running test suite: e2e (slow tests) --");
 
-// Needs retry logic:
-// require("./esy.test.js");
-
 require("./build-top-100-opam.test.js");
+require("./esy.test.js");
 
 // Reason test blocked by: https://github.com/facebook/reason/pull/2209
 // require("./reason.test.js");
