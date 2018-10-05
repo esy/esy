@@ -162,7 +162,7 @@ function selectCases(array) {
 }
 
 const startTime = new Date();
-const runtimeLimit = 17 * 60 * 1000;
+const runtimeLimit = 10 * 60 * 1000;
 
 setup();
 
