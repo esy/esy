@@ -876,7 +876,7 @@ let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
       Installation.empty
       |> Installation.add
           (Package.id root)
-          (Installation.Link {path = Path.v "."; manifest = None;})
+          (Installation.Link {path = sandbox.spec.path; manifest = None;})
     in
     let f installation (dist, sourcePath) =
       let source =
