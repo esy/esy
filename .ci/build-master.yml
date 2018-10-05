@@ -1,6 +1,4 @@
 name: Build npm release
-pool:
-  timeoutInMinutes: 120
 
 resources:
   - repo: self
