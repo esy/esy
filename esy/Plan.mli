@@ -1,6 +1,7 @@
 module Task : sig
   type t = {
     id : string;
+    pkgId : EsyInstall.PackageId.t;
     name : string;
     version : EsyInstall.Version.t;
     env : Sandbox.Environment.t;
@@ -13,10 +14,28 @@ module Task : sig
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
+
+  val installPath : t -> Sandbox.Path.t
+
+  val renderExpression :
+    buildConfig:EsyBuildPackage.Config.t
+    -> t
+    -> string
+    -> string Run.t
+
+  val buildEnv : t -> Sandbox.Environment.Bindings.t Run.t
+  val commandEnv : t -> Sandbox.Environment.Bindings.t Run.t
+  val execEnv : t -> Sandbox.Environment.Bindings.t Run.t
+
+  val to_yojson : t Json.encoder
 end
 
 type t
 (** A collection of tasks. *)
+
+val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option Run.t
+val findTaskByName : t -> string -> Task.t option option
+val rootTask : t -> Task.t option
 
 val make :
   platform : System.Platform.t
@@ -53,13 +72,6 @@ val build :
 val buildDependencies :
   ?concurrency:int
   -> buildConfig:EsyBuildPackage.Config.t
-  -> solution:EsyInstall.Solution.t
   -> t
-  -> unit RunAsync.t
-
-val buildAll :
-  ?concurrency:int
-  -> buildConfig:EsyBuildPackage.Config.t
-  -> solution:EsyInstall.Solution.t
-  -> t
+  -> EsyInstall.PackageId.t
   -> unit RunAsync.t

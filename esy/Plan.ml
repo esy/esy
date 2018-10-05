@@ -7,6 +7,7 @@ module Version = EsyInstall.Version
 module Task = struct
   type t = {
     id : string;
+    pkgId : PackageId.t;
     name : string;
     version : Version.t;
     env : Sandbox.Environment.t;
@@ -19,9 +20,67 @@ module Task = struct
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
+
+  let plan (t : t) =
+    {
+      EsyBuildPackage.Plan.
+      id = t.id;
+      name = t.name;
+      version = EsyInstall.Version.show t.version;
+      sourceType = t.sourceType;
+      buildType = t.buildType;
+      build = t.buildCommands;
+      install = t.installCommands;
+      sourcePath = Sandbox.Path.toValue t.sourcePath;
+      env = t.env;
+    }
+
+  let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
+
+  let installPath t = Scope.installPath t.exportedScope
+  let logPath t = Scope.logPath t.exportedScope
+
+  let renderExpression ~buildConfig task expr =
+    let open Run.Syntax in
+    let%bind expr = Scope.renderCommandExpr task.exportedScope expr in
+    let expr = Sandbox.Value.v expr in
+    let expr = Sandbox.Value.render buildConfig expr in
+    return expr
+
+  let exposeUserEnv scope =
+    scope
+    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "PATH"
+    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "MAN_PATH"
+    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.value "SHELL"
+
+  (* let exposeDevDependenciesEnv task scope = *)
+  (*   let f scope dep = *)
+  (*     match dep with *)
+  (*     | DevDependency, task -> Scope.add ~direct:true ~dep:task.exportedScope scope *)
+  (*     | _ -> scope *)
+  (*   in *)
+  (*   List.fold_left ~f ~init:scope task.dependencies *)
+
+  let buildEnv task = Scope.env ~includeBuildEnv:true task.buildScope
+
+  let commandEnv task =
+    task.buildScope
+    |> exposeUserEnv
+    (* |> exposeDevDependenciesEnv task *)
+    |> Scope.env ~includeBuildEnv:true
+
+  let execEnv task =
+    task.exportedScope
+    |> exposeUserEnv
+    (* |> exposeDevDependenciesEnv task *)
+    |> Scope.add ~direct:true ~dep:task.exportedScope
+    |> Scope.env ~includeBuildEnv:false
 end
 
-type t = Task.t option PackageId.Map.t
+type t = {
+  tasks : Task.t option PackageId.Map.t;
+  solution : Solution.t;
+}
 
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
@@ -103,13 +162,20 @@ let renderOpamPatchesToCommands opamEnv patches =
 let readManifests (installation : Installation.t) =
   let open RunAsync.Syntax in
 
+  Logs_lwt.debug (fun m -> m "reading manifests");%lwt
+
   let readManifest (id, loc) =
-    let%bind manifest =
+    let manifest =
       match loc with
       | Installation.Install { path; source = _; } ->
         Manifest.ofDir path
       | Installation.Link { path; manifest } ->
         Manifest.ofDir ?manifest path
+    in
+    let%bind manifest =
+      RunAsync.contextf
+        manifest
+        "reading manifest %a" PackageId.pp id
     in
     return (id, manifest)
   in
@@ -131,6 +197,8 @@ let readManifests (installation : Installation.t) =
     in
     List.fold_left ~f ~init:(Path.Set.empty, PackageId.Map.empty) items
   in
+
+  Logs_lwt.debug (fun m -> m "reading manifests: done");%lwt
 
   return (paths, manifests)
 
@@ -214,12 +282,16 @@ let make'
       begin match Manifest.build manifest with
       | None -> return None
       | Some build ->
-        let%bind build = aux' id record build in
+        let%bind build =
+          Run.contextf
+            (aux' id record build)
+            "processing %a" PackageId.pp id
+        in
         return (Some build)
       end
 
-  and aux' id record build =
-    let location = Installation.findExn id installation in
+  and aux' pkgId record build =
+    let location = Installation.findExn pkgId installation in
     let source, sourcePath, sourceType =
       match location with
       | Installation.Install info ->
@@ -232,7 +304,7 @@ let make'
         let%bind build = aux record in
         return (direct, build)
       in
-      Result.List.map ~f (Solution.allDependencies record solution)
+      Result.List.map ~f (Solution.allDependenciesBFS record solution)
     in
 
     let id = buildId Manifest.Env.empty build source dependencies in
@@ -297,7 +369,7 @@ let make'
         "evaluating environment"
     in
 
-    let ocamlVersion = failwith "TODO" in
+    let ocamlVersion = None in
 
     let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
 
@@ -332,6 +404,7 @@ let make'
     let task = {
       Task.
       id;
+      pkgId;
       name = build.name;
       version = build.version;
       buildCommands;
@@ -363,7 +436,8 @@ let make
   ~(installation : Installation.t) () =
   let open RunAsync.Syntax in
   let%bind _manifestsPath, manifests = readManifests installation in
-  RunAsync.ofRun (
+  Logs_lwt.debug (fun m -> m "creating plan");%lwt
+  let%bind tasks = RunAsync.ofRun (
     make'
       ~platform
       ~buildConfig
@@ -372,53 +446,86 @@ let make
       ~installation
       ~manifests
       ()
-  )
+  ) in
+  Logs_lwt.debug (fun m -> m "creating plan: done");%lwt
+  return {tasks; solution;}
 
-let plan (t : Task.t) =
-  {
-    EsyBuildPackage.Plan.
-    id = t.id;
-    name = t.name;
-    version = EsyInstall.Version.show t.version;
-    sourceType = t.sourceType;
-    buildType = t.buildType;
-    build = t.buildCommands;
-    install = t.installCommands;
-    sourcePath = Sandbox.Path.toValue t.sourcePath;
-    env = t.env;
-  }
+let findTaskById plan id =
+  match PackageId.Map.find_opt id plan.tasks with
+  | None -> Run.errorf "no such package %a" PackageId.pp id
+  | Some task -> Run.return task
+
+let findTaskByName plan name =
+  let f _id pkg = pkg.Solution.Package.name = name in
+  match Solution.find f plan.solution with
+  | None -> None
+  | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
+
+let rootTask plan =
+  let id = Solution.Package.id (Solution.root plan.solution) in
+  PackageId.Map.find id plan.tasks
 
 let shell ~buildConfig task =
-  let plan = plan task in
+  let plan = Task.plan task in
   EsyBuildPackageApi.buildShell ~buildConfig plan
 
 let exec ~buildConfig task cmd =
-  let plan = plan task in
+  let plan = Task.plan task in
   EsyBuildPackageApi.buildExec ~buildConfig plan cmd
 
 let build ?force ?quiet ?buildOnly ?logPath ~buildConfig task =
-  let plan = plan task in
+  Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
+  let plan = Task.plan task in
   EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~buildConfig plan
 
-let buildDependencies ?(concurrency=1) ~buildConfig ~solution plan =
-  let queue = LwtTaskQueue.create ~concurrency () in
-  let build task () = build ~buildConfig task in
-  let submit (_, record) =
-    let id = Package.id record in
-    match PackageId.Map.find id plan with
-    | Some task -> LwtTaskQueue.submit queue (build task)
-    | None -> RunAsync.return ()
-  in
-  solution
-  |> Solution.allDependencies (Solution.root solution)
-  |> List.rev
-  |> List.map ~f:submit
-  |> RunAsync.List.waitAll
-
-let buildAll ?concurrency ~buildConfig ~solution plan =
+let buildDependencies ?(concurrency=1) ~buildConfig plan id =
   let open RunAsync.Syntax in
-  let%bind () = buildDependencies ?concurrency ~buildConfig ~solution plan in
-  let root = Solution.root solution in
-  match PackageId.Map.find (Package.id root) plan with
-  | Some task -> build ~buildConfig ~buildOnly:true ~force:true task
-  | None -> return ()
+  Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
+
+  let queue = LwtTaskQueue.create ~concurrency () in
+  let tasks = Hashtbl.create 100 in
+
+  let isBuilt task =
+    let installPath = Task.installPath task in
+    let installPath = Sandbox.Path.toPath buildConfig installPath in
+    Fs.exists installPath
+  in
+
+  let run task () =
+    Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId);%lwt
+    let logPath = Task.logPath task in
+    let%bind () = build ~buildConfig ~logPath task in
+    Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId);%lwt
+    return ()
+  in
+
+  let runIfNeeded pkg =
+    let id = Solution.Package.id pkg in
+    match Hashtbl.find_opt tasks id with
+    | Some running -> running
+    | None ->
+      begin match PackageId.Map.find id plan.tasks with
+      | Some task ->
+        let running =
+          if%bind isBuilt task
+          then return ()
+          else LwtTaskQueue.submit queue (run task)
+        in
+        Hashtbl.replace tasks id running;
+        running
+      | None -> RunAsync.return ()
+      end
+  in
+
+  let rec process pkg =
+    let%bind () = processDependencies pkg in
+    runIfNeeded pkg
+  and processDependencies pkg =
+    let dependencies = Solution.dependencies pkg plan.solution in
+    let dependencies = StringMap.values dependencies in
+    RunAsync.List.waitAll (List.map ~f:process dependencies)
+  in
+
+  match Solution.get id plan.solution with
+  | None -> RunAsync.errorf "no such package %a" PackageId.pp id
+  | Some pkg -> processDependencies pkg
