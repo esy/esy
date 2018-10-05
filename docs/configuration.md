@@ -14,8 +14,9 @@ with the following fields:
 - [`esy.build`](#esybuild)
 - [`esy.install`](#esyinstall)
 - [`esy.buildsInSource`](#esybuildsinsource)
-- [`esy.exportedEnv`](#esy.exportedenv)
-- [`esy.buildEnv`](#esy.buildenv)
+- [`esy.exportedEnv`](#esyexportedenv)
+- [`esy.buildEnv`](#esybuildenv)
+- [`resolutions`](#resolutions)
 - [`scripts`](#scripts)
 
 ## Specify Build & Install Commands
@@ -127,37 +128,6 @@ those modes work:
   This is the mode which should be used as the last resort as it degrades
   performance of the builds greatly by placing correctness as a priority.
 
-## Project Specific Commands
-
-### `scripts`
-
-Similar to npm and yarn, esy supports custom project specific commands via
-`scripts` section inside `package.json`.
-
-```
-"scripts": {
-  "build-dev": "esy build dune build --dev",
-  "test": "dune runtest",
-}
-```
-
-The example above defines two new commands.
-
-The command `esy build-dev` is configured to be a shortcut for the following
-invocation:
-
-```bash
-esy build dune build
-```
-
-While the command `esy test` is defined to be a shortcut for:
-
-```bash
-esy dune runtest
-```
-
-Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
-
 ## Exported Environment
 
 Packages can configure how they contribute to the environment of the packages
@@ -241,3 +211,52 @@ jbuilder) based project:
   }
 }
 ```
+
+## Override dependency resolutions
+
+### `resolutions`
+
+It's sometimes necessary to override the package version determined by the
+solver. In such a case, use `resolutions` field in the `package.json`.
+
+```
+"resolutions": {
+  "@opam/menhir": "20171013"
+}
+```
+
+This feature works similar to yarn's [Selective dependency resolutions][yarn-resolutions]
+but nested patterns (which contain `**` or `*` are not supported).
+
+[yarn-resolutions]: https://yarnpkg.com/lang/en/docs/selective-version-resolutions/
+
+## Project Specific Commands
+
+### `scripts`
+
+Similar to npm and yarn, esy supports custom project specific commands via
+`scripts` section inside `package.json`.
+
+```
+"scripts": {
+  "build-dev": "esy build dune build --dev",
+  "test": "dune runtest",
+}
+```
+
+The example above defines two new commands.
+
+The command `esy build-dev` is configured to be a shortcut for the following
+invocation:
+
+```bash
+esy build dune build
+```
+
+While the command `esy test` is defined to be a shortcut for:
+
+```bash
+esy dune runtest
+```
+
+Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
