@@ -13,6 +13,7 @@ include S.JSONABLE with type t := t
 val make : string -> Version.t -> t
 val name : t -> string
 val version : t -> Version.t
+val parse : string -> (t, string) result
 
 module Set : sig
   include Set.S with type elt = t
