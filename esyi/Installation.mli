@@ -19,3 +19,6 @@ val entries : t -> (PackageId.t * location) list
 
 val empty : t
 val add : PackageId.t -> location -> t -> t
+
+val ofPath : Path.t -> t option RunAsync.t
+val toPath : Path.t -> t -> unit RunAsync.t
