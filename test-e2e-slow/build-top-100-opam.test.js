@@ -153,12 +153,8 @@ function shuffle(array) {
 }
 
 function selectCases(array) {
-    if (os.platform() == "win32") {
-        // Start with a subset on Windows...
-        return array.slice(0, 25);
-    } else {
-        return shuffle(array);
-    }
+    // Start with a subset on windows...
+    return os.platform() == "win32" ? shuffle(array.slice(0, 25)) : shuffle(array);
 }
 
 const startTime = new Date();
