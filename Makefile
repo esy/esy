@@ -124,7 +124,7 @@ test-e2e-slow::
 	@node ./test-e2e-slow/install-npm.test.js
 	@node ./test-e2e-slow/esy.test.js
 	@node ./test-e2e-slow/reason.test.js
-	@node ./test-e2e-slow/repromise.test.js.test.js
+	@node ./test-e2e-slow/repromise.test.js
 	@node ./test-e2e-slow/fastpack.test.js
 	@node ./test-e2e-slow/release.test.js
 
