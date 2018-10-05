@@ -41,6 +41,15 @@ steps:
   - script: 'node scripts/pipelines-release.js'
     displayName: 'node scripts/pipelines-release.js'
 
+  - script: 'rm -rf _release/Linux'
+    displayName: 'remove Linux artifcats'
+
+  - script: 'rm -rf _release/macOS'
+    displayName: 'remove macOS artifcats'
+
+  - script: 'rm -rf _release/Windows'
+    displayName: 'remove Windows artifcats'
+
   - script: 'npm pack'
     displayName: 'npm pack'
     workingDirectory: '_release'

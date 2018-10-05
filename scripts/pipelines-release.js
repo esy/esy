@@ -62,11 +62,6 @@ fs.copyFileSync(
   path.join(__dirname, '..', '_release', 'bin', 'esyInstallRelease.js')
 );
 
-console.log('Removing artefacts');
-fs.rmdirSync(path.join(__dirname, '..', '_release', 'Linux'));
-fs.rmdirSync(path.join(__dirname, '..', '_release', 'macOS'));
-fs.rmdirSync(path.join(__dirname, '..', '_release', 'Windows'));
-
 console.log('Creating placeholder files');
 fs.mkdirSync(path.join(__dirname, '..', '_release', '_build'));
 fs.mkdirSync(path.join(__dirname, '..', '_release', '_build', 'default'));
