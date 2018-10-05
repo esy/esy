@@ -8,8 +8,9 @@ module type GRAPH = sig
 
   val root : t -> node
   val mem : id -> t -> bool
-  val find : id -> t -> node option
-  val findExn : id -> t -> node
+  val get : id -> t -> node option
+  val getExn : id -> t -> node
+  val find : (id -> node -> bool) -> t -> (id * node) option
   val dependencies : node -> t -> node StringMap.t
   val allDependencies : node -> t -> (bool * node) list
 
@@ -117,14 +118,23 @@ module Make (Node : GRAPH_NODE) : GRAPH
     in
     dependencies
 
-  let find id graph =
+  let get id graph =
     match find' id graph with
     | Some (node, _) -> Some node
     | None -> None
 
-  let findExn id graph =
+  let getExn id graph =
     let node, _ = findExn' id graph in
     node
+
+  let find f graph =
+    let f id =
+      let payload = Node.Id.Map.find id graph.nodes in
+      f id payload.node
+    in
+    match Node.Id.Map.find_first_opt f graph.nodes with
+    | None -> None
+    | Some (id, payload) -> Some (id, payload.node)
 
   let fold ~f ~init graph =
     let f _id payload v =
