@@ -4,23 +4,23 @@ module Dist = struct
   type t = {
     source : Source.t;
     sourceInStorage : SourceStorage.source;
-    record : Solution.Record.t;
+    pkg : Solution.Package.t;
   }
 
-  let id dist = Solution.Record.id dist.record
+  let id dist = Solution.Package.id dist.pkg
   let source dist = dist.source
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
+    Fmt.pf fmt "%s@%a" dist.pkg.name Version.pp dist.pkg.version
 end
 
-let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
+let fetch ~(cfg : Config.t) (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
   let rec fetch' errs sources =
     match sources with
     | source::rest ->
       begin match%bind SourceStorage.fetch ~cfg source with
-      | Ok sourceInStorage -> return {Dist. record; source; sourceInStorage;}
+      | Ok sourceInStorage -> return {Dist. pkg; source; sourceInStorage;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
     | [] ->
@@ -32,14 +32,14 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
             Run.ppError err
         in
         m "unable to fetch %a:@[<v 2>@\n%a@]"
-          Solution.Record.pp record
+          Solution.Package.pp pkg
           Fmt.(list ~sep:(unit "@\n") ppErr) errs
       );%lwt
       error "installation error"
   in
 
   let sources =
-    let main, mirrors = record.source in
+    let main, mirrors = pkg.source in
     main::mirrors
   in
 
@@ -47,7 +47,7 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
 
 let install ~cfg ~path dist =
   let open RunAsync.Syntax in
-  let {Dist. source; record; sourceInStorage;} = dist in
+  let {Dist. source; pkg; sourceInStorage;} = dist in
 
   let finishInstall path =
 
@@ -55,7 +55,7 @@ let install ~cfg ~path dist =
       let f file =
         Package.File.writeToDir ~destinationDir:path file
       in
-      List.map ~f record.files |> RunAsync.List.waitAll
+      List.map ~f pkg.files |> RunAsync.List.waitAll
     in
 
     return ()
@@ -74,7 +74,7 @@ let install ~cfg ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; overrides = record.overrides; opam = record.opam}
+      EsyLinkFile.{source; overrides = pkg.overrides; opam = pkg.opam}
       path
   in
 

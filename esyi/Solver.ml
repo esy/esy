@@ -230,7 +230,7 @@ let rec findResolutionForRequest resolver req = function
     then Some res
     else findResolutionForRequest resolver req rest
 
-let solutionRecordOfPkg (pkg : Package.t) =
+let solutionPkgOfPkg (pkg : Package.t) =
   let open RunAsync.Syntax in
 
   let%bind files =
@@ -242,7 +242,7 @@ let solutionRecordOfPkg (pkg : Package.t) =
   let opam =
     match pkg.opam with
     | Some opam -> Some {
-        Solution.Record.Opam.
+        Solution.Package.Opam.
         name = opam.name;
         version = opam.version;
         opam = opam.opam;
@@ -255,7 +255,7 @@ let solutionRecordOfPkg (pkg : Package.t) =
   in
 
   return {
-    Solution.Record.
+    Solution.Package.
     name = pkg.name;
     version = pkg.version;
     overrides = pkg.overrides;
@@ -767,12 +767,12 @@ let solve (sandbox : Sandbox.t) =
   in
 
   let%bind solution =
-    let%bind root = solutionRecordOfPkg sandbox.root in
-    let solution = Solution.empty (Solution.Record.id root) in
+    let%bind root = solutionPkgOfPkg sandbox.root in
+    let solution = Solution.empty (Solution.Package.id root) in
     let%bind solution =
       let f solution (pkg, dependencies) =
-        let%bind record = solutionRecordOfPkg pkg in
-        let solution = Solution.add record dependencies solution in
+        let%bind pkg = solutionPkgOfPkg pkg in
+        let solution = Solution.add pkg dependencies solution in
         return solution
       in
       packagesToDependencies

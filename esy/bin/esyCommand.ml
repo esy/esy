@@ -1135,7 +1135,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
 
   let%bind addedDependencies, configPath =
     let records =
-      let f (record : Solution.Record.t) _ map =
+      let f (record : Solution.Package.t) _ map =
         StringMap.add record.name record map
       in
       Solution.fold ~f ~init:StringMap.empty solution
@@ -1145,14 +1145,14 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
         match StringMap.find name records with
         | Some record ->
           let constr =
-            match record.Solution.Record.version with
+            match record.Solution.Package.version with
             | Version.Npm version ->
               SemverVersion.Formula.DNF.show
                 (SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
-              Version.show record.Solution.Record.version
+              Version.show record.Solution.Package.version
           in
           name, `String constr
         | None -> assert false

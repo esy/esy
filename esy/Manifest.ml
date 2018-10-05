@@ -379,7 +379,7 @@ module OpamManifest : sig
   val ofFile : Path.t -> t RunAsync.t
   val ofString : filename:string -> string -> t Run.t
 end = struct
-  type t = EsyInstall.Solution.Record.Opam.t
+  type t = EsyInstall.Solution.Package.Opam.t
 
   let opamname (manifest : t) =
     let name =
@@ -539,7 +539,7 @@ end = struct
     | Some opam ->
       let version = "dev" in
       return {
-        EsyInstall.Solution.Record.Opam.
+        EsyInstall.Solution.Package.Opam.
         name = OpamPackage.Name.of_string name;
         version = OpamPackage.Version.of_string version;
         opam;
@@ -554,7 +554,7 @@ end = struct
       let name = Path.(basename (parent path)) in
       let version = "dev" in
       return {
-        EsyInstall.Solution.Record.Opam.
+        EsyInstall.Solution.Package.Opam.
         name = OpamPackage.Name.of_string name;
         version = OpamPackage.Version.of_string version;
         opam;

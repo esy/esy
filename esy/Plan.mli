@@ -1,5 +1,4 @@
 module Task : sig
-
   type t = {
     id : string;
     name : string;
@@ -14,11 +13,9 @@ module Task : sig
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
-
 end
 
-type t =
-  Task.t option EsyInstall.PackageId.Map.t
+type t
 (** A collection of tasks. *)
 
 val make :
@@ -29,8 +26,6 @@ val make :
   -> installation:EsyInstall.Installation.t
   -> unit
   -> t RunAsync.t
-
-val plan : Task.t -> EsyBuildPackage.Plan.t
 
 val shell :
   buildConfig:EsyBuildPackage.Config.t

@@ -1,4 +1,5 @@
-module Record = Solution.Record
+module Overrides = Package.Overrides
+module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
 module Manifest = struct
@@ -86,13 +87,13 @@ module Layout = struct
   and installation = {
     path : Path.t;
     sourcePath : Path.t;
-    record : Record.t;
+    pkg : Package.t;
     isDirectDependencyOfRoot : bool;
   }
 
   let pp_installation fmt installation =
     Fmt.pf fmt "%a at %a"
-      Record.pp installation.record
+      Package.pp installation.pkg
       Path.pp installation.path
 
   let pp =
@@ -104,19 +105,19 @@ module Layout = struct
         let directDependencies =
           let deps = Solution.dependencies root sol in
           let deps = StringMap.values deps in
-          Record.Set.of_list deps
+          Package.Set.of_list deps
         in
-        fun record -> Record.Set.mem record directDependencies
+        fun pkg -> Package.Set.mem pkg directDependencies
       in
 
       (* Go through breadcrumb till the insertion point and mark each modules as
-       * occupied for the record. This will prevent inserting other versions of
-       * the same record at such places. *)
-      let markAsOccupied insertion breadcrumb record =
+       * occupied for the pkg. This will prevent inserting other versions of
+       * the same pkg at such places. *)
+      let markAsOccupied insertion breadcrumb pkg =
         let _, insertionPath = insertion in
         let rec aux = function
           | (modules, path)::rest ->
-            Hashtbl.replace modules record.Record.name record;
+            Hashtbl.replace modules pkg.Package.name pkg;
             if Path.compare insertionPath path = 0
             then ()
             else aux rest
@@ -125,17 +126,17 @@ module Layout = struct
         aux breadcrumb
       in
 
-      let rec findInsertion record breacrumb =
+      let rec findInsertion pkg breacrumb =
         match breacrumb with
         | [] -> `None
         | ((modules, _) as here)::upTheTree ->
-          begin match Hashtbl.find_opt modules record.Record.name with
+          begin match Hashtbl.find_opt modules pkg.Package.name with
           | Some r ->
-            if Record.compare r record = 0
+            if Package.compare r pkg = 0
             then `Done (here, here::upTheTree)
             else `None
           | None ->
-            begin match findInsertion record upTheTree with
+            begin match findInsertion pkg upTheTree with
             | `Ok nextItem -> `Ok nextItem
             | `Done there -> `Done there
             | `None -> `Ok (here, here::upTheTree)
@@ -143,15 +144,15 @@ module Layout = struct
           end
       in
 
-      (* layout record at breadcrumb, return layout and a new breadcrumb which
-       * is then used to layout record's dependencies *)
-      let layoutRecord ~this ~breadcrumb ~layout record =
+      (* layout pkg at breadcrumb, return layout and a new breadcrumb which
+       * is then used to layout pkg's dependencies *)
+      let layoutPkg ~this ~breadcrumb ~layout pkg =
 
         let insert ((_modules, path) as here) =
-          markAsOccupied here (this::breadcrumb) record;
-          let path = Path.(path // v record.Record.name) in
+          markAsOccupied here (this::breadcrumb) pkg;
+          let path = Path.(path // v pkg.Package.name) in
           let sourcePath =
-            let main, _ = record.Record.source in
+            let main, _ = pkg.Package.source in
             match main with
             | Source.Archive _
             | Source.Git _
@@ -163,15 +164,15 @@ module Layout = struct
           let installation = {
             path;
             sourcePath;
-            record;
-            isDirectDependencyOfRoot = isDirectDependencyOfRoot record;
+            pkg;
+            isDirectDependencyOfRoot = isDirectDependencyOfRoot pkg;
           } in
           installation::layout
         in
 
-        match findInsertion record breadcrumb with
+        match findInsertion pkg breadcrumb with
         | `Done (there, _) ->
-          markAsOccupied there (this::breadcrumb) record;
+          markAsOccupied there (this::breadcrumb) pkg;
           None
         | `Ok (here, breadcrumb) ->
           Some (insert here, breadcrumb)
@@ -179,25 +180,25 @@ module Layout = struct
           Some (insert this, this::breadcrumb)
       in
 
-      let rec layoutDependencies ~seen ~breadcrumb ~layout record =
+      let rec layoutDependencies ~seen ~breadcrumb ~layout pkg =
 
         let this =
           let modules = Hashtbl.create 100 in
           let path =
             match breadcrumb with
-            | (_modules, path)::_ -> Path.(path // v record.Record.name / "node_modules")
+            | (_modules, path)::_ -> Path.(path // v pkg.Package.name / "node_modules")
             | [] -> nodeModulesPath
           in
           modules, path
         in
 
-        let dependencies = Solution.dependencies record sol in
+        let dependencies = Solution.dependencies pkg sol in
 
         (* layout direct dependencies first, they can be relocated so this is
          * why get dependenciesWithBreadcrumbs as a result *)
         let layout, dependenciesWithBreadcrumbs =
           let f _label r (layout, dependenciesWithBreadcrumbs) =
-            match layoutRecord ~this ~breadcrumb ~layout r with
+            match layoutPkg ~this ~breadcrumb ~layout r with
             | Some (layout, breadcrumb) -> layout, (r, breadcrumb)::dependenciesWithBreadcrumbs
             | None -> layout, dependenciesWithBreadcrumbs
           in
@@ -206,9 +207,9 @@ module Layout = struct
 
         (* now layout dependencies of dependencies *)
         let layout =
-          let seen = Record.Set.add record seen in
+          let seen = Package.Set.add pkg seen in
           let f layout (r, breadcrumb) =
-              match Record.Set.mem r seen with
+              match Package.Set.mem r seen with
               | true -> layout
               | false -> layoutDependencies ~seen ~breadcrumb ~layout r
           in
@@ -219,7 +220,7 @@ module Layout = struct
       in
 
       let layout =
-        layoutDependencies ~seen:Record.Set.empty ~breadcrumb:[] ~layout:[] root
+        layoutDependencies ~seen:Package.Set.empty ~breadcrumb:[] ~layout:[] root
       in
 
       (* Sort the layout so we can have stable order of operations *)
@@ -238,21 +239,21 @@ module Layout = struct
       | Error msg -> failwith msg
 
     let r name version = ({
-      Record.
+      Package.
       name;
       version = Version.Npm (parseVersionExn version);
       source = Source.NoSource, [];
-      overrides = Package.Overrides.empty;
+      overrides = Overrides.empty;
       files = [];
       opam = None;
-    } : Record.t)
+    } : Package.t)
 
     let id name version =
       let version = version ^ ".0.0" in
       let version = Version.Npm (parseVersionExn version) in
       PackageId.make name version
 
-    let addToSolution record deps =
+    let addToSolution pkg deps =
       let deps =
         let f deps id =
           let name = PackageId.name id in
@@ -260,12 +261,12 @@ module Layout = struct
         in
         List.fold_left ~f ~init:StringMap.empty deps
       in
-      Solution.add record deps
+      Solution.add pkg deps
 
     let expect layout expectation =
       let convert =
         let f (installation : installation) =
-          Format.asprintf "%a" Record.pp installation.record,
+          Format.asprintf "%a" Package.pp installation.pkg,
           Path.show installation.path
         in
         List.map ~f layout
@@ -567,7 +568,7 @@ let runLifecycleScript ~installation ~name script =
   let%lwt () = Logs_lwt.app
     (fun m ->
       m "%a: running %a lifecycle"
-      Record.pp installation.Layout.record
+      Package.pp installation.Layout.pkg
       Fmt.(styled `Bold string) name
     )
   in
@@ -652,42 +653,42 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let records =
+  let pkgs =
     let root = Solution.root solution in
     let all =
-      let f record _ records = Record.Set.add record records in
-      Solution.fold ~f ~init:Record.Set.empty solution
+      let f pkg _ pkgs = Package.Set.add pkg pkgs in
+      Solution.fold ~f ~init:Package.Set.empty solution
     in
-    Record.Set.remove root all
+    Package.Set.remove root all
   in
 
-  (* Fetch all records *)
+  (* Fetch all pkgs *)
 
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
     let%bind items =
-      let fetch record =
+      let fetch pkg =
         let%bind dist =
           LwtTaskQueue.submit queue
           (fun () ->
             let%lwt () =
-              let status = Format.asprintf "%a" Record.pp record in
+              let status = Format.asprintf "%a" Package.pp pkg in
               report status
             in
-            FetchStorage.fetch ~cfg:sandbox.cfg record)
+            FetchStorage.fetch ~cfg:sandbox.cfg pkg)
         in
-        return (record, dist)
+        return (pkg, dist)
       in
-      records
-      |> Record.Set.elements
+      pkgs
+      |> Package.Set.elements
       |> List.map ~f:fetch
       |> RunAsync.List.joinAll
     in
     let%lwt () = finish () in
     let map =
-      let f map (record, dist) = Record.Map.add record dist map in
-      List.fold_left ~f ~init:Record.Map.empty items
+      let f map (pkg, dist) = Package.Map.add pkg dist map in
+      List.fold_left ~f ~init:Package.Map.empty items
     in
     return map
   in
@@ -697,8 +698,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind installed =
     let queue = LwtTaskQueue.create ~concurrency:4 () in
     let report, finish = Cli.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path; sourcePath;record;_} as installation) () =
-      match Record.Map.find_opt record dists with
+    let f ({Layout.path; sourcePath;pkg;_} as installation) () =
+      match Package.Map.find_opt pkg dists with
       | Some dist ->
         let%lwt () =
           let status = Format.asprintf "%a" Dist.pp dist in
@@ -713,8 +714,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         let msg =
           Printf.sprintf
             "inconsistent state: no dist were fetched for %s@%s at %s"
-            record.Record.name
-            (Version.show record.Record.version)
+            pkg.Package.name
+            (Version.show pkg.Package.version)
             (Path.show path)
         in
         failwith msg
@@ -836,34 +837,34 @@ let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let%bind records, root =
+  let%bind pkgs, root =
     let root = Solution.root solution in
     let all =
-      let f record _ records = Record.Set.add record records in
-      Solution.fold ~f ~init:Record.Set.empty solution
+      let f pkg _ pkgs = Package.Set.add pkg pkgs in
+      Solution.fold ~f ~init:Package.Set.empty solution
     in
-    return (Record.Set.remove root all, root)
+    return (Package.Set.remove root all, root)
   in
 
-  (* Fetch all records *)
+  (* Fetch all pkgs *)
 
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
 
-    let fetch record () =
+    let fetch pkg () =
       let%lwt () =
-        let status = Format.asprintf "%a" Record.pp record in
+        let status = Format.asprintf "%a" Package.pp pkg in
         report status
       in
-      let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg record in
+      let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg pkg in
       let%bind path = FetchStorage.unpack ~cfg:sandbox.cfg dist in
       return (dist, path)
     in
     let%bind dists =
-      records
-      |> Record.Set.elements
-      |> List.map ~f:(fun record -> LwtTaskQueue.submit queue (fetch record))
+      pkgs
+      |> Package.Set.elements
+      |> List.map ~f:(fun pkg -> LwtTaskQueue.submit queue (fetch pkg))
       |> RunAsync.List.joinAll
     in
     let%lwt () = finish () in
@@ -874,7 +875,7 @@ let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let installation =
       Installation.empty
       |> Installation.add
-          (Record.id root)
+          (Package.id root)
           (Installation.Link {path = Path.v "."; manifest = None;})
     in
     let f installation (dist, sourcePath) =

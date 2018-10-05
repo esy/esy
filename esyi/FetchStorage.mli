@@ -12,7 +12,7 @@ end
 
 val fetch :
   cfg : Config.t
-  -> Solution.Record.t
+  -> Solution.Package.t
   -> Dist.t RunAsync.t
 (**
  * Make sure package specified by [name], [version] and [source] is in store and

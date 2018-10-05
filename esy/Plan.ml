@@ -1,6 +1,6 @@
 module Solution = EsyInstall.Solution
 module PackageId = EsyInstall.PackageId
-module Record = EsyInstall.Solution.Record
+module Package = EsyInstall.Solution.Package
 module Installation = EsyInstall.Installation
 module Version = EsyInstall.Version
 
@@ -205,7 +205,7 @@ let make'
   let tasks = ref PackageId.Map.empty in
 
   let rec aux record =
-    let id = Record.id record in
+    let id = Package.id record in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
@@ -345,7 +345,7 @@ let make'
       buildScope;
     } in
 
-    tasks := PackageId.Map.add (Record.id record) (Some task) !tasks;
+    tasks := PackageId.Map.add (Package.id record) (Some task) !tasks;
 
     return task
 
@@ -404,7 +404,7 @@ let buildDependencies ?(concurrency=1) ~buildConfig ~solution plan =
   let queue = LwtTaskQueue.create ~concurrency () in
   let build task () = build ~buildConfig task in
   let submit (_, record) =
-    let id = Record.id record in
+    let id = Package.id record in
     match PackageId.Map.find id plan with
     | Some task -> LwtTaskQueue.submit queue (build task)
     | None -> RunAsync.return ()
@@ -419,6 +419,6 @@ let buildAll ?concurrency ~buildConfig ~solution plan =
   let open RunAsync.Syntax in
   let%bind () = buildDependencies ?concurrency ~buildConfig ~solution plan in
   let root = Solution.root solution in
-  match PackageId.Map.find (Record.id root) plan with
+  match PackageId.Map.find (Package.id root) plan with
   | Some task -> build ~buildConfig ~buildOnly:true ~force:true task
   | None -> return ()

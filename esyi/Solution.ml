@@ -1,4 +1,5 @@
-module Record = struct
+module P = Package
+module Package = struct
 
   module Opam = struct
     type t = {
@@ -48,8 +49,8 @@ module Record = struct
     then Version.compare a.version b.version
     else c
 
-  let pp fmt record =
-    Fmt.pf fmt "%s@%a" record.name Version.pp record.version
+  let pp fmt pkg =
+    Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
 
   let show = Format.asprintf "%a" pp
 
@@ -58,7 +59,7 @@ module Record = struct
 end
 
 include Graph.Make(struct
-  include Record
+  include Package
   module Id = PackageId
 end)
 
@@ -77,8 +78,8 @@ module LockfileV1 = struct
 
   (* Each package is represented as node. *)
   and node = {
-    (* Actual package record. *)
-    record : Record.t;
+    (* Actual package pkg. *)
+    pkg : Package.t;
     (* List of dependency ids. *)
     dependencies : PackageId.t StringMap.t;
   } [@@deriving yojson]
@@ -91,8 +92,8 @@ module LockfileV1 = struct
         let ppDisj fmt disj =
           match disj with
           | [] -> Fmt.unit "true" fmt ()
-          | [dep] -> Package.Dep.pp fmt dep
-          | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Package.Dep.pp) deps
+          | [dep] -> P.Dep.pp fmt dep
+          | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") P.Dep.pp) deps
         in
         Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
       in
@@ -120,11 +121,11 @@ module LockfileV1 = struct
       in
 
       match deps with
-      | Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
-      | Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+      | P.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+      | P.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
     in
 
-    let showDependencies (deps : Package.Dependencies.t) =
+    let showDependencies (deps : P.Dependencies.t) =
       Format.asprintf "%a" ppDependencies deps
     in
 
@@ -132,7 +133,7 @@ module LockfileV1 = struct
       Digest.string (digest ^ "__" ^ showDependencies dependencies)
     in
     let hashResolutions ~resolutions digest =
-      Digest.string (digest ^ "__" ^ Package.Resolutions.digest resolutions)
+      Digest.string (digest ^ "__" ^ P.Resolutions.digest resolutions)
     in
     let digest =
       Digest.string ""
@@ -144,18 +145,18 @@ module LockfileV1 = struct
     Digest.to_hex digest
 
   let solutionOfLockfile root node =
-    let f _id {record; dependencies} solution =
-      add record dependencies solution
+    let f _id {pkg; dependencies} solution =
+      add pkg dependencies solution
     in
     PackageId.Map.fold f node (empty root)
 
   let lockfileOfSolution (sol : solution) =
     let node =
-      let f record dependencies nodes =
-        let dependencies = StringMap.map Record.id dependencies in
+      let f pkg dependencies nodes =
+        let dependencies = StringMap.map Package.id dependencies in
         PackageId.Map.add
-          (Record.id record)
-          {record; dependencies}
+          (Package.id pkg)
+          {pkg; dependencies}
           nodes
       in
       fold ~f ~init:PackageId.Map.empty sol
@@ -192,7 +193,7 @@ module LockfileV1 = struct
   let toFile ~sandbox ~(solution : solution) (path : Path.t) =
     let root, node = lockfileOfSolution solution in
     let hash = computeSandboxChecksum sandbox in
-    let lockfile = {hash; node; root = Record.id root;} in
+    let lockfile = {hash; node; root = Package.id root;} in
     let json = to_yojson lockfile in
     Fs.writeJsonFile ~json path
 end

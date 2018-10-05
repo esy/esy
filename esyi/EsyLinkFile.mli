@@ -15,7 +15,7 @@ type t = {
   overrides : Package.Overrides.t;
 
   (** opam metadata in case this is an installation from opam repository *)
-  opam : Solution.Record.Opam.t option;
+  opam : Solution.Package.Opam.t option;
 }
 
 val ofDirIfExists : Path.t -> t option RunAsync.t

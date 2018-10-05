@@ -5,7 +5,7 @@
 (**
  * This is minimal info needed to fetch and build a package.
  *)
-module Record : sig
+module Package : sig
 
   module Opam : sig
     type t = {
@@ -43,7 +43,7 @@ end
  *)
 include Graph.GRAPH
   with
-    type node = Record.t
+    type node = Package.t
     and type id = PackageId.t
 
 (** This is an on disk format for storing solutions. *)
