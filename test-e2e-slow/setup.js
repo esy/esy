@@ -26,7 +26,7 @@ function getTempDir() {
 const esyPrefixPath =
   process.env.TEST_ESY_PREFIX != null
     ? process.env.TEST_ESY_PREFIX
-    : path.join(getTempDir(), crypto.randomBytes(20).toString('hex'));
+    : path.join(getTempDir(), crypto.randomBytes(8).toString('hex'));
 
 function mkdir(path) {
   try {
@@ -37,7 +37,7 @@ function mkdir(path) {
 }
 
 function mkdirTemp() {
-  const p = path.join(getTempDir(), crypto.randomBytes(20).toString('hex'));
+  const p = path.join(getTempDir(), crypto.randomBytes(8).toString('hex'));
   fs.mkdirpSync(p);
   return p;
 }
