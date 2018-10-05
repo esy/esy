@@ -54,7 +54,7 @@ const cases = [
 ];
 
 const windowsBlacklist = [
-    "webpack"
+    "webpack" // Blocked by #506
 ];
 
 let p;
