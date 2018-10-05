@@ -17,7 +17,8 @@ const cases = [
   {name: 'dune', toolchains: [ocamlVersion]},
   {name: 'menhir', toolchains: [ocamlVersion]},
   {name: 'cmdliner', toolchains: [ocamlVersion]},
-  {name: 'coq', toolchains: [ocamlVersion]},
+  // Blocked by esy/esy#505
+  // {name: 'coq', toolchains: [ocamlVersion]},
   {name: 'angstrom', toolchains: [ocamlVersion]},
   {name: 'bos', toolchains: [ocamlVersion]},
   {name: 'bigstringaf', toolchains: [ocamlVersion]},
@@ -39,6 +40,8 @@ const cases = [
   {name: 'ocamlbuild', toolchains: [ocamlVersion]},
   {name: 'topkg', toolchains: [ocamlVersion]},
   {name: 'ocaml-migrate-parsetree', toolchains: [ocamlVersion]},
+  // Blocked by esy/esy#505
+  // {name: 'coq', toolchains: [ocamlVersion]},
   {name: 'camlp5', toolchains: [ocamlVersion]},
   {name: 'ppx_tools_versioned', toolchains: [ocamlVersion]},
   {name: 'yojson', toolchains: [ocamlVersion]},
@@ -152,7 +155,7 @@ function shuffle(array) {
 function selectCases(array) {
     if (os.platform() == "win32") {
         // Start with a subset on Windows...
-        return array.slice(0, 3);
+        return array.slice(0, 25);
     } else {
         return shuffle(array);
     }
