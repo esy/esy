@@ -45,12 +45,13 @@ const cases = [
       require('babel-core');
     `,
   },
-  {
-    name: 'react-scripts',
-    test: `
-      require('react-scripts/bin/react-scripts.js');
-    `,
-  },
+  // Blocked by #507
+  // {
+  //   name: 'react-scripts',
+  //   test: `
+  //     require('react-scripts/bin/react-scripts.js');
+  //   `,
+  // },
 ];
 
 const windowsBlacklist = [
