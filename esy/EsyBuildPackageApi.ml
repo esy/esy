@@ -90,12 +90,20 @@ let build
     return ()
   | Unix.WEXITED 0, None ->
     return ()
-  | _, Some (logPath, fd) ->
+
+  | Unix.WEXITED code, Some (logPath, fd)
+  | Unix.WSIGNALED code, Some (logPath, fd)
+  | Unix.WSTOPPED code, Some (logPath, fd) ->
     UnixLabels.close fd;
     let%bind log = Fs.readFile logPath in
-    RunAsync.withContextOfLog ~header:"build log:" log (error "build failed")
-  | _, None ->
-    error "build failed"
+    RunAsync.withContextOfLog
+      ~header:"build log:" log
+      (errorf "build failed with exit code: %i" code)
+
+  | Unix.WEXITED code, None
+  | Unix.WSIGNALED code, None
+  | Unix.WSTOPPED code, None ->
+    errorf "build failed with exit code: %i" code
 
 let buildShell ~buildConfig plan =
   let open RunAsync.Syntax in
