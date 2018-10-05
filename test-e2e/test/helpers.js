@@ -20,10 +20,11 @@ const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
-const ESYCOMMAND =
-  process.platform === 'win32'
-    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
-    : require.resolve('../../bin/esy');
+const ESY = require.resolve('../../_build/default/esy/bin/esyCommand.exe');
+const ESYBUILDPACKAGE = require.resolve(
+  '../../_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
+);
+const FASTREPLACESTRING = require.resolve('fastreplacestring/.bin/fastreplacestring.exe');
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -82,6 +83,10 @@ export type TestSandbox = {
   ) => Promise<void>,
 };
 
+function exe(name) {
+  return isWindows ? `${name}.exe` : name;
+}
+
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
@@ -94,11 +99,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
-  await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
-
-  if (isWindows) {
-    await fs.copyFile(process.execPath, path.join(binPath, 'node.exe'));
-  }
+  await fs.symlink(ESY, path.join(binPath, exe('esy')));
+  await fs.symlink(ESYBUILDPACKAGE, path.join(binPath, exe('esy-build-package')));
+  await fs.symlink(FASTREPLACESTRING, path.join(binPath, exe('fastreplacestring')));
+  await fs.copyFile(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
@@ -112,7 +116,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   function esy(args, options) {
     options = options || {};
-    let env = process.env;
+    let env = {
+      ...process.env,
+      PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
+    };
     if (options.env != null) {
       env = {...env, ...options.env};
     }
@@ -131,7 +138,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       };
     }
 
-    const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
+    const execCommand = args != null ? `esy ${args}` : 'esy';
     return promiseExec(execCommand, {cwd, env});
   }
 
@@ -208,7 +215,6 @@ module.exports = {
   packageJson: FixtureUtils.packageJson,
   json: FixtureUtils.json,
   skipSuiteOnWindows,
-  ESYCOMMAND,
   getPackageArchiveHash: NpmRegistryMock.getPackageArchiveHash,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
