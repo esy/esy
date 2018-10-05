@@ -2,6 +2,7 @@
 
 const {createSandbox} = require('./setup.js');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const cases = [
@@ -52,10 +53,20 @@ const cases = [
   },
 ];
 
+const windowsBlacklist = [
+    "webpack"
+];
+
 let p;
 let reposUpdated = false;
 
 for (let c of cases) {
+
+  if (os.platform() === "win32" && windowsBlacklist.indexOf(c.name) >= 0) {
+    console.warn(`Skipping ${c.name} on Windows due to blocking bug.`);
+    continue;
+  }
+
   console.log(`*** installing ${c.name}`);
   const sandbox = createSandbox();
   console.log(`*** sandboxPath: ${sandbox.path}`);
