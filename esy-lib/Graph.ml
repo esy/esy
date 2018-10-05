@@ -12,7 +12,7 @@ module type GRAPH = sig
   val getExn : id -> t -> node
   val find : (id -> node -> bool) -> t -> (id * node) option
   val dependencies : node -> t -> node StringMap.t
-  val allDependencies : node -> t -> (bool * node) list
+  val allDependenciesBFS : node -> t -> (bool * node) list
 
   val fold : f:(node -> node StringMap.t -> 'v -> 'v) -> init:'v -> t -> 'v
 
@@ -93,28 +93,34 @@ module Make (Node : GRAPH_NODE) : GRAPH
     let f id = let node, _ = findExn' id graph in node in
     StringMap.map f dependencies
 
-  let allDependencies node graph =
-    let rec visitNode ~direct _label id (seen, acc) =
-      if Node.Id.Set.mem id seen
-      then seen, acc
-      else
-        let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
-        let seen = Node.Id.Set.add id seen in
-        let acc = (direct, node)::acc in
-        let seen, acc = visitDependencies ~direct:false dependencies (seen, acc) in
-        seen, acc
+  let allDependenciesBFS node graph =
 
-    and visitDependencies ~direct dependencies (seen, acc) =
-      StringMap.fold (visitNode ~direct) dependencies (seen, acc)
-
+    let queue  = Queue.create () in
+    let enqueue direct dependencies =
+      let f _ id = Queue.add (direct, id) queue in
+      StringMap.iter f dependencies;
     in
 
-    let {dependencies; node = _;} =
-      Node.Id.Map.find (Node.id node) graph.nodes
+    let rec process (seen, dependencies) =
+      match Queue.pop queue with
+      | exception Queue.Empty -> seen, dependencies
+      | direct, id ->
+        if Node.Id.Set.mem id seen
+        then process (seen, dependencies)
+        else
+          let payload = Node.Id.Map.find id graph.nodes in
+          let seen = Node.Id.Set.add id seen in
+          let dependencies = (direct, payload.node)::dependencies in
+          enqueue false payload.dependencies;
+          process (seen, dependencies)
     in
 
     let _, dependencies =
-      visitDependencies ~direct:true dependencies (Node.Id.Set.empty, [])
+      let {dependencies; node = _;} =
+        Node.Id.Map.find (Node.id node) graph.nodes
+      in
+      enqueue true dependencies;
+      process (Node.Id.Set.empty, [])
     in
     dependencies
 
