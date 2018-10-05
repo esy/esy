@@ -20,7 +20,10 @@ install:
 
 build_script:
      - npm run build
+     - jest test-e2e
+     - npm run test:unit
      - npm run test:e2e-slow
+     - npm run release:make-platform-package
 
 artifacts:
     - path: _platformrelease/*.tgz
