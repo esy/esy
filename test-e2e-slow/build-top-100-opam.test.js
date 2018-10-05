@@ -186,6 +186,10 @@ for (let c of selectCases(cases)) {
       dependencies: {
         ['@opam/' + c.name]: '*',
       },
+      resolutions: {
+        // Workaround until new version of angstrom is released
+        "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
+      },
       devDependencies: {
         ocaml: toolchain,
       },
