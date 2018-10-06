@@ -40,8 +40,6 @@ const cases = [
   {name: 'ocamlbuild', toolchains: [ocamlVersion]},
   {name: 'topkg', toolchains: [ocamlVersion]},
   {name: 'ocaml-migrate-parsetree', toolchains: [ocamlVersion]},
-  // Blocked by esy/esy#505
-  // {name: 'coq', toolchains: [ocamlVersion]},
   {name: 'camlp5', toolchains: [ocamlVersion]},
   {name: 'ppx_tools_versioned', toolchains: [ocamlVersion]},
   {name: 'yojson', toolchains: [ocamlVersion]},
