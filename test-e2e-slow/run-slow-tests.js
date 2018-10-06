@@ -1,6 +1,7 @@
 // @flow
 
 const { execSync } = require("child_process");
+const os = require("os");
 
 const latestCommit = execSync("git log --oneline -n1").toString("utf8");
 
