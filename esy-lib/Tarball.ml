@@ -83,12 +83,12 @@ let unpack ?stripComponents ~dst filename =
   | _ -> unpackWithTar ?stripComponents ~dst filename
   end
 
-let create ~filename src =
+let create ~filename ~outpath="." src =
   RunAsync.ofBosError (
     let open Result.Syntax in
     let%bind nf = EsyBash.normalizePathForCygwin (Path.show filename) in
     let%bind ns = EsyBash.normalizePathForCygwin (Path.show src) in
-    let cmd = Cmd.(v "tar" % "czf" % nf % "-C" % ns % ".") in
+    let cmd = Cmd.(v "tar" % "czf" % nf % "-C" % ns % outpath in
     let%bind res = EsyBash.run (Cmd.toBosCmd cmd) in
     return res
   )
