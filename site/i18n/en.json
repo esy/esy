@@ -35,6 +35,9 @@
       "how-it-works": {
         "title": "How esy works"
       },
+      "linking-workflow": {
+        "title": "Linking Packages in Development"
+      },
       "multiple-sandboxes": {
         "title": "Multiple Project Sandboxes"
       },
@@ -46,6 +49,9 @@
       },
       "release": {
         "title": "Building Releases"
+      },
+      "using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
       },
       "what-why": {
         "title": "What & Why"

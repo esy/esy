@@ -72,6 +72,7 @@
 }
 .edit-page-link {
   /* header H1 height at small size is 27, button is 34, center it (-3.5px) */
+  font-size: 80% !important;
   margin-top: -3.5px;
 }
 @media (min-width: 736px) {

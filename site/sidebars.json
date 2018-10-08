@@ -2,7 +2,9 @@
   "docs": {
     "Workflow": [
       "what-why",
-      "getting-started"
+      "getting-started",
+      "using-repo-sources-workflow",
+      "linking-workflow"
     ],
     "Reference": [
       "concepts",
