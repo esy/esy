@@ -144,7 +144,9 @@
 
 code {
   font-size: 90%;
-  font-weight: 300;
+  font-weight: 500;
+  background-color: rgba(243, 136, 136, 0.06) !important;
+  color: #db4d3f !important;
 }
 
 .hljs {
