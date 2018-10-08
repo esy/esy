@@ -49,6 +49,7 @@
       }
     },
     "links": {
+      "Getting started": "Getting started",
       "Docs": "Docs",
       "Community": "Community",
       "GitHub": "GitHub"
@@ -57,7 +58,8 @@
       "Workflow": "Workflow",
       "Reference": "Reference",
       "Advanced": "Advanced",
-      "Internals": "Internals"
+      "Internals": "Internals",
+      "Community": "Community"
     }
   },
   "pages-strings": {
