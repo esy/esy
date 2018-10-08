@@ -244,7 +244,7 @@ standard mechanism with a special handling of `@opam/*` scope:
 > This works similar to npm or yarn standard `devDependencies` configuration.
 
 `devDependencies` works similar to `dependencies` but they are only handled for
-the root package and override the constraints found `dependencies` key.
+the root package and override the constraints found in `dependencies` key.
 
 ### `resolutions`
 
