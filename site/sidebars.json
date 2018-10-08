@@ -2,16 +2,20 @@
   "docs": {
     "Workflow": [
       "what-why",
-      "getting-started",
-      "configuration",
-      "esy-configuration"
+      "getting-started"
     ],
     "Reference": [
+      "concepts",
+      "configuration",
       "environment",
       "commands",
-      "concepts"
+      "esy-configuration"
     ],
-    "Advanced": [
+    "Community": [
+      "community"
+    ],
+    "Advanced Workflow": [
+      "multiple-sandboxes",
       "release",
       "opam-workflow",
       "offline"
@@ -19,9 +23,6 @@
     "Internals": [
       "how-it-works",
       "development"
-    ],
-    "Community": [
-      "community"
     ]
   }
 }

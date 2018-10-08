@@ -35,6 +35,9 @@
       "how-it-works": {
         "title": "How esy works"
       },
+      "multiple-sandboxes": {
+        "title": "Multiple Project Sandboxes"
+      },
       "offline": {
         "title": "Offline Builds"
       },
@@ -57,9 +60,9 @@
     "categories": {
       "Workflow": "Workflow",
       "Reference": "Reference",
-      "Advanced": "Advanced",
-      "Internals": "Internals",
-      "Community": "Community"
+      "Community": "Community",
+      "Advanced Workflow": "Advanced Workflow",
+      "Internals": "Internals"
     }
   },
   "pages-strings": {
