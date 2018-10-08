@@ -1,33 +1,43 @@
 {
   "name": "esy",
-  "version": "0.2.11",
+  "version": "0.3.0",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
     "build": [
-      [ "dune", "build", "-j", "4" ],
       [
-        "dune", "build", "esy/bin/esyCommand.exe",
+        "dune",
+        "build",
+        "-j",
+        "4"
+      ],
+      [
+        "dune",
+        "build",
+        "esy/bin/esyCommand.exe",
         "esy-build-package/bin/esyBuildPackageCommand.exe"
       ]
     ],
     "install": [
-      [ "esy-installer", "./esy-build-package.install" ],
-      [ "esy-installer", "./esy.install" ]
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
+      ]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "install:esy": "esy install",
-    "build":
-      "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
+    "build": "npm run build:esy && npm run build:copy-frs && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
     "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
-    "build:postinstall-esy-solve-cudf":
-      "cd node_modules/esy-solve-cudf && npm install",
-    "release:make-platform-package":
-      "node ./scripts/build/make-platform-package.js",
+    "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
+    "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
     "test:unit": "esy b dune runtest test"
   },
   "resolutions": {
@@ -66,7 +76,9 @@
     "esy-solve-cudf": "^0.1.8",
     "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
   },
-  "peerDependencies": { "ocaml": "~4.6.6" },
+  "peerDependencies": {
+    "ocaml": "~4.6.6"
+  },
   "devDependencies": {
     "@esy-ocaml/merlin": "*",
     "@opam/utop": "*",
