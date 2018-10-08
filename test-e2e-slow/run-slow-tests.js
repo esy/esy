@@ -3,10 +3,10 @@
 const { execSync } = require("child_process");
 const os = require("os");
 
-const latestCommit = execSync("git log --oneline -n1").toString("utf8");
+const latestCommit = execSync("git log -n1").toString("utf8");
 
 if (latestCommit.indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
-    console.warn("Not running slowtests.");
+    console.warn("Not running slowtests - commit message was: " + latestCommit);
     process.exit(0);
 }
 
