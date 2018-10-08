@@ -31,7 +31,7 @@ class Footer extends React.Component {
         <section className="sitemap">
           <a href={this.props.config.baseUrl} className="nav-home">
             <img
-              src={this.props.config.baseUrl + this.props.config.footerIcon}
+              src={this.props.config.baseUrl + this.props.config.headerIcon}
               alt={this.props.config.title}
               width="66"
               height="58"
@@ -48,6 +48,29 @@ class Footer extends React.Component {
               }>
               Getting Started
             </a>
+            <a
+              href={
+                this.props.config.baseUrl +
+                'docs/' +
+                this.props.language +
+                '/configuration.html'
+              }>
+              Project Configuration
+            </a>
+            <a
+              href={
+                this.props.config.baseUrl +
+                'docs/' +
+                this.props.language +
+                '/commands.html'
+              }>
+              Commands Reference
+            </a>
+          </div>
+          <div>
+            <h5>Community</h5>
+            <a href="https://discord.gg/reasonml">Discord</a>
+            <a href="http://stackoverflow.com/questions/tagged/esy">Stack Overflow</a>
           </div>
         </section>
       </footer>
