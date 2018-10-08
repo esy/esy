@@ -9,7 +9,6 @@ module Manifest = struct
     name : string option [@default None];
     version : SemverVersion.Version.t option [@default None];
     dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-    devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
     esy : EsyPackageJson.t option [@default None];
     dist : dist option [@default None]
   } [@@deriving of_yojson { strict = false }]
@@ -24,6 +23,12 @@ end
 module ResolutionsOfManifest = struct
   type t = {
     resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
+  } [@@deriving of_yojson { strict = false }]
+end
+
+module DevDependenciesOfManifest = struct
+  type t = {
+    devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
   } [@@deriving of_yojson { strict = false }]
 end
 
@@ -50,7 +55,13 @@ let rebaseDependencies source reqs =
   in
   Result.List.map ~f reqs
 
-let packageOfJson ?(parseResolutions=false) ?source ~name ~version json =
+let packageOfJson
+  ?(parseResolutions=false)
+  ?(parseDevDependencies=false)
+  ?source
+  ~name
+  ~version
+  json =
   let open Run.Syntax in
   let%bind pkgJson = Json.parseJsonWith Manifest.of_yojson json in
   let originalVersion =
@@ -82,7 +93,17 @@ let packageOfJson ?(parseResolutions=false) ?source ~name ~version json =
   in
 
   let%bind dependencies = rebaseDependencies source dependencies in
-  let%bind devDependencies = rebaseDependencies source pkgJson.devDependencies in
+
+  let%bind devDependencies =
+    match parseDevDependencies with
+    | false -> return Package.NpmFormula.empty
+    | true ->
+      let%bind {DevDependenciesOfManifest. devDependencies} =
+        Json.parseJsonWith DevDependenciesOfManifest.of_yojson json
+      in
+      let%bind devDependencies = rebaseDependencies source devDependencies in
+      return devDependencies
+  in
 
   let%bind resolutions =
     match parseResolutions with

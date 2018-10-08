@@ -15,71 +15,84 @@ There are example projects:
 - [hello-ocaml](https://github.com/esy-ocaml/hello-ocaml), an example OCaml
   project which uses [dune][] build system.
 
-The typical workflow looks like this:
 
-0.  Install esy:
+## Install esy
 
-    ```bash
-    npm install -g esy
-    ```
+```shell
+npm install -g esy
+```
 
-    If you had installed esy previously:
+If you had installed esy previously:
 
-    ```bash
-    npm uninstall --global --update esy
-    ```
+```shell
+npm uninstall --global --update esy
+```
 
-1.  Clone the project:
+## Clone & initialize the project
 
-    ```bash
-    git clone git@github.com:esy-ocaml/esy-ocaml-project.git
-    cd esy-ocaml-project
-    ```
+Clone the project source code
 
-1.  Install project's dependencies source code and perform an initial build of the project's dependencies and of the project itself:
+```shell
+git clone https://github.com/esy-ocaml/hello-reason.git
+cd hello-reason
+```
 
-    ```bash
-    esy
-    ```
+Install project's dependencies source code and perform an initial build of the
+project's dependencies and of the project itself:
 
-1.  Test the compiled executables inside the project's environment:
+```shell
+esy
+```
 
-    ```bash
-    esy ./_build/default/bin/hello.exe
-    ```
+## Run compiled executables
 
-1.  Hack on project's source code and rebuild the project:
+Test the compiled executables inside the project's environment:
 
-    ```bash
-    esy build
-    ```
+```shell
+esy ./_build/default/bin/Hello.exe
+```
 
-Also:
+Alternatively you can use `esy x <anycommand>` invocation which constructs and
+environment where the root project is installed:
 
-6.  It is possible to invoke any command from within the project's sandbox.
-    For example build & run tests with:
+```shell
+esy x Hello.exe
+```
 
-    ```shell
-    esy make test
-    ```
+## Rebuild the project
 
-    You can run any command inside the project environment by just
-    prefixing it with `esy`:
+Hack on project's source code and rebuild the project:
 
-    ```bash
-    esy <anycommand>
-    ```
+```shell
+esy build
+```
 
-7.  To shell into the project's sandbox:
+## Other useful commands
 
-    ```bash
-    esy shell
-    ```
+It is possible to invoke any command from within the project's sandbox.  For
+example build & run tests with:
 
-8.  For more options:
+```shell
+esy make test
+```
 
-    ```bash
-    esy help
-    ```
+You can run any command inside the project environment by just prefixing it with
+`esy`:
+
+```shell
+esy <anycommand>
+```
+
+To shell into the project's sandbox:
+
+```shell
+esy shell
+```
+
+For more options:
+
+```shell
+esy help
+```
 
 [dune]: https://github.com/ocaml/dune

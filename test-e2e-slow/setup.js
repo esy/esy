@@ -47,6 +47,7 @@ function mkdirTemp() {
  type TestSandbox = {
    path: string,
    cd: (where: string) => void,
+   rm: (what: string) => void,
    exec: (...args: string[]) => void,
    esy: (...args: string[]) => void,
    dispose: () => void,
@@ -102,10 +103,17 @@ function createSandbox() /* : TestSandbox */ {
     console.log(`CWD: ${cwd}`);
   }
 
+  function rm(what) {
+    const p = path.resolve(cwd, what);
+    console.log(`RM: ${p}`);
+    rmSync(p);
+  }
+
   return {
     path: sandboxPath,
     exec: exec,
     cd,
+    rm,
     esy(...args /* : Array<string> */) {
       return retry(() => exec(esyCommand, ...args));
     },

@@ -10,183 +10,183 @@
 const languages = [
   {
     enabled: false,
-    name: "日本語",
-    tag: "ja"
+    name: '日本語',
+    tag: 'ja',
   },
   {
     enabled: true,
-    name: "English",
-    tag: "en"
+    name: 'English',
+    tag: 'en',
   },
   {
     enabled: false,
-    name: "العربية",
-    tag: "ar"
+    name: 'العربية',
+    tag: 'ar',
   },
   {
     enabled: false,
-    name: "Bosanski",
-    tag: "bs-BA"
+    name: 'Bosanski',
+    tag: 'bs-BA',
   },
   {
     enabled: false,
-    name: "Català",
-    tag: "ca"
+    name: 'Català',
+    tag: 'ca',
   },
   {
     enabled: false,
-    name: "Čeština",
-    tag: "cs"
+    name: 'Čeština',
+    tag: 'cs',
   },
   {
     enabled: false,
-    name: "Dansk",
-    tag: "da"
+    name: 'Dansk',
+    tag: 'da',
   },
   {
     enabled: false,
-    name: "Deutsch",
-    tag: "de"
+    name: 'Deutsch',
+    tag: 'de',
   },
   {
     enabled: false,
-    name: "Ελληνικά",
-    tag: "el"
+    name: 'Ελληνικά',
+    tag: 'el',
   },
   {
     enabled: false,
-    name: "Español",
-    tag: "es-ES"
+    name: 'Español',
+    tag: 'es-ES',
   },
   {
     enabled: false,
-    name: "فارسی",
-    tag: "fa-IR"
+    name: 'فارسی',
+    tag: 'fa-IR',
   },
   {
     enabled: false,
-    name: "Suomi",
-    tag: "fi"
-  },
-  {
-    enabled: true,
-    name: "Français",
-    tag: "fr"
+    name: 'Suomi',
+    tag: 'fi',
   },
   {
     enabled: false,
-    name: "עִברִית",
-    tag: "he"
+    name: 'Français',
+    tag: 'fr',
   },
   {
     enabled: false,
-    name: "Magyar",
-    tag: "hu"
+    name: 'עִברִית',
+    tag: 'he',
   },
   {
     enabled: false,
-    name: "Bahasa Indonesia",
-    tag: "id-ID"
+    name: 'Magyar',
+    tag: 'hu',
   },
   {
     enabled: false,
-    name: "Italiano",
-    tag: "it"
+    name: 'Bahasa Indonesia',
+    tag: 'id-ID',
   },
   {
     enabled: false,
-    name: "Afrikaans",
-    tag: "af"
+    name: 'Italiano',
+    tag: 'it',
   },
   {
     enabled: false,
-    name: "한국어",
-    tag: "ko"
+    name: 'Afrikaans',
+    tag: 'af',
   },
   {
     enabled: false,
-    name: "मराठी",
-    tag: "mr-IN"
+    name: '한국어',
+    tag: 'ko',
   },
   {
     enabled: false,
-    name: "Nederlands",
-    tag: "nl"
+    name: 'मराठी',
+    tag: 'mr-IN',
   },
   {
     enabled: false,
-    name: "Norsk",
-    tag: "no-NO"
+    name: 'Nederlands',
+    tag: 'nl',
   },
   {
     enabled: false,
-    name: "Polskie",
-    tag: "pl"
+    name: 'Norsk',
+    tag: 'no-NO',
   },
   {
     enabled: false,
-    name: "Português",
-    tag: "pt-PT"
+    name: 'Polskie',
+    tag: 'pl',
   },
   {
     enabled: false,
-    name: "Português (Brasil)",
-    tag: "pt-BR"
+    name: 'Português',
+    tag: 'pt-PT',
   },
   {
     enabled: false,
-    name: "Română",
-    tag: "ro"
-  },
-  {
-    enabled: true,
-    name: "Русский",
-    tag: "ru"
+    name: 'Português (Brasil)',
+    tag: 'pt-BR',
   },
   {
     enabled: false,
-    name: "Slovenský",
-    tag: "sk-SK"
+    name: 'Română',
+    tag: 'ro',
   },
   {
     enabled: false,
-    name: "Српски језик (Ћирилица)",
-    tag: "sr"
+    name: 'Русский',
+    tag: 'ru',
   },
   {
     enabled: false,
-    name: "Svenska",
-    tag: "sv-SE"
+    name: 'Slovenský',
+    tag: 'sk-SK',
   },
   {
     enabled: false,
-    name: "Türkçe",
-    tag: "tr"
+    name: 'Српски језик (Ћирилица)',
+    tag: 'sr',
   },
   {
     enabled: false,
-    name: "Українська",
-    tag: "uk"
+    name: 'Svenska',
+    tag: 'sv-SE',
   },
   {
     enabled: false,
-    name: "Tiếng Việt",
-    tag: "vi"
-  },
-  {
-    enabled: true,
-    name: "中文",
-    tag: "zh-CN"
+    name: 'Türkçe',
+    tag: 'tr',
   },
   {
     enabled: false,
-    name: "繁體中文",
-    tag: "zh-Hant"
+    name: 'Українська',
+    tag: 'uk',
   },
   {
     enabled: false,
-    name: "ɥsᴉlƃuƎ uʍopǝpᴉsd∩",
-    tag: "en-UD"
-  }
+    name: 'Tiếng Việt',
+    tag: 'vi',
+  },
+  {
+    enabled: false,
+    name: '中文',
+    tag: 'zh-CN',
+  },
+  {
+    enabled: false,
+    name: '繁體中文',
+    tag: 'zh-Hant',
+  },
+  {
+    enabled: false,
+    name: 'ɥsᴉlƃuƎ uʍopǝpᴉsd∩',
+    tag: 'en-UD',
+  },
 ];
 module.exports = languages;

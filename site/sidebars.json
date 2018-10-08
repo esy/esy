@@ -1,8 +1,30 @@
 {
   "docs": {
-    "Workflow": ["what-why", "getting-started", "configuration", "esy-configuration"],
-    "Reference": ["environment", "commands", "concepts"],
-    "Advanced": ["release", "opam-workflow", "offline"],
-    "Internals": ["how-it-works", "development"]
+    "Workflow": [
+      "what-why",
+      "getting-started",
+      "using-repo-sources-workflow",
+      "linking-workflow"
+    ],
+    "Reference": [
+      "concepts",
+      "configuration",
+      "environment",
+      "commands",
+      "esy-configuration"
+    ],
+    "Community": [
+      "community"
+    ],
+    "Advanced Workflow": [
+      "multiple-sandboxes",
+      "release",
+      "opam-workflow",
+      "offline"
+    ],
+    "Internals": [
+      "how-it-works",
+      "development"
+    ]
   }
 }

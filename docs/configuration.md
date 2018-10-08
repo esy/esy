@@ -212,7 +212,39 @@ jbuilder) based project:
 }
 ```
 
-## Override dependency resolutions
+## Specify dependencies
+
+### `dependencies`
+
+> This works similar to npm or yarn standard `dependencies` configuration.
+
+To define a set of dependencies of the package specify them in `dependencies`
+key inside `package.json`.
+
+```
+"dependencies": {
+  "refmterr": "^3.1.7",
+  "@esy-ocaml/reason": "^3.0.0"
+}
+```
+
+We refer to the [npm documentation on `dependencies`][npm-dependencies] for the
+syntax of possible package constraints.
+
+As esy allows to work with packages hosted on opam repository it extends npm's
+standard mechanism with a special handling of `@opam/*` scope:
+
+- Any scoped package `@opam/PKG` refers to an opam packsage `PKG`.
+
+- Any constraint for a scoped package `@opam/PKG` is a constraint against opam
+  versions.
+
+### `devDependencies`
+
+> This works similar to npm or yarn standard `devDependencies` configuration.
+
+`devDependencies` works similar to `dependencies` but they are only handled for
+the root package and override the constraints found in `dependencies` key.
 
 ### `resolutions`
 
@@ -260,3 +292,5 @@ esy dune runtest
 ```
 
 Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
+
+[npm-dependencies]: https://docs.npmjs.com/files/package.json#dependencies

@@ -41,9 +41,10 @@ define HELP
    bump-minor-version  Bump minor package version (commits & tags)
    bump-patch-version  Bump patch package version (commits & tags)
 
- Website tasks:
+ Site tasks (https://esy.sh):
 
-   site-serve          Serve site locally
+   site-bootstrap      Bootstrap dev environment for working on site.
+   site-start          Serve site locally
    site-publish        Publish site to https://esy.sh (powered by GitHub Pages)
                        Note that the current USER environment variable will be used as a
                        GitHub user used for push. You can override it by setting GIT_USER
@@ -253,11 +254,16 @@ bump-minor-version:
 bump-patch-version:
 	@npm version patch
 
-## Website
+## Site
+
+site-bootstrap:
+	@$(MAKE) -C site bootstrap
 
 site-start:
 	@$(MAKE) -C site start
+
 site-build:
 	@$(MAKE) -C site build
+
 site-publish:
 	@$(MAKE) -C site publish
