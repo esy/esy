@@ -552,13 +552,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
   let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
   let%bind () = Fs.createDir (Path.parent outputPath) in
   let%bind () =
-    ChildProcess.run Cmd.(
-      v "tar"
-      % "-C" % p (Path.parent stagePath)
-      % "-cz"
-      % "-f" % p outputPath
-      % buildId
-    )
+    Tarball.create ~filename:outputPath ~outpath:buildId (Path.parent stagePath)
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s: done" buildId) in
   let%bind () = Fs.rmPath stagePath in

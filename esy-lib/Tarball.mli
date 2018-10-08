@@ -18,5 +18,6 @@ val unpack :
  *)
 val create :
   filename:Path.t
+  -> ?outpath:string
   -> Path.t
   -> unit RunAsync.t
