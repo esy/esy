@@ -175,6 +175,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
         let%bind json = Json.parse data in
         PackageJson.packageOfJson
           ~parseResolutions:true
+          ~parseDevDependencies:true
           ~name
           ~version:(Version.Source source)
           ~source
