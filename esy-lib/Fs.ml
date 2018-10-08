@@ -277,6 +277,8 @@ let rec rmPathLwt path =
     in
 
     Lwt_unix.rmdir pathS
+  | S_LNK ->
+    Lwt_unix.unlink pathS
   | _ ->
     let%lwt () = Lwt_unix.chmod pathS 0o640 in
     Lwt_unix.unlink pathS
