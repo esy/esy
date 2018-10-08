@@ -644,7 +644,7 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   in
   RunAsync.List.foldLeft ~f ~init:true layout
 
-let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
+let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
@@ -828,7 +828,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
   return ()
 
-let fetchPnP ~(sandbox : Sandbox.t) (solution : Solution.t) =
+let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
