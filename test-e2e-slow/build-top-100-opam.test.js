@@ -152,7 +152,7 @@ function shuffle(array) {
 
 function selectCases(array) {
     // Start with a subset on windows...
-    return os.platform() == "win32" ? shuffle(array.slice(0, 25)) : shuffle(array);
+    return os.platform() == "win32" ? shuffle(array.slice(0, 20)) : shuffle(array);
 }
 
 const startTime = new Date();
