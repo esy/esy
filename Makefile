@@ -120,13 +120,11 @@ test-e2e::
 
 test-e2e-slow::
 	@echo "Running test suite: e2e (slow tests)"
+	@node ./test-e2e-slow/release.test.js
 	@node ./test-e2e-slow/build-top-100-opam.test.js
 	@node ./test-e2e-slow/install-npm.test.js
-	@node ./test-e2e-slow/esy.test.js
 	@node ./test-e2e-slow/reason.test.js
-	@node ./test-e2e-slow/repromise.test.js.test.js
-	@node ./test-e2e-slow/fastpack.test.js
-	@node ./test-e2e-slow/release.test.js
+	@node ./test-e2e-slow/esy.test.js
 
 test::
 	@echo "Running test suite: unit tests"
