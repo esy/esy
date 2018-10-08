@@ -3,7 +3,7 @@
 const { execSync } = require("child_process");
 const os = require("os");
 
-const getLatestCommitMessage = () => {
+const getCommitMessage = () => {
     let travisCommit = process.env["TRAVIS_COMMIT_MESSAGE"];
     let appVeyorCommit = process.env["APPVEYOR_REPO_COMMIT_MESSAGE"]
 
@@ -16,7 +16,7 @@ const getLatestCommitMessage = () => {
     }
 }
 
-const latestCommit = getLatestCommit();
+const latestCommit = getCommitMessage();
 
 if (latestCommit.indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
     console.warn("Not running slowtests - commit message was: " + latestCommit);
