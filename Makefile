@@ -123,8 +123,6 @@ test-e2e-slow::
 	@node ./test-e2e-slow/release.test.js
 	@node ./test-e2e-slow/build-top-100-opam.test.js
 	@node ./test-e2e-slow/install-npm.test.js
-	@node ./test-e2e-slow/reason.test.js
-	@node ./test-e2e-slow/esy.test.js
 
 test::
 	@echo "Running test suite: unit tests"
