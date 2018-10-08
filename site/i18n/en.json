@@ -4,27 +4,61 @@
     "next": "Next",
     "previous": "Previous",
     "tagline": "Simple workflow for native Reason and OCaml",
-    "commands": "Commands",
-    "community": "Community",
-    "concepts": "Concepts",
-    "configuration": "Project Configuration",
-    "contributing": "Contributing",
-    "development": "Development",
-    "environment": "Environment",
-    "esy-configuration": "Configuration",
-    "getting-started": "Getting started",
-    "how-it-works": "How esy works",
-    "offline": "Offline Builds",
-    "opam-workflow": "Developing opam projects",
-    "release": "Building Releases",
-    "what-why": "What & Why",
-    "Docs": "Docs",
-    "Community": "Community",
-    "GitHub": "GitHub",
-    "Workflow": "Workflow",
-    "Reference": "Reference",
-    "Advanced": "Advanced",
-    "Internals": "Internals"
+    "docs": {
+      "commands": {
+        "title": "Commands"
+      },
+      "community": {
+        "title": "Community"
+      },
+      "concepts": {
+        "title": "Concepts"
+      },
+      "configuration": {
+        "title": "Project Configuration"
+      },
+      "contributing": {
+        "title": "Contributing"
+      },
+      "development": {
+        "title": "Development"
+      },
+      "environment": {
+        "title": "Environment"
+      },
+      "esy-configuration": {
+        "title": "Configuration"
+      },
+      "getting-started": {
+        "title": "Getting started"
+      },
+      "how-it-works": {
+        "title": "How esy works"
+      },
+      "offline": {
+        "title": "Offline Builds"
+      },
+      "opam-workflow": {
+        "title": "Developing opam projects"
+      },
+      "release": {
+        "title": "Building Releases"
+      },
+      "what-why": {
+        "title": "What & Why"
+      }
+    },
+    "links": {
+      "Docs": "Docs",
+      "Community": "Community",
+      "GitHub": "GitHub"
+    },
+    "categories": {
+      "Workflow": "Workflow",
+      "Reference": "Reference",
+      "Advanced": "Advanced",
+      "Internals": "Internals"
+    }
   },
   "pages-strings": {
     "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)",
