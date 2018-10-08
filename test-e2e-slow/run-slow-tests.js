@@ -3,9 +3,20 @@
 const { execSync } = require("child_process");
 const os = require("os");
 
-const latestCommit = execSync("git log -n1").toString("utf8");
+const getLatestCommitMessage = () => {
+    let travisCommit = process.env["TRAVIS_COMMIT_MESSAGE"];
+    let appVeyorCommit = process.env["APPVEYOR_REPO_COMMIT_MESSAGE"]
 
-if (latestCommit.indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
+    if (travisCommit) {
+        return travisCommit;
+    } else if (appVeyorCommit) {
+        return appVeyorCommit;
+    } else {
+        return execSync("git log -n1").toString("utf8");
+    }
+}
+
+if (getLatestCommitMessage().indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
     console.warn("Not running slowtests - commit message was: " + latestCommit);
     process.exit(0);
 }
