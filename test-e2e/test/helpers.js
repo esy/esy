@@ -24,7 +24,9 @@ const ESY = require.resolve('../../_build/default/esy/bin/esyCommand.exe');
 const ESYBUILDPACKAGE = require.resolve(
   '../../_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
 );
-const FASTREPLACESTRING = require.resolve('fastreplacestring/.bin/fastreplacestring.exe');
+const FASTREPLACESTRING = require.resolve(
+  '../../_build/default/esy-build-package/bin/fastreplacestring.exe',
+);
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
