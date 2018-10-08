@@ -16,7 +16,9 @@ const getLatestCommitMessage = () => {
     }
 }
 
-if (getLatestCommitMessage().indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
+const latestCommit = getLatestCommit();
+
+if (latestCommit.indexOf("@slowtest") === -1 && !process.env["ESY_SLOWTEST"]) {
     console.warn("Not running slowtests - commit message was: " + latestCommit);
     process.exit(0);
 }
