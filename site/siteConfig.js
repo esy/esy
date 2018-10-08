@@ -8,89 +8,90 @@
  */
 
 const siteConfig = {
-  title: "esy",
-  tagline: "Simple workflow for native Reason and OCaml",
-  url: "https://esy.github.io",
-  editUrl: "https://github.com/esy/esy/tree/master/docs/",
-  translationRecruitingLink: "https://crowdin.com/project/esy-website",
+  title: 'esy',
+  tagline: 'Simple workflow for native Reason and OCaml',
+  url: 'https://esy.github.io',
+  editUrl: 'https://github.com/esy/esy/tree/master/docs/',
+  translationRecruitingLink: 'https://crowdin.com/project/esy-website',
   sourceCodeButton: null,
-  baseUrl: "/",
-  projectName: "esy.github.io",
-  organizationName: "esy",
-  cname: "esy.sh",
+  baseUrl: '/',
+  projectName: 'esy.github.io',
+  organizationName: 'esy',
+  cname: 'esy.sh',
   headerLinks: [
-    { doc: "what-why", label: "Docs" },
-    { doc: "community", label: "Community" },
-    { languages: true },
-    { search: true },
-    { href: "https://github.com/esy/esy", label: "GitHub" }
+    {doc: 'getting-started', label: 'Getting started'},
+    {doc: 'what-why', label: 'Docs'},
+    {doc: 'community', label: 'Community'},
+    {languages: true},
+    {search: true},
+    {href: 'https://github.com/esy/esy', label: 'GitHub'},
   ],
   onPageNav: 'separate',
-  headerIcon: "img/block-white.svg",
+  headerIcon: 'img/block-white.svg',
   // footerIcon: "img/logo.svg",
-  favicon: "img/reason-react-red.svg",
+  favicon: 'img/reason-react-red.svg',
   /* colors for website */
   colors: {
-    primaryColor: "#db4d3f",
-    secondaryColor: "#db4d3f",
+    primaryColor: '#db4d3f',
+    secondaryColor: '#db4d3f',
     codeColor:
-      "rgba(243, 136, 136, 0.03)" /* primaryColor in rgba form, with 0.03 alpha */
+      'rgba(243, 136, 136, 0.03)' /* primaryColor in rgba form, with 0.03 alpha */,
   },
   highlight: {
-    theme: "arduino-light",
+    theme: 'arduino-light',
     hljs: function(hljs) {
-      hljs.registerLanguage("reason", function(hljs) {
+      hljs.registerLanguage('reason', function(hljs) {
         var SWIFT_KEYWORDS = {
           forDocGrammarHighlighting:
-            "ifTrue ifFalse expression testCondition startVal endVal typeConstraint typeName typeFactoryName argOneType argTwoType finalArgType typeStructure typeParam typeArg1 typeArg2 typeParam1 typeParam2 argOne argTwo finalArg argument argumentType expressionType identifier",
+            'ifTrue ifFalse expression testCondition startVal endVal typeConstraint typeName typeFactoryName argOneType argTwoType finalArgType typeStructure typeParam typeArg1 typeArg2 typeParam1 typeParam2 argOne argTwo finalArg argument argumentType expressionType identifier',
           keyword:
-            "class deinit enum extension func import init rec class let pub pri val inherit ref mutable protocol static " +
-            "module include struct subscript type typealias var break case continue default do " +
-            "else fallthrough if in of for to downto return switch where while as dynamicType " +
-            "is new super self Self Type __COLUMN__ __FILE__ __FUNCTION__ " +
-            "__LINE__ associativity didSet get infix inout left mutating none " +
-            "nonmutating operator override postfix precedence prefix => right set " +
-            "unowned unowned safe unsafe weak willSet",
-          literal: "true false nil",
+            'class deinit enum extension func import init rec class let pub pri val inherit ref mutable protocol static ' +
+            'module include struct subscript type typealias var break case continue default do ' +
+            'else fallthrough if in of for to downto return switch where while as dynamicType ' +
+            'is new super self Self Type __COLUMN__ __FILE__ __FUNCTION__ ' +
+            '__LINE__ associativity didSet get infix inout left mutating none ' +
+            'nonmutating operator override postfix precedence prefix => right set ' +
+            'unowned unowned safe unsafe weak willSet',
+          literal: 'true false nil',
           built_in:
-            "abs advance alignof alignofValue assert bridgeFromObjectiveC " +
-            "bridgeFromObjectiveCUnconditional bridgeToObjectiveC " +
-            "bridgeToObjectiveCUnconditional c contains count countElements " +
-            "countLeadingZeros debugPrint debugPrintln distance dropFirst dropLast dump " +
-            "encodeBitsAsWords enumerate equal filter find getBridgedObjectiveCType " +
-            "getVaList indices insertionSort isBridgedToObjectiveC " +
-            "isBridgedVerbatimToObjectiveC isUniquelyReferenced join " +
-            "lexicographicalCompare map max maxElement min minElement numericCast " +
-            "partition posix print println quickSort reduce reflect reinterpretCast " +
-            "reverse roundUpToAlignment sizeof sizeofValue sort split startsWith strideof " +
-            "strideofValue swap swift toString transcode underestimateCount " +
-            "unsafeReflect withExtendedLifetime withObjectAtPlusZero withUnsafePointer " +
-            "withUnsafePointerToObject withUnsafePointers withVaList"
+            'abs advance alignof alignofValue assert bridgeFromObjectiveC ' +
+            'bridgeFromObjectiveCUnconditional bridgeToObjectiveC ' +
+            'bridgeToObjectiveCUnconditional c contains count countElements ' +
+            'countLeadingZeros debugPrint debugPrintln distance dropFirst dropLast dump ' +
+            'encodeBitsAsWords enumerate equal filter find getBridgedObjectiveCType ' +
+            'getVaList indices insertionSort isBridgedToObjectiveC ' +
+            'isBridgedVerbatimToObjectiveC isUniquelyReferenced join ' +
+            'lexicographicalCompare map max maxElement min minElement numericCast ' +
+            'partition posix print println quickSort reduce reflect reinterpretCast ' +
+            'reverse roundUpToAlignment sizeof sizeofValue sort split startsWith strideof ' +
+            'strideofValue swap swift toString transcode underestimateCount ' +
+            'unsafeReflect withExtendedLifetime withObjectAtPlusZero withUnsafePointer ' +
+            'withUnsafePointerToObject withUnsafePointers withVaList',
         };
 
         var TYPE = {
-          className: "type",
+          className: 'type',
           begin: "\\b[A-Z][\\w']*",
-          relevance: 0
+          relevance: 0,
         };
-        var BLOCK_COMMENT = hljs.COMMENT("/\\*", "\\*/", {
-          contains: ["self"]
+        var BLOCK_COMMENT = hljs.COMMENT('/\\*', '\\*/', {
+          contains: ['self'],
         });
         var SUBST = {
-          className: "subst",
+          className: 'subst',
           begin: /\\\(/,
-          end: "\\)",
+          end: '\\)',
           keywords: SWIFT_KEYWORDS,
-          contains: [] // assigned later
+          contains: [], // assigned later
         };
         var NUMBERS = {
-          className: "number",
+          className: 'number',
           begin:
-            "\\b([\\d_]+(\\.[\\deE_]+)?|0x[a-fA-F0-9_]+(\\.[a-fA-F0-9p_]+)?|0b[01_]+|0o[0-7_]+)\\b",
-          relevance: 0
+            '\\b([\\d_]+(\\.[\\deE_]+)?|0x[a-fA-F0-9_]+(\\.[a-fA-F0-9p_]+)?|0b[01_]+|0o[0-7_]+)\\b',
+          relevance: 0,
         };
         var QUOTE_STRING_MODE = hljs.inherit(hljs.QUOTE_STRING_MODE, {
-          contains: [SUBST, hljs.BACKSLASH_ESCAPE]
+          contains: [SUBST, hljs.BACKSLASH_ESCAPE],
         });
         SUBST.contains = [NUMBERS];
 
@@ -103,69 +104,69 @@ const siteConfig = {
             TYPE,
             NUMBERS,
             {
-              className: "func",
-              beginKeywords: "fun",
-              end: "=>",
+              className: 'func',
+              beginKeywords: 'fun',
+              end: '=>',
               excludeEnd: true,
               contains: [
                 hljs.inherit(hljs.TITLE_MODE, {
                   begin: /[A-Za-z$_][0-9A-Za-z$_]*/,
-                  illegal: /\(/
+                  illegal: /\(/,
                 }),
                 {
-                  className: "generics",
+                  className: 'generics',
                   begin: /</,
                   end: />/,
-                  illegal: />/
+                  illegal: />/,
                 },
                 {
-                  className: "params",
+                  className: 'params',
                   begin: /\s/,
                   end: /\=\>/,
                   endsParent: true,
                   excludeEnd: true,
                   keywords: SWIFT_KEYWORDS,
                   contains: [
-                    "self",
+                    'self',
                     NUMBERS,
                     QUOTE_STRING_MODE,
                     hljs.C_BLOCK_COMMENT_MODE,
-                    { begin: ":" } // relevance booster
+                    {begin: ':'}, // relevance booster
                   ],
-                  illegal: /["]/
-                }
+                  illegal: /["]/,
+                },
               ],
-              illegal: /\[|%/
+              illegal: /\[|%/,
             },
             {
-              className: "class",
-              beginKeywords: "module struct protocol class extension enum",
+              className: 'class',
+              beginKeywords: 'module struct protocol class extension enum',
               keywords: SWIFT_KEYWORDS,
-              end: "\\{",
+              end: '\\{',
               excludeEnd: true,
               contains: [
                 hljs.inherit(hljs.TITLE_MODE, {
-                  begin: /[A-Za-z$_][0-9A-Za-z$_]*/
-                })
-              ]
+                  begin: /[A-Za-z$_][0-9A-Za-z$_]*/,
+                }),
+              ],
             },
             {
-              className: "preprocessor", // @attributes
+              className: 'preprocessor', // @attributes
               begin:
-                "(@assignment|@class_protocol|@exported|@final|@lazy|@noreturn|" +
-                "@NSCopying|@NSManaged|@objc|@optional|@required|@auto_closure|" +
-                "@noreturn|@IBAction|@IBDesignable|@IBInspectable|@IBOutlet|" +
-                "@infix|@prefix|@postfix)"
-            }
-          ]
+                '(@assignment|@class_protocol|@exported|@final|@lazy|@noreturn|' +
+                '@NSCopying|@NSManaged|@objc|@optional|@required|@auto_closure|' +
+                '@noreturn|@IBAction|@IBDesignable|@IBInspectable|@IBOutlet|' +
+                '@infix|@prefix|@postfix)',
+            },
+          ],
         };
       });
-    }
+    },
   },
   algolia: {
-    apiKey: "a7cfb79b829d08c14bd06ae075f9baac",
-    indexName: "esy"
-  }
+    apiKey: 'a7cfb79b829d08c14bd06ae075f9baac',
+    indexName: 'esy',
+  },
 };
 
 module.exports = siteConfig;

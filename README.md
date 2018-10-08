@@ -118,11 +118,34 @@ There are two branches:
 - `master` — the active development, we cut new versions out of there regularly.
 - `0.0.x` — maintainance branch for 0.0.x releases.
 
-### Issues
+
+## Workflow for esy.sh
+
+To make changes to [esy.sh][]:
+
+1. Bootstrap site's dev environment:
+
+  ```
+  % make site-bootstrap
+  ```
+
+2. Run site locally:
+
+  ```
+  % make site-start
+  ```
+
+3. When you are happy with the changes:
+
+  ```
+  % make site-publish
+  ```
+
+## Issues
 
 Issues are tracked at [esy/esy][].
 
-### Publishing Releases
+## Publishing Releases
 
 esy is released on npm.
 
