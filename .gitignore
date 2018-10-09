@@ -2,6 +2,7 @@
 /coverage
 /lib
 /_export
+/_esy
 /_build
 /_release
 /_platformrelease
