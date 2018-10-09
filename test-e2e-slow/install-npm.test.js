@@ -45,17 +45,21 @@ const cases = [
       require('babel-core');
     `,
   },
-  // Blocked by #507
-  // {
-  //   name: 'react-scripts',
-  //   test: `
-  //     require('react-scripts/bin/react-scripts.js');
-  //   `,
-  // },
+  {
+    name: 'react-scripts',
+    test: `
+      require('react-scripts/bin/react-scripts.js');
+    `,
+  }
 ];
 
+// All of these tests are blocked by issue #506 on Windows
+// TODO: Fix #506 and enable these!
 const windowsBlacklist = [
-    "webpack" // Blocked by #506
+    "webpack",
+    "jest-cli",
+    "babel-cli",
+    "react-scripts",
 ];
 
 let p;
