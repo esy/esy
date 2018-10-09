@@ -38,7 +38,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         | _ -> true
       )
     |> List.map ~f:(fun (name, value) ->
-        "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
+        "\"" ^ name ^ "\", \"" ^ EsyLib.Path.normalizePathSlashes (Environment.escapeDoubleQuote value) ^ "\"")
     |> String.concat ";"
   in
   Printf.sprintf {|
@@ -81,7 +81,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         Sys.argv.(0) <- program;
         Unix.execve program Sys.argv env
       )
-  |} environmentString bin bin
+  |} environmentString (EsyLib.Path.normalizePathSlashes bin) (EsyLib.Path.normalizePathSlashes bin)
 
 let configure ~(cfg : Config.t) () =
   let open RunAsync.Syntax in
@@ -230,7 +230,7 @@ let make
               | Some v  -> v
               | None -> ""
             in
-            String.split_on_char ':' v
+            String.split_on_char (System.Environment.sep ()).[0] v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
         let%bind namePath = resolveBinInEnv ~env name in
