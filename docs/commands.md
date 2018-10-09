@@ -3,13 +3,15 @@ id: commands
 title: Commands
 ---
 
-Reference of all available esy commands. The most common commands are [`esy install`](#esy-install) and [`esy build`](#esy-build).
+Reference of all available esy commands. The most common commands are [`esy
+install`](#esy-install) and [`esy build`](#esy-build).
 
 ## Main commands
 
 ### `esy`
 
-The default command combines `esy install` and `esy build` and runs them in consecutively.
+The default command combines `esy install` and `esy build` and runs them in
+consecutively.
 
 ### `esy install`
 
@@ -19,8 +21,8 @@ Install dependencies declared in `package.json`:
 % esy install
 ```
 
-If the file `esy.lock` (an analogue of `yarn.lock`) exists then it will be used to
-resolve dependencies' version constraints to concrete versions, otherwise
+If the file `esy.lock` (an analogue of `yarn.lock`) exists then it will be used
+to resolve dependencies' version constraints to concrete versions, otherwise
 constraints resolution will be performed and saved to a fresh `esy.lock`.
 
 This command is based on `yarn` and accepts the same command line arguments and
@@ -122,6 +124,16 @@ test the project as it was installed.
 
 ## Sandbox introspection
 
+### `esy ls-builds`
+
+Prints a dependency tree with status of each package.
+
+Example:
+
+```bash
+% esy ls-builds
+```
+
 ### `esy ls-libs`
 
 Prints a dependency tree with all available libraries.
@@ -132,14 +144,14 @@ Example:
 % esy ls-libs
 ```
 
-### `esy ls-builds`
+### `esy ls-modules`
 
-Prints a dependency tree with status of each package.
+Prints a dependency tree with all available libraries and modules.
 
 Example:
 
 ```bash
-% esy ls-builds
+% esy ls-modules
 ```
 
 ### `esy build-env`
@@ -180,37 +192,6 @@ Produce an npm package with pre built binaries for the current platform inside
 the `_release` directory.
 
 See [Building Releases](release.md) for more info.
-
-### `esy config`
-
-Query esy configuration.
-
-List all configuration parameters:
-
-```bash
-% esy config ls
-```
-
-Query specific keys:
-
-```bash
-% esy config get store-path
-```
-
-### `esy import-opam <pkg-name> <pkg-version> <path-to-opam-file>`
-
-Import OPAM package metadata and produce corresponding esy metadata.
-
-Example:
-
-```bash
-% esy import-opam lwt 3.0.0 ./lwt.opam > package.json
-```
-
-### `esy install-cache`
-
-Manage installation cache. This command is based on `yarn install-cache`
-comman and accepts the same command line options.
 
 ### `esy export-dependencies`
 
