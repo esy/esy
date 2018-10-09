@@ -4,8 +4,8 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  - script: 'npm install -g esy@0.2.11'
-    displayName: 'npm install -g esy@0.2.11'
+  - script: 'npm install -g esy@next'
+    displayName: 'install esy'
 
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
