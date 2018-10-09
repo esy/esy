@@ -28,6 +28,7 @@ let localPrefixPath spec =
   Path.(spec.path / "_esy" / name)
 
 let installationPath spec = Path.(localPrefixPath spec / "installation.json")
+let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
 let nodeModulesPath spec = Path.(localPrefixPath spec / "node_modules")
 let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")

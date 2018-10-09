@@ -897,4 +897,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       (SandboxSpec.installationPath sandbox.spec)
   in
 
+  let%bind () =
+    let path = SandboxSpec.pnpJsPath sandbox.spec in
+    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    Fs.writeFile ~data path
+  in
+
   return ()
