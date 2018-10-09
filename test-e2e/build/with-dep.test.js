@@ -11,21 +11,18 @@ function makeFixture(p, buildDep) {
         build: 'true',
       },
       dependencies: {
-        dep: '*',
+        dep: 'path:./dep',
       },
     }),
     helpers.dir(
-      'node_modules',
-      helpers.dir(
-        'dep',
-        helpers.packageJson({
-          name: 'dep',
-          version: '1.0.0',
-          esy: buildDep,
-          '_esy.source': 'path:./',
-        }),
-        helpers.dummyExecutable('dep'),
-      ),
+      'dep',
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: buildDep,
+        '_esy.source': 'path:./',
+      }),
+      helpers.dummyExecutable('dep'),
     ),
   ];
 }
@@ -64,6 +61,7 @@ describe('Build with dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
@@ -86,7 +84,9 @@ describe('Build with dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
+        await assertions(p);
       };
     }
 
@@ -111,7 +111,9 @@ describe('Build with dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
+        await assertions(p);
       };
     }
     it('makes dep available in envs', withProject(checkDepIsInEnv));

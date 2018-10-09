@@ -17,7 +17,7 @@ function makeFixture(p, buildDep) {
         build: 'true',
       },
       dependencies: {
-        dep: '*',
+        dep: 'link:./dep',
       },
     }),
     helpers.dir(
@@ -28,19 +28,6 @@ function makeFixture(p, buildDep) {
         esy: buildDep,
       }),
       helpers.dummyExecutable('dep'),
-    ),
-    helpers.dir(
-      'node_modules',
-      helpers.dir(
-        'dep',
-        helpers.file(
-          '_esylink',
-          JSON.stringify({
-            source: `link:${path.join(p.projectPath, 'dep')}`,
-          }),
-        ),
-        helpers.symlink('package.json', '../../dep/package.json'),
-      ),
     ),
   ];
 }
@@ -96,6 +83,7 @@ describe('Build with a linked dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
@@ -123,6 +111,7 @@ describe('Build with a linked dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
@@ -154,6 +143,7 @@ describe('Build with a linked dep', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };

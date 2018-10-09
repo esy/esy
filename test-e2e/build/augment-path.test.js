@@ -15,11 +15,11 @@ describe('Allows deps to aughment $PATH', () => {
           build: 'true',
         },
         dependencies: {
-          dep: '*',
+          dep: 'path:./dep',
         },
       }),
       helpers.dir(
-        ['node_modules', 'dep'],
+        'dep',
         helpers.packageJson({
           name: 'dep',
           version: '1.0.0',
@@ -41,11 +41,11 @@ describe('Allows deps to aughment $PATH', () => {
               },
             },
           },
-          '_esy.source': 'path:.',
         }),
         helpers.dummyExecutable('dep'),
       ),
     );
+    await p.esy('install');
     await p.esy('build');
 
     {

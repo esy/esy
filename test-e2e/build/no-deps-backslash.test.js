@@ -31,6 +31,7 @@ it('Build - no deps backslash', async () => {
     ),
   );
 
+  await p.esy('install');
   await p.esy('build');
 
   const {stdout} = await p.esy('x test.cmd');

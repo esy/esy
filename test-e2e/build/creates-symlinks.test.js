@@ -21,12 +21,12 @@ it('Correctly handles symlinks within the installation', async () => {
         ],
       },
       dependencies: {
-        dep: '*',
+        dep: 'path:./dep',
       },
     }),
     helpers.dummyExecutable('creates-symlinks'),
     helpers.dir(
-      ['node_modules', 'dep'],
+      'dep',
       helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
@@ -46,6 +46,7 @@ it('Correctly handles symlinks within the installation', async () => {
     ),
   );
 
+  await p.esy('install');
   await p.esy('build');
 
   const expecting = expect.stringMatching('__dep__');

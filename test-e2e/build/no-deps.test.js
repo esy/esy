@@ -35,6 +35,7 @@ describe('Build simple executable with no deps', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
@@ -57,6 +58,7 @@ describe('Build simple executable with no deps', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
@@ -82,6 +84,7 @@ describe('Build simple executable with no deps', () => {
             ],
           }),
         );
+        await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };

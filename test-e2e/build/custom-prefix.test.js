@@ -23,6 +23,7 @@ it('Can be configured to build into a custom prefix (via .esyrc)', async () => {
     helpers.dummyExecutable('custom-prefix'),
   );
 
+  await p.esy('install', {noEsyPrefix: true});
   await p.esy('build', {noEsyPrefix: true});
 
   const {stdout} = await p.esy('x custom-prefix.cmd', {noEsyPrefix: true});

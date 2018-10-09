@@ -146,7 +146,7 @@ function makeFixture(p) {
   ];
 }
 
-test('Build project and dep with different version of the same buildTimeDep', async () => {
+test.skip('Build project and dep with different version of the same buildTimeDep', async () => {
   const p = await helpers.createTestSandbox();
   await p.fixture(...makeFixture(p));
   await p.esy('build');
