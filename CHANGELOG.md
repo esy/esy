@@ -1,5 +1,164 @@
 # CHANGELOG
 
+## 0.3.0 @ next
+
+- Dependency solver now works on Windows (#471, #473, #495).
+
+- A multitude of fixes for Windows support.
+
+  esy now is being built with esy on Windows!
+
+- Support multiple sandbox configurations per project (#445).
+
+  Multiple sandboxes could be configured per project which then can be addressed
+  via `@<sandbox-name>` syntax in esy invocations.
+
+  Given that there's `compiler406.json` file in the project directory:
+
+  ```
+  % esy @compiler406
+  ```
+
+  The command above could be used to install and build the corresponding
+  sandbox. The syntax used inside `compiler406.json` file follows `package.json`
+  syntax.
+
+  An override mechanism can be used to define new sandboxes which "inherit"
+  configuration from other sandboxes:
+
+  ```
+  {
+    "source": "./package.json",
+    "override": {
+      "devDependenciesOverride": {
+        "ocaml": "4.6.x"
+      }
+    }
+  }
+  ```
+
+  See [Multiple Project Sandbox](https://esy.sh/docs/en/multiple-sandboxes.html)
+  guide for more info on the feature.
+
+- Support metadata overrides in resolutions (#451).
+
+  A new syntax is allowed when specifying a resolution:
+
+  ```
+  "resolutions": {
+    "<package-name>": {
+      "source": <package-source>,
+      "override": <package-override>
+    }
+  }
+  ```
+
+  Where `<package-override>` could define overrides for the following metadata
+  found in the `<package-source>` manifest:
+
+  - Custom build/install commands
+  - Build environment
+  - Exported environment
+  - Dependencies
+
+  Example:
+
+  ```
+  "resolutions": {
+    "package": {
+      "source": "https://example.com/some.tgz",
+      "override": {
+        "build": [
+          "./configure --prefix #{self.install}",
+          "make"
+        ],
+        "install": [
+          "make install"
+        ],
+        "exportedEnv": {
+          "LIBRARY_PATH": {
+            "val": "#{self.lib: $LIBRARY_PATH}",
+            "scope": "global"
+          }
+        }
+      }
+    }
+  }
+  ```
+
+  This could be used to "port" software into esy on the fly.
+
+- Support metadata overrides in dependencies' manifests
+
+  Now a dependency can be resolved to a manifest which contains an override:
+
+  ```
+  {
+    "source": <package-source>,
+    "override": <package-override>
+  }
+  ```
+
+  An override chain can contain more than a single step.
+
+- Allow to link to opam packages (#442, #446).
+
+  Previously if one wanted to link to an opam package they needed to add
+  `package.json` with esy specific metadata to a package sources.
+
+  Now linking directly to opam packages is supported but the path to `*.opam`
+  file must be specified:
+
+  ```
+  "resolutions": {
+    "lwt": "link:../path/to/lwt/lwt.opam",
+    "lwt_ppx": "link:../path/to/lwt/lwt_ppx.opam",
+  }
+  ```
+
+  See [docs](https://esy.sh/docs/en/linking-workflow.html#with-opam-packages)
+  for more info.
+
+- Allow installing opam packages from GitHub or git sources (#442).
+
+  It is now possible to fetch opam package sources directly from GitHub or git
+  repositories:
+
+  ```
+  "resolutions": {
+    "lwt": "ocsigen/lwt:lwt.opam",
+    "lwt_ppx": "ocsigen/lwt:lwt_ppx.opam",
+  }
+  ```
+
+  See [docs](https://esy.sh/docs/en/using-repo-sources-workflow.html#with-opam-packages<Paste>)
+	for more info.
+
+- Fixes to `path:` and `link:` resolution (#492, #497).
+
+  Previously when such dependencies were appearing in a non root package the
+  behaviour was unspecified. Now those are correctly resolved relatively to the
+  origin.
+
+- Various fixes to error reporting (#479, #486, #493).
+
+- Fix solver to prefer recently released packages (#489)
+
+  The criteria was configured wrong previously, now we define a special property
+  "staleness" (number of releases before the latest release) which we optimize
+  to a minimum.
+
+- Add experimental `esy gc` command (#438).
+
+	(GC stands for garbage collection)
+
+	The command is used to remove all artifacts from stores but those used by the
+	GC "roots" specified on the command line.
+
+	The feature is useful to reduce the space taken by build store and is going to
+	be suggested to be executed on CI to remove unused artifacts from esy store
+	cache.
+
 ## 0.2.11 @ latest
 
 - Bust cache to workaround buggy 0.2.9 poisoned build artifacts.
