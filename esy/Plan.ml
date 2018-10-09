@@ -164,20 +164,25 @@ let readManifests (installation : Installation.t) =
 
   Logs_lwt.debug (fun m -> m "reading manifests");%lwt
 
+  let queue = LwtTaskQueue.create ~concurrency:100 () in
+
   let readManifest (id, loc) =
-    let manifest =
-      match loc with
-      | Installation.Install { path; source = _; } ->
-        Manifest.ofDir path
-      | Installation.Link { path; manifest } ->
-        Manifest.ofDir ?manifest path
+    let f () =
+      let manifest =
+        match loc with
+        | Installation.Install { path; source = _; } ->
+          Manifest.ofDir path
+        | Installation.Link { path; manifest } ->
+          Manifest.ofDir ?manifest path
+      in
+      let%bind manifest =
+        RunAsync.contextf
+          manifest
+          "reading manifest %a" PackageId.pp id
+      in
+      return (id, manifest)
     in
-    let%bind manifest =
-      RunAsync.contextf
-        manifest
-        "reading manifest %a" PackageId.pp id
-    in
-    return (id, manifest)
+    LwtTaskQueue.submit queue f
   in
 
   let%bind items =
@@ -514,12 +519,18 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
         Hashtbl.replace tasks id running;
         running
       | None -> RunAsync.return ()
+      | exception Not_found -> RunAsync.return ()
       end
   in
 
   let rec process pkg =
-    let%bind () = processDependencies pkg in
-    runIfNeeded pkg
+    let id = Solution.Package.id pkg in
+    match PackageId.Map.find id plan.tasks with
+    | Some _ -> 
+      let%bind () = processDependencies pkg in
+      runIfNeeded pkg
+    | None -> RunAsync.return ()
+    | exception Not_found -> RunAsync.return ()
   and processDependencies pkg =
     let dependencies = Solution.dependencies pkg plan.solution in
     let dependencies = StringMap.values dependencies in
