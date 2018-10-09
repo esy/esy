@@ -3,27 +3,32 @@ id: what-why
 title: What & Why
 ---
 
-## For npm users
+esy is a rapid workflow for developing Reason/OCaml projects. It supports native
+packages hosted on opam and npm.
 
-For those familiar with [npm](https://npmjs.org/), esy allows to work with
-Reason/OCaml projects within the familiar npm-like workflow:
+
+## For [npm](https://npmjs.org/) users
+
+esy lets you manage native Reason/OCaml projects with a familiar npm-like workflow:
 
 * Declare dependencies in `package.json`.
 
-* Install and build with `esy` command.
+* Run the `esy` command within your project to download/build dependencies.
 
-* Share your work with other developers by publishing on npm registry and/or
-  GitHub.
+* Share and consume individual Reason/OCaml package sources on the npm registry or Github.
 
 * Access packages published on [opam](https://opam.ocaml.org/) (a package
   registry for OCaml) via `@opam` npm scope (for example `@opam/lwt` to pull
   `lwt` library from opam).
 
-## For opam users
+* Easily bundle your project into a self contained, prebuilt binary package and share it
+  on npm. These can be installed by anyone using plain npm.
 
-For those who familiar with [opam](https://opam.ocaml.org/), esy provides a
-powerful alternative (to the `opam` tool, opam packages are still accessible
-with esy):
+## For [opam](https://opam.ocaml.org/) users
+
+esy provides a fast and powerful workflow for local development of opam packages without
+requiring "switches". Opam packages are still accessable, and you can publish
+your packages to opam repository.
 
 * Manages OCaml compilers and dependencies on a per project basis.
 
@@ -53,9 +58,9 @@ with esy):
   variables, and `esy` makes them behave predictably, and usually even gets them
   out of your way entirely.
 
-* Allows symlink workflows for local development (by enforcing out-of-source
-  builds). This allows you to work on several projects locally, make changes to
-  one project and the projects that depend on it will automatically know they
-  need to rebuild themselves.
+* Allows symlink style workflows for local development using `link:` dependencies.
+  Allows you to work on several projects locally, automatically rebuilding any
+  linked dependencies that have changed. There is no need to first register a package
+  as "linkable".
 
 * Run commands in project environment quickly `esy <anycommand>`.
