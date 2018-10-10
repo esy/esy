@@ -206,6 +206,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
       overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       devDependencies = Package.Dependencies.NpmFormula [];
+      optDependencies = StringSet.empty;
       resolutions = Package.Resolutions.empty;
       opam = None;
       kind = Esy;

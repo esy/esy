@@ -79,6 +79,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         overrides = Package.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
+        optDependencies = StringSet.empty;
         resolutions = Package.Resolutions.empty;
         opam = None;
         kind = Esy;
@@ -117,6 +118,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
+      optDependencies = StringSet.empty;
       resolutions = Package.Resolutions.empty;
       opam = None;
       kind = Package.Esy;

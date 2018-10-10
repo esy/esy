@@ -37,6 +37,8 @@ module Package = struct
     version: Version.t;
     source: SourceWithMirrors.t;
     overrides: Package.Overrides.t [@default Package.Overrides.empty];
+    dependencies : PackageId.Set.t;
+    devDependencies : PackageId.Set.t;
     files : Package.File.t list;
     opam : Opam.t option;
   } [@@deriving yojson]

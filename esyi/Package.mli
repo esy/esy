@@ -288,6 +288,7 @@ type t = {
   overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
+  optDependencies: StringSet.t;
   resolutions : Resolutions.t;
   opam : Opam.t option;
   kind : kind;

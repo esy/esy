@@ -9,6 +9,7 @@ module Manifest = struct
     name : string option [@default None];
     version : SemverVersion.Version.t option [@default None];
     dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    optDependencies : Json.t StringMap.t [@default StringMap.empty];
     esy : EsyPackageJson.t option [@default None];
     dist : dist option [@default None]
   } [@@deriving of_yojson { strict = false }]
@@ -123,6 +124,7 @@ let packageOfJson
     originalName = pkgJson.name;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
+    optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;
     resolutions;
     source = source, [];
     overrides = Package.Overrides.empty;

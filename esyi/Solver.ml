@@ -230,7 +230,10 @@ let rec findResolutionForRequest resolver req = function
     then Some res
     else findResolutionForRequest resolver req rest
 
-let solutionPkgOfPkg (pkg : Package.t) =
+let solutionPkgOfPkg
+  (pkg : Package.t)
+  (dependenciesMap : PackageId.t StringMap.t)
+  =
   let open RunAsync.Syntax in
 
   let%bind files =
@@ -254,15 +257,70 @@ let solutionPkgOfPkg (pkg : Package.t) =
     | None -> None
   in
 
-  return {
+  let idsOfDependencies ~skipNotInstalled dependencies =
+    let f req =
+      match StringMap.find req.Req.name dependenciesMap with
+      | None ->
+        if skipNotInstalled
+        then None
+        else
+          let msg =
+            Format.asprintf
+              "invariant violation: dependency %s of %a was not installed"
+              req.Req.name Package.pp pkg
+          in
+          failwith msg
+      | Some id -> Some id
+    in
+    dependencies
+    |> Dependencies.toApproximateRequests
+    |> List.map ~f
+    |> List.filterNone
+    |> PackageId.Set.of_list
+  in
+
+  let dependencies =
+    let optDependencies =
+      let f name = StringMap.find name dependenciesMap in
+      pkg.optDependencies
+      |> StringSet.elements
+      |> List.map ~f
+      |> List.filterNone
+      |> PackageId.Set.of_list
+    in
+    let dependencies =
+      idsOfDependencies
+        ~skipNotInstalled:false
+        pkg.dependencies
+    in
+    PackageId.Set.union dependencies optDependencies
+  in
+  let devDependencies =
+    let devDependencies =
+      idsOfDependencies
+        ~skipNotInstalled:true
+        pkg.devDependencies
+    in
+    PackageId.Set.diff devDependencies dependencies
+  in
+
+  let allDependencies =
+    let set = PackageId.Set.union dependencies devDependencies in
+    let f id map = StringMap.add (PackageId.name id) id map in
+    PackageId.Set.fold f set StringMap.empty
+  in
+
+  return ({
     Solution.Package.
     name = pkg.name;
     version = pkg.version;
     overrides = pkg.overrides;
     source = pkg.source;
+    dependencies;
+    devDependencies;
     files;
     opam;
-  }
+  }, allDependencies)
 
 let make ~cfg ~resolver ~resolutions () =
   let open RunAsync.Syntax in
@@ -404,6 +462,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     opam = None;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
+    optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
   } in
@@ -767,21 +826,31 @@ let solve (sandbox : Sandbox.t) =
   in
 
   let%bind solution =
-    let%bind root = solutionPkgOfPkg sandbox.root in
-    let solution = Solution.empty (Solution.Package.id root) in
+
+    let allDependenciesMap =
+      let f _pkg dependencies map =
+        StringMap.mergeOverride map dependencies
+      in
+      Package.Map.fold f packagesToDependencies StringMap.empty
+    in
+
     let%bind solution =
-      let f solution (pkg, dependencies) =
-        let%bind pkg = solutionPkgOfPkg pkg in
-        let solution = Solution.add pkg dependencies solution in
-        return solution
+      let%bind root, dependencies = solutionPkgOfPkg sandbox.root allDependenciesMap in
+      return (
+        Solution.empty (Solution.Package.id root)
+        |> Solution.add root dependencies
+      )
+    in
+
+    let%bind solution =
+      let f solution (pkg, _) =
+        let%bind pkg, dependencies = solutionPkgOfPkg pkg allDependenciesMap in
+        return (Solution.add pkg dependencies solution)
       in
       packagesToDependencies
       |> Package.Map.bindings
       |> RunAsync.List.foldLeft ~f ~init:solution
     in
-
-    let dependencies = Package.Map.find sandbox.root packagesToDependencies in
-    let solution = Solution.add root dependencies solution in
     return solution
   in
 

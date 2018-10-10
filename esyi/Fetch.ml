@@ -244,6 +244,8 @@ module Layout = struct
       version = Version.Npm (parseVersionExn version);
       source = Source.NoSource, [];
       overrides = Overrides.empty;
+      dependencies = PackageId.Set.empty;
+      devDependencies = PackageId.Set.empty;
       files = [];
       opam = None;
     } : Package.t)
