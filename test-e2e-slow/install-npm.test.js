@@ -2,6 +2,7 @@
 
 const {createSandbox} = require('./setup.js');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const cases = [
@@ -49,13 +50,28 @@ const cases = [
     test: `
       require('react-scripts/bin/react-scripts.js');
     `,
-  },
+  }
+];
+
+// All of these tests are blocked by issue #506 on Windows
+// TODO: Fix #506 and enable these!
+const windowsBlacklist = [
+    "webpack",
+    "jest-cli",
+    "babel-cli",
+    "react-scripts",
 ];
 
 let p;
 let reposUpdated = false;
 
 for (let c of cases) {
+
+  if (os.platform() === "win32" && windowsBlacklist.indexOf(c.name) >= 0) {
+    console.warn(`Skipping ${c.name} on Windows due to blocking bug.`);
+    continue;
+  }
+
   console.log(`*** installing ${c.name}`);
   const sandbox = createSandbox();
   console.log(`*** sandboxPath: ${sandbox.path}`);

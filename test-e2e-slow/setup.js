@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const childProcess = require('child_process');
 const rmSync = require('rimraf').sync;
+const isCi = require("is-ci");
 
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.6';
@@ -16,25 +17,28 @@ const esyCommand =
     : require.resolve('../bin/esy');
 
 function getTempDir() {
-  return isWindows ? os.tmpdir() : '/tmp';
+  // The appveyor temp folder has some permission issues - 
+  // so in that environment, we'll run these tests from a root folder.
+  const appVeyorTempFolder = "C:/esy-ci-temp";
+  return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';
 }
 
 const esyPrefixPath =
   process.env.TEST_ESY_PREFIX != null
     ? process.env.TEST_ESY_PREFIX
-    : path.join(getTempDir(), crypto.randomBytes(20).toString('hex'));
+    : path.join(getTempDir(), crypto.randomBytes(8).toString('hex'));
 
 function mkdir(path) {
   try {
-    fs.mkdirSync(path);
+    fs.mkdirpSync(path);
   } catch (e) {
     // doesn't matter if it exists
   }
 }
 
 function mkdirTemp() {
-  const p = path.join(getTempDir(), crypto.randomBytes(20).toString('hex'));
-  fs.mkdirSync(p);
+  const p = path.join(getTempDir(), crypto.randomBytes(8).toString('hex'));
+  fs.mkdirpSync(p);
   return p;
 }
 
@@ -51,15 +55,43 @@ function mkdirTemp() {
 
 */
 
+// Workaround for some current & intermittent failures on esy:
+// - https://github.com/esy/esy/issues/462
+// - https://github.com/esy/esy/issues/414
+// - https://github.com/esy/esy/issues/413
+function retry(fn) {
+    if (os.platform() !== "win32") {
+        return fn();
+    }
+
+    let iterations = 1;
+    let lastException = null;
+    while (iterations <= 3) {
+        try {
+            console.log(" ** Iteration: " + iterations.toString());
+            let ret = fn();
+            return ret;
+        } catch (ex) {
+            console.warn("Exception: " + ex.toString());
+            lastException = ex;
+        }
+
+        iterations++;
+    }
+
+    throw(lastException);
+}
+
 function createSandbox() /* : TestSandbox */ {
   const sandboxPath = mkdirTemp();
 
   let cwd = sandboxPath;
 
   function exec(...args /* : Array<string> */) {
-    const argsLine = args.map(arg => `'${arg.replace(/'/, '\\')}'`).join(' ');
-    console.log(`EXEC: ${argsLine}`);
-    childProcess.execSync(argsLine, {
+    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
+    const cmd = normalizedArgs.join(" ");
+    console.log(`EXEC: ${cmd}`);
+    childProcess.execSync(cmd, {
       cwd: cwd,
       env: {...process.env, ESY__PREFIX: esyPrefixPath},
       stdio: 'inherit',
@@ -83,7 +115,7 @@ function createSandbox() /* : TestSandbox */ {
     cd,
     rm,
     esy(...args /* : Array<string> */) {
-      return exec(esyCommand, ...args);
+      return retry(() => exec(esyCommand, ...args));
     },
     dispose: () => {
       rmSync(sandboxPath);
