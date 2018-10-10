@@ -3,6 +3,10 @@
 const {execSync} = require('child_process');
 const os = require('os');
 
+const isTaggedCommit = () => {
+  return process.env['TRAVIS_TAG'] != null || process.env['APPVEYOR_REPO_TAG'] === 'true';
+};
+
 const getCommitMessage = () => {
   let travisCommit = process.env['TRAVIS_COMMIT_MESSAGE'];
   let appVeyorCommit = process.env['APPVEYOR_REPO_COMMIT_MESSAGE'];
@@ -18,7 +22,12 @@ const getCommitMessage = () => {
 
 const latestCommit = getCommitMessage();
 
-if (latestCommit.indexOf('@slowtest') === -1 && !process.env['ESY_SLOWTEST']) {
+const shouldRunSlowtests =
+  isTaggedCommit() ||
+  latestCommit.indexOf('@slowtest') !== -1 ||
+  process.env['ESY_SLOWTEST'] !== null;
+
+if (!shouldRunSlowtests) {
   console.warn('Not running slowtests - commit message was: ' + latestCommit);
   process.exit(0);
 }
