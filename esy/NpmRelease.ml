@@ -245,7 +245,20 @@ let make
           % "unix.cmxa" % "str.cmxa"
           % p mlPath
         ) in
-        ChildProcess.run compile
+        let f p =
+          let%lwt stdout = Lwt_io.read p#stdout
+          and stderr = Lwt_io.read p#stderr in
+          match%lwt p#status with
+          | Unix.WEXITED 0 ->
+            RunAsync.return ()
+          | _ ->
+            Logs_lwt.err (fun m -> m
+              "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
+              Cmd.pp compile Fmt.lines stderr Fmt.lines stdout
+            );%lwt
+            RunAsync.error "error running command"
+        in
+        EsyBashLwt.with_process_full compile f
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
