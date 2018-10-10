@@ -96,16 +96,15 @@ describe('devDep workflow', () => {
 
   it('package "dev-dep" should be visible only in command env', async () => {
     const p = await createTestSandbox();
-    const expecting = expect.stringMatching('__devDep__');
 
     {
       const {stdout} = await p.esy('devDep.cmd');
-      expect(stdout.trim()).toEqual(expecting);
+      expect(stdout.trim()).toEqual('__devDep__');
     }
 
     {
       const {stdout} = await p.esy('x devDep.cmd');
-      expect(stdout.trim()).toEqual(expecting);
+      expect(stdout.trim()).toEqual('__devDep__');
     }
 
     return expect(p.esy('b devDep.cmd')).rejects.toThrow();

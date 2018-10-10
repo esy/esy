@@ -4,28 +4,16 @@ const helpers = require('../test/helpers.js');
 
 helpers.skipSuiteOnWindows();
 
-const dummyOCaml = helpers.dir(
-  'ocaml',
-  helpers.packageJson({
-    name: 'ocaml',
-    version: '0.0.0',
-  }),
-);
-
-const dummySubsts = helpers.dir(
-  '@esy-ocaml',
-  helpers.dir(
-    'substs',
-    helpers.packageJson({
-      name: '@esy-ocaml/substs',
-      version: '0.0.0',
-    }),
-  ),
-);
-
 describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
-    const p = await helpers.createTestSandbox(
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+    });
+
+    await p.fixture(
       helpers.file(
         'opam',
         `
@@ -38,9 +26,9 @@ describe('build opam sandbox', () => {
       `,
       ),
       helpers.dummyExecutable('hello'),
-      helpers.dir('node_modules', dummyOCaml, dummySubsts),
     );
 
+    await p.esy('install');
     await p.esy('build');
 
     {
@@ -75,7 +63,6 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      helpers.dir('node_modules', dummySubsts, dummyOCaml),
     );
 
     await p.esy('build');
@@ -284,8 +271,6 @@ describe('build opam sandbox', () => {
       ),
       helpers.dir(
         'node_modules',
-        dummySubsts,
-        dummyOCaml,
         helpers.dir(
           '@opam',
           helpers.dir(
