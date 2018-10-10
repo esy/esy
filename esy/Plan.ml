@@ -295,7 +295,7 @@ let make'
         return (Some build)
       end
 
-  and aux' pkgId record build =
+  and aux' pkgId pkg build =
     let location = Installation.findExn pkgId installation in
     let source, sourcePath, sourceType =
       match location with
@@ -305,11 +305,11 @@ let make'
         None, info.path, SourceType.Transient
     in
     let%bind dependencies =
-      let f (direct, record) =
-        let%bind build = aux record in
+      let f (direct, pkg) =
+        let%bind build = aux pkg in
         return (direct, build)
       in
-      Result.List.map ~f (Solution.allDependenciesBFS record solution)
+      Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
     in
 
     let id = buildId Manifest.Env.empty build source dependencies in
@@ -423,7 +423,7 @@ let make'
       buildScope;
     } in
 
-    tasks := PackageId.Map.add (Package.id record) (Some task) !tasks;
+    tasks := PackageId.Map.add (Package.id pkg) (Some task) !tasks;
 
     return task
 
