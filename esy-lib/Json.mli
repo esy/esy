@@ -34,4 +34,6 @@ end
 
 module Encode : sig
   val opt : 'a encoder -> 'a option encoder
+  val list : 'a encoder -> 'a list encoder
+  val string : string -> t
 end

@@ -133,4 +133,9 @@ module Encode = struct
     | None -> `Null
     | Some v -> encode v
 
+  let list encode v =
+    `List (List.map ~f:encode v)
+
+  let string v = `String v
+
 end
