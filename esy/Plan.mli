@@ -23,10 +23,6 @@ module Task : sig
     -> string
     -> string Run.t
 
-  val buildEnv : t -> Sandbox.Environment.Bindings.t Run.t
-  val commandEnv : t -> Sandbox.Environment.Bindings.t Run.t
-  val execEnv : t -> Sandbox.Environment.Bindings.t Run.t
-
   val to_yojson : t Json.encoder
 end
 
@@ -75,3 +71,7 @@ val buildDependencies :
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
+
+val buildEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
+val commandEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
+val execEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t

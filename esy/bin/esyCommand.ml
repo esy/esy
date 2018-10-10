@@ -807,7 +807,8 @@ let buildEnv =
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind env = Plan.Task.buildEnv task in
+    let%bind plan = info.plan in
+    let%bind env = Plan.buildEnv plan task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return env
   in
@@ -821,7 +822,8 @@ let commandEnv =
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind env = Plan.Task.commandEnv task in
+    let%bind plan = info.plan in
+    let%bind env = Plan.commandEnv plan task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return (Environment.current @ env)
   in
@@ -835,7 +837,8 @@ let sandboxEnv =
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind env = Plan.Task.execEnv task in
+    let%bind plan = info.plan in
+    let%bind env = Plan.execEnv plan task in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     Ok (Environment.current @ env)
   in
@@ -870,8 +873,8 @@ let makeExecCommand
 
   let%bind env = RunAsync.ofRun (
     match env with
-    | `CommandEnv -> Plan.Task.commandEnv task
-    | `SandboxEnv -> Plan.Task.execEnv task
+    | `CommandEnv -> Plan.commandEnv plan task
+    | `SandboxEnv -> Plan.execEnv plan task
   ) in
 
   let%bind env = RunAsync.ofStringError (

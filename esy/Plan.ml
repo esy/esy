@@ -47,34 +47,6 @@ module Task = struct
     let expr = Sandbox.Value.render buildConfig expr in
     return expr
 
-  let exposeUserEnv scope =
-    scope
-    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "PATH"
-    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "MAN_PATH"
-    |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.value "SHELL"
-
-  (* let exposeDevDependenciesEnv task scope = *)
-  (*   let f scope dep = *)
-  (*     match dep with *)
-  (*     | DevDependency, task -> Scope.add ~direct:true ~dep:task.exportedScope scope *)
-  (*     | _ -> scope *)
-  (*   in *)
-  (*   List.fold_left ~f ~init:scope task.dependencies *)
-
-  let buildEnv task = Scope.env ~includeBuildEnv:true task.buildScope
-
-  let commandEnv task =
-    task.buildScope
-    |> exposeUserEnv
-    (* |> exposeDevDependenciesEnv task *)
-    |> Scope.env ~includeBuildEnv:true
-
-  let execEnv task =
-    task.exportedScope
-    |> exposeUserEnv
-    (* |> exposeDevDependenciesEnv task *)
-    |> Scope.add ~direct:true ~dep:task.exportedScope
-    |> Scope.env ~includeBuildEnv:false
 end
 
 type t = {
@@ -213,13 +185,6 @@ let buildId sandboxEnv build source dependencies =
 
     (* include ids of dependencies *)
     let dependencies =
-      (* let f (direct, dependency) = *)
-      (*   match direct, dependency with *)
-      (*   | true, (Dependency, task) -> Some ("dep-" ^ task.id) *)
-      (*   | true, (BuildTimeDependency, task) -> Some ("buildDep-" ^ task.id) *)
-      (*   | true, (DevDependency, _) -> None *)
-      (*   | false, _ -> None *)
-      (* in *)
       let f dep =
         match dep with
         | _, None -> None
@@ -277,8 +242,8 @@ let make'
 
   let tasks = ref PackageId.Map.empty in
 
-  let rec aux record =
-    let id = Package.id record in
+  let rec aux pkg =
+    let id = Package.id pkg in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
@@ -289,7 +254,7 @@ let make'
       | Some build ->
         let%bind build =
           Run.contextf
-            (aux' id record build)
+            (aux' id pkg build)
             "processing %a" PackageId.pp id
         in
         return (Some build)
@@ -351,12 +316,16 @@ let make'
           match dep with
           | None -> (seen, exportedScope, buildScope)
           | Some build ->
-            if StringSet.mem build.Task.id seen
-            then seen, exportedScope, buildScope
+            (* don't add dev dependencies to build scope *)
+            if PackageId.Set.mem build.Task.pkgId pkg.devDependencies
+            then (seen, exportedScope, buildScope)
             else
-              StringSet.add build.Task.id seen,
-              Scope.add ~direct ~dep:build.exportedScope exportedScope,
-              Scope.add ~direct ~dep:build.exportedScope buildScope
+              if StringSet.mem build.Task.id seen
+              then seen, exportedScope, buildScope
+              else
+                StringSet.add build.Task.id seen,
+                Scope.add ~direct ~dep:build.exportedScope exportedScope,
+                Scope.add ~direct ~dep:build.exportedScope buildScope
         in
         List.fold_left
           ~f
@@ -526,7 +495,7 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
   let rec process pkg =
     let id = Solution.Package.id pkg in
     match PackageId.Map.find id plan.tasks with
-    | Some _ -> 
+    | Some _ ->
       let%bind () = processDependencies pkg in
       runIfNeeded pkg
     | None -> RunAsync.return ()
@@ -540,3 +509,35 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
   match Solution.get id plan.solution with
   | None -> RunAsync.errorf "no such package %a" PackageId.pp id
   | Some pkg -> processDependencies pkg
+
+let exposeUserEnv scope =
+  scope
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "PATH"
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "MAN_PATH"
+  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.value "SHELL"
+
+let exposeDevDependenciesEnv plan task scope =
+  let pkg = Solution.getExn task.Task.pkgId plan.solution in
+  let f id scope =
+    match PackageId.Map.find_opt id plan.tasks with
+    | Some (Some task) -> Scope.add ~direct:true ~dep:task.Task.exportedScope scope
+    | Some None
+    | None -> scope
+  in
+  PackageId.Set.fold f pkg.Package.devDependencies scope
+
+let buildEnv _plan task =
+  Scope.env ~includeBuildEnv:true task.Task.buildScope
+
+let commandEnv plan task =
+  task.Task.buildScope
+  |> exposeUserEnv
+  |> exposeDevDependenciesEnv plan task
+  |> Scope.env ~includeBuildEnv:true
+
+let execEnv plan task =
+  task.Task.buildScope
+  |> exposeUserEnv
+  |> exposeDevDependenciesEnv plan task
+  |> Scope.add ~direct:true ~dep:task.Task.exportedScope
+  |> Scope.env ~includeBuildEnv:false
