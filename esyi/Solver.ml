@@ -3,7 +3,7 @@ module Resolutions = Package.Resolutions
 module Resolution = Package.Resolution
 
 module Strategy = struct
-  let trendy = "-count[staleness,solution],-removed,-notuptodate,-new"
+  let trendy = "-count[staleness,solution]"
   (* let minimalAddition = "-removed,-changed,-notuptodate" *)
 end
 
