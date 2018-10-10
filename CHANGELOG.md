@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.3.2 @ next
+
+- Tweak solver criteria to optimize for recent package version.
+
+## 0.3.1 @ next
+
+- Filter out opam dependencies marked with `doc` and `test`.
+
 ## 0.3.0 @ next
 
 - Dependency solver now works on Windows (#471, #473, #495).
