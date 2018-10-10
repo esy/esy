@@ -9,10 +9,13 @@ they are released.
 
 ## With esy packages
 
-To use an unreleased version of an esy package specify a special type of
-dependency in [`resolutions`][cfg-resolutions] field:
+To use an unreleased version of an esy package specify a dependency resolution
+in [`resolutions`][cfg-resolutions] field alongside the depedency declaration:
 
 ```json
+"dependencies": {
+  "reason": "*"
+},
 "resolutions": {
   "reason": "facebook/reason"
 }
@@ -21,7 +24,7 @@ dependency in [`resolutions`][cfg-resolutions] field:
 This will fetch `reason` package sources from [facebook/reason][] GitHub
 repository.
 
-> Why `resolutions` and not `dependencies`?
+> Why `resolutions`?
 >
 > This is because in case any other package in the project's sandbox depends on
 > `reason` package then it will probably conflict with `facebook/reason`
@@ -61,6 +64,10 @@ name.
 Example:
 
 ```json
+"dependencies": {
+  "@opam/lwt": "*",
+  "@opam/lwt_ppx": "*"
+},
 "resolutions": {
   "@opam/lwt": "ocsigen/lwt:lwt.opam",
   "@opam/lwt_ppx": "ocsigen/lwt:lwt_ppx.opam"
