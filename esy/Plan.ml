@@ -465,26 +465,36 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
     Fs.exists installPath
   in
 
-  let run task () =
-    Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId);%lwt
+  let run ~quiet task () =
+    if not quiet
+    then Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId)
+    else Lwt.return ();%lwt
     let logPath = Task.logPath task in
     let%bind () = build ~buildConfig ~logPath task in
-    Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId);%lwt
+    if not quiet
+    then Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId)
+    else Lwt.return ();%lwt
     return ()
   in
 
   let runIfNeeded pkg =
+    let run task () =
+      let%bind isBuilt = isBuilt task in
+      match task.Task.sourceType with
+      | SourceType.Transient ->
+        LwtTaskQueue.submit queue (run ~quiet:isBuilt task)
+      | SourceType.Immutable ->
+        if isBuilt
+        then return ()
+        else LwtTaskQueue.submit queue (run ~quiet:false task)
+    in
     let id = Solution.Package.id pkg in
     match Hashtbl.find_opt tasks id with
     | Some running -> running
     | None ->
       begin match PackageId.Map.find id plan.tasks with
       | Some task ->
-        let running =
-          if%bind isBuilt task
-          then return ()
-          else LwtTaskQueue.submit queue (run task)
-        in
+        let running = run task () in
         Hashtbl.replace tasks id running;
         running
       | None -> RunAsync.return ()
