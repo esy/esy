@@ -541,3 +541,102 @@ let execEnv plan task =
   |> exposeDevDependenciesEnv plan task
   |> Scope.add ~direct:true ~dep:task.Task.exportedScope
   |> Scope.env ~includeBuildEnv:false
+
+let rewritePrefix ~origPrefix ~destPrefix rootPath =
+  let open RunAsync.Syntax in
+  let rewritePrefixInFile path =
+    let cmd = Cmd.(v "fastreplacestring" % p path % p origPrefix % p destPrefix) in
+    ChildProcess.run cmd
+  in
+  let rewriteTargetInSymlink path =
+    let%bind link = Fs.readlink path in
+    match Path.remPrefix origPrefix link with
+    | Some basePath ->
+      let nextTargetPath = Path.(destPrefix // basePath) in
+      let%bind () = Fs.unlink path in
+      let%bind () = Fs.symlink ~src:nextTargetPath path in
+      return ()
+    | None -> return ()
+  in
+  let rewrite (path : Path.t) (stats : Unix.stats) =
+    match stats.st_kind with
+    | Unix.S_REG ->
+      rewritePrefixInFile path
+    | Unix.S_LNK ->
+      rewriteTargetInSymlink path
+    | _ -> return ()
+  in
+  Fs.traverse ~f:rewrite rootPath
+
+let exportBuild ~(buildConfig : EsyBuildPackage.Config.t) ~outputPrefixPath buildPath =
+  let open RunAsync.Syntax in
+  let buildId = Path.basename buildPath in
+  let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s" buildId) in
+  let outputPath = Path.(outputPrefixPath / Printf.sprintf "%s.tar.gz" buildId) in
+  let%bind origPrefix, destPrefix =
+    let%bind prevStorePrefix = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
+    let nextStorePrefix = String.make (String.length prevStorePrefix) '_' in
+    return (Path.v prevStorePrefix, Path.v nextStorePrefix)
+  in
+  let%bind stagePath =
+    let path = Path.(buildConfig.storePath / "s" / buildId) in
+    let%bind () = Fs.rmPath path in
+    let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
+    return path
+  in
+  let%bind () = rewritePrefix ~origPrefix ~destPrefix stagePath in
+  let%bind () = Fs.createDir (Path.parent outputPath) in
+  let%bind () =
+    Tarball.create ~filename:outputPath ~outpath:buildId (Path.parent stagePath)
+  in
+  let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s: done" buildId) in
+  let%bind () = Fs.rmPath stagePath in
+  return ()
+
+let importBuild ~(buildConfig : EsyBuildPackage.Config.t) buildPath =
+  let open RunAsync.Syntax in
+  let buildId, kind =
+    if Path.hasExt "tar.gz" buildPath
+    then
+      (buildPath |> Path.remExt |> Path.remExt |> Path.basename, `Archive)
+    else
+      (buildPath |> Path.basename, `Dir)
+  in
+  let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
+  let outputPath = Path.(buildConfig.storePath / Store.installTree / buildId) in
+  if%bind Fs.exists outputPath
+  then (
+    let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
+    return ()
+  ) else
+    let importFromDir buildPath =
+      let%bind origPrefix =
+        let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
+        return (Path.v v)
+      in
+      let%bind () = rewritePrefix ~origPrefix ~destPrefix:buildConfig.storePath buildPath in
+      let%bind () = Fs.rename ~src:buildPath outputPath in
+      let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
+      return ()
+    in
+    match kind with
+    | `Dir ->
+      let%bind stagePath =
+        let path = Path.(buildConfig.storePath / "s" / buildId) in
+        let%bind () = Fs.rmPath path in
+        let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
+        return path
+      in
+      importFromDir stagePath
+    | `Archive ->
+      let stagePath = Path.(buildConfig.storePath / Store.stageTree / buildId) in
+      let%bind () =
+        let cmd = Cmd.(
+          v "tar"
+          % "-C" % p (Path.parent stagePath)
+          % "-xz"
+          % "-f" % p buildPath
+        ) in
+        ChildProcess.run cmd
+      in
+      importFromDir stagePath

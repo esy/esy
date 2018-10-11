@@ -75,3 +75,14 @@ val buildDependencies :
 val buildEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
 val commandEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
 val execEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
+
+val exportBuild :
+  buildConfig:EsyBuildPackage.Config.t
+  -> outputPrefixPath:Fpath.t
+  -> Fpath.t
+  -> unit RunAsync.t
+
+val importBuild :
+  buildConfig:EsyBuildPackage.Config.t
+  -> Fpath.t
+  -> unit RunAsync.t
