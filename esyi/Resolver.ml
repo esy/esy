@@ -342,8 +342,11 @@ let package ~(resolution : Resolution.t) resolver =
                   in
                   let formula = SemverVersion.Formula.ofDnfToCnf formula in
                   (List.map ~f:(List.map ~f) formula) @ edits
-                | VersionSpec.Opam _ ->
-                  failwith "cannot override with opam version"
+                | VersionSpec.Opam formula ->
+                  let f (c : OpamPackageVersion.Constraint.t) =
+                    {Package.Dep. name = req.name; req = Opam c}
+                  in
+                  (List.map ~f:(List.map ~f) formula) @ edits
                 | VersionSpec.NpmDistTag _ ->
                   failwith "cannot override opam with npm dist tag"
                 | VersionSpec.Source spec ->

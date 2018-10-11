@@ -252,15 +252,7 @@ module NpmFormulaOverride = struct
     let req_of_yojson name json =
       let open Result.Syntax in
       let%bind spec = Json.Decode.string json in
-      let%bind spec =
-        let parseSpec =
-          if isOpamPackageName name
-          then VersionSpec.parserOpam
-          else VersionSpec.parserNpm
-        in
-        Parse.(parse parseSpec) spec
-      in
-      return (Req.make ~name ~spec)
+      Req.parse (name ^ "@" ^ spec)
     in
     StringMap.Override.of_yojson req_of_yojson
 

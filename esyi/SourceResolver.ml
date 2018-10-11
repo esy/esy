@@ -2,7 +2,23 @@ module PackageOverride = struct
   type t = {
     source : Source.t;
     override : Package.Overrides.override;
-  } [@@deriving of_yojson]
+  }
+
+  let of_yojson json =
+    let open Result.Syntax in
+    let%bind source =
+      Json.Decode.fieldWith
+        ~name:"source"
+        Source.relaxed_of_yojson
+        json
+    in
+    let%bind override =
+      Json.Decode.fieldWith
+      ~name:"override"
+      Package.Overrides.override_of_yojson
+      json
+    in
+    return {source; override;}
 
 end
 
@@ -87,7 +103,11 @@ let ofPath ?manifest (path : Path.t)
         | ManifestSpec.Filename.Esy ->
           begin match Json.parseStringWith PackageOverride.of_yojson data with
           | Ok override -> return (Override override)
-          | Error _ -> return (Manifest {data; filename = fname; kind})
+          | Error err ->
+            Logs_lwt.debug (fun m ->
+              m "not an override %a: %a" Path.pp path Run.ppError err
+              );%lwt
+            return (Manifest {data; filename = fname; kind})
           end
         | ManifestSpec.Filename.Opam ->
           return (Manifest {data; filename = fname; kind})
