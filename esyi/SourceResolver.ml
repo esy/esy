@@ -87,7 +87,11 @@ let ofPath ?manifest (path : Path.t)
         | ManifestSpec.Filename.Esy ->
           begin match Json.parseStringWith PackageOverride.of_yojson data with
           | Ok override -> return (Override override)
-          | Error _ -> return (Manifest {data; filename = fname; kind})
+          | Error err ->
+            Logs_lwt.debug (fun m ->
+              m "not an override %a: %a" Path.pp path Run.ppError err
+              );%lwt
+            return (Manifest {data; filename = fname; kind})
           end
         | ManifestSpec.Filename.Opam ->
           return (Manifest {data; filename = fname; kind})
