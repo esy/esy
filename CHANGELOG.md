@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.3.4 @ next
+
+- One more fix for `esy import-build` which ensures we can run it on a
+  completely fresh project.
+
 ## 0.3.3 @ next
 
 - Fix `esy import-build` not to fail on a non initialized store, instead
