@@ -1,5 +1,6 @@
 open Esy
 
+module Solution = EsyInstall.Solution
 module Version = EsyInstall.Version
 
 let runAsyncToCmdlinerRet res =
@@ -284,14 +285,22 @@ end
 module SandboxInfo = struct
   type t = {
     spec: EsyInstall.SandboxSpec.t;
-    solution : EsyInstall.Solution.t option;
+    solution : Solution.t option;
     installation : EsyInstall.Installation.t option;
     sandbox : Sandbox.t;
-    plan : Plan.t Run.t;
+    plan : Plan.t option;
     info : Sandbox.info;
   }
 
-  let plan info = RunAsync.ofRun info.plan
+  let plan info =
+    match info.plan with
+    | Some plan -> RunAsync.return plan
+    | None -> RunAsync.errorf "no installation found, run 'esy install'"
+
+  let solution info =
+    match info.solution with
+    | Some solution -> RunAsync.return solution
+    | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let cachePath (cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
     let hash = [
@@ -409,7 +418,7 @@ module SandboxInfo = struct
         let%bind () = Sandbox.init sandbox in
         let%bind solution =
           let path = EsyInstall.SandboxSpec.lockfilePath spec in
-          EsyInstall.Solution.LockfileV1.ofFile ~sandbox:installSandbox path
+          Solution.LockfileV1.ofFile ~sandbox:installSandbox path
         in
         let%bind installation =
           let path = EsyInstall.SandboxSpec.installationPath spec in
@@ -426,9 +435,9 @@ module SandboxInfo = struct
               ~installation
               ()
             in
-            return (Run.return plan)
-          | _, None -> return (Run.error "no solution found, run 'esy install'")
-          | None, _ -> return (Run.error "no installation found, run 'esy install'")
+            return (Some plan)
+          | _, None -> return None
+          | None, _ -> return None
         in
         (* let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun ( *)
         (*   let open Run.Syntax in *)
@@ -613,19 +622,19 @@ module SandboxInfo = struct
   (* end *)
 end
 
-(* let resolvedPathTerm = *)
-(*   let open Cmdliner in *)
-(*   let parse v = *)
-(*     match Path.ofString v with *)
-(*     | Ok path -> *)
-(*       if Path.isAbs path then *)
-(*         Ok path *)
-(*       else *)
-(*         Ok Path.(EsyRuntime.currentWorkingDir // path |> normalize) *)
-(*     | err -> err *)
-(*   in *)
-(*   let print = Path.pp in *)
-(*   Arg.conv ~docv:"PATH" (parse, print) *)
+let resolvedPathTerm =
+  let open Cmdliner in
+  let parse v =
+    match Path.ofString v with
+    | Ok path ->
+      if Path.isAbs path then
+        Ok path
+      else
+        Ok Path.(EsyRuntime.currentWorkingDir // path |> normalize)
+    | err -> err
+  in
+  let print = Path.pp in
+  Arg.conv ~docv:"PATH" (parse, print)
 
 (* let pkgPathTerm = *)
 (*   let open Cmdliner in *)
@@ -779,9 +788,9 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let%bind info = SandboxInfo.make copts in
 
   let f (task : Plan.Task.t) =
+    let%bind env = computeEnv info task in
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = computeEnv info task in
       let header = header task in
       if asJson
       then
@@ -800,47 +809,47 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   in withBuildTaskById ~info packagePath f
 
 let buildEnv =
-  let open Run.Syntax in
   let header (task : Plan.Task.t) =
     Format.asprintf
       "# Build environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind plan = info.plan in
-    let%bind env = Plan.buildEnv plan task in
+    let open RunAsync.Syntax in
+    let%bind plan = SandboxInfo.plan info in
+    let%bind env = RunAsync.ofRun (Plan.buildEnv plan task) in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return env
   in
   makeEnvCommand ~computeEnv ~header
 
 let commandEnv =
-  let open Run.Syntax in
+  let open RunAsync.Syntax in
   let header (task : Plan.Task.t) =
     Format.asprintf
       "# Command environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind plan = info.plan in
-    let%bind env = Plan.commandEnv plan task in
+    let%bind plan = SandboxInfo.plan info in
+    let%bind env = RunAsync.ofRun (Plan.commandEnv plan task) in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
     return (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
 
 let sandboxEnv =
-  let open Run.Syntax in
+  let open RunAsync.Syntax in
   let header (task : Plan.Task.t) =
     Format.asprintf
       "# Sandbox environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (info : SandboxInfo.t) task =
-    let%bind plan = info.plan in
-    let%bind env = Plan.execEnv plan task in
+    let%bind plan = SandboxInfo.plan info in
+    let%bind env = RunAsync.ofRun (Plan.execEnv plan task) in
     let env = Sandbox.Environment.Bindings.render info.sandbox.buildConfig env in
-    Ok (Environment.current @ env)
+    return (Environment.current @ env)
   in
   makeEnvCommand ~computeEnv ~header
 
@@ -1187,7 +1196,7 @@ let getSandboxSolution installSandbox =
 
 let solve {CommonOptions. installSandbox; _} () =
   let open RunAsync.Syntax in
-  let%bind _ : EsyInstall.Solution.t = getSandboxSolution installSandbox in
+  let%bind _ : Solution.t = getSandboxSolution installSandbox in
   return ()
 
 let fetchNodeModules {CommonOptions. installSandbox = sandbox; _} () =
@@ -1316,123 +1325,114 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
       let%bind () = Fs.writeJsonFile ~json configPath in
       return ()
 
-(* let dependenciesForExport (task : Task.t) = *)
-(*   let f deps dep = match dep with *)
-(*     | Task.Dependency, depTask *)
-(*     | Task.BuildTimeDependency, depTask -> *)
-(*       begin match Task.sourceType depTask with *)
-(*       | Manifest.SourceType.Immutable -> (depTask, dep)::deps *)
-(*       | _ -> deps *)
-(*       end *)
-(*     | Task.DevDependency, _ -> deps *)
-(*   in *)
-(*   Task.dependencies task *)
-(*   |> List.fold_left ~f ~init:[] *)
-(*   |> List.rev *)
+let exportBuild copts buildPath () =
+  let open RunAsync.Syntax in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
+  Plan.exportBuild ~outputPrefixPath ~buildConfig:info.sandbox.buildConfig buildPath
 
-(* let exportBuild {CommonOptions. cfg; _} buildPath () = *)
-(*   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in *)
-(*   Task.exportBuild ~outputPrefixPath ~cfg buildPath *)
+let exportDependencies copts () =
+  let open RunAsync.Syntax in
 
-(* let exportDependencies copts () = *)
-(*   let open RunAsync.Syntax in *)
+  let%bind info = SandboxInfo.make copts in
+  let%bind plan = SandboxInfo.plan info in
+  let%bind solution = SandboxInfo.solution info in
 
-(*   let%bind {SandboxInfo. task = rootTask; sandbox; _} = *)
-(*     SandboxInfo.make copts *)
-(*   in *)
+  let queue = LwtTaskQueue.create ~concurrency:8 () in
 
-(*   let tasks = *)
-(*     rootTask *)
-(*     |> Task.Graph.traverse ~traverse:dependenciesForExport *)
-(*     |> List.filter ~f:(fun (task : Task.t) -> not (Task.id task = Task.id rootTask)) *)
-(*   in *)
+  let exportBuild (_, pkg) =
+    let aux () =
+      let task =
+        RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg))
+      in
+      match%bind task with
+      | None -> return ()
+      | Some task ->
+        let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
+        let buildPath = Sandbox.Path.toPath info.SandboxInfo.sandbox.buildConfig
+        (Plan.Task.installPath task) in
+        if%bind Fs.exists buildPath
+        then
+          let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
+          Plan.exportBuild ~outputPrefixPath ~buildConfig:info.sandbox.buildConfig buildPath
+        else (
+          errorf
+            "%s@%a was not built, run 'esy build' first"
+            pkg.name Version.pp pkg.version
+        )
+    in
+    LwtTaskQueue.submit queue aux
+  in
 
-(*   let queue = LwtTaskQueue.create ~concurrency:8 () in *)
+  Solution.allDependenciesBFS (Solution.root solution) solution
+  |> List.map ~f:exportBuild
+  |> RunAsync.List.waitAll
 
-(*   let exportBuild (task : Task.t) = *)
-(*     let pkg = Task.pkg task in *)
-(*     let aux () = *)
-(*       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in *)
-(*       let buildPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in *)
-(*       if%bind Fs.exists buildPath *)
-(*       then *)
-(*         let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in *)
-(*         Task.exportBuild ~outputPrefixPath ~cfg:copts.CommonOptions.cfg buildPath *)
-(*       else ( *)
-(*         errorf *)
-(*           "%s@%a was not built, run 'esy build' first" *)
-(*           pkg.name Version.pp pkg.version *)
-(*       ) *)
-(*     in LwtTaskQueue.submit queue aux *)
-(*   in *)
+let importBuild copts fromPath buildPaths () =
+  let open RunAsync.Syntax in
+  let%bind info = SandboxInfo.make copts in
+  let%bind buildPaths = match fromPath with
+  | Some fromPath ->
+    let%bind lines = Fs.readFile fromPath in
+    return (
+      buildPaths @ (
+      lines
+      |> String.split_on_char '\n'
+      |> List.filter ~f:(fun line -> String.trim line <> "")
+      |> List.map ~f:(fun line -> Path.v line))
+    )
+  | None -> return buildPaths
+  in
 
-(*   tasks *)
-(*   |> List.map ~f:exportBuild *)
-(*   |> RunAsync.List.waitAll *)
+  let queue = LwtTaskQueue.create ~concurrency:8 () in
+  buildPaths
+  |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () ->
+      Plan.importBuild ~buildConfig:info.SandboxInfo.sandbox.buildConfig path))
+  |> RunAsync.List.waitAll
 
-(* let importBuild {CommonOptions. cfg; _} fromPath buildPaths () = *)
-(*   let open RunAsync.Syntax in *)
-(*   let%bind buildPaths = match fromPath with *)
-(*   | Some fromPath -> *)
-(*     let%bind lines = Fs.readFile fromPath in *)
-(*     return ( *)
-(*       buildPaths @ ( *)
-(*       lines *)
-(*       |> String.split_on_char '\n' *)
-(*       |> List.filter ~f:(fun line -> String.trim line <> "") *)
-(*       |> List.map ~f:(fun line -> Path.v line)) *)
-(*     ) *)
-(*   | None -> return buildPaths *)
-(*   in *)
-(*   let queue = LwtTaskQueue.create ~concurrency:8 () in *)
-(*   buildPaths *)
-(*   |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path)) *)
-(*   |> RunAsync.List.waitAll *)
+let importDependencies copts fromPath () =
+  let open RunAsync.Syntax in
 
-(* let importDependencies copts fromPath () = *)
-(*   let open RunAsync.Syntax in *)
+  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
+  let%bind plan = SandboxInfo.plan info in
+  let buildConfig = info.sandbox.buildConfig in
 
-(*   let%bind {SandboxInfo. task = rootTask; sandbox; _} = *)
-(*     SandboxInfo.make copts *)
-(*   in *)
+  let fromPath = match fromPath with
+    | Some fromPath -> fromPath
+    | None -> Path.(info.sandbox.buildConfig.projectPath / "_export")
+  in
 
-(*   let fromPath = match fromPath with *)
-(*     | Some fromPath -> fromPath *)
-(*     | None -> Path.(sandbox.buildConfig.projectPath / "_export") *)
-(*   in *)
+  let queue = LwtTaskQueue.create ~concurrency:16 () in
 
-(*   let pkgs = *)
-(*     rootTask *)
-(*     |> Task.Graph.traverse ~traverse:dependenciesForExport *)
-(*     |> List.filter ~f:(fun (task : Task.t) -> not (Task.id task = Task.id rootTask)) *)
-(*   in *)
+  let importBuild (_direct, pkg) =
+    match%bind RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg)) with
+    | Some task ->
+      let aux () =
+        let installPath = Sandbox.Path.toPath buildConfig (Plan.Task.installPath task) in
+        if%bind Fs.exists installPath
+        then return ()
+        else (
+          let id = task.id in
+          let pathDir = Path.(fromPath / id) in
+          let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
+          if%bind Fs.exists pathDir
+          then Plan.importBuild ~buildConfig pathDir
+          else if%bind Fs.exists pathTgz
+          then Plan.importBuild ~buildConfig pathTgz
+          else
+            let%lwt () =
+              Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
+            in return ()
+        )
+      in
+      LwtTaskQueue.submit queue aux
+    | None -> return ()
+  in
 
-(*   let queue = LwtTaskQueue.create ~concurrency:16 () in *)
-
-(*   let importBuild (task : Task.t) = *)
-(*     let aux () = *)
-(*       let installPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in *)
-(*       if%bind Fs.exists installPath *)
-(*       then return () *)
-(*       else ( *)
-(*         let id = Task.id task in *)
-(*         let pathDir = Path.(fromPath / id) in *)
-(*         let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in *)
-(*         if%bind Fs.exists pathDir *)
-(*         then Task.importBuild copts.CommonOptions.cfg pathDir *)
-(*         else if%bind Fs.exists pathTgz *)
-(*         then Task.importBuild copts.CommonOptions.cfg pathTgz *)
-(*         else *)
-(*           let%lwt () = *)
-(*             Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id) *)
-(*           in return () *)
-(*       ) *)
-(*     in LwtTaskQueue.submit queue aux *)
-(*   in *)
-
-(*   pkgs *)
-(*   |> List.map ~f:importBuild *)
-(*   |> RunAsync.List.waitAll *)
+  Solution.allDependenciesBFS (Solution.root solution) solution
+  |> List.map ~f:importBuild
+  |> RunAsync.List.waitAll
 
 (* let release copts () = *)
 (*   let open RunAsync.Syntax in *)
@@ -1744,28 +1744,28 @@ let makeCommands ~sandbox () =
     (*     $ Cli.setupLogTerm *)
     (*   ); *)
 
-    (* makeCommand *)
-    (*   ~name:"export-dependencies" *)
-    (*   ~doc:"Export sandbox dependendencies as prebuilt artifacts" *)
-    (*   Term.( *)
-    (*     const exportDependencies *)
-    (*     $ commonOpts *)
-    (*     $ Cli.setupLogTerm *)
-    (*   ); *)
+    makeCommand
+      ~name:"export-dependencies"
+      ~doc:"Export sandbox dependendencies as prebuilt artifacts"
+      Term.(
+        const exportDependencies
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
 
-    (* makeCommand *)
-    (*   ~name:"import-dependencies" *)
-    (*   ~doc:"Import sandbox dependencies" *)
-    (*   Term.( *)
-    (*     const importDependencies *)
-    (*     $ commonOpts *)
-    (*     $ Arg.( *)
-    (*         value *)
-    (*         & pos 0  (some resolvedPathTerm) None *)
-    (*         & info [] ~doc:"Path with builds." *)
-    (*       ) *)
-    (*     $ Cli.setupLogTerm *)
-    (*   ); *)
+    makeCommand
+      ~name:"import-dependencies"
+      ~doc:"Import sandbox dependencies"
+      Term.(
+        const importDependencies
+        $ commonOpts
+        $ Arg.(
+            value
+            & pos 0  (some resolvedPathTerm) None
+            & info [] ~doc:"Path with builds."
+          )
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~header:`No
@@ -1780,38 +1780,38 @@ let makeCommands ~sandbox () =
         $ Cli.setupLogTerm
       );
 
-    (* makeCommand *)
-    (*   ~name:"export-build" *)
-    (*   ~doc:"Export build from the store" *)
-    (*   Term.( *)
-    (*     const exportBuild *)
-    (*     $ commonOpts *)
-    (*     $ Arg.( *)
-    (*         required *)
-    (*         & pos 0  (some resolvedPathTerm) None *)
-    (*         & info [] ~doc:"Path with builds." *)
-    (*       ) *)
-    (*     $ Cli.setupLogTerm *)
-    (*   ); *)
+    makeCommand
+      ~name:"export-build"
+      ~doc:"Export build from the store"
+      Term.(
+        const exportBuild
+        $ commonOpts
+        $ Arg.(
+            required
+            & pos 0  (some resolvedPathTerm) None
+            & info [] ~doc:"Path with builds."
+          )
+        $ Cli.setupLogTerm
+      );
 
-    (* makeCommand *)
-    (*   ~name:"import-build" *)
-    (*   ~doc:"Import build into the store" *)
-    (*   Term.( *)
-    (*     const importBuild *)
-    (*     $ commonOpts *)
-    (*     $ Arg.( *)
-    (*         value *)
-    (*         & opt (some resolvedPathTerm) None *)
-    (*         & info ["from"; "f"] ~docv:"FROM" *)
-    (*       ) *)
-    (*     $ Arg.( *)
-    (*         value *)
-    (*         & pos_all resolvedPathTerm [] *)
-    (*         & info [] ~docv:"BUILD" *)
-    (*       ) *)
-    (*     $ Cli.setupLogTerm *)
-    (*   ); *)
+    makeCommand
+      ~name:"import-build"
+      ~doc:"Import build into the store"
+      Term.(
+        const importBuild
+        $ commonOpts
+        $ Arg.(
+            value
+            & opt (some resolvedPathTerm) None
+            & info ["from"; "f"] ~docv:"FROM"
+          )
+        $ Arg.(
+            value
+            & pos_all resolvedPathTerm []
+            & info [] ~docv:"BUILD"
+          )
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~name:"add"
