@@ -314,4 +314,56 @@ describe('Sandbox overrides', function() {
       },
     });
   });
+
+  it('using relaxed source parsing when specifying sources', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '2.0.0',
+    });
+
+    await p.fixture(
+      file(
+        'package.json',
+        JSON.stringify({
+          name: 'root',
+          dependencies: {
+            dep: '1.0.0',
+          },
+        }),
+      ),
+      file(
+        'another.json',
+        JSON.stringify({
+          source: './package.json',
+          override: {
+            dependencies: {
+              dep: '2.0.0',
+            },
+          },
+        }),
+      ),
+    );
+
+    await p.esy('install');
+    await p.esy('@another install');
+
+    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+      dependencies: {
+        dep: {name: 'dep', version: '1.0.0'},
+      },
+    });
+
+    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+      dependencies: {
+        dep: {name: 'dep', version: '2.0.0'},
+      },
+    });
+  });
 });
