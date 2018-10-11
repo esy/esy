@@ -9,7 +9,7 @@ const {packageJson, dir, file, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows('Needs investigation');
 
-it('export import build - from list', async () => {
+it('basic export / import test', async () => {
   const p = await helpers.createTestSandbox();
   await p.fixture(
     packageJson({
