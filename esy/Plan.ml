@@ -494,7 +494,11 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
     | None ->
       begin match PackageId.Map.find id plan.tasks with
       | Some task ->
-        let running = run task () in
+        let running =
+          RunAsync.contextf
+            (run task ())
+            "building %a" PackageId.pp id
+        in
         Hashtbl.replace tasks id running;
         running
       | None -> RunAsync.return ()
