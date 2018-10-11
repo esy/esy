@@ -19,42 +19,12 @@ function makeFixture(p) {
         },
       },
       dependencies: {
-        dep: '*',
-      },
-      buildTimeDependencies: {
-        buildTimDep: '*',
+        dep: 'link:./dep',
       },
       devDependencies: {
-        devDep: '*',
+        devDep: 'link:./devDep',
       },
     }),
-    helpers.dir(
-      'node_modules',
-      helpers.dir(
-        'dep',
-        helpers.symlink('package.json', path.join('..', '..', 'dep')),
-        helpers.file(
-          '_esylink',
-          JSON.stringify({source: `link:${path.join(p.projectPath, 'dep')}`}),
-        ),
-      ),
-      helpers.dir(
-        'buildTimDep',
-        helpers.symlink('package.json', path.join('..', '..', 'buildTimDep')),
-        helpers.file(
-          '_esylink',
-          JSON.stringify({source: `link:${path.join(p.projectPath, 'buildTimDep')}`}),
-        ),
-      ),
-      helpers.dir(
-        'devDep',
-        helpers.symlink('package.json', path.join('..', '..', 'devDep')),
-        helpers.file(
-          '_esylink',
-          JSON.stringify({source: `link:${path.join(p.projectPath, 'devDep')}`}),
-        ),
-      ),
-    ),
     helpers.dir(
       'dep',
       helpers.packageJson({
@@ -71,25 +41,6 @@ function makeFixture(p) {
         'dep.js',
         outdent`
           console.log(process.env.SANDBOX_ENV_VAR + "-in-dep");
-        `,
-      ),
-    ),
-    helpers.dir(
-      'buildTimDep',
-      helpers.packageJson({
-        name: 'buildTimDep',
-        version: '1.0.0',
-        esy: {
-          build: [
-            'cp #{self.name}.js #{self.bin / self.name}.js',
-            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
-          ],
-        },
-      }),
-      helpers.file(
-        'buildTimDep.js',
-        outdent`
-          console.log(process.env.SANDBOX_ENV_VAR + "-in-buildTimDep");
         `,
       ),
     ),
@@ -120,6 +71,7 @@ describe('Linked deps with presence of sandboxEnv', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
+    await p.esy('install');
     await p.esy('build');
     return p;
   }
@@ -136,17 +88,6 @@ describe('Linked deps with presence of sandboxEnv', () => {
 
     const x = await p.esy('x dep.cmd');
     expect(x.stdout).toEqual(expecting);
-  });
-
-  it("sandbox env should not be available in build time dep's envs", async () => {
-    const p = await createTestSandbox();
-    const expecting = expect.stringMatching('-in-buildTimDep');
-
-    const dep = await p.esy('buildTimDep.cmd');
-    expect(dep.stdout).toEqual(expecting);
-
-    const b = await p.esy('b buildTimDep.cmd');
-    expect(b.stdout).toEqual(expecting);
   });
 
   it("sandbox env should not be available in dev dep's envs", async () => {

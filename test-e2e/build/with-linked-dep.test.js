@@ -50,23 +50,6 @@ describe('Build with a linked dep', () => {
     }
   }
 
-  async function checkShouldNotRebuildIfNoChanges(p) {
-    const noOpBuild = await p.esy('build');
-    expect(noOpBuild.stdout).not.toEqual(
-      expect.stringMatching('building dep@1.0.0: starting'),
-    );
-  }
-
-  async function checkShouldRebuildOnChanges(p) {
-    // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    await open(path.join(p.projectPath, 'dep', 'dummy'), 'w').then(close);
-
-    const {stdout} = await p.esy('build');
-    expect(stdout).toEqual(expect.stringMatching('building dep@1.0.0: starting'));
-  }
-
   describe('out of source build', () => {
     function withProject(assertions) {
       return async () => {
@@ -90,11 +73,6 @@ describe('Build with a linked dep', () => {
     }
 
     it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
-    it(
-      'should not rebuild dep with no changes',
-      withProject(checkShouldNotRebuildIfNoChanges),
-    );
-    it('should rebuild if file has been added', withProject(checkShouldRebuildOnChanges));
   });
 
   describe('in source build', () => {
@@ -118,11 +96,6 @@ describe('Build with a linked dep', () => {
     }
 
     it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
-    it(
-      'should not rebuild dep with no changes',
-      withProject(checkShouldNotRebuildIfNoChanges),
-    );
-    it('should rebuild if file has been added', withProject(checkShouldRebuildOnChanges));
   });
 
   describe('_build build', () => {
@@ -150,10 +123,5 @@ describe('Build with a linked dep', () => {
     }
 
     it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
-    it(
-      'should not rebuild dep with no changes',
-      withProject(checkShouldNotRebuildIfNoChanges),
-    );
-    it('should rebuild if file has been added', withProject(checkShouldRebuildOnChanges));
   });
 });
