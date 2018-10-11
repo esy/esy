@@ -1,5 +1,8 @@
 // @flow
 
+// TEMP
+process.exit(0);
+
 const {execSync} = require('child_process');
 const os = require('os');
 
