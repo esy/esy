@@ -33,6 +33,7 @@ let nodeModulesPath spec = Path.(localPrefixPath spec / "node_modules")
 let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
+let binPath spec = Path.(localPrefixPath spec / "bin")
 
 let lockfilePath spec =
   match spec.manifest with
