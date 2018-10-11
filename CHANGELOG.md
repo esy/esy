@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.3.3 @ next
+
+- Fix `esy import-build` not to fail on a non initialized store, instead
+  initialize it.
+
+- Fixes to overrides where the override source is pointing to an opam sandbox.
+
 ## 0.3.2 @ next
 
 - Tweak solver criteria to optimize for recent package version.
