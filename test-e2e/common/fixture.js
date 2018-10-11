@@ -15,10 +15,10 @@ function makeSimpleProject(p: TestSandbox) {
       name: 'simple-project',
       version: '1.0.0',
       dependencies: {
-        dep: '*',
+        dep: 'path:./dep',
       },
       devDependencies: {
-        devDep: '*',
+        devDep: 'path:./devDep',
       },
       esy: {
         buildEnv: {
@@ -31,63 +31,57 @@ function makeSimpleProject(p: TestSandbox) {
       },
     }),
     dir(
-      ['_esy', 'default', 'node_modules'],
-      dir(
-        'dep',
-        packageJson({
-          name: 'dep',
-          version: '1.0.0',
-          esy: {
-            install: [
-              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
-              buildCommand(p, '#{self.bin / self.name}.js'),
-            ],
-            exportedEnv: {
-              dep__local: {val: 'dep__local__value'},
-              dep__global: {val: 'dep__global__value', scope: 'global'},
-            },
+      'dep',
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          exportedEnv: {
+            dep__local: {val: 'dep__local__value'},
+            dep__global: {val: 'dep__global__value', scope: 'global'},
           },
-          dependencies: {
-            depOfDep: '*',
-          },
-        }),
+        },
+        dependencies: {
+          depOfDep: 'path:../depOfDep',
+        },
+      }),
 
-        file('_esylink', JSON.stringify({source: `path:.`})),
-        dummyExecutable('dep'),
-      ),
-      dir(
-        'depOfDep',
-        packageJson({
-          name: 'depOfDep',
-          version: '1.0.0',
-          esy: {
-            exportedEnv: {
-              depOfDep__local: {val: 'depOfDep__local__value'},
-              depOfDep__global: {val: 'depOfDep__global__value', scope: 'global'},
-            },
+      dummyExecutable('dep'),
+    ),
+    dir(
+      'depOfDep',
+      packageJson({
+        name: 'depOfDep',
+        version: '1.0.0',
+        esy: {
+          exportedEnv: {
+            depOfDep__local: {val: 'depOfDep__local__value'},
+            depOfDep__global: {val: 'depOfDep__global__value', scope: 'global'},
           },
-        }),
-        file('_esylink', JSON.stringify({source: `path:.`})),
-      ),
-      dir(
-        'devDep',
-        packageJson({
-          name: 'devDep',
-          version: '1.0.0',
-          esy: {
-            install: [
-              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
-              buildCommand(p, '#{self.bin / self.name}.js'),
-            ],
-            exportedEnv: {
-              devDep__local: {val: 'devDep__local__value'},
-              devDep__global: {val: 'devDep__global__value', scope: 'global'},
-            },
+        },
+      }),
+    ),
+    dir(
+      'devDep',
+      packageJson({
+        name: 'devDep',
+        version: '1.0.0',
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          exportedEnv: {
+            devDep__local: {val: 'devDep__local__value'},
+            devDep__global: {val: 'devDep__global__value', scope: 'global'},
           },
-        }),
-        file('_esylink', JSON.stringify({source: `path:.`})),
-        dummyExecutable('devDep'),
-      ),
+        },
+      }),
+      dummyExecutable('devDep'),
     ),
   ];
 }

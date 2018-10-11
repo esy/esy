@@ -26,6 +26,7 @@ it('Common - esy prefix via esyrc', async () => {
   const prevEnv = process.env;
   process.env = Object.assign({}, process.env, {OCAMLRUNPARAM: 'b'});
 
+  await p.esy('install', {noEsyPrefix: true});
   await p.esy('build', {noEsyPrefix: true});
 
   await expect(p.esy('dep.cmd', {noEsyPrefix: true})).resolves.toEqual({

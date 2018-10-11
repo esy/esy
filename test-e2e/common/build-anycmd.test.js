@@ -12,6 +12,7 @@ it('Common - build anycmd', async () => {
   const p = await createTestSandbox();
   await p.fixture(...fixture.makeSimpleProject(p));
 
+  await p.esy('install');
   await p.esy('build');
 
   await expect(p.esy('build dep.cmd')).resolves.toEqual({

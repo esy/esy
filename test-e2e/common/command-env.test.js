@@ -12,6 +12,7 @@ describe('esy command-env', () => {
   it('generates env as a bash source', async () => {
     const p = await createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
+    await p.esy('install');
     await p.esy('build');
 
     const env = (await p.esy('command-env')).stdout;
@@ -34,6 +35,7 @@ describe('esy command-env', () => {
   it('generates env as JSON', async () => {
     const p = await createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
+    await p.esy('install');
     await p.esy('build');
 
     const env = JSON.parse((await p.esy('command-env --json')).stdout);
