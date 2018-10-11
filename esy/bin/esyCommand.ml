@@ -1187,7 +1187,7 @@ let dependenciesForExport (task : Task.t) =
 
 let exportBuild copts buildPath () =
   let open RunAsync.Syntax in
-  let%bind _ : SandboxInfo.t = SandboxInfo.make copts in
+  let%bind () = Sandbox.initStore copts.cfg.storePath in
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
   Task.exportBuild ~outputPrefixPath ~cfg:copts.CommonOptions.cfg buildPath
 
