@@ -1,5 +1,6 @@
 open Esy
 
+module SandboxSpec = EsyInstall.SandboxSpec
 module Solution = EsyInstall.Solution
 module Version = EsyInstall.Version
 
@@ -332,7 +333,7 @@ module SandboxInfo = struct
       let%bind () =
         if EsyInstall.SandboxSpec.isDefault info.spec
         then
-          let _writeData filename data =
+          let writeData filename data =
             let f oc =
               let%lwt () = Lwt_io.write oc data in
               let%lwt () = Lwt_io.flush oc in
@@ -340,41 +341,39 @@ module SandboxInfo = struct
             in
             Lwt_io.with_file ~mode:Lwt_io.Output (Path.show filename) f
           in
-          let sandboxBin = Path.(info.spec.path / "node_modules" / ".cache" / "_esy" / "build" / "bin") in
+          let sandboxBin = SandboxSpec.binPath info.spec in
           let%bind () = Fs.createDir sandboxBin in
-
-          return ()
-          (* TODO: *)
-          (* match info.plan with *)
-          (* | None -> return () *)
-          (* | Some plan -> *)
-          (*   begin match Plan.rootTask plan with *)
-          (*   | None -> return () *)
-          (*   | Some task -> *)
-          (*     let%bind commandEnv = RunAsync.ofRun ( *)
-          (*       let open Run.Syntax in *)
-          (*       let header = *)
-          (*         let pkg = info.sandbox.root in *)
-          (*         Format.asprintf *)
-          (*           "# Command environment for %s@%a" *)
-          (*           pkg.name Version.pp pkg.version *)
-          (*       in *)
-          (*       let%bind commandEnv = Plan.Task.commandEnv task in *)
-          (*       Environment.renderToShellSource ~header commandEnv *)
-          (*     ) in *)
-          (*     let%bind () = *)
-          (*       let filename = Path.(sandboxBin / "command-env") in *)
-          (*       writeData filename commandEnv *)
-          (*     in *)
-          (*     let%bind () = *)
-          (*       let filename = Path.(sandboxBin / "command-exec") in *)
-          (*       let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in *)
-          (*       let%bind () = writeData filename commandExec in *)
-          (*       let%bind () = Fs.chmod 0o755 filename in *)
-          (*       return () *)
-          (*     in *)
-          (*     return () *)
-          (*   end *)
+          match info.plan with
+          | None -> return ()
+          | Some plan ->
+            begin match Plan.rootTask plan with
+            | None -> return ()
+            | Some task ->
+              let%bind commandEnv = RunAsync.ofRun (
+                let open Run.Syntax in
+                let header =
+                  let pkg = info.sandbox.root in
+                  Format.asprintf
+                    "# Command environment for %s@%a"
+                    pkg.name Version.pp pkg.version
+                in
+                let%bind commandEnv = Plan.commandEnv plan task in
+                let commandEnv = Sandbox.Environment.Bindings.render info.sandbox.buildConfig commandEnv in
+                Environment.renderToShellSource ~header commandEnv
+              ) in
+              let%bind () =
+                let filename = Path.(sandboxBin / "command-env") in
+                writeData filename commandEnv
+              in
+              let%bind () =
+                let filename = Path.(sandboxBin / "command-exec") in
+                let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
+                let%bind () = writeData filename commandExec in
+                let%bind () = Fs.chmod 0o755 filename in
+                return ()
+              in
+              return ()
+            end
         else
           return ()
       in
