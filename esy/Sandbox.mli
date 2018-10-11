@@ -58,6 +58,7 @@ val isSandbox : Path.t -> bool RunAsync.t
 val make : cfg:Config.t -> EsyInstall.SandboxSpec.t -> (t * info) RunAsync.t
 
 val init : t -> unit RunAsync.t
+val initStore : Path.t -> unit RunAsync.t
 
 val findPackage : (Package.t -> bool) -> t -> Package.t option
 

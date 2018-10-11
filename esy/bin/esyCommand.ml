@@ -1230,7 +1230,7 @@ let exportDependencies copts () =
 
 let importBuild copts fromPath buildPaths () =
   let open RunAsync.Syntax in
-  let%bind _ : SandboxInfo.t = SandboxInfo.make copts in
+  let%bind () = Sandbox.initStore copts.cfg.storePath in
   let%bind buildPaths = match fromPath with
   | Some fromPath ->
     let%bind lines = Fs.readFile fromPath in
