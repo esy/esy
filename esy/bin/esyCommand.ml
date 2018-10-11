@@ -407,7 +407,9 @@ module SandboxInfo = struct
       in Perf.measureLwt ~label:"constructing sandbox info" f
     in
     match%bind readCache ~cfg spec with
-    | Some info -> return info
+    | Some info ->
+      let%bind () = Sandbox.init info.sandbox in
+      return info
     | None ->
       let%bind info = makeInfo () in
       let%bind () = writeCache cfg info in
@@ -1183,9 +1185,11 @@ let dependenciesForExport (task : Task.t) =
   |> List.fold_left ~f ~init:[]
   |> List.rev
 
-let exportBuild {CommonOptions. cfg; _} buildPath () =
+let exportBuild copts buildPath () =
+  let open RunAsync.Syntax in
+  let%bind _ : SandboxInfo.t = SandboxInfo.make copts in
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-  Task.exportBuild ~outputPrefixPath ~cfg buildPath
+  Task.exportBuild ~outputPrefixPath ~cfg:copts.CommonOptions.cfg buildPath
 
 let exportDependencies copts () =
   let open RunAsync.Syntax in
@@ -1224,8 +1228,9 @@ let exportDependencies copts () =
   |> List.map ~f:exportBuild
   |> RunAsync.List.waitAll
 
-let importBuild {CommonOptions. cfg; _} fromPath buildPaths () =
+let importBuild copts fromPath buildPaths () =
   let open RunAsync.Syntax in
+  let%bind _ : SandboxInfo.t = SandboxInfo.make copts in
   let%bind buildPaths = match fromPath with
   | Some fromPath ->
     let%bind lines = Fs.readFile fromPath in
@@ -1240,7 +1245,8 @@ let importBuild {CommonOptions. cfg; _} fromPath buildPaths () =
   in
   let queue = LwtTaskQueue.create ~concurrency:8 () in
   buildPaths
-  |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () -> Task.importBuild cfg path))
+  |> List.map ~f:(fun path ->
+      LwtTaskQueue.submit queue (fun () -> Task.importBuild copts.CommonOptions.cfg path))
   |> RunAsync.List.waitAll
 
 let importDependencies copts fromPath () =
