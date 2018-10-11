@@ -67,12 +67,16 @@ it('basic export / import test', async () => {
 
   const items = await fs.readdir(exportPath);
 
+  // make sure we can import w/o store and local esy installation
   await fs.remove(p.esyPrefixPath);
+  await fs.remove(path.join(p.projectPath, '_esy'));
 
   for (const item of items) {
     const buildPath = path.join(exportPath, item);
     await p.esy(`import-build ${buildPath}`);
   }
+
+  await p.esy('install');
 
   {
     const {stdout} = await p.esy('subdep.cmd');
