@@ -81,7 +81,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         Sys.argv.(0) <- program;
         Unix.execve program Sys.argv env
       )
-  |} environmentString (EsyLib.Path.normalizePathSlashes bin) (EsyLib.Path.normalizePathSlashes bin)
+  |} environmentString bin bin
 
 let configure ~(cfg : Config.t) () =
   let open RunAsync.Syntax in
@@ -235,15 +235,15 @@ let make
         in
         let%bind namePath = resolveBinInEnv ~env name in
         (* Create the .ml file that we will later compile and write it to disk *)
-        let data = makeBinWrapper ~environment:bindings ~bin:namePath in
+        let data = makeBinWrapper ~environment:bindings ~bin:(EsyLib.Path.normalizePathSlashes namePath) in
         let mlPath = Path.(stagePath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(
-          v (p ocamlopt)
-          % "-o" % p Path.(binPath / name)
+          v (EsyLib.Path.normalizePathSlashes (p ocamlopt))
+          % "-o" %(EsyLib.Path.normalizePathSlashes (p Path.(binPath / name)))
           % "unix.cmxa" % "str.cmxa"
-          % p mlPath
+          % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
         let f p =
           let%lwt stdout = Lwt_io.read p#stdout
