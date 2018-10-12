@@ -10,6 +10,9 @@ type location =
       source : Source.t;
     }
 
+val pp_location : location Fmt.t
+val show_location : location -> string
+
 include S.JSONABLE with type t := t
 
 val mem : PackageId.t -> t -> bool

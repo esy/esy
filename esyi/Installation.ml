@@ -6,7 +6,7 @@ type location =
   | Install of {
       path : Path.t;
       source : Source.t;
-    }
+  } [@@deriving show]
 
 let location_to_yojson location =
   match location with
