@@ -99,7 +99,6 @@ end = struct
   }
 
   let update map name version cudfVersion =
-    Format.eprintf "CudfVersionMap.update %s@%a@." name Version.pp version;
     Hashtbl.replace map.versionToCudfVersion (name, version) cudfVersion;
     Hashtbl.replace map.cudfVersionToVersion (CudfName.encode name, cudfVersion) version;
     let () =
@@ -118,7 +117,6 @@ end = struct
     | version -> Some version
 
   let findCudfVersion ~name ~version map =
-    Format.eprintf "CudfVersionMap.findCudfVersion %s@%a@." name Version.pp version;
     match Hashtbl.find map.versionToCudfVersion (name, version) with
     | exception Not_found -> None
     | version -> Some version
@@ -230,7 +228,6 @@ let toCudf ?(installed=Package.Set.empty) univ =
 
   let updateVersionMap pkgs =
     let f cudfVersion (pkg : Package.t) =
-      Format.eprintf "add %s@%a@." pkg.name Version.pp pkg.version;
       CudfVersionMap.update
         cudfVersionMap
         pkg.name
