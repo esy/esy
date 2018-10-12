@@ -194,6 +194,7 @@ let ofSource ~cfg ~spec source =
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
+  let open RunAsync.Syntax in
   RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
@@ -203,7 +204,8 @@ let make ~cfg (spec : SandboxSpec.t) =
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
       end
-    | ManifestSpec.ManyOpam fnames ->
-      let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
+    | ManifestSpec.ManyOpam ->
+      let%bind paths = ManifestSpec.findManifestsAtPath spec.path spec.manifest in
+      let paths = List.map ~f:(fun (_, filename) -> Path.(spec.path / filename)) paths in
       ofMultiplOpamFiles ~cfg ~spec spec.path paths
   ) "loading root package metadata"

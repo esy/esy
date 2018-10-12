@@ -1284,7 +1284,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
       match spec.manifest with
       | ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
       | One (Opam, _) -> error aggOpamErrorMsg
-      | ManyOpam _ -> error aggOpamErrorMsg
+      | ManyOpam -> error aggOpamErrorMsg
       in
       return (addedDependencies, path)
     in

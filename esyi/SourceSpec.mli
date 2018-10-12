@@ -21,11 +21,11 @@ type t =
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | NoSource
 

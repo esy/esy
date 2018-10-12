@@ -13,14 +13,14 @@ let doesPathReferToConcreteManifest path =
 let projectName spec =
   let nameOfPath spec = Path.basename spec.path in
   match spec.manifest with
-  | ManyOpam _ -> nameOfPath spec
+  | ManyOpam -> nameOfPath spec
   | One (Opam, "opam") -> nameOfPath spec
   | One (Esy, "package.json") | One (Esy, "esy.json") -> nameOfPath spec
   | One (_, fname) -> Path.(show (remExt (v fname)))
 
 let name spec =
   match spec.manifest with
-  | ManyOpam _ -> "opam"
+  | ManyOpam -> "opam"
   | One (Opam, "opam") -> "opam"
   | One (Esy, "package.json") | One (Esy, "esy.json") -> "default"
   | One (_, fname) -> Path.(show (remExt (v fname)))
@@ -69,7 +69,7 @@ let ofPath path =
         begin match opamFnames with
         | [] -> errorf "no manifests found at %a" Path.pp path
         | [fname] -> return (ManifestSpec.One (Opam, fname))
-        | fnames -> return (ManifestSpec.ManyOpam fnames)
+        | _fnames -> return ManifestSpec.ManyOpam
         end
     in
     return {path; manifest}

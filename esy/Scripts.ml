@@ -50,5 +50,5 @@ let ofSandbox (spec : EsyInstall.SandboxSpec.t) =
     return pkgJson.OfPackageJson.scripts
 
   | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _)
-  | EsyInstall.ManifestSpec.ManyOpam _ ->
+  | EsyInstall.ManifestSpec.ManyOpam ->
     return Scripts.empty

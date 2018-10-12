@@ -18,11 +18,11 @@ type t =
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | NoSource
   [@@deriving ord, sexp_of]
@@ -54,12 +54,12 @@ let show = function
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (Path.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
 
   | LocalPathLink {path; manifest = None;} ->
     Printf.sprintf "link:%s" (Path.show path)
   | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.show manifest)
 
   | NoSource -> "no-source:"
 
@@ -146,7 +146,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.Filename.ofString (Path.basename path) with
+        match ManifestSpec.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest

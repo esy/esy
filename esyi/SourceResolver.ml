@@ -114,15 +114,17 @@ let ofPath ?manifest (path : Path.t)
       else
         tryFilename rest
   in
-  let filenames =
+  let%bind filenames =
     match manifest with
-    | Some manifest -> [manifest]
-    | None -> [
-      ManifestSpec.Filename.Esy, "esy.json";
-      ManifestSpec.Filename.Esy, "package.json";
-      ManifestSpec.Filename.Opam, "opam";
-      ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
-    ]
+    | Some manifest ->
+      ManifestSpec.findManifestsAtPath path manifest
+    | None ->
+      return [
+        ManifestSpec.Filename.Esy, "esy.json";
+        ManifestSpec.Filename.Esy, "package.json";
+        ManifestSpec.Filename.Opam, "opam";
+        ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
+      ]
   in
   tryFilename filenames
 
@@ -141,6 +143,7 @@ let resolve
       let%bind pkg = ofPath ?manifest Path.(root // path) in
       return pkg
     | Git {remote; commit; manifest;} ->
+      let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in

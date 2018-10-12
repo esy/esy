@@ -3,7 +3,7 @@ type t
 type location =
   | Link of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | Install of {
       path : Path.t;

@@ -1,7 +1,7 @@
 type location =
   | Link of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | Install of {
       path : Path.t;
@@ -14,7 +14,7 @@ let location_to_yojson location =
     `Assoc [
       "type", `String "link";
       "path", Path.to_yojson path;
-      "manifest", Json.Encode.opt ManifestSpec.Filename.to_yojson manifest;
+      "manifest", Json.Encode.opt ManifestSpec.to_yojson manifest;
     ]
   | Install {path; source;} ->
     `Assoc [
@@ -36,7 +36,7 @@ let location_of_yojson json =
     let%bind manifest =
       Json.Decode.fieldWith
         ~name:"manifest"
-        (Json.Decode.nullable ManifestSpec.Filename.of_yojson )
+        (Json.Decode.nullable ManifestSpec.of_yojson )
         json
     in
     return (Link {path; manifest;})

@@ -49,6 +49,6 @@ val to_yojson : t Json.encoder
  * load manifest. Client code can check those paths to invalidate caches.
  *)
 val ofDir :
-  ?manifest:EsyInstall.ManifestSpec.Filename.t
+  ?manifest:EsyInstall.ManifestSpec.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t

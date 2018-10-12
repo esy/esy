@@ -227,7 +227,7 @@ let ofDir ?manifest (path : Path.t) =
 
   Logs_lwt.debug (fun m ->
     m "Manifest.ofDir %a %a"
-    Fmt.(option ManifestSpec.Filename.pp) manifest
+    Fmt.(option ManifestSpec.pp) manifest
     Path.pp path
   );%lwt
 
@@ -240,12 +240,28 @@ let ofDir ?manifest (path : Path.t) =
       end
     | Some spec ->
       begin match spec with
-      | ManifestSpec.Filename.Esy, fname ->
+      | ManifestSpec.One (ManifestSpec.Filename.Esy, fname) ->
         let path = Path.(path / fname) in
         EsyBuild.ofFile path
-      | ManifestSpec.Filename.Opam, fname ->
+      | ManifestSpec.One (ManifestSpec.Filename.Opam, fname) ->
         let path = Path.(path / fname) in
         OpamBuild.ofFile path
+      | ManifestSpec.ManyOpam ->
+        let%bind filenames = ManifestSpec.findManifestsAtPath path spec in
+        let paths =
+          let f (_kind, filename) = Path.(path / filename) in
+          List.map ~f filenames
+          |> Path.Set.of_list
+        in
+        return (Some ({
+          buildType = BuildType.Unsafe;
+          exportedEnv = ExportedEnv.empty;
+          buildEnv = Env.empty;
+          buildCommands = OpamCommands [];
+          installCommands = OpamCommands [];
+          patches = [];
+          substs = [];
+        }, paths))
       end
     in
 
