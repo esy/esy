@@ -11,6 +11,16 @@ type config = t;
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
+let initStore = (path: Fpath.t) =>
+  Run.(
+    {
+      let%bind () = mkdir(Fpath.(path / "i"));
+      let%bind () = mkdir(Fpath.(path / "b"));
+      let%bind () = mkdir(Fpath.(path / "s"));
+      return();
+    }
+  );
+
 let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) =>
   Run.(
     {
@@ -23,6 +33,8 @@ let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) =>
           let%bind padding = Store.getPadding(prefixPath);
           return(prefixPath / (Store.version ++ padding));
         };
+      let%bind () = initStore(storePath);
+      let%bind () = initStore(localStorePath);
       return({projectPath, storePath, localStorePath, buildPath});
     }
   );
