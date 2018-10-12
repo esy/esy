@@ -1,11 +1,15 @@
+module SandboxPath : module type of EsyBuildPackage.Config.Path
+module SandboxValue : module type of EsyBuildPackage.Config.Value
+module SandboxEnvironment : module type of EsyBuildPackage.Config.Environment
+
 type t
 
 val make :
   platform:System.Platform.t
-  -> sandboxEnv:Sandbox.Environment.Bindings.t
+  -> sandboxEnv:SandboxEnvironment.Bindings.t
   -> id:string
   -> sourceType:Manifest.SourceType.t
-  -> sourcePath:Sandbox.Path.t
+  -> sourcePath:SandboxPath.t
   -> buildIsInProgress:bool
   -> Manifest.Build.t
   -> t
@@ -14,19 +18,19 @@ val make :
 val add : direct:bool -> dep:t -> t -> t
 (** Add new pkg *)
 
-val storePath : t -> Sandbox.Path.t
-val rootPath : t -> Sandbox.Path.t
-val sourcePath : t -> Sandbox.Path.t
-val buildPath : t -> Sandbox.Path.t
-val buildInfoPath : t -> Sandbox.Path.t
-val stagePath : t -> Sandbox.Path.t
-val installPath : t -> Sandbox.Path.t
-val logPath : t -> Sandbox.Path.t
+val storePath : t -> SandboxPath.t
+val rootPath : t -> SandboxPath.t
+val sourcePath : t -> SandboxPath.t
+val buildPath : t -> SandboxPath.t
+val buildInfoPath : t -> SandboxPath.t
+val stagePath : t -> SandboxPath.t
+val installPath : t -> SandboxPath.t
+val logPath : t -> SandboxPath.t
 
-val env : includeBuildEnv:bool -> t -> Sandbox.Environment.Bindings.t Run.t
+val env : includeBuildEnv:bool -> t -> SandboxEnvironment.Bindings.t Run.t
 
 val renderCommandExpr : ?environmentVariableName:string -> t -> string -> string Run.t
 
 val toOpamEnv : ocamlVersion:string option -> t -> OpamFilter.env
 
-val exposeUserEnvWith : (string -> Sandbox.Value.t -> Sandbox.Value.t Environment.Binding.t) -> string -> t -> t
+val exposeUserEnvWith : (string -> SandboxValue.t -> SandboxValue.t Environment.Binding.t) -> string -> t -> t

@@ -4,18 +4,18 @@ module Task : sig
     pkgId : EsyInstall.PackageId.t;
     name : string;
     version : EsyInstall.Version.t;
-    env : Sandbox.Environment.t;
-    buildCommands : Sandbox.Value.t list list;
-    installCommands : Sandbox.Value.t list list;
+    env : Scope.SandboxEnvironment.t;
+    buildCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list;
     buildType : Manifest.BuildType.t;
     sourceType : Manifest.SourceType.t;
-    sourcePath : Sandbox.Path.t;
+    sourcePath : Scope.SandboxPath.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
     platform : System.Platform.t;
   }
 
-  val installPath : t -> Sandbox.Path.t
+  val installPath : t -> Scope.SandboxPath.t
 
   val renderExpression :
     buildConfig:EsyBuildPackage.Config.t
@@ -35,7 +35,7 @@ val rootTask : t -> Task.t option
 
 val make :
   platform : System.Platform.t
-  -> buildConfig:Sandbox.Value.ctx
+  -> buildConfig:Scope.SandboxValue.ctx
   -> sandboxEnv:Manifest.Env.item StringMap.t
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
@@ -59,7 +59,7 @@ val build :
   ?force:bool
   -> ?quiet:bool
   -> ?buildOnly:bool
-  -> ?logPath:Sandbox.Path.t
+  -> ?logPath:Scope.SandboxPath.t
   -> buildConfig:EsyBuildPackage.Config.t
   -> Task.t
   -> unit RunAsync.t
@@ -72,9 +72,9 @@ val buildDependencies :
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 
-val buildEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
-val commandEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
-val execEnv : t -> Task.t -> Sandbox.Environment.Bindings.t Run.t
+val buildEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val commandEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val execEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
   buildConfig:EsyBuildPackage.Config.t

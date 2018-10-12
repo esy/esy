@@ -11,12 +11,12 @@ module Task = struct
     pkgId : PackageId.t;
     name : string;
     version : Version.t;
-    env : Sandbox.Environment.t;
-    buildCommands : Sandbox.Value.t list list;
-    installCommands : Sandbox.Value.t list list;
+    env : Scope.SandboxEnvironment.t;
+    buildCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list;
     buildType : Manifest.BuildType.t;
     sourceType : Manifest.SourceType.t;
-    sourcePath : Sandbox.Path.t;
+    sourcePath : Scope.SandboxPath.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
     platform : System.Platform.t;
@@ -32,7 +32,7 @@ module Task = struct
       buildType = t.buildType;
       build = t.buildCommands;
       install = t.installCommands;
-      sourcePath = Sandbox.Path.toValue t.sourcePath;
+      sourcePath = Scope.SandboxPath.toValue t.sourcePath;
       env = t.env;
     }
 
@@ -44,8 +44,8 @@ module Task = struct
   let renderExpression ~buildConfig task expr =
     let open Run.Syntax in
     let%bind expr = Scope.renderCommandExpr task.exportedScope expr in
-    let expr = Sandbox.Value.v expr in
-    let expr = Sandbox.Value.render buildConfig expr in
+    let expr = Scope.SandboxValue.v expr in
+    let expr = Scope.SandboxValue.render buildConfig expr in
     return expr
 
 end
@@ -58,8 +58,8 @@ type t = {
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
-    match Sandbox.Environment.find name env with
-    | Some v -> Some (Sandbox.Value.show v)
+    match Scope.SandboxEnvironment.find name env with
+    | Some v -> Some (Scope.SandboxValue.show v)
     | None -> None
   in
 
@@ -73,13 +73,13 @@ let renderEsyCommands ~env scope commands =
     | Manifest.Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
-        return (Sandbox.Value.v arg)
+        return (Scope.SandboxValue.v arg)
       in
       Result.List.map ~f args
     | Manifest.Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
-      return (List.map ~f:Sandbox.Value.v args)
+      return (List.map ~f:Scope.SandboxValue.v args)
   in
 
   match Result.List.map ~f:renderCommand commands with
@@ -90,7 +90,7 @@ let renderOpamCommands opamEnv commands =
   let open Run.Syntax in
   try
     let commands = OpamFilter.commands opamEnv commands in
-    let commands = List.map ~f:(List.map ~f:Sandbox.Value.v) commands in
+    let commands = List.map ~f:(List.map ~f:Scope.SandboxValue.v) commands in
     return commands
   with
     | Failure msg -> error msg
@@ -100,7 +100,7 @@ let renderOpamSubstsAsCommands _opamEnv substs =
   let commands =
     let f path =
       let path = Path.addExt ".in" path in
-      [Sandbox.Value.v "substs"; Sandbox.Value.v (Path.show path)]
+      [Scope.SandboxValue.v "substs"; Scope.SandboxValue.v (Path.show path)]
     in
     List.map ~f substs
   in
@@ -122,7 +122,7 @@ let renderOpamPatchesToCommands opamEnv patches =
 
     let toCommand (path, _) =
       let cmd = ["patch"; "--strip"; "1"; "--input"; Path.show path] in
-      List.map ~f:Sandbox.Value.v cmd
+      List.map ~f:Scope.SandboxValue.v cmd
     in
 
     return (
@@ -290,13 +290,13 @@ let make'
     in
 
     let id = buildId Manifest.Env.empty build source dependencies in
-    let sourcePath = Sandbox.Path.ofPath buildConfig sourcePath in
+    let sourcePath = Scope.SandboxPath.ofPath buildConfig sourcePath in
 
     let exportedScope, buildScope =
 
       let sandboxEnv =
         let f {Manifest.Env. name; value} =
-          Sandbox.Environment.Bindings.value name (Sandbox.Value.v value)
+          Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
         in
         List.map ~f (StringMap.values sandboxEnv)
       in
@@ -351,7 +351,7 @@ let make'
     let%bind buildEnv =
       let%bind bindings = Scope.env ~includeBuildEnv:true buildScope in
       Run.context
-        (Run.ofStringError (Sandbox.Environment.Bindings.eval bindings))
+        (Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval bindings))
         "evaluating environment"
     in
 
@@ -473,7 +473,7 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
 
   let isBuilt task =
     let installPath = Task.installPath task in
-    let installPath = Sandbox.Path.toPath buildConfig installPath in
+    let installPath = Scope.SandboxPath.toPath buildConfig installPath in
     Fs.exists installPath
   in
 
@@ -538,9 +538,9 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
 
 let exposeUserEnv scope =
   scope
-  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "PATH"
-  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.suffixValue "MAN_PATH"
-  |> Scope.exposeUserEnvWith Sandbox.Environment.Bindings.value "SHELL"
+  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.suffixValue "PATH"
+  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.suffixValue "MAN_PATH"
+  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
 
 let exposeDevDependenciesEnv plan task scope =
   let pkg = Solution.getExn task.Task.pkgId plan.solution in
