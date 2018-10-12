@@ -1,5 +1,6 @@
 module Solution = EsyInstall.Solution
 module PackageId = EsyInstall.PackageId
+module Overrides = EsyInstall.Package.Overrides
 module Package = EsyInstall.Solution.Package
 module Installation = EsyInstall.Installation
 module Source = EsyInstall.Source
@@ -54,6 +55,79 @@ type t = {
   tasks : Task.t option PackageId.Map.t;
   solution : Solution.t;
 }
+
+let applyOverride (manifest : BuildManifest.t) (override : Overrides.override) =
+
+  let {
+    Overrides.
+    buildType;
+    build;
+    install;
+    exportedEnv;
+    exportedEnvOverride;
+    buildEnv;
+    buildEnvOverride;
+
+    dependencies = _;
+    devDependencies = _;
+    resolutions = _;
+  } = override in
+
+  let manifest =
+    match buildType with
+    | None -> manifest
+    | Some buildType -> {manifest with buildType = buildType;}
+  in
+
+  let manifest =
+    match build with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        buildCommands = BuildManifest.EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match install with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        installCommands = BuildManifest.EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match exportedEnv with
+    | None -> manifest
+    | Some exportedEnv -> {manifest with exportedEnv;}
+  in
+
+  let manifest =
+    match exportedEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        exportedEnv = StringMap.Override.apply manifest.exportedEnv override;
+      }
+  in
+
+  let manifest =
+    match buildEnv with
+    | None -> manifest
+    | Some buildEnv -> {manifest with buildEnv;}
+  in
+
+  let manifest =
+    match buildEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        buildEnv = StringMap.Override.apply manifest.buildEnv override
+      }
+  in
+
+  manifest
 
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
@@ -132,7 +206,7 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
-let readManifests (installation : Installation.t) =
+let readManifests (solution : Solution.t) (installation : Installation.t) =
   let open RunAsync.Syntax in
 
   Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
@@ -145,26 +219,36 @@ let readManifests (installation : Installation.t) =
       Installation.pp_location loc
     );%lwt
 
+    let pkg = Solution.getExn id solution in
+
     let f () =
-      let manifest =
-        match loc with
-        | Installation.Install { path; source; } ->
-          let manifest = Source.manifest source in
-          BuildManifest.ofDir ?manifest path
-        | Installation.Link { path; manifest } ->
-          BuildManifest.ofDir ?manifest path
-      in
-      let manifest =
-        match%bind manifest with
-        | Some manifest -> return manifest
-        | None -> errorf "no manifest found for %a" PackageId.pp id
-      in
-      let%bind manifest =
-        RunAsync.contextf
-          manifest
-          "reading manifest %a" PackageId.pp id
-      in
-      return (id, manifest)
+      RunAsync.contextf (
+        let%bind manifest =
+          match loc with
+          | Installation.Install { path; source; } ->
+            let manifest = Source.manifest source in
+            BuildManifest.ofDir ?manifest path
+          | Installation.Link { path; manifest } ->
+            BuildManifest.ofDir ?manifest path
+        in
+        let%bind manifest =
+          match manifest with
+          | Some (manifest, paths) ->
+            if Overrides.isEmpty pkg.overrides
+            then return (manifest, paths)
+            else
+              let manifest = Overrides.apply pkg.overrides applyOverride manifest in
+              return (manifest, paths)
+          | None ->
+            if Overrides.isEmpty pkg.overrides
+            then errorf "no manifest found for %a" PackageId.pp id
+            else
+              let manifest = BuildManifest.empty in
+              let manifest = Overrides.apply pkg.overrides applyOverride manifest in
+              return (manifest, Path.Set.empty)
+        in
+        return (id, manifest)
+      ) "reading manifest %a" PackageId.pp id
     in
     LwtTaskQueue.submit queue f
   in
@@ -427,7 +511,7 @@ let make
   ~(solution : Solution.t)
   ~(installation : Installation.t) () =
   let open RunAsync.Syntax in
-  let%bind _manifestsPath, manifests = readManifests installation in
+  let%bind _manifestsPath, manifests = readManifests solution installation in
   Logs_lwt.debug (fun m -> m "creating plan");%lwt
   let%bind tasks = RunAsync.ofRun (
     make'
