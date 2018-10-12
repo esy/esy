@@ -14,8 +14,8 @@ module Task = struct
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
     installCommands : Scope.SandboxValue.t list list;
-    buildType : Manifest.BuildType.t;
-    sourceType : Manifest.SourceType.t;
+    buildType : BuildManifest.BuildType.t;
+    sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
@@ -70,13 +70,13 @@ let renderEsyCommands ~env scope commands =
 
   let renderCommand =
     function
-    | Manifest.Command.Parsed args ->
+    | BuildManifest.Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
         return (Scope.SandboxValue.v arg)
       in
       Result.List.map ~f args
-    | Manifest.Command.Unparsed line ->
+    | BuildManifest.Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
       return (List.map ~f:Scope.SandboxValue.v args)
@@ -146,13 +146,15 @@ let readManifests (installation : Installation.t) =
     );%lwt
 
     let f () =
+      let name = PackageId.name id in
+      let version = PackageId.version id in
       let manifest =
         match loc with
         | Installation.Install { path; source; } ->
           let manifest = Source.manifest source in
-          Manifest.ofDir ?manifest path
+          BuildManifest.ofDir ?manifest ~name ~version path
         | Installation.Link { path; manifest } ->
-          Manifest.ofDir ?manifest path
+          BuildManifest.ofDir ?manifest ~name ~version path
       in
       let manifest =
         match%bind manifest with
@@ -212,7 +214,7 @@ let buildId sandboxEnv build source dependencies =
       * build commands/environment *)
     let self =
       build
-      |> Manifest.Build.to_yojson
+      |> BuildManifest.to_yojson
       |> Yojson.Safe.to_string
     in
 
@@ -220,13 +222,13 @@ let buildId sandboxEnv build source dependencies =
       * the version of distribution of vcs commit sha *)
     let source =
       match source with
-      | Some source -> Manifest.Source.show source
+      | Some source -> BuildManifest.Source.show source
       | None -> "-"
     in
 
     let sandboxEnv =
       sandboxEnv
-      |> Manifest.Env.to_yojson
+      |> BuildManifest.Env.to_yojson
       |> Yojson.Safe.to_string
     in
 
@@ -260,16 +262,15 @@ let make'
     | Some None -> return None
     | Some (Some build) -> return (Some build)
     | None ->
-      let manifest = PackageId.Map.find id manifests in
-      begin match Manifest.build manifest with
-      | None -> return None
-      | Some build ->
+      begin match PackageId.Map.find_opt id manifests with
+      | Some manifest ->
         let%bind build =
           Run.contextf
-            (aux' id pkg build)
+            (aux' id pkg manifest)
             "processing %a" PackageId.pp id
         in
         return (Some build)
+      | None -> return None
       end
 
   and aux' pkgId pkg build =
@@ -289,13 +290,13 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
     in
 
-    let id = buildId Manifest.Env.empty build source dependencies in
+    let id = buildId BuildManifest.Env.empty build source dependencies in
     let sourcePath = Scope.SandboxPath.ofPath buildConfig sourcePath in
 
     let exportedScope, buildScope =
 
       let sandboxEnv =
-        let f {Manifest.Env. name; value} =
+        let f {BuildManifest.Env. name; value} =
           Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
         in
         List.map ~f (StringMap.values sandboxEnv)
@@ -362,12 +363,12 @@ let make'
     let%bind buildCommands =
       Run.context
         begin match build.buildCommands with
-        | Manifest.Build.EsyCommands commands ->
+        | BuildManifest.EsyCommands commands ->
           let%bind commands = renderEsyCommands ~env:buildEnv buildScope commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | Manifest.Build.OpamCommands commands ->
+        | BuildManifest.OpamCommands commands ->
           let%bind commands = renderOpamCommands opamEnv commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
@@ -379,9 +380,9 @@ let make'
     let%bind installCommands =
       Run.context
         begin match build.installCommands with
-        | Manifest.Build.EsyCommands commands ->
+        | BuildManifest.EsyCommands commands ->
           renderEsyCommands ~env:buildEnv buildScope commands
-        | Manifest.Build.OpamCommands commands ->
+        | BuildManifest.OpamCommands commands ->
           renderOpamCommands opamEnv commands
         end
         "processing esy.install"

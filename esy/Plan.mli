@@ -7,8 +7,8 @@ module Task : sig
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
     installCommands : Scope.SandboxValue.t list list;
-    buildType : Manifest.BuildType.t;
-    sourceType : Manifest.SourceType.t;
+    buildType : BuildManifest.BuildType.t;
+    sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
     buildScope : Scope.t;
     exportedScope : Scope.t;
@@ -36,7 +36,7 @@ val rootTask : t -> Task.t option
 val make :
   platform : System.Platform.t
   -> buildConfig:Scope.SandboxValue.ctx
-  -> sandboxEnv:Manifest.Env.item StringMap.t
+  -> sandboxEnv:BuildManifest.Env.item StringMap.t
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
   -> unit

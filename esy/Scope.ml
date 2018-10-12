@@ -10,15 +10,15 @@ module PackageScope : sig
   val make :
     id:string
     -> buildIsInProgress:bool
-    -> sourceType : Manifest.SourceType.t
+    -> sourceType : BuildManifest.SourceType.t
     -> sourcePath : SandboxPath.t
-    -> Manifest.Build.t
+    -> BuildManifest.t
     -> t
 
   val id : t -> string
   val name : t -> string
   val version : t -> Version.t
-  val sourceType : t -> Manifest.SourceType.t
+  val sourceType : t -> BuildManifest.SourceType.t
 
   val buildIsInProgress : t -> bool
   val storePath : t -> SandboxPath.t
@@ -40,8 +40,8 @@ end = struct
   type t = {
     id: string;
     sourcePath : SandboxPath.t;
-    sourceType : Manifest.SourceType.t;
-    build : Manifest.Build.t;
+    sourceType : BuildManifest.SourceType.t;
+    build : BuildManifest.t;
     buildIsInProgress : bool;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
@@ -52,22 +52,22 @@ end = struct
     ~buildIsInProgress
     ~sourceType
     ~sourcePath
-    (build : Manifest.Build.t) =
+    (build : BuildManifest.t) =
     let exportedEnvGlobal, exportedEnvLocal =
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
           _name
-          Manifest.ExportedEnv.{name; scope = envScope; value; exclusive = _}
+          BuildManifest.ExportedEnv.{name; scope = envScope; value; exclusive = _}
           (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal)
           =
           match envScope with
-          | Manifest.ExportedEnv.Global ->
+          | BuildManifest.ExportedEnv.Global ->
             let injectCamlLdLibraryPath =
               name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath
             in
             let exportedEnvGlobal = (name, value)::exportedEnvGlobal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
-          | Manifest.ExportedEnv.Local ->
+          | BuildManifest.ExportedEnv.Local ->
             let exportedEnvLocal = (name, value)::exportedEnvLocal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
         in
@@ -115,8 +115,8 @@ end = struct
 
   let storePath scope =
     match scope.sourceType with
-    | Manifest.SourceType.Immutable -> SandboxPath.store
-    | Manifest.SourceType.Transient -> SandboxPath.localStore
+    | BuildManifest.SourceType.Immutable -> SandboxPath.store
+    | BuildManifest.SourceType.Transient -> SandboxPath.localStore
 
   let buildPath scope =
     let storePath = storePath scope in
@@ -218,13 +218,13 @@ end = struct
     in
 
     let env =
-      let f _name {Manifest.Env. name; value;} env = (name, value)::env in
+      let f _name {BuildManifest.Env. name; value;} env = (name, value)::env in
       StringMap.fold f scope.build.buildEnv env
     in
 
     let env =
       match scope.build.buildType with
-      | Manifest.BuildType.OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
+      | BuildManifest.BuildType.OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
       | _ -> env
     in
 
@@ -451,8 +451,8 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
       match PackageScope.sourceType scope with
-      | Manifest.SourceType.Immutable -> false
-      | Manifest.SourceType.Transient -> true))
+      | BuildManifest.SourceType.Immutable -> false
+      | BuildManifest.SourceType.Transient -> true))
     | _, "prefix" -> Some (configPath installPath)
     | _, "bin" -> Some (configPath SandboxPath.(installPath / "bin"))
     | _, "sbin" -> Some (configPath SandboxPath.(installPath / "sbin"))

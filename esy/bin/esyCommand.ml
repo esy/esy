@@ -173,22 +173,6 @@ module CommonOptions = struct
       & info ["cache-path"] ~env ~doc
     )
 
-  let resolveSandoxPath () =
-    let open RunAsync.Syntax in
-
-    let%bind currentPath = RunAsync.ofRun (Path.current ()) in
-
-    let rec climb path =
-      if%bind Fs.exists Path.(path / "_esy")
-      then return path
-      else
-        let parent = Path.parent path in
-        if not (Path.compare path parent = 0)
-        then climb (Path.parent path)
-        else errorf "No sandbox found (from %a and up)" Path.ppPretty currentPath
-    in
-    climb currentPath
-
   let term sandboxPath =
 
     let sandboxPath =
@@ -199,7 +183,7 @@ module CommonOptions = struct
           then sandboxPath
           else Path.(EsyRuntime.currentWorkingDir // sandboxPath)
         )
-      | None -> resolveSandoxPath ()
+      | None -> RunAsync.ofRun (Path.current ())
     in
 
     let parse
@@ -301,7 +285,7 @@ module SandboxInfo = struct
     solution : Solution.t option;
     installation : EsyInstall.Installation.t option;
     plan : Plan.t option;
-    scripts : Manifest.Scripts.t;
+    scripts : BuildManifest.Scripts.t;
   }
 
   let plan info =
@@ -326,7 +310,7 @@ module SandboxInfo = struct
     in
     Path.(EsyInstall.SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
 
-  let writeCache (copts : CommonOptions.t) (info : t) =
+  let _writeCache (copts : CommonOptions.t) (info : t) =
     let open RunAsync.Syntax in
     let f () =
 
@@ -388,7 +372,7 @@ module SandboxInfo = struct
 
     in Perf.measureLwt ~label:"writing sandbox info cache" f
 
-  let readCache (copts : CommonOptions.t) =
+  let _readCache (copts : CommonOptions.t) =
     let open RunAsync.Syntax in
     let f () =
       let cachePath = cachePath copts.cfg copts.spec in
@@ -432,7 +416,7 @@ module SandboxInfo = struct
           | Some installation, Some solution ->
             let%bind plan = Plan.make
               ~platform:System.Platform.host
-              ~sandboxEnv:Manifest.Env.empty
+              ~sandboxEnv:BuildManifest.Env.empty
               ~buildConfig:copts.buildConfig
               ~solution
               ~installation
@@ -461,17 +445,19 @@ module SandboxInfo = struct
           plan;
           spec = copts.spec;
           info = [];
-          scripts = Manifest.Scripts.empty; (* TODO *)
+          scripts = BuildManifest.Scripts.empty; (* TODO *)
         }
       in Perf.measureLwt ~label:"constructing sandbox info" f
     in
-    match%bind readCache copts with
-    | Some info ->
-      return info
-    | None ->
-      let%bind info = makeInfo () in
-      let%bind () = writeCache copts info in
-      return info
+    makeInfo ()
+
+    (* match%bind readCache copts with *)
+    (* | Some info -> *)
+    (*   return info *)
+    (* | None -> *)
+    (*   let%bind info = makeInfo () in *)
+    (*   let%bind () = writeCache copts info in *)
+    (*   return info *)
 
   (* let findTaskByName ~pkgName root = *)
   (*   let f (task : Task.t) = *)
@@ -962,11 +948,11 @@ let devExec (copts : CommonOptions.t) cmd () =
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
     let script =
-      Manifest.Scripts.find
+      BuildManifest.Scripts.find
         tool
         info.scripts
     in
-    let renderCommand (cmd : Manifest.Command.t) =
+    let renderCommand (cmd : BuildManifest.Command.t) =
       match cmd with
       | Parsed args ->
         let%bind args =

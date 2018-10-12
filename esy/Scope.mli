@@ -8,10 +8,10 @@ val make :
   platform:System.Platform.t
   -> sandboxEnv:SandboxEnvironment.Bindings.t
   -> id:string
-  -> sourceType:Manifest.SourceType.t
+  -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
   -> buildIsInProgress:bool
-  -> Manifest.Build.t
+  -> BuildManifest.t
   -> t
 (** An initial scope for the package. *)
 

@@ -29,98 +29,25 @@ module Release : sig
   }
 end
 
-(**
- * Build configuration.
- *)
-module Build : sig
-  type commands =
-    | OpamCommands of OpamTypes.command list
-    | EsyCommands of CommandList.t
+type commands =
+  | OpamCommands of OpamTypes.command list
+  | EsyCommands of CommandList.t
 
-  type t = {
-    name : string;
-    version : Version.t;
-    buildType : BuildType.t;
-    buildCommands : commands;
-    installCommands : commands;
-    patches : (Path.t * OpamTypes.filter option) list;
-    substs : Path.t list;
-    exportedEnv : ExportedEnv.t;
-    buildEnv : Env.t;
-  }
+type t = {
+  name : string;
+  version : Version.t;
+  buildType : BuildType.t;
+  buildCommands : commands;
+  installCommands : commands;
+  patches : (Path.t * OpamTypes.filter option) list;
+  substs : Path.t list;
+  exportedEnv : ExportedEnv.t;
+  buildEnv : Env.t;
+}
 
-  val empty : string -> Version.t -> t
-  val to_yojson : t Json.encoder
-end
+val empty : string -> Version.t -> t
 
-(**
- * Dependencies info.
- *)
-module Dependencies : sig
-  type t = {
-    dependencies : string list list;
-    devDependencies : string list list;
-    buildTimeDependencies : string list list;
-    optDependencies : string list list;
-  }
-  val empty : t
-  val show : t -> string
-end
-
-module type MANIFEST = sig
-  (**
-   * Manifest.
-   *
-   * This can be either esy manifest (package.json/esy.json) or opam manifest but
-   * this type abstracts them out.
-   *)
-  type t
-
-  (** Name. *)
-  val name : t -> string
-
-  (** Version. *)
-  val version : t -> Version.t
-
-  (** License. *)
-  val license : t -> Json.t option
-
-  (** Description. *)
-  val description : t -> string option
-
-  (**
-   * Extract dependency info.
-   *)
-  val dependencies : t -> Dependencies.t
-
-  (**
-   * Extract build config from manifest
-   *
-   * Not all packages have build config defined so we return `None` in this case.
-   *)
-  val build : t -> Build.t option
-
-  (**
-   * Extract release config from manifest
-   *
-   * Not all packages have release config defined so we return `None` in this
-   * case.
-   *)
-  val release : t -> Release.t option
-
-  (**
-   * Extract release config from manifest
-   *
-   * Not all packages have release config defined so we return `None` in this
-   * case.
-   *)
-  val scripts : t -> Scripts.t Run.t
-
-  val sandboxEnv : t -> Env.t Run.t
-  (** Extract sandbox environment from manifest. *)
-end
-
-include MANIFEST
+val to_yojson : t Json.encoder
 
 (**
  * Load manifest given a directory.
@@ -132,12 +59,7 @@ include MANIFEST
  *)
 val ofDir :
   ?manifest:EsyInstall.ManifestSpec.Filename.t
+  -> name:string
+  -> version:EsyInstall.Version.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
-
-val ofSandboxSpec :
-  cfg:Config.t
-  -> EsyInstall.SandboxSpec.t
-  -> (t * EsyInstall.Package.Overrides.t * Path.Set.t) RunAsync.t
-
-val dirHasManifest : Fpath.t -> bool RunAsync.t
