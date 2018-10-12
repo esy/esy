@@ -8,6 +8,8 @@ val make :
   platform:System.Platform.t
   -> sandboxEnv:SandboxEnvironment.Bindings.t
   -> id:string
+  -> name:string
+  -> version:EsyInstall.Version.t
   -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
   -> buildIsInProgress:bool

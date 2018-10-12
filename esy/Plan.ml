@@ -146,15 +146,13 @@ let readManifests (installation : Installation.t) =
     );%lwt
 
     let f () =
-      let name = PackageId.name id in
-      let version = PackageId.version id in
       let manifest =
         match loc with
         | Installation.Install { path; source; } ->
           let manifest = Source.manifest source in
-          BuildManifest.ofDir ?manifest ~name ~version path
+          BuildManifest.ofDir ?manifest path
         | Installation.Link { path; manifest } ->
-          BuildManifest.ofDir ?manifest ~name ~version path
+          BuildManifest.ofDir ?manifest path
       in
       let manifest =
         match%bind manifest with
@@ -192,7 +190,7 @@ let readManifests (installation : Installation.t) =
 
   return (paths, manifests)
 
-let buildId sandboxEnv build source dependencies =
+let buildId ~sandboxEnv ~name ~version build source dependencies =
 
   let hash =
 
@@ -239,8 +237,8 @@ let buildId sandboxEnv build source dependencies =
   in
 
   Printf.sprintf "%s-%s-%s"
-    (Path.safeSeg build.name)
-    (Path.safePath (Version.show build.version))
+    (Path.safeSeg name)
+    (Path.safePath (Version.show version))
     hash
 
 let make'
@@ -290,7 +288,9 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
     in
 
-    let id = buildId BuildManifest.Env.empty build source dependencies in
+    let name = PackageId.name pkgId in
+    let version = PackageId.version pkgId in
+    let id = buildId ~sandboxEnv:BuildManifest.Env.empty ~name ~version build source dependencies in
     let sourcePath = Scope.SandboxPath.ofPath buildConfig sourcePath in
 
     let exportedScope, buildScope =
@@ -307,6 +307,8 @@ let make'
           ~platform
           ~sandboxEnv
           ~id
+          ~name
+          ~version
           ~sourceType
           ~sourcePath
           ~buildIsInProgress:false
@@ -318,6 +320,8 @@ let make'
           ~platform
           ~sandboxEnv
           ~id
+          ~name
+          ~version
           ~sourceType
           ~sourcePath
           ~buildIsInProgress:true
@@ -392,8 +396,8 @@ let make'
       Task.
       id;
       pkgId;
-      name = build.name;
-      version = build.version;
+      name;
+      version;
       buildCommands;
       installCommands;
       env = buildEnv;

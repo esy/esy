@@ -83,8 +83,6 @@ let patch_to_yojson (path, filter) =
   `Assoc ["path", Path.to_yojson path; "filter", filter]
 
 type t = {
-  name : string;
-  version : Version.t;
   buildType : BuildType.t;
   buildCommands : commands;
   installCommands : commands;
@@ -94,9 +92,7 @@ type t = {
   buildEnv : Env.t;
 } [@@deriving to_yojson]
 
-let empty name version = {
-  name;
-  version;
+let empty = {
   buildType = BuildType.OutOfSource;
   buildCommands = EsyCommands [];
   installCommands = EsyCommands [];
@@ -121,15 +117,13 @@ module EsyBuild = struct
     release: (Release.t option [@default None]);
   } [@@deriving (of_yojson { strict = false })]
 
-  let ofFile ~name ~version (path : Path.t) =
+  let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind json = Fs.readJsonFile path in
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith packageJson_of_yojson json) in
     match pkgJson.esy with
     | Some m ->
       let build = {
-        name;
-        version;
         buildType = m.buildsInSource;
         exportedEnv = m.exportedEnv;
         buildEnv = m.buildEnv;
@@ -157,7 +151,7 @@ let readOpam path =
 
 module OpamBuild = struct
 
-  let build ~name ~version (manifest : Solution.Package.Opam.t) =
+  let build (manifest : Solution.Package.Opam.t) =
     let buildCommands =
       match manifest.override with
       | Some {EsyInstall.Package.OpamOverride. build = Some cmds; _} ->
@@ -198,9 +192,6 @@ module OpamBuild = struct
     in
 
     {
-      name;
-      version;
-      (* we assume opam installations are built in source *)
       buildType = BuildType.InSource;
       exportedEnv;
       buildEnv = Env.empty;
@@ -210,31 +201,31 @@ module OpamBuild = struct
       substs;
     }
 
-  let ofInstallationDir ~name ~version (path : Path.t) =
+  let ofInstallationDir (path : Path.t) =
     let open RunAsync.Syntax in
     match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
     | None
     | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
       return None
     | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      return (Some (build ~name ~version info, Path.Set.singleton path))
+      return (Some (build info, Path.Set.singleton path))
 
-  let ofFile ~name ~version (path : Path.t) =
+  let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     match%bind readOpam path with
     | None -> errorf "unable to load opam manifest at %a" Path.pp path
     | Some (_, opam) ->
       let info = {
         EsyInstall.Solution.Package.Opam.
-        name = OpamPackage.Name.of_string name;
+        name = OpamPackage.Name.of_string "unused";
         version = OpamPackage.Version.of_string "unused";
         opam;
         override = None;
       } in
-      return (Some (build ~name ~version info, Path.Set.singleton path))
+      return (Some (build info, Path.Set.singleton path))
 end
 
-let discoverManifest ~name ~version path =
+let discoverManifest path =
   let open RunAsync.Syntax in
 
   let filenames =
@@ -254,14 +245,14 @@ let discoverManifest ~name ~version path =
       if%bind Fs.exists fname
       then
         match kind with
-        | `Esy -> EsyBuild.ofFile ~name ~version fname
-        | `Opam -> OpamBuild.ofFile ~name ~version fname
+        | `Esy -> EsyBuild.ofFile fname
+        | `Opam -> OpamBuild.ofFile fname
       else tryLoad rest
   in
 
   tryLoad filenames
 
-let ofDir ?manifest ~name ~version (path : Path.t) =
+let ofDir ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
   Logs_lwt.debug (fun m ->
@@ -273,18 +264,18 @@ let ofDir ?manifest ~name ~version (path : Path.t) =
   let manifest =
     match manifest with
     | None ->
-      begin match%bind OpamBuild.ofInstallationDir ~name ~version path with
+      begin match%bind OpamBuild.ofInstallationDir path with
       | Some manifest -> return (Some manifest)
-      | None -> discoverManifest ~name ~version path
+      | None -> discoverManifest path
       end
     | Some spec ->
       begin match spec with
       | ManifestSpec.Filename.Esy, fname ->
         let path = Path.(path / fname) in
-        EsyBuild.ofFile ~name ~version path
+        EsyBuild.ofFile path
       | ManifestSpec.Filename.Opam, fname ->
         let path = Path.(path / fname) in
-        OpamBuild.ofFile ~name ~version path
+        OpamBuild.ofFile path
       end
     in
 

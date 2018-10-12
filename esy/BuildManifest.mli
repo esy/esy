@@ -34,8 +34,6 @@ type commands =
   | EsyCommands of CommandList.t
 
 type t = {
-  name : string;
-  version : Version.t;
   buildType : BuildType.t;
   buildCommands : commands;
   installCommands : commands;
@@ -45,7 +43,7 @@ type t = {
   buildEnv : Env.t;
 }
 
-val empty : string -> Version.t -> t
+val empty : t
 
 val to_yojson : t Json.encoder
 
@@ -59,7 +57,5 @@ val to_yojson : t Json.encoder
  *)
 val ofDir :
   ?manifest:EsyInstall.ManifestSpec.Filename.t
-  -> name:string
-  -> version:EsyInstall.Version.t
   -> Path.t
   -> (t * Path.Set.t) option RunAsync.t
