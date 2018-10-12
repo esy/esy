@@ -10,6 +10,14 @@ let doesPathReferToConcreteManifest path =
     || Path.(compare path (v "opam") = 0)
   )
 
+let projectName spec =
+  let nameOfPath spec = Path.basename spec.path in
+  match spec.manifest with
+  | ManyOpam _ -> nameOfPath spec
+  | One (Opam, "opam") -> nameOfPath spec
+  | One (Esy, "package.json") | One (Esy, "esy.json") -> nameOfPath spec
+  | One (_, fname) -> Path.(show (remExt (v fname)))
+
 let name spec =
   match spec.manifest with
   | ManyOpam _ -> "opam"

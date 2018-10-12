@@ -156,6 +156,16 @@ let ofSource ~cfg ~spec source =
 
   match%bind Resolver.package ~resolution resolver with
   | Ok root ->
+
+    let root =
+      let name =
+        match root.Package.originalName with
+        | Some name -> name
+        | None -> SandboxSpec.projectName spec
+      in
+      {root with name;}
+    in
+
     let dependencies, ocamlReq =
       match root.Package.dependencies, root.devDependencies with
       | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->

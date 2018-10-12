@@ -11,6 +11,7 @@ module Map : Map.S with type key = t
 
 val doesPathReferToConcreteManifest : Path.t -> bool
 val isDefault : t -> bool
+val projectName : t -> string
 
 val cachePath : t -> Path.t
 val storePath : t -> Path.t
