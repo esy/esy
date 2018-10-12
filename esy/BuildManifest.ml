@@ -24,36 +24,6 @@ module Release = struct
   } [@@deriving (of_yojson { strict = false })]
 end
 
-module Scripts = struct
-
-  [@@@ocaml.warning "-32"]
-  type script = {
-    command : Command.t;
-  }
-  [@@deriving ord]
-
-  type t =
-    script StringMap.t
-    [@@deriving ord]
-
-  let empty = StringMap.empty
-
-  let of_yojson =
-    let script (json: Json.t) =
-      match CommandList.of_yojson json with
-      | Ok command ->
-        begin match command with
-        | [] -> Error "empty command"
-        | [command] -> Ok {command;}
-        | _ -> Error "multiple script commands are not supported"
-        end
-      | Error err -> Error err
-    in
-    Json.Decode.stringMap script
-
-  let find (cmd: string) (scripts: t) = StringMap.find_opt cmd scripts
-end
-
 (* aliases for opam types with to_yojson implementations *)
 module OpamTypes = struct
   type filter = OpamTypes.filter

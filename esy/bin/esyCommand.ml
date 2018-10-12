@@ -285,7 +285,7 @@ module SandboxInfo = struct
     solution : Solution.t option;
     installation : EsyInstall.Installation.t option;
     plan : Plan.t option;
-    scripts : BuildManifest.Scripts.t;
+    scripts : Scripts.t;
   }
 
   let plan info =
@@ -426,6 +426,7 @@ module SandboxInfo = struct
           | _, None -> return None
           | None, _ -> return None
         in
+        let%bind scripts = Scripts.ofSandbox copts.spec in
         (* let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun ( *)
         (*   let open Run.Syntax in *)
         (*   let%bind task = Task.ofSandbox sandbox in *)
@@ -445,7 +446,7 @@ module SandboxInfo = struct
           plan;
           spec = copts.spec;
           info = [];
-          scripts = BuildManifest.Scripts.empty; (* TODO *)
+          scripts;
         }
       in Perf.measureLwt ~label:"constructing sandbox info" f
     in
@@ -948,7 +949,7 @@ let devExec (copts : CommonOptions.t) cmd () =
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
     let script =
-      BuildManifest.Scripts.find
+      Scripts.find
         tool
         info.scripts
     in

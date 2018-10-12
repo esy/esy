@@ -12,13 +12,6 @@ module CommandList : module type of EsyInstall.Package.CommandList
 module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
 module Env : module type of EsyInstall.Package.Env
 
-module Scripts : sig
-  type t = script StringMap.t
-  and script = { command : Command.t; }
-  val empty : t
-  val find : string -> t -> script option
-end
-
 (**
  * Release configuration.
  *)
