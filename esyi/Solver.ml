@@ -177,7 +177,7 @@ module Explanation = struct
             else pkg::requestor::path
           in
           let f reasons (name, _) =
-            let name = Universe.CudfMapping.decodePkgName name in
+            let name = Universe.CudfMapping.decodePkgName (Universe.CudfName.make name) in
             let%lwt available =
               match%lwt Resolver.resolve ~name resolver with
               | Ok available -> Lwt.return available

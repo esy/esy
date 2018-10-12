@@ -1,16 +1,27 @@
 module Dependencies = Package.Dependencies
 
-module CudfName = struct
+module CudfName : sig
+
+  type t
+
+  val make : string -> t
+  val encode : string -> t
+  val decode : t -> string
+  val show : t -> string
+  val pp : t Fmt.t
+
+end = struct
+  type t = string
 
   let escapeWith = "UuU"
   let underscoreRe = Re.(compile (char '_'))
   let underscoreEscapeRe = Re.(compile (str escapeWith))
 
-  let ofString name =
-    Re.replace_string underscoreRe ~by:escapeWith name
-
-  let toString name =
-    Re.replace_string underscoreEscapeRe ~by:"_" name
+  let make name = name
+  let encode name = Re.replace_string underscoreRe ~by:escapeWith name
+  let decode name = Re.replace_string underscoreEscapeRe ~by:"_" name
+  let show name = name
+  let pp = Fmt.string
 end
 
 type t = {
@@ -64,10 +75,19 @@ let findVersions ~name (univ : t) =
     |> Version.Map.bindings
     |> List.map ~f:(fun (_, pkg) -> pkg)
 
-module CudfVersionMap = struct
+module CudfVersionMap : sig
+  type t
+
+  val make : ?size:int -> unit -> t
+  val update : t -> string -> Version.t -> int -> unit
+  val findVersion : cudfName:CudfName.t -> cudfVersion:int -> t -> Version.t option
+  val findVersionExn : cudfName:CudfName.t -> cudfVersion:int -> t -> Version.t
+  val findCudfVersion : name:string -> version:Version.t -> t -> int option
+  val findCudfVersionExn : name:string -> version:Version.t -> t -> int
+end = struct
 
   type t = {
-    cudfVersionToVersion: ((string * int), Version.t) Hashtbl.t ;
+    cudfVersionToVersion: ((CudfName.t * int), Version.t) Hashtbl.t ;
     versionToCudfVersion: ((string * Version.t), int) Hashtbl.t;
     versions : (string, Version.Set.t) Hashtbl.t;
   }
@@ -79,8 +99,9 @@ module CudfVersionMap = struct
   }
 
   let update map name version cudfVersion =
+    Format.eprintf "CudfVersionMap.update %s@%a@." name Version.pp version;
     Hashtbl.replace map.versionToCudfVersion (name, version) cudfVersion;
-    Hashtbl.replace map.cudfVersionToVersion (name, cudfVersion) version;
+    Hashtbl.replace map.cudfVersionToVersion (CudfName.encode name, cudfVersion) version;
     let () =
       let versions =
         try Hashtbl.find map.versions name
@@ -91,24 +112,25 @@ module CudfVersionMap = struct
     in
     ()
 
-  let findVersion ~name ~cudfVersion map =
-    match Hashtbl.find map.cudfVersionToVersion (name, cudfVersion) with
+  let findVersion ~cudfName ~cudfVersion map =
+    match Hashtbl.find map.cudfVersionToVersion (cudfName, cudfVersion) with
     | exception Not_found -> None
     | version -> Some version
 
   let findCudfVersion ~name ~version map =
+    Format.eprintf "CudfVersionMap.findCudfVersion %s@%a@." name Version.pp version;
     match Hashtbl.find map.versionToCudfVersion (name, version) with
     | exception Not_found -> None
     | version -> Some version
 
-  let findVersionExn ~name ~cudfVersion map =
-    match findVersion ~name ~cudfVersion map with
+  let findVersionExn ~(cudfName : CudfName.t) ~cudfVersion map =
+    match findVersion ~cudfName ~cudfVersion map with
     | Some v -> v
     | None ->
       let msg =
-        Printf.sprintf
-          "inconsistent state: found a package not in the cudf version map %s@cudf:%i\n"
-          name cudfVersion
+        Format.asprintf
+          "inconsistent state: found a package not in the cudf version map %a@cudf:%i\n"
+          CudfName.pp cudfName cudfVersion
       in
       failwith msg
 
@@ -129,34 +151,38 @@ module CudfMapping = struct
 
   type t = univ * Cudf.universe * CudfVersionMap.t
 
-  let encodePkgName = CudfName.ofString
-  let decodePkgName = CudfName.toString
+  let encodePkgName = CudfName.encode
+  let decodePkgName = CudfName.decode
 
   let decodePkg (cudf : Cudf.package) (univ, _cudfUniv, vmap) =
-    let name = CudfName.toString cudf.package in
-    match CudfVersionMap.findVersion ~name ~cudfVersion:cudf.version vmap with
+    let cudfName = CudfName.make cudf.package in
+    let name = CudfName.decode cudfName in
+    match CudfVersionMap.findVersion ~cudfName ~cudfVersion:cudf.version vmap with
     | Some version -> findVersion ~name ~version univ
     | None -> None
 
   let decodePkgExn (cudf : Cudf.package) (univ, _cudfUniv, vmap) =
-    let name = CudfName.toString cudf.package in
-    let version = CudfVersionMap.findVersionExn ~name ~cudfVersion:cudf.version vmap in
+    let cudfName = CudfName.make cudf.package in
+    let name = CudfName.decode cudfName in
+    let version = CudfVersionMap.findVersionExn ~cudfName ~cudfVersion:cudf.version vmap in
     findVersionExn ~name ~version univ
 
   let encodePkg (pkg : Package.t) (_univ, cudfUniv, vmap) =
-    let name = CudfName.ofString pkg.name in
+    let name = pkg.name in
+    let cudfName = CudfName.encode pkg.name in
     match CudfVersionMap.findCudfVersion ~name ~version:pkg.version vmap with
     | Some cudfVersion ->
       begin
-        try Some (Cudf.lookup_package cudfUniv (name, cudfVersion))
+        try Some (Cudf.lookup_package cudfUniv (CudfName.show cudfName, cudfVersion))
         with | Not_found -> None
       end
     | None -> None
 
   let encodePkgExn (pkg : Package.t) (_univ, cudfUniv, vmap) =
-    let name = CudfName.ofString pkg.name in
+    let name = pkg.name in
+    let cudfName = CudfName.encode pkg.name in
     let cudfVersion = CudfVersionMap.findCudfVersionExn ~name ~version:pkg.version vmap in
-    Cudf.lookup_package cudfUniv (name, cudfVersion)
+    Cudf.lookup_package cudfUniv (CudfName.show cudfName, cudfVersion)
 
   let encodeDepExn ~name ~matches (univ, _cudfUniv, vmap)  =
     let versions = findVersions ~name univ in
@@ -169,7 +195,7 @@ module CudfMapping = struct
 
     match versionsMatched with
     | [] ->
-      [CudfName.ofString name, Some (`Eq, 10000000000)]
+      [CudfName.show (CudfName.encode name), Some (`Eq, 10000000000)]
     | versionsMatched ->
       let pkgToConstraint pkg =
         let cudfVersion =
@@ -178,7 +204,7 @@ module CudfMapping = struct
             ~version:pkg.Package.version
             vmap
         in
-        CudfName.ofString pkg.Package.name, Some (`Eq, cudfVersion)
+        CudfName.show (CudfName.encode pkg.Package.name), Some (`Eq, cudfVersion)
       in
       List.map ~f:pkgToConstraint versionsMatched
 
@@ -204,6 +230,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
 
   let updateVersionMap pkgs =
     let f cudfVersion (pkg : Package.t) =
+      Format.eprintf "add %s@%a@." pkg.name Version.pp pkg.version;
       CudfVersionMap.update
         cudfVersionMap
         pkg.name
@@ -277,12 +304,12 @@ let toCudf ?(installed=Package.Set.empty) univ =
 
     let depends = encodeDeps pkg.dependencies in
     let staleness = pkgSize - cudfVersion in
-    let cudfName = CudfName.ofString pkg.name in
+    let cudfName = CudfName.encode pkg.name in
     let cudfPkg = {
       Cudf.default_package with
-      package = cudfName;
+      package = CudfName.show cudfName;
       version = cudfVersion;
-      conflicts = [cudfName, None];
+      conflicts = [CudfName.show cudfName, None];
       installed = Package.Set.mem pkg installed;
       pkg_extra = [
         "staleness", `Int staleness;
