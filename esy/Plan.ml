@@ -2,6 +2,7 @@ module Solution = EsyInstall.Solution
 module PackageId = EsyInstall.PackageId
 module Package = EsyInstall.Solution.Package
 module Installation = EsyInstall.Installation
+module Source = EsyInstall.Source
 module Version = EsyInstall.Version
 
 module Task = struct
@@ -134,18 +135,29 @@ let renderOpamPatchesToCommands opamEnv patches =
 let readManifests (installation : Installation.t) =
   let open RunAsync.Syntax in
 
-  Logs_lwt.debug (fun m -> m "reading manifests");%lwt
+  Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
 
   let queue = LwtTaskQueue.create ~concurrency:100 () in
 
   let readManifest (id, loc) =
+    Logs_lwt.debug (fun m ->
+      m "reading manifest: %a %a" PackageId.pp id
+      Installation.pp_location loc
+    );%lwt
+
     let f () =
       let manifest =
         match loc with
-        | Installation.Install { path; source = _; } ->
-          Manifest.ofDir path
+        | Installation.Install { path; source; } ->
+          let manifest = Source.manifest source in
+          Manifest.ofDir ?manifest path
         | Installation.Link { path; manifest } ->
           Manifest.ofDir ?manifest path
+      in
+      let manifest =
+        match%bind manifest with
+        | Some manifest -> return manifest
+        | None -> errorf "no manifest found for %a" PackageId.pp id
       in
       let%bind manifest =
         RunAsync.contextf
@@ -166,8 +178,7 @@ let readManifests (installation : Installation.t) =
   let paths, manifests =
     let f (paths, manifests) (id, manifest) =
       match manifest with
-      | None ->  paths, manifests
-      | Some (manifest, manifestPaths) ->
+      | manifest, manifestPaths ->
         let paths = Path.Set.union paths manifestPaths in
         let manifests = PackageId.Map.add id manifest manifests in
         paths, manifests
@@ -244,6 +255,7 @@ let make'
 
   let rec aux pkg =
     let id = Package.id pkg in
+    Logs.debug (fun m -> m "processing %a" PackageId.pp id);
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)

@@ -778,6 +778,12 @@ end = struct
   let ofDir ?manifest (path : Path.t) =
     let open RunAsync.Syntax in
 
+    Logs_lwt.debug (fun m ->
+      m "Manifest.ofDir %a %a"
+      Fmt.(option ManifestSpec.Filename.pp) manifest
+      Path.pp path
+    );%lwt
+
     let manifest =
       match manifest with
       | None ->

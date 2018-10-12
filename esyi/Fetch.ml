@@ -874,11 +874,19 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   in
 
   let installation =
+    let manifest =
+      match sandbox.spec.manifest with
+      | ManifestSpec.One manifest -> manifest
+      | ManifestSpec.ManyOpam _ -> failwith "multiple opam files are not supported"
+    in
     let installation =
       Installation.empty
       |> Installation.add
           (Package.id root)
-          (Installation.Link {path = sandbox.spec.path; manifest = None;})
+          (Installation.Link {
+            path = sandbox.spec.path;
+            manifest = Some manifest;
+          })
     in
     let f installation (dist, sourcePath) =
       let source =
