@@ -276,6 +276,7 @@ let make'
     let source, sourcePath, sourceType =
       match location with
       | Installation.Install info ->
+        (* TODO: make sure we check if all dependencies are immutable too *)
         Some info.source, info.path, SourceType.Immutable
       | Installation.Link info ->
         None, info.path, SourceType.Transient

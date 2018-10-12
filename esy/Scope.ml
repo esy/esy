@@ -172,7 +172,7 @@ end = struct
     match id with
     | "id" -> s scope.id
     | "name" -> s scope.name
-    | "version" -> s (Version.show scope.version)
+    | "version" -> s (Version.showSimple scope.version)
     | "root" -> p (rootPath scope)
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
@@ -205,7 +205,7 @@ end = struct
     let env =
       [
         "cur__name", scope.name;
-        "cur__version", (Version.show scope.version);
+        "cur__version", (Version.showSimple scope.version);
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
@@ -459,7 +459,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
 
     | _, "hash" -> Some (string "")
     | _, "name" -> Some (string opamname)
-    | _, "version" -> Some (string (Version.show (PackageScope.version scope)))
+    | _, "version" -> Some (string (Version.showSimple (PackageScope.version scope)))
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
       match PackageScope.sourceType scope with
@@ -510,7 +510,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   | Full.Global, "toplevel" -> Some (configPath SandboxPath.(installPath / "toplevel"))
   | Full.Global, "lib" -> Some (configPath SandboxPath.(installPath / "lib"))
   | Full.Global, "libexec" -> Some (configPath SandboxPath.(installPath / "lib"))
-  | Full.Global, "version" -> Some (string (Version.show (PackageScope.version scope.self)))
+  | Full.Global, "version" -> Some (string (Version.showSimple (PackageScope.version scope.self)))
   | Full.Global, "name" -> Some (string (opamname scope.self))
 
   | Full.Global, _ -> None

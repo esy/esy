@@ -10,6 +10,12 @@ let show v =
   | Opam v -> "opam:" ^ OpamPackageVersion.Version.show v
   | Source src -> (Source.show src)
 
+let showSimple v =
+  match v with
+  | Npm t -> SemverVersion.Version.show t
+  | Opam v -> OpamPackageVersion.Version.show v
+  | Source src -> (Source.show src)
+
 let pp fmt v =
   Fmt.fmt "%s" fmt (show v)
 
