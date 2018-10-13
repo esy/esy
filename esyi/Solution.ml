@@ -60,8 +60,16 @@ module Package = struct
   module Set = Set.Make(struct type nonrec t = t let compare = compare end)
 end
 
+let traverse pkg =
+  pkg.Package.dependencies |> PackageId.Set.elements
+
+let traverseWithDevDependencies pkg =
+  PackageId.Set.union pkg.Package.dependencies pkg.Package.devDependencies
+  |> PackageId.Set.elements
+
 include Graph.Make(struct
   include Package
+  let traverse = traverse
   module Id = PackageId
 end)
 
@@ -75,15 +83,7 @@ module LockfileV1 = struct
     (* Id of the root package. *)
     root : PackageId.t;
     (* Map from ids to nodes. *)
-    node : node PackageId.Map.t
-  }
-
-  (* Each package is represented as node. *)
-  and node = {
-    (* Actual package pkg. *)
-    pkg : Package.t;
-    (* List of dependency ids. *)
-    dependencies : PackageId.t StringMap.t;
+    node : Package.t PackageId.Map.t
   } [@@deriving yojson]
 
   let computeSandboxChecksum (sandbox : Sandbox.t) =
@@ -147,18 +147,17 @@ module LockfileV1 = struct
     Digest.to_hex digest
 
   let solutionOfLockfile root node =
-    let f _id {pkg; dependencies} solution =
-      add pkg dependencies solution
+    let f _id pkg solution =
+      add pkg solution
     in
     PackageId.Map.fold f node (empty root)
 
   let lockfileOfSolution (sol : solution) =
     let node =
-      let f pkg dependencies nodes =
-        let dependencies = StringMap.map Package.id dependencies in
+      let f pkg _dependencies nodes =
         PackageId.Map.add
           (Package.id pkg)
-          {pkg; dependencies}
+          pkg
           nodes
       in
       fold ~f ~init:PackageId.Map.empty sol

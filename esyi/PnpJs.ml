@@ -87,11 +87,13 @@ module PackageInformation = struct
           | None -> assert false
         in
         let packageDependencies =
-          let f pkg =
+          let f map pkg =
             let id = Solution.Package.id pkg in
-            Version.show (PackageId.version id)
+            let name = PackageId.name id in
+            let version = Version.show (PackageId.version id) in
+            StringMap.add name version map
           in
-          StringMap.map f (Solution.dependencies package solution)
+          List.fold_left ~f ~init:StringMap.empty (Solution.dependencies package solution)
         in
         StringOrNullMap.add version {packageLocation; packageDependencies;} versions
       in

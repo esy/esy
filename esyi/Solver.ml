@@ -835,17 +835,17 @@ let solve (sandbox : Sandbox.t) =
     in
 
     let%bind solution =
-      let%bind root, dependencies = solutionPkgOfPkg sandbox.root allDependenciesMap in
+      let%bind root, _dependencies = solutionPkgOfPkg sandbox.root allDependenciesMap in
       return (
         Solution.empty (Solution.Package.id root)
-        |> Solution.add root dependencies
+        |> Solution.add root
       )
     in
 
     let%bind solution =
       let f solution (pkg, _) =
-        let%bind pkg, dependencies = solutionPkgOfPkg pkg allDependenciesMap in
-        return (Solution.add pkg dependencies solution)
+        let%bind pkg, _dependencies = solutionPkgOfPkg pkg allDependenciesMap in
+        return (Solution.add pkg solution)
       in
       packagesToDependencies
       |> Package.Map.bindings

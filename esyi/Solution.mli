@@ -40,6 +40,9 @@ module Package : sig
   module Set : Set.S with type elt := t
 end
 
+val traverse : Package.t -> PackageId.t list
+val traverseWithDevDependencies : Package.t -> PackageId.t list
+
 (**
  * This represent an isolated dependency root.
  *)

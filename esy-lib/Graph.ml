@@ -2,19 +2,20 @@ module type GRAPH = sig
   type t
   type node
   type id
+  type traverse = node -> id list
 
   val empty : id -> t
-  val add : node -> id StringMap.t -> t -> t
+  val add : node -> t -> t
 
   val root : t -> node
   val mem : id -> t -> bool
   val get : id -> t -> node option
   val getExn : id -> t -> node
   val find : (id -> node -> bool) -> t -> (id * node) option
-  val dependencies : node -> t -> node StringMap.t
-  val allDependenciesBFS : node -> t -> (bool * node) list
+  val dependencies : ?traverse:traverse -> node -> t -> node list
+  val allDependenciesBFS : ?traverse:traverse -> node -> t -> (bool * node) list
 
-  val fold : f:(node -> node StringMap.t -> 'v -> 'v) -> init:'v -> t -> 'v
+  val fold : f:(node -> node list -> 'v -> 'v) -> init:'v -> t -> 'v
 
   include S.JSONABLE with type t := t
 end
@@ -42,6 +43,7 @@ module type GRAPH_NODE = sig
   end
 
   val id : t -> Id.t
+  val traverse : t -> Id.t list
 
   include S.JSONABLE with type t := t
   include S.COMPARABLE with type t := t
@@ -55,50 +57,41 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
   type node = Node.t
   type id = Node.Id.t
+  type traverse = node -> id list
 
   type t = {
     root : Node.Id.t;
-    nodes : payload Node.Id.Map.t;
+    nodes : Node.t Node.Id.Map.t;
   } [@@deriving yojson]
-
-  and payload = {
-    node : Node.t;
-    dependencies : Node.Id.t StringMap.t;
-  }
 
   let empty root = {nodes = Node.Id.Map.empty; root}
 
-  let add node dependencies graph =
-    let payload = {node; dependencies;} in
-    let nodes = Node.Id.Map.add (Node.id node) payload graph.nodes in
+  let add node graph =
+    let nodes = Node.Id.Map.add (Node.id node) node graph.nodes in
     {graph with nodes;}
 
-  let find' id graph =
-    match Node.Id.Map.find_opt id graph.nodes with
-    | Some {node;dependencies;} -> Some (node, dependencies)
-    | None -> None
+  let get id graph =
+    Node.Id.Map.find_opt id graph.nodes
 
-  let findExn' id graph =
-    let {node; dependencies;} = Node.Id.Map.find id graph.nodes in
-    node, dependencies
+  let getExn id graph =
+    Node.Id.Map.find id graph.nodes
 
   let root graph =
-    let node, _ = findExn' graph.root graph in
-    node
+    getExn graph.root graph
 
   let mem id graph = Node.Id.Map.mem id graph.nodes
 
-  let dependencies node graph =
-    let {dependencies; node = _;} = Node.Id.Map.find (Node.id node) graph.nodes in
-    let f id = let node, _ = findExn' id graph in node in
-    StringMap.map f dependencies
+  let dependencies ?(traverse=Node.traverse) node graph =
+    let dependencies = traverse node in
+    let f id = getExn id graph in
+    List.map ~f dependencies
 
-  let allDependenciesBFS node graph =
+  let allDependenciesBFS ?(traverse=Node.traverse) node graph =
 
     let queue  = Queue.create () in
     let enqueue direct dependencies =
-      let f _ id = Queue.add (direct, id) queue in
-      StringMap.iter f dependencies;
+      let f id = Queue.add (direct, id) queue in
+      List.iter ~f dependencies;
     in
 
     let rec process (seen, dependencies) =
@@ -108,50 +101,38 @@ module Make (Node : GRAPH_NODE) : GRAPH
         if Node.Id.Set.mem id seen
         then process (seen, dependencies)
         else
-          let payload = Node.Id.Map.find id graph.nodes in
+          let node = Node.Id.Map.find id graph.nodes in
           let seen = Node.Id.Set.add id seen in
-          let dependencies = (direct, payload.node)::dependencies in
-          enqueue false payload.dependencies;
+          let dependencies = (direct, node)::dependencies in
+          enqueue false (traverse node);
           process (seen, dependencies)
     in
 
     let _, dependencies =
-      let {dependencies; node = _;} =
+      let node =
         Node.Id.Map.find (Node.id node) graph.nodes
       in
-      enqueue true dependencies;
+      enqueue true (traverse node);
       process (Node.Id.Set.empty, [])
     in
     dependencies
 
-  let get id graph =
-    match find' id graph with
-    | Some (node, _) -> Some node
-    | None -> None
-
-  let getExn id graph =
-    let node, _ = findExn' id graph in
-    node
-
   let find f graph =
     let f id =
-      let payload = Node.Id.Map.find id graph.nodes in
-      f id payload.node
+      let node = Node.Id.Map.find id graph.nodes in
+      f id node
     in
-    match Node.Id.Map.find_first_opt f graph.nodes with
-    | None -> None
-    | Some (id, payload) -> Some (id, payload.node)
+    Node.Id.Map.find_first_opt f graph.nodes
 
   let fold ~f ~init graph =
-    let f _id payload v =
+    let f _id node v =
       let dependencies =
         let f id =
-          let {node; dependencies = _;} = Node.Id.Map.find id graph.nodes in
-          node
+          Node.Id.Map.find id graph.nodes
         in
-        StringMap.map f payload.dependencies
+        List.map ~f (Node.traverse node)
       in
-      f payload.node dependencies v
+      f node dependencies v
     in
     Node.Id.Map.fold f graph.nodes init
 

@@ -335,6 +335,7 @@ let make'
   () =
   let open Run.Syntax in
 
+  let root = Solution.root solution in
   let tasks = ref PackageId.Map.empty in
 
   let rec aux pkg =
@@ -370,7 +371,12 @@ let make'
         let%bind build = aux pkg in
         return (direct, build)
       in
-      Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
+      let traverse =
+        if PackageId.compare (Solution.Package.id root) pkgId = 0
+        then Solution.traverseWithDevDependencies
+        else Solution.traverse
+      in
+      Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
     let name = PackageId.name pkgId in
@@ -500,7 +506,7 @@ let make'
 
   in
 
-  let%bind (_ : Task.t option) = aux (Solution.root solution) in
+  let%bind (_ : Task.t option) = aux root in
 
   return !tasks
 
@@ -559,6 +565,7 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
 
   let queue = LwtTaskQueue.create ~concurrency () in
+  let root = Solution.root plan.solution in
   let tasks = Hashtbl.create 100 in
 
   let isBuilt task =
@@ -617,8 +624,14 @@ let buildDependencies ?(concurrency=1) ~buildConfig plan id =
     | None -> RunAsync.return ()
     | exception Not_found -> RunAsync.return ()
   and processDependencies pkg =
-    let dependencies = Solution.dependencies pkg plan.solution in
-    let dependencies = StringMap.values dependencies in
+    let dependencies =
+      let traverse =
+        if PackageId.compare (Solution.Package.id root) (Solution.Package.id pkg) = 0
+        then Solution.traverseWithDevDependencies
+        else Solution.traverse
+      in
+      Solution.dependencies ~traverse pkg plan.solution
+    in
     RunAsync.List.waitAll (List.map ~f:process dependencies)
   in
 
