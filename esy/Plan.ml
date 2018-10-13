@@ -538,7 +538,9 @@ let findTaskById plan id =
   | Some task -> Run.return task
 
 let findTaskByName plan name =
-  let f _id pkg = pkg.Solution.Package.name = name in
+  let f _id pkg =
+    String.compare pkg.Solution.Package.name name >= 0
+  in
   match Solution.find f plan.solution with
   | None -> None
   | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)

@@ -7,8 +7,10 @@ module type GRAPH = sig
   val empty : id -> t
   val add : node -> t -> t
 
-  val root : t -> node
   val mem : id -> t -> bool
+  val isRoot : node -> t -> bool
+
+  val root : t -> node
   val get : id -> t -> node option
   val getExn : id -> t -> node
   val find : (id -> node -> bool) -> t -> (id * node) option
@@ -78,6 +80,9 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
   let root graph =
     getExn graph.root graph
+
+  let isRoot node graph =
+    Node.Id.compare (Node.id node) graph.root = 0
 
   let mem id graph = Node.Id.Map.mem id graph.nodes
 
