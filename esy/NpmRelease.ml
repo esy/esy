@@ -245,20 +245,8 @@ let make
           % "unix.cmxa" % "str.cmxa"
           % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
-        let f p =
-          let%lwt stdout = Lwt_io.read p#stdout
-          and stderr = Lwt_io.read p#stderr in
-          match%lwt p#status with
-          | Unix.WEXITED 0 ->
-            RunAsync.return ()
-          | _ ->
-            Logs_lwt.err (fun m -> m
-              "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
-              Cmd.pp compile Fmt.lines stderr Fmt.lines stdout
-            );%lwt
-            RunAsync.error "error running command"
-        in
-        EsyBashLwt.with_process_full compile f
+        let%bind env = EsyBashLwt.getMingwBinEnvironmentOverride (ocamlopt |> Path.parent |> Path.showNormalized) in
+        ChildProcess.run ~env compile
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->

@@ -38,6 +38,21 @@ let getCygPath = () =>
     }
   );
 
+
+let getBinPath = () =>
+  Result.Syntax.(
+    {
+      let%bind rootPath = getEsyBashRootPath();
+      Ok(
+        Fpath.(
+          rootPath
+          / ".cygwin"
+          / "bin"
+        ),
+      );
+    }
+  );
+
 let getEsyBashPath = () =>
   Result.Syntax.(
     {
