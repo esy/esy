@@ -46,8 +46,6 @@ let getMingwBinEnvironmentOverride = (ocamlPath) =>
       | Error(_) => raise(Not_found)
       };
 
-      let () = print_endline(Fpath.to_string(userPath) ++ ";" ++ ocamlPath ++ ";" ++ currentPath);
-
       return(
         `CurrentEnvOverride(
           Astring.String.Map.(
