@@ -46,10 +46,7 @@ module Package = struct
   let id r = PackageId.make r.name r.version
 
   let compare a b =
-    let c = String.compare a.name b.name in
-    if c = 0
-    then Version.compare a.version b.version
-    else c
+    PackageId.compare (id a) (id b)
 
   let pp fmt pkg =
     Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
