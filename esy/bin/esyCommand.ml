@@ -357,7 +357,7 @@ module SandboxInfo = struct
               let%bind commandEnv = RunAsync.ofRun (
                 let open Run.Syntax in
                 let header = "# Command environment" in
-                let%bind commandEnv = Plan.commandEnv plan task in
+                let%bind commandEnv = Plan.commandEnv copts.spec plan task in
                 let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.buildConfig commandEnv in
                 Environment.renderToShellSource ~header commandEnv
               ) in
@@ -828,7 +828,7 @@ let buildEnv =
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let open RunAsync.Syntax in
     let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.buildEnv plan task) in
+    let%bind env = RunAsync.ofRun (Plan.buildEnv copts.spec plan task) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.buildConfig env in
     return env
   in
@@ -843,7 +843,7 @@ let commandEnv =
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.commandEnv plan task) in
+    let%bind env = RunAsync.ofRun (Plan.commandEnv copts.spec plan task) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.buildConfig env in
     return (Environment.current @ env)
   in
@@ -858,7 +858,7 @@ let sandboxEnv =
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.execEnv plan task) in
+    let%bind env = RunAsync.ofRun (Plan.execEnv copts.spec plan task) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.buildConfig env in
     return (Environment.current @ env)
   in
@@ -894,8 +894,8 @@ let makeExecCommand
 
   let%bind env = RunAsync.ofRun (
     match env with
-    | `CommandEnv -> Plan.commandEnv plan task
-    | `SandboxEnv -> Plan.execEnv plan task
+    | `CommandEnv -> Plan.commandEnv copts.spec plan task
+    | `SandboxEnv -> Plan.execEnv copts.spec plan task
   ) in
 
   let%bind env = RunAsync.ofStringError (

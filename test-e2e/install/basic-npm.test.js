@@ -125,6 +125,36 @@ describe(`Basic tests for npm packages`, () => {
     ).toBeFalsy();
   });
 
+  test(`npm bins should be available in command-env`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    const depPath = await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      bin: './dep.exe',
+    });
+
+    await helpers.makeFakeBinary(path.join(depPath, 'dep.exe'), {
+      exitCode: 0,
+      output: 'HELLO',
+    });
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('dep');
+      expect(stdout.toString().trim()).toBe('HELLO');
+    }
+  });
+
   test(`lifecycle scripts have bins from their deps in $PATH`, async () => {
     const p = await helpers.createTestSandbox();
 

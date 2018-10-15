@@ -220,8 +220,9 @@ let readManifests (solution : Solution.t) (installation : Installation.t) =
     );%lwt
 
     let pkg = Solution.getExn id solution in
+    let isRoot = Package.compare (Solution.root solution) pkg = 0 in
 
-    let f () =
+    LwtTaskQueue.submit queue begin fun () ->
       RunAsync.contextf (
         let%bind manifest =
           match loc with
@@ -235,22 +236,27 @@ let readManifests (solution : Solution.t) (installation : Installation.t) =
           match manifest with
           | Some (manifest, paths) ->
             if Overrides.isEmpty pkg.overrides
-            then return (manifest, paths)
+            then return (Some (manifest, paths))
             else
               let manifest = Overrides.apply pkg.overrides applyOverride manifest in
-              return (manifest, paths)
+              return (Some (manifest, paths))
           | None ->
-            if Overrides.isEmpty pkg.overrides
-            then errorf "no manifest found for %a" PackageId.pp id
-            else
+            begin match isRoot, Overrides.isEmpty pkg.overrides with
+            | true, false
+            | false, false ->
               let manifest = BuildManifest.empty ~name:None ~version:None () in
               let manifest = Overrides.apply pkg.overrides applyOverride manifest in
-              return (manifest, Path.Set.empty)
+              return (Some (manifest, Path.Set.empty))
+            | true, true ->
+              let manifest = BuildManifest.empty ~name:None ~version:None () in
+              return (Some (manifest, Path.Set.empty))
+            | false, true ->
+              return None
+            end
         in
         return (id, manifest)
       ) "reading manifest %a" PackageId.pp id
-    in
-    LwtTaskQueue.submit queue f
+    end
   in
 
   let%bind items =
@@ -262,7 +268,8 @@ let readManifests (solution : Solution.t) (installation : Installation.t) =
   let paths, manifests =
     let f (paths, manifests) (id, manifest) =
       match manifest with
-      | manifest, manifestPaths ->
+      | None -> paths, manifests
+      | Some (manifest, manifestPaths) ->
         let paths = Path.Set.union paths manifestPaths in
         let manifests = PackageId.Map.add id manifest manifests in
         paths, manifests
@@ -558,7 +565,10 @@ let findTaskByName plan name =
 
 let rootTask plan =
   let id = Solution.Package.id (Solution.root plan.solution) in
-  PackageId.Map.find id plan.tasks
+  match PackageId.Map.find_opt id plan.tasks with
+  | None -> None
+  | Some None -> None
+  | Some (Some task) -> Some task
 
 let shell ~buildConfig task =
   let plan = Task.plan task in
@@ -668,16 +678,26 @@ let exposeDevDependenciesEnv plan task scope =
   in
   PackageId.Set.fold f pkg.Package.devDependencies scope
 
-let buildEnv _plan task =
+let buildEnv _sandbox _plan task =
   Scope.env ~includeBuildEnv:true task.Task.buildScope
 
-let commandEnv plan task =
-  task.Task.buildScope
-  |> exposeUserEnv
-  |> exposeDevDependenciesEnv plan task
-  |> Scope.env ~includeBuildEnv:true
+let commandEnv sandbox plan task =
+  let open Run.Syntax in
+  let%bind env =
+    task.Task.buildScope
+    |> exposeUserEnv
+    |> exposeDevDependenciesEnv plan task
+    |> Scope.env ~includeBuildEnv:true
+  in
+  let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox) in
+  return (
+    Scope.SandboxEnvironment.Bindings.prefixValue
+      "PATH"
+      (Scope.SandboxValue.v npmBin)
+    ::env
+  )
 
-let execEnv plan task =
+let execEnv _sandbox plan task =
   task.Task.buildScope
   |> exposeUserEnv
   |> exposeDevDependenciesEnv plan task

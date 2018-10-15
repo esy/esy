@@ -72,9 +72,9 @@ val buildDependencies :
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 
-val buildEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
-val commandEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
-val execEnv : t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val buildEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val commandEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val execEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
   buildConfig:EsyBuildPackage.Config.t
