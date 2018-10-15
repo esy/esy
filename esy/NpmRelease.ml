@@ -38,7 +38,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         | _ -> true
       )
     |> List.map ~f:(fun (name, value) ->
-        "\"" ^ name ^ "\", \"" ^ EsyLib.Path.normalizePathSlashes (Environment.escapeDoubleQuote value) ^ "\"")
+        "\"" ^ name ^ "\", \"" ^ EsyLib.Path.normalizePathSlashes value ^ "\"")
     |> String.concat ";"
   in
   Printf.sprintf {|
@@ -245,8 +245,22 @@ let make
           % "unix.cmxa" % "str.cmxa"
           % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
-        let%bind env = EsyBashLwt.getMingwBinEnvironmentOverride (ocamlopt |> Path.parent |> Path.showNormalized) in
-        ChildProcess.run ~env compile
+        (* Needs to have ocaml in environment *)
+        let environmentOverride =
+          match (System.Platform.host) with
+          | Windows ->
+            let currentPath = Sys.getenv("PATH") in
+            let userPath = match (EsyBash.getBinPath ()) with
+                           | Result.Ok userPath -> userPath
+                           | Error _ -> raise(Not_found)
+            in
+            let normalizedOcamlPath = ocamlopt |> Path.parent |> Path.showNormalized in
+            `CurrentEnvOverride Astring.String.Map.(
+              add "PATH" ((Path.show userPath) ^ ";" ^ normalizedOcamlPath ^ ";" ^ currentPath) empty
+            )
+          | _ -> `CurrentEnv
+        in
+        ChildProcess.run ~env:environmentOverride compile
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->

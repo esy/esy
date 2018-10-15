@@ -38,7 +38,6 @@ let getCygPath = () =>
     }
   );
 
-
 let getBinPath = () =>
   Result.Syntax.(
     {
