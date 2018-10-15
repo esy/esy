@@ -42,6 +42,14 @@ let dataPath = () =>
     | _ => Sys.getenv("HOME")
     },
   );
+
+let currentPath = () =>
+  switch (Bos.OS.Dir.current()) {
+  | Ok(path) => path
+  | Error(`Msg(msg)) =>
+    failwith("Unable to determine current working dir: " ++ msg)
+  };
+
 let current = () => Run.ofBosError(Bos.OS.Dir.current());
 
 let relativize = Fpath.relativize;
