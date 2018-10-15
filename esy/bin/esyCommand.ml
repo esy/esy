@@ -42,16 +42,10 @@ module EsyRuntime = struct
       | Error (`Msg err) -> RunAsync.error err
     in return cmd
 
-  let resolveCommand req =
+  let _resolveCommand req =
     let open RunAsync.Syntax in
     let%bind path = resolve req in
     return (path |> Cmd.p)
-
-  let fastreplacestringCommand =
-    resolveCommand "../../../../bin/fastreplacestring"
-
-  let esyBuildPackageCommand =
-    resolveCommand "../../esy-build-package/bin/esyBuildPackageCommand.exe"
 
   (* let esyInstallRelease = *)
   (*   resolve "../../../../bin/esyInstallRelease.js" *)
@@ -253,19 +247,9 @@ module CommonOptions = struct
         in
 
         let%bind cfg =
-          let%bind esyBuildPackageCommand =
-            let%bind cmd = EsyRuntime.esyBuildPackageCommand in
-            return (Cmd.v cmd)
-          in
-          let%bind fastreplacestringCommand =
-            let%bind cmd = EsyRuntime.fastreplacestringCommand in
-            return (Cmd.v cmd)
-          in
           RunAsync.ofRun (
             Config.make
               ~installCfg
-              ~esyBuildPackageCommand
-              ~fastreplacestringCommand
               ~esyVersion:EsyRuntime.version
               ~prefixPath
               ()
