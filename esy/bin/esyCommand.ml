@@ -91,6 +91,30 @@ module EsyRuntime = struct
     | Error _ -> 1
 end
 
+let findSandboxPathStartingWith currentPath =
+  let open RunAsync.Syntax in
+  let isSandbox path =
+    let%bind items = Fs.listDir path in
+    let f name =
+      match name with
+      | "package.json"
+      | "esy.json"
+      | "opam" -> true
+      | name -> Path.(v name |> hasExt ".opam")
+    in
+    return (List.exists ~f items)
+  in
+  let rec climb path =
+    if%bind isSandbox path
+    then return path
+    else
+      let parent = Path.parent path in
+      if not (Path.compare path parent = 0)
+      then climb (Path.parent path)
+      else errorf "No sandbox found (from %a and up)" Path.ppPretty currentPath
+  in
+  climb currentPath
+
 module CommonOptions = struct
   open Cmdliner
 
@@ -184,7 +208,8 @@ module CommonOptions = struct
           then sandboxPath
           else Path.(EsyRuntime.currentWorkingDir // sandboxPath)
         )
-      | None -> RunAsync.ofRun (Path.current ())
+      | None ->
+        findSandboxPathStartingWith (Path.currentPath ())
     in
 
     let parse
