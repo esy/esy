@@ -513,7 +513,7 @@ module SandboxInfo = struct
       | None -> ""
     in
     let env =
-      `CustomEnv Astring.String.Map.(
+      ChildProcess.CustomEnv Astring.String.Map.(
         empty |>
         add "OCAMLPATH" ocamlpath
     ) in
@@ -533,7 +533,7 @@ module SandboxInfo = struct
 
   let modules ~ocamlobjinfo archive =
     let open RunAsync.Syntax in
-    let env = `CustomEnv Astring.String.Map.empty in
+    let env = ChildProcess.CustomEnv Astring.String.Map.empty in
     let cmd = let open Cmd in (v (p ocamlobjinfo)) % archive in
     let%bind out = ChildProcess.runOut ~env cmd in
     let startsWith s1 s2 =
@@ -572,7 +572,7 @@ module SandboxInfo = struct
         |> Scope.SandboxPath.toPath copts.CommonOptions.buildConfig
       in
       let env =
-        `CustomEnv Astring.String.Map.(
+        ChildProcess.CustomEnv Astring.String.Map.(
           empty |>
           add "OCAMLPATH" (Path.show ocamlpath)
       ) in
@@ -886,7 +886,7 @@ let makeExecCommand
     in
     let env = Environment.current @ env in
     let%bind env = Environment.Bindings.eval env in
-    return (`CustomEnv env)
+    return (ChildProcess.CustomEnv env)
   ) in
 
   let cmd =

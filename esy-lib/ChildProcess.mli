@@ -2,11 +2,15 @@
  * Run command.
 *)
 
-type env = [
-  | `CurrentEnv
-  | `CurrentEnvOverride of string Astring.String.Map.t
-  | `CustomEnv of string Astring.String.Map.t
-]
+type env =
+  | CurrentEnv
+  | CurrentEnvOverride of string Astring.String.Map.t
+  | CustomEnv of string Astring.String.Map.t
+
+val pp_env : env Fmt.t
+
+val currentEnv : string Astring.String.Map.t
+val prepareEnv : env -> (string StringMap.t * string array) option
 
 (** Run command. *)
 val run :
