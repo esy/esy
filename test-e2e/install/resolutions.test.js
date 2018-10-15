@@ -76,10 +76,12 @@ describe(`Installing with resolutions`, () => {
         dep: {
           name: 'dep',
           version: '1.0.0',
-        },
-        depDep: {
-          name: 'depDep',
-          version: '2.0.0',
+          dependencies: {
+            depDep: {
+              name: 'depDep',
+              version: '2.0.0',
+            },
+          },
         },
       },
     });
@@ -118,10 +120,12 @@ describe(`Installing with resolutions`, () => {
         dep: {
           name: 'dep',
           version: '1.0.0',
-        },
-        depDep: {
-          name: 'depDep',
-          version: '2.0.0',
+          dependencies: {
+            depDep: {
+              name: 'depDep',
+              version: '2.0.0',
+            },
+          },
         },
       },
     });
@@ -160,7 +164,7 @@ describe(`Installing with resolutions`, () => {
       dependencies: {
         dep: {
           name: 'dep',
-          version: '2.0.0',
+          version: 'link:dep',
         },
       },
     });
@@ -202,7 +206,7 @@ describe(`Installing with resolutions`, () => {
       dependencies: {
         '@opam/dep': {
           name: '@opam/dep',
-          version: '2.0.0',
+          version: 'link:dep',
         },
       },
     });
@@ -248,11 +252,13 @@ describe(`Installing with resolutions`, () => {
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        depdep: {
-          name: 'depdep',
-          version: '1.0.0',
+          version: 'link:dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: 'link:depdep',
+            },
+          },
         },
       },
     });
@@ -304,11 +310,13 @@ describe(`Installing with resolutions`, () => {
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        depdep: {
-          name: 'depdep',
-          version: '1.0.0',
+          version: 'path:dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: 'path:depdep',
+            },
+          },
         },
       },
     });
@@ -362,11 +370,13 @@ describe(`Installing with resolutions`, () => {
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        depdep: {
-          name: 'depdep',
-          version: '1.0.0',
+          version: `archive:${url}#sha1:${hash}`,
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: 'path:depdep',
+            },
+          },
         },
       },
     });

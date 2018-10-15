@@ -60,13 +60,14 @@ describe('Installing devDependencies', function() {
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
-        ok: {
-          name: 'ok',
-          version: '1.0.0',
-        },
         devDep: {
           name: 'devDep',
-          dependencies: {},
+          dependencies: {
+            ok: {
+              name: 'ok',
+              version: '1.0.0',
+            },
+          },
         },
       },
     });
@@ -116,11 +117,15 @@ describe('Installing devDependencies', function() {
         },
         devDep: {
           name: 'devDep',
-          dependencies: {},
+          dependencies: {
+            ok: {
+              name: 'ok',
+              version: '1.0.0',
+            },
+          },
         },
       },
     });
-    expect(layout).not.toHaveProperty('dependencies.devDep.dependencies.ok');
   });
 
   test(`it should handle two devDeps sharing a dep`, async () => {
@@ -162,16 +167,21 @@ describe('Installing devDependencies', function() {
     const layout = await helpers.readInstalledPackages(p.projectPath);
     await expect(layout).toMatchObject({
       dependencies: {
-        ok: {
-          name: 'ok',
-        },
         devDep: {
           name: 'devDep',
-          dependencies: {},
+          dependencies: {
+            ok: {
+              name: 'ok',
+            },
+          },
         },
         devDep2: {
           name: 'devDep2',
-          dependencies: {},
+          dependencies: {
+            ok: {
+              name: 'ok',
+            },
+          },
         },
       },
     });
