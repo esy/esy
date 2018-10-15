@@ -11,6 +11,7 @@ describe('build opam sandbox', () => {
     await p.defineNpmPackage({
       name: '@esy-ocaml/substs',
       version: '0.0.0',
+      esy: {},
     });
 
     await p.fixture(
@@ -28,7 +29,7 @@ describe('build opam sandbox', () => {
       helpers.dummyExecutable('hello'),
     );
 
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
@@ -68,12 +69,13 @@ describe('build opam sandbox', () => {
     await p.esy('build');
   });
 
-  it('variables stress test', async () => {
+  it.only('variables stress test', async () => {
     const p = await helpers.createTestSandbox(
       helpers.file(
         'root.opam',
         `
         opam-version: "1.2"
+        version: "in-dev"
         depends: ["dep"]
         build: [
           ["global-prefix" prefix]
@@ -269,33 +271,30 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      helpers.dir(
-        'node_modules',
-        helpers.dir(
-          '@opam',
-          helpers.dir(
-            'dep',
-            helpers.file(
-              '_esylink',
-              JSON.stringify({
-                source: `path:.`,
-                opam: {
-                  name: 'dep',
-                  version: '1.0.0',
-                  opam: `opam-version: "1.2"`,
-                  override: null,
-                },
-              }),
-            ),
-          ),
-        ),
-      ),
     );
 
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackage({
+      name: 'dep',
+      version: '1.0.0',
+      opam: `
+        opam-version: "1.2"
+      `,
+      url: null,
+    });
+
+    await p.esy('install --skip-repository-update');
     const {stdout} = await p.esy('build-plan');
     const plan = JSON.parse(stdout);
 
-    const {stdout: stdoutDep} = await p.esy('build-plan ./node_modules/@opam/dep');
+    expect(plan.name).toBe('root');
+
+    const {stdout: stdoutDep} = await p.esy('build-plan @opam/dep@opam:1.0.0');
     const depPlan = JSON.parse(stdoutDep);
 
     expect(plan.build).toEqual([
@@ -311,7 +310,7 @@ describe('build opam sandbox', () => {
       ['global-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
       ['global-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
       ['global-name', `root`],
-      ['global-version', `dev`],
+      ['global-version', `in-dev`],
       ['global-opam-version', '2'],
       ['global-root', ''],
       ['global-jobs', '4'],
@@ -323,7 +322,7 @@ describe('build opam sandbox', () => {
       ['global-os-version', expect.stringContaining('')],
 
       ['self-name', 'root'],
-      ['self-version', 'dev'],
+      ['self-version', 'in-dev'],
       ['self-depends', ''],
       ['self-installed', 'true'],
       ['self-enable', 'enable'],
@@ -347,7 +346,7 @@ describe('build opam sandbox', () => {
       ['self-build-id', plan.id],
 
       ['scoped-name', 'root'],
-      ['scoped-version', 'dev'],
+      ['scoped-version', 'in-dev'],
       ['scoped-depends', ''],
       ['scoped-installed', 'false'],
       ['scoped-enable', 'disable'],

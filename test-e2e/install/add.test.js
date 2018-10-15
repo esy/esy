@@ -29,7 +29,7 @@ describe('adding dependencies', function() {
 
     await p.esy(`add new-dep`);
 
-    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
         'new-dep': {
           name: 'new-dep',
@@ -71,7 +71,7 @@ describe('adding dependencies', function() {
 
     await p.esy(`add new-dep@^1.0.0`);
 
-    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
         'new-dep': {
           name: 'new-dep',
@@ -113,7 +113,7 @@ describe('adding dependencies', function() {
 
     await p.esy(`add new-dep another-new-dep`);
 
-    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
         'new-dep': {
           name: 'new-dep',

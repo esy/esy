@@ -22,7 +22,7 @@ describe('Installing devDependencies', function() {
 
     await p.esy(`install`);
 
-    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
         devDep: {
           name: 'devDep',
@@ -58,7 +58,7 @@ describe('Installing devDependencies', function() {
 
     await p.esy(`install`);
 
-    await expect(helpers.crawlLayout(p.projectPath)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
         ok: {
           name: 'ok',
@@ -107,7 +107,7 @@ describe('Installing devDependencies', function() {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     await expect(layout).toMatchObject({
       dependencies: {
         ok: {
@@ -159,7 +159,7 @@ describe('Installing devDependencies', function() {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     await expect(layout).toMatchObject({
       dependencies: {
         ok: {

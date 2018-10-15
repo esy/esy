@@ -48,11 +48,16 @@ describe('Dependency overrides', function() {
       ),
     );
 
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
 
-    expect(await helpers.crawlLayout(p.projectPath)).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
       dependencies: {
-        depdep: {name: 'depdep', version: '1.0.0'},
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {name: 'depdep', version: '1.0.0'},
+          },
+        },
       },
     });
   });

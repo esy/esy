@@ -47,7 +47,7 @@ describe('projects with multiple sandboxes', function() {
 
     await p.esy('install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
       dependencies: {
         'default-dep': {name: 'default-dep', version: '0.0.0'},
       },
@@ -58,7 +58,9 @@ describe('projects with multiple sandboxes', function() {
 
     await p.esy('@package.custom.json install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'package.custom')).toMatchObject({
+    expect(
+      await helpers.readInstalledPackages(p.projectPath, 'package.custom'),
+    ).toMatchObject({
       dependencies: {
         'custom-dep': {name: 'custom-dep', version: '0.0.0'},
       },

@@ -206,7 +206,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -244,7 +244,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -284,7 +284,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -327,7 +327,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
