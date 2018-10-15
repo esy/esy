@@ -103,15 +103,19 @@ let path ~cfg dist =
 
 let installNodeModules ~cfg ~path dist = unpack ~cfg ~path dist
 
+type status =
+  | Cached
+  | Fresh
+
 let install ~cfg dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
   let path = path ~cfg dist in
   if%bind Fs.exists path
-  then return path
+  then return (Cached, path)
   else
     let tempPath = Path.(path |> addExt ".tmp") in
     let%bind () = Fs.rmPath tempPath in
     let%bind () = unpack ~cfg ~path:tempPath dist in
     let%bind () = Fs.rename ~src:tempPath path in
-    return path
+    return (Fresh, path)

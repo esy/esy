@@ -2,7 +2,7 @@ module Overrides = Package.Overrides
 module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
-module Manifest = struct
+module PackageJson = struct
 
   module Scripts = struct
     type t = {
@@ -72,6 +72,22 @@ module Manifest = struct
 
 end
 
+module Install = struct
+
+  type t = {
+    path : Path.t;
+    sourcePath : Path.t;
+    pkg : Package.t;
+    isDirectDependencyOfRoot : bool;
+    status: FetchStorage.status;
+  }
+
+  let pp fmt installation =
+    Fmt.pf fmt "%a at %a"
+      Package.pp installation.pkg
+      Path.pp installation.path
+end
+
 (*
  * This describes the physical layout of a solution on filesystem.
  *
@@ -82,22 +98,10 @@ end
  *)
 module Layout = struct
 
-  type t = installation list
-
-  and installation = {
-    path : Path.t;
-    sourcePath : Path.t;
-    pkg : Package.t;
-    isDirectDependencyOfRoot : bool;
-  }
-
-  let pp_installation fmt installation =
-    Fmt.pf fmt "%a at %a"
-      Package.pp installation.pkg
-      Path.pp installation.path
+  type t = Install.t list
 
   let pp =
-    Fmt.(list ~sep:(unit "@\n") pp_installation)
+    Fmt.(list ~sep:(unit "@\n") Install.pp)
 
   let ofSolution ~nodeModulesPath sandboxPath (sol : Solution.t) =
     let root = Solution.root sol in
@@ -161,10 +165,12 @@ module Layout = struct
             | Source.LocalPathLink {path; manifest = _;} -> Path.(sandboxPath // path)
           in
           let installation = {
+            Install.
             path;
             sourcePath;
             pkg;
             isDirectDependencyOfRoot = isDirectDependencyOfRoot pkg;
+            status = FetchStorage.Fresh;
           } in
           installation::layout
         in
@@ -224,7 +230,7 @@ module Layout = struct
 
       (* Sort the layout so we can have stable order of operations *)
       let layout =
-        let cmp a b = Path.compare a.path b.path in
+        let cmp a b = Path.compare a.Install.path b.Install.path in
         List.sort ~cmp layout
       in
 
@@ -259,9 +265,9 @@ module Layout = struct
 
     let expect layout expectation =
       let convert =
-        let f (installation : installation) =
-          Format.asprintf "%a" Package.pp installation.pkg,
-          Path.show installation.path
+        let f (installation : Install.t) =
+          Format.asprintf "%a" Package.pp installation.Install.pkg,
+          Path.show installation.Install.path
         in
         List.map ~f layout
       in
@@ -558,12 +564,21 @@ module Layout = struct
   end)
 end
 
-let runLifecycleScript ~installation ~name script =
+let runLifecycleScript ?env ~install ~lifecycleName script =
+  let%lwt () = Logs_lwt.debug
+    (fun m ->
+      m "Fetch.runLifecycleScript ~env:%a ~pkg:%a ~lifecycleName:%s"
+      (Fmt.option ChildProcess.pp_env) env
+      Package.pp install.Install.pkg
+      lifecycleName
+    )
+  in
+
   let%lwt () = Logs_lwt.app
     (fun m ->
       m "%a: running %a lifecycle"
-      Package.pp installation.Layout.pkg
-      Fmt.(styled `Bold string) name
+      Package.pp install.Install.pkg
+      Fmt.(styled `Bold string) lifecycleName
     )
   in
 
@@ -591,8 +606,8 @@ let runLifecycleScript ~installation ~name script =
     (* We don't need to wrap the install path on Windows in quotes *)
     let installationPath =
       match System.Platform.host with
-      | Windows -> Path.show installation.path
-      | _ -> Filename.quote (Path.show installation.path)
+      | Windows -> Path.show install.path
+      | _ -> Filename.quote (Path.show install.path)
     in
     let script =
       Printf.sprintf
@@ -605,7 +620,13 @@ let runLifecycleScript ~installation ~name script =
       | Windows -> ("", [|"cmd.exe";("/c " ^ script)|])
       | _ -> ("/bin/bash", [|"/bin/bash";"-c";script|])
     in
-    Lwt_process.with_process_full cmd f
+    let env =
+      let open Option.Syntax in
+      let%bind env = env in
+      let%bind _, env = ChildProcess.prepareEnv env in
+      return env
+    in
+    Lwt_process.with_process_full ?env cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -613,16 +634,16 @@ let runLifecycleScript ~installation ~name script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ~installation ~(manifest : Manifest.t) () =
+let runLifecycle ?env ~install ~(pkgJson : PackageJson.t) () =
   let open RunAsync.Syntax in
   let%bind () =
-    match manifest.scripts.install with
-    | Some cmd -> runLifecycleScript ~installation ~name:"install" cmd
+    match pkgJson.scripts.install with
+    | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"install" cmd
     | None -> return ()
   in
   let%bind () =
-    match manifest.scripts.postinstall with
-    | Some cmd -> runLifecycleScript ~installation ~name:"postinstall" cmd
+    match pkgJson.scripts.postinstall with
+    | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"postinstall" cmd
     | None -> return ()
   in
   return ()
@@ -631,7 +652,7 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
   let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
   let layout = Layout.ofSolution ~nodeModulesPath sandbox.spec.path solution in
-  let f installed {Layout.path;_} =
+  let f installed {Install. path;_} =
     if not installed
     then return installed
     else Fs.exists path
@@ -692,7 +713,7 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind installed =
     let queue = LwtTaskQueue.create ~concurrency:4 () in
     let report, finish = Cli.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path; sourcePath;pkg;_} as installation) () =
+    let f ({Install. path; sourcePath;pkg;_} as install) () =
       match Package.Map.find_opt pkg dists with
       | Some dist ->
         let%lwt () =
@@ -702,8 +723,8 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
         let%bind () =
           FetchStorage.installNodeModules ~cfg:sandbox.cfg ~path dist
         in
-        let%bind manifest = Manifest.ofDir sourcePath in
-        return (installation, manifest)
+        let%bind manifest = PackageJson.ofDir sourcePath in
+        return (install, manifest)
       | None ->
         let msg =
           Printf.sprintf
@@ -723,11 +744,11 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
     in
 
     let%bind installed =
-      let install installation =
+      let install install =
         RunAsync.contextf
-          (LwtTaskQueue.submit queue (f installation))
+          (LwtTaskQueue.submit queue (f install))
           "installing %a"
-          Layout.pp_installation installation
+          Install.pp install
       in
       layout
       |> List.map ~f:install
@@ -745,15 +766,17 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let queue = LwtTaskQueue.create ~concurrency:1 () in
 
     let f = function
-      | (installation, Some ({Manifest. esy = None; _} as manifest)) ->
+      | (install, Some ({PackageJson. esy = None; _} as pkgJson)) ->
         RunAsync.contextf
           (LwtTaskQueue.submit
             queue
-            (runLifecycle ~installation ~manifest))
+            (runLifecycle
+              ~install
+              ~pkgJson))
           "running lifecycle %a"
-          Layout.pp_installation installation
-      | (_installation, Some {Manifest. esy = Some _; _})
-      | (_installation, None) -> return ()
+          Install.pp install
+      | (_install, Some {PackageJson. esy = Some _; _})
+      | (_install, None) -> return ()
     in
 
     let%bind () =
@@ -785,14 +808,14 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
     let installBinWrappersForPkg = function
       | (installation, Some manifest) ->
-        Manifest.packageCommands installation.Layout.sourcePath manifest
+        PackageJson.packageCommands installation.Install.sourcePath manifest
         |> List.map ~f:installBinWrapper
         |> RunAsync.List.waitAll
       | (_installation, None) -> return ()
     in
 
     installed
-    |> List.filter ~f:(fun (installation, _) -> installation.Layout.isDirectDependencyOfRoot)
+    |> List.filter ~f:(fun (installation, _) -> installation.Install.isDirectDependencyOfRoot)
     |> List.map ~f:installBinWrappersForPkg
     |> RunAsync.List.waitAll
   in
@@ -840,43 +863,163 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     return (Package.Set.remove root all, root)
   in
 
-  (* Fetch all pkgs *)
+  let directDependenciesOfRoot =
+    let deps = Solution.dependencies root solution in
+    Package.Set.of_list deps
+  in
 
+  (* Fetch all package distributions *)
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
 
-    let fetch pkg () =
-      let%lwt () =
-        let status = Format.asprintf "%a" Package.pp pkg in
-        report status
-      in
-      let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg pkg in
-      let%bind path = FetchStorage.install ~cfg:sandbox.cfg dist in
-      return (dist, path)
-    in
     let%bind dists =
+      let fetch pkg () =
+        let%lwt () =
+          let status = Format.asprintf "%a" Package.pp pkg in
+          report status
+        in
+        let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg pkg in
+        let%bind status, path = FetchStorage.install ~cfg:sandbox.cfg dist in
+        let%bind pkgJson = PackageJson.ofDir path in
+        let install = {
+          Install.
+          pkg;
+          sourcePath = path;
+          path;
+          isDirectDependencyOfRoot = Package.Set.mem pkg directDependenciesOfRoot;
+          status;
+        } in
+        let id = Dist.id dist in
+        return (id, (dist, install, pkgJson))
+      in
       pkgs
       |> Package.Set.elements
       |> List.map ~f:(fun pkg -> LwtTaskQueue.submit queue (fetch pkg))
       |> RunAsync.List.joinAll
     in
     let%lwt () = finish () in
+
+    let dists =
+      let f dists (id, v) = PackageId.Map.add id v dists in
+      List.fold_left ~f ~init:PackageId.Map.empty dists
+    in
+
     return dists
+  in
+
+  (* Run lifecycle scripts *)
+  let%bind () =
+
+    let queue = LwtTaskQueue.create ~concurrency:8 () in
+
+    let%bind binPath =
+      let binPath = SandboxSpec.binPath sandbox.spec in
+      let%bind () = Fs.createDir binPath in
+      return binPath
+    in
+
+    let env =
+      let override =
+        let path = (Path.show binPath)::System.Environment.path in
+        let sep = System.Environment.sep ~name:"PATH" () in
+        Astring.String.Map.(
+          empty
+          |> add "PATH" (String.concat sep path)
+        )
+      in
+      ChildProcess.CurrentEnvOverride override
+    in
+
+    let installBinWrapper (name, origPath) =
+      Logs_lwt.debug (fun m ->
+        m "Fetch:installBinWrapper: %a / %s -> %a"
+        Path.pp origPath name Path.pp binPath
+      );%lwt
+      if%bind Fs.exists origPath
+      then (
+        let%bind () = Fs.chmod 0o777 origPath in
+        Fs.symlink ~src:origPath Path.(binPath / name)
+      ) else (
+        Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
+        return ()
+      )
+    in
+
+    let process install pkgJson =
+      let%bind () =
+        Logs_lwt.debug (fun m -> m "Fetch:runLifecycle:%a" Package.pp install.Install.pkg);%lwt
+        RunAsync.contextf
+          (LwtTaskQueue.submit
+            queue
+            (runLifecycle
+              ~env
+              ~install
+              ~pkgJson))
+          "running lifecycle %a"
+          Install.pp install
+
+      in
+
+      let%bind () =
+        Logs_lwt.debug (fun m -> m "Fetch:installBinWrappers:%a" Package.pp install.Install.pkg);%lwt
+        PackageJson.packageCommands install.Install.sourcePath pkgJson
+        |> List.map ~f:installBinWrapper
+        |> RunAsync.List.waitAll
+
+      in
+
+      return ()
+    in
+
+    let seen = ref Package.Set.empty in
+
+    let rec visit pkg =
+      if Package.Set.mem pkg !seen
+      then return ()
+      else (
+        seen := Package.Set.add pkg !seen;
+        let isRoot = Package.compare root pkg = 0 in
+        let dependendencies =
+          let traverse =
+            if isRoot
+            then Solution.traverseWithDevDependencies
+            else Solution.traverse
+          in
+          Solution.dependencies ~traverse pkg solution
+        in
+        let%bind () =
+          List.map ~f:visit dependendencies
+          |> RunAsync.List.waitAll
+        in
+
+        match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
+        | false, Some (
+            _dist,
+            ({status = FetchStorage.Fresh; _ } as install),
+            Some ({PackageJson. esy = None; _} as pkgJson)
+          ) ->
+          process install pkgJson
+        | false, None -> errorf "dist not found: %a" Package.pp pkg
+        | _ -> return ()
+      )
+    in
+
+    visit root
   in
 
   (* Produce _esy/<sandbox>/installation.json *)
   let%bind installation =
     let installation =
-      let f installation (dist, sourcePath) =
+      let f id (dist, install, _pkgJson) installation =
         let source =
           let source = Dist.source dist in
           match source with
           | Source.LocalPathLink {path; manifest} ->
             Installation.Link {path; manifest;}
-          | _ -> Installation.Install {path = sourcePath; source;}
+          | _ -> Installation.Install {path = install.Install.sourcePath; source;}
         in
-        Installation.add (Dist.id dist) source installation
+        Installation.add id source installation
       in
       let init =
         Installation.empty
@@ -887,7 +1030,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
               manifest = Some sandbox.spec.manifest
             })
       in
-      List.fold_left ~f ~init dists
+      PackageId.Map.fold f dists init
     in
 
     let%bind () =

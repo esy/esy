@@ -19,10 +19,14 @@ val fetch :
  * return it.
  *)
 
+type status =
+  | Cached
+  | Fresh
+
 val install :
   cfg : Config.t
   -> Dist.t
-  -> Path.t RunAsync.t
+  -> (status * Path.t) RunAsync.t
 (**
  * Unpack fetched dist from storage into source cache and return path.
  *)
