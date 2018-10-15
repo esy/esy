@@ -112,7 +112,7 @@ describe('build errors', function() {
       outdent`
       error: build failed with exit code: 1
         build log:
-          # esy-build-package: building: dep@0.0.0
+          # esy-build-package: building: dep@path:dep
           # esy-build-package: running: 'false'
           error: command failed: 'false'
           esy-build-package: exiting with errors above...
