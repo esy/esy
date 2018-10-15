@@ -243,7 +243,7 @@ let readManifests (solution : Solution.t) (installation : Installation.t) =
             if Overrides.isEmpty pkg.overrides
             then errorf "no manifest found for %a" PackageId.pp id
             else
-              let manifest = BuildManifest.empty in
+              let manifest = BuildManifest.empty ~name:None ~version:None () in
               let manifest = Overrides.apply pkg.overrides applyOverride manifest in
               return (manifest, Path.Set.empty)
         in

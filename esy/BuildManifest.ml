@@ -53,6 +53,8 @@ let patch_to_yojson (path, filter) =
   `Assoc ["path", Path.to_yojson path; "filter", filter]
 
 type t = {
+  name : string option;
+  version : Version.t option;
   buildType : BuildType.t;
   buildCommands : commands;
   installCommands : commands;
@@ -62,7 +64,9 @@ type t = {
   buildEnv : Env.t;
 } [@@deriving to_yojson]
 
-let empty = {
+let empty ~name ~version () = {
+  name;
+  version;
   buildType = BuildType.OutOfSource;
   buildCommands = EsyCommands [];
   installCommands = EsyCommands [];
@@ -74,6 +78,8 @@ let empty = {
 
 module EsyBuild = struct
   type packageJson = {
+    name: string option [@default None];
+    version: Version.t option [@default None];
     esy: packageJsonEsy option [@default None];
   } [@@deriving (of_yojson {strict = false})]
 
@@ -94,6 +100,8 @@ module EsyBuild = struct
     match pkgJson.esy with
     | Some m ->
       let build = {
+        name = pkgJson.name;
+        version = pkgJson.version;
         buildType = m.buildsInSource;
         exportedEnv = m.exportedEnv;
         buildEnv = m.buildEnv;
@@ -162,6 +170,8 @@ module OpamBuild = struct
     in
 
     {
+      name = Some (OpamPackage.Name.to_string manifest.name);
+      version = Some (Version.Opam manifest.version);
       buildType = BuildType.InSource;
       exportedEnv;
       buildEnv = Env.empty;
@@ -185,10 +195,18 @@ module OpamBuild = struct
     match%bind readOpam path with
     | None -> errorf "unable to load opam manifest at %a" Path.pp path
     | Some (_, opam) ->
+      let name =
+        try OpamFile.OPAM.name opam
+        with _ -> OpamPackage.Name.of_string "unused"
+      in
+      let version =
+        try OpamFile.OPAM.version opam
+        with _ -> OpamPackage.Version.of_string "unused"
+      in
       let info = {
         EsyInstall.Solution.Package.Opam.
-        name = OpamPackage.Name.of_string "unused";
-        version = OpamPackage.Version.of_string "unused";
+        name;
+        version;
         opam;
         override = None;
       } in
@@ -254,6 +272,8 @@ let ofDir ?manifest (path : Path.t) =
           |> Path.Set.of_list
         in
         return (Some ({
+          name = None;
+          version = None;
           buildType = BuildType.Unsafe;
           exportedEnv = ExportedEnv.empty;
           buildEnv = Env.empty;

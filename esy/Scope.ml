@@ -113,8 +113,17 @@ end = struct
     }
 
   let id scope = scope.id
-  let name scope = scope.name
-  let version scope = scope.version
+
+  let name scope =
+    match scope.build.name with
+    | Some name -> name
+    | None -> scope.name
+
+  let version scope =
+    match scope.build.version with
+    | Some version -> version
+    | None -> scope.version
+
   let sourceType scope = scope.sourceType
   let buildIsInProgress scope = scope.buildIsInProgress
 
@@ -171,8 +180,8 @@ end = struct
     in
     match id with
     | "id" -> s scope.id
-    | "name" -> s scope.name
-    | "version" -> s (Version.showSimple scope.version)
+    | "name" -> s (name scope)
+    | "version" -> s (Version.showSimple (version scope))
     | "root" -> p (rootPath scope)
     | "original_root" -> p (sourcePath scope)
     | "target_dir" -> p (buildPath scope)
@@ -204,8 +213,8 @@ end = struct
     (* add builtins *)
     let env =
       [
-        "cur__name", scope.name;
-        "cur__version", (Version.showSimple scope.version);
+        "cur__name", (name scope);
+        "cur__version", (Version.showSimple (version scope));
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));

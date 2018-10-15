@@ -27,6 +27,8 @@ type commands =
   | EsyCommands of CommandList.t
 
 type t = {
+  name : string option;
+  version : Version.t option;
   buildType : BuildType.t;
   buildCommands : commands;
   installCommands : commands;
@@ -36,7 +38,7 @@ type t = {
   buildEnv : Env.t;
 }
 
-val empty : t
+val empty : name:string option -> version:Version.t option -> unit -> t
 
 val to_yojson : t Json.encoder
 
