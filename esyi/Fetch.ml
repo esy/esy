@@ -1,5 +1,6 @@
 module Record = Solution.Record
 module Dist = FetchStorage.Dist
+module System = EsyLib.System
 
 module Manifest = struct
 
@@ -588,7 +589,11 @@ let runLifecycleScript ~installation ~name script =
         script
     in
     (* TODO(windows): use cmd here *)
-    let cmd = "/bin/bash", [|"/bin/bash"; "-c"; script|] in
+    let cmd = 
+      match System.Platform.host with
+      | Windows -> "", [|"cmd.exe"; "/c"; script|]
+      | _ -> "/bin/bash", [|"/bin/bash"; "-c"; script|]
+    in 
     Lwt_process.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
