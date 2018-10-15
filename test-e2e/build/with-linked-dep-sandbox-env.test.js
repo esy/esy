@@ -67,7 +67,7 @@ function makeFixture(p) {
   ];
 }
 
-describe.skip('Linked deps with presence of sandboxEnv', () => {
+describe('Linked deps with presence of sandboxEnv', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
