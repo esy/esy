@@ -113,7 +113,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
     expect(await helpers.exists(binPath)).toBeTruthy();
 
     const proc = await helpers.execFile(binPath, [], {});
@@ -121,8 +121,50 @@ describe(`Basic tests for npm packages`, () => {
 
     // only root deps has their bin installed
     expect(
-      await helpers.exists(path.join(p.projectPath, 'node_modules', '.bin', 'depDep')),
+      await helpers.exists(path.join(p.projectPath, '_esy', 'default', 'bin', 'depDep')),
     ).toBeFalsy();
+  });
+
+  test(`lifecycle scripts have bins from their deps in $PATH`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    const depDepPath = await p.defineNpmPackage({
+      name: 'depDep',
+      version: '1.0.0',
+      dependencies: {depDep: `1.0.0`},
+      bin: './depDep.exe',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      dependencies: {depDep: `1.0.0`},
+      scripts: {
+        postinstall: 'depDep && cp $(which depDep) ./dep.exe',
+      },
+      bin: './dep.exe',
+    });
+
+    await helpers.makeFakeBinary(path.join(depDepPath, 'depDep.exe'), {
+      exitCode: 0,
+      output: 'depDep.exe: HELLO',
+    });
+
+    await p.esy('install');
+
+    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
+    expect(await helpers.exists(binPath)).toBeTruthy();
+
+    const proc = await helpers.execFile(binPath, [], {});
+    expect(proc.stdout.toString().trim()).toBe('depDep.exe: HELLO');
   });
 
   test(`it should correctly install bin wrappers into node_modules/.bin (multiple bins)`, async () => {
@@ -162,7 +204,7 @@ describe(`Basic tests for npm packages`, () => {
     await p.esy(`install`);
 
     {
-      const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+      const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
       expect(await helpers.exists(binPath)).toBeTruthy();
 
       const proc = await helpers.execFile(binPath, [], {});
@@ -170,7 +212,7 @@ describe(`Basic tests for npm packages`, () => {
     }
 
     {
-      const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep2');
+      const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep2');
       expect(await helpers.exists(binPath)).toBeTruthy();
 
       const proc = await helpers.execFile(binPath, [], {});
@@ -179,7 +221,7 @@ describe(`Basic tests for npm packages`, () => {
 
     // only root deps has their bin installed
     expect(
-      await helpers.exists(path.join(p.projectPath, 'node_modules', '.bin', 'depDep')),
+      await helpers.exists(path.join(p.projectPath, '_esy', 'default', 'bin', 'depDep')),
     ).toBeFalsy();
   });
 
