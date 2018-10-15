@@ -691,7 +691,7 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
               let status = Format.asprintf "%a" Package.pp pkg in
               report status
             in
-            FetchStorage.fetch ~cfg:sandbox.cfg pkg)
+            FetchStorage.fetch ~sandbox pkg)
         in
         return (pkg, dist)
       in
@@ -721,7 +721,7 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
           report status
         in
         let%bind () =
-          FetchStorage.installNodeModules ~cfg:sandbox.cfg ~path dist
+          FetchStorage.installNodeModules ~sandbox ~path dist
         in
         let%bind manifest = PackageJson.ofDir sourcePath in
         return (install, manifest)
@@ -879,8 +879,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
           let status = Format.asprintf "%a" Package.pp pkg in
           report status
         in
-        let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg pkg in
-        let%bind status, path = FetchStorage.install ~cfg:sandbox.cfg dist in
+        let%bind dist = FetchStorage.fetch ~sandbox pkg in
+        let%bind status, path = FetchStorage.install ~sandbox dist in
+        Logs_lwt.debug (fun m ->
+          m "fetched: %a -> %a" Package.pp pkg Path.pp path);%lwt
         let%bind pkgJson = PackageJson.ofDir path in
         let install = {
           Install.
@@ -1000,8 +1002,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
             Some ({PackageJson. esy = None; _} as pkgJson)
           ) ->
           process install pkgJson
+        | false, Some (_, {status = FetchStorage.Cached;_}, _) -> return ()
+        | false, Some (_, {status = FetchStorage.Fresh;_}, _) -> return ()
         | false, None -> errorf "dist not found: %a" Package.pp pkg
-        | _ -> return ()
+        | true, _ -> return ()
       )
     in
 

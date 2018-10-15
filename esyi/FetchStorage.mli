@@ -11,7 +11,7 @@ module Dist : sig
 end
 
 val fetch :
-  cfg : Config.t
+  sandbox : Sandbox.t
   -> Solution.Package.t
   -> Dist.t RunAsync.t
 (**
@@ -24,7 +24,7 @@ type status =
   | Fresh
 
 val install :
-  cfg : Config.t
+  sandbox : Sandbox.t
   -> Dist.t
   -> (status * Path.t) RunAsync.t
 (**
@@ -32,7 +32,7 @@ val install :
  *)
 
 val installNodeModules :
-  cfg : Config.t
+  sandbox : Sandbox.t
   -> path : Path.t
   -> Dist.t
   -> unit RunAsync.t

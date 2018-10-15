@@ -13,13 +13,13 @@ module Dist = struct
     Fmt.pf fmt "%s@%a" dist.pkg.name Version.pp dist.pkg.version
 end
 
-let fetch ~(cfg : Config.t) (pkg : Solution.Package.t) =
+let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
   let rec fetch' errs sources =
     match sources with
     | source::rest ->
-      begin match%bind SourceStorage.fetch ~cfg source with
+      begin match%bind SourceStorage.fetch ~cfg:sandbox.Sandbox.cfg source with
       | Ok sourceInStorage -> return {Dist. pkg; source; sourceInStorage;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
@@ -45,7 +45,7 @@ let fetch ~(cfg : Config.t) (pkg : Solution.Package.t) =
 
   fetch' [] sources
 
-let unpack ~cfg ~path dist =
+let unpack ~sandbox ~path dist =
   let open RunAsync.Syntax in
   let {Dist. source; pkg; sourceInStorage;} = dist in
 
@@ -86,7 +86,7 @@ let unpack ~cfg ~path dist =
       let%bind () = finishInstall path in
       return ()
     | _ ->
-      let%bind () = SourceStorage.unpack ~cfg ~dst:path sourceInStorage in
+      let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:path sourceInStorage in
       let%bind () = finishInstall path in
       return ()
   in
@@ -101,21 +101,26 @@ let path ~cfg dist =
   in
   Path.(cfg.Config.cacheSourcesPath // v id)
 
-let installNodeModules ~cfg ~path dist = unpack ~cfg ~path dist
+let installNodeModules ~sandbox ~path dist = unpack ~sandbox ~path dist
 
 type status =
   | Cached
   | Fresh
 
-let install ~cfg dist =
+let install ~sandbox dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
-  let path = path ~cfg dist in
-  if%bind Fs.exists path
-  then return (Cached, path)
-  else
-    let tempPath = Path.(path |> addExt ".tmp") in
-    let%bind () = Fs.rmPath tempPath in
-    let%bind () = unpack ~cfg ~path:tempPath dist in
-    let%bind () = Fs.rename ~src:tempPath path in
-    return (Fresh, path)
+  match dist.Dist.source with
+  | Source.LocalPathLink {path; _} ->
+    return (Fresh, Path.(sandbox.Sandbox.spec.path // path))
+  | _ ->
+    let path = path ~cfg:sandbox.Sandbox.cfg dist in
+    if%bind Fs.exists path
+    then return (Cached, path)
+    else (
+      let tempPath = Path.(path |> addExt ".tmp") in
+      let%bind () = Fs.rmPath tempPath in
+      let%bind () = unpack ~sandbox ~path:tempPath dist in
+      let%bind () = Fs.rename ~src:tempPath path in
+      return (Fresh, path)
+    )
