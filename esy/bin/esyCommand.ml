@@ -296,7 +296,6 @@ module SandboxInfo = struct
     installation : EsyInstall.Installation.t option;
     plan : Plan.t option;
     scripts : Scripts.t;
-    sandboxEnv : SandboxEnv.t;
   }
 
   let plan info =
@@ -477,7 +476,6 @@ module SandboxInfo = struct
           plan;
           spec = copts.spec;
           scripts;
-          sandboxEnv;
           filesUsed;
         }
       in Perf.measureLwt ~label:"constructing sandbox info" f
