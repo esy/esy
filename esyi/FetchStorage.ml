@@ -45,7 +45,7 @@ let fetch ~(cfg : Config.t) (pkg : Solution.Package.t) =
 
   fetch' [] sources
 
-let install ~cfg ~path dist =
+let unpack ~cfg ~path dist =
   let open RunAsync.Syntax in
   let {Dist. source; pkg; sourceInStorage;} = dist in
 
@@ -101,7 +101,9 @@ let path ~cfg dist =
   in
   Path.(cfg.Config.cacheSourcesPath // v id)
 
-let unpack ~cfg dist =
+let installNodeModules ~cfg ~path dist = unpack ~cfg ~path dist
+
+let install ~cfg dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
   let path = path ~cfg dist in
@@ -110,6 +112,6 @@ let unpack ~cfg dist =
   else
     let tempPath = Path.(path |> addExt ".tmp") in
     let%bind () = Fs.rmPath tempPath in
-    let%bind () = install ~cfg ~path:tempPath dist in
+    let%bind () = unpack ~cfg ~path:tempPath dist in
     let%bind () = Fs.rename ~src:tempPath path in
     return path

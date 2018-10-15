@@ -19,7 +19,7 @@ val fetch :
  * return it.
  *)
 
-val unpack :
+val install :
   cfg : Config.t
   -> Dist.t
   -> Path.t RunAsync.t
@@ -27,7 +27,7 @@ val unpack :
  * Unpack fetched dist from storage into source cache and return path.
  *)
 
-val install :
+val installNodeModules :
   cfg : Config.t
   -> path : Path.t
   -> Dist.t

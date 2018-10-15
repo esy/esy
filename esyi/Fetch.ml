@@ -700,7 +700,7 @@ let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
           report status
         in
         let%bind () =
-          FetchStorage.install ~cfg:sandbox.cfg ~path dist
+          FetchStorage.installNodeModules ~cfg:sandbox.cfg ~path dist
         in
         let%bind manifest = Manifest.ofDir sourcePath in
         return (installation, manifest)
@@ -852,7 +852,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         report status
       in
       let%bind dist = FetchStorage.fetch ~cfg:sandbox.cfg pkg in
-      let%bind path = FetchStorage.unpack ~cfg:sandbox.cfg dist in
+      let%bind path = FetchStorage.install ~cfg:sandbox.cfg dist in
       return (dist, path)
     in
     let%bind dists =
@@ -865,35 +865,48 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     return dists
   in
 
-  let installation =
+  (* Produce _esy/<sandbox>/installation.json *)
+  let%bind installation =
     let installation =
-      Installation.empty
-      |> Installation.add
-          (Package.id root)
-          (Installation.Link {
-            path = sandbox.spec.path;
-            manifest = Some sandbox.spec.manifest
-          })
-    in
-    let f installation (dist, sourcePath) =
-      let source =
-        let source = Dist.source dist in
-        match source with
-        | Source.LocalPathLink {path; manifest} ->
-          Installation.Link {path; manifest;}
-        | _ -> Installation.Install {path = sourcePath; source;}
+      let f installation (dist, sourcePath) =
+        let source =
+          let source = Dist.source dist in
+          match source with
+          | Source.LocalPathLink {path; manifest} ->
+            Installation.Link {path; manifest;}
+          | _ -> Installation.Install {path = sourcePath; source;}
+        in
+        Installation.add (Dist.id dist) source installation
       in
-      Installation.add (Dist.id dist) source installation
+      let init =
+        Installation.empty
+        |> Installation.add
+            (Package.id root)
+            (Installation.Link {
+              path = sandbox.spec.path;
+              manifest = Some sandbox.spec.manifest
+            })
+      in
+      List.fold_left ~f ~init dists
     in
-    List.fold_left ~f ~init:installation dists
+
+    let%bind () =
+      Fs.writeJsonFile
+        ~json:(Installation.to_yojson installation)
+        (SandboxSpec.installationPath sandbox.spec)
+    in
+
+    return installation
   in
 
+  (* Produce _esy/<sandbox>/pnp.json *)
   let%bind () =
-    Fs.writeJsonFile
-      ~json:(Installation.to_yojson installation)
-      (SandboxSpec.installationPath sandbox.spec)
+    let path = SandboxSpec.pnpJsPath sandbox.spec in
+    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    Fs.writeFile ~data path
   in
 
+  (* Produce _esy/<sandbox>/bin *)
   let%bind () =
     let path = SandboxSpec.pnpJsPath sandbox.spec in
     let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
