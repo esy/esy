@@ -111,7 +111,11 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   const opamRegistry = await OpamRegistryMock.initialize();
 
   async function runJavaScriptInNodeAndReturnJson(script) {
-    const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
+    const pnpJs = path.join(projectPath, '_esy', 'default', 'pnp.js');
+    const command = `node -r ${pnpJs} -p "JSON.stringify(${script.replace(
+      /"/g,
+      '\\"',
+    )})"`;
     const p = await promiseExec(command, {cwd: projectPath});
     return JSON.parse(p.stdout);
   }
@@ -222,6 +226,7 @@ module.exports = {
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
   crawlLayout: PackageGraph.crawl,
+  readInstalledPackages: PackageGraph.read,
   makeFakeBinary: fsUtils.makeFakeBinary,
   exists: fs.exists,
   readdir: fs.readdir,
