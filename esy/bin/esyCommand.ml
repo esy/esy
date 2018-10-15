@@ -288,9 +288,9 @@ module CommonOptions = struct
 end
 
 module SandboxInfo = struct
-  type info = (Path.t * float) list
+
   type t = {
-    info : info;
+    filesUsed : FileInfo.t list;
     spec: EsyInstall.SandboxSpec.t;
     solution : Solution.t option;
     installation : EsyInstall.Installation.t option;
@@ -320,7 +320,7 @@ module SandboxInfo = struct
     in
     Path.(EsyInstall.SandboxSpec.cachePath spec / ("sandbox-" ^ hash))
 
-  let _writeCache (copts : CommonOptions.t) (info : t) =
+  let writeCache (copts : CommonOptions.t) (info : t) =
     let open RunAsync.Syntax in
     let f () =
 
@@ -382,26 +382,32 @@ module SandboxInfo = struct
 
     in Perf.measureLwt ~label:"writing sandbox info cache" f
 
-  let _readCache (copts : CommonOptions.t) =
+  let mtimeOf path =
+    let open RunAsync.Syntax in
+    let%bind stats = Fs.stat path in
+    return stats.Unix.st_mtime
+
+  let checkIsStale filesUsed =
+    let open RunAsync.Syntax in
+    let%bind checks =
+      RunAsync.List.joinAll (
+        let f {FileInfo. path; mtime} =
+          match%lwt mtimeOf path with
+          | Ok curMtime -> return (curMtime > mtime)
+          | Error _ -> return true
+        in
+        List.map ~f filesUsed
+      )
+    in
+    return (List.exists ~f:(fun x -> x) checks)
+
+  let readCache (copts : CommonOptions.t) =
     let open RunAsync.Syntax in
     let f () =
       let cachePath = cachePath copts.cfg copts.spec in
       let f ic =
         let%lwt info = (Lwt_io.read_value ic : t Lwt.t) in
-        let%bind isStale =
-          let%bind checks =
-            RunAsync.List.joinAll (
-              let f (path, mtime) =
-                match%lwt Fs.stat path with
-                | Ok { Unix.st_mtime = curMtime; _ } -> return (curMtime > mtime)
-                | Error _ -> return true
-              in
-              List.map ~f info.info
-            )
-          in
-          return (List.exists ~f:(fun x -> x) checks)
-        in
-        if isStale
+        if%bind checkIsStale info.filesUsed
         then return None
         else return (Some info)
       in
@@ -413,18 +419,32 @@ module SandboxInfo = struct
     let open RunAsync.Syntax in
     let makeInfo () =
       let f () =
-        let%bind solution =
+
+        let filesUsed = [] in
+
+        let%bind solution, filesUsed =
           let path = EsyInstall.SandboxSpec.lockfilePath copts.spec in
-          Solution.LockfileV1.ofFile ~sandbox:copts.installSandbox path
+          match%bind Solution.LockfileV1.ofFile ~sandbox:copts.installSandbox path with
+          | Some solution ->
+            let%bind mtime = mtimeOf path in
+            return (Some solution, {FileInfo. path; mtime}::filesUsed)
+          | None -> return (None, filesUsed)
         in
-        let%bind installation =
+
+        let%bind installation, filesUsed =
           let path = EsyInstall.SandboxSpec.installationPath copts.spec in
-          EsyInstall.Installation.ofPath path
+          match%bind EsyInstall.Installation.ofPath path with
+          | Some installation ->
+            let%bind mtime = mtimeOf path in
+            return (Some installation, {FileInfo. path; mtime}::filesUsed)
+          | None -> return (None, filesUsed)
         in
-        let%bind plan =
+
+        let%bind scripts = Scripts.ofSandbox copts.spec in
+        let%bind plan, filesUsed =
           match installation, solution with
           | Some installation, Some solution ->
-            let%bind plan = Plan.make
+            let%bind plan, filesUsedForPlan = Plan.make
               ~platform:System.Platform.host
               ~sandboxEnv:BuildManifest.Env.empty
               ~buildConfig:copts.buildConfig
@@ -432,11 +452,10 @@ module SandboxInfo = struct
               ~installation
               ()
             in
-            return (Some plan)
-          | _, None -> return None
-          | None, _ -> return None
+            return (Some plan, filesUsed @ filesUsedForPlan)
+          | _, None
+          | None, _ -> return (None, filesUsed)
         in
-        let%bind scripts = Scripts.ofSandbox copts.spec in
         (* let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun ( *)
         (*   let open Run.Syntax in *)
         (*   let%bind task = Task.ofSandbox sandbox in *)
@@ -455,27 +474,19 @@ module SandboxInfo = struct
           installation;
           plan;
           spec = copts.spec;
-          info = [];
           scripts;
+          filesUsed;
         }
       in Perf.measureLwt ~label:"constructing sandbox info" f
     in
-    makeInfo ()
 
-    (* match%bind readCache copts with *)
-    (* | Some info -> *)
-    (*   return info *)
-    (* | None -> *)
-    (*   let%bind info = makeInfo () in *)
-    (*   let%bind () = writeCache copts info in *)
-    (*   return info *)
-
-  (* let findTaskByName ~pkgName root = *)
-  (*   let f (task : Task.t) = *)
-  (*     let pkg = Task.pkg task in *)
-  (*     pkg.name = pkgName *)
-  (*   in *)
-  (*   Task.Graph.find ~f root *)
+    match%bind readCache copts with
+    | Some info ->
+      return info
+    | None ->
+      let%bind info = makeInfo () in
+      let%bind () = writeCache copts info in
+      return info
 
   let resolvePackage ~pkgName copts info =
     let open RunAsync.Syntax in

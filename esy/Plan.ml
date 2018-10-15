@@ -517,7 +517,7 @@ let make
   ~(solution : Solution.t)
   ~(installation : Installation.t) () =
   let open RunAsync.Syntax in
-  let%bind _manifestsPath, manifests = readManifests solution installation in
+  let%bind files, manifests = readManifests solution installation in
   Logs_lwt.debug (fun m -> m "creating plan");%lwt
   let%bind tasks = RunAsync.ofRun (
     make'
@@ -530,7 +530,18 @@ let make
       ()
   ) in
   Logs_lwt.debug (fun m -> m "creating plan: done");%lwt
-  return {tasks; solution;}
+  let%bind filesUsed =
+    let f path =
+      let%bind stats = Fs.stat path in
+      let mtime = stats.Unix.st_mtime in
+      return {FileInfo. path; mtime}
+    in
+    files
+    |> Path.Set.elements
+    |> List.map ~f
+    |> RunAsync.List.joinAll
+  in
+  return ({tasks; solution;}, filesUsed)
 
 let findTaskById plan id =
   match PackageId.Map.find_opt id plan.tasks with

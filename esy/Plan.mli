@@ -40,7 +40,7 @@ val make :
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
   -> unit
-  -> t RunAsync.t
+  -> (t * FileInfo.t list) RunAsync.t
 
 val shell :
   buildConfig:EsyBuildPackage.Config.t
