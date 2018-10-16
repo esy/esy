@@ -18,6 +18,12 @@ module SourceResolver = EsyInstall.SourceResolver
 module Overrides = EsyInstall.Package.Overrides
 module Installation = EsyInstall.Installation
 
+let ensurehasOpamScope name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", _) -> name
+  | Some _
+  | None -> "@opam/" ^ name
+
 (* aliases for opam types with to_yojson implementations *)
 module OpamTypes = struct
   type filter = OpamTypes.filter
@@ -208,7 +214,7 @@ let parseOpam data =
 
 module OpamBuild = struct
 
-  let build (manifest : Solution.Package.Opam.t) =
+  let build ~name ~version (manifest : Solution.Package.Opam.t) =
     let buildCommands =
       match manifest.override with
       | Some {EsyInstall.Package.OpamOverride. build = Some cmds; _} ->
@@ -248,9 +254,15 @@ module OpamBuild = struct
       | None -> ExportedEnv.empty
     in
 
+    let name =
+      match name with
+      | Some name -> Some (ensurehasOpamScope name)
+      | None -> None
+    in
+
     {
-      name = Some (OpamPackage.Name.to_string manifest.name);
-      version = Some (Version.Opam manifest.version);
+      name;
+      version;
       buildType = BuildType.InSource;
       exportedEnv;
       buildEnv = Env.empty;
@@ -267,34 +279,36 @@ module OpamBuild = struct
     | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
       return (None, Path.Set.empty)
     | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      return (Some (build info), Path.Set.singleton path)
+      let name = Some (OpamPackage.Name.to_string info.name) in
+      let version = Some (Version.Opam info.version) in
+      return (Some (build ~name ~version info), Path.Set.singleton path)
 
-  let ofData data =
+  let ofData ~nameFallback data =
     let open Run.Syntax in
     match parseOpam data with
     | None -> return None
     | Some opam ->
       let name =
-        try OpamFile.OPAM.name opam
-        with _ -> OpamPackage.Name.of_string "unused"
+        try Some (OpamPackage.Name.to_string (OpamFile.OPAM.name opam))
+        with _ -> nameFallback
       in
       let version =
-        try OpamFile.OPAM.version opam
-        with _ -> OpamPackage.Version.of_string "unused"
+        try Some (Version.Opam (OpamFile.OPAM.version opam))
+        with _ -> None
       in
       let info = {
         EsyInstall.Solution.Package.Opam.
-        name;
-        version;
+        name = OpamPackage.Name.of_string "unsued";
+        version = OpamPackage.Version.of_string "unused";
         opam;
         override = None;
       } in
-      return (Some (build info))
+      return (Some (build ~name ~version info))
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind data = Fs.readFile path in
-    match ofData data with
+    match ofData ~nameFallback:None data with
     | Ok None -> errorf "unable to load opam manifest at %a" Path.pp path
     | Ok Some manifest -> return (Some manifest, Path.Set.singleton path)
     | Error err -> Lwt.return (Error err)
@@ -391,10 +405,10 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     let overrides = Overrides.addMany overrides res.SourceResolver.overrides in
     let%bind manifest =
       begin match res.SourceResolver.manifest with
-      | Some { kind = ManifestSpec.Filename.Esy; filename = _; data } ->
+      | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->
         RunAsync.ofRun (EsyBuild.ofData data)
-      | Some { kind = ManifestSpec.Filename.Opam; filename = _; data } ->
-        RunAsync.ofRun (OpamBuild.ofData data)
+      | Some {kind = ManifestSpec.Filename.Opam; filename = _; data; suggestedPackageName;} ->
+        RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
       | None ->
         let manifest = empty ~name:None ~version:None () in
         return (Some manifest)

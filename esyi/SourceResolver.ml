@@ -32,6 +32,7 @@ type resolution = {
 and manifest = {
   kind : ManifestSpec.Filename.kind;
   filename : string;
+  suggestedPackageName : string;
   data : string;
 }
 
@@ -51,6 +52,22 @@ let rebaseSource ~(base : Source.t) (source : Source.t) =
   | LocalPath _, _ -> failwith "TODO"
   | source, _ -> return source
 
+let suggestPackageName ~fallback (kind, filename) =
+  let ensurehasOpamScope name =
+    match Astring.String.cut ~sep:"@opam/" name with
+    | Some ("", _) -> name
+    | Some _
+    | None -> "@opam/" ^ name
+  in
+  let name =
+    match ManifestSpec.Filename.inferPackageName (kind, filename) with
+    | Some name -> name
+    | None -> fallback
+  in
+  match kind with
+  | ManifestSpec.Filename.Esy -> name
+  | ManifestSpec.Filename.Opam -> ensurehasOpamScope name
+
 let ofGithub
   ?manifest
   user
@@ -69,10 +86,15 @@ let ofGithub
   let rec tryFilename filenames =
     match filenames with
     | [] -> return EmptyManifest
-    | (kind, fname)::rest ->
-      begin match%lwt fetchFile fname with
+    | (kind, filename)::rest ->
+      begin match%lwt fetchFile filename with
       | Error _ -> tryFilename rest
-      | Ok data -> return (Manifest {filename = fname; data = data; kind = kind;})
+      | Ok data -> return (Manifest {
+          filename;
+          data;
+          kind;
+          suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename);
+        })
       end
   in
 
@@ -95,8 +117,15 @@ let ofPath ?manifest (path : Path.t)
   let rec tryFilename filenames =
     match filenames with
     | [] -> return EmptyManifest
-    | (kind, fname)::rest ->
-      let path = Path.(path / fname) in
+    | (kind, filename)::rest ->
+
+      let suggestedPackageName =
+        suggestPackageName
+          ~fallback:(Path.(path |> normalize |> remEmptySeg |> basename))
+          (kind, filename)
+      in
+
+      let path = Path.(path / filename) in
       if%bind Fs.exists path
       then
         let%bind data = Fs.readFile path in
@@ -108,10 +137,10 @@ let ofPath ?manifest (path : Path.t)
             Logs_lwt.debug (fun m ->
               m "not an override %a: %a" Path.pp path Run.ppError err
               );%lwt
-            return (Manifest {data; filename = fname; kind})
+            return (Manifest {data; filename; kind; suggestedPackageName;})
           end
         | ManifestSpec.Filename.Opam ->
-          return (Manifest {data; filename = fname; kind})
+            return (Manifest {data; filename; kind; suggestedPackageName;})
       else
         tryFilename rest
   in

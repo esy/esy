@@ -22,6 +22,7 @@ type resolution = {
 and manifest = {
   kind : ManifestSpec.Filename.kind;
   filename : string;
+  suggestedPackageName : string;
   data : string;
 }
 

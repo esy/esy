@@ -204,7 +204,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
 let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
-  let readPackage ~name ~source {SourceResolver. kind; filename; data} =
+  let readPackage ~name ~source {SourceResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Filename.Esy ->
@@ -222,9 +222,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
       return (Ok pkg)
     | ManifestSpec.Filename.Opam ->
       let%bind opamname = RunAsync.ofRun (
-        match ManifestSpec.Filename.inferPackageName (kind, filename) with
-        | None -> ensureOpamName name
-        | Some name -> ensureOpamName name
+        ensureOpamName suggestedPackageName
       ) in
       let%bind manifest = RunAsync.ofRun (
         let version = OpamPackage.Version.of_string "dev" in
