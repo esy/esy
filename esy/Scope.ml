@@ -534,9 +534,6 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
       | "ocaml" -> "ocaml"
       | namespace -> "@opam/" ^ namespace
     in
-    prerr_endline ("NS: " ^ namespace);
-    Format.eprintf "%a@." (StringMap.pp Fmt.(pair string ~sep:(unit " : ")
-    (always "S"))) scope.directDependencies;
     begin match name with
     | "installed" ->
       let installed = StringMap.mem namespace scope.directDependencies in
