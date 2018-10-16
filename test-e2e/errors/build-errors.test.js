@@ -29,7 +29,7 @@ describe('build errors', function() {
     expect(err.stderr.trim()).toEqual(
       outdent`
       error: expected object
-        reading package metadata from path:./package.json
+        reading package metadata from link:./package.json
         loading root package metadata
       esy: exiting due to errors above
       `,

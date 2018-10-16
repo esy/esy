@@ -52,6 +52,10 @@ export type TestSandbox = {
     args?: string,
     options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
   ) => Promise<{stderr: string, stdout: string}>,
+  printEsy: (
+    args?: string,
+    options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
+  ) => Promise<void>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
   runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
@@ -159,6 +163,21 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return promiseExec(line, {cwd: path.join(projectPath)});
   }
 
+  async function printEsy(cmd, options) {
+    const {stdout, stderr} = await esy(cmd, options);
+    console.log(
+      outdent`
+      COMMAND: esy ${cmd}
+      STDOUT:
+
+      ${stdout}
+      STDERR:
+
+      ${stderr}
+      `,
+    );
+  }
+
   return {
     rootPath,
     binPath,
@@ -167,6 +186,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     npmPrefixPath,
     run,
     esy,
+    printEsy,
     npm,
     npmRegistry,
     fixture: async (...fixture) => {

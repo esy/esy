@@ -178,7 +178,7 @@ describe('resolutions with overrides', () => {
   it('turning a linked dir into esy package', async () => {
     const p = await createTestSandbox();
 
-    const fixture = [
+    await p.fixture(
       packageJson({
         name: 'root',
         version: '1.0.0',
@@ -203,9 +203,7 @@ describe('resolutions with overrides', () => {
         },
       }),
       dir('dep', dummyExecutable('dep')),
-    ];
-
-    await p.fixture(...fixture);
+    );
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
