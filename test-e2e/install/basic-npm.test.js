@@ -4,6 +4,8 @@ const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
 
+helpers.skipSuiteOnWindows();
+
 describe(`Basic tests for npm packages`, () => {
   test(`it should correctly install a single dependency that contains no sub-dependencies`, async () => {
     const fixture = [
