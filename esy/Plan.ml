@@ -284,20 +284,7 @@ let make'
 
   and aux' pkgId pkg build =
     let location = Installation.findExn pkgId installation in
-    let source, sourcePath, sourceType =
-      match pkg.source with
-      | Solution.Package.Install info ->
-        (* TODO: make sure we check if all dependencies are immutable too *)
-        let source, _ = info.source in
-        Some source, location, SourceType.Immutable
-      | Solution.Package.Link _ ->
-        None, location, SourceType.Transient
-    in
-    let sourceType =
-      if forceImmutable
-      then SourceType.Immutable
-      else sourceType
-    in
+
     let%bind dependencies =
       let f (direct, pkg) =
         let%bind build = aux pkg in
@@ -309,6 +296,32 @@ let make'
         else Solution.traverse
       in
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
+    in
+
+    let source, sourcePath, sourceType =
+      match pkg.source with
+      | Solution.Package.Install info ->
+        let source, _ = info.source in
+        let sourceType =
+          let hasTransientDeps =
+            let f = function
+              | _, Some {Task. sourceType = SourceType.Transient; _} -> true
+              | _, _ -> false
+            in
+            List.exists ~f dependencies
+          in
+          if hasTransientDeps
+          then SourceType.Transient
+          else SourceType.Immutable
+        in
+        Some source, location, sourceType
+      | Solution.Package.Link _ ->
+        None, location, SourceType.Transient
+    in
+    let sourceType =
+      if forceImmutable
+      then SourceType.Immutable
+      else sourceType
     in
 
     let name = PackageId.name pkgId in
