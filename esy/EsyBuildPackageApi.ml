@@ -3,7 +3,7 @@ let run
     ?(stdin=`Null)
     ?(args=[])
     ?logPath
-    ~(buildConfig : EsyBuildPackage.Config.t)
+    ~(buildCfg : EsyBuildPackage.Config.t)
     action
     (plan : EsyBuildPackage.Plan.t) =
   let open RunAsync.Syntax in
@@ -20,10 +20,10 @@ let run
       return Cmd.(
         v "esy-build-package"
         % action
-        % "--store-path" % p buildConfig.storePath
-        % "--local-store-path" % p buildConfig.localStorePath
-        % "--project-path" % p buildConfig.projectPath
-        % "--build-path" % p buildConfig.buildPath
+        % "--store-path" % p buildCfg.storePath
+        % "--local-store-path" % p buildCfg.localStorePath
+        % "--project-path" % p buildCfg.projectPath
+        % "--build-path" % p buildCfg.buildPath
         % "--plan" % p buildJsonFilename
         |> addArgs args
       )
@@ -37,7 +37,7 @@ let run
     let%bind stdout, stderr, log =
       match logPath with
       | Some logPath ->
-        let logPath = Scope.SandboxPath.toPath buildConfig logPath in
+        let logPath = Scope.SandboxPath.toPath buildCfg logPath in
         let%lwt fd = Lwt_unix.openfile
           (Path.show logPath)
           Lwt_unix.[O_WRONLY; O_CREAT]
@@ -70,7 +70,7 @@ let build
     ?(buildOnly=false)
     ?(quiet=false)
     ?logPath
-    ~buildConfig
+    ~buildCfg
     plan
     =
   let open RunAsync.Syntax in
@@ -83,7 +83,7 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  let%bind status, log = run ?logPath ~args ~buildConfig `Build plan in
+  let%bind status, log = run ?logPath ~args ~buildCfg `Build plan in
   match status, log with
   | Unix.WEXITED 0, Some (_, fd)  ->
     UnixLabels.close fd;
@@ -105,14 +105,14 @@ let build
   | Unix.WSTOPPED code, None ->
     errorf "build failed with exit code: %i" code
 
-let buildShell ~buildConfig plan =
+let buildShell ~buildCfg plan =
   let open RunAsync.Syntax in
-  let%bind status, _log = run ~stdin:`Keep ~buildConfig `Shell plan in
+  let%bind status, _log = run ~stdin:`Keep ~buildCfg `Shell plan in
   return status
 
-let buildExec ~buildConfig plan cmd =
+let buildExec ~buildCfg plan cmd =
   let open RunAsync.Syntax in
   let tool, args = Cmd.getToolAndArgs cmd in
   let args = "--"::tool::args in
-  let%bind status, _log = run ~stdin:`Keep ~args ~buildConfig `Exec  plan in
+  let%bind status, _log = run ~stdin:`Keep ~args ~buildCfg `Exec  plan in
   return status

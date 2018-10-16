@@ -18,7 +18,7 @@ module Task : sig
   val installPath : t -> Scope.SandboxPath.t
 
   val renderExpression :
-    buildConfig:EsyBuildPackage.Config.t
+    buildCfg:EsyBuildPackage.Config.t
     -> t
     -> string
     -> string Run.t
@@ -35,7 +35,7 @@ val rootTask : t -> Task.t option
 
 val make :
   platform : System.Platform.t
-  -> buildConfig:Scope.SandboxValue.ctx
+  -> cfg:Config.t
   -> sandboxEnv:BuildManifest.Env.item StringMap.t
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
@@ -43,13 +43,13 @@ val make :
   -> (t * FileInfo.t list) RunAsync.t
 
 val shell :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> Task.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
 val exec :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> Task.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
@@ -60,14 +60,14 @@ val build :
   -> ?quiet:bool
   -> ?buildOnly:bool
   -> ?logPath:Scope.SandboxPath.t
-  -> buildConfig:EsyBuildPackage.Config.t
+  -> buildCfg:EsyBuildPackage.Config.t
   -> Task.t
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
 
 val buildDependencies :
   ?concurrency:int
-  -> buildConfig:EsyBuildPackage.Config.t
+  -> buildCfg:EsyBuildPackage.Config.t
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
@@ -77,12 +77,12 @@ val commandEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnviron
 val execEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> outputPrefixPath:Fpath.t
   -> Fpath.t
   -> unit RunAsync.t
 
 val importBuild :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> Fpath.t
   -> unit RunAsync.t

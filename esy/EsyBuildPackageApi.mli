@@ -10,7 +10,7 @@ val build :
   -> ?buildOnly:bool
   -> ?quiet:bool
   -> ?logPath:Scope.SandboxPath.t
-  -> buildConfig:EsyBuildPackage.Config.t
+  -> buildCfg:EsyBuildPackage.Config.t
   -> EsyBuildPackage.Plan.t
   -> unit RunAsync.t
 
@@ -18,7 +18,7 @@ val build :
  * Spawn an interactive shell inside tbuild environment of the task.
  *)
 val buildShell :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> EsyBuildPackage.Plan.t
   -> Unix.process_status RunAsync.t
 
@@ -26,7 +26,7 @@ val buildShell :
  * Execute a command inside build environment of the task.
  *)
 val buildExec :
-  buildConfig:EsyBuildPackage.Config.t
+  buildCfg:EsyBuildPackage.Config.t
   -> EsyBuildPackage.Plan.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t

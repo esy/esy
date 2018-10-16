@@ -38,19 +38,12 @@ type t = {
   buildEnv : Env.t;
 }
 
+include S.PRINTABLE with type t := t
 val empty : name:string option -> version:Version.t option -> unit -> t
 
 val to_yojson : t Json.encoder
 
-(**
- * Load manifest given a directory.
- *
- * Return `None` is no manifets was found.
- *
- * If manifest was found then returns also a set of paths which were used to
- * load manifest. Client code can check those paths to invalidate caches.
- *)
-val ofDir :
-  ?manifest:EsyInstall.ManifestSpec.t
-  -> Path.t
-  -> (t * Path.Set.t) option RunAsync.t
+val ofInstallationLocation :
+  cfg:Config.t
+  -> EsyInstall.Installation.location
+  -> (t * Fpath.set) option RunAsync.t

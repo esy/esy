@@ -16,6 +16,7 @@ module ExportedEnv = Package.ExportedEnv
 module Env = Package.Env
 module SourceResolver = EsyInstall.SourceResolver
 module Overrides = EsyInstall.Package.Overrides
+module Installation = EsyInstall.Installation
 
 module Release = struct
   type t = {
@@ -42,6 +43,15 @@ type commands =
   | EsyCommands of CommandList.t
   [@@deriving to_yojson]
 
+let pp_commands fmt cmds =
+  match cmds with
+  | OpamCommands cmds ->
+    let json = `List (List.map ~f:OpamTypes.command_to_yojson cmds) in
+    Fmt.pf fmt "OpamCommands %a" (Json.pp ~std:true) json
+  | EsyCommands cmds ->
+    let json = CommandList.to_yojson cmds in
+    Fmt.pf fmt "EsyCommands %a" (Json.pp ~std:true) json
+
 type patch = Path.t * OpamTypes.filter option
 
 let patch_to_yojson (path, filter) =
@@ -51,6 +61,8 @@ let patch_to_yojson (path, filter) =
     | Some filter -> `String (OpamFilter.to_string filter)
   in
   `Assoc ["path", Path.to_yojson path; "filter", filter]
+
+let pp_patch fmt (path, _) = Fmt.pf fmt "Patch %a" Path.pp path
 
 type t = {
   name : string option;
@@ -62,7 +74,7 @@ type t = {
   substs : Path.t list;
   exportedEnv : ExportedEnv.t;
   buildEnv : Env.t;
-} [@@deriving to_yojson]
+} [@@deriving to_yojson, show]
 
 let empty ~name ~version () = {
   name;
@@ -93,10 +105,10 @@ module EsyBuild = struct
     release: (Release.t option [@default None]);
   } [@@deriving (of_yojson { strict = false })]
 
-  let ofFile (path : Path.t) =
-    let open RunAsync.Syntax in
-    let%bind json = Fs.readJsonFile path in
-    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith packageJson_of_yojson json) in
+  let ofData data =
+    let open Run.Syntax in
+    let%bind json = Json.parse data in
+    let%bind pkgJson = Json.parseJsonWith packageJson_of_yojson json in
     match pkgJson.esy with
     | Some m ->
       let build = {
@@ -110,22 +122,22 @@ module EsyBuild = struct
         patches = [];
         substs = [];
       } in
-      return (Some (build, Path.Set.singleton path))
+      return (Some build)
     | None -> return None
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    match ofData data with
+    | Ok (Some manifest) -> return (Some (manifest, Path.Set.singleton path))
+    | Ok None -> return None
+    | Error err -> Lwt.return (Error err)
 end
 
 let parseOpam data =
   if String.trim data = ""
   then None
   else Some (OpamFile.OPAM.read_from_string data)
-
-let readOpam path =
-  let open RunAsync.Syntax in
-  let%bind data = Fs.readFile path in
-  let name = Path.(path |> remExt |> basename) in
-  match parseOpam data with
-  | Some opam -> return (Some (name, opam))
-  | None -> return None
 
 module OpamBuild = struct
 
@@ -190,11 +202,11 @@ module OpamBuild = struct
     | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
       return (Some (build info, Path.Set.singleton path))
 
-  let ofFile (path : Path.t) =
-    let open RunAsync.Syntax in
-    match%bind readOpam path with
-    | None -> errorf "unable to load opam manifest at %a" Path.pp path
-    | Some (_, opam) ->
+  let ofData data =
+    let open Run.Syntax in
+    match parseOpam data with
+    | None -> return None
+    | Some opam ->
       let name =
         try OpamFile.OPAM.name opam
         with _ -> OpamPackage.Name.of_string "unused"
@@ -210,7 +222,16 @@ module OpamBuild = struct
         opam;
         override = None;
       } in
-      return (Some (build info, Path.Set.singleton path))
+      return (Some (build info))
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    match ofData data with
+    | Ok None -> errorf "unable to load opam manifest at %a" Path.pp path
+    | Ok Some manifest -> return (Some (manifest, Path.Set.singleton path))
+    | Error err -> Lwt.return (Error err)
+
 end
 
 let discoverManifest path =
@@ -240,7 +261,7 @@ let discoverManifest path =
 
   tryLoad filenames
 
-let ofDir ?manifest (path : Path.t) =
+let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
   Logs_lwt.debug (fun m ->
@@ -288,3 +309,33 @@ let ofDir ?manifest (path : Path.t) =
     RunAsync.contextf manifest
       "reading package metadata from %a"
       Path.ppPretty path
+
+let ofInstallationLocation ~cfg (loc : Installation.location) =
+  let open RunAsync.Syntax in
+  match loc with
+  | Installation.Link { path; manifest } ->
+    let source = Source.LocalPathLink {path; manifest;} in
+    let%bind res =
+      SourceResolver.resolve
+        ~cfg:cfg.Config.installCfg
+        ~root:cfg.spec.SandboxSpec.path
+        source
+    in
+    let%bind manifest =
+      begin match res.SourceResolver.manifest with
+      | Some { kind = ManifestSpec.Filename.Esy; filename = _; data } ->
+        RunAsync.ofRun (EsyBuild.ofData data)
+      | Some { kind = ManifestSpec.Filename.Opam; filename = _; data } ->
+        RunAsync.ofRun (OpamBuild.ofData data)
+      | None ->
+        let manifest = empty ~name:None ~version:None () in
+        return (Some manifest)
+      end
+    in
+    begin match manifest with
+    | None -> return None
+    | Some manifest -> return (Some (manifest, res.SourceResolver.paths))
+    end
+  | Installation.Install { path; source; } ->
+    let manifest = Source.manifest source in
+    ofPath ?manifest path
