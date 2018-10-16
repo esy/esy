@@ -26,6 +26,7 @@ type resolution = {
   overrides : Package.Overrides.t;
   source : Source.t;
   manifest : manifest option;
+  paths : Path.Set.t;
 }
 
 and manifest = {
@@ -141,16 +142,18 @@ let resolve
     | LocalPath {path; manifest}
     | LocalPathLink {path; manifest} ->
       let%bind pkg = ofPath ?manifest Path.(root // path) in
-      return pkg
+      return (pkg, Some path)
     | Git {remote; commit; manifest;} ->
       let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
-        ofPath ?manifest repo
+        let%bind pkg = ofPath ?manifest repo in
+        return (pkg, None)
       end
     | Github {user; repo; commit; manifest;} ->
-      ofGithub ?manifest user repo commit
+      let%bind pkg = ofGithub ?manifest user repo commit in
+      return (pkg, None)
     | Archive _ ->
       Fs.withTempDir begin fun path ->
         let%bind () =
@@ -159,24 +162,42 @@ let resolve
             ~dst:path
             source
         in
-        ofPath path
+        let%bind pkg = ofPath path in
+      return (pkg, None)
       end
 
     | NoSource ->
-      return EmptyManifest
+      return (EmptyManifest, None)
   in
 
-  let rec loop' ~overrides source =
+  let maybeAddToPathSet path paths =
+    match path with
+    | Some path -> Path.Set.add path paths
+    | None -> paths
+  in
+
+  let rec loop' ~overrides ~paths source =
     match%bind resolve' source with
-    | EmptyManifest ->
-      return {manifest = None; overrides; source;}
-    | Manifest manifest ->
-      return {manifest = Some manifest; overrides; source;}
-    | Override {source = nextSource; override} ->
+    | EmptyManifest, path ->
+      return {
+        manifest = None;
+        overrides;
+        source;
+        paths = maybeAddToPathSet path Path.Set.empty;
+      }
+    | Manifest manifest, path ->
+      return {
+        manifest = Some manifest;
+        overrides;
+        source;
+        paths = maybeAddToPathSet path Path.Set.empty;
+      }
+    | Override {source = nextSource; override}, path ->
       let%bind nextSource = RunAsync.ofRun (rebaseSource ~base:source nextSource) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Source.pp source Source.pp nextSource);%lwt
       let overrides = Package.Overrides.add override overrides in
-      loop' ~overrides nextSource
+      let paths = maybeAddToPathSet path paths in
+      loop' ~overrides ~paths nextSource
   in
 
-  loop' ~overrides source
+  loop' ~overrides ~paths:Path.Set.empty source

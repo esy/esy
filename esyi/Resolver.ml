@@ -214,7 +214,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
   in
 
   let pkg =
-    let%bind { SourceResolver. overrides; source = resolvedSource; manifest; } =
+    let%bind { SourceResolver. overrides; source = resolvedSource; manifest; _; } =
       SourceResolver.resolve
         ~cfg:resolver.cfg
         ~overrides

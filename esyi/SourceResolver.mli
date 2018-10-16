@@ -14,6 +14,9 @@ type resolution = {
 
   manifest : manifest option;
   (* In case no manifest is found - None is returned. *)
+
+  paths : Path.Set.t;
+  (* Local paths used to read manifests metadata. *)
 }
 
 and manifest = {
