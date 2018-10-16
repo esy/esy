@@ -18,13 +18,6 @@ module SourceResolver = EsyInstall.SourceResolver
 module Overrides = EsyInstall.Package.Overrides
 module Installation = EsyInstall.Installation
 
-module Release = struct
-  type t = {
-    releasedBinaries: string list;
-    deleteFromBinaryRelease: (string list [@default []]);
-  } [@@deriving (of_yojson { strict = false })]
-end
-
 (* aliases for opam types with to_yojson implementations *)
 module OpamTypes = struct
   type filter = OpamTypes.filter
@@ -177,7 +170,6 @@ module EsyBuild = struct
     exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
     buildEnv: (Env.t [@default Env.empty]);
     sandboxEnv: (Env.t [@default Env.empty]);
-    release: (Release.t option [@default None]);
   } [@@deriving (of_yojson { strict = false })]
 
   let ofData data =

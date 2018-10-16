@@ -12,16 +12,6 @@ module CommandList : module type of EsyInstall.Package.CommandList
 module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
 module Env : module type of EsyInstall.Package.Env
 
-(**
- * Release configuration.
- *)
-module Release : sig
-  type t = {
-    releasedBinaries : string list;
-    deleteFromBinaryRelease : string list;
-  }
-end
-
 type commands =
   | OpamCommands of OpamTypes.command list
   | EsyCommands of CommandList.t

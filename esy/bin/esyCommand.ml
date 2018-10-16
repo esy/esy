@@ -47,8 +47,8 @@ module EsyRuntime = struct
     let%bind path = resolve req in
     return (path |> Cmd.p)
 
-  (* let esyInstallRelease = *)
-  (*   resolve "../../../../bin/esyInstallRelease.js" *)
+  let esyInstallRelease =
+    resolve "../../../../bin/esyInstallRelease.js"
 
   module EsyPackageJson = struct
     type t = {
@@ -297,6 +297,11 @@ module SandboxInfo = struct
   let solution info =
     match info.solution with
     | Some solution -> RunAsync.return solution
+    | None -> RunAsync.errorf "no installation found, run 'esy install'"
+
+  let installation info =
+    match info.installation with
+    | Some installation -> RunAsync.return installation
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let cachePath (cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
@@ -706,14 +711,14 @@ let buildShell (copts : CommonOptions.t) packagePath () =
     let%bind plan = SandboxInfo.plan info in
     let%bind () =
       Plan.buildDependencies
-        ~buildCfg:copts.cfg.buildCfg
+        ~cfg:copts.cfg
         ~concurrency:EsyRuntime.concurrency
         plan
         task.Plan.Task.pkgId
     in
     let p =
       Plan.shell
-        ~buildCfg:copts.cfg.buildCfg
+        ~cfg:copts.cfg
         task
     in
     match%bind p with
@@ -731,15 +736,16 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
     let%bind plan = SandboxInfo.plan info in
     let%bind () =
       Plan.buildDependencies
-        ~buildCfg:copts.cfg.buildCfg
+        ~cfg:copts.cfg
         ~concurrency:EsyRuntime.concurrency
         plan
         task.Plan.Task.pkgId
     in
     Plan.build
-      ~buildCfg:copts.cfg.buildCfg
+      ~cfg:copts.cfg
       ~force:true
-      task
+      plan
+      task.Plan.Task.pkgId
   in
   withBuildTaskById ~info packagePath f
 
@@ -747,33 +753,31 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
   let%bind plan = SandboxInfo.plan info in
-
-  match Plan.rootTask plan with
+  let%bind solution = SandboxInfo.solution info in
+  let root = Solution.Package.id (Solution.root solution) in
+  let%bind () =
+    Plan.buildDependencies
+      ~cfg:copts.cfg
+      ~concurrency:EsyRuntime.concurrency
+      plan
+      root
+  in
+  begin match cmd with
   | None ->
-    begin match cmd with
-    | None -> return ()
-    | Some _cmd -> failwith "TODO"
-    end
-  | Some task ->
-    let%bind () =
-      Plan.buildDependencies
-        ~buildCfg:copts.cfg.buildCfg
-        ~concurrency:EsyRuntime.concurrency
-        plan
-        task.pkgId
-    in
-    begin match cmd with
-    | None ->
-      Plan.build
-        ~buildCfg:copts.cfg.buildCfg
-        ~force:true
-        ~quiet:true
-        ~buildOnly
-        task
-    | Some cmd ->
+    Plan.build
+      ~cfg:copts.cfg
+      ~force:true
+      ~quiet:true
+      ~buildOnly
+      plan
+      root
+  | Some cmd ->
+    begin match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
+    | None -> errorf "root package doesn't define any build"
+    | Some task ->
       let p =
         Plan.exec
-          ~buildCfg:copts.cfg.buildCfg
+          ~cfg:copts.cfg
           task
           cmd
       in
@@ -783,6 +787,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
       | Unix.WSTOPPED n
       | Unix.WSIGNALED n -> exit n
     end
+  end
 
 let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let open RunAsync.Syntax in
@@ -876,7 +881,7 @@ let makeExecCommand
     if checkIfDependenciesAreBuilt
     then
       Plan.buildDependencies
-        ~buildCfg:copts.cfg.buildCfg
+        ~cfg:copts.cfg
         ~concurrency:EsyRuntime.concurrency
         plan
         task.Plan.Task.pkgId
@@ -971,14 +976,14 @@ let devExec (copts : CommonOptions.t) cmd () =
       | Parsed args ->
         let%bind args =
           Result.List.map
-            ~f:(Plan.Task.renderExpression ~buildCfg:copts.cfg.buildCfg task)
+            ~f:(Plan.Task.renderExpression ~cfg:copts.cfg task)
             args
         in
         return (Cmd.ofListExn args)
       | Unparsed line ->
         let%bind string =
           Plan.Task.renderExpression
-            ~buildCfg:copts.cfg.buildCfg
+            ~cfg:copts.cfg
             task line
         in
         let%bind args = ShellSplit.split string in
@@ -1353,7 +1358,7 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
 
 let exportBuild (copts : CommonOptions.t) buildPath () =
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-  Plan.exportBuild ~outputPrefixPath ~buildCfg:copts.cfg.buildCfg buildPath
+  Plan.exportBuild ~outputPrefixPath ~cfg:copts.cfg buildPath
 
 let exportDependencies (copts : CommonOptions.t) () =
   let open RunAsync.Syntax in
@@ -1378,7 +1383,7 @@ let exportDependencies (copts : CommonOptions.t) () =
         if%bind Fs.exists buildPath
         then
           let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-          Plan.exportBuild ~outputPrefixPath ~buildCfg:copts.cfg.buildCfg buildPath
+          Plan.exportBuild ~outputPrefixPath ~cfg:copts.cfg buildPath
         else (
           errorf
             "%s@%a was not built, run 'esy build' first"
@@ -1410,7 +1415,7 @@ let importBuild (copts : CommonOptions.t) fromPath buildPaths () =
   let queue = LwtTaskQueue.create ~concurrency:8 () in
   buildPaths
   |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () ->
-      Plan.importBuild ~buildCfg:copts.cfg.buildCfg path))
+      Plan.importBuild ~cfg:copts.cfg path))
   |> RunAsync.List.waitAll
 
 let importDependencies (copts : CommonOptions.t) fromPath () =
@@ -1419,7 +1424,6 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind solution = SandboxInfo.solution info in
   let%bind plan = SandboxInfo.plan info in
-  let buildCfg = copts.cfg.buildCfg in
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
@@ -1432,7 +1436,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
     match%bind RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg)) with
     | Some task ->
       let aux () =
-        let installPath = Scope.SandboxPath.toPath buildCfg (Plan.Task.installPath task) in
+        let installPath = Scope.SandboxPath.toPath copts.cfg.buildCfg (Plan.Task.installPath task) in
         if%bind Fs.exists installPath
         then return ()
         else (
@@ -1440,9 +1444,9 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
           let pathDir = Path.(fromPath / id) in
           let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
           if%bind Fs.exists pathDir
-          then Plan.importBuild ~buildCfg pathDir
+          then Plan.importBuild ~cfg:copts.cfg pathDir
           else if%bind Fs.exists pathTgz
-          then Plan.importBuild ~buildCfg pathTgz
+          then Plan.importBuild ~cfg:copts.cfg pathTgz
           else
             let%lwt () =
               Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
@@ -1457,32 +1461,40 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   |> List.map ~f:importBuild
   |> RunAsync.List.waitAll
 
-(* let release copts () = *)
-(*   let open RunAsync.Syntax in *)
-(*   let%bind info = SandboxInfo.make copts in *)
+let release copts () =
+  let open RunAsync.Syntax in
+  let%bind info = SandboxInfo.make copts in
+  let%bind installation = SandboxInfo.installation info in
+  let%bind solution = SandboxInfo.solution info in
 
-(*   let%bind outputPath = *)
-(*     let outputDir = "_release" in *)
-(*     let outputPath = Path.(info.sandbox.buildCfg.projectPath / outputDir) in *)
-(*     let%bind () = Fs.rmPath outputPath in *)
-(*     return outputPath *)
-(*   in *)
+  let%bind outputPath =
+    let outputDir = "_release" in
+    let outputPath = Path.(copts.cfg.buildCfg.projectPath / outputDir) in
+    let%bind () = Fs.rmPath outputPath in
+    return outputPath
+  in
 
-(*   let%bind () = build copts None () in *)
+  let%bind () = build copts None () in
 
-(*   let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in *)
+  let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in
 
-(*   let%bind ocamlopt = *)
-(*     let%bind p = SandboxInfo.ocaml ~sandbox:info.sandbox info in *)
-(*     return Path.(p / "bin" / "ocamlopt") *)
-(*   in *)
+  let%bind ocamlopt =
+    let%bind p = SandboxInfo.ocaml copts info in
+    return Path.(p / "bin" / "ocamlopt")
+  in
 
-(*   NpmRelease.make *)
-(*     ~ocamlopt *)
-(*     ~esyInstallRelease *)
-(*     ~outputPath *)
-(*     ~concurrency:EsyRuntime.concurrency *)
-(*     ~sandbox:info.SandboxInfo.sandbox *)
+  let%bind sandboxEnv = SandboxEnv.ofSandbox copts.spec in
+
+  NpmRelease.make
+    ~sandboxEnv
+    ~solution:solution
+    ~installation:installation
+    ~ocamlopt
+    ~esyInstallRelease
+    ~outputPath
+    ~concurrency:EsyRuntime.concurrency
+    ~cfg:copts.CommonOptions.cfg
+    ()
 
 let makeCommand
   ?(header=`Standard)
@@ -1816,14 +1828,14 @@ let makeCommands ~sandbox () =
         $ Cli.setupLogTerm
       );
 
-    (* makeCommand *)
-    (*   ~name:"release" *)
-    (*   ~doc:"Produce npm package with prebuilt artifacts" *)
-    (*   Term.( *)
-    (*     const release *)
-    (*     $ commonOpts *)
-    (*     $ Cli.setupLogTerm *)
-    (*   ); *)
+    makeCommand
+      ~name:"release"
+      ~doc:"Produce npm package with prebuilt artifacts"
+      Term.(
+        const release
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~name:"help"

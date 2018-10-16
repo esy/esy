@@ -1,13 +1,32 @@
 module StringSet = Set.Make(String)
+module Solution = EsyInstall.Solution
+module Package = EsyInstall.Solution.Package
 
 type config = {
   name : string;
-  version : EsyInstall.Version.t;
+  version : string;
   license : Json.t option;
   description : string option;
   releasedBinaries : string list;
   deleteFromBinaryRelease : string list;
 }
+
+module OfPackageJson = struct
+  type t = {
+    name : string [@default "project"];
+    version : string [@default "0.0.0"];
+    license : Json.t option [@default None];
+    description : string option [@default None];
+    esy : esy [@default {release = None}]
+  }
+  and esy = {
+    release : release option [@default None];
+  }
+  and release = {
+    releasedBinaries: string list;
+    deleteFromBinaryRelease: (string list [@default []]);
+  } [@@deriving (of_yojson { strict = false })]
+end
 
 let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   let environmentString =
@@ -64,43 +83,56 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       )
   |} environmentString bin bin
 
-let configure ~(sandbox : Sandbox.t) =
+let configure ~(cfg : Config.t) () =
   let open RunAsync.Syntax in
-  match%bind Manifest.ofDir sandbox.buildConfig.projectPath with
-  | None -> error "no manifest found"
-  | Some (manifest, _) ->
-    let%bind releaseCfg =
-      RunAsync.ofOption ~err:"no release config found" (Manifest.release manifest)
-    in
-    return {
-      name = Manifest.name manifest;
-      version = Manifest.version manifest;
-      license = Manifest.license manifest;
-      description = Manifest.description manifest;
-      releasedBinaries = releaseCfg.Manifest.Release.releasedBinaries;
-      deleteFromBinaryRelease = releaseCfg.Manifest.Release.deleteFromBinaryRelease;
-    }
+  match cfg.spec.manifest with
+  | EsyInstall.ManifestSpec.ManyOpam
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _) ->
+    errorf "only projects with esy metadata (package.json) could be released"
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
+    let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
+    let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
+    match pkgJson.OfPackageJson.esy.release with
+    | None -> errorf "no release config found"
+    | Some releaseCfg ->
+      return {
+        name = pkgJson.name;
+        version = pkgJson.version;
+        license = pkgJson.license;
+        description = pkgJson.description;
+        releasedBinaries = releaseCfg.OfPackageJson.releasedBinaries;
+        deleteFromBinaryRelease = releaseCfg.OfPackageJson.deleteFromBinaryRelease;
+      }
 
-let dependenciesForRelease (task : Task.t) =
-  let f deps dep = match dep with
-    | Task.Dependency, depTask
-    | Task.BuildTimeDependency, depTask ->
-      begin match Task.sourceType depTask with
-      | Manifest.SourceType.Immutable -> (depTask, dep)::deps
-      | _ -> deps
-      end
-    | Task.DevDependency, _ -> deps
-  in
-  Task.dependencies task
-  |> List.fold_left ~f ~init:[]
-  |> List.rev
+(* let dependenciesForRelease (task : Plan.Task.t) = *)
+(*   let f deps dep = *)
+(*     match dep with *)
+(*     | Task.Dependency, depTask *)
+(*     | Task.BuildTimeDependency, depTask -> *)
+(*       begin match Task.sourceType depTask with *)
+(*       | Manifest.SourceType.Immutable -> (depTask, dep)::deps *)
+(*       | _ -> deps *)
+(*       end *)
+(*     | Task.DevDependency, _ -> deps *)
+(*   in *)
+(*   Task.dependencies task *)
+(*   |> List.fold_left ~f ~init:[] *)
+(*   |> List.rev *)
 
-let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandbox.t) =
+let make
+  ~sandboxEnv
+  ~solution
+  ~installation
+  ~ocamlopt
+  ~esyInstallRelease
+  ~outputPath
+  ~concurrency
+  ~(cfg : Config.t)
+  () =
   let open RunAsync.Syntax in
-
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
-  let%bind releaseCfg = configure ~sandbox in
+  let%bind releaseCfg = configure ~cfg () in
 
   (*
     * Construct a task tree with all tasks marked as immutable. This will make
@@ -108,9 +140,16 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
     * the release tarball as only globally stored artefacts can be relocated
     * between stores (b/c of a fixed path length).
     *)
-  let%bind task = RunAsync.ofRun (Task.ofSandbox ~forceImmutable:true sandbox) in
-
-  let tasks = Task.Graph.traverse ~traverse:dependenciesForRelease task in
+  let%bind plan, _ = Plan.make
+    ~forceImmutable:true
+    ~platform:System.Platform.host
+    ~cfg
+    ~sandboxEnv
+    ~solution
+    ~installation
+    ()
+  in
+  let tasks = Plan.allTasks plan in
 
   let shouldDeleteFromBinaryRelease =
     let patterns =
@@ -123,31 +162,32 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
     filterOut
   in
 
-  (*
-    * Find all tasks which are originated from package in dev mode.
-    * We need to force their build and then do a cleanup after release.
-    *)
-  let devModeIds =
-    let f s task =
-      match Task.sourceType task with
-      | Manifest.SourceType.Immutable -> s
-      | Manifest.SourceType.Transient -> StringSet.add (Task.id task) s
-    in
-    List.fold_left
-      ~init:StringSet.empty
-      ~f
-      tasks
+  let root = Package.id (Solution.root solution) in
+  let%bind rootTask =
+    match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
+    | Some task -> return task
+    | None -> errorf "root package doesn't have esy configuration"
   in
 
   (* Make sure all packages are built *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Building packages") in
-    Build.buildAll
-      ~concurrency
-      ~buildOnly:`No
-      ~force:(`Select devModeIds)
-      sandbox
-      task
+    let%bind () =
+      Plan.buildDependencies
+        ~concurrency
+        ~cfg
+        plan
+        root
+    in
+    let%bind () =
+      Plan.build
+        ~buildOnly:false
+        ~quiet:true
+        ~cfg
+        plan
+        root
+    in
+    return ()
   in
 
   let%bind () = Fs.createDir outputPath in
@@ -156,15 +196,15 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let queue = LwtTaskQueue.create ~concurrency:8 () in
-    let f (task : Task.t) =
-      if shouldDeleteFromBinaryRelease (Task.id task)
+    let f (task : Plan.Task.t) =
+      if shouldDeleteFromBinaryRelease task.id
       then
-        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" (Task.id task)) in
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = Sandbox.Path.toPath sandbox.buildConfig (Task.installPath task) in
+        let buildPath = Scope.SandboxPath.toPath cfg.buildCfg (Plan.Task.installPath task) in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        LwtTaskQueue.submit queue (fun () -> Task.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath)
+        LwtTaskQueue.submit queue (fun () -> Plan.exportBuild ~cfg ~outputPrefixPath buildPath)
     in
     tasks |> List.map ~f |> RunAsync.List.waitAll
   in
@@ -172,54 +212,13 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-
-    let%bind bindings = RunAsync.ofRun (
-      let open Run.Syntax in
-      let pkg = sandbox.Sandbox.root in
-      let sandbox =
-        let root = {
-          Sandbox.Package.
-          id = "__release_env__";
-          name = "release-env";
-          version = pkg.version;
-          build = {
-            Manifest.Build.
-            name = pkg.name;
-            version = pkg.version;
-            buildEnv = Manifest.Env.empty;
-            buildCommands = Manifest.Build.EsyCommands [];
-            installCommands = Manifest.Build.EsyCommands [];
-            buildType = Manifest.BuildType.OutOfSource;
-            patches = [];
-            substs = [];
-            exportedEnv = Manifest.ExportedEnv.empty;
-          };
-          sourceType = Manifest.SourceType.Transient;
-          sourcePath = pkg.sourcePath;
-          originPath = pkg.originPath;
-          source = EsyInstall.Source.LocalPathLink {path = Path.v "."; manifest = None};
-        } in
-        {
-          sandbox with
-          root;
-          dependencies =
-            Sandbox.Package.Map.add
-              root
-              Sandbox.Dependencies.{empty with dependencies = [Ok pkg]}
-              sandbox.dependencies;
-        }
-      in
-      let%bind task = Task.ofSandbox ~forceImmutable:true sandbox in
-      let%bind bindings = Task.sandboxEnv task in
-      return bindings
-    ) in
-
+    let%bind bindings = RunAsync.ofRun (Plan.execEnv cfg.spec plan rootTask) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let bindings = Sandbox.Environment.Bindings.render sandbox.buildConfig bindings in
+      let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath name =
@@ -256,12 +255,12 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
         let nextStorePrefix =
-          String.make (String.length (Path.show sandbox.buildConfig.storePath)) '_'
+          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
         in
-        (sandbox.buildConfig.storePath, Path.v nextStorePrefix)
+        (cfg.buildCfg.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
-      Task.rewritePrefix ~cfg:sandbox.cfg ~origPrefix ~destPrefix binPath
+      Plan.rewritePrefix ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)
@@ -269,7 +268,7 @@ let make ~ocamlopt ~esyInstallRelease ~outputPath ~concurrency ~(sandbox : Sandb
       let pkgJson =
         let items = [
           "name", `String releaseCfg.name;
-          "version", EsyInstall.Version.to_yojson releaseCfg.version;
+          "version", `String releaseCfg.version;
           "scripts", `Assoc [
             "postinstall", `String "node ./esyInstallRelease.js"
           ];
