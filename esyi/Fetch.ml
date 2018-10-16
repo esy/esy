@@ -581,14 +581,23 @@ let runLifecycleScript ~installation ~name script =
   in
 
   try%lwt
+    (* We don't need to wrap the install path on Windows in quotes *)
+    let installationPath =
+      match System.Platform.host with
+      | Windows -> Path.show installation.path
+      | _ -> Filename.quote (Path.show installation.path)
+    in
     let script =
       Printf.sprintf
         "cd %s && %s"
-        (Filename.quote (Path.show installation.path))
+        installationPath
         script
     in
-    (* TODO(windows): use cmd here *)
-    let cmd = "/bin/bash", [|"/bin/bash"; "-c"; script|] in
+    let cmd =
+      match System.Platform.host with
+      | Windows -> ("", [|"cmd.exe";("/c " ^ script)|])
+      | _ -> ("/bin/bash", [|"/bin/bash";"-c";script|])
+    in
     Lwt_process.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
