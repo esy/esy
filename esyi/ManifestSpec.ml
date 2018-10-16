@@ -48,7 +48,8 @@ module Filename = struct
 
   let inferPackageName = function
     | Opam, "opam" -> None
-    | _, fname -> Some Path.(v fname |> remExt |> show)
+    | Opam, fname -> Some ("@opam/" ^ Path.(v fname |> remExt |> show))
+    | Esy, fname -> Some Path.(v fname |> remExt |> show)
 
 end
 

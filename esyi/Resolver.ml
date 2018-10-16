@@ -224,7 +224,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
       let%bind opamname = RunAsync.ofRun (
         match ManifestSpec.Filename.inferPackageName (kind, filename) with
         | None -> ensureOpamName name
-        | Some name -> Run.return (OpamPackage.Name.of_string name)
+        | Some name -> ensureOpamName name
       ) in
       let%bind manifest = RunAsync.ofRun (
         let version = OpamPackage.Version.of_string "dev" in
