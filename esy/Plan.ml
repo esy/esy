@@ -238,10 +238,17 @@ let buildId ~sandboxEnv ~name ~version build source dependencies =
     |> fun hash -> String.sub hash 0 8
   in
 
-  Printf.sprintf "%s-%s-%s"
-    (Path.safeSeg name)
-    (Path.safePath (Version.show version))
-    hash
+  match version with
+  | Version.Npm _
+  | Version.Opam _ ->
+    Printf.sprintf "%s-%s-%s"
+      (Path.safeSeg name)
+      (Path.safePath (Version.show version))
+      hash
+  | Version.Source _ ->
+    Printf.sprintf "%s-%s"
+      (Path.safeSeg name)
+      hash
 
 let make'
   ?(forceImmutable=false)
