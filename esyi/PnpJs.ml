@@ -17,14 +17,6 @@ let jsppStringMap jsppKey jsppValue fmt bindings =
     Fmt.(list ~sep:(unit ",@,") jsppItem)
     bindings
 
-let pnpPathOfLocation (loc : Installation.location) =
-    let path =
-      match loc with
-      | Installation.Install info -> info.path
-      | Installation.Link info -> info.path
-    in
-    path
-
 module PackageInformation = struct
   type stringOrNull =
     | String of string
@@ -79,7 +71,7 @@ module PackageInformation = struct
         let version, packageLocation =
           if PackageId.compare id rootId = 0
           then Null, pnpPath sandbox.path
-          else String (Version.show (PackageId.version id)), pnpPath (pnpPathOfLocation loc)
+          else String (Version.show (PackageId.version id)), pnpPath loc
         in
         let package =
           match Solution.get id solution with
@@ -129,7 +121,7 @@ module LocatorsByLocations = struct
       if PackageId.compare rootId id = 0
       then map
       else
-        let path = pnpRelativePath sandbox (pnpPathOfLocation loc) in
+        let path = pnpRelativePath sandbox loc in
         let name = PackageId.name id in
         let reference = Version.show (PackageId.version id) in
         StringMap.add path (Pkg {name; reference;}) map

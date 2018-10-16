@@ -30,12 +30,3 @@ val install :
 (**
  * Unpack fetched dist from storage into source cache and return path.
  *)
-
-val installNodeModules :
-  sandbox : Sandbox.t
-  -> path : Path.t
-  -> Dist.t
-  -> unit RunAsync.t
-(**
- * Install fetched dist from storage into destination.
- *)

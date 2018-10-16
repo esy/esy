@@ -684,15 +684,25 @@ type t = {
   version : Version.t;
   originalVersion : Version.t option;
   originalName : string option;
-  source : Source.t * Source.t list;
-  overrides : Overrides.t;
+  source : source;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   optDependencies: StringSet.t;
   resolutions : Resolutions.t;
-  opam : Opam.t option;
   kind : kind;
 }
+
+and source =
+  | Link of {
+      path : Path.t;
+      manifest : ManifestSpec.t option;
+      overrides : Overrides.t;
+    }
+  | Install of {
+      source : Source.t * Source.t list;
+      overrides : Overrides.t;
+      opam : Opam.t option;
+    }
 
 and kind =
   | Esy

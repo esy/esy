@@ -43,7 +43,7 @@ module PackageJson = struct
   end
 
   type t = {
-    name : string;
+    name : string option [@default None];
     bin : (Bin.t [@default Bin.Empty]);
     scripts : (Scripts.t [@default Scripts.empty]);
     esy : (Json.t option [@default None]);
@@ -62,13 +62,17 @@ module PackageJson = struct
 
   let packageCommands (sourcePath : Path.t) manifest =
     let makePathToCmd cmdPath = Path.(sourcePath // v cmdPath |> normalize) in
-    match manifest.bin with
-    | Bin.One cmd ->
-      [manifest.name, makePathToCmd cmd]
-    | Bin.Many cmds ->
+    match manifest.bin, manifest.name with
+    | Bin.One cmd, Some name ->
+      [name, makePathToCmd cmd]
+    | Bin.One cmd, None ->
+      let cmd = makePathToCmd cmd in
+      let name = Path.basename cmd in
+      [name, cmd]
+    | Bin.Many cmds, _ ->
       let f name cmd cmds = (name, makePathToCmd cmd)::cmds in
       (StringMap.fold f cmds [])
-    | Bin.Empty -> []
+    | Bin.Empty, _ -> []
 
 end
 
@@ -155,14 +159,9 @@ module Layout = struct
           markAsOccupied here (this::breadcrumb) pkg;
           let path = Path.(path // v pkg.Package.name) in
           let sourcePath =
-            let main, _ = pkg.Package.source in
-            match main with
-            | Source.Archive _
-            | Source.Git _
-            | Source.Github _
-            | Source.LocalPath _
-            | Source.NoSource -> path
-            | Source.LocalPathLink {path; manifest = _;} -> Path.(sandboxPath // path)
+            match pkg.Package.source with
+            | Package.Install _ -> path
+            | Package.Link {path; _} -> Path.(sandboxPath // path)
           in
           let installation = {
             Install.
@@ -247,12 +246,14 @@ module Layout = struct
       Package.
       name;
       version = Version.Npm (parseVersionExn version);
-      source = Source.NoSource, [];
-      overrides = Overrides.empty;
+      source = Package.Install {
+        source = Source.NoSource, [];
+        overrides = Overrides.empty;
+        opam = None;
+        files = [];
+      };
       dependencies = PackageId.Set.of_list dependencies;
       devDependencies = PackageId.Set.empty;
-      files = [];
-      opam = None;
     } : Package.t)
 
     let id name version =
@@ -659,192 +660,6 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   in
   RunAsync.List.foldLeft ~f ~init:true layout
 
-let fetchNodeModules ~(sandbox : Sandbox.t) (solution : Solution.t) =
-  let open RunAsync.Syntax in
-
-  (* Collect packages which from the solution *)
-  let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-
-  let%bind () = Fs.rmPath nodeModulesPath in
-  let%bind () = Fs.createDir nodeModulesPath in
-
-  let pkgs =
-    let root = Solution.root solution in
-    let all =
-      let f pkg _ pkgs = Package.Set.add pkg pkgs in
-      Solution.fold ~f ~init:Package.Set.empty solution
-    in
-    Package.Set.remove root all
-  in
-
-  (* Fetch all pkgs *)
-
-  let%bind dists =
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
-    let report, finish = Cli.createProgressReporter ~name:"fetching" () in
-    let%bind items =
-      let fetch pkg =
-        let%bind dist =
-          LwtTaskQueue.submit queue
-          (fun () ->
-            let%lwt () =
-              let status = Format.asprintf "%a" Package.pp pkg in
-              report status
-            in
-            FetchStorage.fetch ~sandbox pkg)
-        in
-        return (pkg, dist)
-      in
-      pkgs
-      |> Package.Set.elements
-      |> List.map ~f:fetch
-      |> RunAsync.List.joinAll
-    in
-    let%lwt () = finish () in
-    let map =
-      let f map (pkg, dist) = Package.Map.add pkg dist map in
-      List.fold_left ~f ~init:Package.Map.empty items
-    in
-    return map
-  in
-
-  (* Layout all dists into node_modules *)
-
-  let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:4 () in
-    let report, finish = Cli.createProgressReporter ~name:"installing" () in
-    let f ({Install. path; sourcePath;pkg;_} as install) () =
-      match Package.Map.find_opt pkg dists with
-      | Some dist ->
-        let%lwt () =
-          let status = Format.asprintf "%a" Dist.pp dist in
-          report status
-        in
-        let%bind () =
-          FetchStorage.installNodeModules ~sandbox ~path dist
-        in
-        let%bind manifest = PackageJson.ofDir sourcePath in
-        return (install, manifest)
-      | None ->
-        let msg =
-          Printf.sprintf
-            "inconsistent state: no dist were fetched for %s@%s at %s"
-            pkg.Package.name
-            (Version.show pkg.Package.version)
-            (Path.show path)
-        in
-        failwith msg
-    in
-
-    let layout =
-      Layout.ofSolution
-        ~nodeModulesPath
-        sandbox.spec.path
-        solution
-    in
-
-    let%bind installed =
-      let install install =
-        RunAsync.contextf
-          (LwtTaskQueue.submit queue (f install))
-          "installing %a"
-          Install.pp install
-      in
-      layout
-      |> List.map ~f:install
-      |> RunAsync.List.joinAll
-    in
-
-    let%lwt () = finish () in
-
-    return installed
-  in
-
-  (* run lifecycle scripts *)
-
-  let%bind () =
-    let queue = LwtTaskQueue.create ~concurrency:1 () in
-
-    let f = function
-      | (install, Some ({PackageJson. esy = None; _} as pkgJson)) ->
-        RunAsync.contextf
-          (LwtTaskQueue.submit
-            queue
-            (runLifecycle
-              ~install
-              ~pkgJson))
-          "running lifecycle %a"
-          Install.pp install
-      | (_install, Some {PackageJson. esy = Some _; _})
-      | (_install, None) -> return ()
-    in
-
-    let%bind () =
-      installed
-      |> List.map ~f
-      |> RunAsync.List.waitAll
-    in
-
-    return ()
-  in
-
-  (* populate node_modules/.bin with scripts defined for the direct dependencies *)
-
-  let%bind () =
-    let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-    let binPath = Path.(nodeModulesPath / ".bin") in
-    let%bind () = Fs.createDir binPath in
-
-    let installBinWrapper (name, path) =
-      if%bind Fs.exists path
-      then (
-        let%bind () = Fs.chmod 0o777 path in
-        Fs.symlink ~src:path Path.(binPath / name)
-      ) else (
-        Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp path);%lwt
-        return ()
-      )
-    in
-
-    let installBinWrappersForPkg = function
-      | (installation, Some manifest) ->
-        PackageJson.packageCommands installation.Install.sourcePath manifest
-        |> List.map ~f:installBinWrapper
-        |> RunAsync.List.waitAll
-      | (_installation, None) -> return ()
-    in
-
-    installed
-    |> List.filter ~f:(fun (installation, _) -> installation.Install.isDirectDependencyOfRoot)
-    |> List.map ~f:installBinWrappersForPkg
-    |> RunAsync.List.waitAll
-  in
-
-  (* link default sandbox node_modules to <projectPath>/node_modules *)
-
-  let%bind () =
-    if SandboxSpec.isDefault sandbox.spec
-    then
-      let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-      let targetPath = Path.(sandbox.spec.path / "node_modules") in
-      let%bind () = Fs.rmPath targetPath in
-      let%bind () = Fs.symlink ~src:nodeModulesPath targetPath in
-      return ()
-    else return ()
-  in
-
-  (* place dune with ignored_subdirs stanza inside node_modiles *)
-
-  let%bind () =
-    let packagesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-    let%bind items = Fs.listDir packagesPath in
-    let items = String.concat " " items in
-    let data = "(ignored_subdirs (" ^ items ^ "))\n" in
-    Fs.writeFile ~data Path.(packagesPath / "dune")
-  in
-
-  return ()
-
 let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
@@ -1016,23 +831,19 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind installation =
     let installation =
       let f id (dist, install, _pkgJson) installation =
-        let source =
+        let loc =
           let source = Dist.source dist in
           match source with
-          | Source.LocalPathLink {path; manifest} ->
-            Installation.Link {path; manifest;}
-          | _ -> Installation.Install {path = install.Install.sourcePath; source;}
+          | Source.LocalPathLink {path; manifest = _} -> Path.(sandbox.spec.path // path)
+          | _ -> install.Install.sourcePath;
         in
-        Installation.add id source installation
+        Installation.add id loc installation
       in
       let init =
         Installation.empty
         |> Installation.add
             (Package.id root)
-            (Installation.Link {
-              path = sandbox.spec.path;
-              manifest = Some sandbox.spec.manifest
-            })
+            sandbox.spec.path;
       in
       PackageId.Map.fold f dists init
     in

@@ -69,6 +69,44 @@ type t = {
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
+let emptyLink ~name ~path ~manifest () =
+  {
+    Package.
+    name;
+    version = Version.Source (Source.LocalPathLink {path; manifest;});
+    originalVersion = None;
+    originalName = None;
+    source = Package.Link {
+      path;
+      manifest = None;
+      overrides = Package.Overrides.empty;
+    };
+    dependencies = Package.Dependencies.NpmFormula [];
+    devDependencies = Package.Dependencies.NpmFormula [];
+    optDependencies = StringSet.empty;
+    resolutions = Package.Resolutions.empty;
+    kind = Esy;
+  }
+
+let emptyInstall ~name ~source () =
+  {
+    Package.
+    name;
+    version = Version.Source source;
+    originalVersion = None;
+    originalName = None;
+    source = Package.Install {
+      source = source, [];
+      opam = None;
+      overrides = Package.Overrides.empty;
+    };
+    dependencies = Package.Dependencies.NpmFormula [];
+    devDependencies = Package.Dependencies.NpmFormula [];
+    optDependencies = StringSet.empty;
+    resolutions = Package.Resolutions.empty;
+    kind = Esy;
+  }
+
 let make ~cfg ~root () =
   RunAsync.return {
     cfg;
@@ -163,7 +201,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) resolver =
+let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
   let readPackage ~name ~source {SourceResolver. kind; filename; data} =
@@ -195,29 +233,11 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
       OpamManifest.toPackage ~name ~version:(Version.Source source) ~source manifest
   in
 
-  let emptyPackage ~name ~source () =
-    {
-      Package.
-      name;
-      version = Version.Source source;
-      originalVersion = None;
-      originalName = None;
-      source = source, [];
-      overrides = Package.Overrides.empty;
-      dependencies = Package.Dependencies.NpmFormula [];
-      devDependencies = Package.Dependencies.NpmFormula [];
-      optDependencies = StringSet.empty;
-      resolutions = Package.Resolutions.empty;
-      opam = None;
-      kind = Esy;
-    }
-  in
-
   let pkg =
     let%bind { SourceResolver. overrides; source = resolvedSource; manifest; _; } =
       SourceResolver.resolve
         ~cfg:resolver.cfg
-        ~overrides
+        ~overrides:overridesOfResolutions
         ~root:resolver.root
         source
     in
@@ -229,24 +249,127 @@ let packageOfSource ~allowEmptyPackage ~name ~overrides (source : Source.t) reso
       | None ->
         if allowEmptyPackage
         then
-          let pkg = emptyPackage ~name ~source:resolvedSource () in
-          return (Ok pkg)
+          match source with
+          | Source.LocalPathLink {path; manifest;} ->
+            let pkg = emptyLink ~name ~path ~manifest () in
+            return (Ok pkg)
+          | _ ->
+            let pkg = emptyInstall ~name ~source:resolvedSource () in
+            return (Ok pkg)
         else errorf "no manifest found at %a" Source.pp source
     in
 
     Hashtbl.replace resolver.sourceToSource source resolvedSource;
 
-    match pkg with
-    | Ok pkg ->
-      return (Ok {
-        pkg with Package.
-        overrides = Package.Overrides.addMany overrides pkg.Package.overrides
-      })
-    | err -> return err
+    return (pkg, overrides)
   in
 
   RunAsync.contextf pkg
     "reading package metadata from %a" Source.ppPretty source
+
+let applyOverride pkg override =
+  let {
+    Package.Overrides.
+    buildType = _;
+    build = _;
+    install = _;
+    exportedEnv = _;
+    exportedEnvOverride = _;
+    buildEnv = _;
+    buildEnvOverride = _;
+
+    dependencies;
+    devDependencies;
+    resolutions;
+  } = override in
+
+  let applyNpmFormulaOverride dependencies override =
+    match dependencies with
+    | Package.Dependencies.NpmFormula formula ->
+      let formula =
+        let dependencies =
+          let f map req = StringMap.add req.Req.name req map in
+          List.fold_left ~f ~init:StringMap.empty formula
+        in
+        let dependencies =
+          StringMap.Override.apply dependencies override
+        in
+        StringMap.values dependencies
+      in
+      Package.Dependencies.NpmFormula formula
+    | Package.Dependencies.OpamFormula formula ->
+      (* remove all terms which we override *)
+      let formula =
+        let filter dep =
+          match StringMap.find_opt dep.Package.Dep.name override with
+          | None -> true
+          | Some _ -> false
+        in
+        formula
+        |> List.map ~f:(List.filter ~f:filter)
+        |> List.filter ~f:(function [] -> false | _ -> true)
+      in
+      (* now add all edits *)
+      let formula =
+        let edits =
+          let f _name override edits =
+            match override with
+            | StringMap.Override.Drop -> edits
+            | StringMap.Override.Edit req ->
+              begin match req.Req.spec with
+              | VersionSpec.Npm formula ->
+                let f (c : SemverVersion.Constraint.t) =
+                  {Package.Dep. name = req.name; req = Npm c}
+                in
+                let formula = SemverVersion.Formula.ofDnfToCnf formula in
+                (List.map ~f:(List.map ~f) formula) @ edits
+              | VersionSpec.Opam formula ->
+                let f (c : OpamPackageVersion.Constraint.t) =
+                  {Package.Dep. name = req.name; req = Opam c}
+                in
+                (List.map ~f:(List.map ~f) formula) @ edits
+              | VersionSpec.NpmDistTag _ ->
+                failwith "cannot override opam with npm dist tag"
+              | VersionSpec.Source spec ->
+                [{Package.Dep. name = req.name; req = Source spec}]::edits
+              end
+          in
+          StringMap.fold f override []
+        in
+        formula @ edits
+      in
+      Package.Dependencies.OpamFormula formula
+  in
+
+  let pkg =
+    match dependencies with
+    | Some override -> {
+        pkg with
+        Package.
+        dependencies = applyNpmFormulaOverride pkg.Package.dependencies override;
+      }
+    | None -> pkg
+  in
+  let pkg =
+    match devDependencies with
+    | Some override -> {
+        pkg with
+        Package.
+        devDependencies = applyNpmFormulaOverride pkg.Package.devDependencies override;
+      }
+    | None -> pkg
+  in
+  let pkg =
+    match resolutions with
+    | Some resolutions ->
+      let resolutions =
+        let f = Resolutions.add in
+        StringMap.fold f resolutions Resolutions.empty
+      in
+      {pkg with Package.resolutions;}
+    | None -> pkg
+  in
+  pkg
 
 let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
@@ -254,13 +377,6 @@ let package ~(resolution : Resolution.t) resolver =
 
   let ofVersion (version : Version.t) =
     match version with
-    | Version.Source source ->
-      packageOfSource
-        ~allowEmptyPackage:true
-        ~overrides:Package.Overrides.empty
-        ~name:resolution.name
-        source
-        resolver
 
     | Version.Npm version ->
       let%bind pkg =
@@ -269,7 +385,7 @@ let package ~(resolution : Resolution.t) resolver =
           ~version
           resolver.npmRegistry ()
       in
-      return (Ok pkg)
+      return (Ok pkg, Package.Overrides.empty)
     | Version.Opam version ->
       begin match%bind
         let%bind name = RunAsync.ofRun (requireOpamName resolution.name) in
@@ -279,142 +395,67 @@ let package ~(resolution : Resolution.t) resolver =
           resolver.opamRegistry
       with
         | Some manifest ->
-          OpamManifest.toPackage
+          let%bind pkg = OpamManifest.toPackage
             ~name:resolution.name
             ~version:(Version.Opam version)
             manifest
+          in
+          return (pkg, Package.Overrides.empty)
         | None -> error ("no such opam package: " ^ resolution.name)
       end
-  in
 
-  let applyOverride pkg override =
-    let {
-      Package.Overrides.
-      buildType = _;
-      build = _;
-      install = _;
-      exportedEnv = _;
-      exportedEnvOverride = _;
-      buildEnv = _;
-      buildEnvOverride = _;
-
-      dependencies;
-      devDependencies;
-      resolutions;
-    } = override in
-
-    let applyNpmFormulaOverride dependencies override =
-      match dependencies with
-      | Package.Dependencies.NpmFormula formula ->
-        let formula =
-          let dependencies =
-            let f map req = StringMap.add req.Req.name req map in
-            List.fold_left ~f ~init:StringMap.empty formula
-          in
-          let dependencies =
-            StringMap.Override.apply dependencies override
-          in
-          StringMap.values dependencies
-        in
-        Package.Dependencies.NpmFormula formula
-      | Package.Dependencies.OpamFormula formula ->
-        (* remove all terms which we override *)
-        let formula =
-          let filter dep =
-            match StringMap.find_opt dep.Package.Dep.name override with
-            | None -> true
-            | Some _ -> false
-          in
-          formula
-          |> List.map ~f:(List.filter ~f:filter)
-          |> List.filter ~f:(function [] -> false | _ -> true)
-        in
-        (* now add all edits *)
-        let formula =
-          let edits =
-            let f _name override edits =
-              match override with
-              | StringMap.Override.Drop -> edits
-              | StringMap.Override.Edit req ->
-                begin match req.Req.spec with
-                | VersionSpec.Npm formula ->
-                  let f (c : SemverVersion.Constraint.t) =
-                    {Package.Dep. name = req.name; req = Npm c}
-                  in
-                  let formula = SemverVersion.Formula.ofDnfToCnf formula in
-                  (List.map ~f:(List.map ~f) formula) @ edits
-                | VersionSpec.Opam formula ->
-                  let f (c : OpamPackageVersion.Constraint.t) =
-                    {Package.Dep. name = req.name; req = Opam c}
-                  in
-                  (List.map ~f:(List.map ~f) formula) @ edits
-                | VersionSpec.NpmDistTag _ ->
-                  failwith "cannot override opam with npm dist tag"
-                | VersionSpec.Source spec ->
-                  [{Package.Dep. name = req.name; req = Source spec}]::edits
-                end
-            in
-            StringMap.fold f override []
-          in
-          formula @ edits
-        in
-        Package.Dependencies.OpamFormula formula
-    in
-
-    let pkg =
-      match dependencies with
-      | Some override -> {
-          pkg with
-          Package.
-          dependencies = applyNpmFormulaOverride pkg.Package.dependencies override;
-        }
-      | None -> pkg
-    in
-    let pkg =
-      match devDependencies with
-      | Some override -> {
-          pkg with
-          Package.
-          devDependencies = applyNpmFormulaOverride pkg.Package.devDependencies override;
-        }
-      | None -> pkg
-    in
-    let pkg =
-      match resolutions with
-      | Some resolutions ->
-        let resolutions =
-          let f = Resolutions.add in
-          StringMap.fold f resolutions Resolutions.empty
-        in
-        {pkg with Package.resolutions;}
-      | None -> pkg
-    in
-    pkg
+    | Version.Source source ->
+      packageOfSource
+        ~allowEmptyPackage:true
+        ~overridesOfResolutions:Package.Overrides.empty
+        ~name:resolution.name
+        source
+        resolver
   in
 
   PackageCache.compute resolver.pkgCache key begin fun _ ->
-    let pkg =
+    let%bind pkg, overrides, overridesOfResolutions =
       match resolution.resolution with
-      | Version version -> ofVersion version
+      | Version version ->
+        let%bind pkg, overrides = ofVersion version in
+        return (pkg, overrides, Package.Overrides.empty)
       | SourceOverride {source; override} ->
-        let overrides = Package.Overrides.(empty |> add override) in
-        packageOfSource
-          ~allowEmptyPackage:true
-          ~name:resolution.name
-          ~overrides
-          source
-          resolver
+        let overridesOfResolutions = Package.Overrides.(empty |> add override) in
+        let%bind pkg, overrides =
+          packageOfSource
+            ~allowEmptyPackage:true
+            ~name:resolution.name
+            ~overridesOfResolutions
+            source
+            resolver
+        in
+        return (pkg, overrides, overridesOfResolutions)
+    in
+    match pkg with
+    | Ok pkg ->
+      let pkg =
+        Package.Overrides.apply
+          overrides
+          applyOverride
+          pkg
+        in
+      let pkg =
+        match pkg.source with
+        | Package.Install source ->
+          let source = Package.Install {
+            source with
+            overrides = Package.Overrides.addMany source.overrides overrides
+          } in
+          {pkg with source;}
+        | Package.Link source ->
+          let source = Package.Link {
+            source with
+            overrides = Package.Overrides.addMany source.overrides overridesOfResolutions
+          } in
+          {pkg with source;}
       in
-      match%bind pkg with
-      | Ok pkg ->
-        let pkg =
-          Package.Overrides.apply
-            pkg.Package.overrides
-            applyOverride
-            pkg
-          in
-        return (Ok pkg)
-      | err -> return err
+      return (Ok pkg)
+    | err -> return err
   end
 
 let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =

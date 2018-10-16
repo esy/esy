@@ -45,5 +45,6 @@ val to_yojson : t Json.encoder
 
 val ofInstallationLocation :
   cfg:Config.t
+  -> EsyInstall.Solution.Package.t
   -> EsyInstall.Installation.location
-  -> (t * Fpath.set) option RunAsync.t
+  -> (t option * Fpath.set) RunAsync.t

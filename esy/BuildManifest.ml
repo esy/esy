@@ -88,6 +88,81 @@ let empty ~name ~version () = {
   buildEnv = StringMap.empty;
 }
 
+let applyOverride (manifest : t) (override : Overrides.override) =
+
+  Logs.debug (fun m -> m "applyOverride: %a" pp manifest);
+
+  let {
+    Overrides.
+    buildType;
+    build;
+    install;
+    exportedEnv;
+    exportedEnvOverride;
+    buildEnv;
+    buildEnvOverride;
+
+    dependencies = _;
+    devDependencies = _;
+    resolutions = _;
+  } = override in
+
+  let manifest =
+    match buildType with
+    | None -> manifest
+    | Some buildType -> {manifest with buildType = buildType;}
+  in
+
+  let manifest =
+    match build with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        buildCommands = EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match install with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        installCommands = EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match exportedEnv with
+    | None -> manifest
+    | Some exportedEnv -> {manifest with exportedEnv;}
+  in
+
+  let manifest =
+    match exportedEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        exportedEnv = StringMap.Override.apply manifest.exportedEnv override;
+      }
+  in
+
+  let manifest =
+    match buildEnv with
+    | None -> manifest
+    | Some buildEnv -> {manifest with buildEnv;}
+  in
+
+  let manifest =
+    match buildEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        buildEnv = StringMap.Override.apply manifest.buildEnv override
+      }
+  in
+
+  manifest
+
 module EsyBuild = struct
   type packageJson = {
     name: string option [@default None];
@@ -129,8 +204,8 @@ module EsyBuild = struct
     let open RunAsync.Syntax in
     let%bind data = Fs.readFile path in
     match ofData data with
-    | Ok (Some manifest) -> return (Some (manifest, Path.Set.singleton path))
-    | Ok None -> return None
+    | Ok (Some manifest) -> return (Some manifest, Path.Set.singleton path)
+    | Ok None -> return (None, Path.Set.empty)
     | Error err -> Lwt.return (Error err)
 end
 
@@ -198,9 +273,9 @@ module OpamBuild = struct
     match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
     | None
     | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
-      return None
+      return (None, Path.Set.empty)
     | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      return (Some (build info, Path.Set.singleton path))
+      return (Some (build info), Path.Set.singleton path)
 
   let ofData data =
     let open Run.Syntax in
@@ -229,7 +304,7 @@ module OpamBuild = struct
     let%bind data = Fs.readFile path in
     match ofData data with
     | Ok None -> errorf "unable to load opam manifest at %a" Path.pp path
-    | Ok Some manifest -> return (Some (manifest, Path.Set.singleton path))
+    | Ok Some manifest -> return (Some manifest, Path.Set.singleton path)
     | Error err -> Lwt.return (Error err)
 
 end
@@ -248,7 +323,7 @@ let discoverManifest path =
   in
 
   let rec tryLoad = function
-    | [] -> return None
+    | [] -> return (None, Path.Set.empty)
     | (kind, fname)::rest ->
       let fname = Path.(path // fname) in
       if%bind Fs.exists fname
@@ -274,8 +349,8 @@ let ofPath ?manifest (path : Path.t) =
     match manifest with
     | None ->
       begin match%bind OpamBuild.ofInstallationDir path with
-      | Some manifest -> return (Some manifest)
-      | None -> discoverManifest path
+      | Some manifest, paths -> return (Some manifest, paths)
+      | None, _paths -> discoverManifest path
       end
     | Some spec ->
       begin match spec with
@@ -292,7 +367,7 @@ let ofPath ?manifest (path : Path.t) =
           List.map ~f filenames
           |> Path.Set.of_list
         in
-        return (Some ({
+        return (Some {
           name = None;
           version = None;
           buildType = BuildType.Unsafe;
@@ -302,7 +377,7 @@ let ofPath ?manifest (path : Path.t) =
           installCommands = OpamCommands [];
           patches = [];
           substs = [];
-        }, paths))
+        }, paths)
       end
     in
 
@@ -310,10 +385,10 @@ let ofPath ?manifest (path : Path.t) =
       "reading package metadata from %a"
       Path.ppPretty path
 
-let ofInstallationLocation ~cfg (loc : Installation.location) =
+let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
-  match loc with
-  | Installation.Link { path; manifest } ->
+  match pkg.source with
+  | Solution.Package.Link { path; manifest; overrides } ->
     let source = Source.LocalPathLink {path; manifest;} in
     let%bind res =
       SourceResolver.resolve
@@ -321,6 +396,7 @@ let ofInstallationLocation ~cfg (loc : Installation.location) =
         ~root:cfg.spec.SandboxSpec.path
         source
     in
+    let overrides = Overrides.addMany overrides res.SourceResolver.overrides in
     let%bind manifest =
       begin match res.SourceResolver.manifest with
       | Some { kind = ManifestSpec.Filename.Esy; filename = _; data } ->
@@ -333,9 +409,30 @@ let ofInstallationLocation ~cfg (loc : Installation.location) =
       end
     in
     begin match manifest with
-    | None -> return None
-    | Some manifest -> return (Some (manifest, res.SourceResolver.paths))
+    | None ->
+      if Overrides.isEmpty overrides
+      then return (None, Path.Set.empty)
+      else
+        let manifest = empty ~name:None ~version:None () in
+        let manifest = Overrides.apply overrides applyOverride manifest in
+        return (Some manifest, res.SourceResolver.paths)
+    | Some manifest ->
+      let manifest = Overrides.apply overrides applyOverride manifest in
+      return (Some manifest, res.SourceResolver.paths)
     end
-  | Installation.Install { path; source; } ->
+
+  | Solution.Package.Install { source; overrides; files = _; opam = _; } ->
+    let source , _ = source in
     let manifest = Source.manifest source in
-    ofPath ?manifest path
+    let%bind manifest, paths = ofPath ?manifest loc in
+    let manifest =
+      match manifest with
+      | Some manifest -> Some (Overrides.apply overrides applyOverride manifest)
+      | None ->
+        if Overrides.isEmpty overrides
+        then None
+        else
+          let manifest = empty ~name:None ~version:None () in
+          Some (Overrides.apply overrides applyOverride manifest)
+    in
+    return (manifest, paths)

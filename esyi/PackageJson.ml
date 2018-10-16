@@ -116,6 +116,22 @@ let packageOfJson
       return resolutions
   in
 
+  let source =
+    match source with
+    | Source.LocalPathLink {path; manifest;} ->
+      Package.Link {
+        path;
+        manifest;
+        overrides = Package.Overrides.empty;
+      }
+    | _ ->
+      Package.Install {
+        source = source, [];
+        overrides = Package.Overrides.empty;
+        opam = None;
+      }
+  in
+
   return {
     Package.
     name;
@@ -126,8 +142,6 @@ let packageOfJson
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
     optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;
     resolutions;
-    source = source, [];
-    overrides = Package.Overrides.empty;
-    opam = None;
+    source;
     kind = if Option.isSome pkgJson.esy then Esy else Npm;
   }

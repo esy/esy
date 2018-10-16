@@ -75,13 +75,15 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         originalName = None;
-        source = source, [];
-        overrides = Package.Overrides.empty;
+        source = Package.Link {
+          path = Path.v ".";
+          manifest = None;
+          overrides = Package.Overrides.empty;
+        };
         dependencies;
         devDependencies = dependencies;
         optDependencies = StringSet.empty;
         resolutions = Package.Resolutions.empty;
-        opam = None;
         kind = Esy;
       };
       resolver;
@@ -114,13 +116,15 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       originalName = None;
-      source = source, [];
-      overrides = Package.Overrides.empty;
+      source = Package.Link {
+        path = Path.v ".";
+        manifest = None;
+        overrides = Package.Overrides.empty;
+      };
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       optDependencies = StringSet.empty;
       resolutions = Package.Resolutions.empty;
-      opam = None;
       kind = Package.Esy;
     } in
 
@@ -199,7 +203,7 @@ let make ~cfg (spec : SandboxSpec.t) =
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
-      let source = "path:" ^ fname in
+      let source = "link:" ^ fname in
       begin match Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg

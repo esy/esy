@@ -3,7 +3,7 @@ module String = Astring.String
 module Dist = struct
   type t = {
     source : Source.t;
-    sourceInStorage : SourceStorage.source;
+    sourceInStorage : SourceStorage.source option;
     pkg : Solution.Package.t;
   }
 
@@ -20,7 +20,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
     match sources with
     | source::rest ->
       begin match%bind SourceStorage.fetch ~cfg:sandbox.Sandbox.cfg source with
-      | Ok sourceInStorage -> return {Dist. pkg; source; sourceInStorage;}
+      | Ok sourceInStorage -> return {Dist. pkg; source; sourceInStorage = Some sourceInStorage;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
     | [] ->
@@ -38,16 +38,18 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
       error "installation error"
   in
 
-  let sources =
-    let main, mirrors = pkg.source in
-    main::mirrors
-  in
+  match pkg.source with
+  | Solution.Package.Link {path; manifest; overrides = _;} ->
+    return {
+      Dist. pkg;
+      source = Source.LocalPathLink {path;manifest;};
+      sourceInStorage = None;
+    }
+  | Solution.Package.Install {source = main, mirrors; _} ->
+    fetch' [] (main::mirrors)
 
-  fetch' [] sources
-
-let unpack ~sandbox ~path dist =
+let unpack ~sandbox ~path ~overrides ~files ~opam dist =
   let open RunAsync.Syntax in
-  let {Dist. source; pkg; sourceInStorage;} = dist in
 
   let finishInstall path =
 
@@ -55,7 +57,7 @@ let unpack ~sandbox ~path dist =
       let f file =
         Package.File.writeToDir ~destinationDir:path file
       in
-      List.map ~f pkg.files |> RunAsync.List.waitAll
+      List.map ~f files |> RunAsync.List.waitAll
     in
 
     return ()
@@ -74,18 +76,15 @@ let unpack ~sandbox ~path dist =
    *)
   let%bind () =
     EsyLinkFile.toDir
-      EsyLinkFile.{source; overrides = pkg.overrides; opam = pkg.opam}
+      EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
       path
   in
 
   let%bind () =
-    match source with
-    | Source.LocalPathLink _ ->
+    match dist.Dist.sourceInStorage with
+    | None ->
       return ()
-    | Source.NoSource ->
-      let%bind () = finishInstall path in
-      return ()
-    | _ ->
+    | Some sourceInStorage ->
       let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:path sourceInStorage in
       let%bind () = finishInstall path in
       return ()
@@ -101,8 +100,6 @@ let path ~cfg dist =
   in
   Path.(cfg.Config.cacheSourcesPath // v id)
 
-let installNodeModules ~sandbox ~path dist = unpack ~sandbox ~path dist
-
 type status =
   | Cached
   | Fresh
@@ -110,17 +107,17 @@ type status =
 let install ~sandbox dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
-  match dist.Dist.source with
-  | Source.LocalPathLink {path; _} ->
+  match dist.Dist.pkg.source with
+  | Solution.Package.Link {path; _} ->
     return (Fresh, Path.(sandbox.Sandbox.spec.path // path))
-  | _ ->
+  | Solution.Package.Install { overrides; files; opam; _ } ->
     let path = path ~cfg:sandbox.Sandbox.cfg dist in
     if%bind Fs.exists path
     then return (Cached, path)
     else (
       let tempPath = Path.(path |> addExt ".tmp") in
       let%bind () = Fs.rmPath tempPath in
-      let%bind () = unpack ~sandbox ~path:tempPath dist in
+      let%bind () = unpack ~sandbox ~overrides ~files ~path:tempPath ~opam dist in
       let%bind () = Fs.rename ~src:tempPath path in
       return (Fresh, path)
     )

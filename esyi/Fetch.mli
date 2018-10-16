@@ -4,12 +4,6 @@
 
  *)
 
-val fetchNodeModules :
-  sandbox:Sandbox.t
-  -> Solution.t
-  -> unit RunAsync.t
-(** Fetch & install solution for the currently configured sandbox. *)
-
 val fetch :
   sandbox:Sandbox.t
   -> Solution.t

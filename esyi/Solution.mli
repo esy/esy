@@ -21,13 +21,23 @@ module Package : sig
   type t = {
     name: string;
     version: Version.t;
-    source: Source.t * Source.t list;
-    overrides: Package.Overrides.t;
+    source: source;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
-    files : Package.File.t list;
-    opam : Opam.t option;
   }
+
+  and source =
+    | Link of {
+        path : Path.t;
+        manifest : ManifestSpec.t option;
+        overrides: Package.Overrides.t;
+      }
+    | Install of {
+        source : Source.t * Source.t list;
+        overrides: Package.Overrides.t;
+        files : Package.File.t list;
+        opam : Opam.t option;
+      }
 
   val id : t -> PackageId.t
 

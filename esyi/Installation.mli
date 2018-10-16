@@ -1,14 +1,6 @@
 type t
 
-type location =
-  | Link of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | Install of {
-      path : Path.t;
-      source : Source.t;
-    }
+type location = Path.t
 
 val pp_location : location Fmt.t
 val show_location : location -> string

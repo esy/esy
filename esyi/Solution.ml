@@ -35,13 +35,23 @@ module Package = struct
   type t = {
     name: string;
     version: Version.t;
-    source: SourceWithMirrors.t;
-    overrides: Package.Overrides.t [@default Package.Overrides.empty];
+    source: source;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
-    files : Package.File.t list;
-    opam : Opam.t option;
   } [@@deriving yojson]
+
+  and source =
+    | Link of {
+        path : Path.t;
+        manifest : ManifestSpec.t option;
+        overrides: Package.Overrides.t;
+      }
+    | Install of {
+        source : SourceWithMirrors.t;
+        overrides: Package.Overrides.t;
+        files : Package.File.t list;
+        opam : Opam.t option;
+      }
 
   let id r = PackageId.make r.name r.version
 

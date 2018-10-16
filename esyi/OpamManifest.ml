@@ -326,10 +326,36 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   | Error err -> return (Error err)
   | Ok (sourceFromOpam, dependencies, devDependencies, optDependencies) ->
 
+    let opam = Some {
+      Package.Opam.
+      name = manifest.name;
+      version = manifest.version;
+      files = (
+        match ignoreFiles, manifest.path with
+        | true, _
+        | false, None -> (fun () -> return [])
+        | false, Some path -> readOpamFilesForPackage path
+      );
+      opam = manifest.opam;
+      override = {manifest.override with opam = Override.Opam.empty};
+    } in
+
     let source =
       match source with
-      | None -> sourceFromOpam
-      | Some source -> source, []
+      | None ->
+        Package.Install {
+          source = sourceFromOpam;
+          overrides = Package.Overrides.empty;
+          opam;
+        }
+      | Some (Source.LocalPathLink {path; manifest;}) ->
+        Package.Link {path; manifest; overrides = Package.Overrides.empty;}
+      | Some source ->
+        Package.Install {
+          source = source, [];
+          overrides = Package.Overrides.empty;
+          opam;
+        }
     in
 
     return (Ok {
@@ -340,20 +366,6 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalName = None;
       kind = Package.Esy;
       source;
-      overrides = Package.Overrides.empty;
-      opam = Some {
-        Package.Opam.
-        name = manifest.name;
-        version = manifest.version;
-        files = (
-          match ignoreFiles, manifest.path with
-          | true, _
-          | false, None -> (fun () -> return [])
-          | false, Some path -> readOpamFilesForPackage path
-        );
-        opam = manifest.opam;
-        override = {manifest.override with opam = Override.Opam.empty};
-      };
       dependencies;
       devDependencies;
       optDependencies;

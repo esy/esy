@@ -1020,6 +1020,14 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
   let seen = ref PackageId.Set.empty in
   let root = Solution.root solution in
 
+  let () =
+    let f pkg _deps () =
+      Format.printf "%a@." Solution.Package.pp pkg;
+      ()
+    in
+    Solution.fold ~f ~init:() solution
+  in
+
   let rec draw pkg =
     let id = Solution.Package.id pkg in
     if PackageId.Set.mem id !seen then
@@ -1224,14 +1232,6 @@ let solve {CommonOptions. installSandbox; _} () =
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution installSandbox in
   return ()
-
-let fetchNodeModules {CommonOptions. installSandbox = sandbox; _} () =
-  let open EsyInstall in
-  let open RunAsync.Syntax in
-  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Solution.LockfileV1.ofFile ~sandbox lockfilePath with
-  | Some solution -> Fetch.fetchNodeModules ~sandbox solution
-  | None -> error "no lockfile found, run 'esy solve' first"
 
 let fetch {CommonOptions. installSandbox = sandbox; _} () =
   let open EsyInstall in
@@ -1855,15 +1855,6 @@ let makeCommands ~sandbox () =
       ~doc:"Solve dependencies and store the solution as a lockfile"
       Term.(
         const solve
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"fetch-node_modules"
-      ~doc:"Fetch dependencies using the solution in a lockfile and produce node_modules"
-      Term.(
-        const fetchNodeModules
         $ commonOpts
         $ Cli.setupLogTerm
       );

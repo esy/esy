@@ -236,27 +236,6 @@ let solutionPkgOfPkg
   =
   let open RunAsync.Syntax in
 
-  let%bind files =
-    match pkg.opam with
-    | Some opam -> opam.files ()
-    | None -> return []
-  in
-
-  let opam =
-    match pkg.opam with
-    | Some opam -> Some {
-        Solution.Package.Opam.
-        name = opam.name;
-        version = opam.version;
-        opam = opam.opam;
-        override =
-          if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
-          then None
-          else Some opam.override;
-      }
-    | None -> None
-  in
-
   let idsOfDependencies ~skipNotInstalled dependencies =
     let f req =
       match StringMap.find req.Req.name dependenciesMap with
@@ -310,16 +289,41 @@ let solutionPkgOfPkg
     PackageId.Set.fold f set StringMap.empty
   in
 
+  let%bind source =
+    match pkg.source with
+    | Package.Link {path; manifest;overrides;} ->
+      return (Solution.Package.Link {path; manifest; overrides;})
+    | Package.Install { source; overrides; opam } ->
+      let%bind files =
+        match opam with
+        | Some opam -> opam.files ()
+        | None -> return []
+      in
+
+      let opam =
+        match opam with
+        | Some opam -> Some {
+            Solution.Package.Opam.
+            name = opam.name;
+            version = opam.version;
+            opam = opam.opam;
+            override =
+              if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
+              then None
+              else Some opam.override;
+          }
+        | None -> None
+      in
+      return (Solution.Package.Install {opam; files; source; overrides})
+  in
+
   return ({
     Solution.Package.
     name = pkg.name;
     version = pkg.version;
-    overrides = pkg.overrides;
-    source = pkg.source;
+    source;
     dependencies;
     devDependencies;
-    files;
-    opam;
   }, allDependencies)
 
 let make ~cfg ~resolver ~resolutions () =
@@ -457,9 +461,11 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     originalName = root.originalName;
-    source = Source.NoSource, [];
-    overrides = Package.Overrides.empty;
-    opam = None;
+    source = Package.Link {
+      path = Path.v ".";
+      manifest = None;
+      overrides = Package.Overrides.empty;
+    };
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;

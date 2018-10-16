@@ -56,81 +56,6 @@ type t = {
   solution : Solution.t;
 }
 
-let applyOverride (manifest : BuildManifest.t) (override : Overrides.override) =
-
-  Logs.debug (fun m -> m "applyOverride: %a" BuildManifest.pp manifest);
-
-  let {
-    Overrides.
-    buildType;
-    build;
-    install;
-    exportedEnv;
-    exportedEnvOverride;
-    buildEnv;
-    buildEnvOverride;
-
-    dependencies = _;
-    devDependencies = _;
-    resolutions = _;
-  } = override in
-
-  let manifest =
-    match buildType with
-    | None -> manifest
-    | Some buildType -> {manifest with buildType = buildType;}
-  in
-
-  let manifest =
-    match build with
-    | None -> manifest
-    | Some commands -> {
-        manifest with
-        buildCommands = BuildManifest.EsyCommands commands;
-      }
-  in
-
-  let manifest =
-    match install with
-    | None -> manifest
-    | Some commands -> {
-        manifest with
-        installCommands = BuildManifest.EsyCommands commands;
-      }
-  in
-
-  let manifest =
-    match exportedEnv with
-    | None -> manifest
-    | Some exportedEnv -> {manifest with exportedEnv;}
-  in
-
-  let manifest =
-    match exportedEnvOverride with
-    | None -> manifest
-    | Some override -> {
-        manifest with
-        exportedEnv = StringMap.Override.apply manifest.exportedEnv override;
-      }
-  in
-
-  let manifest =
-    match buildEnv with
-    | None -> manifest
-    | Some buildEnv -> {manifest with buildEnv;}
-  in
-
-  let manifest =
-    match buildEnvOverride with
-    | None -> manifest
-    | Some override -> {
-        manifest with
-        buildEnv = StringMap.Override.apply manifest.buildEnv override
-      }
-  in
-
-  manifest
-
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
@@ -226,34 +151,21 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
 
     LwtTaskQueue.submit queue begin fun () ->
       RunAsync.contextf (
-        let%bind manifest =
+        let%bind manifest, paths =
           BuildManifest.ofInstallationLocation
             ~cfg
+            pkg
             loc
         in
-        let%bind manifest =
-          match manifest with
-          | Some (manifest, paths) ->
-            if Overrides.isEmpty pkg.overrides
-            then return (Some (manifest, paths))
-            else
-              let manifest = Overrides.apply pkg.overrides applyOverride manifest in
-              return (Some (manifest, paths))
-          | None ->
-            begin match isRoot, Overrides.isEmpty pkg.overrides with
-            | true, false
-            | false, false ->
-              let manifest = BuildManifest.empty ~name:None ~version:None () in
-              let manifest = Overrides.apply pkg.overrides applyOverride manifest in
-              return (Some (manifest, Path.Set.empty))
-            | true, true ->
-              let manifest = BuildManifest.empty ~name:None ~version:None () in
-              return (Some (manifest, Path.Set.empty))
-            | false, true ->
-              return None
-            end
-        in
-        return (id, manifest)
+        match manifest with
+        | Some manifest -> return (id, Some (manifest, paths))
+        | None ->
+          if isRoot
+          then
+            let manifest = BuildManifest.empty ~name:None ~version:None () in
+            return (id, Some (manifest, Path.Set.empty))
+          else
+            return (id, None)
       ) "reading manifest %a" PackageId.pp id
     end
   in
@@ -365,12 +277,13 @@ let make'
   and aux' pkgId pkg build =
     let location = Installation.findExn pkgId installation in
     let source, sourcePath, sourceType =
-      match location with
-      | Installation.Install info ->
+      match pkg.source with
+      | Solution.Package.Install info ->
         (* TODO: make sure we check if all dependencies are immutable too *)
-        Some info.source, info.path, SourceType.Immutable
-      | Installation.Link info ->
-        None, info.path, SourceType.Transient
+        let source, _ = info.source in
+        Some source, location, SourceType.Immutable
+      | Solution.Package.Link _ ->
+        None, location, SourceType.Transient
     in
     let%bind dependencies =
       let f (direct, pkg) =
@@ -551,7 +464,7 @@ let make
 
 let findTaskById plan id =
   match PackageId.Map.find_opt id plan.tasks with
-  | None -> Run.errorf "no such package %a" PackageId.pp id
+  | None -> Run.errorf "no task found for package %a" PackageId.pp id
   | Some task -> Run.return task
 
 let findTaskByName plan name =
