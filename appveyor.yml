@@ -4,7 +4,7 @@ platform:
 cache:
     - C:\Users\appveyor\.esy\3_\i
     - C:\Users\appveyor\.esy\source-tarballs
-    - C:\Userse\appveyor\npm
+    - C:\Users\appveyor\npm
 
 # Needed for running unit tests - blocked by bryphe/esy-bash#16
 environment:
