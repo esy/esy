@@ -51,20 +51,6 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
 let unpack ~sandbox ~path ~overrides ~files ~opam dist =
   let open RunAsync.Syntax in
 
-  let finishInstall path =
-
-    let%bind () =
-      let f file =
-        Package.File.writeToDir ~destinationDir:path file
-      in
-      List.map ~f files |> RunAsync.List.waitAll
-    in
-
-    return ()
-  in
-
-  let%bind () = Fs.createDir path in
-
   (*
    * @andreypopp: We place _esylink before unpacking tarball, but that's just
    * because we get failures on Windows due to permission errors (reproducible
@@ -74,31 +60,44 @@ let unpack ~sandbox ~path ~overrides ~files ~opam dist =
    * contents overriding _esylink accidentially but probability of such event
    * is low enough so I proceeded with the current order.
    *)
-  let%bind () =
-    EsyLinkFile.toDir
-      EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
-      path
-  in
 
   let%bind () =
     match dist.Dist.sourceInStorage with
     | None ->
       return ()
     | Some sourceInStorage ->
-      let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:path sourceInStorage in
-      let%bind () = finishInstall path in
+      let tempPath = Path.(path |> addExt ".tmp") in
+      let%bind () = Fs.rmPath tempPath in
+      let%bind () = Fs.createDir tempPath in
+
+      let%bind () =
+        EsyLinkFile.toDir
+          EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
+          tempPath
+      in
+      let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:tempPath sourceInStorage in
+      let%bind () =
+        let f file =
+          Package.File.writeToDir ~destinationDir:tempPath file
+        in
+        List.map ~f files |> RunAsync.List.waitAll
+      in
+
+      let%bind () = Fs.rename ~src:tempPath path in
       return ()
   in
 
   return ()
 
 let path ~cfg dist =
+  let name = Path.safeSeg dist.Dist.pkg.name in
   let id =
     Source.show dist.Dist.source
     |> Digest.string
     |> Digest.to_hex
+    |> Path.safeSeg
   in
-  Path.(cfg.Config.cacheSourcesPath // v id)
+  Path.(cfg.Config.cacheSourcesPath / (name ^ "-" ^ id))
 
 type status =
   | Cached
@@ -107,17 +106,16 @@ type status =
 let install ~sandbox dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
-  match dist.Dist.pkg.source with
-  | Solution.Package.Link {path; _} ->
-    return (Fresh, Path.(sandbox.Sandbox.spec.path // path))
-  | Solution.Package.Install { overrides; files; opam; _ } ->
-    let path = path ~cfg:sandbox.Sandbox.cfg dist in
-    if%bind Fs.exists path
-    then return (Cached, path)
-    else (
-      let tempPath = Path.(path |> addExt ".tmp") in
-      let%bind () = Fs.rmPath tempPath in
-      let%bind () = unpack ~sandbox ~overrides ~files ~path:tempPath ~opam dist in
-      let%bind () = Fs.rename ~src:tempPath path in
-      return (Fresh, path)
-    )
+  RunAsync.contextf (
+    match dist.Dist.pkg.source with
+    | Solution.Package.Link {path; _} ->
+      return (Fresh, Path.(sandbox.Sandbox.spec.path // path))
+    | Solution.Package.Install { overrides; files; opam; _ } ->
+      let path = path ~cfg:sandbox.Sandbox.cfg dist in
+      if%bind Fs.exists path
+      then return (Cached, path)
+      else (
+        let%bind () = unpack ~sandbox ~overrides ~files ~path ~opam dist in
+        return (Fresh, path)
+      )
+  ) "installing %a" Dist.pp dist
