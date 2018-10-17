@@ -89,12 +89,21 @@ let ofGithub
     | (kind, filename)::rest ->
       begin match%lwt fetchFile filename with
       | Error _ -> tryFilename rest
-      | Ok data -> return (Manifest {
-          filename;
-          data;
-          kind;
-          suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename);
-        })
+      | Ok data ->
+        match kind with
+        | ManifestSpec.Filename.Esy ->
+          begin match Json.parseStringWith PackageOverride.of_yojson data with
+          | Ok override -> return (Override override)
+          | Error err ->
+            let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
+            Logs_lwt.debug (fun m ->
+              m "not an override %s/%s:%s: %a" user repo filename Run.ppError err
+              );%lwt
+            return (Manifest {data; filename; kind; suggestedPackageName;})
+          end
+        | ManifestSpec.Filename.Opam ->
+          let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
+          return (Manifest {data; filename; kind; suggestedPackageName;})
       end
   in
 
