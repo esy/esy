@@ -519,16 +519,16 @@ let allTasks plan =
 
 let shell ~cfg task =
   let plan = Task.plan task in
-  EsyBuildPackageApi.buildShell ~buildCfg:cfg.Config.buildCfg plan
+  EsyBuildPackageApi.buildShell ~cfg plan
 
 let exec ~cfg task cmd =
   let plan = Task.plan task in
-  EsyBuildPackageApi.buildExec ~buildCfg:cfg.Config.buildCfg plan cmd
+  EsyBuildPackageApi.buildExec ~cfg plan cmd
 
 let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
-  EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~buildCfg:cfg.Config.buildCfg plan
+  EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~cfg plan
 
 let build ?force ?quiet ?buildOnly ?logPath ~cfg plan id =
   match PackageId.Map.find_opt id plan.tasks with
@@ -657,10 +657,10 @@ let execEnv _sandbox plan task =
   |> Scope.add ~direct:true ~dep:task.Task.exportedScope
   |> Scope.env ~includeBuildEnv:false
 
-let rewritePrefix ~origPrefix ~destPrefix rootPath =
+let rewritePrefix ~cfg ~origPrefix ~destPrefix rootPath =
   let open RunAsync.Syntax in
   let rewritePrefixInFile path =
-    let cmd = Cmd.(v "fastreplacestring" % p path % p origPrefix % p destPrefix) in
+    let cmd = Cmd.(cfg.Config.fastreplacestringCmd % p path % p origPrefix % p destPrefix) in
     ChildProcess.run cmd
   in
   let rewriteTargetInSymlink path =
@@ -699,7 +699,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path
   in
-  let%bind () = rewritePrefix ~origPrefix ~destPrefix stagePath in
+  let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
   let%bind () = Fs.createDir (Path.parent outputPath) in
   let%bind () =
     Tarball.create ~filename:outputPath ~outpath:buildId (Path.parent stagePath)
@@ -729,7 +729,7 @@ let importBuild ~cfg buildPath =
         let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
         return (Path.v v)
       in
-      let%bind () = rewritePrefix ~origPrefix ~destPrefix:cfg.buildCfg.storePath buildPath in
+      let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.buildCfg.storePath buildPath in
       let%bind () = Fs.rename ~src:buildPath outputPath in
       let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
       return ()

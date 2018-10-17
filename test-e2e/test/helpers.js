@@ -21,12 +21,6 @@ const outdent = require('outdent');
 const isWindows = process.platform === 'win32';
 
 const ESY = require.resolve('../../_build/default/esy/bin/esyCommand.exe');
-const ESYBUILDPACKAGE = require.resolve(
-  '../../_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
-);
-const FASTREPLACESTRING = require.resolve(
-  '../../_build/default/esy-build-package/bin/fastreplacestring.exe',
-);
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -106,8 +100,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESY, path.join(binPath, exe('esy')));
-  await fs.symlink(ESYBUILDPACKAGE, path.join(binPath, exe('esy-build-package')));
-  await fs.symlink(FASTREPLACESTRING, path.join(binPath, exe('fastreplacestring')));
   await fs.copyFile(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);

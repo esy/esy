@@ -4,6 +4,7 @@ type t =
     buildPath: Fpath.t,
     storePath: Fpath.t,
     localStorePath: Fpath.t,
+    fastreplacestringCmd: Cmd.t,
   };
 
 let make:
@@ -12,6 +13,7 @@ let make:
     ~projectPath: Fpath.t,
     ~buildPath: Fpath.t,
     ~localStorePath: Fpath.t,
+    ~fastreplacestringCmd: Cmd.t,
     unit
   ) =>
   Run.t(t, _);

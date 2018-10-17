@@ -6,6 +6,8 @@ type t = {
   spec : EsyInstall.SandboxSpec.t;
   installCfg : EsyInstall.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
+  fastreplacestringCmd : Cmd.t;
+  esyBuildPackageCmd : Cmd.t;
 }
 
 let defaultPrefixPath = Path.v "~/.esy"
@@ -14,6 +16,8 @@ let make
   ~installCfg
   ~esyVersion
   ~prefixPath
+  ~fastreplacestringCmd
+  ~esyBuildPackageCmd
   ~spec
   () =
   let value =
@@ -35,6 +39,7 @@ let make
         ~projectPath:spec.SandboxSpec.path
         ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
         ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
+        ~fastreplacestringCmd:(Cmd.toBosCmd fastreplacestringCmd)
         ()
     in
 
@@ -43,6 +48,8 @@ let make
       spec;
       installCfg;
       buildCfg;
+      fastreplacestringCmd;
+      esyBuildPackageCmd;
     }
   in
   Run.ofBosError value

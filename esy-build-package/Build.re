@@ -373,7 +373,7 @@ let withLock = (lockPath: Path.t, f) => {
 let commitBuildToStore = (config: Config.t, build: build) => {
   let rewritePrefixInFile = (~origPrefix, ~destPrefix, path) => {
     let cmd =
-      Cmd.(v("fastreplacestring") % p(path) % origPrefix % destPrefix);
+      Cmd.(config.fastreplacestringCmd % p(path) % origPrefix % destPrefix);
     Bos.OS.Cmd.run(cmd);
   };
   let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {

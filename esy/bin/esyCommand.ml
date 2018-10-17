@@ -42,13 +42,19 @@ module EsyRuntime = struct
       | Error (`Msg err) -> RunAsync.error err
     in return cmd
 
-  let _resolveCommand req =
+  let resolveCmd req =
     let open RunAsync.Syntax in
     let%bind path = resolve req in
-    return (path |> Cmd.p)
+    return (Cmd.v (Path.show path))
 
   let esyInstallRelease =
-    resolve "../../../../bin/esyInstallRelease.js"
+    RunAsync.runExn (resolve "../../../../bin/esyInstallRelease.js")
+
+  let esyBuildPackageCmd =
+    RunAsync.runExn (resolveCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe")
+
+  let fastreplacestringCmd =
+    RunAsync.runExn (resolveCmd "../../esy-build-package/bin/fastreplacestring.exe")
 
   module EsyPackageJson = struct
     type t = {
@@ -251,6 +257,8 @@ module CommonOptions = struct
               ~installCfg
               ~spec
               ~esyVersion:EsyRuntime.version
+              ~fastreplacestringCmd:EsyRuntime.fastreplacestringCmd
+              ~esyBuildPackageCmd:EsyRuntime.esyBuildPackageCmd
               ~prefixPath
               ()
           )
@@ -1476,8 +1484,6 @@ let release copts () =
 
   let%bind () = build copts None () in
 
-  let%bind esyInstallRelease = EsyRuntime.esyInstallRelease in
-
   let%bind ocamlopt =
     let%bind p = SandboxInfo.ocaml copts info in
     return Path.(p / "bin" / "ocamlopt")
@@ -1490,7 +1496,7 @@ let release copts () =
     ~solution:solution
     ~installation:installation
     ~ocamlopt
-    ~esyInstallRelease
+    ~esyInstallRelease:EsyRuntime.esyInstallRelease
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
     ~cfg:copts.CommonOptions.cfg

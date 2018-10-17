@@ -5,6 +5,7 @@ type t = {
   buildPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
+  fastreplacestringCmd: Cmd.t,
 };
 
 type config = t;
@@ -21,7 +22,15 @@ let initStore = (path: Fpath.t) =>
     }
   );
 
-let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) =>
+let make =
+    (
+      ~storePath=?,
+      ~projectPath,
+      ~buildPath,
+      ~localStorePath,
+      ~fastreplacestringCmd,
+      (),
+    ) =>
   Run.(
     {
       let%bind storePath =
@@ -46,7 +55,13 @@ let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) =>
         };
       };
       let%bind () = initStore(localStorePath);
-      return({projectPath, storePath, localStorePath, buildPath});
+      return({
+        projectPath,
+        storePath,
+        localStorePath,
+        buildPath,
+        fastreplacestringCmd,
+      });
     }
   );
 

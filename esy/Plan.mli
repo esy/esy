@@ -91,7 +91,8 @@ val importBuild :
   -> unit RunAsync.t
 
 val rewritePrefix :
-  origPrefix:Fpath.t
+  cfg:Config.t
+  -> origPrefix:Fpath.t
   -> destPrefix:Fpath.t
   -> Fpath.t
   -> unit RunAsync.t
