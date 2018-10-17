@@ -1,5 +1,6 @@
 /* @flow */
 
+const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
@@ -116,13 +117,102 @@ describe(`Basic tests for npm packages`, () => {
     const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
     expect(await helpers.exists(binPath)).toBeTruthy();
 
-    const proc = await helpers.execFile(binPath, [], {});
+    const proc = await p.esy('dep');
     expect(proc.stdout.toString().trim()).toBe('HELLO');
 
     // only root deps has their bin installed
     expect(
       await helpers.exists(path.join(p.projectPath, '_esy', 'default', 'bin', 'depDep')),
     ).toBeFalsy();
+  });
+
+  test(`node wrapper is installed`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'dep.js',
+        outdent`
+          console.log('dep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('which node');
+      expect(stdout.toString().trim()).toBe(
+        path.join(p.projectPath, '_esy', 'default', 'bin', 'node'),
+      );
+    }
+
+    {
+      const {stdout} = await p.esy('node -r "dep/dep" -p "process.exit(0)"');
+      expect(stdout.toString().trim()).toBe('dep: HELLO');
+    }
+  });
+
+  test(`bins can depend on dependencies`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'depDep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'printHello.js',
+        outdent`
+          console.log('depDep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {depDep: '*'},
+        bin: 'dep.js',
+      }),
+      helpers.file(
+        'dep.js',
+        outdent`
+          #!/usr/bin/env node
+          require('depDep/printHello');
+        `,
+      ),
+    ]);
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('dep');
+      expect(stdout.toString().trim()).toBe('depDep: HELLO');
+    }
   });
 
   test(`npm bins should be available in command-env`, async () => {

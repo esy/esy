@@ -2,6 +2,9 @@ module Overrides = Package.Overrides
 module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
+let nodeCmd =
+  Cmd.resolveCmd System.Environment.path "node"
+
 module PackageJson = struct
 
   module Scripts = struct
@@ -660,6 +663,21 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   in
   RunAsync.List.foldLeft ~f ~init:true layout
 
+let installBinWrapper ~binPath (name, origPath) =
+  let open RunAsync.Syntax in
+  Logs_lwt.debug (fun m ->
+    m "Fetch:installBinWrapper: %a / %s -> %a"
+    Path.pp origPath name Path.pp binPath
+  );%lwt
+  if%bind Fs.exists origPath
+  then (
+    let%bind () = Fs.chmod 0o777 origPath in
+    Fs.symlink ~src:origPath Path.(binPath / name)
+  ) else (
+    Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
+    return ()
+  )
+
 let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
@@ -736,6 +754,23 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       return binPath
     in
 
+    (* place <binPath>/node executable with pnp enabled *)
+    let%bind () =
+      match nodeCmd with
+      | Ok nodeCmd ->
+        let pnpJs = SandboxSpec.pnpJsPath sandbox.spec in
+        let data =
+          Printf.sprintf
+            {|#!/bin/sh
+            exec %s -r "%s" "$@"
+             |} nodeCmd (Path.show pnpJs)
+        in
+        Fs.writeFile ~perm:0o755 ~data Path.(binPath / "node")
+      | Error _ ->
+        (* no node available in $PATH, just skip this then *)
+        return ()
+    in
+
     let env =
       let override =
         let path = (Path.show binPath)::System.Environment.path in
@@ -746,21 +781,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         )
       in
       ChildProcess.CurrentEnvOverride override
-    in
-
-    let installBinWrapper (name, origPath) =
-      Logs_lwt.debug (fun m ->
-        m "Fetch:installBinWrapper: %a / %s -> %a"
-        Path.pp origPath name Path.pp binPath
-      );%lwt
-      if%bind Fs.exists origPath
-      then (
-        let%bind () = Fs.chmod 0o777 origPath in
-        Fs.symlink ~src:origPath Path.(binPath / name)
-      ) else (
-        Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
-        return ()
-      )
     in
 
     let process install pkgJson =
@@ -781,9 +801,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       let%bind () =
         Logs_lwt.debug (fun m -> m "Fetch:installBinWrappers:%a" Package.pp install.Install.pkg);%lwt
         PackageJson.packageCommands install.Install.sourcePath pkgJson
-        |> List.map ~f:installBinWrapper
+        |> List.map ~f:(installBinWrapper ~binPath)
         |> RunAsync.List.waitAll
-
       in
 
       return ()
@@ -857,7 +876,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     return installation
   in
 
-  (* Produce _esy/<sandbox>/pnp.json *)
+  (* Produce _esy/<sandbox>/pnp.js *)
   let%bind () =
     let path = SandboxSpec.pnpJsPath sandbox.spec in
     let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
