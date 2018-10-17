@@ -77,7 +77,6 @@ export type TestSandbox = {
       name: string,
       version: string,
       opam: string,
-      url: ?string,
     },
     fixture: Fixture,
   ) => Promise<void>,
