@@ -22,7 +22,14 @@
 (rule
  (targets fastreplacestring.exe)
  (deps fastreplacestring.cpp)
- (action  (run %{cxx} "-lstdc++" "-Ofast" "-o" %{targets} "fastreplacestring.cpp"))
+ (action  (run
+            %{cxx}
+            "-fno-exceptions"
+            "-fno-rtti"
+            "-lstdc++"
+            "-Ofast"
+            "-o" %{targets}
+            "fastreplacestring.cpp"))
  )
 
 (install
