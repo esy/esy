@@ -36,10 +36,7 @@ let createConfig = (copts: commonOpts) => {
     let basedir = Fpath.parent(program);
     switch%bind (
       coerceFromMsgOnly(
-        EsyLib.NodeResolution.resolve(
-          "../../../../bin/fastreplacestring",
-          basedir,
-        ),
+        EsyLib.NodeResolution.resolve("./fastreplacestring.exe", basedir),
       )
     ) {
     | Some(path) => Ok(Cmd.v(Fpath.to_string(path)))

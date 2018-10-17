@@ -70,7 +70,6 @@ else
 	$(error "esy command should be at least of version 0.2.0, run 'npm install -g esy'")
 endif
 	@make build-dev
-	@ln -s $$(esy which fastreplacestring) $(PWD)/bin/fastreplacestring
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
@@ -213,7 +212,7 @@ $(RELEASE_ROOT)/postinstall.js:
 PLATFORM_RELEASE_NAME = _platformrelease/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz
 PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
-	bin/fastreplacestring \
+	_build/default/esy-build-package/bin/fastreplacestring.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esy/bin/esyCommand.exe \
 
@@ -234,9 +233,9 @@ $(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCom
 	@mkdir -p $(@D)
 	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
-$(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
+$(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/fastreplacestring.exe:
 	@mkdir -p $(@D)
-	@cp $(shell esy which fastreplacestring) $(@)
+	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
 
 #
 # npm publish workflow
