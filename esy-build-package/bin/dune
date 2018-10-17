@@ -21,10 +21,9 @@
 
 (rule
  (targets fastreplacestring.exe)
- (action  (run cp
-           "%{project_root}/../../node_modules/fastreplacestring/.bin/fastreplacestring.exe"
-           %{targets}
-           )))
+ (deps fastreplacestring.cpp)
+ (action  (run "g++" "-Ofast" "-o" %{targets} "fastreplacestring.cpp"))
+ )
 
 (install
   (package esy-build-package)
