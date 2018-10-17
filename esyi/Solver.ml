@@ -236,24 +236,10 @@ let solutionPkgOfPkg
   =
   let open RunAsync.Syntax in
 
-  let idsOfDependencies ~skipNotInstalled dependencies =
-    let f req =
-      match StringMap.find req.Req.name dependenciesMap with
-      | None ->
-        if skipNotInstalled
-        then None
-        else
-          let msg =
-            Format.asprintf
-              "invariant violation: dependency %s of %a was not installed"
-              req.Req.name Package.pp pkg
-          in
-          failwith msg
-      | Some id -> Some id
-    in
+  let idsOfDependencies dependencies =
     dependencies
     |> Dependencies.toApproximateRequests
-    |> List.map ~f
+    |> List.map ~f:(fun req -> StringMap.find req.Req.name dependenciesMap)
     |> List.filterNone
     |> PackageId.Set.of_list
   in
@@ -267,19 +253,11 @@ let solutionPkgOfPkg
       |> List.filterNone
       |> PackageId.Set.of_list
     in
-    let dependencies =
-      idsOfDependencies
-        ~skipNotInstalled:false
-        pkg.dependencies
-    in
+    let dependencies = idsOfDependencies pkg.dependencies in
     PackageId.Set.union dependencies optDependencies
   in
   let devDependencies =
-    let devDependencies =
-      idsOfDependencies
-        ~skipNotInstalled:true
-        pkg.devDependencies
-    in
+    let devDependencies = idsOfDependencies pkg.devDependencies in
     PackageId.Set.diff devDependencies dependencies
   in
 
