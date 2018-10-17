@@ -743,6 +743,43 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     return dists
   in
 
+  (* Produce _esy/<sandbox>/installation.json *)
+  let%bind installation =
+    let installation =
+      let f id (dist, install, _pkgJson) installation =
+        let loc =
+          let source = Dist.source dist in
+          match source with
+          | Source.LocalPathLink {path; manifest = _} -> Path.(sandbox.spec.path // path)
+          | _ -> install.Install.sourcePath;
+        in
+        Installation.add id loc installation
+      in
+      let init =
+        Installation.empty
+        |> Installation.add
+            (Package.id root)
+            sandbox.spec.path;
+      in
+      PackageId.Map.fold f dists init
+    in
+
+    let%bind () =
+      Fs.writeJsonFile
+        ~json:(Installation.to_yojson installation)
+        (SandboxSpec.installationPath sandbox.spec)
+    in
+
+    return installation
+  in
+
+  (* Produce _esy/<sandbox>/pnp.js *)
+  let%bind () =
+    let path = SandboxSpec.pnpJsPath sandbox.spec in
+    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    Fs.writeFile ~data path
+  in
+
   (* Run lifecycle scripts *)
   let%bind () =
 
@@ -832,7 +869,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
         | false, Some (
             _dist,
-            ({status = FetchStorage.Fresh; _ } as install),
+            ({Install. status = FetchStorage.Fresh; _ } as install),
             Some ({PackageJson. esy = None; _} as pkgJson)
           ) ->
           process install pkgJson
@@ -844,43 +881,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     in
 
     visit root
-  in
-
-  (* Produce _esy/<sandbox>/installation.json *)
-  let%bind installation =
-    let installation =
-      let f id (dist, install, _pkgJson) installation =
-        let loc =
-          let source = Dist.source dist in
-          match source with
-          | Source.LocalPathLink {path; manifest = _} -> Path.(sandbox.spec.path // path)
-          | _ -> install.Install.sourcePath;
-        in
-        Installation.add id loc installation
-      in
-      let init =
-        Installation.empty
-        |> Installation.add
-            (Package.id root)
-            sandbox.spec.path;
-      in
-      PackageId.Map.fold f dists init
-    in
-
-    let%bind () =
-      Fs.writeJsonFile
-        ~json:(Installation.to_yojson installation)
-        (SandboxSpec.installationPath sandbox.spec)
-    in
-
-    return installation
-  in
-
-  (* Produce _esy/<sandbox>/pnp.js *)
-  let%bind () =
-    let path = SandboxSpec.pnpJsPath sandbox.spec in
-    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
-    Fs.writeFile ~data path
   in
 
   (* Produce _esy/<sandbox>/bin *)

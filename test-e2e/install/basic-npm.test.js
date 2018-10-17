@@ -287,6 +287,45 @@ describe(`Basic tests for npm packages`, () => {
     expect(proc.stdout.toString().trim()).toBe('depDep.exe: HELLO');
   });
 
+  test(`lifecycle scripts have node in $PATH and it is pnp aware`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'depDep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'hello.js',
+        outdent`
+          console.log('depDep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {depDep: '*'},
+        scripts: {
+          postinstall: 'node -r depDep/hello.js -p "process.exit(0)"',
+        },
+      }),
+    ]);
+
+    await p.esy('install');
+  });
+
   test(`it should correctly install bin wrappers into node_modules/.bin (multiple bins)`, async () => {
     const fixture = [
       helpers.packageJson({
