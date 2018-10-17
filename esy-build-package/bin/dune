@@ -26,10 +26,11 @@
             %{cxx}
             "-fno-exceptions"
             "-fno-rtti"
-            "-lstdc++"
             "-Ofast"
             "-o" %{targets}
-            "fastreplacestring.cpp"))
+            "fastreplacestring.cpp"
+            "-lstdc++"
+            ))
  )
 
 (install

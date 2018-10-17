@@ -1,10 +1,10 @@
 #include <cstdio>
-#include <iostream>
+#include <cstring>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <string.h>
-#include <string>
 #include <vector>
+#include <iostream>
+
 using namespace std;
 
 #define REHASH(a, b, h) ((((h) - (a)*d) << 1) + (b))
