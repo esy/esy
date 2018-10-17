@@ -56,6 +56,17 @@ type t = {
   solution : Solution.t;
 }
 
+let toOCamlVersion version =
+  let version = Version.showSimple version in
+  match String.split_on_char '.' version with
+  | major::minor::patch::[] ->
+    let patch =
+      let v = try int_of_string patch with _ -> 0 in
+      if v < 1000 then v else v / 1000
+    in
+    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
+  | _ -> version
+
 let renderEsyCommands ~env scope commands =
   let open Run.Syntax in
   let envScope name =
@@ -266,11 +277,11 @@ let make'
 
   let rec aux pkg =
     let id = Package.id pkg in
-    Logs.debug (fun m -> m "processing %a" PackageId.pp id);
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
     | None ->
+      Logs.debug (fun m -> m "plan %a" PackageId.pp id);
       begin match PackageId.Map.find_opt id manifests with
       | Some manifest ->
         let%bind build =
@@ -297,6 +308,15 @@ let make'
       in
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
+
+    Logs.debug (fun m ->
+      let ppTask fmt task = PackageId.pp fmt task.Task.pkgId in
+      let ppDep = Fmt.(pair ~sep:comma bool (option ppTask)) in
+      let ppDeps = Fmt.(brackets (list ~sep:(unit "@;") (hbox (brackets ppDep)))) in
+      m "plan %a dependencies@[<v 2>@;%a@]"
+        PackageId.pp pkgId
+        ppDeps dependencies
+    );
 
     let source, sourcePath, sourceType =
       match pkg.source with
@@ -396,7 +416,18 @@ let make'
         "evaluating environment"
     in
 
-    let ocamlVersion = None in
+    let ocamlVersion =
+      let open Option.Syntax in
+      let%bind _, maybeOcaml =
+        let f = function
+          | _, Some {Task.name = "ocaml";_ } -> true
+          | _, _ -> false
+        in
+        List.find_opt ~f dependencies
+      in
+      let%bind ocaml = maybeOcaml in
+      return (toOCamlVersion ocaml.Task.version)
+    in
 
     let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
 
