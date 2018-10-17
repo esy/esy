@@ -225,17 +225,9 @@ $(PLATFORM_RELEASE_NAME): $(PLATFORM_RELEASE_FILES)
 	@tar czf $(@) -C $(PLATFORM_RELEASE_ROOT) .
 	@rm -rf $(PLATFORM_RELEASE_ROOT)
 
-$(PLATFORM_RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
+$(PLATFORM_RELEASE_ROOT)/%.exe: %.exe
 	@mkdir -p $(@D)
-	@cp _build/default/esy/bin/esyCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/fastreplacestring.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
+	@cp $(@:$(PLATFORM_RELEASE_ROOT)/%=%) $(@)
 
 #
 # npm publish workflow
