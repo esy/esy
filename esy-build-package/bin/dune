@@ -23,7 +23,7 @@
  (targets fastreplacestring.exe)
  (deps fastreplacestring.cpp config/dune.fastreplacestring.command)
  (action  (run
-            "%{read-lines:config/dune.fastreplacestring.command}"
+            %{read-lines:config/dune.fastreplacestring.command}
             "-o" %{targets}
             "fastreplacestring.cpp"
             ))
