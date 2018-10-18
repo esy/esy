@@ -21,15 +21,11 @@
 
 (rule
  (targets fastreplacestring.exe)
- (deps fastreplacestring.cpp)
+ (deps fastreplacestring.cpp config/dune.fastreplacestring.command)
  (action  (run
-            %{cxx}
-            "-fno-exceptions"
-            "-fno-rtti"
-            "-Ofast"
+            "%{read-lines:config/dune.fastreplacestring.command}"
             "-o" %{targets}
             "fastreplacestring.cpp"
-            "-lstdc++"
             ))
  )
 
