@@ -654,14 +654,21 @@ let runLifecycle ?env ~install ~(pkgJson : PackageJson.t) () =
 
 let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
-  let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-  let layout = Layout.ofSolution ~nodeModulesPath sandbox.spec.path solution in
-  let f installed {Install. path;_} =
-    if not installed
-    then return installed
-    else Fs.exists path
-  in
-  RunAsync.List.foldLeft ~f ~init:true layout
+  let installationPath = SandboxSpec.installationPath sandbox.spec in
+  match%lwt Installation.ofPath installationPath with
+  | Error _
+  | Ok None -> return false
+  | Ok Some installation ->
+    let f pkg _deps isInstalled =
+      if%bind isInstalled
+      then
+        match Installation.find (Solution.Package.id pkg) installation with
+        | Some path -> Fs.exists path
+        | None -> return false
+      else
+        return false
+    in
+    Solution.fold ~f ~init:(return true) solution
 
 let installBinWrapper ~binPath (name, origPath) =
   let open RunAsync.Syntax in
