@@ -1,6 +1,7 @@
 /* @flow */
 
 const path = require('path');
+const fs = require('../test/fs.js');
 const helpers = require('../test/helpers');
 
 const {packageJson, file, dir} = helpers;
@@ -193,6 +194,93 @@ describe(`installing linked packages`, () => {
             linkedDep: {
               name: 'linkedDep',
               version: 'path:linkedDep',
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it.only('should re-install if linked package dependencies were changed', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {dep: '*'},
+        resolutions: {dep: 'link:dep'},
+        esy: {},
+      }),
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depdep: '1.0.0'},
+          esy: {},
+        }),
+      ),
+    );
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '2.0.0',
+      esy: {},
+    });
+
+    await p.esy('install');
+
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: '1.0.0',
+            },
+          },
+        },
+      },
+    });
+
+    // now change root package.json
+
+    await fs.writeFile(
+      path.join(p.projectPath, 'dep', 'package.json'),
+      JSON.stringify(
+        {
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depdep: '2.0.0'},
+          esy: {},
+        },
+        null,
+        2,
+      ),
+    );
+
+    // make sure if we run `esy install` it will re-install packages
+
+    await p.esy('install');
+
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: '2.0.0',
             },
           },
         },
