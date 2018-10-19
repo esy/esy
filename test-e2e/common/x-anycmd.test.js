@@ -14,6 +14,7 @@ describe('Common - x anycmd', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
+    await p.esy('install');
     await p.esy('build');
     return p;
   }

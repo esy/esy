@@ -36,6 +36,15 @@ module Decode = struct
     | `String v -> Ok v
     | _ -> Error "expected string"
 
+  let nullable decode (json : t) =
+    match json with
+    | `Null -> Ok None
+    | json ->
+      begin match decode json with
+      | Ok v -> Ok (Some v)
+      | Error err -> Error err
+      end
+
   let assoc (json : t) =
     match json with
     | `Assoc v -> Ok v
@@ -116,4 +125,17 @@ module Decode = struct
       | Error _ -> Error errorMsg
       end
     | _ -> Error errorMsg
+end
+
+module Encode = struct
+  let opt encode v =
+    match v with
+    | None -> `Null
+    | Some v -> encode v
+
+  let list encode v =
+    `List (List.map ~f:encode v)
+
+  let string v = `String v
+
 end

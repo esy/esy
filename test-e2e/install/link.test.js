@@ -33,17 +33,18 @@ describe(`installing linked packages`, () => {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
-    expect(layout).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
       name: 'root',
       dependencies: {
-        depdep: {
-          name: 'depdep',
-          version: '1.0.0',
-        },
         dep: {
           name: 'dep',
-          version: '1.0.0',
+          version: 'link:dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: '1.0.0',
+            },
+          },
         },
       },
     });
@@ -62,7 +63,6 @@ describe(`installing linked packages`, () => {
         packageJson({
           name: 'dep',
           version: '1.0.0',
-          esy: {},
           bin: {
             dep: './dep.exe',
           },
@@ -74,18 +74,18 @@ describe(`installing linked packages`, () => {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
+          version: 'link:dep',
         },
       },
     });
 
-    const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
     expect(await helpers.exists(binPath)).toBeTruthy();
     const binContents = await helpers.readFile(binPath);
     expect(binContents.toString()).toEqual('something');
@@ -125,17 +125,19 @@ describe(`installing linked packages`, () => {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        linkedDep: {
-          name: 'linkedDep',
-          version: '1.0.0',
+          version: 'path:dep',
+          dependencies: {
+            linkedDep: {
+              name: 'linkedDep',
+              version: 'path:linkedDep',
+            },
+          },
         },
       },
     });
@@ -175,17 +177,19 @@ describe(`installing linked packages`, () => {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        linkedDep: {
-          name: 'linkedDep',
-          version: '1.0.0',
+          version: 'path:dep',
+          dependencies: {
+            linkedDep: {
+              name: 'linkedDep',
+              version: 'link:linkedDep',
+            },
+          },
         },
       },
     });
@@ -225,17 +229,19 @@ describe(`installing linked packages`, () => {
 
     await p.esy(`install`);
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
         dep: {
           name: 'dep',
-          version: '1.0.0',
-        },
-        linkedDep: {
-          name: 'linkedDep',
-          version: '1.0.0',
+          version: 'link:dep',
+          dependencies: {
+            linkedDep: {
+              name: 'linkedDep',
+              version: 'link:linkedDep',
+            },
+          },
         },
       },
     });

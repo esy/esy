@@ -34,7 +34,6 @@ function makePackage(
       },
       dependencies,
       devDependencies,
-      '_esy.source': 'path:./',
     }),
     helpers.dummyExecutable(name),
     ...items,
@@ -50,22 +49,19 @@ function makeFixture(p) {
         build: 'true',
       },
       dependencies: {
-        dep: '*',
+        dep: 'path:./dep',
       },
       devDependencies: {
-        devDep: '*',
+        devDep: 'path:./devDep',
       },
     }),
-    helpers.dir(
-      'node_modules',
-      makePackage(p, {
-        name: 'dep',
-        devDependencies: {devDepOfDep: '*'},
-      }),
-      makePackage(p, {
-        name: 'devDep',
-      }),
-    ),
+    makePackage(p, {
+      name: 'dep',
+      devDependencies: {devDepOfDep: '*'},
+    }),
+    makePackage(p, {
+      name: 'devDep',
+    }),
   ];
 }
 
@@ -73,6 +69,7 @@ describe('devDep workflow', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
+    await p.esy('install');
     await p.esy('build');
     return p;
   }
@@ -99,16 +96,15 @@ describe('devDep workflow', () => {
 
   it('package "dev-dep" should be visible only in command env', async () => {
     const p = await createTestSandbox();
-    const expecting = expect.stringMatching('__devDep__');
 
     {
       const {stdout} = await p.esy('devDep.cmd');
-      expect(stdout.trim()).toEqual(expecting);
+      expect(stdout.trim()).toEqual('__devDep__');
     }
 
     {
       const {stdout} = await p.esy('x devDep.cmd');
-      expect(stdout.trim()).toEqual(expecting);
+      expect(stdout.trim()).toEqual('__devDep__');
     }
 
     return expect(p.esy('b devDep.cmd')).rejects.toThrow();

@@ -48,52 +48,59 @@ module Filename = struct
 
   let inferPackageName = function
     | Opam, "opam" -> None
-    | _, fname -> Some Path.(v fname |> remExt |> show)
+    | Opam, fname -> Some ("@opam/" ^ Path.(v fname |> remExt |> show))
+    | Esy, fname -> Some Path.(v fname |> remExt |> show)
 
 end
 
 type t =
   | One of Filename.t
-  | ManyOpam of string list
-  [@@deriving ord]
+  | ManyOpam
+  [@@deriving ord, sexp_of]
 
 let show = function
   | One fname -> Filename.show fname
-  | ManyOpam fnames -> String.concat "," fnames
+  | ManyOpam -> "*.opam"
 
 let pp fmt manifest =
   match manifest with
   | One fname -> Filename.pp fmt fname
-  | ManyOpam fnames -> Fmt.(list ~sep:(unit ", ") string) fmt fnames
+  | ManyOpam -> Fmt.unit "*.opam" fmt ()
 
 let to_yojson manifest =
   match manifest with
   | One (_, fname) -> `String fname
-  | ManyOpam fnames ->
-    let fnames = List.map ~f:(fun fname -> `String fname) fnames in
-    `List fnames
+  | ManyOpam -> `String "*.opam"
+
+let ofString v =
+  let open Result.Syntax in
+  match v with
+  | "*.opam" -> return ManyOpam
+  | v ->
+    let%bind fname = Filename.ofString v in
+    return (One fname)
 
 let of_yojson json =
   let open Result.Syntax in
   match json with
-  | `String _ ->
-    let%map fname = Filename.of_yojson json in
-    One fname
-  | `List fnames ->
-    let%bind fnames =
-      let f json =
-        match json with
-        | `String fname ->
-          begin match Path.(getExt (v fname)) with
-          | ".json" -> return fname
-          | _ -> errorf "invalid opam manifest: %s" fname
-          end
-        | _ -> errorf "expected string"
-      in
-      Result.List.map ~f fnames
+  | `String v -> ofString v
+  | _ -> errorf "invalid manifest spec: expected string"
+
+let isOpamFilename filename =
+  Path.(hasExt ".opam" (v filename)) || filename = "opam"
+
+let findManifestsAtPath path spec =
+  let open RunAsync.Syntax in
+  match spec with
+  | One (kind, filename) -> return [kind, filename]
+  | ManyOpam ->
+    let%bind filenames = Fs.listDir path in
+    let f manifests filename =
+      if isOpamFilename filename
+      then (Filename.Opam, filename)::manifests
+      else manifests
     in
-    return (ManyOpam fnames)
-  | _ -> errorf "invalid manifest spec"
+    return (List.fold_left ~f ~init:[] filenames)
 
 module Set = Set.Make(struct
   type nonrec t = t

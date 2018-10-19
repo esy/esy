@@ -154,6 +154,7 @@ describe('esy-installer', () => {
       file('hello-doc', 'hello-doc'),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls');
     const installDir = await getInstallDir(p);
     const node = await crawl(installDir);
@@ -396,6 +397,7 @@ describe('esy-installer', () => {
       dir('bin', file('hello-oops', 'hello-oops'), file('hello-bin', 'hello-bin')),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls');
     expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
       type: 'dir',
@@ -432,6 +434,7 @@ describe('esy-installer', () => {
       dir('bin', file('hello-bin', 'hello-bin')),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls');
     expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
       type: 'dir',
@@ -476,6 +479,7 @@ describe('esy-installer', () => {
       dir('bin', file('hello-bin', 'hello-bin'), file('hello-bin2', 'hello-bin2')),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls');
     expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
       type: 'dir',
@@ -517,6 +521,7 @@ describe('esy-installer', () => {
       dir('bin', file('hello-bin.exe', 'hello-bin.exe')),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls', {env: {ESY_INSTALLER__FORCE_EXE: 'true'}});
     expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
       type: 'dir',
@@ -555,6 +560,7 @@ describe('esy-installer', () => {
       dir('bin', file('exists', 'exists'), file('hello-bin', 'hello-bin')),
     ];
     const p = await createTestSandbox(...fixture);
+    await p.esy('install');
     await p.esy('x ls');
     expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
       type: 'dir',

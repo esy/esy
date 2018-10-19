@@ -13,6 +13,7 @@ describe('esy build-env', () => {
     const p = await createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
 
+    await p.esy('install');
     await p.esy('build');
 
     const env = (await p.esy('build-env')).stdout;
@@ -36,6 +37,7 @@ describe('esy build-env', () => {
     const p = await createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
 
+    await p.esy('install');
     await p.esy('build');
 
     const env = JSON.parse((await p.esy('build-env --json')).stdout);

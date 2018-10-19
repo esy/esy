@@ -34,5 +34,6 @@ module Syntax = {
   let return = v => Some(v);
   module Let_syntax = {
     let bind = bind;
+    let map = map;
   };
 };

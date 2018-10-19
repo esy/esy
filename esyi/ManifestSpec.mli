@@ -21,8 +21,14 @@ end
 
 type t =
   | One of Filename.t
-  | ManyOpam of string list
+  | ManyOpam
 
+
+val sexp_of_t : t -> Sexplib0.Sexp.t
+
+val ofString : string -> (t, string) result
+
+val findManifestsAtPath : Path.t -> t -> Filename.t list RunAsync.t
 
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t

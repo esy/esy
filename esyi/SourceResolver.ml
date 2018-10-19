@@ -26,11 +26,13 @@ type resolution = {
   overrides : Package.Overrides.t;
   source : Source.t;
   manifest : manifest option;
+  paths : Path.Set.t;
 }
 
 and manifest = {
   kind : ManifestSpec.Filename.kind;
   filename : string;
+  suggestedPackageName : string;
   data : string;
 }
 
@@ -50,6 +52,22 @@ let rebaseSource ~(base : Source.t) (source : Source.t) =
   | LocalPath _, _ -> failwith "TODO"
   | source, _ -> return source
 
+let suggestPackageName ~fallback (kind, filename) =
+  let ensurehasOpamScope name =
+    match Astring.String.cut ~sep:"@opam/" name with
+    | Some ("", _) -> name
+    | Some _
+    | None -> "@opam/" ^ name
+  in
+  let name =
+    match ManifestSpec.Filename.inferPackageName (kind, filename) with
+    | Some name -> name
+    | None -> fallback
+  in
+  match kind with
+  | ManifestSpec.Filename.Esy -> name
+  | ManifestSpec.Filename.Opam -> ensurehasOpamScope name
+
 let ofGithub
   ?manifest
   user
@@ -68,10 +86,24 @@ let ofGithub
   let rec tryFilename filenames =
     match filenames with
     | [] -> return EmptyManifest
-    | (kind, fname)::rest ->
-      begin match%lwt fetchFile fname with
+    | (kind, filename)::rest ->
+      begin match%lwt fetchFile filename with
       | Error _ -> tryFilename rest
-      | Ok data -> return (Manifest {filename = fname; data = data; kind = kind;})
+      | Ok data ->
+        match kind with
+        | ManifestSpec.Filename.Esy ->
+          begin match Json.parseStringWith PackageOverride.of_yojson data with
+          | Ok override -> return (Override override)
+          | Error err ->
+            let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
+            Logs_lwt.debug (fun m ->
+              m "not an override %s/%s:%s: %a" user repo filename Run.ppError err
+              );%lwt
+            return (Manifest {data; filename; kind; suggestedPackageName;})
+          end
+        | ManifestSpec.Filename.Opam ->
+          let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
+          return (Manifest {data; filename; kind; suggestedPackageName;})
       end
   in
 
@@ -94,8 +126,15 @@ let ofPath ?manifest (path : Path.t)
   let rec tryFilename filenames =
     match filenames with
     | [] -> return EmptyManifest
-    | (kind, fname)::rest ->
-      let path = Path.(path / fname) in
+    | (kind, filename)::rest ->
+
+      let suggestedPackageName =
+        suggestPackageName
+          ~fallback:(Path.(path |> normalize |> remEmptySeg |> basename))
+          (kind, filename)
+      in
+
+      let path = Path.(path / filename) in
       if%bind Fs.exists path
       then
         let%bind data = Fs.readFile path in
@@ -107,22 +146,24 @@ let ofPath ?manifest (path : Path.t)
             Logs_lwt.debug (fun m ->
               m "not an override %a: %a" Path.pp path Run.ppError err
               );%lwt
-            return (Manifest {data; filename = fname; kind})
+            return (Manifest {data; filename; kind; suggestedPackageName;})
           end
         | ManifestSpec.Filename.Opam ->
-          return (Manifest {data; filename = fname; kind})
+            return (Manifest {data; filename; kind; suggestedPackageName;})
       else
         tryFilename rest
   in
-  let filenames =
+  let%bind filenames =
     match manifest with
-    | Some manifest -> [manifest]
-    | None -> [
-      ManifestSpec.Filename.Esy, "esy.json";
-      ManifestSpec.Filename.Esy, "package.json";
-      ManifestSpec.Filename.Opam, "opam";
-      ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
-    ]
+    | Some manifest ->
+      ManifestSpec.findManifestsAtPath path manifest
+    | None ->
+      return [
+        ManifestSpec.Filename.Esy, "esy.json";
+        ManifestSpec.Filename.Esy, "package.json";
+        ManifestSpec.Filename.Opam, "opam";
+        ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
+      ]
   in
   tryFilename filenames
 
@@ -139,15 +180,18 @@ let resolve
     | LocalPath {path; manifest}
     | LocalPathLink {path; manifest} ->
       let%bind pkg = ofPath ?manifest Path.(root // path) in
-      return pkg
+      return (pkg, Some path)
     | Git {remote; commit; manifest;} ->
+      let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
-        ofPath ?manifest repo
+        let%bind pkg = ofPath ?manifest repo in
+        return (pkg, None)
       end
     | Github {user; repo; commit; manifest;} ->
-      ofGithub ?manifest user repo commit
+      let%bind pkg = ofGithub ?manifest user repo commit in
+      return (pkg, None)
     | Archive _ ->
       Fs.withTempDir begin fun path ->
         let%bind () =
@@ -156,24 +200,42 @@ let resolve
             ~dst:path
             source
         in
-        ofPath path
+        let%bind pkg = ofPath path in
+      return (pkg, None)
       end
 
     | NoSource ->
-      return EmptyManifest
+      return (EmptyManifest, None)
   in
 
-  let rec loop' ~overrides source =
+  let maybeAddToPathSet path paths =
+    match path with
+    | Some path -> Path.Set.add path paths
+    | None -> paths
+  in
+
+  let rec loop' ~overrides ~paths source =
     match%bind resolve' source with
-    | EmptyManifest ->
-      return {manifest = None; overrides; source;}
-    | Manifest manifest ->
-      return {manifest = Some manifest; overrides; source;}
-    | Override {source = nextSource; override} ->
+    | EmptyManifest, path ->
+      return {
+        manifest = None;
+        overrides;
+        source;
+        paths = maybeAddToPathSet path Path.Set.empty;
+      }
+    | Manifest manifest, path ->
+      return {
+        manifest = Some manifest;
+        overrides;
+        source;
+        paths = maybeAddToPathSet path Path.Set.empty;
+      }
+    | Override {source = nextSource; override}, path ->
       let%bind nextSource = RunAsync.ofRun (rebaseSource ~base:source nextSource) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Source.pp source Source.pp nextSource);%lwt
       let overrides = Package.Overrides.add override overrides in
-      loop' ~overrides nextSource
+      let paths = maybeAddToPathSet path paths in
+      loop' ~overrides ~paths nextSource
   in
 
-  loop' ~overrides source
+  loop' ~overrides ~paths:Path.Set.empty source

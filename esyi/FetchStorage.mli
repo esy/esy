@@ -5,23 +5,28 @@
 (** Distribution. *)
 module Dist : sig
   type t
+  val id : t -> PackageId.t
+  val source : t -> Source.t
   val pp : Format.formatter -> t -> unit
 end
 
 val fetch :
-  cfg : Config.t
-  -> Solution.Record.t
+  sandbox : Sandbox.t
+  -> Solution.Package.t
   -> Dist.t RunAsync.t
 (**
  * Make sure package specified by [name], [version] and [source] is in store and
  * return it.
  *)
 
+type status =
+  | Cached
+  | Fresh
+
 val install :
-  cfg : Config.t
-  -> path : Path.t
+  sandbox : Sandbox.t
   -> Dist.t
-  -> unit RunAsync.t
+  -> (status * Path.t) RunAsync.t
 (**
- * Install package from storage into destination.
+ * Unpack fetched dist from storage into source cache and return path.
  *)

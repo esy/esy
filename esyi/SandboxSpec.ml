@@ -10,9 +10,17 @@ let doesPathReferToConcreteManifest path =
     || Path.(compare path (v "opam") = 0)
   )
 
+let projectName spec =
+  let nameOfPath spec = Path.basename spec.path in
+  match spec.manifest with
+  | ManyOpam -> nameOfPath spec
+  | One (Opam, "opam") -> nameOfPath spec
+  | One (Esy, "package.json") | One (Esy, "esy.json") -> nameOfPath spec
+  | One (_, fname) -> Path.(show (remExt (v fname)))
+
 let name spec =
   match spec.manifest with
-  | ManyOpam _ -> "opam"
+  | ManyOpam -> "opam"
   | One (Opam, "opam") -> "opam"
   | One (Esy, "package.json") | One (Esy, "esy.json") -> "default"
   | One (_, fname) -> Path.(show (remExt (v fname)))
@@ -27,10 +35,13 @@ let localPrefixPath spec =
   let name = name spec in
   Path.(spec.path / "_esy" / name)
 
+let installationPath spec = Path.(localPrefixPath spec / "installation.json")
+let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
 let nodeModulesPath spec = Path.(localPrefixPath spec / "node_modules")
 let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
+let binPath spec = Path.(localPrefixPath spec / "bin")
 
 let lockfilePath spec =
   match spec.manifest with
@@ -58,7 +69,7 @@ let ofPath path =
         begin match opamFnames with
         | [] -> errorf "no manifests found at %a" Path.pp path
         | [fname] -> return (ManifestSpec.One (Opam, fname))
-        | fnames -> return (ManifestSpec.ManyOpam fnames)
+        | _fnames -> return ManifestSpec.ManyOpam
         end
     in
     return {path; manifest}

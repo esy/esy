@@ -3,22 +3,24 @@ module String = Astring.String
 module Dist = struct
   type t = {
     source : Source.t;
-    sourceInStorage : SourceStorage.source;
-    record : Solution.Record.t;
+    sourceInStorage : SourceStorage.source option;
+    pkg : Solution.Package.t;
   }
 
+  let id dist = Solution.Package.id dist.pkg
+  let source dist = dist.source
   let pp fmt dist =
-    Fmt.pf fmt "%s@%a" dist.record.name Version.pp dist.record.version
+    Fmt.pf fmt "%s@%a" dist.pkg.name Version.pp dist.pkg.version
 end
 
-let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
+let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
   let rec fetch' errs sources =
     match sources with
     | source::rest ->
-      begin match%bind SourceStorage.fetch ~cfg source with
-      | Ok sourceInStorage -> return {Dist. record; source; sourceInStorage;}
+      begin match%bind SourceStorage.fetch ~cfg:sandbox.Sandbox.cfg source with
+      | Ok sourceInStorage -> return {Dist. pkg; source; sourceInStorage = Some sourceInStorage;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
     | [] ->
@@ -30,36 +32,24 @@ let fetch ~(cfg : Config.t) (record : Solution.Record.t) =
             Run.ppError err
         in
         m "unable to fetch %a:@[<v 2>@\n%a@]"
-          Solution.Record.pp record
+          Solution.Package.pp pkg
           Fmt.(list ~sep:(unit "@\n") ppErr) errs
       );%lwt
       error "installation error"
   in
 
-  let sources =
-    let main, mirrors = record.source in
-    main::mirrors
-  in
+  match pkg.source with
+  | Solution.Package.Link {path; manifest; overrides = _;} ->
+    return {
+      Dist. pkg;
+      source = Source.LocalPathLink {path;manifest;};
+      sourceInStorage = None;
+    }
+  | Solution.Package.Install {source = main, mirrors; _} ->
+    fetch' [] (main::mirrors)
 
-  fetch' [] sources
-
-let install ~cfg ~path dist =
+let unpack ~sandbox ~path ~overrides ~files ~opam dist =
   let open RunAsync.Syntax in
-  let {Dist. source; record; sourceInStorage;} = dist in
-
-  let finishInstall path =
-
-    let%bind () =
-      let f file =
-        Package.File.writeToDir ~destinationDir:path file
-      in
-      List.map ~f record.files |> RunAsync.List.waitAll
-    in
-
-    return ()
-  in
-
-  let%bind () = Fs.createDir path in
 
   (*
    * @andreypopp: We place _esylink before unpacking tarball, but that's just
@@ -70,23 +60,62 @@ let install ~cfg ~path dist =
    * contents overriding _esylink accidentially but probability of such event
    * is low enough so I proceeded with the current order.
    *)
-  let%bind () =
-    EsyLinkFile.toDir
-      EsyLinkFile.{source; overrides = record.overrides; opam = record.opam}
-      path
-  in
 
   let%bind () =
-    match source with
-    | Source.LocalPathLink _ ->
+    match dist.Dist.sourceInStorage with
+    | None ->
       return ()
-    | Source.NoSource ->
-      let%bind () = finishInstall path in
-      return ()
-    | _ ->
-      let%bind () = SourceStorage.unpack ~cfg ~dst:path sourceInStorage in
-      let%bind () = finishInstall path in
+    | Some sourceInStorage ->
+      let tempPath = Path.(path |> addExt ".tmp") in
+      let%bind () = Fs.rmPath tempPath in
+      let%bind () = Fs.createDir tempPath in
+
+      let%bind () =
+        EsyLinkFile.toDir
+          EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
+          tempPath
+      in
+      let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:tempPath sourceInStorage in
+      let%bind () =
+        let f file =
+          Package.File.writeToDir ~destinationDir:tempPath file
+        in
+        List.map ~f files |> RunAsync.List.waitAll
+      in
+
+      let%bind () = Fs.rename ~src:tempPath path in
       return ()
   in
 
   return ()
+
+let path ~cfg dist =
+  let name = Path.safeSeg dist.Dist.pkg.name in
+  let id =
+    Source.show dist.Dist.source
+    |> Digest.string
+    |> Digest.to_hex
+    |> Path.safeSeg
+  in
+  Path.(cfg.Config.cacheSourcesPath / (name ^ "-" ^ id))
+
+type status =
+  | Cached
+  | Fresh
+
+let install ~sandbox dist =
+  (** TODO: need to sync here so no two same tasks are running at the same time *)
+  let open RunAsync.Syntax in
+  RunAsync.contextf (
+    match dist.Dist.pkg.source with
+    | Solution.Package.Link {path; _} ->
+      return (Fresh, Path.(sandbox.Sandbox.spec.path // path))
+    | Solution.Package.Install { overrides; files; opam; _ } ->
+      let path = path ~cfg:sandbox.Sandbox.cfg dist in
+      if%bind Fs.exists path
+      then return (Cached, path)
+      else (
+        let%bind () = unpack ~sandbox ~overrides ~files ~path ~opam dist in
+        return (Fresh, path)
+      )
+  ) "installing %a" Dist.pp dist

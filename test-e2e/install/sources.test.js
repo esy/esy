@@ -4,15 +4,15 @@ const helpers = require('../test/helpers.js');
 
 describe(`Tests for installations from custom sources`, () => {
   async function assertLayoutCorrect(path) {
-    await expect(helpers.crawlLayout(path)).resolves.toMatchObject({
+    await expect(helpers.readInstalledPackages(path)).resolves.toMatchObject({
       dependencies: {
         'example-yarn-package': {
           name: 'example-yarn-package',
-          version: '1.0.0',
-        },
-        lodash: {
-          name: 'lodash',
-          version: '4.24.0',
+          dependencies: {
+            lodash: {
+              name: 'lodash',
+            },
+          },
         },
       },
     });
@@ -32,7 +32,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -49,7 +49,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -66,7 +66,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -85,7 +85,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -104,7 +104,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
   });
@@ -125,7 +125,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -144,7 +144,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -163,7 +163,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -182,7 +182,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -201,7 +201,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
 
@@ -220,7 +220,7 @@ describe(`Tests for installations from custom sources`, () => {
         name: 'lodash',
         version: '4.24.0',
       });
-      await p.esy('install');
+      await p.esy('install --skip-repository-update');
       await assertLayoutCorrect(p.projectPath);
     });
   });
@@ -241,7 +241,7 @@ describe(`Tests for installations from custom sources`, () => {
       name: 'lodash',
       version: '4.24.0',
     });
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
     await assertLayoutCorrect(p.projectPath);
   });
 });

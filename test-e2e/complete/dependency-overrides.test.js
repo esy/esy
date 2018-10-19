@@ -5,7 +5,7 @@ const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows("esy-solve-cudf isn't ready");
 
-describe('Dependency overrides', function() {
+describe('dependency overrides', function() {
   it('allow to place override in a dependency (override dependencies)', async function() {
     const p = await helpers.createTestSandbox();
 
@@ -48,11 +48,72 @@ describe('Dependency overrides', function() {
       ),
     );
 
-    await p.esy('install');
+    await p.esy('install --skip-repository-update');
 
-    expect(await helpers.crawlLayout(p.projectPath)).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
       dependencies: {
-        depdep: {name: 'depdep', version: '1.0.0'},
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {name: 'depdep', version: '1.0.0'},
+          },
+        },
+      },
+    });
+  });
+
+  it('allow to place override in a dependency (override dependencies + link)', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '2.0.0',
+    });
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        dependencies: {
+          dep: 'link:./dep-override',
+        },
+      }),
+      dir(
+        'dep-override',
+        packageJson({
+          source: 'path:../dep',
+          override: {
+            dependencies: {
+              depdep: '1.0.0',
+            },
+          },
+        }),
+      ),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          dependencies: {
+            depdep: '2.0.0',
+          },
+        }),
+      ),
+    );
+
+    await p.esy('install --skip-repository-update');
+
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
+      dependencies: {
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {name: 'depdep', version: '1.0.0'},
+          },
+        },
       },
     });
   });

@@ -113,8 +113,12 @@ let symlink ~src target =
 let rename ~src target =
   let src = Path.show src in
   let target = Path.show target in
-  let%lwt () = Lwt_unix.rename src target in
-  RunAsync.return ()
+  try%lwt
+    let%lwt () = Lwt_unix.rename src target in
+    RunAsync.return ()
+  with
+    | Unix.Unix_error (Unix.ENOENT, "rename", filename) ->
+      RunAsync.errorf "no such file: %s" filename
 
 let no _path = false
 

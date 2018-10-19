@@ -22,7 +22,7 @@ let getMingwEnvironmentOverride = () =>
       let currentPath = Sys.getenv("PATH");
       let%bind mingwRuntime = getMingwRuntimePath();
       return(
-        `CurrentEnvOverride(
+        ChildProcess.CurrentEnvOverride(
           Astring.String.Map.(
             add(
               "PATH",
@@ -32,7 +32,7 @@ let getMingwEnvironmentOverride = () =>
           ),
         ),
       );
-    | _ => return(`CurrentEnv)
+    | _ => return(ChildProcess.CurrentEnv)
     }
   );
 

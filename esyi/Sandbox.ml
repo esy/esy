@@ -75,12 +75,15 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         originalName = None;
-        source = source, [];
-        overrides = Package.Overrides.empty;
+        source = Package.Link {
+          path = Path.v ".";
+          manifest = None;
+          overrides = Package.Overrides.empty;
+        };
         dependencies;
         devDependencies = dependencies;
+        optDependencies = StringSet.empty;
         resolutions = Package.Resolutions.empty;
-        opam = None;
         kind = Esy;
       };
       resolver;
@@ -113,12 +116,15 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       originalName = None;
-      source = source, [];
-      overrides = Package.Overrides.empty;
+      source = Package.Link {
+        path = Path.v ".";
+        manifest = None;
+        overrides = Package.Overrides.empty;
+      };
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
+      optDependencies = StringSet.empty;
       resolutions = Package.Resolutions.empty;
-      opam = None;
       kind = Package.Esy;
     } in
 
@@ -154,6 +160,16 @@ let ofSource ~cfg ~spec source =
 
   match%bind Resolver.package ~resolution resolver with
   | Ok root ->
+
+    let root =
+      let name =
+        match root.Package.originalName with
+        | Some name -> name
+        | None -> SandboxSpec.projectName spec
+      in
+      {root with name;}
+    in
+
     let dependencies, ocamlReq =
       match root.Package.dependencies, root.devDependencies with
       | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->
@@ -182,16 +198,18 @@ let ofSource ~cfg ~spec source =
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : SandboxSpec.t) =
+  let open RunAsync.Syntax in
   RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)
     | ManifestSpec.One (Opam, fname) ->
-      let source = "path:" ^ fname in
+      let source = "link:" ^ fname in
       begin match Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
       end
-    | ManifestSpec.ManyOpam fnames ->
-      let paths = List.map ~f:(fun fname -> Path.(spec.path / fname)) fnames in
+    | ManifestSpec.ManyOpam ->
+      let%bind paths = ManifestSpec.findManifestsAtPath spec.path spec.manifest in
+      let paths = List.map ~f:(fun (_, filename) -> Path.(spec.path / filename)) paths in
       ofMultiplOpamFiles ~cfg ~spec spec.path paths
   ) "loading root package metadata"

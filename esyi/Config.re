@@ -1,6 +1,7 @@
 type t = {
   esySolveCmd: Cmd.t,
   cacheTarballsPath: Path.t,
+  cacheSourcesPath: Path.t,
   opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
@@ -33,6 +34,7 @@ let make =
       ~npmRegistry=?,
       ~cachePath=?,
       ~cacheTarballsPath=?,
+      ~cacheSourcesPath=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
       ~solveTimeout=60.0,
@@ -56,8 +58,15 @@ let make =
 
       let cacheTarballsPath =
         switch (cacheTarballsPath) {
-        | Some(cacheTarballsPath) => cacheTarballsPath
+        | Some(path) => path
         | None => Path.(cachePath / "source-tarballs")
+        };
+      let%bind () = Fs.createDir(cacheTarballsPath);
+
+      let cacheSourcesPath =
+        switch (cacheSourcesPath) {
+        | Some(path) => path
+        | None => Path.(cachePath / "source")
         };
       let%bind () = Fs.createDir(cacheTarballsPath);
 
@@ -81,6 +90,7 @@ let make =
       return({
         esySolveCmd,
         cacheTarballsPath,
+        cacheSourcesPath,
         opamArchivesIndexPath,
         opamRepository,
         esyOpamOverride,

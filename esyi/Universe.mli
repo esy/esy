@@ -22,14 +22,20 @@ val findVersions : name:string -> t -> Package.t list
 val findVersion : name:string -> version:Version.t -> t -> Package.t option
 val findVersionExn : name:string -> version:Version.t -> t -> Package.t
 
+module CudfName : sig
+  type t
+  val show : t -> string
+  val make : string -> t
+end
+
 (**
  * Mapping from universe to CUDF.
  *)
 module CudfMapping : sig
   type t
 
-  val encodePkgName : string -> string
-  val decodePkgName : string -> string
+  val encodePkgName : string -> CudfName.t
+  val decodePkgName : CudfName.t -> string
 
   val encodePkg : Package.t -> t -> Cudf.package option
   val encodePkgExn : Package.t -> t -> Cudf.package

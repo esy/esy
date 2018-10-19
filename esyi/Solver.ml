@@ -177,7 +177,7 @@ module Explanation = struct
             else pkg::requestor::path
           in
           let f reasons (name, _) =
-            let name = Universe.CudfMapping.decodePkgName name in
+            let name = Universe.CudfMapping.decodePkgName (Universe.CudfName.make name) in
             let%lwt available =
               match%lwt Resolver.resolve ~name resolver with
               | Ok available -> Lwt.return available
@@ -230,39 +230,79 @@ let rec findResolutionForRequest resolver req = function
     then Some res
     else findResolutionForRequest resolver req rest
 
-let solutionRecordOfPkg (pkg : Package.t) =
+let solutionPkgOfPkg
+  (pkg : Package.t)
+  (dependenciesMap : PackageId.t StringMap.t)
+  =
   let open RunAsync.Syntax in
 
-  let%bind files =
-    match pkg.opam with
-    | Some opam -> opam.files ()
-    | None -> return []
+  let idsOfDependencies dependencies =
+    dependencies
+    |> Dependencies.toApproximateRequests
+    |> List.map ~f:(fun req -> StringMap.find req.Req.name dependenciesMap)
+    |> List.filterNone
+    |> PackageId.Set.of_list
   in
 
-  let opam =
-    match pkg.opam with
-    | Some opam -> Some {
-        Solution.Record.Opam.
-        name = opam.name;
-        version = opam.version;
-        opam = opam.opam;
-        override =
-          if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
-          then None
-          else Some opam.override;
-      }
-    | None -> None
+  let dependencies =
+    let optDependencies =
+      let f name = StringMap.find name dependenciesMap in
+      pkg.optDependencies
+      |> StringSet.elements
+      |> List.map ~f
+      |> List.filterNone
+      |> PackageId.Set.of_list
+    in
+    let dependencies = idsOfDependencies pkg.dependencies in
+    PackageId.Set.union dependencies optDependencies
+  in
+  let devDependencies =
+    let devDependencies = idsOfDependencies pkg.devDependencies in
+    PackageId.Set.diff devDependencies dependencies
   in
 
-  return {
-    Solution.Record.
+  let allDependencies =
+    let set = PackageId.Set.union dependencies devDependencies in
+    let f id map = StringMap.add (PackageId.name id) id map in
+    PackageId.Set.fold f set StringMap.empty
+  in
+
+  let%bind source =
+    match pkg.source with
+    | Package.Link {path; manifest;overrides;} ->
+      return (Solution.Package.Link {path; manifest; overrides;})
+    | Package.Install { source; overrides; opam } ->
+      let%bind files =
+        match opam with
+        | Some opam -> opam.files ()
+        | None -> return []
+      in
+
+      let opam =
+        match opam with
+        | Some opam -> Some {
+            Solution.Package.Opam.
+            name = opam.name;
+            version = opam.version;
+            opam = opam.opam;
+            override =
+              if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
+              then None
+              else Some opam.override;
+          }
+        | None -> None
+      in
+      return (Solution.Package.Install {opam; files; source; overrides})
+  in
+
+  return ({
+    Solution.Package.
     name = pkg.name;
     version = pkg.version;
-    overrides = pkg.overrides;
-    source = pkg.source;
-    files;
-    opam;
-  }
+    source;
+    dependencies;
+    devDependencies;
+  }, allDependencies)
 
 let make ~cfg ~resolver ~resolutions () =
   let open RunAsync.Syntax in
@@ -399,11 +439,14 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     originalName = root.originalName;
-    source = Source.NoSource, [];
-    overrides = Package.Overrides.empty;
-    opam = None;
+    source = Package.Link {
+      path = Path.v ".";
+      manifest = None;
+      overrides = Package.Overrides.empty;
+    };
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
+    optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
   } in
@@ -641,7 +684,13 @@ let solveDependenciesNaively
             | None -> assert false
           in
           let res =
-            let deps = List.map ~f:(fun pkg -> (pkg.Package.name, pkg.Package.version)) deps in
+            let deps =
+              let f deps pkg =
+                let id = PackageId.make pkg.Package.name pkg.Package.version in
+                StringMap.add pkg.Package.name id deps
+              in
+              List.fold_left ~f ~init:StringMap.empty deps
+            in
             Package.Map.add pkg deps res
           in
           aux res (rest @ deps)
@@ -760,21 +809,33 @@ let solve (sandbox : Sandbox.t) =
       solver
   in
 
-  let%bind sol =
-    let%bind sol =
-      let f solution (pkg, dependencies) =
-        let%bind record = solutionRecordOfPkg pkg in
-        let solution = Solution.add ~record ~dependencies solution in
-        return solution
+  let%bind solution =
+
+    let allDependenciesMap =
+      let f _pkg dependencies map =
+        StringMap.mergeOverride map dependencies
+      in
+      Package.Map.fold f packagesToDependencies StringMap.empty
+    in
+
+    let%bind solution =
+      let%bind root, _dependencies = solutionPkgOfPkg sandbox.root allDependenciesMap in
+      return (
+        Solution.empty (Solution.Package.id root)
+        |> Solution.add root
+      )
+    in
+
+    let%bind solution =
+      let f solution (pkg, _) =
+        let%bind pkg, _dependencies = solutionPkgOfPkg pkg allDependenciesMap in
+        return (Solution.add pkg solution)
       in
       packagesToDependencies
       |> Package.Map.bindings
-      |> RunAsync.List.foldLeft ~f ~init:Solution.empty
+      |> RunAsync.List.foldLeft ~f ~init:solution
     in
-
-    let%bind record = solutionRecordOfPkg sandbox.root in
-    let dependencies = Package.Map.find sandbox.root packagesToDependencies in
-    return (Solution.addRoot ~record ~dependencies sol)
+    return solution
   in
 
-  return sol
+  return solution

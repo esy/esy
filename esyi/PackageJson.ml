@@ -9,6 +9,7 @@ module Manifest = struct
     name : string option [@default None];
     version : SemverVersion.Version.t option [@default None];
     dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    optDependencies : Json.t StringMap.t [@default StringMap.empty];
     esy : EsyPackageJson.t option [@default None];
     dist : dist option [@default None]
   } [@@deriving of_yojson { strict = false }]
@@ -115,6 +116,22 @@ let packageOfJson
       return resolutions
   in
 
+  let source =
+    match source with
+    | Source.LocalPathLink {path; manifest;} ->
+      Package.Link {
+        path;
+        manifest;
+        overrides = Package.Overrides.empty;
+      }
+    | _ ->
+      Package.Install {
+        source = source, [];
+        overrides = Package.Overrides.empty;
+        opam = None;
+      }
+  in
+
   return {
     Package.
     name;
@@ -123,9 +140,8 @@ let packageOfJson
     originalName = pkgJson.name;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
+    optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;
     resolutions;
-    source = source, [];
-    overrides = Package.Overrides.empty;
-    opam = None;
+    source;
     kind = if Option.isSome pkgJson.esy then Esy else Npm;
   }

@@ -1,7 +1,7 @@
 type t = {
   source : Source.t;
   overrides : Package.Overrides.t [@default Package.Overrides.empty];
-  opam : Solution.Record.Opam.t option [@default None];
+  opam : Solution.Package.Opam.t option [@default None];
 } [@@deriving yojson]
 
 let ofFile path =

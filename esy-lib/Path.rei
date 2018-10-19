@@ -16,6 +16,7 @@ let append: (t, t) => t;
 
 let ofString: string => result(t, [> | `Msg(string)]);
 let current: unit => Run.t(t);
+let currentPath: unit => t;
 let homePath: unit => t;
 let dataPath: unit => t;
 

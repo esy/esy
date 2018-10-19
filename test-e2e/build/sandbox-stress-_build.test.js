@@ -32,6 +32,7 @@ const fixture = [
 
 it('Build - sandbox stress _build', async () => {
   const p = await createTestSandbox(...fixture);
+  await p.esy('install');
   await p.esy('build');
 
   const {stdout} = await p.esy('x echo ok');

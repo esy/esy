@@ -1,0 +1,444 @@
+module BuildType = struct
+  include EsyLib.BuildType
+  include EsyLib.BuildType.AsInPackageJson
+end
+
+module Solution = EsyInstall.Solution
+module SandboxSpec = EsyInstall.SandboxSpec
+module ManifestSpec = EsyInstall.ManifestSpec
+module Package = EsyInstall.Package
+module Version = EsyInstall.Version
+module Source = EsyInstall.Source
+module SourceType = EsyLib.SourceType
+module Command = Package.Command
+module CommandList = Package.CommandList
+module ExportedEnv = Package.ExportedEnv
+module Env = Package.Env
+module SourceResolver = EsyInstall.SourceResolver
+module Overrides = EsyInstall.Package.Overrides
+module Installation = EsyInstall.Installation
+
+let ensurehasOpamScope name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", _) -> name
+  | Some _
+  | None -> "@opam/" ^ name
+
+(* aliases for opam types with to_yojson implementations *)
+module OpamTypes = struct
+  type filter = OpamTypes.filter
+
+  let filter_to_yojson filter = `String (OpamFilter.to_string filter)
+
+  type command = arg list * filter option [@@deriving to_yojson]
+  and arg = simple_arg * filter option
+  and simple_arg = OpamTypes.simple_arg =
+    | CString of string
+    | CIdent of string
+end
+
+type commands =
+  | OpamCommands of OpamTypes.command list
+  | EsyCommands of CommandList.t
+  [@@deriving to_yojson]
+
+let pp_commands fmt cmds =
+  match cmds with
+  | OpamCommands cmds ->
+    let json = `List (List.map ~f:OpamTypes.command_to_yojson cmds) in
+    Fmt.pf fmt "OpamCommands %a" (Json.pp ~std:true) json
+  | EsyCommands cmds ->
+    let json = CommandList.to_yojson cmds in
+    Fmt.pf fmt "EsyCommands %a" (Json.pp ~std:true) json
+
+type patch = Path.t * OpamTypes.filter option
+
+let patch_to_yojson (path, filter) =
+  let filter =
+    match filter with
+    | None -> `Null
+    | Some filter -> `String (OpamFilter.to_string filter)
+  in
+  `Assoc ["path", Path.to_yojson path; "filter", filter]
+
+let pp_patch fmt (path, _) = Fmt.pf fmt "Patch %a" Path.pp path
+
+type t = {
+  name : string option;
+  version : Version.t option;
+  buildType : BuildType.t;
+  buildCommands : commands;
+  installCommands : commands;
+  patches : patch list;
+  substs : Path.t list;
+  exportedEnv : ExportedEnv.t;
+  buildEnv : Env.t;
+} [@@deriving to_yojson, show]
+
+let empty ~name ~version () = {
+  name;
+  version;
+  buildType = BuildType.OutOfSource;
+  buildCommands = EsyCommands [];
+  installCommands = EsyCommands [];
+  patches = [];
+  substs = [];
+  exportedEnv = ExportedEnv.empty;
+  buildEnv = StringMap.empty;
+}
+
+let applyOverride (manifest : t) (override : Overrides.override) =
+
+  Logs.debug (fun m -> m "applyOverride: %a" pp manifest);
+
+  let {
+    Overrides.
+    buildType;
+    build;
+    install;
+    exportedEnv;
+    exportedEnvOverride;
+    buildEnv;
+    buildEnvOverride;
+
+    dependencies = _;
+    devDependencies = _;
+    resolutions = _;
+  } = override in
+
+  let manifest =
+    match buildType with
+    | None -> manifest
+    | Some buildType -> {manifest with buildType = buildType;}
+  in
+
+  let manifest =
+    match build with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        buildCommands = EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match install with
+    | None -> manifest
+    | Some commands -> {
+        manifest with
+        installCommands = EsyCommands commands;
+      }
+  in
+
+  let manifest =
+    match exportedEnv with
+    | None -> manifest
+    | Some exportedEnv -> {manifest with exportedEnv;}
+  in
+
+  let manifest =
+    match exportedEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        exportedEnv = StringMap.Override.apply manifest.exportedEnv override;
+      }
+  in
+
+  let manifest =
+    match buildEnv with
+    | None -> manifest
+    | Some buildEnv -> {manifest with buildEnv;}
+  in
+
+  let manifest =
+    match buildEnvOverride with
+    | None -> manifest
+    | Some override -> {
+        manifest with
+        buildEnv = StringMap.Override.apply manifest.buildEnv override
+      }
+  in
+
+  manifest
+
+module EsyBuild = struct
+  type packageJson = {
+    name: string option [@default None];
+    version: Version.t option [@default None];
+    esy: packageJsonEsy option [@default None];
+  } [@@deriving (of_yojson {strict = false})]
+
+  and packageJsonEsy = {
+    build: (CommandList.t [@default CommandList.empty]);
+    install: (CommandList.t [@default CommandList.empty]);
+    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
+    exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
+    buildEnv: (Env.t [@default Env.empty]);
+    sandboxEnv: (Env.t [@default Env.empty]);
+  } [@@deriving (of_yojson { strict = false })]
+
+  let ofData data =
+    let open Run.Syntax in
+    let%bind json = Json.parse data in
+    let%bind pkgJson = Json.parseJsonWith packageJson_of_yojson json in
+    match pkgJson.esy with
+    | Some m ->
+      let build = {
+        name = pkgJson.name;
+        version = pkgJson.version;
+        buildType = m.buildsInSource;
+        exportedEnv = m.exportedEnv;
+        buildEnv = m.buildEnv;
+        buildCommands = EsyCommands (m.build);
+        installCommands = EsyCommands (m.install);
+        patches = [];
+        substs = [];
+      } in
+      return (Some build)
+    | None -> return None
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    match ofData data with
+    | Ok (Some manifest) -> return (Some manifest, Path.Set.singleton path)
+    | Ok None -> return (None, Path.Set.empty)
+    | Error err -> Lwt.return (Error err)
+end
+
+let parseOpam data =
+  if String.trim data = ""
+  then None
+  else Some (OpamFile.OPAM.read_from_string data)
+
+module OpamBuild = struct
+
+  let build ~name ~version (manifest : Solution.Package.Opam.t) =
+    let buildCommands =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. build = Some cmds; _} ->
+        EsyCommands cmds
+      | Some {EsyInstall.Package.OpamOverride. build = None; _}
+      | None ->
+        OpamCommands (OpamFile.OPAM.build manifest.opam)
+    in
+
+    let installCommands =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. install = Some cmds; _} ->
+        EsyCommands cmds
+      | Some {EsyInstall.Package.OpamOverride. install = None; _}
+      | None ->
+        OpamCommands (OpamFile.OPAM.install manifest.opam)
+    in
+
+    let patches =
+      let patches = OpamFile.OPAM.patches manifest.opam in
+      let f (name, filter) =
+        let name = Path.v (OpamFilename.Base.to_string name) in
+        (name, filter)
+      in
+      List.map ~f patches
+    in
+
+    let substs =
+      let names = OpamFile.OPAM.substs manifest.opam in
+      let f name = Path.v (OpamFilename.Base.to_string name) in
+      List.map ~f names
+    in
+
+    let exportedEnv =
+      match manifest.override with
+      | Some {EsyInstall.Package.OpamOverride. exportedEnv;_} -> exportedEnv
+      | None -> ExportedEnv.empty
+    in
+
+    let name =
+      match name with
+      | Some name -> Some (ensurehasOpamScope name)
+      | None -> None
+    in
+
+    {
+      name;
+      version;
+      buildType = BuildType.InSource;
+      exportedEnv;
+      buildEnv = Env.empty;
+      buildCommands;
+      installCommands;
+      patches;
+      substs;
+    }
+
+  let ofInstallationDir (path : Path.t) =
+    let open RunAsync.Syntax in
+    match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
+    | None
+    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
+      return (None, Path.Set.empty)
+    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
+      let name = Some (OpamPackage.Name.to_string info.name) in
+      let version = Some (Version.Opam info.version) in
+      return (Some (build ~name ~version info), Path.Set.singleton path)
+
+  let ofData ~nameFallback data =
+    let open Run.Syntax in
+    match parseOpam data with
+    | None -> return None
+    | Some opam ->
+      let name =
+        try Some (OpamPackage.Name.to_string (OpamFile.OPAM.name opam))
+        with _ -> nameFallback
+      in
+      let version =
+        try Some (Version.Opam (OpamFile.OPAM.version opam))
+        with _ -> None
+      in
+      let info = {
+        EsyInstall.Solution.Package.Opam.
+        name = OpamPackage.Name.of_string "unsued";
+        version = OpamPackage.Version.of_string "unused";
+        opam;
+        override = None;
+      } in
+      return (Some (build ~name ~version info))
+
+  let ofFile (path : Path.t) =
+    let open RunAsync.Syntax in
+    let%bind data = Fs.readFile path in
+    match ofData ~nameFallback:None data with
+    | Ok None -> errorf "unable to load opam manifest at %a" Path.pp path
+    | Ok Some manifest -> return (Some manifest, Path.Set.singleton path)
+    | Error err -> Lwt.return (Error err)
+
+end
+
+let discoverManifest path =
+  let open RunAsync.Syntax in
+
+  let filenames =
+    let dirname = Path.basename path in
+    [
+      `Esy, Path.v "esy.json";
+      `Esy, Path.v "package.json";
+      `Opam, Path.(v dirname |> addExt ".opam");
+      `Opam, Path.v "opam";
+    ]
+  in
+
+  let rec tryLoad = function
+    | [] -> return (None, Path.Set.empty)
+    | (kind, fname)::rest ->
+      let fname = Path.(path // fname) in
+      if%bind Fs.exists fname
+      then
+        match kind with
+        | `Esy -> EsyBuild.ofFile fname
+        | `Opam -> OpamBuild.ofFile fname
+      else tryLoad rest
+  in
+
+  tryLoad filenames
+
+let ofPath ?manifest (path : Path.t) =
+  let open RunAsync.Syntax in
+
+  Logs_lwt.debug (fun m ->
+    m "Manifest.ofDir %a %a"
+    Fmt.(option ManifestSpec.pp) manifest
+    Path.pp path
+  );%lwt
+
+  let manifest =
+    match manifest with
+    | None ->
+      begin match%bind OpamBuild.ofInstallationDir path with
+      | Some manifest, paths -> return (Some manifest, paths)
+      | None, _paths -> discoverManifest path
+      end
+    | Some spec ->
+      begin match spec with
+      | ManifestSpec.One (ManifestSpec.Filename.Esy, fname) ->
+        let path = Path.(path / fname) in
+        EsyBuild.ofFile path
+      | ManifestSpec.One (ManifestSpec.Filename.Opam, fname) ->
+        let path = Path.(path / fname) in
+        OpamBuild.ofFile path
+      | ManifestSpec.ManyOpam ->
+        let%bind filenames = ManifestSpec.findManifestsAtPath path spec in
+        let paths =
+          let f (_kind, filename) = Path.(path / filename) in
+          List.map ~f filenames
+          |> Path.Set.of_list
+        in
+        return (Some {
+          name = None;
+          version = None;
+          buildType = BuildType.Unsafe;
+          exportedEnv = ExportedEnv.empty;
+          buildEnv = Env.empty;
+          buildCommands = OpamCommands [];
+          installCommands = OpamCommands [];
+          patches = [];
+          substs = [];
+        }, paths)
+      end
+    in
+
+    RunAsync.contextf manifest
+      "reading package metadata from %a"
+      Path.ppPretty path
+
+let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
+  let open RunAsync.Syntax in
+  match pkg.source with
+  | Solution.Package.Link { path; manifest; overrides } ->
+    let source = Source.LocalPathLink {path; manifest;} in
+    let%bind res =
+      SourceResolver.resolve
+        ~cfg:cfg.Config.installCfg
+        ~root:cfg.spec.SandboxSpec.path
+        source
+    in
+    let overrides = Overrides.addMany overrides res.SourceResolver.overrides in
+    let%bind manifest =
+      begin match res.SourceResolver.manifest with
+      | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->
+        RunAsync.ofRun (EsyBuild.ofData data)
+      | Some {kind = ManifestSpec.Filename.Opam; filename = _; data; suggestedPackageName;} ->
+        RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
+      | None ->
+        let manifest = empty ~name:None ~version:None () in
+        return (Some manifest)
+      end
+    in
+    begin match manifest with
+    | None ->
+      if Overrides.isEmpty overrides
+      then return (None, Path.Set.empty)
+      else
+        let manifest = empty ~name:None ~version:None () in
+        let manifest = Overrides.apply overrides applyOverride manifest in
+        return (Some manifest, res.SourceResolver.paths)
+    | Some manifest ->
+      let manifest = Overrides.apply overrides applyOverride manifest in
+      return (Some manifest, res.SourceResolver.paths)
+    end
+
+  | Solution.Package.Install { source; overrides; files = _; opam = _; } ->
+    let source , _ = source in
+    let manifest = Source.manifest source in
+    let%bind manifest, paths = ofPath ?manifest loc in
+    let manifest =
+      match manifest with
+      | Some manifest -> Some (Overrides.apply overrides applyOverride manifest)
+      | None ->
+        if Overrides.isEmpty overrides
+        then None
+        else
+          let manifest = empty ~name:None ~version:None () in
+          Some (Overrides.apply overrides applyOverride manifest)
+    in
+    return (manifest, paths)

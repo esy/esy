@@ -4,28 +4,17 @@ const helpers = require('../test/helpers.js');
 
 helpers.skipSuiteOnWindows();
 
-const dummyOCaml = helpers.dir(
-  'ocaml',
-  helpers.packageJson({
-    name: 'ocaml',
-    version: '0.0.0',
-  }),
-);
-
-const dummySubsts = helpers.dir(
-  '@esy-ocaml',
-  helpers.dir(
-    'substs',
-    helpers.packageJson({
-      name: '@esy-ocaml/substs',
-      version: '0.0.0',
-    }),
-  ),
-);
-
 describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
-    const p = await helpers.createTestSandbox(
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.fixture(
       helpers.file(
         'opam',
         `
@@ -38,9 +27,9 @@ describe('build opam sandbox', () => {
       `,
       ),
       helpers.dummyExecutable('hello'),
-      helpers.dir('node_modules', dummyOCaml, dummySubsts),
     );
 
+    await p.esy('install --skip-repository-update');
     await p.esy('build');
 
     {
@@ -75,9 +64,15 @@ describe('build opam sandbox', () => {
         ]
       `,
       ),
-      helpers.dir('node_modules', dummySubsts, dummyOCaml),
     );
 
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.esy('install');
     await p.esy('build');
   });
 
@@ -87,424 +82,428 @@ describe('build opam sandbox', () => {
         'root.opam',
         `
         opam-version: "1.2"
+        version: "in-dev"
         depends: ["dep"]
         build: [
-          ["global-prefix" prefix]
-          ["global-lib" lib]
-          ["global-libexec" libexec]
-          ["global-bin" bin]
-          ["global-sbin" sbin]
-          ["global-share" share]
-          ["global-doc" doc]
-          ["global-etc" etc]
-          ["global-man" man]
-          ["global-toplevel" toplevel]
-          ["global-stublibs" stublibs]
-          ["global-name" name]
-          ["global-version" version]
-          ["global-opam-version" opam-version]
-          ["global-root" root]
-          ["global-jobs" jobs]
-          ["global-make" make]
-          ["global-arch" arch]
-          ["global-os" os]
-          ["global-os-distribution" os-distribution]
-          ["global-os-family" os-family]
-          ["global-os-version" os-version]
+          ["prefix" prefix]
+          ["lib" lib]
+          ["libexec" libexec]
+          ["bin" bin]
+          ["sbin" sbin]
+          ["share" share]
+          ["doc" doc]
+          ["etc" etc]
+          ["man" man]
+          ["toplevel" toplevel]
+          ["stublibs" stublibs]
+          ["name" name]
+          ["version" version]
+          ["opam-version" opam-version]
+          ["root" root]
+          ["jobs" jobs]
+          ["make" make]
+          ["arch" arch]
+          ["os" os]
+          ["os-distribution" os-distribution]
+          ["os-family" os-family]
+          ["os-version" os-version]
 
-          ["self-name" _:name]
-          ["self-version" _:version]
-          ["self-depends" _:depends]
-          ["self-installed" _:installed]
-          ["self-enable" _:enable]
-          ["self-pinned" _:pinned]
-          ["self-bin" _:bin]
-          ["self-sbin" _:sbin]
-          ["self-lib" _:lib]
-          ["self-lib_root" _:lib_root]
-          ["self-libexec" _:libexec]
-          ["self-libexec_root" _:libexec_root]
-          ["self-man" _:man]
-          ["self-doc" _:doc]
-          ["self-share" _:share]
-          ["self-share_root" _:share_root]
-          ["self-etc" _:etc]
-          ["self-toplevel" _:toplevel]
-          ["self-stublibs" _:stublibs]
-          ["self-build" _:build]
-          ["self-hash" _:hash]
-          ["self-dev" _:dev]
-          ["self-build-id" _:build-id]
+          ["_:name" _:name]
+          ["_:version" _:version]
+          ["_:depends" _:depends]
+          ["_:installed" _:installed]
+          ["_:enable" _:enable]
+          ["_:pinned" _:pinned]
+          ["_:bin" _:bin]
+          ["_:sbin" _:sbin]
+          ["_:lib" _:lib]
+          ["_:lib_root" _:lib_root]
+          ["_:libexec" _:libexec]
+          ["_:libexec_root" _:libexec_root]
+          ["_:man" _:man]
+          ["_:doc" _:doc]
+          ["_:share" _:share]
+          ["_:share_root" _:share_root]
+          ["_:etc" _:etc]
+          ["_:toplevel" _:toplevel]
+          ["_:stublibs" _:stublibs]
+          ["_:build" _:build]
+          ["_:hash" _:hash]
+          ["_:dev" _:dev]
+          ["_:build-id" _:build-id]
 
-          ["scoped-name" root:name]
-          ["scoped-version" root:version]
-          ["scoped-depends" root:depends]
-          ["scoped-installed" root:installed]
-          ["scoped-enable" root:enable]
-          ["scoped-pinned" root:pinned]
-          ["scoped-bin" root:bin]
-          ["scoped-sbin" root:sbin]
-          ["scoped-lib" root:lib]
-          ["scoped-lib_root" root:lib_root]
-          ["scoped-libexec" root:libexec]
-          ["scoped-libexec_root" root:libexec_root]
-          ["scoped-man" root:man]
-          ["scoped-doc" root:doc]
-          ["scoped-share" root:share]
-          ["scoped-share_root" root:share_root]
-          ["scoped-etc" root:etc]
-          ["scoped-toplevel" root:toplevel]
-          ["scoped-stublibs" root:stublibs]
-          ["scoped-build" root:build]
-          ["scoped-hash" root:hash]
-          ["scoped-dev" root:dev]
-          ["scoped-build-id" root:build-id]
+          ["root:name" root:name]
+          ["root:version" root:version]
+          ["root:depends" root:depends]
+          ["root:installed" root:installed]
+          ["root:enable" root:enable]
+          ["root:pinned" root:pinned]
+          ["root:bin" root:bin]
+          ["root:sbin" root:sbin]
+          ["root:lib" root:lib]
+          ["root:lib_root" root:lib_root]
+          ["root:libexec" root:libexec]
+          ["root:libexec_root" root:libexec_root]
+          ["root:man" root:man]
+          ["root:doc" root:doc]
+          ["root:share" root:share]
+          ["root:share_root" root:share_root]
+          ["root:etc" root:etc]
+          ["root:toplevel" root:toplevel]
+          ["root:stublibs" root:stublibs]
+          ["root:build" root:build]
+          ["root:hash" root:hash]
+          ["root:dev" root:dev]
+          ["root:build-id" root:build-id]
 
-          ["dep-name" dep:name]
-          ["dep-version" dep:version]
-          ["dep-depends" dep:depends]
-          ["dep-installed" dep:installed]
-          ["dep-enable" dep:enable]
-          ["dep-pinned" dep:pinned]
-          ["dep-bin" dep:bin]
-          ["dep-sbin" dep:sbin]
-          ["dep-lib" dep:lib]
-          ["dep-lib_root" dep:lib_root]
-          ["dep-libexec" dep:libexec]
-          ["dep-libexec_root" dep:libexec_root]
-          ["dep-man" dep:man]
-          ["dep-doc" dep:doc]
-          ["dep-share" dep:share]
-          ["dep-share_root" dep:share_root]
-          ["dep-etc" dep:etc]
-          ["dep-toplevel" dep:toplevel]
-          ["dep-stublibs" dep:stublibs]
-          ["dep-build" dep:build]
-          ["dep-hash" dep:hash]
-          ["dep-dev" dep:dev]
-          ["dep-build-id" dep:build-id]
+          ["dep:name" dep:name]
+          ["dep:version" dep:version]
+          ["dep:depends" dep:depends]
+          ["dep:installed" dep:installed]
+          ["dep:enable" dep:enable]
+          ["dep:pinned" dep:pinned]
+          ["dep:bin" dep:bin]
+          ["dep:sbin" dep:sbin]
+          ["dep:lib" dep:lib]
+          ["dep:lib_root" dep:lib_root]
+          ["dep:libexec" dep:libexec]
+          ["dep:libexec_root" dep:libexec_root]
+          ["dep:man" dep:man]
+          ["dep:doc" dep:doc]
+          ["dep:share" dep:share]
+          ["dep:share_root" dep:share_root]
+          ["dep:etc" dep:etc]
+          ["dep:toplevel" dep:toplevel]
+          ["dep:stublibs" dep:stublibs]
+          ["dep:build" dep:build]
+          ["dep:hash" dep:hash]
+          ["dep:dev" dep:dev]
+          ["dep:build-id" dep:build-id]
         ]
         install: [
-          ["global-prefix" prefix]
-          ["global-lib" lib]
-          ["global-libexec" libexec]
-          ["global-bin" bin]
-          ["global-sbin" sbin]
-          ["global-share" share]
-          ["global-doc" doc]
-          ["global-etc" etc]
-          ["global-man" man]
-          ["global-toplevel" toplevel]
-          ["global-stublibs" stublibs]
-          ["global-name" name]
-          ["global-version" version]
-          ["global-opam-version" opam-version]
-          ["global-root" root]
-          ["global-jobs" jobs]
-          ["global-make" make]
-          ["global-arch" arch]
-          ["global-os" os]
-          ["global-os-distribution" os-distribution]
-          ["global-os-family" os-family]
-          ["global-os-version" os-version]
+          ["prefix" prefix]
+          ["lib" lib]
+          ["libexec" libexec]
+          ["bin" bin]
+          ["sbin" sbin]
+          ["share" share]
+          ["doc" doc]
+          ["etc" etc]
+          ["man" man]
+          ["toplevel" toplevel]
+          ["stublibs" stublibs]
+          ["name" name]
+          ["version" version]
+          ["opam-version" opam-version]
+          ["root" root]
+          ["jobs" jobs]
+          ["make" make]
+          ["arch" arch]
+          ["os" os]
+          ["os-distribution" os-distribution]
+          ["os-family" os-family]
+          ["os-version" os-version]
 
-          ["self-name" _:name]
-          ["self-version" _:version]
-          ["self-depends" _:depends]
-          ["self-installed" _:installed]
-          ["self-enable" _:enable]
-          ["self-pinned" _:pinned]
-          ["self-bin" _:bin]
-          ["self-sbin" _:sbin]
-          ["self-lib" _:lib]
-          ["self-lib_root" _:lib_root]
-          ["self-libexec" _:libexec]
-          ["self-libexec_root" _:libexec_root]
-          ["self-man" _:man]
-          ["self-doc" _:doc]
-          ["self-share" _:share]
-          ["self-share_root" _:share_root]
-          ["self-etc" _:etc]
-          ["self-toplevel" _:toplevel]
-          ["self-stublibs" _:stublibs]
-          ["self-build" _:build]
-          ["self-hash" _:hash]
-          ["self-dev" _:dev]
-          ["self-build-id" _:build-id]
+          ["_:name" _:name]
+          ["_:version" _:version]
+          ["_:depends" _:depends]
+          ["_:installed" _:installed]
+          ["_:enable" _:enable]
+          ["_:pinned" _:pinned]
+          ["_:bin" _:bin]
+          ["_:sbin" _:sbin]
+          ["_:lib" _:lib]
+          ["_:lib_root" _:lib_root]
+          ["_:libexec" _:libexec]
+          ["_:libexec_root" _:libexec_root]
+          ["_:man" _:man]
+          ["_:doc" _:doc]
+          ["_:share" _:share]
+          ["_:share_root" _:share_root]
+          ["_:etc" _:etc]
+          ["_:toplevel" _:toplevel]
+          ["_:stublibs" _:stublibs]
+          ["_:build" _:build]
+          ["_:hash" _:hash]
+          ["_:dev" _:dev]
+          ["_:build-id" _:build-id]
 
-          ["scoped-name" root:name]
-          ["scoped-version" root:version]
-          ["scoped-depends" root:depends]
-          ["scoped-installed" root:installed]
-          ["scoped-enable" root:enable]
-          ["scoped-pinned" root:pinned]
-          ["scoped-bin" root:bin]
-          ["scoped-sbin" root:sbin]
-          ["scoped-lib" root:lib]
-          ["scoped-lib_root" root:lib_root]
-          ["scoped-libexec" root:libexec]
-          ["scoped-libexec_root" root:libexec_root]
-          ["scoped-man" root:man]
-          ["scoped-doc" root:doc]
-          ["scoped-share" root:share]
-          ["scoped-share_root" root:share_root]
-          ["scoped-etc" root:etc]
-          ["scoped-toplevel" root:toplevel]
-          ["scoped-stublibs" root:stublibs]
-          ["scoped-build" root:build]
-          ["scoped-hash" root:hash]
-          ["scoped-dev" root:dev]
-          ["scoped-build-id" root:build-id]
+          ["root:name" root:name]
+          ["root:version" root:version]
+          ["root:depends" root:depends]
+          ["root:installed" root:installed]
+          ["root:enable" root:enable]
+          ["root:pinned" root:pinned]
+          ["root:bin" root:bin]
+          ["root:sbin" root:sbin]
+          ["root:lib" root:lib]
+          ["root:lib_root" root:lib_root]
+          ["root:libexec" root:libexec]
+          ["root:libexec_root" root:libexec_root]
+          ["root:man" root:man]
+          ["root:doc" root:doc]
+          ["root:share" root:share]
+          ["root:share_root" root:share_root]
+          ["root:etc" root:etc]
+          ["root:toplevel" root:toplevel]
+          ["root:stublibs" root:stublibs]
+          ["root:build" root:build]
+          ["root:hash" root:hash]
+          ["root:dev" root:dev]
+          ["root:build-id" root:build-id]
 
-          ["dep-name" dep:name]
-          ["dep-version" dep:version]
-          ["dep-depends" dep:depends]
-          ["dep-installed" dep:installed]
-          ["dep-enable" dep:enable]
-          ["dep-pinned" dep:pinned]
-          ["dep-bin" dep:bin]
-          ["dep-sbin" dep:sbin]
-          ["dep-lib" dep:lib]
-          ["dep-lib_root" dep:lib_root]
-          ["dep-libexec" dep:libexec]
-          ["dep-libexec_root" dep:libexec_root]
-          ["dep-man" dep:man]
-          ["dep-doc" dep:doc]
-          ["dep-share" dep:share]
-          ["dep-share_root" dep:share_root]
-          ["dep-etc" dep:etc]
-          ["dep-toplevel" dep:toplevel]
-          ["dep-stublibs" dep:stublibs]
-          ["dep-build" dep:build]
-          ["dep-hash" dep:hash]
-          ["dep-dev" dep:dev]
-          ["dep-build-id" dep:build-id]
+          ["dep:name" dep:name]
+          ["dep:version" dep:version]
+          ["dep:depends" dep:depends]
+          ["dep:installed" dep:installed]
+          ["dep:enable" dep:enable]
+          ["dep:pinned" dep:pinned]
+          ["dep:bin" dep:bin]
+          ["dep:sbin" dep:sbin]
+          ["dep:lib" dep:lib]
+          ["dep:lib_root" dep:lib_root]
+          ["dep:libexec" dep:libexec]
+          ["dep:libexec_root" dep:libexec_root]
+          ["dep:man" dep:man]
+          ["dep:doc" dep:doc]
+          ["dep:share" dep:share]
+          ["dep:share_root" dep:share_root]
+          ["dep:etc" dep:etc]
+          ["dep:toplevel" dep:toplevel]
+          ["dep:stublibs" dep:stublibs]
+          ["dep:build" dep:build]
+          ["dep:hash" dep:hash]
+          ["dep:dev" dep:dev]
+          ["dep:build-id" dep:build-id]
         ]
       `,
       ),
-      helpers.dir(
-        'node_modules',
-        dummySubsts,
-        dummyOCaml,
-        helpers.dir(
-          '@opam',
-          helpers.dir(
-            'dep',
-            helpers.file(
-              '_esylink',
-              JSON.stringify({
-                source: `path:.`,
-                opam: {
-                  name: 'dep',
-                  version: '1.0.0',
-                  opam: `opam-version: "1.2"`,
-                  override: null,
-                },
-              }),
-            ),
-          ),
-        ),
-      ),
     );
 
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackage({
+      name: 'dep',
+      version: '1.0.0',
+      opam: `
+        opam-version: "1.2"
+      `,
+      url: null,
+    });
+
+    await p.esy('install --skip-repository-update');
     const {stdout} = await p.esy('build-plan');
     const plan = JSON.parse(stdout);
 
-    const {stdout: stdoutDep} = await p.esy('build-plan ./node_modules/@opam/dep');
+    const {stdout: stdoutDep} = await p.esy('build-plan @opam/dep@opam:1.0.0');
     const depPlan = JSON.parse(stdoutDep);
 
-    expect(plan.build).toEqual([
-      ['global-prefix', `%{localStore}%/s/${plan.id}`],
-      ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['global-share', `%{localStore}%/s/${plan.id}/share`],
-      ['global-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['global-etc', `%{localStore}%/s/${plan.id}/etc`],
-      ['global-man', `%{localStore}%/s/${plan.id}/man`],
-      ['global-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['global-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['global-name', `root`],
-      ['global-version', `dev`],
-      ['global-opam-version', '2'],
-      ['global-root', ''],
-      ['global-jobs', '4'],
-      ['global-make', 'make'],
-      ['global-arch', expect.stringContaining('')],
-      ['global-os', expect.stringContaining('')],
-      ['global-os-distribution', expect.stringContaining('')],
-      ['global-os-family', expect.stringContaining('')],
-      ['global-os-version', expect.stringContaining('')],
+    const expectBuild = [
+      ['prefix', `%{localStore}%/s/${plan.id}`],
+      ['lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['libexec', `%{localStore}%/s/${plan.id}/lib`],
+      ['bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['share', `%{localStore}%/s/${plan.id}/share`],
+      ['doc', `%{localStore}%/s/${plan.id}/doc`],
+      ['etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['man', `%{localStore}%/s/${plan.id}/man`],
+      ['toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['name', `root`],
+      ['version', `in-dev`],
+      ['opam-version', '2'],
+      ['root', ''],
+      ['jobs', '4'],
+      ['make', 'make'],
+      ['arch', expect.stringContaining('')],
+      ['os', expect.stringContaining('')],
+      ['os-distribution', expect.stringContaining('')],
+      ['os-family', expect.stringContaining('')],
+      ['os-version', expect.stringContaining('')],
 
-      ['self-name', 'root'],
-      ['self-version', 'dev'],
-      ['self-depends', ''],
-      ['self-installed', 'true'],
-      ['self-enable', 'enable'],
-      ['self-pinned', ''],
-      ['self-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['self-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['self-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['self-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['self-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['self-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['self-man', `%{localStore}%/s/${plan.id}/man`],
-      ['self-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['self-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['self-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['self-etc', `%{localStore}%/s/${plan.id}/etc/root`],
-      ['self-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['self-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['self-build', `%{localStore}%/b/${plan.id}`],
-      ['self-hash', ''],
-      ['self-dev', 'true'],
-      ['self-build-id', plan.id],
+      ['_:name', 'root'],
+      ['_:version', 'in-dev'],
+      ['_:depends', ''],
+      ['_:installed', 'true'],
+      ['_:enable', 'enable'],
+      ['_:pinned', ''],
+      ['_:bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['_:sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['_:lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['_:lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['_:libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['_:libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['_:man', `%{localStore}%/s/${plan.id}/man`],
+      ['_:doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['_:share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['_:share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['_:etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['_:toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['_:stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['_:build', `%{localStore}%/b/${plan.id}`],
+      ['_:hash', ''],
+      ['_:dev', 'true'],
+      ['_:build-id', plan.id],
 
-      ['scoped-name', 'root'],
-      ['scoped-version', 'dev'],
-      ['scoped-depends', ''],
-      ['scoped-installed', 'false'],
-      ['scoped-enable', 'disable'],
-      ['scoped-pinned', ''],
-      ['scoped-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['scoped-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['scoped-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['scoped-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['scoped-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['scoped-man', `%{localStore}%/s/${plan.id}/man`],
-      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['scoped-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['scoped-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc/root`],
-      ['scoped-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['scoped-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['scoped-build', `%{localStore}%/b/${plan.id}`],
-      ['scoped-hash', ''],
-      ['scoped-dev', 'true'],
-      ['scoped-build-id', plan.id],
+      ['root:name', 'root'],
+      ['root:version', 'in-dev'],
+      ['root:depends', ''],
+      ['root:installed', 'false'],
+      ['root:enable', 'disable'],
+      ['root:pinned', ''],
+      ['root:bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['root:sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['root:lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['root:lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['root:libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['root:libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['root:man', `%{localStore}%/s/${plan.id}/man`],
+      ['root:doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['root:share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['root:share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['root:etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['root:toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['root:stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['root:build', `%{localStore}%/b/${plan.id}`],
+      ['root:hash', ''],
+      ['root:dev', 'true'],
+      ['root:build-id', plan.id],
 
-      ['dep-name', 'dep'],
-      ['dep-version', '1.0.0'],
-      ['dep-depends', ''],
-      ['dep-installed', 'true'],
-      ['dep-enable', 'enable'],
-      ['dep-pinned', ''],
-      ['dep-bin', `%{store}%/i/${depPlan.id}/bin`],
-      ['dep-sbin', `%{store}%/i/${depPlan.id}/sbin`],
-      ['dep-lib', `%{store}%/i/${depPlan.id}/lib/dep`],
-      ['dep-lib_root', `%{store}%/i/${depPlan.id}/lib`],
-      ['dep-libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
-      ['dep-libexec_root', `%{store}%/i/${depPlan.id}/lib`],
-      ['dep-man', `%{store}%/i/${depPlan.id}/man`],
-      ['dep-doc', `%{store}%/i/${depPlan.id}/doc/dep`],
-      ['dep-share', `%{store}%/i/${depPlan.id}/share/dep`],
-      ['dep-share_root', `%{store}%/i/${depPlan.id}/share`],
-      ['dep-etc', `%{store}%/i/${depPlan.id}/etc/dep`],
-      ['dep-toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
-      ['dep-stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
-      ['dep-build', `%{store}%/b/${depPlan.id}`],
-      ['dep-hash', ''],
-      ['dep-dev', 'false'],
-      ['dep-build-id', depPlan.id],
-    ]);
+      ['dep:name', 'dep'],
+      ['dep:version', '1.0.0'],
+      ['dep:depends', ''],
+      ['dep:installed', 'true'],
+      ['dep:enable', 'enable'],
+      ['dep:pinned', ''],
+      ['dep:bin', `%{store}%/i/${depPlan.id}/bin`],
+      ['dep:sbin', `%{store}%/i/${depPlan.id}/sbin`],
+      ['dep:lib', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep:lib_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep:libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep:libexec_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep:man', `%{store}%/i/${depPlan.id}/man`],
+      ['dep:doc', `%{store}%/i/${depPlan.id}/doc/dep`],
+      ['dep:share', `%{store}%/i/${depPlan.id}/share/dep`],
+      ['dep:share_root', `%{store}%/i/${depPlan.id}/share`],
+      ['dep:etc', `%{store}%/i/${depPlan.id}/etc/dep`],
+      ['dep:toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
+      ['dep:stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
+      ['dep:build', `%{store}%/b/${depPlan.id}`],
+      ['dep:hash', ''],
+      ['dep:dev', 'false'],
+      ['dep:build-id', depPlan.id],
+    ];
 
-    expect(plan.install).toEqual([
-      ['global-prefix', `%{localStore}%/s/${plan.id}`],
-      ['global-lib', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-libexec', `%{localStore}%/s/${plan.id}/lib`],
-      ['global-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['global-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['global-share', `%{localStore}%/s/${plan.id}/share`],
-      ['global-doc', `%{localStore}%/s/${plan.id}/doc`],
-      ['global-etc', `%{localStore}%/s/${plan.id}/etc`],
-      ['global-man', `%{localStore}%/s/${plan.id}/man`],
-      ['global-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['global-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['global-name', `root`],
-      ['global-version', `dev`],
-      ['global-opam-version', '2'],
-      ['global-root', ''],
-      ['global-jobs', '4'],
-      ['global-make', 'make'],
-      ['global-arch', expect.stringContaining('')],
-      ['global-os', expect.stringContaining('')],
-      ['global-os-distribution', expect.stringContaining('')],
-      ['global-os-family', expect.stringContaining('')],
-      ['global-os-version', expect.stringContaining('')],
+    for (let i = 0; i < expectBuild.length; i++) {
+      expect(plan.build[i]).toEqual(expectBuild[i]);
+    }
+    expect(plan.build.length).toBe(expectBuild.length);
 
-      ['self-name', 'root'],
-      ['self-version', 'dev'],
-      ['self-depends', ''],
-      ['self-installed', 'true'],
-      ['self-enable', 'enable'],
-      ['self-pinned', ''],
-      ['self-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['self-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['self-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['self-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['self-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['self-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['self-man', `%{localStore}%/s/${plan.id}/man`],
-      ['self-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['self-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['self-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['self-etc', `%{localStore}%/s/${plan.id}/etc/root`],
-      ['self-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['self-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['self-build', `%{localStore}%/b/${plan.id}`],
-      ['self-hash', ''],
-      ['self-dev', 'true'],
-      ['self-build-id', plan.id],
+    const expectInstall = [
+      ['prefix', `%{localStore}%/s/${plan.id}`],
+      ['lib', `%{localStore}%/s/${plan.id}/lib`],
+      ['libexec', `%{localStore}%/s/${plan.id}/lib`],
+      ['bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['share', `%{localStore}%/s/${plan.id}/share`],
+      ['doc', `%{localStore}%/s/${plan.id}/doc`],
+      ['etc', `%{localStore}%/s/${plan.id}/etc`],
+      ['man', `%{localStore}%/s/${plan.id}/man`],
+      ['toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['name', `root`],
+      ['version', `in-dev`],
+      ['opam-version', '2'],
+      ['root', ''],
+      ['jobs', '4'],
+      ['make', 'make'],
+      ['arch', expect.stringContaining('')],
+      ['os', expect.stringContaining('')],
+      ['os-distribution', expect.stringContaining('')],
+      ['os-family', expect.stringContaining('')],
+      ['os-version', expect.stringContaining('')],
 
-      ['scoped-name', 'root'],
-      ['scoped-version', 'dev'],
-      ['scoped-depends', ''],
-      ['scoped-installed', 'false'],
-      ['scoped-enable', 'disable'],
-      ['scoped-pinned', ''],
-      ['scoped-bin', `%{localStore}%/s/${plan.id}/bin`],
-      ['scoped-sbin', `%{localStore}%/s/${plan.id}/sbin`],
-      ['scoped-lib', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['scoped-lib_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['scoped-libexec', `%{localStore}%/s/${plan.id}/lib/root`],
-      ['scoped-libexec_root', `%{localStore}%/s/${plan.id}/lib`],
-      ['scoped-man', `%{localStore}%/s/${plan.id}/man`],
-      ['scoped-doc', `%{localStore}%/s/${plan.id}/doc/root`],
-      ['scoped-share', `%{localStore}%/s/${plan.id}/share/root`],
-      ['scoped-share_root', `%{localStore}%/s/${plan.id}/share`],
-      ['scoped-etc', `%{localStore}%/s/${plan.id}/etc/root`],
-      ['scoped-toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
-      ['scoped-stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
-      ['scoped-build', `%{localStore}%/b/${plan.id}`],
-      ['scoped-hash', ''],
-      ['scoped-dev', 'true'],
-      ['scoped-build-id', plan.id],
+      ['_:name', 'root'],
+      ['_:version', 'in-dev'],
+      ['_:depends', ''],
+      ['_:installed', 'true'],
+      ['_:enable', 'enable'],
+      ['_:pinned', ''],
+      ['_:bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['_:sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['_:lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['_:lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['_:libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['_:libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['_:man', `%{localStore}%/s/${plan.id}/man`],
+      ['_:doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['_:share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['_:share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['_:etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['_:toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['_:stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['_:build', `%{localStore}%/b/${plan.id}`],
+      ['_:hash', ''],
+      ['_:dev', 'true'],
+      ['_:build-id', plan.id],
 
-      ['dep-name', 'dep'],
-      ['dep-version', '1.0.0'],
-      ['dep-depends', ''],
-      ['dep-installed', 'true'],
-      ['dep-enable', 'enable'],
-      ['dep-pinned', ''],
-      ['dep-bin', `%{store}%/i/${depPlan.id}/bin`],
-      ['dep-sbin', `%{store}%/i/${depPlan.id}/sbin`],
-      ['dep-lib', `%{store}%/i/${depPlan.id}/lib/dep`],
-      ['dep-lib_root', `%{store}%/i/${depPlan.id}/lib`],
-      ['dep-libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
-      ['dep-libexec_root', `%{store}%/i/${depPlan.id}/lib`],
-      ['dep-man', `%{store}%/i/${depPlan.id}/man`],
-      ['dep-doc', `%{store}%/i/${depPlan.id}/doc/dep`],
-      ['dep-share', `%{store}%/i/${depPlan.id}/share/dep`],
-      ['dep-share_root', `%{store}%/i/${depPlan.id}/share`],
-      ['dep-etc', `%{store}%/i/${depPlan.id}/etc/dep`],
-      ['dep-toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
-      ['dep-stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
-      ['dep-build', `%{store}%/b/${depPlan.id}`],
-      ['dep-hash', ''],
-      ['dep-dev', 'false'],
-      ['dep-build-id', depPlan.id],
-    ]);
+      ['root:name', 'root'],
+      ['root:version', 'in-dev'],
+      ['root:depends', ''],
+      ['root:installed', 'false'],
+      ['root:enable', 'disable'],
+      ['root:pinned', ''],
+      ['root:bin', `%{localStore}%/s/${plan.id}/bin`],
+      ['root:sbin', `%{localStore}%/s/${plan.id}/sbin`],
+      ['root:lib', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['root:lib_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['root:libexec', `%{localStore}%/s/${plan.id}/lib/root`],
+      ['root:libexec_root', `%{localStore}%/s/${plan.id}/lib`],
+      ['root:man', `%{localStore}%/s/${plan.id}/man`],
+      ['root:doc', `%{localStore}%/s/${plan.id}/doc/root`],
+      ['root:share', `%{localStore}%/s/${plan.id}/share/root`],
+      ['root:share_root', `%{localStore}%/s/${plan.id}/share`],
+      ['root:etc', `%{localStore}%/s/${plan.id}/etc/root`],
+      ['root:toplevel', `%{localStore}%/s/${plan.id}/toplevel`],
+      ['root:stublibs', `%{localStore}%/s/${plan.id}/stublibs`],
+      ['root:build', `%{localStore}%/b/${plan.id}`],
+      ['root:hash', ''],
+      ['root:dev', 'true'],
+      ['root:build-id', plan.id],
+
+      ['dep:name', 'dep'],
+      ['dep:version', '1.0.0'],
+      ['dep:depends', ''],
+      ['dep:installed', 'true'],
+      ['dep:enable', 'enable'],
+      ['dep:pinned', ''],
+      ['dep:bin', `%{store}%/i/${depPlan.id}/bin`],
+      ['dep:sbin', `%{store}%/i/${depPlan.id}/sbin`],
+      ['dep:lib', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep:lib_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep:libexec', `%{store}%/i/${depPlan.id}/lib/dep`],
+      ['dep:libexec_root', `%{store}%/i/${depPlan.id}/lib`],
+      ['dep:man', `%{store}%/i/${depPlan.id}/man`],
+      ['dep:doc', `%{store}%/i/${depPlan.id}/doc/dep`],
+      ['dep:share', `%{store}%/i/${depPlan.id}/share/dep`],
+      ['dep:share_root', `%{store}%/i/${depPlan.id}/share`],
+      ['dep:etc', `%{store}%/i/${depPlan.id}/etc/dep`],
+      ['dep:toplevel', `%{store}%/i/${depPlan.id}/toplevel`],
+      ['dep:stublibs', `%{store}%/i/${depPlan.id}/stublibs`],
+      ['dep:build', `%{store}%/b/${depPlan.id}`],
+      ['dep:hash', ''],
+      ['dep:dev', 'false'],
+      ['dep:build-id', depPlan.id],
+    ];
+
+    for (let i = 0; i < expectInstall.length; i++) {
+      expect(plan.install[i]).toEqual(expectInstall[i]);
+    }
+    expect(plan.install.length).toBe(expectInstall.length);
   });
 });

@@ -16,11 +16,11 @@ type t =
     }
   | LocalPath of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPathLink of {
       path : Path.t;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | NoSource
 
@@ -37,7 +37,7 @@ val parse : string -> (t, string) result
 val parserRelaxed : t Parse.t
 val parseRelaxed : string -> (t, string) result
 
-val manifest : t -> ManifestSpec.Filename.t option
+val manifest : t -> ManifestSpec.t option
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

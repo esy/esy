@@ -25,11 +25,11 @@ describe('build errors', function() {
       }),
     );
 
-    const err = await expectAndReturnRejection(p.esy('build'));
+    const err = await expectAndReturnRejection(p.esy('install'));
     expect(err.stderr.trim()).toEqual(
       outdent`
       error: expected object
-        reading package metadata from path:./package.json
+        reading package metadata from link:./package.json
         loading root package metadata
       esy: exiting due to errors above
       `,
@@ -42,29 +42,25 @@ describe('build errors', function() {
       packageJson({
         name: 'root',
         esy: {},
-        dependencies: {dep: '*'},
+        dependencies: {dep: 'path:./dep'},
       }),
       dir(
-        'node_modules',
-        dir(
-          'dep',
-          packageJson({
-            name: 'dep',
-            version: '0.0.0',
-            esy: {},
-            dependencies: [],
-          }),
-        ),
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '0.0.0',
+          esy: {},
+          dependencies: [],
+        }),
       ),
     );
 
-    const err = await expectAndReturnRejection(p.esy('build'));
+    const err = await expectAndReturnRejection(p.esy('install'));
     expect(err.stderr).toMatch(
       outdent`
-      error: invalid package dep: error: expected object
-        reading package metadata from node_modules/dep
-        loading root package metadata
-        processing package: root@0.0.0
+      error: expected object
+        reading package metadata from path:dep
+        resolving metadata dep@path:dep
       esy: exiting due to errors above
       `,
     );
@@ -79,13 +75,14 @@ describe('build errors', function() {
       }),
     );
 
+    await p.esy('install');
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
       error: command failed: 'false'
       esy-build-package: exiting with errors above...
-      error: build failed
-        building root@0.0.0
+      error: build failed with exit code: 1
+        
       esy: exiting due to errors above
       `,
     );
@@ -97,32 +94,30 @@ describe('build errors', function() {
       packageJson({
         name: 'root',
         esy: {},
-        dependencies: {dep: '*'},
+        dependencies: {dep: 'path:./dep'},
       }),
       dir(
-        'node_modules',
-        dir(
-          'dep',
-          packageJson({
-            name: 'dep',
-            version: '0.0.0',
-            esy: {build: 'false'},
-          }),
-        ),
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '0.0.0',
+          esy: {build: 'false'},
+        }),
       ),
     );
 
+    await p.esy('install');
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
-      error: build failed
+      error: build failed with exit code: 1
         build log:
-          # esy-build-package: building: dep@0.0.0
+          # esy-build-package: building: dep@path:dep
           # esy-build-package: running: 'false'
           error: command failed: 'false'
           esy-build-package: exiting with errors above...
           
-        building dep@0.0.0
+        building dep@path:dep
       esy: exiting due to errors above
       `,
     );

@@ -23,6 +23,7 @@ const fixture = [
 it('Build - sandbox stress', async () => {
   expect.assertions(1);
   const p = await createTestSandbox(...fixture);
+  await p.esy('install');
   await p.esy('build');
   const {stdout} = await p.esy('x echo ok');
   expect(stdout).toEqual(expect.stringMatching('ok'));

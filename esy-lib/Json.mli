@@ -18,6 +18,8 @@ module Decode : sig
   val string : t -> (string, string) result
   val assoc : t -> ((string * t) list, string) result
 
+  val nullable : 'a decoder -> 'a option decoder
+
   val field : name:string -> t -> (t, string) result
   val fieldOpt : name:string -> t -> (t option, string) result
 
@@ -28,4 +30,10 @@ module Decode : sig
   val stringMap : ?errorMsg:string -> 'a decoder -> 'a StringMap.t decoder
 
   val cmd : ?errorMsg:string -> Cmd.t decoder
+end
+
+module Encode : sig
+  val opt : 'a encoder -> 'a option encoder
+  val list : 'a encoder -> 'a list encoder
+  val string : string -> t
 end

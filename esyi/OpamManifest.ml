@@ -243,21 +243,23 @@ let toOpamFormula reqs =
 
 let convertDependencies manifest =
   let open Result.Syntax in
-  let filterAndConvertOpamFormula ~build ~post ~test ~doc ~dev f =
-    let open Result.Syntax in
-    let%bind f =
-      let f =
-        let env var =
-          match OpamVariable.Full.to_string var with
-          | "test" -> Some (OpamVariable.B test)
-          | "doc" -> Some (OpamVariable.B doc)
-          | _ -> None
-        in
-        OpamFilter.partial_filter_formula env f
+
+  let filterOpamFormula ~build ~post ~test ~doc ~dev f =
+    let f =
+      let env var =
+        match OpamVariable.Full.to_string var with
+        | "test" -> Some (OpamVariable.B test)
+        | "doc" -> Some (OpamVariable.B doc)
+        | _ -> None
       in
-      try return (OpamFilter.filter_deps ~default:true ~build ~post ~test ~doc ~dev f)
-      with Failure msg -> Error msg
+      OpamFilter.partial_filter_formula env f
     in
+    try return (OpamFilter.filter_deps ~default:true ~build ~post ~test ~doc ~dev f)
+    with Failure msg -> Error msg
+  in
+
+  let filterAndConvertOpamFormula ~build ~post ~test ~doc ~dev f =
+    let%bind f = filterOpamFormula ~build ~post ~test ~doc ~dev f in
     convertOpamFormula f
   in
 
@@ -289,7 +291,21 @@ let convertDependencies manifest =
     in return (Package.Dependencies.OpamFormula formula)
   in
 
-  return (dependencies, devDependencies)
+  let%bind optDependencies =
+    let%bind formula =
+      filterOpamFormula
+        ~build:false ~post:false ~test:true ~doc:true ~dev:true
+        (OpamFile.OPAM.depopts manifest.opam)
+    in
+    return (
+      formula
+      |> OpamFormula.atoms
+      |> List.map ~f:(fun (name, _) -> "@opam/" ^ OpamPackage.Name.to_string name)
+      |> StringSet.of_list
+    )
+  in
+
+  return (dependencies, devDependencies, optDependencies)
 
 let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   let open RunAsync.Syntax in
@@ -302,18 +318,44 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   let converted =
     let open Result.Syntax in
     let%bind source = convertOpamUrl manifest in
-    let%bind dependencies, devDependencies = convertDependencies manifest in
-    return (source, dependencies, devDependencies)
+    let%bind dependencies, devDependencies, optDependencies = convertDependencies manifest in
+    return (source, dependencies, devDependencies, optDependencies)
   in
 
   match converted with
   | Error err -> return (Error err)
-  | Ok (sourceFromOpam, dependencies, devDependencies) ->
+  | Ok (sourceFromOpam, dependencies, devDependencies, optDependencies) ->
+
+    let opam = Some {
+      Package.Opam.
+      name = manifest.name;
+      version = manifest.version;
+      files = (
+        match ignoreFiles, manifest.path with
+        | true, _
+        | false, None -> (fun () -> return [])
+        | false, Some path -> readOpamFilesForPackage path
+      );
+      opam = manifest.opam;
+      override = {manifest.override with opam = Override.Opam.empty};
+    } in
 
     let source =
       match source with
-      | None -> sourceFromOpam
-      | Some source -> source, []
+      | None ->
+        Package.Install {
+          source = sourceFromOpam;
+          overrides = Package.Overrides.empty;
+          opam;
+        }
+      | Some (Source.LocalPathLink {path; manifest;}) ->
+        Package.Link {path; manifest; overrides = Package.Overrides.empty;}
+      | Some source ->
+        Package.Install {
+          source = source, [];
+          overrides = Package.Overrides.empty;
+          opam;
+        }
     in
 
     return (Ok {
@@ -324,21 +366,8 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalName = None;
       kind = Package.Esy;
       source;
-      overrides = Package.Overrides.empty;
-      opam = Some {
-        Package.Opam.
-        name = manifest.name;
-        version = manifest.version;
-        files = (
-          match ignoreFiles, manifest.path with
-          | true, _
-          | false, None -> (fun () -> return [])
-          | false, Some path -> readOpamFilesForPackage path
-        );
-        opam = manifest.opam;
-        override = {manifest.override with opam = Override.Opam.empty};
-      };
       dependencies;
       devDependencies;
+      optDependencies;
       resolutions = Package.Resolutions.empty;
     })

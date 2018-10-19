@@ -1,24 +1,34 @@
 module Store = EsyLib.Store;
 
 type t = {
-  fastreplacestringPath: Fpath.t,
   projectPath: Fpath.t,
   buildPath: Fpath.t,
   storePath: Fpath.t,
   localStorePath: Fpath.t,
+  fastreplacestringCmd: Cmd.t,
 };
 
 type config = t;
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
+let initStore = (path: Fpath.t) =>
+  Run.(
+    {
+      let%bind () = mkdir(Fpath.(path / "i"));
+      let%bind () = mkdir(Fpath.(path / "b"));
+      let%bind () = mkdir(Fpath.(path / "s"));
+      return();
+    }
+  );
+
 let make =
     (
-      ~fastreplacestringPath=?,
       ~storePath=?,
       ~projectPath,
       ~buildPath,
       ~localStorePath,
+      ~fastreplacestringCmd,
       (),
     ) =>
   Run.(
@@ -32,17 +42,25 @@ let make =
           let%bind padding = Store.getPadding(prefixPath);
           return(prefixPath / (Store.version ++ padding));
         };
-      let fastreplacestringPath =
-        switch (fastreplacestringPath) {
-        | Some(p) => p
-        | None => Fpath.v("fastreplacestring.exe")
+      let%bind () = initStore(storePath);
+      let%bind () = {
+        let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
+        if%bind (exists(shortcutPath)) {
+          return();
+        } else {
+          symlink(
+            ~target=storePath,
+            EsyLib.Path.(parent(storePath) / Store.version),
+          );
         };
+      };
+      let%bind () = initStore(localStorePath);
       return({
-        fastreplacestringPath,
         projectPath,
         storePath,
         localStorePath,
         buildPath,
+        fastreplacestringCmd,
       });
     }
   );

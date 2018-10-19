@@ -15,7 +15,7 @@ describe('Variables available for builds', () => {
         name: 'root',
         version: '0.1.0',
         dependencies: {
-          dep: '*',
+          dep: 'link:./dep',
         },
         esy: {
           buildsInSource: true,
@@ -137,61 +137,59 @@ describe('Variables available for builds', () => {
         `,
       ),
       dir(
-        'node_modules',
-        dir(
-          'dep',
-          packageJson({
-            name: 'dep',
-            version: '0.2.0',
-            esy: {
-              buildsInSource: true,
-              buildEnv: {
-                build_dep_name: '#{self.name}',
-                build_dep_version: '#{self.version}',
-                build_dep_root: '#{self.root}',
-                build_dep_original_root: '#{self.original_root}',
-                build_dep_target_dir: '#{self.target_dir}',
-                build_dep_install: '#{self.install}',
-                build_dep_bin: '#{self.bin}',
-                build_dep_sbin: '#{self.sbin}',
-                build_dep_lib: '#{self.lib}',
-                build_dep_man: '#{self.man}',
-                build_dep_doc: '#{self.doc}',
-                build_dep_stublibs: '#{self.stublibs}',
-                build_dep_toplevel: '#{self.toplevel}',
-                build_dep_share: '#{self.share}',
-                build_dep_etc: '#{self.etc}',
-              },
-              exportedEnv: {
-                export_dep_id: {val: '#{self.id}', scope: 'global'},
-                export_dep_name: {val: '#{self.name}', scope: 'global'},
-                export_dep_version: {val: '#{self.version}', scope: 'global'},
-                export_dep_root: {val: '#{self.root}', scope: 'global'},
-                export_dep_original_root: {val: '#{self.original_root}', scope: 'global'},
-                export_dep_target_dir: {val: '#{self.target_dir}', scope: 'global'},
-                export_dep_install: {val: '#{self.install}', scope: 'global'},
-                export_dep_bin: {val: '#{self.bin}', scope: 'global'},
-                export_dep_sbin: {val: '#{self.sbin}', scope: 'global'},
-                export_dep_lib: {val: '#{self.lib}', scope: 'global'},
-                export_dep_man: {val: '#{self.man}', scope: 'global'},
-                export_dep_doc: {val: '#{self.doc}', scope: 'global'},
-                export_dep_stublibs: {val: '#{self.stublibs}', scope: 'global'},
-                export_dep_toplevel: {val: '#{self.toplevel}', scope: 'global'},
-                export_dep_share: {val: '#{self.share}', scope: 'global'},
-                export_dep_etc: {val: '#{self.etc}', scope: 'global'},
-              },
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '0.2.0',
+          esy: {
+            buildsInSource: true,
+            buildEnv: {
+              build_dep_name: '#{self.name}',
+              build_dep_version: '#{self.version}',
+              build_dep_root: '#{self.root}',
+              build_dep_original_root: '#{self.original_root}',
+              build_dep_target_dir: '#{self.target_dir}',
+              build_dep_install: '#{self.install}',
+              build_dep_bin: '#{self.bin}',
+              build_dep_sbin: '#{self.sbin}',
+              build_dep_lib: '#{self.lib}',
+              build_dep_man: '#{self.man}',
+              build_dep_doc: '#{self.doc}',
+              build_dep_stublibs: '#{self.stublibs}',
+              build_dep_toplevel: '#{self.toplevel}',
+              build_dep_share: '#{self.share}',
+              build_dep_etc: '#{self.etc}',
             },
-          }),
-        ),
+            exportedEnv: {
+              export_dep_id: {val: '#{self.id}', scope: 'global'},
+              export_dep_name: {val: '#{self.name}', scope: 'global'},
+              export_dep_version: {val: '#{self.version}', scope: 'global'},
+              export_dep_root: {val: '#{self.root}', scope: 'global'},
+              export_dep_original_root: {val: '#{self.original_root}', scope: 'global'},
+              export_dep_target_dir: {val: '#{self.target_dir}', scope: 'global'},
+              export_dep_install: {val: '#{self.install}', scope: 'global'},
+              export_dep_bin: {val: '#{self.bin}', scope: 'global'},
+              export_dep_sbin: {val: '#{self.sbin}', scope: 'global'},
+              export_dep_lib: {val: '#{self.lib}', scope: 'global'},
+              export_dep_man: {val: '#{self.man}', scope: 'global'},
+              export_dep_doc: {val: '#{self.doc}', scope: 'global'},
+              export_dep_stublibs: {val: '#{self.stublibs}', scope: 'global'},
+              export_dep_toplevel: {val: '#{self.toplevel}', scope: 'global'},
+              export_dep_share: {val: '#{self.share}', scope: 'global'},
+              export_dep_etc: {val: '#{self.etc}', scope: 'global'},
+            },
+          },
+        }),
       ),
     );
+    await p.esy('install');
     await p.esy('build');
 
     const localStorePath = (...segments) =>
       path.join(p.projectPath, '_esy', 'default', 'store', ...segments);
 
     const rootId = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan ./node_modules/dep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan dep@link:dep')).stdout).id;
 
     const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual(outdent`
@@ -245,7 +243,7 @@ export_root_etc=${localStorePath('i', rootId, 'etc')}
 export_dep_name=dep
 export_dep_version=0.2.0
 export_dep_root=${localStorePath('b', depId)}
-export_dep_original_root=${path.join(p.projectPath, 'node_modules', 'dep')}
+export_dep_original_root=${path.join(p.projectPath, 'dep')}
 export_dep_target_dir=${localStorePath('b', depId)}
 export_dep_install=${localStorePath('i', depId)}
 export_dep_bin=${localStorePath('i', depId, 'bin')}

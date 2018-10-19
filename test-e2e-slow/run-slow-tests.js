@@ -4,17 +4,22 @@ const {execSync} = require('child_process');
 const os = require('os');
 
 const isTaggedCommit = () => {
-  return process.env['TRAVIS_TAG'] !== '' || process.env['APPVEYOR_REPO_TAG'] === 'true';
+  const TRAVIS_TAG = process.env['TRAVIS_TAG'];
+  const APPVEYOR_REPO_TAG = process.env['APPVEYOR_REPO_TAG'];
+  return (
+    (TRAVIS_TAG != null && TRAVIS_TAG !== '') ||
+    (APPVEYOR_REPO_TAG != null && APPVEYOR_REPO_TAG === 'true')
+  );
 };
 
 const getCommitMessage = () => {
-  let travisCommit = process.env['TRAVIS_COMMIT_MESSAGE'];
-  let appVeyorCommit = process.env['APPVEYOR_REPO_COMMIT_MESSAGE'];
+  const TRAVIS_COMMIT_MESSAGE = process.env['TRAVIS_COMMIT_MESSAGE'];
+  const APPVEYOR_REPO_COMMIT_MESSAGE = process.env['APPVEYOR_REPO_COMMIT_MESSAGE'];
 
-  if (travisCommit) {
-    return travisCommit;
-  } else if (appVeyorCommit) {
-    return appVeyorCommit;
+  if (TRAVIS_COMMIT_MESSAGE) {
+    return TRAVIS_COMMIT_MESSAGE;
+  } else if (APPVEYOR_REPO_COMMIT_MESSAGE) {
+    return APPVEYOR_REPO_COMMIT_MESSAGE;
   } else {
     return execSync('git log -n1').toString('utf8');
   }
@@ -30,6 +35,8 @@ const shouldRunSlowtests =
 if (!shouldRunSlowtests) {
   console.warn('Not running slowtests - commit message was: ' + latestCommit);
   process.exit(0);
+} else {
+  console.log('Running slowtests!' + latestCommit);
 }
 
 const isWindows = os.platform() === 'win32';

@@ -1,11 +1,18 @@
-type env = [
+type env =
   (* Use current env *)
-  | `CurrentEnv
+  | CurrentEnv
   (* Use current env add some override on top *)
-  | `CurrentEnvOverride of string StringMap.t
+  | CurrentEnvOverride of string StringMap.t
   (* Use custom env *)
-  | `CustomEnv of string StringMap.t
-]
+  | CustomEnv of string StringMap.t
+
+let pp_env fmt env =
+  match env with
+  | CurrentEnv -> Fmt.unit "CurrentEnv" fmt ()
+  | CurrentEnvOverride env ->
+    Fmt.pf fmt "CustomEnvOverride %a" (Astring.String.Map.pp Fmt.(pair string string)) env
+  | CustomEnv env ->
+    Fmt.pf fmt "CustomEnv %a" (Astring.String.Map.pp Fmt.(pair string string)) env
 
 let currentEnv =
   let parse item =
@@ -42,12 +49,10 @@ let resolveCmdInEnv ~env prg =
     String.split_on_char (System.Environment.sep ()).[0] v
   in Run.ofBosError (Cmd.resolveCmd path prg)
 
-let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
-  let open RunAsync.Syntax in
-
+let prepareEnv env =
   let env = match env with
-    | `CurrentEnv -> None
-    | `CurrentEnvOverride env ->
+    | CurrentEnv -> None
+    | CurrentEnvOverride env ->
       let env =
         Astring.String.Map.fold
           Astring.String.Map.add
@@ -55,29 +60,39 @@ let withProcess ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?
           currentEnv
       in
       Some env
-    | `CustomEnv env -> Some env
+    | CustomEnv env -> Some env
   in
+  let f env =
+    let array =
+      env
+      |> StringMap.bindings
+      |> List.map ~f:(fun (name, value) -> name ^ "=" ^ value)
+      |> Array.of_list
+    in
+    env, array
+  in
+  Option.map ~f env
+
+
+let withProcess ?(env=CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stdout ?stderr cmd f =
+  let open RunAsync.Syntax in
+
+  let env = prepareEnv env in
 
   let%bind cmd = RunAsync.ofRun (
       let open Run.Syntax in
       let prg, args = Cmd.getToolAndArgs cmd in
       let%bind prg =
         match resolveProgramInEnv, env with
-        | true, Some env ->
+        | true, Some (env, _) ->
           resolveCmdInEnv ~env prg
         | _ -> Ok prg
       in
       return ("", Array.of_list (prg::args))
     ) in
 
-  let env = Option.map env ~f:(fun env -> env
-                                              |> StringMap.bindings
-                                              |> List.map ~f:(fun (name, value) -> name ^ "=" ^ value)
-                                              |> Array.of_list)
-  in
-
   try%lwt
-    Lwt_process.with_process_none ?env ?stdin ?stdout ?stderr cmd f
+    Lwt_process.with_process_none ?env:(Option.map ~f:snd env) ?stdin ?stdout ?stderr cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -106,7 +121,7 @@ let runToStatus ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd =
   in
   withProcess ?env ?resolveProgramInEnv ?stdin ?stdout ?stderr cmd f
 
-let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
+let runOut ?(env=CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
   let open RunAsync.Syntax in
 
   (* 
@@ -114,8 +129,8 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
    *)
 
   let env = match env with
-    | `CurrentEnv -> None
-    | `CurrentEnvOverride env ->
+    | CurrentEnv -> None
+    | CurrentEnvOverride env ->
       let env =
         Astring.String.Map.fold
           Astring.String.Map.add
@@ -123,7 +138,7 @@ let runOut ?(env=`CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
           currentEnv
       in
       Some env
-    | `CustomEnv env -> Some env
+    | CustomEnv env -> Some env
   in
 
   let%bind cmdLwt = RunAsync.ofRun (

@@ -115,11 +115,19 @@ describe(`Basic tests`, () => {
 
     await p.esy(`install`);
 
-    await expect(
-      p.runJavaScriptInNodeAndReturnJson(`require('apkg-dep/package.json')`),
-    ).resolves.toMatchObject({
-      name: 'apkg-dep',
-      version: `2.0.0`,
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
+      dependencies: {
+        apkg: {
+          name: 'apkg',
+          version: `1.0.0`,
+          dependencies: {
+            'apkg-dep': {
+              name: 'apkg-dep',
+              version: `2.0.0`,
+            },
+          },
+        },
+      },
     });
   });
 
@@ -149,7 +157,7 @@ describe(`Basic tests`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -190,7 +198,7 @@ describe(`Basic tests`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -234,7 +242,7 @@ describe(`Basic tests`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -281,7 +289,7 @@ describe(`Basic tests`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {

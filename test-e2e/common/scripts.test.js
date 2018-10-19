@@ -42,6 +42,7 @@ const fixture = [
 
 it('Common - scripts', async () => {
   const p = await createTestSandbox(...fixture);
+  await p.esy('install');
   await p.esy('build');
 
   await expect(p.esy('cmd1')).resolves.toEqual(

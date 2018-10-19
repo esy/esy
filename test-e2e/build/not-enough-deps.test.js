@@ -23,10 +23,7 @@ describe('Build - not enough deps', () => {
 
     await p.esy('build').catch(e => {
       expect(e.stderr).toEqual(
-        expect.stringMatching('processing package: not-enough-deps@1.0.0'),
-      );
-      expect(e.stderr).toEqual(
-        expect.stringMatching("package dep is missing, run 'esy install' to fix that"),
+        expect.stringMatching("error: no installation found, run 'esy install'"),
       );
     });
   });

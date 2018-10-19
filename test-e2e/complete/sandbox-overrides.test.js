@@ -46,13 +46,13 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('@another install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '1.0.0'},
       },
     });
 
-    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'another')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '2.0.0'},
       },
@@ -98,13 +98,13 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('@another install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '1.0.0'},
       },
     });
 
-    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'another')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '2.0.0'},
       },
@@ -150,13 +150,13 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('@another install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '2.0.0'},
       },
     });
 
-    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'another')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '1.0.0'},
       },
@@ -256,7 +256,7 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('build');
     {
-      const {stdout} = await p.esy('esy x hello.cmd');
+      const {stdout} = await p.esy('x hello.cmd');
       expect(stdout.trim()).toBe('__hello__');
     }
 
@@ -264,7 +264,7 @@ describe('Sandbox overrides', function() {
     await p.esy('@another build');
 
     {
-      const {stdout} = await p.esy('esy @another x new-hello.cmd');
+      const {stdout} = await p.esy('@another x new-hello.cmd');
       expect(stdout.trim()).toBe('__hello__');
     }
   });
@@ -307,7 +307,7 @@ describe('Sandbox overrides', function() {
     );
 
     await p.esy('install');
-    expect(await helpers.crawlLayout(p.projectPath)).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
       dependencies: {
         devDep: {name: 'devDep'},
         '@esy-ocaml/substs': {name: '@esy-ocaml/substs'},
@@ -354,13 +354,13 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('@another install');
 
-    expect(await helpers.crawlLayout(p.projectPath, 'default')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '1.0.0'},
       },
     });
 
-    expect(await helpers.crawlLayout(p.projectPath, 'another')).toMatchObject({
+    expect(await helpers.readInstalledPackages(p.projectPath, 'another')).toMatchObject({
       dependencies: {
         dep: {name: 'dep', version: '2.0.0'},
       },

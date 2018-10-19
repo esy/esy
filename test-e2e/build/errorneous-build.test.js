@@ -16,6 +16,7 @@ const fixture = [
 
 it('Exists with a non-zero exit code if build fails', async () => {
   const p = await helpers.createTestSandbox(...fixture);
+  await p.esy('install');
   try {
     await p.esy('build');
   } catch (err) {

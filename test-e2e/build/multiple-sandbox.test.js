@@ -35,7 +35,6 @@ function makePackage(
       },
       dependencies,
       devDependencies,
-      '_esy.source': 'path:./',
     }),
     helpers.dummyExecutable(name),
     ...items,
@@ -51,7 +50,7 @@ describe('Projects with multiple sandboxes', function() {
         `
         {
           "esy": {},
-          "dependencies": {"default-dep": "*"}
+          "dependencies": {"default-dep": "path:./default-dep"}
         }
         `,
       ),
@@ -60,17 +59,15 @@ describe('Projects with multiple sandboxes', function() {
         `
         {
           "esy": {},
-          "dependencies": {"custom-dep": "*"}
+          "dependencies": {"custom-dep": "path:./custom-dep"}
         }
         `,
       ),
-      dir(
-        '_esy',
-        dir(['default', 'node_modules'], makePackage(p, {name: 'default-dep'})),
-        dir(['package.custom', 'node_modules'], makePackage(p, {name: 'custom-dep'})),
-      ),
+      makePackage(p, {name: 'default-dep'}),
+      makePackage(p, {name: 'custom-dep'}),
     );
 
+    await p.esy('install');
     await p.esy('build');
 
     {
@@ -80,6 +77,7 @@ describe('Projects with multiple sandboxes', function() {
 
     expect(p.esy('custom-dep')).rejects.toThrow();
 
+    await p.esy('@package.custom.json install');
     await p.esy('@package.custom.json build');
 
     {

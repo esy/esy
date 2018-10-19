@@ -1,7 +1,5 @@
 (executable
   (name esyBuildPackageCommand)
-  (public_name esy-build-package)
-  (package esy-build-package)
   (flags (:standard (-w -39)))
   (preprocess (pps ppx_let))
   (libraries
@@ -20,3 +18,21 @@
             rresult
             )
   )
+
+(rule
+ (targets fastreplacestring.exe)
+ (deps fastreplacestring.cpp config/dune.fastreplacestring.command)
+ (action  (run
+            %{read-lines:config/dune.fastreplacestring.command}
+            "-o" %{targets}
+            "fastreplacestring.cpp"
+            ))
+ )
+
+(install
+  (package esy-build-package)
+  (section bin)
+   (files
+     (esyBuildPackageCommand.exe as esy-build-package)
+     (fastreplacestring.exe as fastreplacestring)
+     ))

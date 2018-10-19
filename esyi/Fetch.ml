@@ -1,7 +1,11 @@
-module Record = Solution.Record
+module Overrides = Package.Overrides
+module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
-module Manifest = struct
+let nodeCmd =
+  Cmd.resolveCmd System.Environment.path "node"
+
+module PackageJson = struct
 
   module Scripts = struct
     type t = {
@@ -42,7 +46,7 @@ module Manifest = struct
   end
 
   type t = {
-    name : string;
+    name : string option [@default None];
     bin : (Bin.t [@default Bin.Empty]);
     scripts : (Scripts.t [@default Scripts.empty]);
     esy : (Json.t option [@default None]);
@@ -61,14 +65,34 @@ module Manifest = struct
 
   let packageCommands (sourcePath : Path.t) manifest =
     let makePathToCmd cmdPath = Path.(sourcePath // v cmdPath |> normalize) in
-    match manifest.bin with
-    | Bin.One cmd ->
-      [manifest.name, makePathToCmd cmd]
-    | Bin.Many cmds ->
+    match manifest.bin, manifest.name with
+    | Bin.One cmd, Some name ->
+      [name, makePathToCmd cmd]
+    | Bin.One cmd, None ->
+      let cmd = makePathToCmd cmd in
+      let name = Path.basename cmd in
+      [name, cmd]
+    | Bin.Many cmds, _ ->
       let f name cmd cmds = (name, makePathToCmd cmd)::cmds in
       (StringMap.fold f cmds [])
-    | Bin.Empty -> []
+    | Bin.Empty, _ -> []
 
+end
+
+module Install = struct
+
+  type t = {
+    path : Path.t;
+    sourcePath : Path.t;
+    pkg : Package.t;
+    isDirectDependencyOfRoot : bool;
+    status: FetchStorage.status;
+  }
+
+  let pp fmt installation =
+    Fmt.pf fmt "%a at %a"
+      Package.pp installation.pkg
+      Path.pp installation.path
 end
 
 (*
@@ -81,40 +105,29 @@ end
  *)
 module Layout = struct
 
-  type t = installation list
-
-  and installation = {
-    path : Path.t;
-    sourcePath : Path.t;
-    record : Record.t;
-    isDirectDependencyOfRoot : bool;
-  }
-
-  let pp_installation fmt installation =
-    Fmt.pf fmt "%a at %a"
-      Record.pp installation.record
-      Path.pp installation.path
+  type t = Install.t list
 
   let pp =
-    Fmt.(list ~sep:(unit "@\n") pp_installation)
+    Fmt.(list ~sep:(unit "@\n") Install.pp)
 
   let ofSolution ~nodeModulesPath sandboxPath (sol : Solution.t) =
-    match Solution.root sol with
-    | None -> []
-    | Some root ->
+    let root = Solution.root sol in
       let isDirectDependencyOfRoot =
-        let directDependencies = Solution.dependencies root sol in
-        fun record -> Record.Set.mem record directDependencies
+        let directDependencies =
+          let deps = Solution.dependencies root sol in
+          Package.Set.of_list deps
+        in
+        fun pkg -> Package.Set.mem pkg directDependencies
       in
 
       (* Go through breadcrumb till the insertion point and mark each modules as
-       * occupied for the record. This will prevent inserting other versions of
-       * the same record at such places. *)
-      let markAsOccupied insertion breadcrumb record =
+       * occupied for the pkg. This will prevent inserting other versions of
+       * the same pkg at such places. *)
+      let markAsOccupied insertion breadcrumb pkg =
         let _, insertionPath = insertion in
         let rec aux = function
           | (modules, path)::rest ->
-            Hashtbl.replace modules record.Record.name record;
+            Hashtbl.replace modules pkg.Package.name pkg;
             if Path.compare insertionPath path = 0
             then ()
             else aux rest
@@ -123,17 +136,17 @@ module Layout = struct
         aux breadcrumb
       in
 
-      let rec findInsertion record breacrumb =
+      let rec findInsertion pkg breacrumb =
         match breacrumb with
         | [] -> `None
         | ((modules, _) as here)::upTheTree ->
-          begin match Hashtbl.find_opt modules record.Record.name with
+          begin match Hashtbl.find_opt modules pkg.Package.name with
           | Some r ->
-            if Record.compare r record = 0
+            if Package.compare r pkg = 0
             then `Done (here, here::upTheTree)
             else `None
           | None ->
-            begin match findInsertion record upTheTree with
+            begin match findInsertion pkg upTheTree with
             | `Ok nextItem -> `Ok nextItem
             | `Done there -> `Done there
             | `None -> `Ok (here, here::upTheTree)
@@ -141,35 +154,32 @@ module Layout = struct
           end
       in
 
-      (* layout record at breadcrumb, return layout and a new breadcrumb which
-       * is then used to layout record's dependencies *)
-      let layoutRecord ~this ~breadcrumb ~layout record =
+      (* layout pkg at breadcrumb, return layout and a new breadcrumb which
+       * is then used to layout pkg's dependencies *)
+      let layoutPkg ~this ~breadcrumb ~layout pkg =
 
         let insert ((_modules, path) as here) =
-          markAsOccupied here (this::breadcrumb) record;
-          let path = Path.(path // v record.Record.name) in
+          markAsOccupied here (this::breadcrumb) pkg;
+          let path = Path.(path // v pkg.Package.name) in
           let sourcePath =
-            let main, _ = record.Record.source in
-            match main with
-            | Source.Archive _
-            | Source.Git _
-            | Source.Github _
-            | Source.LocalPath _
-            | Source.NoSource -> path
-            | Source.LocalPathLink {path; manifest = _;} -> Path.(sandboxPath // path)
+            match pkg.Package.source with
+            | Package.Install _ -> path
+            | Package.Link {path; _} -> Path.(sandboxPath // path)
           in
           let installation = {
+            Install.
             path;
             sourcePath;
-            record;
-            isDirectDependencyOfRoot = isDirectDependencyOfRoot record;
+            pkg;
+            isDirectDependencyOfRoot = isDirectDependencyOfRoot pkg;
+            status = FetchStorage.Fresh;
           } in
           installation::layout
         in
 
-        match findInsertion record breadcrumb with
+        match findInsertion pkg breadcrumb with
         | `Done (there, _) ->
-          markAsOccupied there (this::breadcrumb) record;
+          markAsOccupied there (this::breadcrumb) pkg;
           None
         | `Ok (here, breadcrumb) ->
           Some (insert here, breadcrumb)
@@ -177,36 +187,36 @@ module Layout = struct
           Some (insert this, this::breadcrumb)
       in
 
-      let rec layoutDependencies ~seen ~breadcrumb ~layout record =
+      let rec layoutDependencies ~seen ~breadcrumb ~layout pkg =
 
         let this =
           let modules = Hashtbl.create 100 in
           let path =
             match breadcrumb with
-            | (_modules, path)::_ -> Path.(path // v record.Record.name / "node_modules")
+            | (_modules, path)::_ -> Path.(path // v pkg.Package.name / "node_modules")
             | [] -> nodeModulesPath
           in
           modules, path
         in
 
-        let dependencies = Solution.dependencies record sol in
+        let dependencies = Solution.dependencies pkg sol in
 
         (* layout direct dependencies first, they can be relocated so this is
          * why get dependenciesWithBreadcrumbs as a result *)
         let layout, dependenciesWithBreadcrumbs =
-          let f r (layout, dependenciesWithBreadcrumbs) =
-            match layoutRecord ~this ~breadcrumb ~layout r with
+          let f (layout, dependenciesWithBreadcrumbs) r =
+            match layoutPkg ~this ~breadcrumb ~layout r with
             | Some (layout, breadcrumb) -> layout, (r, breadcrumb)::dependenciesWithBreadcrumbs
             | None -> layout, dependenciesWithBreadcrumbs
           in
-          Record.Set.fold f dependencies (layout, [])
+          List.fold_left ~f ~init:(layout, []) dependencies
         in
 
         (* now layout dependencies of dependencies *)
         let layout =
-          let seen = Record.Set.add record seen in
+          let seen = Package.Set.add pkg seen in
           let f layout (r, breadcrumb) =
-              match Record.Set.mem r seen with
+              match Package.Set.mem r seen with
               | true -> layout
               | false -> layoutDependencies ~seen ~breadcrumb ~layout r
           in
@@ -217,12 +227,12 @@ module Layout = struct
       in
 
       let layout =
-        layoutDependencies ~seen:Record.Set.empty ~breadcrumb:[] ~layout:[] root
+        layoutDependencies ~seen:Package.Set.empty ~breadcrumb:[] ~layout:[] root
       in
 
       (* Sort the layout so we can have stable order of operations *)
       let layout =
-        let cmp a b = Path.compare a.path b.path in
+        let cmp a b = Path.compare a.Install.path b.Install.path in
         List.sort ~cmp layout
       in
 
@@ -235,26 +245,33 @@ module Layout = struct
       | Ok v -> v
       | Error msg -> failwith msg
 
-    let r name version = ({
-      Record.
+    let r name version dependencies = ({
+      Package.
       name;
       version = Version.Npm (parseVersionExn version);
-      source = Source.NoSource, [];
-      overrides = Package.Overrides.empty;
-      files = [];
-      opam = None;
-    } : Record.t)
+      source = Package.Install {
+        source = Source.NoSource, [];
+        overrides = Overrides.empty;
+        opam = None;
+        files = [];
+      };
+      dependencies = PackageId.Set.of_list dependencies;
+      devDependencies = PackageId.Set.empty;
+    } : Package.t)
 
     let id name version =
       let version = version ^ ".0.0" in
       let version = Version.Npm (parseVersionExn version) in
-      ((name, version) : Solution.Id.t)
+      PackageId.make name version
+
+    let addToSolution pkg =
+      Solution.add pkg
 
     let expect layout expectation =
       let convert =
-        let f (installation : installation) =
-          Format.asprintf "%a" Record.pp installation.record,
-          Path.show installation.path
+        let f (installation : Install.t) =
+          Format.asprintf "%a" Package.pp installation.Install.pkg,
+          Path.show installation.Install.path
         in
         List.map ~f layout
       in
@@ -267,10 +284,10 @@ module Layout = struct
 
     let%test "simple" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "a" "1" [])
+        |> addToSolution (r "b" "1" [])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -280,10 +297,10 @@ module Layout = struct
 
     let%test "simple2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "a" "1" [])
+        |> addToSolution (r "b" "1" [id "a" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -293,11 +310,11 @@ module Layout = struct
 
     let%test "simple3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "c" "1" [])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "b" "1" [id "c" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -308,11 +325,11 @@ module Layout = struct
 
     let%test "conflict" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "a" "1") ~dependencies:[]
-        |> add ~record:(r "a" "2") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "a" "1" [])
+        |> addToSolution (r "a" "2" [])
+        |> addToSolution (r "b" "1" [id "a" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -323,12 +340,12 @@ module Layout = struct
 
     let%test "conflict2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "shared" "1") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "shared" "1" [])
+        |> addToSolution (r "a" "1" [id "shared" "1"])
+        |> addToSolution (r "a" "2" [id "shared" "1"])
+        |> addToSolution (r "b" "1" [id "a" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -340,13 +357,13 @@ module Layout = struct
 
     let%test "conflict3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "shared" "1") ~dependencies:[]
-        |> add ~record:(r "shared" "2") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "shared" "1"]
-        |> add ~record:(r "a" "2") ~dependencies:[id "shared" "2"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "shared" "1" [])
+        |> addToSolution (r "shared" "2" [])
+        |> addToSolution (r "a" "1" [id "shared" "1"])
+        |> addToSolution (r "a" "2" [id "shared" "2"])
+        |> addToSolution (r "b" "1" [id "a" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -359,12 +376,12 @@ module Layout = struct
 
     let%test "conflict4" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "c" "2") ~dependencies:[]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "c" "1" [])
+        |> addToSolution (r "c" "2" [])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "b" "1" [id "c" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -376,12 +393,12 @@ module Layout = struct
 
     let%test "nested" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "c" "1" [id "d" "1"])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "b" "1" [id "c" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -393,13 +410,13 @@ module Layout = struct
 
     let%test "nested conflict" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "c" "1" [id "d" "1"])
+        |> addToSolution (r "c" "2" [id "d" "1"])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "b" "1" [id "c" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -412,14 +429,14 @@ module Layout = struct
 
     let%test "nested conflict 2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "d" "2" [])
+        |> addToSolution (r "c" "1" [id "d" "1"])
+        |> addToSolution (r "c" "2" [id "d" "2"])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "b" "1" [id "c" "2"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -433,12 +450,12 @@ module Layout = struct
 
     let%test "nested conflict 3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "d" "2"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "d" "2" [])
+        |> addToSolution (r "b" "1" [id "d" "1"])
+        |> addToSolution (r "a" "1" [id "b" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "d" "2"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -450,13 +467,13 @@ module Layout = struct
 
     let%test "nested conflict 4" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "c" "1" [id "d" "1"])
+        |> addToSolution (r "c" "2" [id "d" "1"])
+        |> addToSolution (r "b" "1" [id "c" "2"])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -469,14 +486,14 @@ module Layout = struct
 
     let%test "nested conflict 5" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "d" "1") ~dependencies:[]
-        |> add ~record:(r "d" "2") ~dependencies:[]
-        |> add ~record:(r "c" "1") ~dependencies:[id "d" "1"]
-        |> add ~record:(r "c" "2") ~dependencies:[id "d" "2"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "c" "2"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "d" "1" [])
+        |> addToSolution (r "d" "2" [])
+        |> addToSolution (r "c" "1" [id "d" "1"])
+        |> addToSolution (r "c" "2" [id "d" "2"])
+        |> addToSolution (r "b" "1" [id "c" "2"])
+        |> addToSolution (r "a" "1" [id "c" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -490,12 +507,12 @@ module Layout = struct
 
     let%test "nested conflict 6" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "punycode" "1") ~dependencies:[]
-        |> add ~record:(r "punycode" "2") ~dependencies:[]
-        |> add ~record:(r "url" "1") ~dependencies:[id "punycode" "2"]
-        |> add ~record:(r "browserify" "1") ~dependencies:[id "punycode" "1"; id "url" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "browserify" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "punycode" "1" [])
+        |> addToSolution (r "punycode" "2" [])
+        |> addToSolution (r "url" "1" [id "punycode" "2"])
+        |> addToSolution (r "browserify" "1" [id "punycode" "1"; id "url" "1"])
+        |> addToSolution (r "root" "1" [id "browserify" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -507,10 +524,10 @@ module Layout = struct
 
     let%test "loop 1" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "b" "1" [id "a" "1"])
+        |> addToSolution (r "a" "1" [id "b" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -520,11 +537,11 @@ module Layout = struct
 
     let%test "loop 2" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"; id "c" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "c" "1" [])
+        |> addToSolution (r "b" "1" [id "a" "1"; id "c" "1"])
+        |> addToSolution (r "a" "1" [id "b" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -535,11 +552,11 @@ module Layout = struct
 
     let%test "loop 3" =
       let sol = Solution.(
-        empty
-        |> add ~record:(r "c" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "b" "1") ~dependencies:[id "a" "1"]
-        |> add ~record:(r "a" "1") ~dependencies:[id "b" "1"; id "c" "1"]
-        |> addRoot ~record:(r "root" "1") ~dependencies:[id "a" "1"; id "b" "1"]
+        empty (id "root" "1")
+        |> addToSolution (r "c" "1" [id "a" "1"])
+        |> addToSolution (r "b" "1" [id "a" "1"])
+        |> addToSolution (r "a" "1" [id "b" "1"; id "c" "1"])
+        |> addToSolution (r "root" "1" [id "a" "1"; id "b" "1"])
       ) in
       let layout = ofSolution ~nodeModulesPath:(Path.v "./node_modules") (Path.v ".") sol in
       expect layout [
@@ -551,12 +568,21 @@ module Layout = struct
   end)
 end
 
-let runLifecycleScript ~installation ~name script =
+let runLifecycleScript ?env ~install ~lifecycleName script =
+  let%lwt () = Logs_lwt.debug
+    (fun m ->
+      m "Fetch.runLifecycleScript ~env:%a ~pkg:%a ~lifecycleName:%s"
+      (Fmt.option ChildProcess.pp_env) env
+      Package.pp install.Install.pkg
+      lifecycleName
+    )
+  in
+
   let%lwt () = Logs_lwt.app
     (fun m ->
       m "%a: running %a lifecycle"
-      Record.pp installation.Layout.record
-      Fmt.(styled `Bold string) name
+      Package.pp install.Install.pkg
+      Fmt.(styled `Bold string) lifecycleName
     )
   in
 
@@ -584,8 +610,8 @@ let runLifecycleScript ~installation ~name script =
     (* We don't need to wrap the install path on Windows in quotes *)
     let installationPath =
       match System.Platform.host with
-      | Windows -> Path.show installation.path
-      | _ -> Filename.quote (Path.show installation.path)
+      | Windows -> Path.show install.path
+      | _ -> Filename.quote (Path.show install.path)
     in
     let script =
       Printf.sprintf
@@ -598,7 +624,13 @@ let runLifecycleScript ~installation ~name script =
       | Windows -> ("", [|"cmd.exe";("/c " ^ script)|])
       | _ -> ("/bin/bash", [|"/bin/bash";"-c";script|])
     in
-    Lwt_process.with_process_full cmd f
+    let env =
+      let open Option.Syntax in
+      let%bind env = env in
+      let%bind _, env = ChildProcess.prepareEnv env in
+      return env
+    in
+    Lwt_process.with_process_full ?env cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -606,16 +638,16 @@ let runLifecycleScript ~installation ~name script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ~installation ~(manifest : Manifest.t) () =
+let runLifecycle ?env ~install ~(pkgJson : PackageJson.t) () =
   let open RunAsync.Syntax in
   let%bind () =
-    match manifest.scripts.install with
-    | Some cmd -> runLifecycleScript ~installation ~name:"install" cmd
+    match pkgJson.scripts.install with
+    | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"install" cmd
     | None -> return ()
   in
   let%bind () =
-    match manifest.scripts.postinstall with
-    | Some cmd -> runLifecycleScript ~installation ~name:"postinstall" cmd
+    match pkgJson.scripts.postinstall with
+    | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"postinstall" cmd
     | None -> return ()
   in
   return ()
@@ -624,12 +656,27 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
   let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
   let layout = Layout.ofSolution ~nodeModulesPath sandbox.spec.path solution in
-  let f installed {Layout.path;_} =
+  let f installed {Install. path;_} =
     if not installed
     then return installed
     else Fs.exists path
   in
   RunAsync.List.foldLeft ~f ~init:true layout
+
+let installBinWrapper ~binPath (name, origPath) =
+  let open RunAsync.Syntax in
+  Logs_lwt.debug (fun m ->
+    m "Fetch:installBinWrapper: %a / %s -> %a"
+    Path.pp origPath name Path.pp binPath
+  );%lwt
+  if%bind Fs.exists origPath
+  then (
+    let%bind () = Fs.chmod 0o777 origPath in
+    Fs.symlink ~src:origPath Path.(binPath / name)
+  ) else (
+    Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
+    return ()
+  )
 
 let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
@@ -640,177 +687,207 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let records =
-    match Solution.root solution with
-    | Some root ->
-      let all = Solution.records solution in
-      Record.Set.remove root all
-    | None ->
-      Solution.records solution
+  let%bind pkgs, root =
+    let root = Solution.root solution in
+    let all =
+      let f pkg _ pkgs = Package.Set.add pkg pkgs in
+      Solution.fold ~f ~init:Package.Set.empty solution
+    in
+    return (Package.Set.remove root all, root)
   in
 
-  (* Fetch all records *)
+  let directDependenciesOfRoot =
+    let deps = Solution.dependencies root solution in
+    Package.Set.of_list deps
+  in
 
+  (* Fetch all package distributions *)
   let%bind dists =
     let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
-    let%bind items =
-      let fetch record =
-        let%bind dist =
-          LwtTaskQueue.submit queue
-          (fun () ->
-            let%lwt () =
-              let status = Format.asprintf "%a" Record.pp record in
-              report status
-            in
-            FetchStorage.fetch ~cfg:sandbox.cfg record)
-        in
-        return (record, dist)
-      in
-      records
-      |> Record.Set.elements
-      |> List.map ~f:fetch
-      |> RunAsync.List.joinAll
-    in
-    let%lwt () = finish () in
-    let map =
-      let f map (record, dist) = Record.Map.add record dist map in
-      List.fold_left ~f ~init:Record.Map.empty items
-    in
-    return map
-  in
 
-  (* Layout all dists into node_modules *)
-
-  let%bind installed =
-    let queue = LwtTaskQueue.create ~concurrency:4 () in
-    let report, finish = Cli.createProgressReporter ~name:"installing" () in
-    let f ({Layout.path; sourcePath;record;_} as installation) () =
-      match Record.Map.find_opt record dists with
-      | Some dist ->
+    let%bind dists =
+      let fetch pkg () =
         let%lwt () =
-          let status = Format.asprintf "%a" Dist.pp dist in
+          let status = Format.asprintf "%a" Package.pp pkg in
           report status
         in
-        let%bind () =
-          FetchStorage.install ~cfg:sandbox.cfg ~path dist
-        in
-        let%bind manifest = Manifest.ofDir sourcePath in
-        return (installation, manifest)
-      | None ->
-        let msg =
-          Printf.sprintf
-            "inconsistent state: no dist were fetched for %s@%s at %s"
-            record.Record.name
-            (Version.show record.Record.version)
-            (Path.show path)
-        in
-        failwith msg
-    in
-
-    let layout =
-      Layout.ofSolution
-        ~nodeModulesPath
-        sandbox.spec.path
-        solution
-    in
-
-    let%bind installed =
-      let install installation =
-        RunAsync.contextf
-          (LwtTaskQueue.submit queue (f installation))
-          "installing %a"
-          Layout.pp_installation installation
+        let%bind dist = FetchStorage.fetch ~sandbox pkg in
+        let%bind status, path = FetchStorage.install ~sandbox dist in
+        Logs_lwt.debug (fun m ->
+          m "fetched: %a -> %a" Package.pp pkg Path.pp path);%lwt
+        let%bind pkgJson = PackageJson.ofDir path in
+        let install = {
+          Install.
+          pkg;
+          sourcePath = path;
+          path;
+          isDirectDependencyOfRoot = Package.Set.mem pkg directDependenciesOfRoot;
+          status;
+        } in
+        let id = Dist.id dist in
+        return (id, (dist, install, pkgJson))
       in
-      layout
-      |> List.map ~f:install
+      pkgs
+      |> Package.Set.elements
+      |> List.map ~f:(fun pkg -> LwtTaskQueue.submit queue (fetch pkg))
       |> RunAsync.List.joinAll
     in
-
     let%lwt () = finish () in
 
-    return installed
+    let dists =
+      let f dists (id, v) = PackageId.Map.add id v dists in
+      List.fold_left ~f ~init:PackageId.Map.empty dists
+    in
+
+    return dists
   in
 
-  (* run lifecycle scripts *)
-
-  let%bind () =
-    let queue = LwtTaskQueue.create ~concurrency:1 () in
-
-    let f = function
-      | (installation, Some ({Manifest. esy = None; _} as manifest)) ->
-        RunAsync.contextf
-          (LwtTaskQueue.submit
-            queue
-            (runLifecycle ~installation ~manifest))
-          "running lifecycle %a"
-          Layout.pp_installation installation
-      | (_installation, Some {Manifest. esy = Some _; _})
-      | (_installation, None) -> return ()
+  (* Produce _esy/<sandbox>/installation.json *)
+  let%bind installation =
+    let installation =
+      let f id (dist, install, _pkgJson) installation =
+        let loc =
+          let source = Dist.source dist in
+          match source with
+          | Source.LocalPathLink {path; manifest = _} -> Path.(sandbox.spec.path // path)
+          | _ -> install.Install.sourcePath;
+        in
+        Installation.add id loc installation
+      in
+      let init =
+        Installation.empty
+        |> Installation.add
+            (Package.id root)
+            sandbox.spec.path;
+      in
+      PackageId.Map.fold f dists init
     in
 
     let%bind () =
-      installed
-      |> List.map ~f
-      |> RunAsync.List.waitAll
+      Fs.writeJsonFile
+        ~json:(Installation.to_yojson installation)
+        (SandboxSpec.installationPath sandbox.spec)
     in
 
-    return ()
+    return installation
   in
 
-  (* populate node_modules/.bin with scripts defined for the direct dependencies *)
-
+  (* Produce _esy/<sandbox>/pnp.js *)
   let%bind () =
-    let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-    let binPath = Path.(nodeModulesPath / ".bin") in
-    let%bind () = Fs.createDir binPath in
+    let path = SandboxSpec.pnpJsPath sandbox.spec in
+    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    Fs.writeFile ~data path
+  in
 
-    let installBinWrapper (name, path) =
-      if%bind Fs.exists path
-      then (
-        let%bind () = Fs.chmod 0o777 path in
-        Fs.symlink ~src:path Path.(binPath / name)
-      ) else (
-        Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp path);%lwt
+  (* Run lifecycle scripts *)
+  let%bind () =
+
+    let queue = LwtTaskQueue.create ~concurrency:8 () in
+
+    let%bind binPath =
+      let binPath = SandboxSpec.binPath sandbox.spec in
+      let%bind () = Fs.createDir binPath in
+      return binPath
+    in
+
+    (* place <binPath>/node executable with pnp enabled *)
+    let%bind () =
+      match nodeCmd with
+      | Ok nodeCmd ->
+        let pnpJs = SandboxSpec.pnpJsPath sandbox.spec in
+        let data =
+          Printf.sprintf
+            {|#!/bin/sh
+            exec %s -r "%s" "$@"
+             |} nodeCmd (Path.show pnpJs)
+        in
+        Fs.writeFile ~perm:0o755 ~data Path.(binPath / "node")
+      | Error _ ->
+        (* no node available in $PATH, just skip this then *)
         return ()
+    in
+
+    let env =
+      let override =
+        let path = (Path.show binPath)::System.Environment.path in
+        let sep = System.Environment.sep ~name:"PATH" () in
+        Astring.String.Map.(
+          empty
+          |> add "PATH" (String.concat sep path)
+        )
+      in
+      ChildProcess.CurrentEnvOverride override
+    in
+
+    let process install pkgJson =
+      let%bind () =
+        Logs_lwt.debug (fun m -> m "Fetch:runLifecycle:%a" Package.pp install.Install.pkg);%lwt
+        RunAsync.contextf
+          (LwtTaskQueue.submit
+            queue
+            (runLifecycle
+              ~env
+              ~install
+              ~pkgJson))
+          "running lifecycle %a"
+          Install.pp install
+
+      in
+
+      let%bind () =
+        Logs_lwt.debug (fun m -> m "Fetch:installBinWrappers:%a" Package.pp install.Install.pkg);%lwt
+        PackageJson.packageCommands install.Install.sourcePath pkgJson
+        |> List.map ~f:(installBinWrapper ~binPath)
+        |> RunAsync.List.waitAll
+      in
+
+      return ()
+    in
+
+    let seen = ref Package.Set.empty in
+
+    let rec visit pkg =
+      if Package.Set.mem pkg !seen
+      then return ()
+      else (
+        seen := Package.Set.add pkg !seen;
+        let isRoot = Package.compare root pkg = 0 in
+        let dependendencies =
+          let traverse =
+            if isRoot
+            then Solution.traverseWithDevDependencies
+            else Solution.traverse
+          in
+          Solution.dependencies ~traverse pkg solution
+        in
+        let%bind () =
+          List.map ~f:visit dependendencies
+          |> RunAsync.List.waitAll
+        in
+
+        match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
+        | false, Some (
+            _dist,
+            ({Install. status = FetchStorage.Fresh; _ } as install),
+            Some ({PackageJson. esy = None; _} as pkgJson)
+          ) ->
+          process install pkgJson
+        | false, Some (_, {status = FetchStorage.Cached;_}, _) -> return ()
+        | false, Some (_, {status = FetchStorage.Fresh;_}, _) -> return ()
+        | false, None -> errorf "dist not found: %a" Package.pp pkg
+        | true, _ -> return ()
       )
     in
 
-    let installBinWrappersForPkg = function
-      | (installation, Some manifest) ->
-        Manifest.packageCommands installation.Layout.sourcePath manifest
-        |> List.map ~f:installBinWrapper
-        |> RunAsync.List.waitAll
-      | (_installation, None) -> return ()
-    in
-
-    installed
-    |> List.filter ~f:(fun (installation, _) -> installation.Layout.isDirectDependencyOfRoot)
-    |> List.map ~f:installBinWrappersForPkg
-    |> RunAsync.List.waitAll
+    visit root
   in
 
-  (* link default sandbox node_modules to <projectPath>/node_modules *)
-
+  (* Produce _esy/<sandbox>/bin *)
   let%bind () =
-    if SandboxSpec.isDefault sandbox.spec
-    then
-      let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-      let targetPath = Path.(sandbox.spec.path / "node_modules") in
-      let%bind () = Fs.rmPath targetPath in
-      let%bind () = Fs.symlink ~src:nodeModulesPath targetPath in
-      return ()
-    else return ()
-  in
-
-  (* place dune with ignored_subdirs stanza inside node_modiles *)
-
-  let%bind () =
-    let packagesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-    let%bind items = Fs.listDir packagesPath in
-    let items = String.concat " " items in
-    let data = "(ignored_subdirs (" ^ items ^ "))\n" in
-    Fs.writeFile ~data Path.(packagesPath / "dune")
+    let path = SandboxSpec.pnpJsPath sandbox.spec in
+    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    Fs.writeFile ~data path
   in
 
   return ()

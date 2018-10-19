@@ -38,7 +38,6 @@ function makePackage(
       dependencies,
       optDependencies,
       devDependencies,
-      '_esy.source': 'path:.',
     }),
     helpers.dummyExecutable(name),
     ...items,
@@ -55,30 +54,27 @@ async function createTestSandbox() {
         build: 'true',
       },
       dependencies: {
-        dep: '*',
-        focus: '*',
+        dep: 'path:./dep',
+        focus: 'path:./focus',
       },
     }),
-    helpers.dir(
-      'node_modules',
-      makePackage(p, {
-        name: 'dep',
-        dependencies: {
-          focus: '*',
-          depOfDep: '*',
-        },
-      }),
-      makePackage(p, {
-        name: 'depOfDep',
-        dependencies: {
-          focus: '*',
-        },
-      }),
-      makePackage(p, {
-        name: 'focus',
-        exportedEnv: {direct__val: {val: '__focus__', scope: 'local'}},
-      }),
-    ),
+    makePackage(p, {
+      name: 'dep',
+      dependencies: {
+        focus: 'path:../focus',
+        depOfDep: 'path:../depOfDep',
+      },
+    }),
+    makePackage(p, {
+      name: 'depOfDep',
+      dependencies: {
+        focus: 'path:../focus',
+      },
+    }),
+    makePackage(p, {
+      name: 'focus',
+      exportedEnv: {direct__val: {val: '__focus__', scope: 'local'}},
+    }),
   );
   return p;
 }
@@ -86,6 +82,7 @@ async function createTestSandbox() {
 describe('dep exists as transitive and direct dep at once', () => {
   it('package focus should be visible in all envs', async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
     await p.esy('build');
 
     {
@@ -106,6 +103,7 @@ describe('dep exists as transitive and direct dep at once', () => {
 
   it('package focus local exports should be available', async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
     const env = JSON.parse((await p.esy('build-env --json')).stdout);
     expect(env.direct__val).toBe('__focus__');
   });

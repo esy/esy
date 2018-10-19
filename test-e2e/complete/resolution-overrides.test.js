@@ -178,7 +178,7 @@ describe('resolutions with overrides', () => {
   it('turning a linked dir into esy package', async () => {
     const p = await createTestSandbox();
 
-    const fixture = [
+    await p.fixture(
       packageJson({
         name: 'root',
         version: '1.0.0',
@@ -203,9 +203,7 @@ describe('resolutions with overrides', () => {
         },
       }),
       dir('dep', dummyExecutable('dep')),
-    ];
-
-    await p.fixture(...fixture);
+    );
 
     await p.esy('install --skip-repository-update');
     await p.esy('build');
@@ -278,7 +276,7 @@ describe('resolutions with overrides', () => {
     }
 
     {
-      const {stdout} = await p.esy('build-env --json _esy/default/node_modules/dep');
+      const {stdout} = await p.esy('build-env --json dep@path:dep');
       const buildEnv = JSON.parse(stdout);
       expect(buildEnv.SHOULD_BE_DROPPED).toBeUndefined();
     }
@@ -343,7 +341,7 @@ describe('resolutions with overrides', () => {
     }
 
     {
-      const {stdout} = await p.esy('build-env ./_esy/default/node_modules/dep --json');
+      const {stdout} = await p.esy('build-env dep@path:dep --json');
       const buildEnv = JSON.parse(stdout);
       expect(buildEnv.SHOULD_BE_DROPPED).toBeUndefined();
       expect(buildEnv.SHOULD_BE_ADDED).toBe('YUP');

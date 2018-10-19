@@ -5,7 +5,7 @@
 (**
  * This is minimal info needed to fetch and build a package.
  *)
-module Record : sig
+module Package : sig
 
   module Opam : sig
     type t = {
@@ -21,39 +21,45 @@ module Record : sig
   type t = {
     name: string;
     version: Version.t;
-    source: Source.t * Source.t list;
-    overrides: Package.Overrides.t;
-    files : Package.File.t list;
-    opam : Opam.t option;
+    source: source;
+    dependencies : PackageId.Set.t;
+    devDependencies : PackageId.Set.t;
   }
+
+  and source =
+    | Link of {
+        path : Path.t;
+        manifest : ManifestSpec.t option;
+        overrides: Package.Overrides.t;
+      }
+    | Install of {
+        source : Source.t * Source.t list;
+        overrides: Package.Overrides.t;
+        files : Package.File.t list;
+        opam : Opam.t option;
+      }
+
+  val id : t -> PackageId.t
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
 
-  module Map : Map.S with type key := t
+  module Map : sig
+    include Map.S with type key := t
+  end
   module Set : Set.S with type elt := t
 end
 
-module Id : sig
-  type t = string * Version.t
-
-  module Map : Map.S with type key := t
-  module Set : Set.S with type elt := t
-end
+val traverse : Package.t -> PackageId.t list
+val traverseWithDevDependencies : Package.t -> PackageId.t list
 
 (**
  * This represent an isolated dependency root.
  *)
-type t
-
-val root : t -> Record.t option
-val dependencies : Record.t -> t -> Record.Set.t
-val records : t -> Record.Set.t
-
-val empty : t
-
-val addRoot : record : Record.t -> dependencies : Id.t list -> t -> t
-val add : record : Record.t -> dependencies : Id.t list -> t -> t
+include Graph.GRAPH
+  with
+    type node = Package.t
+    and type id = PackageId.t
 
 (** This is an on disk format for storing solutions. *)
 module LockfileV1 : sig

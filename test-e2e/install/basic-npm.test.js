@@ -1,5 +1,6 @@
 /* @flow */
 
+const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
@@ -113,16 +114,216 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
     expect(await helpers.exists(binPath)).toBeTruthy();
 
-    const proc = await helpers.execFile(binPath, [], {});
+    const proc = await p.esy('dep');
     expect(proc.stdout.toString().trim()).toBe('HELLO');
 
     // only root deps has their bin installed
     expect(
-      await helpers.exists(path.join(p.projectPath, 'node_modules', '.bin', 'depDep')),
+      await helpers.exists(path.join(p.projectPath, '_esy', 'default', 'bin', 'depDep')),
     ).toBeFalsy();
+  });
+
+  test(`node wrapper is installed`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'dep.js',
+        outdent`
+          console.log('dep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('which node');
+      expect(stdout.toString().trim()).toBe(
+        path.join(p.projectPath, '_esy', 'default', 'bin', 'node'),
+      );
+    }
+
+    {
+      const {stdout} = await p.esy('node -r "dep/dep" -p "process.exit(0)"');
+      expect(stdout.toString().trim()).toBe('dep: HELLO');
+    }
+  });
+
+  test(`bins can depend on dependencies`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'depDep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'printHello.js',
+        outdent`
+          console.log('depDep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {depDep: '*'},
+        bin: 'dep.js',
+      }),
+      helpers.file(
+        'dep.js',
+        outdent`
+          #!/usr/bin/env node
+          require('depDep/printHello');
+        `,
+      ),
+    ]);
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('dep');
+      expect(stdout.toString().trim()).toBe('depDep: HELLO');
+    }
+  });
+
+  test(`npm bins should be available in command-env`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    const depPath = await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      bin: './dep.exe',
+    });
+
+    await helpers.makeFakeBinary(path.join(depPath, 'dep.exe'), {
+      exitCode: 0,
+      output: 'HELLO',
+    });
+
+    await p.esy('install');
+
+    {
+      const {stdout} = await p.esy('dep');
+      expect(stdout.toString().trim()).toBe('HELLO');
+    }
+  });
+
+  test(`lifecycle scripts have bins from their deps in $PATH`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    const depDepPath = await p.defineNpmPackage({
+      name: 'depDep',
+      version: '1.0.0',
+      dependencies: {depDep: `1.0.0`},
+      bin: './depDep.exe',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      dependencies: {depDep: `1.0.0`},
+      scripts: {
+        postinstall: 'depDep && cp $(which depDep) ./dep.exe',
+      },
+      bin: './dep.exe',
+    });
+
+    await helpers.makeFakeBinary(path.join(depDepPath, 'depDep.exe'), {
+      exitCode: 0,
+      output: 'depDep.exe: HELLO',
+    });
+
+    await p.esy('install');
+
+    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
+    expect(await helpers.exists(binPath)).toBeTruthy();
+
+    const proc = await helpers.execFile(binPath, [], {});
+    expect(proc.stdout.toString().trim()).toBe('depDep.exe: HELLO');
+  });
+
+  test(`lifecycle scripts have node in $PATH and it is pnp aware`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: `1.0.0`},
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'depDep',
+        version: '1.0.0',
+        dependencies: {},
+      }),
+      helpers.file(
+        'hello.js',
+        outdent`
+          console.log('depDep: HELLO');
+        `,
+      ),
+    ]);
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        dependencies: {depDep: '*'},
+        scripts: {
+          postinstall: 'node -r depDep/hello.js -p "process.exit(0)"',
+        },
+      }),
+    ]);
+
+    await p.esy('install');
   });
 
   test(`it should correctly install bin wrappers into node_modules/.bin (multiple bins)`, async () => {
@@ -162,7 +363,7 @@ describe(`Basic tests for npm packages`, () => {
     await p.esy(`install`);
 
     {
-      const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep');
+      const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
       expect(await helpers.exists(binPath)).toBeTruthy();
 
       const proc = await helpers.execFile(binPath, [], {});
@@ -170,7 +371,7 @@ describe(`Basic tests for npm packages`, () => {
     }
 
     {
-      const binPath = path.join(p.projectPath, 'node_modules', '.bin', 'dep2');
+      const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep2');
       expect(await helpers.exists(binPath)).toBeTruthy();
 
       const proc = await helpers.execFile(binPath, [], {});
@@ -179,7 +380,7 @@ describe(`Basic tests for npm packages`, () => {
 
     // only root deps has their bin installed
     expect(
-      await helpers.exists(path.join(p.projectPath, 'node_modules', '.bin', 'depDep')),
+      await helpers.exists(path.join(p.projectPath, '_esy', 'default', 'bin', 'depDep')),
     ).toBeFalsy();
   });
 
@@ -206,7 +407,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -244,7 +445,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -284,7 +485,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {
@@ -327,7 +528,7 @@ describe(`Basic tests for npm packages`, () => {
 
     await p.esy('install');
 
-    const layout = await helpers.crawlLayout(p.projectPath);
+    const layout = await helpers.readInstalledPackages(p.projectPath);
     expect(layout).toMatchObject({
       name: 'root',
       dependencies: {

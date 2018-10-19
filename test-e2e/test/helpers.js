@@ -20,10 +20,7 @@ const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
-const ESYCOMMAND =
-  process.platform === 'win32'
-    ? require.resolve('../../_build/default/esy/bin/esyCommand.exe')
-    : require.resolve('../../bin/esy');
+const ESY = require.resolve('../../_build/default/esy/bin/esyCommand.exe');
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -49,6 +46,10 @@ export type TestSandbox = {
     args?: string,
     options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
   ) => Promise<{stderr: string, stdout: string}>,
+  printEsy: (
+    args?: string,
+    options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
+  ) => Promise<void>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
   runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
@@ -76,11 +77,14 @@ export type TestSandbox = {
       name: string,
       version: string,
       opam: string,
-      url: ?string,
     },
     fixture: Fixture,
   ) => Promise<void>,
 };
+
+function exe(name) {
+  return isWindows ? `${name}.exe` : name;
+}
 
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
@@ -94,25 +98,29 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
-  await fs.symlink(ESYCOMMAND, path.join(binPath, 'esy'));
-
-  if (isWindows) {
-    await fs.copyFile(process.execPath, path.join(binPath, 'node.exe'));
-  }
+  await fs.symlink(ESY, path.join(binPath, exe('esy')));
+  await fs.copyFile(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
   const opamRegistry = await OpamRegistryMock.initialize();
 
   async function runJavaScriptInNodeAndReturnJson(script) {
-    const command = `node -p "JSON.stringify(${script.replace(/"/g, '\\"')})"`;
+    const pnpJs = path.join(projectPath, '_esy', 'default', 'pnp.js');
+    const command = `node -r ${pnpJs} -p "JSON.stringify(${script.replace(
+      /"/g,
+      '\\"',
+    )})"`;
     const p = await promiseExec(command, {cwd: projectPath});
     return JSON.parse(p.stdout);
   }
 
   function esy(args, options) {
     options = options || {};
-    let env = process.env;
+    let env = {
+      ...process.env,
+      PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
+    };
     if (options.env != null) {
       env = {...env, ...options.env};
     }
@@ -131,7 +139,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       };
     }
 
-    const execCommand = args != null ? `${ESYCOMMAND} ${args}` : ESYCOMMAND;
+    const execCommand = args != null ? `${ESY} ${args}` : ESY;
     return promiseExec(execCommand, {cwd, env});
   }
 
@@ -146,6 +154,21 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return promiseExec(line, {cwd: path.join(projectPath)});
   }
 
+  async function printEsy(cmd, options) {
+    const {stdout, stderr} = await esy(cmd, options);
+    console.log(
+      outdent`
+      COMMAND: esy ${cmd}
+      STDOUT:
+
+      ${stdout}
+      STDERR:
+
+      ${stderr}
+      `,
+    );
+  }
+
   return {
     rootPath,
     binPath,
@@ -154,6 +177,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     npmPrefixPath,
     run,
     esy,
+    printEsy,
     npm,
     npmRegistry,
     fixture: async (...fixture) => {
@@ -208,12 +232,12 @@ module.exports = {
   packageJson: FixtureUtils.packageJson,
   json: FixtureUtils.json,
   skipSuiteOnWindows,
-  ESYCOMMAND,
   getPackageArchiveHash: NpmRegistryMock.getPackageArchiveHash,
   getPackageDirectoryPath: NpmRegistryMock.getPackageDirectoryPath,
   getPackageHttpArchivePath: NpmRegistryMock.getPackageHttpArchivePath,
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
   crawlLayout: PackageGraph.crawl,
+  readInstalledPackages: PackageGraph.read,
   makeFakeBinary: fsUtils.makeFakeBinary,
   exists: fs.exists,
   readdir: fs.readdir,

@@ -14,6 +14,16 @@ export type Package = {
   dependencies: {[name: string]: Package},
 };
 
+function parseId(id) {
+  if (id[0] === '@') {
+    const [_, name, version] = id.split('@');
+    return {name: '@' + name, version};
+  } else {
+    const [name, version] = id.split('@');
+    return {name: name, version};
+  }
+}
+
 async function crawlDependencies(root, nodeModulesPath) {
   const dependencies = {};
 
@@ -103,4 +113,98 @@ function crawl(directory: string, sandbox?: string = 'default') {
   );
 }
 
-module.exports = {crawl};
+type InstallationItem = {
+  type: 'link' | 'install',
+  path: string,
+  source: string,
+};
+
+type Installation = {
+  [id: string]: InstallationItem,
+};
+
+type SolutionItem = {
+  name: string,
+  version: string,
+  dependencies: string[],
+  devDependencies: string[],
+};
+
+type Solution = {
+  hash: string,
+  root: string,
+  node: {
+    [id: string]: SolutionItem,
+  },
+};
+
+async function readSolution(
+  projectPath: string,
+  sandbox?: string = 'default',
+): Promise<?Solution> {
+  let solutionPath;
+  if (sandbox === 'default') {
+    solutionPath = path.join(projectPath, 'esy.lock.json');
+  } else {
+    solutionPath = path.join(projectPath, `${sandbox}.esy.lock.json`);
+  }
+
+  if (!(await fsUtils.exists(solutionPath))) {
+    return null;
+  }
+  const data = await fsUtils.readFile(solutionPath, 'utf8');
+  const solution: Solution = JSON.parse(data);
+  return solution;
+}
+
+async function readInstallation(
+  projectPath: string,
+  sandbox?: string = 'default',
+): Promise<?Installation> {
+  const installationPath = path.join(projectPath, '_esy', sandbox, 'installation.json');
+
+  if (!(await fsUtils.exists(installationPath))) {
+    return null;
+  }
+
+  const data = await fsUtils.readFile(installationPath, 'utf8');
+  const installation: Installation = JSON.parse(data);
+  return installation;
+}
+
+async function read(directory: string, sandbox?: string = 'default'): Promise<?Package> {
+  const installation = await readInstallation(directory, sandbox);
+  const solution = await readSolution(directory, sandbox);
+  if (solution == null) {
+    throw new Error('no solution found');
+  }
+  if (installation == null) {
+    throw new Error('no installation found');
+  }
+
+  function make(id) {
+    const item = solution.node[id];
+
+    const dependencies = {};
+    for (const dep of item.dependencies) {
+      const {name} = parseId(dep);
+      dependencies[name] = make(dep);
+    }
+
+    for (const dep of item.devDependencies) {
+      const {name} = parseId(dep);
+      dependencies[name] = make(dep);
+    }
+
+    return {
+      name: item.name,
+      version: item.version,
+      path: installation[id].path,
+      dependencies,
+    };
+  }
+
+  return make(solution.root);
+}
+
+module.exports = {crawl, read};
