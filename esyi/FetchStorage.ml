@@ -4,7 +4,7 @@ module Dist = struct
   type t = {
     sandbox : Sandbox.t;
     source : Source.t;
-    sourceInStorage : SourceStorage.source option;
+    archive : DistStorage.archive option;
     pkg : Solution.Package.t;
   }
 
@@ -141,10 +141,12 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
 
   let rec fetch' errs sources =
     match sources with
-    | source::rest ->
-      begin match%bind SourceStorage.fetch ~cfg:sandbox.Sandbox.cfg source with
-      | Ok sourceInStorage ->
-        return {Dist. sandbox; pkg; source; sourceInStorage = Some sourceInStorage;}
+    | (Source.Link _ as source)::_rest ->
+      return {Dist. sandbox; pkg; source; archive = None;}
+    | (Source.Dist dist as source)::rest ->
+      begin match%bind DistStorage.fetch ~cfg:sandbox.Sandbox.cfg dist with
+      | Ok archive ->
+        return {Dist. sandbox; pkg; source; archive = Some archive;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
     | [] ->
@@ -169,7 +171,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
       sandbox;
       pkg;
       source = Source.Link {path;manifest;};
-      sourceInStorage = None;
+      archive = None;
     }
   | Solution.Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
@@ -188,10 +190,10 @@ let unpack ~path ~overrides ~files ~opam dist =
    *)
 
   let%bind () =
-    match dist.Dist.sourceInStorage with
+    match dist.Dist.archive with
     | None ->
       return ()
-    | Some sourceInStorage ->
+    | Some archive ->
       let%bind () = Fs.rmPath path in
       let%bind () = Fs.createDir path in
 
@@ -201,10 +203,10 @@ let unpack ~path ~overrides ~files ~opam dist =
           path
       in
       let%bind () =
-        SourceStorage.unpack
+        DistStorage.unpack
           ~cfg:dist.sandbox.Sandbox.cfg
           ~dst:path
-          sourceInStorage
+          archive
       in
       let%bind () =
         RunAsync.List.mapAndWait

@@ -192,13 +192,13 @@ let resolve
     | Dist Github {user; repo; commit; manifest;} ->
       let%bind pkg = ofGithub ?manifest user repo commit in
       return (pkg, None)
-    | Dist Archive _ ->
+    | Dist (Archive _ as dist) ->
       Fs.withTempDir begin fun path ->
         let%bind () =
-          SourceStorage.fetchAndUnpack
+          DistStorage.fetchAndUnpack
             ~cfg
             ~dst:path
-            source
+            dist
         in
         let%bind pkg = ofPath path in
       return (pkg, None)
