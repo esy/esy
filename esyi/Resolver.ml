@@ -510,11 +510,6 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         then return (Source.Dist (LocalPath {path; manifest;}))
         else errorf "path '%a' does not exist" Path.ppPretty abspath
 
-      | SourceSpec.LocalPathLink {path; manifest;} ->
-        let abspath = Path.(resolver.root // path) in
-        if%bind Fs.exists abspath
-        then return (Source.Link {path; manifest;})
-        else errorf "path '%a' does not exist" Path.ppPretty abspath
     in
     Hashtbl.replace resolver.sourceSpecToSource sourceSpec source;
     return source

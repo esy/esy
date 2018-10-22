@@ -20,10 +20,6 @@ type t =
       path : Path.t;
       manifest : ManifestSpec.t option;
     }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
   | NoSource
   [@@deriving ord, sexp_of]
 
@@ -56,11 +52,6 @@ let show = function
   | LocalPath {path; manifest = Some manifest;} ->
     Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
 
-  | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.show path)
-  | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.show manifest)
-
   | NoSource -> "no-source:"
 
 let to_yojson src = `String (show src)
@@ -77,9 +68,9 @@ let ofSource (source : Source.t) =
     Github {user; repo; ref = Some commit; manifest;}
   | Source.Dist LocalPath {path; manifest;} ->
     LocalPath {path; manifest;}
-  | Source.Link {path; manifest;} ->
-    LocalPathLink {path; manifest;}
   | Source.Dist NoSource -> NoSource
+  | Source.Link _ ->
+    failwith "TODO"
 
 module Parse = struct
   include Parse
@@ -168,10 +159,6 @@ module Parse = struct
     let make path manifest = LocalPath { path; manifest; } in
     pathLike "path:" make
 
-  let link =
-    let make path manifest = LocalPathLink { path; manifest; } in
-    pathLike "link:" make
-
   let source =
     let source = Parse.(
       github
@@ -179,7 +166,6 @@ module Parse = struct
       <|> archive
       <|> file
       <|> path
-      <|> link
       <|> githubWithoutProto
     ) in
     let makePath path manifest = LocalPath { path; manifest; } in

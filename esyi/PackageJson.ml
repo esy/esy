@@ -43,14 +43,7 @@ let rebaseDependencies source reqs =
       let path = Path.(basePath // path |> normalizeAndRemoveEmptySeg) in
       let spec = VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) in
       return (Req.make ~name:req.name ~spec)
-    | (Source.Dist LocalPath {path = basePath; _}
-      | Source.Link {path = basePath; _}),
-      VersionSpec.Source (SourceSpec.LocalPathLink {path; manifest;}) ->
-      let path = Path.(basePath // path |> normalizeAndRemoveEmptySeg) in
-      let spec = VersionSpec.Source (SourceSpec.LocalPathLink {path; manifest;}) in
-      return (Req.make ~name:req.name ~spec)
-    | _, VersionSpec.Source (SourceSpec.LocalPath _)
-    | _, VersionSpec.Source (SourceSpec.LocalPathLink _) ->
+    | _, VersionSpec.Source (SourceSpec.LocalPath _) ->
       errorf
         "path constraints %a are not allowed from %a"
         VersionSpec.pp req.spec Source.pp source

@@ -276,23 +276,6 @@ let%test_module "parsing" = (module struct
       });
     };
 
-    "pkg@link:./some/file",
-    {
-      name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.LocalPathLink {
-        path = Path.v "some/file";
-        manifest = None;
-      });
-    };
-    "pkg@link:../reason-wall-demo",
-    {
-      name = "pkg";
-      spec = VersionSpec.Source (SourceSpec.LocalPathLink {
-        path = Path.v "../reason-wall-demo";
-        manifest = None;
-      });
-    };
-
     (* user/repo *)
 
     "pkg@user/repo",

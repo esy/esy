@@ -23,10 +23,6 @@ type t =
       path : Path.t;
       manifest : ManifestSpec.t option;
     }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
   | NoSource
 
 include S.PRINTABLE with type t := t
