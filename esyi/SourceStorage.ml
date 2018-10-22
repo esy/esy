@@ -6,7 +6,7 @@ let sourceTarballPath ~cfg source =
     |> Digest.string
     |> Digest.to_hex
   in
-  Path.(cfg.Config.cacheTarballsPath // v id |> addExt "tgz")
+  Path.(cfg.Config.sourceArchivePath // v id |> addExt "tgz")
 
 let fetchSourceIntoPath source path =
   let open RunAsync.Syntax in

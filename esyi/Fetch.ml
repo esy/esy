@@ -54,7 +54,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         FetchStorage.fetch ~sandbox pkg
       in
       RunAsync.List.mapAndJoin
-        ~concurrency:8
+        ~concurrency:40
         ~f:fetch
         (Package.Set.elements pkgs)
     in
@@ -73,7 +73,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind installation =
     let installation =
       let f id dist installation =
-        Installation.add id (Dist.sourcePath dist) installation
+        Installation.add id (Dist.sourceInstallPath dist) installation
       in
       let init =
         Installation.empty

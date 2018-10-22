@@ -240,6 +240,7 @@ module CommonOptions = struct
             return Cmd.(v (p cmd))
           in
           EsyInstall.Config.make
+            ~fastreplacestringCmd:EsyRuntime.fastreplacestringCmd
             ~esySolveCmd
             ~skipRepositoryUpdate
             ?cachePath

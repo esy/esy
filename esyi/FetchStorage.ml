@@ -12,7 +12,7 @@ module Dist = struct
   let pkg dist = dist.pkg
   let source dist = dist.source
 
-  let sourcePath dist =
+  let sourceStagePath dist =
     match dist.source with
     | Source.LocalPathLink link ->
       Path.(dist.sandbox.spec.path // link.path |> normalize)
@@ -24,7 +24,21 @@ module Dist = struct
         |> Digest.to_hex
         |> Path.safeSeg
       in
-      Path.(dist.sandbox.cfg.cacheSourcesPath / (name ^ "-" ^ id))
+      Path.(dist.sandbox.cfg.sourceInstallPath / (name ^ "-" ^ id))
+
+  let sourceInstallPath dist =
+    match dist.source with
+    | Source.LocalPathLink link ->
+      Path.(dist.sandbox.spec.path // link.path |> normalize)
+    | _ ->
+      let name = Path.safeSeg dist.pkg.name in
+      let id =
+        Source.show dist.source
+        |> Digest.string
+        |> Digest.to_hex
+        |> Path.safeSeg
+      in
+      Path.(dist.sandbox.cfg.sourceInstallPath / (name ^ "-" ^ id))
 
   let pp fmt dist =
     Fmt.pf fmt "%s@%a" dist.pkg.name Version.pp dist.pkg.version
@@ -178,28 +192,26 @@ let unpack ~path ~overrides ~files ~opam dist =
     | None ->
       return ()
     | Some sourceInStorage ->
-      let tempPath = Path.(path |> addExt ".tmp") in
-      let%bind () = Fs.rmPath tempPath in
-      let%bind () = Fs.createDir tempPath in
+      let%bind () = Fs.rmPath path in
+      let%bind () = Fs.createDir path in
 
       let%bind () =
         EsyLinkFile.toDir
           EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
-          tempPath
+          path
       in
       let%bind () =
         SourceStorage.unpack
           ~cfg:dist.sandbox.Sandbox.cfg
-          ~dst:tempPath
+          ~dst:path
           sourceInStorage
       in
       let%bind () =
         RunAsync.List.mapAndWait
-          ~f:(Package.File.writeToDir ~destinationDir:tempPath)
+          ~f:(Package.File.writeToDir ~destinationDir:path)
           files
       in
 
-      let%bind () = Fs.rename ~src:tempPath path in
       return ()
   in
 
@@ -330,28 +342,29 @@ let install dist =
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
       | Solution.Package.Install { overrides; files; opam; _ } ->
-        let sourcePath = Dist.sourcePath dist in
-        if%bind Fs.exists sourcePath
+        let sourceInstallPath = Dist.sourceInstallPath dist in
+        if%bind Fs.exists sourceInstallPath
         then
-          let%bind pkgJson = PackageJson.ofDir sourcePath in
-          return (sourcePath, pkgJson)
+          let%bind pkgJson = PackageJson.ofDir sourceInstallPath in
+          return (sourceInstallPath, pkgJson)
         else (
-          let%bind () = unpack ~overrides ~files ~path:sourcePath ~opam dist in
-          let%bind pkgJson = PackageJson.ofDir sourcePath in
+          let sourceStagePath = Dist.sourceStagePath dist in
+          let%bind () = unpack ~overrides ~files ~path:sourceStagePath ~opam dist in
+          let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
           let%bind () =
             match lifecycle with
             | Some lifecycle ->
-              begin match%lwt runLifecycle ~binPath dist.pkg sourcePath lifecycle with
-              | Ok () -> return ()
-              | err ->
-                (* TODO: try to run lifecycle inside a temp dir instead. *)
-                let%bind () = Fs.rmPath sourcePath in
-                Lwt.return err
-              end
+              let%bind () = runLifecycle ~binPath dist.pkg sourceStagePath lifecycle in
+              Fastreplacestring.rewritePrefix
+                ~fastreplacestringCmd:dist.sandbox.cfg.fastreplacestringCmd
+                ~origPrefix:sourceStagePath
+                ~destPrefix:sourceStagePath
+                sourceStagePath
             | None -> return ()
           in
-          return (sourcePath, pkgJson)
+          let%bind () = Fs.rename ~src:sourceStagePath sourceInstallPath in
+          return (sourceInstallPath, pkgJson)
         )
     in
 
