@@ -59,18 +59,18 @@ let to_yojson src = `String (show src)
 let pp fmt spec =
   Fmt.pf fmt "%s" (show spec)
 
-let ofSource (source : Source.t) =
-  match source with
-  | Source.Dist Archive {url; checksum} -> Archive {url; checksum = Some checksum}
-  | Source.Dist Git {remote; commit; manifest;} ->
+let ofSource (src : Source.t) =
+  match src with
+  | Dist Archive {url; checksum} -> Archive {url; checksum = Some checksum}
+  | Dist Git {remote; commit; manifest;} ->
     Git {remote; ref =  Some commit; manifest;}
-  | Source.Dist Github {user; repo; commit; manifest;} ->
+  | Dist Github {user; repo; commit; manifest;} ->
     Github {user; repo; ref = Some commit; manifest;}
-  | Source.Dist LocalPath {path; manifest;} ->
+  | Dist LocalPath {path; manifest;} ->
     LocalPath {path; manifest;}
-  | Source.Dist NoSource -> NoSource
-  | Source.Link _ ->
-    failwith "TODO"
+  | Dist NoSource -> NoSource
+  | Link {path; manifest;} ->
+    LocalPath {path; manifest;}
 
 module Parse = struct
   include Parse
