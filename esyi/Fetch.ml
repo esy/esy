@@ -100,31 +100,32 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     Fs.writeFile ~data path
   in
 
-  (* Run lifecycle scripts *)
+  let%bind binPath =
+    let binPath = SandboxSpec.binPath sandbox.spec in
+    let%bind () = Fs.createDir binPath in
+    return binPath
+  in
+
+  (* place <binPath>/node executable with pnp enabled *)
   let%bind () =
+    match nodeCmd with
+    | Ok nodeCmd ->
+      let pnpJs = SandboxSpec.pnpJsPath sandbox.spec in
+      let nodePath = Path.(binPath / "node") in
+      let data =
+        Format.asprintf
+          {|#!/bin/sh
+export ESY__NODE_BIN_PATH="%a"
+exec %s -r "%a" "$@"
+            |} Path.pp binPath nodeCmd Path.pp pnpJs
+      in
+      Fs.writeFile ~perm:0o755 ~data nodePath
+    | Error _ ->
+      (* no node available in $PATH, just skip this then *)
+      return ()
+  in
 
-    let%bind binPath =
-      let binPath = SandboxSpec.binPath sandbox.spec in
-      let%bind () = Fs.createDir binPath in
-      return binPath
-    in
-
-    (* place <binPath>/node executable with pnp enabled *)
-    let%bind () =
-      match nodeCmd with
-      | Ok nodeCmd ->
-        let pnpJs = SandboxSpec.pnpJsPath sandbox.spec in
-        let data =
-          Printf.sprintf
-            {|#!/bin/sh
-            exec %s -r "%s" "$@"
-             |} nodeCmd (Path.show pnpJs)
-        in
-        Fs.writeFile ~perm:0o755 ~data Path.(binPath / "node")
-      | Error _ ->
-        (* no node available in $PATH, just skip this then *)
-        return ()
-    in
+  let%bind () =
 
     let seen = ref Package.Set.empty in
 

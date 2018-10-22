@@ -877,6 +877,11 @@ exports.setup = function setup() {
   };
 
   process.versions.pnp = String(exports.VERSIONS.std);
+
+  if (process.env.ESY__NODE_BIN_PATH != null) {
+    const delimiter = require('path').delimiter;
+    process.env.PATH = `${process.env.ESY__NODE_BIN_PATH}${delimiter}${process.env.PATH}`;
+  }
 };
 
 exports.setupCompatibilityLayer = () => {
