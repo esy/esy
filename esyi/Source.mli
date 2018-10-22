@@ -1,33 +1,11 @@
 type t =
-  | Dist of dist
+  | Dist of Dist.t
   | Link of link
 
 and link = {
   path : Path.t;
   manifest : ManifestSpec.t option;
 }
-
-and dist =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t;
-    }
-  | Git of {
-      remote : string;
-      commit : string;
-      manifest : ManifestSpec.Filename.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      commit : string;
-      manifest : ManifestSpec.Filename.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | NoSource
 
 include S.COMMON with type t := t
 
