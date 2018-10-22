@@ -394,7 +394,7 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Solution.Package.Link { path; manifest; overrides } ->
+  | Solution.Package.Link { path; manifest; } ->
     let source = Source.Link {path; manifest;} in
     let%bind res =
       SourceResolver.resolve
@@ -402,7 +402,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
         ~root:cfg.spec.SandboxSpec.path
         source
     in
-    let overrides = Overrides.addMany overrides res.SourceResolver.overrides in
+    let overrides = Overrides.addMany pkg.overrides res.SourceResolver.overrides in
     let%bind manifest =
       begin match res.SourceResolver.manifest with
       | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->
@@ -427,18 +427,18 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       return (Some manifest, res.SourceResolver.paths)
     end
 
-  | Solution.Package.Install { source; overrides; files = _; opam = _; } ->
+  | Solution.Package.Install { source; files = _; opam = _; } ->
     let source , _ = source in
     let manifest = Source.manifest source in
     let%bind manifest, paths = ofPath ?manifest loc in
     let manifest =
       match manifest with
-      | Some manifest -> Some (Overrides.apply overrides applyOverride manifest)
+      | Some manifest -> Some (Overrides.apply pkg.overrides applyOverride manifest)
       | None ->
-        if Overrides.isEmpty overrides
+        if Overrides.isEmpty pkg.overrides
         then None
         else
           let manifest = empty ~name:None ~version:None () in
-          Some (Overrides.apply overrides applyOverride manifest)
+          Some (Overrides.apply pkg.overrides applyOverride manifest)
     in
     return (manifest, paths)

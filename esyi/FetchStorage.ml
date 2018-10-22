@@ -165,7 +165,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   in
 
   match pkg.source with
-  | Solution.Package.Link {path; manifest; overrides = _;} ->
+  | Solution.Package.Link {path; manifest;} ->
     return {
       Dist.
       sandbox;
@@ -343,7 +343,7 @@ let install dist =
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install { overrides; files; opam; _ } ->
+      | Solution.Package.Install { files; opam; _ } ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -351,7 +351,14 @@ let install dist =
           return (sourceInstallPath, pkgJson)
         else (
           let sourceStagePath = Dist.sourceStagePath dist in
-          let%bind () = unpack ~overrides ~files ~path:sourceStagePath ~opam dist in
+          let%bind () =
+            unpack
+              ~overrides:dist.Dist.pkg.overrides
+              ~files
+              ~path:sourceStagePath
+              ~opam
+              dist
+          in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
           let%bind () =

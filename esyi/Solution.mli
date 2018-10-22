@@ -22,6 +22,7 @@ module Package : sig
     name: string;
     version: Version.t;
     source: source;
+    overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   }
@@ -30,11 +31,9 @@ module Package : sig
     | Link of {
         path : Path.t;
         manifest : ManifestSpec.t option;
-        overrides: Package.Overrides.t;
       }
     | Install of {
         source : Source.t * Source.t list;
-        overrides: Package.Overrides.t;
         files : Package.File.t list;
         opam : Opam.t option;
       }

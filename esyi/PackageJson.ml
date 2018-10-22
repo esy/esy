@@ -114,17 +114,9 @@ let packageOfJson
   let source =
     match source with
     | Source.Link {path; manifest;} ->
-      Package.Link {
-        path;
-        manifest;
-        overrides = Package.Overrides.empty;
-      }
+      Package.Link {path; manifest;}
     | _ ->
-      Package.Install {
-        source = source, [];
-        overrides = Package.Overrides.empty;
-        opam = None;
-      }
+      Package.Install {source = source, []; opam = None;}
   in
 
   return {
@@ -133,6 +125,7 @@ let packageOfJson
     version;
     originalVersion;
     originalName = pkgJson.name;
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
     optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;

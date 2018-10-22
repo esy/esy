@@ -269,9 +269,9 @@ let solutionPkgOfPkg
 
   let%bind source =
     match pkg.source with
-    | Package.Link {path; manifest;overrides;} ->
-      return (Solution.Package.Link {path; manifest; overrides;})
-    | Package.Install { source; overrides; opam } ->
+    | Package.Link {path; manifest;} ->
+      return (Solution.Package.Link {path; manifest;})
+    | Package.Install { source; opam } ->
       let%bind files =
         match opam with
         | Some opam -> opam.files ()
@@ -292,7 +292,7 @@ let solutionPkgOfPkg
           }
         | None -> None
       in
-      return (Solution.Package.Install {opam; files; source; overrides})
+      return (Solution.Package.Install {opam; files; source;})
   in
 
   return ({
@@ -300,6 +300,7 @@ let solutionPkgOfPkg
     name = pkg.name;
     version = pkg.version;
     source;
+    overrides = pkg.overrides;
     dependencies;
     devDependencies;
   }, allDependencies)
@@ -437,8 +438,8 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     source = Package.Link {
       path = Path.v ".";
       manifest = None;
-      overrides = Package.Overrides.empty;
     };
+    overrides = Package.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;

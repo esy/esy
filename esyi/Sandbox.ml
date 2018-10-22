@@ -78,8 +78,8 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         source = Package.Link {
           path = Path.v ".";
           manifest = None;
-          overrides = Package.Overrides.empty;
         };
+        overrides = Package.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
         optDependencies = StringSet.empty;
@@ -119,8 +119,8 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       source = Package.Link {
         path = Path.v ".";
         manifest = None;
-        overrides = Package.Overrides.empty;
       };
+      overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       optDependencies = StringSet.empty;

@@ -343,17 +343,12 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
     let source =
       match source with
       | None ->
-        Package.Install {
-          source = sourceFromOpam;
-          overrides = Package.Overrides.empty;
-          opam;
-        }
+        Package.Install {source = sourceFromOpam; opam;}
       | Some (Source.Link {path; manifest;}) ->
-        Package.Link {path; manifest; overrides = Package.Overrides.empty;}
+        Package.Link {path; manifest;}
       | Some source ->
         Package.Install {
           source = source, [];
-          overrides = Package.Overrides.empty;
           opam;
         }
     in
@@ -366,6 +361,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalName = None;
       kind = Package.Esy;
       source;
+      overrides = Package.Overrides.empty;
       dependencies;
       devDependencies;
       optDependencies;

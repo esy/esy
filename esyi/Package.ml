@@ -685,6 +685,7 @@ type t = {
   originalVersion : Version.t option;
   originalName : string option;
   source : source;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   optDependencies: StringSet.t;
@@ -696,11 +697,9 @@ and source =
   | Link of {
       path : Path.t;
       manifest : ManifestSpec.t option;
-      overrides : Overrides.t;
     }
   | Install of {
       source : Source.t * Source.t list;
-      overrides : Overrides.t;
       opam : Opam.t option;
     }
 

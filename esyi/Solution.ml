@@ -36,6 +36,7 @@ module Package = struct
     name: string;
     version: Version.t;
     source: source;
+    overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   } [@@deriving yojson]
@@ -44,11 +45,9 @@ module Package = struct
     | Link of {
         path : Path.t;
         manifest : ManifestSpec.t option;
-        overrides: Package.Overrides.t;
       }
     | Install of {
         source : SourceWithMirrors.t;
-        overrides: Package.Overrides.t;
         files : Package.File.t list;
         opam : Opam.t option;
       }

@@ -79,8 +79,8 @@ let emptyLink ~name ~path ~manifest () =
     source = Package.Link {
       path;
       manifest = None;
-      overrides = Package.Overrides.empty;
     };
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;
@@ -98,8 +98,8 @@ let emptyInstall ~name ~source () =
     source = Package.Install {
       source = source, [];
       opam = None;
-      overrides = Package.Overrides.empty;
     };
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;
@@ -439,18 +439,12 @@ let package ~(resolution : Resolution.t) resolver =
         in
       let pkg =
         match pkg.source with
-        | Package.Install source ->
-          let source = Package.Install {
-            source with
-            overrides = Package.Overrides.addMany source.overrides overrides
-          } in
-          {pkg with source;}
-        | Package.Link source ->
-          let source = Package.Link {
-            source with
-            overrides = Package.Overrides.addMany source.overrides overridesOfResolutions
-          } in
-          {pkg with source;}
+        | Package.Install _ ->
+          let overrides = Package.Overrides.addMany pkg.overrides overrides in
+          {pkg with overrides;}
+        | Package.Link _ ->
+          let overrides = Package.Overrides.addMany pkg.overrides overridesOfResolutions in
+          {pkg with overrides;}
       in
       return (Ok pkg)
     | err -> return err
