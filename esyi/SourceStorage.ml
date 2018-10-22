@@ -20,7 +20,7 @@ let fetchSourceIntoPath source path =
       Fs.copyPath ~src ~dst
     in
     let%bind () =
-      RunAsync.List.waitAll (List.map ~f:copy names)
+      RunAsync.List.mapAndWait ~f:copy names
     in
     return (Ok ())
 

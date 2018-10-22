@@ -75,12 +75,16 @@ let unpack ~sandbox ~path ~overrides ~files ~opam dist =
           EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
           tempPath
       in
-      let%bind () = SourceStorage.unpack ~cfg:sandbox.Sandbox.cfg ~dst:tempPath sourceInStorage in
       let%bind () =
-        let f file =
-          Package.File.writeToDir ~destinationDir:tempPath file
-        in
-        List.map ~f files |> RunAsync.List.waitAll
+        SourceStorage.unpack
+          ~cfg:sandbox.Sandbox.cfg
+          ~dst:tempPath
+          sourceInStorage
+      in
+      let%bind () =
+        RunAsync.List.mapAndWait
+          ~f:(Package.File.writeToDir ~destinationDir:tempPath)
+          files
       in
 
       let%bind () = Fs.rename ~src:tempPath path in

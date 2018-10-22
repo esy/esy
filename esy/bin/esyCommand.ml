@@ -1375,35 +1375,31 @@ let exportDependencies (copts : CommonOptions.t) () =
   let%bind plan = SandboxInfo.plan info in
   let%bind solution = SandboxInfo.solution info in
 
-  let queue = LwtTaskQueue.create ~concurrency:8 () in
-
   let exportBuild (_, pkg) =
-    let aux () =
-      let task =
-        RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg))
-      in
-      match%bind task with
-      | None -> return ()
-      | Some task ->
-        let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
-        let buildPath = Scope.SandboxPath.toPath copts.cfg.buildCfg
-        (Plan.Task.installPath task) in
-        if%bind Fs.exists buildPath
-        then
-          let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-          Plan.exportBuild ~outputPrefixPath ~cfg:copts.cfg buildPath
-        else (
-          errorf
-            "%s@%a was not built, run 'esy build' first"
-            pkg.name Version.pp pkg.version
-        )
+    let task =
+      RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg))
     in
-    LwtTaskQueue.submit queue aux
+    match%bind task with
+    | None -> return ()
+    | Some task ->
+      let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
+      let buildPath = Scope.SandboxPath.toPath copts.cfg.buildCfg
+      (Plan.Task.installPath task) in
+      if%bind Fs.exists buildPath
+      then
+        let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
+        Plan.exportBuild ~outputPrefixPath ~cfg:copts.cfg buildPath
+      else (
+        errorf
+          "%s@%a was not built, run 'esy build' first"
+          pkg.name Version.pp pkg.version
+      )
   in
 
-  Solution.allDependenciesBFS (Solution.root solution) solution
-  |> List.map ~f:exportBuild
-  |> RunAsync.List.waitAll
+  RunAsync.List.mapAndWait
+    ~concurrency:8
+    ~f:exportBuild
+    (Solution.allDependenciesBFS (Solution.root solution) solution)
 
 let importBuild (copts : CommonOptions.t) fromPath buildPaths () =
   let open RunAsync.Syntax in
@@ -1420,11 +1416,10 @@ let importBuild (copts : CommonOptions.t) fromPath buildPaths () =
   | None -> return buildPaths
   in
 
-  let queue = LwtTaskQueue.create ~concurrency:8 () in
-  buildPaths
-  |> List.map ~f:(fun path -> LwtTaskQueue.submit queue (fun () ->
-      Plan.importBuild ~cfg:copts.cfg path))
-  |> RunAsync.List.waitAll
+  RunAsync.List.mapAndWait
+    ~concurrency:8
+    ~f:(fun path -> Plan.importBuild ~cfg:copts.cfg path)
+    buildPaths
 
 let importDependencies (copts : CommonOptions.t) fromPath () =
   let open RunAsync.Syntax in
@@ -1438,36 +1433,32 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
     | None -> Path.(copts.cfg.buildCfg.projectPath / "_export")
   in
 
-  let queue = LwtTaskQueue.create ~concurrency:16 () in
-
   let importBuild (_direct, pkg) =
     match%bind RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg)) with
     | Some task ->
-      let aux () =
-        let installPath = Scope.SandboxPath.toPath copts.cfg.buildCfg (Plan.Task.installPath task) in
-        if%bind Fs.exists installPath
-        then return ()
-        else (
-          let id = task.id in
-          let pathDir = Path.(fromPath / id) in
-          let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
-          if%bind Fs.exists pathDir
-          then Plan.importBuild ~cfg:copts.cfg pathDir
-          else if%bind Fs.exists pathTgz
-          then Plan.importBuild ~cfg:copts.cfg pathTgz
-          else
-            let%lwt () =
-              Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
-            in return ()
-        )
-      in
-      LwtTaskQueue.submit queue aux
+      let installPath = Scope.SandboxPath.toPath copts.cfg.buildCfg (Plan.Task.installPath task) in
+      if%bind Fs.exists installPath
+      then return ()
+      else (
+        let id = task.id in
+        let pathDir = Path.(fromPath / id) in
+        let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
+        if%bind Fs.exists pathDir
+        then Plan.importBuild ~cfg:copts.cfg pathDir
+        else if%bind Fs.exists pathTgz
+        then Plan.importBuild ~cfg:copts.cfg pathTgz
+        else
+          let%lwt () =
+            Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
+          in return ()
+      )
     | None -> return ()
   in
 
-  Solution.allDependenciesBFS (Solution.root solution) solution
-  |> List.map ~f:importBuild
-  |> RunAsync.List.waitAll
+  RunAsync.List.mapAndWait
+    ~concurrency:16
+    ~f:importBuild
+    (Solution.allDependenciesBFS (Solution.root solution) solution)
 
 let release copts () =
   let open RunAsync.Syntax in

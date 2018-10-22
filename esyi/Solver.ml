@@ -334,18 +334,13 @@ let add ~(dependencies : Dependencies.t) solver =
   and addDependencies (dependencies : Dependencies.t) =
     match dependencies with
     | Dependencies.NpmFormula reqs ->
-      RunAsync.List.waitAll (
-        let f (req : Req.t) = addDependency req in
-        List.map ~f reqs
-      )
+      let f (req : Req.t) = addDependency req in
+      RunAsync.List.mapAndWait ~f reqs
 
     | Dependencies.OpamFormula _ ->
-      RunAsync.List.waitAll (
-        let f (req : Req.t) = addDependency req
-        in
-        let reqs = Dependencies.toApproximateRequests dependencies in
-        List.map ~f reqs
-      )
+      let f (req : Req.t) = addDependency req in
+      let reqs = Dependencies.toApproximateRequests dependencies in
+      RunAsync.List.mapAndWait ~f reqs
 
   and addDependency (req : Req.t) =
     let%lwt () =

@@ -99,6 +99,19 @@ module List = struct
     in
     _waitAll xs
 
+  let limitWithConccurrency concurrency f =
+    match concurrency with
+    | None -> f
+    | Some concurrency ->
+      let queue = LwtTaskQueue.create ~concurrency () in
+      fun x -> LwtTaskQueue.submit queue (fun () -> f x)
+
+  let mapAndWait ?concurrency ~f xs =
+    waitAll (List.map ~f:(limitWithConccurrency concurrency f) xs)
+
+  let mapAndJoin ?concurrency ~f xs =
+    joinAll (List.map ~f:(limitWithConccurrency concurrency f) xs)
+
   let rec processSeq ~f =
     let open Syntax in
     function

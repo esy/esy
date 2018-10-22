@@ -165,15 +165,15 @@ let runLifecycleScript ?env ~install ~lifecycleName script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ?env ~install ~(pkgJson : PackageJson.t) () =
+let runLifecycle ?env pkgJson install =
   let open RunAsync.Syntax in
   let%bind () =
-    match pkgJson.scripts.install with
+    match pkgJson.PackageJson.scripts.install with
     | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"install" cmd
     | None -> return ()
   in
   let%bind () =
-    match pkgJson.scripts.postinstall with
+    match pkgJson.PackageJson.scripts.postinstall with
     | Some cmd -> runLifecycleScript ?env ~install ~lifecycleName:"postinstall" cmd
     | None -> return ()
   in
@@ -237,11 +237,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
   (* Fetch all package distributions *)
   let%bind dists =
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
 
     let%bind dists =
-      let fetch pkg () =
+      let fetch pkg =
         let%lwt () =
           let status = Format.asprintf "%a" Package.pp pkg in
           report status
@@ -262,10 +261,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
         let id = Dist.id dist in
         return (id, (dist, install, pkgJson))
       in
-      pkgs
-      |> Package.Set.elements
-      |> List.map ~f:(fun pkg -> LwtTaskQueue.submit queue (fetch pkg))
-      |> RunAsync.List.joinAll
+      RunAsync.List.mapAndJoin
+        ~concurrency:8
+        ~f:fetch
+        (Package.Set.elements pkgs)
     in
     let%lwt () = finish () in
 
@@ -317,8 +316,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   (* Run lifecycle scripts *)
   let%bind () =
 
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
-
     let%bind binPath =
       let binPath = SandboxSpec.binPath sandbox.spec in
       let%bind () = Fs.createDir binPath in
@@ -358,12 +355,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       let%bind () =
         Logs_lwt.debug (fun m -> m "Fetch:runLifecycle:%a" Package.pp install.Install.pkg);%lwt
         RunAsync.contextf
-          (LwtTaskQueue.submit
-            queue
-            (runLifecycle
-              ~env
-              ~install
-              ~pkgJson))
+          (runLifecycle
+            ~env
+            pkgJson
+            install)
           "running lifecycle %a"
           Install.pp install
 
@@ -371,9 +366,10 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
 
       let%bind () =
         Logs_lwt.debug (fun m -> m "Fetch:installBinWrappers:%a" Package.pp install.Install.pkg);%lwt
-        PackageJson.packageCommands install.Install.sourcePath pkgJson
-        |> List.map ~f:(installBinWrapper ~binPath)
-        |> RunAsync.List.waitAll
+        RunAsync.List.mapAndWait
+          ~concurrency:8
+          ~f:(installBinWrapper ~binPath)
+          (PackageJson.packageCommands install.Install.sourcePath pkgJson)
       in
 
       return ()
@@ -396,8 +392,9 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
           Solution.dependencies ~traverse pkg solution
         in
         let%bind () =
-          List.map ~f:visit dependendencies
-          |> RunAsync.List.waitAll
+          RunAsync.List.mapAndWait
+            ~f:visit
+            dependendencies
         in
 
         match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
