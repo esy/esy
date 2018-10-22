@@ -318,22 +318,6 @@ let%test_module "parsing" = (module struct
     parse "http://example.com/pkg.tgz#abc123";
     [%expect {| (Archive (url http://example.com/pkg.tgz) (checksum ((Sha1 abc123)))) |}]
 
-  let%expect_test "link:/some/path" =
-    parse "link:/some/path";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ())) |}]
-
-  let%expect_test "link:/some/path/opam" =
-    parse "link:/some/path/opam";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Opam opam))))) |}]
-
-  let%expect_test "link:/some/path/lwt.opam" =
-    parse "link:/some/path/lwt.opam";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
-
-  let%expect_test "link:/some/path/package.json" =
-    parse "link:/some/path/package.json";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Esy package.json))))) |}]
-
   let%expect_test "file:/some/path" =
     parse "file:/some/path";
     [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
