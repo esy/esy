@@ -70,16 +70,16 @@ let pp fmt spec =
 
 let ofSource (source : Source.t) =
   match source with
-  | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
-  | Source.Git {remote; commit; manifest;} ->
+  | Source.Dist Archive {url; checksum} -> Archive {url; checksum = Some checksum}
+  | Source.Dist Git {remote; commit; manifest;} ->
     Git {remote; ref =  Some commit; manifest;}
-  | Source.Github {user; repo; commit; manifest;} ->
+  | Source.Dist Github {user; repo; commit; manifest;} ->
     Github {user; repo; ref = Some commit; manifest;}
-  | Source.LocalPath {path; manifest;} ->
+  | Source.Dist LocalPath {path; manifest;} ->
     LocalPath {path; manifest;}
-  | Source.LocalPathLink {path; manifest;} ->
+  | Source.Link {path; manifest;} ->
     LocalPathLink {path; manifest;}
-  | Source.NoSource -> NoSource
+  | Source.Dist NoSource -> NoSource
 
 module Parse = struct
   include Parse

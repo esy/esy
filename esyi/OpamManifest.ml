@@ -164,10 +164,10 @@ let convertOpamUrl (manifest : t) =
     let convert (url : OpamUrl.t) =
       match url.backend with
       | `http ->
-        return (Source.Archive {
+        return (Source.Dist (Archive {
           url = OpamUrl.to_string url;
           checksum;
-        })
+        }))
       | `rsync -> Error "unsupported source for opam: rsync"
       | `hg -> Error "unsupported source for opam: hg"
       | `darcs -> Error "unsupported source for opam: darcs"
@@ -189,16 +189,16 @@ let convertOpamUrl (manifest : t) =
   let%bind main, mirrors =
     match manifest.override.Override.opam.Override.Opam.source with
     | Some source ->
-      let main = Source.Archive {
+      let main = Source.Dist (Archive {
         url = source.url;
         checksum = Checksum.Md5, source.checksum;
-      } in
+      }) in
       return (main, [])
     | None -> begin
       match manifest.url with
       | Some url -> sourceOfOpamUrl url
       | None ->
-        let main = Source.NoSource in
+        let main = Source.Dist NoSource in
         Ok (main, [])
       end
   in
@@ -207,10 +207,10 @@ let convertOpamUrl (manifest : t) =
   | Some archive ->
     let mirrors = main::mirrors in
     let main =
-      Source.Archive {
+      Source.Dist (Archive {
         url = archive.url;
         checksum = Checksum.Md5, archive.md5;
-      }
+      })
     in
     Ok (main, mirrors)
   | None ->
@@ -348,7 +348,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
           overrides = Package.Overrides.empty;
           opam;
         }
-      | Some (Source.LocalPathLink {path; manifest;}) ->
+      | Some (Source.Link {path; manifest;}) ->
         Package.Link {path; manifest; overrides = Package.Overrides.empty;}
       | Some source ->
         Package.Install {

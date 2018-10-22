@@ -12,7 +12,7 @@ let fetchSourceIntoPath source path =
   let open RunAsync.Syntax in
   match source with
 
-  | Source.LocalPath { path = srcPath; manifest = _; } ->
+  | Source.Dist LocalPath { path = srcPath; manifest = _; } ->
     let%bind names = Fs.listDir srcPath in
     let copy name =
       let src = Path.(srcPath / name) in
@@ -24,14 +24,14 @@ let fetchSourceIntoPath source path =
     in
     return (Ok ())
 
-  | Source.LocalPathLink _ ->
+  | Source.Link _ ->
     (* this case is handled separately *)
     return (Ok ())
 
-  | Source.NoSource ->
+  | Source.Dist NoSource ->
     return (Ok ())
 
-  | Source.Archive {url; checksum}  ->
+  | Source.Dist Archive {url; checksum}  ->
     let f tempPath =
       let%bind () = Fs.createDir tempPath in
       let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -44,7 +44,7 @@ let fetchSourceIntoPath source path =
     in
     Fs.withTempDir f
 
-  | Source.Github github ->
+  | Source.Dist Github github ->
     let f tempPath =
       let%bind () = Fs.createDir tempPath in
       let tarballPath = Path.(tempPath / "package.tgz") in
@@ -61,7 +61,7 @@ let fetchSourceIntoPath source path =
     in
     Fs.withTempDir f
 
-  | Source.Git git ->
+  | Source.Dist Git git ->
     let%bind () = Git.clone ~dst:path ~remote:git.remote () in
     let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
     let%bind () = Fs.rmPath Path.(path / ".git") in

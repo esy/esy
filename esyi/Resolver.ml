@@ -73,7 +73,7 @@ let emptyLink ~name ~path ~manifest () =
   {
     Package.
     name;
-    version = Version.Source (Source.LocalPathLink {path; manifest;});
+    version = Version.Source (Source.Link {path; manifest;});
     originalVersion = None;
     originalName = None;
     source = Package.Link {
@@ -248,7 +248,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
         if allowEmptyPackage
         then
           match source with
-          | Source.LocalPathLink {path; manifest;} ->
+          | Source.Link {path; manifest;} ->
             let pkg = emptyLink ~name ~path ~manifest () in
             return (Ok pkg)
           | _ ->
@@ -474,10 +474,10 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref with
         | Some commit, _ ->
-          return (Source.Github {user; repo; commit; manifest;})
+          return (Source.Dist (Github {user; repo; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (Source.Github {user; repo; commit = ref; manifest;})
+          then return (Source.Dist (Github {user; repo; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
@@ -487,33 +487,33 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref  with
         | Some commit, _ ->
-          return (Source.Git {remote; commit; manifest;})
+          return (Source.Dist (Git {remote; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (Source.Git {remote; commit = ref; manifest;})
+          then return (Source.Dist (Git {remote; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
         end
 
       | SourceSpec.NoSource ->
-        return (Source.NoSource)
+        return (Source.Dist NoSource)
 
       | SourceSpec.Archive {url; checksum = None} ->
         failwith ("archive sources without checksums are not implemented: " ^ url)
       | SourceSpec.Archive {url; checksum = Some checksum} ->
-        return (Source.Archive {url; checksum})
+        return (Source.Dist (Archive {url; checksum}))
 
       | SourceSpec.LocalPath {path; manifest;} ->
         let abspath = Path.(resolver.root // path) in
         if%bind Fs.exists abspath
-        then return (Source.LocalPath {path; manifest;})
+        then return (Source.Dist (LocalPath {path; manifest;}))
         else errorf "path '%a' does not exist" Path.ppPretty abspath
 
       | SourceSpec.LocalPathLink {path; manifest;} ->
         let abspath = Path.(resolver.root // path) in
         if%bind Fs.exists abspath
-        then return (Source.LocalPathLink {path; manifest;})
+        then return (Source.Link {path; manifest;})
         else errorf "path '%a' does not exist" Path.ppPretty abspath
     in
     Hashtbl.replace resolver.sourceSpecToSource sourceSpec source;

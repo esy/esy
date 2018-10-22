@@ -395,7 +395,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
   let open RunAsync.Syntax in
   match pkg.source with
   | Solution.Package.Link { path; manifest; overrides } ->
-    let source = Source.LocalPathLink {path; manifest;} in
+    let source = Source.Link {path; manifest;} in
     let%bind res =
       SourceResolver.resolve
         ~cfg:cfg.Config.installCfg

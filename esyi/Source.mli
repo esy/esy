@@ -1,4 +1,13 @@
 type t =
+  | Dist of dist
+  | Link of link
+
+and link = {
+  path : Path.t;
+  manifest : ManifestSpec.t option;
+}
+
+and dist =
   | Archive of {
       url : string;
       checksum : Checksum.t;
@@ -15,10 +24,6 @@ type t =
       manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | LocalPathLink of {
       path : Path.t;
       manifest : ManifestSpec.t option;
     }

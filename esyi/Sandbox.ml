@@ -58,7 +58,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Source.LocalPath {
+  let source = Source.Link {
     path = Path.v ".";
     manifest = None;
   } in

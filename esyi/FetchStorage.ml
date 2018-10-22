@@ -14,7 +14,7 @@ module Dist = struct
 
   let sourceStagePath dist =
     match dist.source with
-    | Source.LocalPathLink link ->
+    | Source.Link link ->
       Path.(dist.sandbox.spec.path // link.path |> normalize)
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
@@ -28,7 +28,7 @@ module Dist = struct
 
   let sourceInstallPath dist =
     match dist.source with
-    | Source.LocalPathLink link ->
+    | Source.Link link ->
       Path.(dist.sandbox.spec.path // link.path |> normalize)
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
@@ -168,7 +168,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
       Dist.
       sandbox;
       pkg;
-      source = Source.LocalPathLink {path;manifest;};
+      source = Source.Link {path;manifest;};
       sourceInStorage = None;
     }
   | Solution.Package.Install {source = main, mirrors; _} ->
