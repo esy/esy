@@ -33,7 +33,7 @@ end
 module PackageJson : sig
   type t
 
-  type scripts = {
+  type lifecycle = {
     postinstall : string option;
     install : string option;
   }
@@ -41,24 +41,17 @@ module PackageJson : sig
   val ofDir : Path.t -> t option RunAsync.t
 
   val bin : sourcePath:Path.t -> t -> (string * Path.t) list
-  val scripts : t -> scripts
+  val lifecycle : t -> lifecycle option
 
 end = struct
 
-  module Scripts = struct
+  module Lifecycle = struct
     type t = {
       postinstall : (string option [@default None]);
       install : (string option [@default None]);
     }
     [@@deriving of_yojson { strict = false }]
-
-    let empty = {postinstall = None; install = None}
   end
-
-  type scripts = Scripts.t = {
-    postinstall : string option;
-    install : string option;
-  }
 
   module Bin = struct
     type t =
@@ -91,9 +84,14 @@ end = struct
   type t = {
     name : string option [@default None];
     bin : (Bin.t [@default Bin.Empty]);
-    scripts : (Scripts.t [@default Scripts.empty]);
+    scripts : (Lifecycle.t option [@default None]);
     esy : (Json.t option [@default None]);
   } [@@deriving of_yojson { strict = false }]
+
+  type lifecycle = Lifecycle.t = {
+    postinstall : string option;
+    install : string option;
+  }
 
   let ofDir path =
     let open RunAsync.Syntax in
@@ -120,7 +118,7 @@ end = struct
       (StringMap.fold f cmds [])
     | Bin.Empty, _ -> []
 
-  let scripts pkgJson = pkgJson.scripts
+  let lifecycle pkgJson = pkgJson.scripts
 
 end
 
@@ -268,7 +266,7 @@ let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycleScripts ~binPath pkg sourcePath pkgJson =
+let runLifecycle ~binPath pkg sourcePath lifecycle =
   let open RunAsync.Syntax in
   let env =
     let override =
@@ -282,16 +280,14 @@ let runLifecycleScripts ~binPath pkg sourcePath pkgJson =
     ChildProcess.CurrentEnvOverride override
   in
 
-  let scripts = PackageJson.scripts pkgJson in
-
   let%bind () =
-    match scripts.install with
+    match lifecycle.PackageJson.install with
     | Some cmd -> runLifecycleScript ~env ~lifecycleName:"install" pkg sourcePath cmd
     | None -> return ()
   in
 
   let%bind () =
-    match scripts.postinstall with
+    match lifecycle.PackageJson.postinstall with
     | Some cmd -> runLifecycleScript ~env ~lifecycleName:"postinstall" pkg sourcePath cmd
     | None -> return ()
   in
@@ -339,9 +335,17 @@ let install dist =
         else (
           let%bind () = unpack ~overrides ~files ~path:sourcePath ~opam dist in
           let%bind pkgJson = PackageJson.ofDir sourcePath in
+          let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
           let%bind () =
-            match pkgJson with
-            | Some pkgJson -> runLifecycleScripts ~binPath dist.pkg sourcePath pkgJson
+            match lifecycle with
+            | Some lifecycle ->
+              begin match%lwt runLifecycle ~binPath dist.pkg sourcePath lifecycle with
+              | Ok () -> return ()
+              | err ->
+                (* TODO: try to run lifecycle inside a temp dir instead. *)
+                let%bind () = Fs.rmPath sourcePath in
+                Lwt.return err
+              end
             | None -> return ()
           in
           return (sourcePath, pkgJson)
