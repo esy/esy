@@ -2,6 +2,13 @@
 
 const helpers = require('../test/helpers.js');
 
+async function requireJson(p, req) {
+  const {stdout} = await p.esy(
+    `node -p 'JSON.stringify(require(${JSON.stringify(req)}))'`,
+  );
+  return JSON.parse(stdout);
+}
+
 describe('Installing devDependencies', function() {
   test(`it should install devDependencies`, async () => {
     const fixture = [
@@ -21,6 +28,12 @@ describe('Installing devDependencies', function() {
     });
 
     await p.esy(`install`);
+    await p.esy(`build`);
+
+    expect(await requireJson(p, 'devDep/package.json')).toMatchObject({
+      name: 'devDep',
+      version: '1.0.0',
+    });
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
@@ -57,6 +70,12 @@ describe('Installing devDependencies', function() {
     });
 
     await p.esy(`install`);
+    await p.esy(`build`);
+
+    expect(await requireJson(p, 'devDep/package.json')).toMatchObject({
+      name: 'devDep',
+      version: '1.0.0',
+    });
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
