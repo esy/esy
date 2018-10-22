@@ -128,6 +128,11 @@ exec %s -r "%a" "$@"
   let%bind () =
 
     let seen = ref Package.Set.empty in
+    let queue = LwtTaskQueue.create ~concurrency:15 () in
+
+    let install dist =
+      LwtTaskQueue.submit queue (fun () -> FetchStorage.install dist)
+    in
 
     let rec visit pkg =
       if Package.Set.mem pkg !seen
@@ -150,7 +155,7 @@ exec %s -r "%a" "$@"
         in
 
         match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
-        | false, Some dist -> FetchStorage.install dist
+        | false, Some dist -> install dist
         | false, None -> errorf "dist not found: %a" Package.pp pkg
         | true, _ -> return ()
       )
