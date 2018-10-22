@@ -19,9 +19,13 @@ function makeFixture(p) {
         },
       },
       dependencies: {
-        dep: 'link:./dep',
+        dep: '*',
       },
       devDependencies: {
+        devDep: '*',
+      },
+      resolutions: {
+        dep: 'link:./dep',
         devDep: 'link:./devDep',
       },
     }),
