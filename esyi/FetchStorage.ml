@@ -303,7 +303,10 @@ let installBinWrapper ~binPath (name, origPath) =
   if%bind Fs.exists origPath
   then (
     let%bind () = Fs.chmod 0o777 origPath in
-    Fs.symlink ~src:origPath Path.(binPath / name)
+    let destPath = Path.(binPath / name) in
+    if%bind Fs.exists destPath
+    then return ()
+    else Fs.symlink ~src:origPath destPath
   ) else (
     Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
     return ()
