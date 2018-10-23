@@ -232,7 +232,7 @@ const isDirRegExp = /\/$/;
 const isStrictRegExp = /^\.{0,2}\//;
 
 // Splits a require request into its components, or return null if the request is a file path
-const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+const pathRegExp = /^(?![A-Za-z]:)(?!\.{0,2}(?:\/|$))((?:@@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 // Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
