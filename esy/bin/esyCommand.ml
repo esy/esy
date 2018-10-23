@@ -1866,7 +1866,20 @@ let makeCommands ~sandbox () =
 
   defaultCommand, commands
 
+let checkSymlinks () =
+  if Unix.has_symlink () == false then begin
+    print_endline ("ERROR: Unable to create symlinks. Missing SeCreateSymbolicLinkPrivilege.");
+    print_endline ("");
+    print_endline ("Esy must be ran as an administrator on Windows, because it uses symbolic links.");
+    print_endline ("Open an elevated command shell by right-clicking and selecting 'Run as administrator', and try esy again.");
+    print_endline("");
+    print_endline ("For more info, see https://github.com/esy/esy/issues/389");
+    exit 1;
+  end
+
 let () =
+
+  let () = checkSymlinks () in
 
   let argv, commandName, sandbox =
     let argv = Array.to_list Sys.argv in
