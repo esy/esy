@@ -88,8 +88,8 @@ describe('"esy solve" errors', function() {
           },
         }),
       ),
-      dir('conflict'),
-      dir('conflict-other'),
+      dir('conflict', helpers.packageJson({esy: {}})),
+      dir('conflict-other', helpers.packageJson({esy: {}})),
     );
 
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
@@ -389,8 +389,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      error: path 'missing' does not exist
-        resolving missing@link:missing
+      error: no manifest found at link:missing
+        reading package metadata from link:missing
+        resolving metadata missing@link:missing
       esy: exiting due to errors above
       `,
     );

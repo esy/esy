@@ -201,7 +201,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : Source.t) resolver =
+let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
   let readPackage ~name ~source {DistResolver. kind; filename = _; data; suggestedPackageName} =
@@ -252,7 +252,7 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
       | Some manifest ->
         readPackage ~name ~source:resolvedSource manifest
       | None ->
-        if allowEmptyPackage
+        if not (Package.Overrides.isEmpty overrides)
         then
           match source with
           | Source.Link {path; manifest;} ->
@@ -414,7 +414,6 @@ let package ~(resolution : Resolution.t) resolver =
 
     | Version.Source source ->
       packageOfSource
-        ~allowEmptyPackage:true
         ~overridesOfResolutions:Package.Overrides.empty
         ~name:resolution.name
         source
@@ -431,7 +430,6 @@ let package ~(resolution : Resolution.t) resolver =
         let overridesOfResolutions = Package.Overrides.(empty |> add override) in
         let%bind pkg, overrides =
           packageOfSource
-            ~allowEmptyPackage:true
             ~name:resolution.name
             ~overridesOfResolutions
             source
