@@ -20,10 +20,6 @@ type t =
       path : Path.t;
       manifest : ManifestSpec.t option;
     }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
   | NoSource
   [@@deriving ord, sexp_of]
 
@@ -56,11 +52,6 @@ let show = function
   | LocalPath {path; manifest = Some manifest;} ->
     Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
 
-  | LocalPathLink {path; manifest = None;} ->
-    Printf.sprintf "link:%s" (Path.show path)
-  | LocalPathLink {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (Path.show path) (ManifestSpec.show manifest)
-
   | NoSource -> "no-source:"
 
 let to_yojson src = `String (show src)
@@ -68,18 +59,18 @@ let to_yojson src = `String (show src)
 let pp fmt spec =
   Fmt.pf fmt "%s" (show spec)
 
-let ofSource (source : Source.t) =
-  match source with
-  | Source.Archive {url; checksum} -> Archive {url; checksum = Some checksum}
-  | Source.Git {remote; commit; manifest;} ->
+let ofSource (src : Source.t) =
+  match src with
+  | Dist Archive {url; checksum} -> Archive {url; checksum = Some checksum}
+  | Dist Git {remote; commit; manifest;} ->
     Git {remote; ref =  Some commit; manifest;}
-  | Source.Github {user; repo; commit; manifest;} ->
+  | Dist Github {user; repo; commit; manifest;} ->
     Github {user; repo; ref = Some commit; manifest;}
-  | Source.LocalPath {path; manifest;} ->
+  | Dist LocalPath {path; manifest;} ->
     LocalPath {path; manifest;}
-  | Source.LocalPathLink {path; manifest;} ->
-    LocalPathLink {path; manifest;}
-  | Source.NoSource -> NoSource
+  | Dist NoSource -> NoSource
+  | Link {path; manifest;} ->
+    LocalPath {path; manifest;}
 
 module Parse = struct
   include Parse
@@ -168,10 +159,6 @@ module Parse = struct
     let make path manifest = LocalPath { path; manifest; } in
     pathLike "path:" make
 
-  let link =
-    let make path manifest = LocalPathLink { path; manifest; } in
-    pathLike "link:" make
-
   let source =
     let source = Parse.(
       github
@@ -179,7 +166,6 @@ module Parse = struct
       <|> archive
       <|> file
       <|> path
-      <|> link
       <|> githubWithoutProto
     ) in
     let makePath path manifest = LocalPath { path; manifest; } in
@@ -331,22 +317,6 @@ let%test_module "parsing" = (module struct
   let%expect_test "http://example.com/pkg.tgz#abc123" =
     parse "http://example.com/pkg.tgz#abc123";
     [%expect {| (Archive (url http://example.com/pkg.tgz) (checksum ((Sha1 abc123)))) |}]
-
-  let%expect_test "link:/some/path" =
-    parse "link:/some/path";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ())) |}]
-
-  let%expect_test "link:/some/path/opam" =
-    parse "link:/some/path/opam";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Opam opam))))) |}]
-
-  let%expect_test "link:/some/path/lwt.opam" =
-    parse "link:/some/path/lwt.opam";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
-
-  let%expect_test "link:/some/path/package.json" =
-    parse "link:/some/path/package.json";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Esy package.json))))) |}]
 
   let%expect_test "file:/some/path" =
     parse "file:/some/path";

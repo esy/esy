@@ -1,63 +1,45 @@
 open Sexplib0.Sexp_conv
 
 type t =
-  | Archive of {
-      url : string;
-      checksum : Checksum.t;
-    }
-  | Git of {
-      remote : string;
-      commit : string;
-      manifest : ManifestSpec.Filename.t option;
-    }
-  | Github of {
-      user : string;
-      repo : string;
-      commit : string;
-      manifest : ManifestSpec.Filename.t option;
-    }
-  | LocalPath of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | LocalPathLink of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | NoSource
+  | Dist of Dist.t
+  | Link of link
   [@@deriving ord, sexp_of]
+
+and link = {
+  path : Path.t;
+  manifest : ManifestSpec.t option;
+}
 
 let manifest (src : t) =
   match src with
-  | Git { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
-  | Git _ -> None
-  | Github { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
-  | Github _ -> None
-  | LocalPath info -> info.manifest
-  | LocalPathLink info -> info.manifest
-  | Archive _ -> None
-  | NoSource -> None
+  | Link info -> info.manifest
+  | Dist dist -> Dist.manifest dist
+
+let toDist (src : t) =
+  match src with
+  | Dist dist -> dist
+  | Link {path;manifest;} -> Dist.LocalPath {path;manifest;}
 
 let show' ~showPath = function
-  | Github {user; repo; commit; manifest = None;} ->
+  | Dist Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
-  | Github {user; repo; commit; manifest = Some manifest;} ->
+  | Dist Github {user; repo; commit; manifest = Some manifest;} ->
     Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) commit
-  | Git {remote; commit; manifest = None;} ->
+  | Dist Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
-  | Git {remote; commit; manifest = Some manifest;} ->
+  | Dist Git {remote; commit; manifest = Some manifest;} ->
     Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) commit
-  | Archive {url; checksum} ->
+  | Dist Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
-  | LocalPath {path; manifest = None;} ->
+  | Dist LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (showPath path)
-  | LocalPath {path; manifest = Some manifest;} ->
+  | Dist LocalPath {path; manifest = Some manifest;} ->
     Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
-  | LocalPathLink {path; manifest = None;} ->
+  | Dist NoSource -> "no-source:"
+  | Link {path; manifest = None;} ->
     Printf.sprintf "link:%s" (showPath path)
-  | LocalPathLink {path; manifest = Some manifest;} ->
+  | Link {path; manifest = Some manifest;} ->
     Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.show manifest)
-  | NoSource -> "no-source:"
 
 let show = show' ~showPath:Path.show
 let showPretty = show' ~showPath:Path.showPretty
@@ -71,39 +53,8 @@ let ppPretty fmt src =
 module Parse = struct
   include Parse
 
-  let manifestFilenameBeforeSharp =
-    till (fun c -> c <> '#') ManifestSpec.Filename.parser
-
   let withPrefix prefix p =
     string prefix *> p
-
-  let github =
-    let user = take_while1 (fun c -> c <> '/') <?> "user" in
-    let repo = take_while1 (fun c -> c <> '#' && c <> ':') <?> "repo" in
-    let commit = (char '#' *> take_while1 (fun _ -> true)) <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
-    let make user repo manifest commit =
-      Github { user; repo; commit; manifest; }
-    in
-    make <$> (user <* char '/') <*> repo <*> manifest <*> commit
-
-  let git =
-    let proto = take_while1 (fun c -> c <> ':') in
-    let remote = take_while1 (fun c -> c <> '#' && c <> ':') in
-    let commit = char '#' *> take_while1 (fun c -> c <> '&') <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
-    let make proto remote manifest commit =
-      Git { remote = proto ^ ":" ^ remote; commit; manifest; }
-    in
-    make <$> proto <* char ':' <*> remote <*> manifest <*> commit
-
-  let archive =
-    let proto = string "http://" <|> string "https://" in
-    let host = take_while1 (fun c -> c <> '#') in
-    let make proto host checksum =
-      Archive { url = proto ^ host; checksum; }
-    in
-    (lift3 make) proto (host <* char '#') Checksum.parser
 
   let pathLike ~requirePathSep make =
     let make path =
@@ -130,35 +81,23 @@ module Parse = struct
     then return (make path)
     else fail "not a path"
 
-  let path =
-    let make path manifest =
-      LocalPath { path; manifest; }
-    in
-    pathLike make
 
   let link =
     let make path manifest =
-      LocalPathLink { path; manifest; }
+      Link { path; manifest; }
     in
     pathLike make
 
-  let noSource =
-    let%bind () = ignore (string "no-source:") in
-    return NoSource
+  let dist =
+    let%map dist = Dist.parser in
+    Dist dist
 
   let parser =
-    withPrefix "git:" git
-    <|> withPrefix "github:" github
-    <|> withPrefix "gh:" github
-    <|> withPrefix "archive:" archive
-    <|> withPrefix "path:" (path ~requirePathSep:false)
-    <|> withPrefix "link:" (link ~requirePathSep:false)
-    <|> noSource
+    withPrefix "link:" (link ~requirePathSep:false) <|> dist
 
   let parserRelaxed =
-    archive
-    <|> github
-    <|> (path ~requirePathSep:true)
+    let%map dist = Dist.parserRelaxed in
+    Dist dist
 end
 
 let parser = Parse.parser
@@ -199,108 +138,120 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "github:user/repo#commit" =
     parse "github:user/repo#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ())) |}]
+    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
 
   let%expect_test "github:user/repo:lwt.opam#commit" =
     parse "github:user/repo:lwt.opam#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ((Opam lwt.opam)))) |}]
+    [%expect {|
+      (Dist
+       (Github (user user) (repo repo) (commit commit)
+        (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "gh:user/repo#commit" =
     parse "gh:user/repo#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ())) |}]
+    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
 
   let%expect_test "gh:user/repo:lwt.opam#commit" =
     parse "gh:user/repo:lwt.opam#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ((Opam lwt.opam)))) |}]
+    [%expect {|
+      (Dist
+       (Github (user user) (repo repo) (commit commit)
+        (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "git:http://example.com/repo#commit" =
     parse "git:http://example.com/repo#commit";
-    [%expect {| (Git (remote http://example.com/repo) (commit commit) (manifest ())) |}]
+    [%expect {| (Dist (Git (remote http://example.com/repo) (commit commit) (manifest ()))) |}]
 
   let%expect_test "git:http://example.com/repo:lwt.opam#commit" =
     parse "git:http://example.com/repo:lwt.opam#commit";
     [%expect {|
-      (Git (remote http://example.com/repo) (commit commit)
-       (manifest ((Opam lwt.opam)))) |}]
+      (Dist
+       (Git (remote http://example.com/repo) (commit commit)
+        (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "git:git://example.com/repo:lwt.opam#commit" =
     parse "git:git://example.com/repo:lwt.opam#commit";
     [%expect {|
-      (Git (remote git://example.com/repo) (commit commit)
-       (manifest ((Opam lwt.opam)))) |}]
+      (Dist
+       (Git (remote git://example.com/repo) (commit commit)
+        (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "archive:http://example.com#abc123" =
     parse "archive:http://example.com#abc123";
-    [%expect {| (Archive (url http://example.com) (checksum (Sha1 abc123))) |}]
+    [%expect {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}]
 
   let%expect_test "archive:https://example.com#abc123" =
     parse "archive:https://example.com#abc123";
-    [%expect {| (Archive (url https://example.com) (checksum (Sha1 abc123))) |}]
+    [%expect {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}]
 
   let%expect_test "archive:https://example.com#md5:abc123" =
     parse "archive:https://example.com#md5:abc123";
-    [%expect {| (Archive (url https://example.com) (checksum (Md5 abc123))) |}]
+    [%expect {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}]
 
   let%expect_test "path:/some/path" =
     parse "path:/some/path";
-    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
+    [%expect {| (Dist (LocalPath (path /some/path) (manifest ()))) |}]
 
   let%expect_test "path:/some/path/lwt.opam" =
     parse "path:/some/path/lwt.opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (Dist (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam)))))) |}]
 
   let%expect_test "link:/some/path" =
     parse "link:/some/path";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ())) |}]
+    [%expect {| (Link ((path /some/path) (manifest ()))) |}]
 
   let%expect_test "link:/some/path/lwt.opam" =
     parse "link:/some/path/lwt.opam";
-    [%expect {| (LocalPathLink (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (Link ((path /some/path) (manifest ((One (Opam lwt.opam)))))) |}]
 
   let%expect_test "path:some" =
     parse "path:some";
-    [%expect {| (LocalPath (path some) (manifest ())) |}]
+    [%expect {| (Dist (LocalPath (path some) (manifest ()))) |}]
 
   let%expect_test "link:some" =
     parse "link:some";
-    [%expect {| (LocalPathLink (path some) (manifest ())) |}]
+    [%expect {| (Link ((path some) (manifest ()))) |}]
 
   let%expect_test "no-source:" =
     parse "no-source:";
-    [%expect {| NoSource |}]
+    [%expect {| (Dist NoSource) |}]
 
   let parseRelaxed =
     Parse.Test.parse ~sexp_of:sexp_of_t parseRelaxed
 
   let%expect_test "user/repo#commit" =
     parseRelaxed "user/repo#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ())) |}]
+    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
 
   let%expect_test "user/repo:lwt.opam#commit" =
     parseRelaxed "user/repo:lwt.opam#commit";
-    [%expect {| (Github (user user) (repo repo) (commit commit) (manifest ((Opam lwt.opam)))) |}]
+    [%expect {|
+      (Dist
+       (Github (user user) (repo repo) (commit commit)
+        (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "http://example.com#abc123" =
     parseRelaxed "http://example.com#abc123";
-    [%expect {| (Archive (url http://example.com) (checksum (Sha1 abc123))) |}]
+    [%expect {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}]
 
   let%expect_test "https://example.com#abc123" =
     parseRelaxed "https://example.com#abc123";
-    [%expect {| (Archive (url https://example.com) (checksum (Sha1 abc123))) |}]
+    [%expect {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}]
 
   let%expect_test "https://example.com#md5:abc123" =
     parseRelaxed "https://example.com#md5:abc123";
-    [%expect {| (Archive (url https://example.com) (checksum (Md5 abc123))) |}]
+    [%expect {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}]
 
   let%expect_test "http://localhost:56886/dep/-/dep-1.0.0.tgz#fabe490fb72a10295d554037341d8c7d5497cde9" =
     parseRelaxed "http://localhost:56886/dep/-/dep-1.0.0.tgz#fabe490fb72a10295d554037341d8c7d5497cde9";
     [%expect {|
-      (Archive (url http://localhost:56886/dep/-/dep-1.0.0.tgz)
-       (checksum (Sha1 fabe490fb72a10295d554037341d8c7d5497cde9))) |}]
+      (Dist
+       (Archive (url http://localhost:56886/dep/-/dep-1.0.0.tgz)
+        (checksum (Sha1 fabe490fb72a10295d554037341d8c7d5497cde9)))) |}]
 
   let%expect_test "/some/path" =
     parseRelaxed "/some/path";
-    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
+    [%expect {| (Dist (LocalPath (path /some/path) (manifest ()))) |}]
 
   let%expect_test "some" =
     parseRelaxed "some";

@@ -8,13 +8,14 @@ module SandboxSpec = EsyInstall.SandboxSpec
 module ManifestSpec = EsyInstall.ManifestSpec
 module Package = EsyInstall.Package
 module Version = EsyInstall.Version
+module Dist = EsyInstall.Dist
 module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
 module Command = Package.Command
 module CommandList = Package.CommandList
 module ExportedEnv = Package.ExportedEnv
 module Env = Package.Env
-module SourceResolver = EsyInstall.SourceResolver
+module DistResolver = EsyInstall.DistResolver
 module Overrides = EsyInstall.Package.Overrides
 module Installation = EsyInstall.Installation
 
@@ -93,6 +94,9 @@ let applyOverride (manifest : t) (override : Overrides.override) =
 
   let {
     Overrides.
+
+    origin = _;
+
     buildType;
     build;
     install;
@@ -394,17 +398,17 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Solution.Package.Link { path; manifest; overrides } ->
-    let source = Source.LocalPathLink {path; manifest;} in
+  | Solution.Package.Link { path; manifest; } ->
+    let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
-      SourceResolver.resolve
+      DistResolver.resolve
         ~cfg:cfg.Config.installCfg
         ~root:cfg.spec.SandboxSpec.path
-        source
+        dist
     in
-    let overrides = Overrides.addMany overrides res.SourceResolver.overrides in
+    let overrides = Overrides.merge pkg.overrides res.DistResolver.overrides in
     let%bind manifest =
-      begin match res.SourceResolver.manifest with
+      begin match res.DistResolver.manifest with
       | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->
         RunAsync.ofRun (EsyBuild.ofData data)
       | Some {kind = ManifestSpec.Filename.Opam; filename = _; data; suggestedPackageName;} ->
@@ -421,24 +425,24 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       else
         let manifest = empty ~name:None ~version:None () in
         let manifest = Overrides.apply overrides applyOverride manifest in
-        return (Some manifest, res.SourceResolver.paths)
+        return (Some manifest, res.DistResolver.paths)
     | Some manifest ->
       let manifest = Overrides.apply overrides applyOverride manifest in
-      return (Some manifest, res.SourceResolver.paths)
+      return (Some manifest, res.DistResolver.paths)
     end
 
-  | Solution.Package.Install { source; overrides; files = _; opam = _; } ->
+  | Solution.Package.Install { source; files = _; opam = _; } ->
     let source , _ = source in
     let manifest = Source.manifest source in
     let%bind manifest, paths = ofPath ?manifest loc in
     let manifest =
       match manifest with
-      | Some manifest -> Some (Overrides.apply overrides applyOverride manifest)
+      | Some manifest -> Some (Overrides.apply pkg.overrides applyOverride manifest)
       | None ->
-        if Overrides.isEmpty overrides
+        if Overrides.isEmpty pkg.overrides
         then None
         else
           let manifest = empty ~name:None ~version:None () in
-          Some (Overrides.apply overrides applyOverride manifest)
+          Some (Overrides.apply pkg.overrides applyOverride manifest)
     in
     return (manifest, paths)

@@ -25,7 +25,7 @@ let ofDir path =
      * node_modules without invoking 'esy install' command.
      *)
     return {
-      source = Source.LocalPathLink {path; manifest = None};
+      source = Source.Link {path; manifest = None};
       overrides = Package.Overrides.empty;
       opam = None;
     }

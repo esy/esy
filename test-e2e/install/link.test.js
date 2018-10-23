@@ -1,6 +1,7 @@
 /* @flow */
 
 const path = require('path');
+const fs = require('../test/fs.js');
 const helpers = require('../test/helpers');
 
 const {packageJson, file, dir} = helpers;
@@ -12,7 +13,8 @@ describe(`installing linked packages`, () => {
         name: 'root',
         version: '1.0.0',
         esy: {},
-        dependencies: {dep: `link:./dep`},
+        dependencies: {dep: `*`},
+        resolutions: {dep: `link:./dep`},
       }),
     ];
     const p = await helpers.createTestSandbox(...fixture);
@@ -56,7 +58,8 @@ describe(`installing linked packages`, () => {
         name: 'root',
         version: '1.0.0',
         esy: {},
-        dependencies: {dep: `link:./dep`},
+        dependencies: {dep: `*`},
+        resolutions: {dep: `link:./dep`},
       }),
       dir(
         'dep',
@@ -143,65 +146,16 @@ describe(`installing linked packages`, () => {
     });
   });
 
-  test('it should install local packages of dependencies (path: -> link:)', async () => {
+  test('it should install local packages of dependencies (link: -> path:)', async () => {
     const fixture = [
       packageJson({
         name: 'root',
         version: '1.0.0',
         esy: {},
         dependencies: {
-          dep: 'path:./dep',
+          dep: '*',
         },
-      }),
-      dir(
-        'dep',
-        packageJson({
-          name: 'dep',
-          version: '1.0.0',
-          esy: {},
-          dependencies: {
-            linkedDep: 'link:../linkedDep',
-          },
-        }),
-      ),
-      dir(
-        'linkedDep',
-        packageJson({
-          name: 'linkedDep',
-          version: '1.0.0',
-          esy: {},
-        }),
-      ),
-    ];
-    const p = await helpers.createTestSandbox(...fixture);
-
-    await p.esy(`install`);
-
-    const layout = await helpers.readInstalledPackages(p.projectPath);
-    expect(layout).toMatchObject({
-      name: 'root',
-      dependencies: {
-        dep: {
-          name: 'dep',
-          version: 'path:dep',
-          dependencies: {
-            linkedDep: {
-              name: 'linkedDep',
-              version: 'link:linkedDep',
-            },
-          },
-        },
-      },
-    });
-  });
-
-  test('it should install local packages of dependencies (link: -> link:)', async () => {
-    const fixture = [
-      packageJson({
-        name: 'root',
-        version: '1.0.0',
-        esy: {},
-        dependencies: {
+        resolutions: {
           dep: 'link:./dep',
         },
       }),
@@ -212,7 +166,7 @@ describe(`installing linked packages`, () => {
           version: '1.0.0',
           esy: {},
           dependencies: {
-            linkedDep: 'link:../linkedDep',
+            linkedDep: 'path:../linkedDep',
           },
         }),
       ),
@@ -239,7 +193,94 @@ describe(`installing linked packages`, () => {
           dependencies: {
             linkedDep: {
               name: 'linkedDep',
-              version: 'link:linkedDep',
+              version: 'path:linkedDep',
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('should re-install if linked package dependencies were changed', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {dep: '*'},
+        resolutions: {dep: 'link:dep'},
+        esy: {},
+      }),
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depdep: '1.0.0'},
+          esy: {},
+        }),
+      ),
+    );
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'depdep',
+      version: '2.0.0',
+      esy: {},
+    });
+
+    await p.esy('install');
+
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: '1.0.0',
+            },
+          },
+        },
+      },
+    });
+
+    // now change root package.json
+
+    await fs.writeFile(
+      path.join(p.projectPath, 'dep', 'package.json'),
+      JSON.stringify(
+        {
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {depdep: '2.0.0'},
+          esy: {},
+        },
+        null,
+        2,
+      ),
+    );
+
+    // make sure if we run `esy install` it will re-install packages
+
+    await p.esy('install');
+
+    expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          dependencies: {
+            depdep: {
+              name: 'depdep',
+              version: '2.0.0',
             },
           },
         },

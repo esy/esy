@@ -4,25 +4,25 @@
 
  *)
 
-type source
+type archive
 (** Fetched source. *)
 
 val fetch :
   cfg : Config.t
-  -> Source.t
-  -> (source, Run.error) result RunAsync.t
+  -> Dist.t
+  -> archive Run.t RunAsync.t
 (** Fetch source. *)
 
 val unpack :
   cfg : Config.t
   -> dst : Path.t
-  -> source
+  -> archive
   -> unit RunAsync.t
 (** Unpack fetched source in a specified directory. *)
 
 val fetchAndUnpack :
   cfg : Config.t
   -> dst : Path.t
-  -> Source.t
+  -> Dist.t
   -> unit RunAsync.t
 (** Shortcut for fetch & unpack *)

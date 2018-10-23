@@ -22,6 +22,10 @@ describe('Symlink workflow', () => {
             build: 'true',
           },
           dependencies: {
+            dep: '*',
+            anotherDep: '*',
+          },
+          resolutions: {
             dep: 'link:../dep',
             anotherDep: 'link:../anotherDep',
           },

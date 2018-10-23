@@ -175,10 +175,13 @@ describe('complete workflow for esy sandboxes', () => {
         esy: {},
         dependencies: {
           ocaml: '*',
-          '@opam/dep': 'link:./dep',
+          '@opam/dep': '*',
         },
         devDependencies: {
           ocaml: '*',
+        },
+        resolutions: {
+          '@opam/dep': 'link:./dep',
         },
       }),
       dir(
@@ -227,10 +230,13 @@ describe('complete workflow for esy sandboxes', () => {
         esy: {},
         dependencies: {
           ocaml: '*',
-          '@opam/dep': 'link:./dep',
+          '@opam/dep': '*',
         },
         devDependencies: {
           ocaml: '*',
+        },
+        resolutions: {
+          '@opam/dep': 'link:./dep',
         },
       }),
       dir(
@@ -280,6 +286,9 @@ describe('complete workflow for esy sandboxes', () => {
         esy: {},
         dependencies: {
           ocaml: '*',
+          '@opam/dep': '*',
+        },
+        resolutions: {
           '@opam/dep': 'link:./dep/custom.opam',
         },
       }),

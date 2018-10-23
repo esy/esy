@@ -37,18 +37,13 @@ let rebaseDependencies source reqs =
   let open Run.Syntax in
   let f req =
     match source, req.Req.spec with
-    | (Source.LocalPath {path = basePath; _} | Source.LocalPathLink {path = basePath; _}),
+    | (Source.Dist LocalPath {path = basePath; _}
+      | Source.Link {path = basePath; _}),
       VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) ->
       let path = Path.(basePath // path |> normalizeAndRemoveEmptySeg) in
       let spec = VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) in
       return (Req.make ~name:req.name ~spec)
-    | (Source.LocalPath {path = basePath; _} | Source.LocalPathLink {path = basePath; _}),
-      VersionSpec.Source (SourceSpec.LocalPathLink {path; manifest;}) ->
-      let path = Path.(basePath // path |> normalizeAndRemoveEmptySeg) in
-      let spec = VersionSpec.Source (SourceSpec.LocalPathLink {path; manifest;}) in
-      return (Req.make ~name:req.name ~spec)
-    | _, VersionSpec.Source (SourceSpec.LocalPath _)
-    | _, VersionSpec.Source (SourceSpec.LocalPathLink _) ->
+    | _, VersionSpec.Source (SourceSpec.LocalPath _) ->
       errorf
         "path constraints %a are not allowed from %a"
         VersionSpec.pp req.spec Source.pp source
@@ -75,10 +70,10 @@ let packageOfJson
     match source, pkgJson.dist with
     | Some source, _ -> return source
     | None, Some dist ->
-      return (Source.Archive {
+      return (Source.Dist (Archive {
         url = dist.tarball;
         checksum = Checksum.Sha1, dist.shasum;
-      })
+      }))
     | None, None ->
       error "unable to determine package source, missing 'dist' metadata"
   in
@@ -118,18 +113,10 @@ let packageOfJson
 
   let source =
     match source with
-    | Source.LocalPathLink {path; manifest;} ->
-      Package.Link {
-        path;
-        manifest;
-        overrides = Package.Overrides.empty;
-      }
+    | Source.Link {path; manifest;} ->
+      Package.Link {path; manifest;}
     | _ ->
-      Package.Install {
-        source = source, [];
-        overrides = Package.Overrides.empty;
-        opam = None;
-      }
+      Package.Install {source = source, []; opam = None;}
   in
 
   return {
@@ -138,6 +125,7 @@ let packageOfJson
     version;
     originalVersion;
     originalName = pkgJson.name;
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
     optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;

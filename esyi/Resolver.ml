@@ -73,14 +73,14 @@ let emptyLink ~name ~path ~manifest () =
   {
     Package.
     name;
-    version = Version.Source (Source.LocalPathLink {path; manifest;});
+    version = Version.Source (Source.Link {path; manifest;});
     originalVersion = None;
     originalName = None;
     source = Package.Link {
       path;
       manifest = None;
-      overrides = Package.Overrides.empty;
     };
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;
@@ -98,8 +98,8 @@ let emptyInstall ~name ~source () =
     source = Package.Install {
       source = source, [];
       opam = None;
-      overrides = Package.Overrides.empty;
     };
+    overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     optDependencies = StringSet.empty;
@@ -201,10 +201,10 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : Source.t) resolver =
+let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
-  let readPackage ~name ~source {SourceResolver. kind; filename = _; data; suggestedPackageName} =
+  let readPackage ~name ~source {DistResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Filename.Esy ->
@@ -232,12 +232,19 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
   in
 
   let pkg =
-    let%bind { SourceResolver. overrides; source = resolvedSource; manifest; _; } =
-      SourceResolver.resolve
+    let%bind { DistResolver. overrides; dist = resolvedDist; manifest; _; } =
+      DistResolver.resolve
         ~cfg:resolver.cfg
         ~overrides:overridesOfResolutions
         ~root:resolver.root
-        source
+        (Source.toDist source)
+    in
+
+    let%bind resolvedSource =
+      match source, resolvedDist with 
+      | Source.Dist _, _ -> return (Source.Dist resolvedDist)
+      | Source.Link _, Dist.LocalPath {path; manifest;} -> return (Source.Link {path;manifest;})
+      | Source.Link _, dist -> errorf "unable to link to %a" Dist.pp dist
     in
 
     let%bind pkg =
@@ -245,10 +252,10 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
       | Some manifest ->
         readPackage ~name ~source:resolvedSource manifest
       | None ->
-        if allowEmptyPackage
+        if not (Package.Overrides.isEmpty overrides)
         then
           match source with
-          | Source.LocalPathLink {path; manifest;} ->
+          | Source.Link {path; manifest;} ->
             let pkg = emptyLink ~name ~path ~manifest () in
             return (Ok pkg)
           | _ ->
@@ -268,6 +275,9 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
 let applyOverride pkg override =
   let {
     Package.Overrides.
+
+    origin = _;
+
     buildType = _;
     build = _;
     install = _;
@@ -404,7 +414,6 @@ let package ~(resolution : Resolution.t) resolver =
 
     | Version.Source source ->
       packageOfSource
-        ~allowEmptyPackage:true
         ~overridesOfResolutions:Package.Overrides.empty
         ~name:resolution.name
         source
@@ -412,22 +421,21 @@ let package ~(resolution : Resolution.t) resolver =
   in
 
   PackageCache.compute resolver.pkgCache key begin fun _ ->
-    let%bind pkg, overrides, overridesOfResolutions =
+    let%bind pkg, overrides =
       match resolution.resolution with
       | Version version ->
         let%bind pkg, overrides = ofVersion version in
-        return (pkg, overrides, Package.Overrides.empty)
+        return (pkg, overrides)
       | SourceOverride {source; override} ->
         let overridesOfResolutions = Package.Overrides.(empty |> add override) in
         let%bind pkg, overrides =
           packageOfSource
-            ~allowEmptyPackage:true
             ~name:resolution.name
             ~overridesOfResolutions
             source
             resolver
         in
-        return (pkg, overrides, overridesOfResolutions)
+        return (pkg, overrides)
     in
     match pkg with
     | Ok pkg ->
@@ -438,19 +446,8 @@ let package ~(resolution : Resolution.t) resolver =
           pkg
         in
       let pkg =
-        match pkg.source with
-        | Package.Install source ->
-          let source = Package.Install {
-            source with
-            overrides = Package.Overrides.addMany source.overrides overrides
-          } in
-          {pkg with source;}
-        | Package.Link source ->
-          let source = Package.Link {
-            source with
-            overrides = Package.Overrides.addMany source.overrides overridesOfResolutions
-          } in
-          {pkg with source;}
+        let overrides = Package.Overrides.merge pkg.overrides overrides in
+        {pkg with overrides;}
       in
       return (Ok pkg)
     | err -> return err
@@ -474,10 +471,10 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref with
         | Some commit, _ ->
-          return (Source.Github {user; repo; commit; manifest;})
+          return (Source.Dist (Github {user; repo; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (Source.Github {user; repo; commit = ref; manifest;})
+          then return (Source.Dist (Github {user; repo; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
@@ -487,34 +484,29 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref  with
         | Some commit, _ ->
-          return (Source.Git {remote; commit; manifest;})
+          return (Source.Dist (Git {remote; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (Source.Git {remote; commit = ref; manifest;})
+          then return (Source.Dist (Git {remote; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
         end
 
       | SourceSpec.NoSource ->
-        return (Source.NoSource)
+        return (Source.Dist NoSource)
 
       | SourceSpec.Archive {url; checksum = None} ->
         failwith ("archive sources without checksums are not implemented: " ^ url)
       | SourceSpec.Archive {url; checksum = Some checksum} ->
-        return (Source.Archive {url; checksum})
+        return (Source.Dist (Archive {url; checksum}))
 
       | SourceSpec.LocalPath {path; manifest;} ->
         let abspath = Path.(resolver.root // path) in
         if%bind Fs.exists abspath
-        then return (Source.LocalPath {path; manifest;})
+        then return (Source.Dist (LocalPath {path; manifest;}))
         else errorf "path '%a' does not exist" Path.ppPretty abspath
 
-      | SourceSpec.LocalPathLink {path; manifest;} ->
-        let abspath = Path.(resolver.root // path) in
-        if%bind Fs.exists abspath
-        then return (Source.LocalPathLink {path; manifest;})
-        else errorf "path '%a' does not exist" Path.ppPretty abspath
     in
     Hashtbl.replace resolver.sourceSpecToSource sourceSpec source;
     return source

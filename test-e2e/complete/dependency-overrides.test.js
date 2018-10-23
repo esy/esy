@@ -79,6 +79,9 @@ describe('dependency overrides', function() {
       packageJson({
         name: 'root',
         dependencies: {
+          dep: '*',
+        },
+        resolutions: {
           dep: 'link:./dep-override',
         },
       }),

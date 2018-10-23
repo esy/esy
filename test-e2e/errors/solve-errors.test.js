@@ -66,7 +66,7 @@ describe('"esy solve" errors', function() {
     );
   });
 
-  it('reports errors about conflict (two links)', async () => {
+  it('reports errors about conflict (path and path)', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -75,7 +75,7 @@ describe('"esy solve" errors', function() {
         esy: {},
         dependencies: {
           dep: './dep',
-          conflict: 'link:./conflict',
+          conflict: 'path:./conflict',
         },
       }),
       dir(
@@ -84,12 +84,12 @@ describe('"esy solve" errors', function() {
           name: 'dep',
           esy: {},
           dependencies: {
-            conflict: 'link:../conflict-other',
+            conflict: 'path:../conflict-other',
           },
         }),
       ),
-      dir('conflict'),
-      dir('conflict-other'),
+      dir('conflict', helpers.packageJson({esy: {}})),
+      dir('conflict-other', helpers.packageJson({esy: {}})),
     );
 
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
@@ -98,8 +98,8 @@ describe('"esy solve" errors', function() {
       error: No solution found:
      
       Conflicting constraints:
-        root -> conflict@link:conflict
-        root -> dep -> conflict@link:conflict-other
+        root -> conflict@path:conflict
+        root -> dep -> conflict@path:conflict-other
      
         
       esy: exiting due to errors above
@@ -347,7 +347,7 @@ describe('"esy solve" errors', function() {
     );
   });
 
-  it('reports errors about missing link: packages (path does not exist)', async () => {
+  it('reports errors about missing path: packages (path does not exist)', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -378,6 +378,9 @@ describe('"esy solve" errors', function() {
         name: 'root',
         esy: {},
         dependencies: {
+          missing: '*',
+        },
+        resolutions: {
           missing: 'link:./missing',
         },
       }),
@@ -386,8 +389,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      error: path 'missing' does not exist
-        resolving missing@link:missing
+      error: no manifest found at link:missing
+        reading package metadata from link:missing
+        resolving metadata missing@link:missing
       esy: exiting due to errors above
       `,
     );

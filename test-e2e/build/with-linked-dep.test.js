@@ -17,6 +17,9 @@ function makeFixture(p, buildDep) {
         build: 'true',
       },
       dependencies: {
+        dep: '*',
+      },
+      resolutions: {
         dep: 'link:./dep',
       },
     }),

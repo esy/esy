@@ -16,6 +16,9 @@ it('Build - default command', async () => {
         build: 'true',
       },
       dependencies: {
+        dep: '*',
+      },
+      resolutions: {
         dep: 'link:./dep',
       },
     }),

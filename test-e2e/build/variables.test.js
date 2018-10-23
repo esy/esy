@@ -15,6 +15,9 @@ describe('Variables available for builds', () => {
         name: 'root',
         version: '0.1.0',
         dependencies: {
+          dep: '*',
+        },
+        resolutions: {
           dep: 'link:./dep',
         },
         esy: {

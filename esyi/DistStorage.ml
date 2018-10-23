@@ -1,8 +1,8 @@
-type source = {tarballPath : Path.t;}
+type archive = {tarballPath : Path.t;}
 
 let sourceTarballPath ~cfg source =
   let id =
-    Source.show source
+    Dist.show source
     |> Digest.string
     |> Digest.to_hex
   in
@@ -12,7 +12,7 @@ let fetchSourceIntoPath source path =
   let open RunAsync.Syntax in
   match source with
 
-  | Source.LocalPath { path = srcPath; manifest = _; } ->
+  | Dist.LocalPath { path = srcPath; manifest = _; } ->
     let%bind names = Fs.listDir srcPath in
     let copy name =
       let src = Path.(srcPath / name) in
@@ -24,14 +24,10 @@ let fetchSourceIntoPath source path =
     in
     return (Ok ())
 
-  | Source.LocalPathLink _ ->
-    (* this case is handled separately *)
+  | Dist.NoSource ->
     return (Ok ())
 
-  | Source.NoSource ->
-    return (Ok ())
-
-  | Source.Archive {url; checksum}  ->
+  | Dist.Archive {url; checksum}  ->
     let f tempPath =
       let%bind () = Fs.createDir tempPath in
       let tarballPath = Path.(tempPath / Filename.basename url) in
@@ -44,7 +40,7 @@ let fetchSourceIntoPath source path =
     in
     Fs.withTempDir f
 
-  | Source.Github github ->
+  | Dist.Github github ->
     let f tempPath =
       let%bind () = Fs.createDir tempPath in
       let tarballPath = Path.(tempPath / "package.tgz") in
@@ -61,7 +57,7 @@ let fetchSourceIntoPath source path =
     in
     Fs.withTempDir f
 
-  | Source.Git git ->
+  | Dist.Git git ->
     let%bind () = Git.clone ~dst:path ~remote:git.remote () in
     let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
     let%bind () = Fs.rmPath Path.(path / ".git") in
@@ -83,7 +79,7 @@ let fetchSourceIntoCache ~cfg source =
           let%bind () = Fs.createDir sourcePath in
           fetchSourceIntoPath source sourcePath
         )
-        "fetching %a" Source.pp source
+        "fetching %a" Dist.pp source
       in
 
       match fetched with

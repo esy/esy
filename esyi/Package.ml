@@ -281,6 +281,7 @@ module Resolution = struct
     | SourceOverride of {source : Source.t; override : override}
 
   and override = {
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -301,6 +302,7 @@ module Resolution = struct
     in
 
     let {
+      origin;
       buildType;
       build;
       install;
@@ -314,6 +316,7 @@ module Resolution = struct
     } = override in
     `Assoc (
       []
+      |> addIfSome Dist.to_yojson "origin" origin
       |> addIfSome BuildType.to_yojson "buildsInSource" buildType
       |> addIfSome CommandList.to_yojson "build" build
       |> addIfSome CommandList.to_yojson "install" install
@@ -338,6 +341,7 @@ module Resolution = struct
   let rec override_of_yojson json =
     let open Result.Syntax in
     let field = Json.Decode.fieldOptWith in
+    let%bind origin = field ~name:"origin" Dist.of_yojson json in
     let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
     let%bind build = field ~name:"build" CommandList.of_yojson json in
     let%bind install = field ~name:"install" CommandList.of_yojson json in
@@ -349,6 +353,7 @@ module Resolution = struct
     let%bind devDependencies = field ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
     let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
     return {
+      origin;
       buildType;
       build;
       install;
@@ -455,6 +460,7 @@ module Overrides = struct
     [@@deriving yojson]
 
   type override = Resolution.override = {
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -482,8 +488,13 @@ module Overrides = struct
   let addMany newOverrides overrides =
     newOverrides @ overrides
 
+  let merge newOverrides overrides =
+    newOverrides @ overrides
+
   let apply overrides f init =
     List.fold_left ~f ~init (List.rev overrides)
+
+  let toList overrides = List.rev overrides
 end
 
 module Dep = struct
@@ -685,6 +696,7 @@ type t = {
   originalVersion : Version.t option;
   originalName : string option;
   source : source;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   optDependencies: StringSet.t;
@@ -696,11 +708,9 @@ and source =
   | Link of {
       path : Path.t;
       manifest : ManifestSpec.t option;
-      overrides : Overrides.t;
     }
   | Install of {
       source : Source.t * Source.t list;
-      overrides : Overrides.t;
       opam : Opam.t option;
     }
 

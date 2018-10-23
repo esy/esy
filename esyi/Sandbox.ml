@@ -58,7 +58,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Source.LocalPath {
+  let source = Source.Link {
     path = Path.v ".";
     manifest = None;
   } in
@@ -78,8 +78,8 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         source = Package.Link {
           path = Path.v ".";
           manifest = None;
-          overrides = Package.Overrides.empty;
         };
+        overrides = Package.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
         optDependencies = StringSet.empty;
@@ -119,8 +119,8 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       source = Package.Link {
         path = Path.v ".";
         manifest = None;
-        overrides = Package.Overrides.empty;
       };
+      overrides = Package.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       optDependencies = StringSet.empty;
@@ -199,6 +199,7 @@ let ofSource ~cfg ~spec source =
 
 let make ~cfg (spec : SandboxSpec.t) =
   let open RunAsync.Syntax in
+
   RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)

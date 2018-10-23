@@ -212,7 +212,7 @@ describe(`Installing with resolutions`, () => {
     });
   });
 
-  test(`resolutions could have linked packages`, async () => {
+  test(`resolutions could have local packages`, async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -229,7 +229,7 @@ describe(`Installing with resolutions`, () => {
           esy: {},
           dependencies: {
             // this path should be resolved against this location
-            depdep: 'link:../depdep',
+            depdep: 'path:../depdep',
           },
         }),
       ),
@@ -256,7 +256,7 @@ describe(`Installing with resolutions`, () => {
           dependencies: {
             depdep: {
               name: 'depdep',
-              version: 'link:depdep',
+              version: 'path:depdep',
             },
           },
         },

@@ -1,10 +1,12 @@
 module String = Astring.String
 
+module D = Dist
+
 module Dist = struct
   type t = {
     sandbox : Sandbox.t;
     source : Source.t;
-    sourceInStorage : SourceStorage.source option;
+    archive : DistStorage.archive option;
     pkg : Solution.Package.t;
   }
 
@@ -14,7 +16,7 @@ module Dist = struct
 
   let sourceStagePath dist =
     match dist.source with
-    | Source.LocalPathLink link ->
+    | Source.Link link ->
       Path.(dist.sandbox.spec.path // link.path |> normalize)
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
@@ -28,7 +30,7 @@ module Dist = struct
 
   let sourceInstallPath dist =
     match dist.source with
-    | Source.LocalPathLink link ->
+    | Source.Link link ->
       Path.(dist.sandbox.spec.path // link.path |> normalize)
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
@@ -136,15 +138,30 @@ end = struct
 
 end
 
+let fetchDist ~sandbox (dist : D.t) =
+  let open RunAsync.Syntax in
+  let id = Digest.(to_hex (string (D.show dist))) in
+  let path = Path.(sandbox.Sandbox.cfg.sourceInstallPath / id) in
+
+  if%bind Fs.exists path
+  then return path
+  else
+    let%bind archive = DistStorage.fetch ~cfg:sandbox.cfg dist in
+    let%bind archive = RunAsync.ofRun archive in
+    let%bind () = DistStorage.unpack ~cfg:sandbox.cfg ~dst:path archive in
+    return path
+
 let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
   let rec fetch' errs sources =
     match sources with
-    | source::rest ->
-      begin match%bind SourceStorage.fetch ~cfg:sandbox.Sandbox.cfg source with
-      | Ok sourceInStorage ->
-        return {Dist. sandbox; pkg; source; sourceInStorage = Some sourceInStorage;}
+    | (Source.Link _ as source)::_rest ->
+      return {Dist. sandbox; pkg; source; archive = None;}
+    | (Source.Dist dist as source)::rest ->
+      begin match%bind DistStorage.fetch ~cfg:sandbox.Sandbox.cfg dist with
+      | Ok archive ->
+        return {Dist. sandbox; pkg; source; archive = Some archive;}
       | Error err -> fetch' ((source, err)::errs) rest
       end
     | [] ->
@@ -163,13 +180,13 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   in
 
   match pkg.source with
-  | Solution.Package.Link {path; manifest; overrides = _;} ->
+  | Solution.Package.Link {path; manifest;} ->
     return {
       Dist.
       sandbox;
       pkg;
-      source = Source.LocalPathLink {path;manifest;};
-      sourceInStorage = None;
+      source = Source.Link {path;manifest;};
+      archive = None;
     }
   | Solution.Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
@@ -188,10 +205,10 @@ let unpack ~path ~overrides ~files ~opam dist =
    *)
 
   let%bind () =
-    match dist.Dist.sourceInStorage with
+    match dist.Dist.archive with
     | None ->
       return ()
-    | Some sourceInStorage ->
+    | Some archive ->
       let%bind () = Fs.rmPath path in
       let%bind () = Fs.createDir path in
 
@@ -201,10 +218,10 @@ let unpack ~path ~overrides ~files ~opam dist =
           path
       in
       let%bind () =
-        SourceStorage.unpack
+        DistStorage.unpack
           ~cfg:dist.sandbox.Sandbox.cfg
           ~dst:path
-          sourceInStorage
+          archive
       in
       let%bind () =
         RunAsync.List.mapAndWait
@@ -341,7 +358,7 @@ let install dist =
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install { overrides; files; opam; _ } ->
+      | Solution.Package.Install { files; opam; _ } ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -349,7 +366,14 @@ let install dist =
           return (sourceInstallPath, pkgJson)
         else (
           let sourceStagePath = Dist.sourceStagePath dist in
-          let%bind () = unpack ~overrides ~files ~path:sourceStagePath ~opam dist in
+          let%bind () =
+            unpack
+              ~overrides:dist.Dist.pkg.overrides
+              ~files
+              ~path:sourceStagePath
+              ~opam
+              dist
+          in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
           let%bind () =
