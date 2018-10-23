@@ -2,8 +2,43 @@ module Overrides = Package.Overrides
 module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
-let nodeCmd =
-  Cmd.resolveCmd System.Environment.path "node"
+(** This installs pnp enabled node wrapper. *)
+let installNodeWrapper sandbox =
+  let open RunAsync.Syntax in
+  match Cmd.resolveCmd System.Environment.path "node" with
+  | Ok nodeCmd ->
+    let%bind binPath =
+      let binPath = SandboxSpec.binPath sandbox.spec in
+      let%bind () = Fs.createDir binPath in
+      return binPath
+    in
+    let pnpJs = SandboxSpec.pnpJsPath sandbox.Sandbox.spec in
+    let data, path =
+      match System.Platform.host with
+      | Windows ->
+        let data =
+        Format.asprintf
+          {|@ECHO off
+@SETLOCAL
+@SET ESY__NODE_BIN_PATH=%%%a%%
+"%s" -r "%a" %%*
+            |} Path.pp binPath nodeCmd Path.pp pnpJs
+        in
+        data, Path.(binPath / "node.cmd")
+      | _ ->
+        let data =
+          Format.asprintf
+            {|#!/bin/sh
+export ESY__NODE_BIN_PATH="%a"
+exec "%s" -r "%a" "$@"
+              |} Path.pp binPath nodeCmd Path.pp pnpJs
+        in
+        data, Path.(binPath / "node")
+    in
+    Fs.writeFile ~perm:0o755 ~data path
+  | Error _ ->
+    (* no node available in $PATH, just skip this then *)
+    return ()
 
 let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
@@ -100,30 +135,8 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     Fs.writeFile ~data path
   in
 
-  let%bind binPath =
-    let binPath = SandboxSpec.binPath sandbox.spec in
-    let%bind () = Fs.createDir binPath in
-    return binPath
-  in
-
   (* place <binPath>/node executable with pnp enabled *)
-  let%bind () =
-    match nodeCmd with
-    | Ok nodeCmd ->
-      let pnpJs = SandboxSpec.pnpJsPath sandbox.spec in
-      let nodePath = Path.(binPath / "node") in
-      let data =
-        Format.asprintf
-          {|#!/bin/sh
-export ESY__NODE_BIN_PATH="%a"
-exec %s -r "%a" "$@"
-            |} Path.pp binPath nodeCmd Path.pp pnpJs
-      in
-      Fs.writeFile ~perm:0o755 ~data nodePath
-    | Error _ ->
-      (* no node available in $PATH, just skip this then *)
-      return ()
-  in
+  let%bind () = installNodeWrapper sandbox in
 
   let%bind () =
 
