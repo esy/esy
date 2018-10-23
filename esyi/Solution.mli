@@ -38,6 +38,9 @@ module Package : sig
         opam : Opam.t option;
       }
 
+  val source_of_yojson : source Json.decoder
+  val source_to_yojson : source Json.encoder
+
   val id : t -> PackageId.t
 
   include S.COMPARABLE with type t := t
@@ -59,18 +62,3 @@ include Graph.GRAPH
   with
     type node = Package.t
     and type id = PackageId.t
-
-(** This is an on disk format for storing solutions. *)
-module LockfileV1 : sig
-
-  val toFile :
-    sandbox:Sandbox.t
-    -> solution:t
-    -> Fpath.t
-    -> unit RunAsync.t
-
-  val ofFile :
-    sandbox:Sandbox.t
-    -> Fpath.t
-    -> t option RunAsync.t
-end

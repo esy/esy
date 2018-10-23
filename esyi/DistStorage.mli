@@ -10,7 +10,7 @@ type archive
 val fetch :
   cfg : Config.t
   -> Dist.t
-  -> (archive, Run.error) result RunAsync.t
+  -> archive Run.t RunAsync.t
 (** Fetch source. *)
 
 val unpack :

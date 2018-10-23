@@ -105,6 +105,7 @@ module Resolution : sig
     | SourceOverride of {source : Source.t; override : override}
 
   and override = {
+    origin : Source.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -119,6 +120,9 @@ module Resolution : sig
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
+
+  val override_to_yojson : override Json.encoder
+  val override_of_yojson : override Json.decoder
 end
 
 module Resolutions : sig
@@ -141,6 +145,7 @@ module Overrides : sig
   type t
 
   type override = Resolution.override = {
+    origin : Source.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -160,16 +165,21 @@ module Overrides : sig
   (** Empty overrides. *)
 
   val add : override -> t -> t
-  (* [add overrides override] adds single e[override] on top of [overrides]. *)
+  (* [add override overrides] adds single [override] on top of [overrides]. *)
 
-  val addMany : t -> t -> t
-  (* [addMany overrides newOverrides] adds [newOverrides] on top of [overrides]. *)
+  val addMany : override list -> t -> t
+  (* [add override_list overrides] adds many [overridea_list] overrides on top of [overrides]. *)
+
+  val merge : t -> t -> t
+  (* [merge newOverrides overrides] adds [newOverrides] on top of [overrides]. *)
 
   val apply : t -> ('v -> override -> 'v) -> 'v -> 'v
   (**
    * [apply overrides f v] applies [overrides] one at a time in a specific
    * order to [v] using [f] and returns a modified (overridden) value.
    *)
+
+  val toList : t -> override list
 
   include S.JSONABLE with type t := t
 

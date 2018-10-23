@@ -94,6 +94,9 @@ let applyOverride (manifest : t) (override : Overrides.override) =
 
   let {
     Overrides.
+
+    origin = _;
+
     buildType;
     build;
     install;
@@ -403,7 +406,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
         ~root:cfg.spec.SandboxSpec.path
         dist
     in
-    let overrides = Overrides.addMany pkg.overrides res.DistResolver.overrides in
+    let overrides = Overrides.merge pkg.overrides res.DistResolver.overrides in
     let%bind manifest =
       begin match res.DistResolver.manifest with
       | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->

@@ -275,6 +275,9 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
 let applyOverride pkg override =
   let {
     Package.Overrides.
+
+    origin = _;
+
     buildType = _;
     build = _;
     install = _;
@@ -419,11 +422,11 @@ let package ~(resolution : Resolution.t) resolver =
   in
 
   PackageCache.compute resolver.pkgCache key begin fun _ ->
-    let%bind pkg, overrides, overridesOfResolutions =
+    let%bind pkg, overrides =
       match resolution.resolution with
       | Version version ->
         let%bind pkg, overrides = ofVersion version in
-        return (pkg, overrides, Package.Overrides.empty)
+        return (pkg, overrides)
       | SourceOverride {source; override} ->
         let overridesOfResolutions = Package.Overrides.(empty |> add override) in
         let%bind pkg, overrides =
@@ -434,7 +437,7 @@ let package ~(resolution : Resolution.t) resolver =
             source
             resolver
         in
-        return (pkg, overrides, overridesOfResolutions)
+        return (pkg, overrides)
     in
     match pkg with
     | Ok pkg ->
@@ -445,13 +448,8 @@ let package ~(resolution : Resolution.t) resolver =
           pkg
         in
       let pkg =
-        match pkg.source with
-        | Package.Install _ ->
-          let overrides = Package.Overrides.addMany pkg.overrides overrides in
-          {pkg with overrides;}
-        | Package.Link _ ->
-          let overrides = Package.Overrides.addMany pkg.overrides overridesOfResolutions in
-          {pkg with overrides;}
+        let overrides = Package.Overrides.merge pkg.overrides overrides in
+        {pkg with overrides;}
       in
       return (Ok pkg)
     | err -> return err

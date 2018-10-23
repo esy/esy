@@ -1,5 +1,7 @@
 module String = Astring.String
 
+module D = Dist
+
 module Dist = struct
   type t = {
     sandbox : Sandbox.t;
@@ -135,6 +137,19 @@ end = struct
   let lifecycle pkgJson = pkgJson.scripts
 
 end
+
+let fetchDist ~sandbox (dist : D.t) =
+  let open RunAsync.Syntax in
+  let id = Digest.(to_hex (string (D.show dist))) in
+  let path = Path.(sandbox.Sandbox.cfg.sourceInstallPath / id) in
+
+  if%bind Fs.exists path
+  then return path
+  else
+    let%bind archive = DistStorage.fetch ~cfg:sandbox.cfg dist in
+    let%bind archive = RunAsync.ofRun archive in
+    let%bind () = DistStorage.unpack ~cfg:sandbox.cfg ~dst:path archive in
+    return path
 
 let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
