@@ -191,18 +191,8 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   | Solution.Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
 
-let unpack ~path ~overrides ~files ~opam dist =
+let unpack ~path ~files dist =
   let open RunAsync.Syntax in
-
-  (*
-   * @andreypopp: We place _esylink before unpacking tarball, but that's just
-   * because we get failures on Windows due to permission errors (reproducible
-   * on AppVeyor).
-   *
-   * I'd prefer to place _esylink after unpacking tarball to prevent tarball
-   * contents overriding _esylink accidentially but probability of such event
-   * is low enough so I proceeded with the current order.
-   *)
 
   let%bind () =
     match dist.Dist.archive with
@@ -211,12 +201,6 @@ let unpack ~path ~overrides ~files ~opam dist =
     | Some archive ->
       let%bind () = Fs.rmPath path in
       let%bind () = Fs.createDir path in
-
-      let%bind () =
-        EsyLinkFile.toDir
-          EsyLinkFile.{source = dist.Dist.source; overrides; opam;}
-          path
-      in
       let%bind () =
         DistStorage.unpack
           ~cfg:dist.sandbox.Sandbox.cfg
@@ -358,7 +342,7 @@ let install dist =
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install { files; opam; _ } ->
+      | Solution.Package.Install { files; _ } ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -368,10 +352,8 @@ let install dist =
           let sourceStagePath = Dist.sourceStagePath dist in
           let%bind () =
             unpack
-              ~overrides:dist.Dist.pkg.overrides
               ~files
               ~path:sourceStagePath
-              ~opam
               dist
           in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
