@@ -204,7 +204,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
 let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
-  let readPackage ~name ~source {SourceResolver. kind; filename = _; data; suggestedPackageName} =
+  let readPackage ~name ~source {DistResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Filename.Esy ->
@@ -232,8 +232,8 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
   in
 
   let pkg =
-    let%bind { SourceResolver. overrides; dist = resolvedDist; manifest; _; } =
-      SourceResolver.resolve
+    let%bind { DistResolver. overrides; dist = resolvedDist; manifest; _; } =
+      DistResolver.resolve
         ~cfg:resolver.cfg
         ~overrides:overridesOfResolutions
         ~root:resolver.root
