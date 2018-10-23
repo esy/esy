@@ -149,8 +149,6 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
 
   Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
 
-  let queue = LwtTaskQueue.create ~concurrency:100 () in
-
   let readManifest (id, loc) =
     Logs_lwt.debug (fun m ->
       m "reading manifest: %a %a" PackageId.pp id
@@ -160,31 +158,30 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
     let pkg = Solution.getExn id solution in
     let isRoot = Package.compare (Solution.root solution) pkg = 0 in
 
-    LwtTaskQueue.submit queue begin fun () ->
-      RunAsync.contextf (
-        let%bind manifest, paths =
-          BuildManifest.ofInstallationLocation
-            ~cfg
-            pkg
-            loc
-        in
-        match manifest with
-        | Some manifest -> return (id, Some (manifest, paths))
-        | None ->
-          if isRoot
-          then
-            let manifest = BuildManifest.empty ~name:None ~version:None () in
-            return (id, Some (manifest, Path.Set.empty))
-          else
-            return (id, None)
-      ) "reading manifest %a" PackageId.pp id
-    end
+    RunAsync.contextf (
+      let%bind manifest, paths =
+        BuildManifest.ofInstallationLocation
+          ~cfg
+          pkg
+          loc
+      in
+      match manifest with
+      | Some manifest -> return (id, Some (manifest, paths))
+      | None ->
+        if isRoot
+        then
+          let manifest = BuildManifest.empty ~name:None ~version:None () in
+          return (id, Some (manifest, Path.Set.empty))
+        else
+          return (id, None)
+    ) "reading manifest %a" PackageId.pp id
   in
 
   let%bind items =
-    Installation.entries installation
-    |> List.map ~f:readManifest
-    |> RunAsync.List.joinAll
+    RunAsync.List.mapAndJoin
+      ~concurrency:100
+      ~f:readManifest
+      (Installation.entries installation)
   in
 
   let paths, manifests =
@@ -639,7 +636,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
       in
       Solution.dependencies ~traverse pkg plan.solution
     in
-    RunAsync.List.waitAll (List.map ~f:process dependencies)
+    RunAsync.List.mapAndWait ~f:process dependencies
   in
 
   match Solution.get id plan.solution with
@@ -689,30 +686,11 @@ let execEnv _sandbox plan task =
   |> Scope.env ~includeBuildEnv:false
 
 let rewritePrefix ~cfg ~origPrefix ~destPrefix rootPath =
-  let open RunAsync.Syntax in
-  let rewritePrefixInFile path =
-    let cmd = Cmd.(cfg.Config.fastreplacestringCmd % p path % p origPrefix % p destPrefix) in
-    ChildProcess.run cmd
-  in
-  let rewriteTargetInSymlink path =
-    let%bind link = Fs.readlink path in
-    match Path.remPrefix origPrefix link with
-    | Some basePath ->
-      let nextTargetPath = Path.(destPrefix // basePath) in
-      let%bind () = Fs.unlink path in
-      let%bind () = Fs.symlink ~src:nextTargetPath path in
-      return ()
-    | None -> return ()
-  in
-  let rewrite (path : Path.t) (stats : Unix.stats) =
-    match stats.st_kind with
-    | Unix.S_REG ->
-      rewritePrefixInFile path
-    | Unix.S_LNK ->
-      rewriteTargetInSymlink path
-    | _ -> return ()
-  in
-  Fs.traverse ~f:rewrite rootPath
+  Fastreplacestring.rewritePrefix
+    ~fastreplacestringCmd:cfg.Config.fastreplacestringCmd
+    ~origPrefix
+    ~destPrefix
+    rootPath
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in

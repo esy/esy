@@ -6,7 +6,9 @@
 module Dist : sig
   type t
   val id : t -> PackageId.t
+  val pkg : t -> Solution.Package.t
   val source : t -> Source.t
+  val sourceInstallPath : t -> Path.t
   val pp : Format.formatter -> t -> unit
 end
 
@@ -19,14 +21,9 @@ val fetch :
  * return it.
  *)
 
-type status =
-  | Cached
-  | Fresh
-
 val install :
-  sandbox : Sandbox.t
-  -> Dist.t
-  -> (status * Path.t) RunAsync.t
+  Dist.t
+  -> unit RunAsync.t
 (**
  * Unpack fetched dist from storage into source cache and return path.
  *)

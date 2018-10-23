@@ -2,8 +2,10 @@
 
 type t = {
   esySolveCmd: Cmd.t,
-  cacheTarballsPath: Path.t,
-  cacheSourcesPath: Path.t,
+  fastreplacestringCmd: Cmd.t,
+  sourceArchivePath: Path.t,
+  sourceStagePath: Path.t,
+  sourceInstallPath: Path.t,
   opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
@@ -31,6 +33,7 @@ let make:
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
+    ~fastreplacestringCmd: Cmd.t,
     ~skipRepositoryUpdate: bool,
     unit
   ) =>

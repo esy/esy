@@ -85,7 +85,12 @@ module PackageInformation = struct
             let version = Version.show (PackageId.version id) in
             StringMap.add name version map
           in
-          List.fold_left ~f ~init:StringMap.empty (Solution.dependencies package solution)
+          let dependencies =
+            if PackageId.compare (Solution.Package.id package) rootId = 0
+            then Solution.dependencies ~traverse:Solution.traverseWithDevDependencies package solution
+            else Solution.dependencies package solution
+          in
+          List.fold_left ~f ~init:StringMap.empty dependencies
         in
         StringOrNullMap.add version {packageLocation; packageDependencies;} versions
       in
@@ -877,6 +882,11 @@ exports.setup = function setup() {
   };
 
   process.versions.pnp = String(exports.VERSIONS.std);
+
+  if (process.env.ESY__NODE_BIN_PATH != null) {
+    const delimiter = require('path').delimiter;
+    process.env.PATH = `${process.env.ESY__NODE_BIN_PATH}${delimiter}${process.env.PATH}`;
+  }
 };
 
 exports.setupCompatibilityLayer = () => {

@@ -195,7 +195,6 @@ let make
   (* Export builds *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
-    let queue = LwtTaskQueue.create ~concurrency:8 () in
     let f (task : Plan.Task.t) =
       if shouldDeleteFromBinaryRelease task.id
       then
@@ -204,9 +203,12 @@ let make
       else
         let buildPath = Scope.SandboxPath.toPath cfg.buildCfg (Plan.Task.installPath task) in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        LwtTaskQueue.submit queue (fun () -> Plan.exportBuild ~cfg ~outputPrefixPath buildPath)
+        Plan.exportBuild ~cfg ~outputPrefixPath buildPath
     in
-    tasks |> List.map ~f |> RunAsync.List.waitAll
+    RunAsync.List.mapAndWait
+      ~concurrency:8
+      ~f
+      tasks
   in
 
   let%bind () =
@@ -247,9 +249,9 @@ let make
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
-          releaseCfg.releasedBinaries
-          |> List.map ~f:(generateBinaryWrapper stagePath)
-          |> RunAsync.List.waitAll
+          RunAsync.List.mapAndWait
+            ~f:(generateBinaryWrapper stagePath)
+            releaseCfg.releasedBinaries
         )
       in
       (* Replace the storePath with a string of equal length containing only _ *)

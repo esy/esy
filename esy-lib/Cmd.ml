@@ -74,7 +74,9 @@ let getAdditionalResolvePaths path =
 
 let getPotentialExtensions =
     match System.Platform.host with
-    | Windows -> [""; ".exe"]
+    | Windows ->
+      (* TODO(andreypopp): Consider using PATHEXT env variable here. *)
+      [""; ".exe"; ".cmd"]
     | _ -> [""]
 
 let checkIfExecutable path =

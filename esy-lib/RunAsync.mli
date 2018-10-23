@@ -96,7 +96,25 @@ end
  * Work with lists of computations.
  *)
 module List : sig
-  val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
+
+  val foldLeft :
+    f:('a -> 'b -> 'a t)
+    -> init:'a
+    -> 'b list
+    -> 'a t
+
+  val mapAndWait :
+    ?concurrency:int
+    -> f:('a -> unit t)
+    -> 'a list
+    -> unit t
+
+  val mapAndJoin :
+    ?concurrency:int
+    -> f:('a -> 'b t)
+    -> 'a list
+    -> 'b list t
+
   val waitAll : unit t list -> unit t
   val joinAll : 'a t list -> 'a list t
   val processSeq :

@@ -1,7 +1,9 @@
 type t = {
   esySolveCmd: Cmd.t,
-  cacheTarballsPath: Path.t,
-  cacheSourcesPath: Path.t,
+  fastreplacestringCmd: Cmd.t,
+  sourceArchivePath: Path.t,
+  sourceStagePath: Path.t,
+  sourceInstallPath: Path.t,
   opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
@@ -39,6 +41,7 @@ let make =
       ~esyOpamOverride=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
+      ~fastreplacestringCmd,
       ~skipRepositoryUpdate,
       (),
     ) =>
@@ -56,19 +59,25 @@ let make =
           ),
         );
 
-      let cacheTarballsPath =
-        switch (cacheTarballsPath) {
-        | Some(path) => path
-        | None => Path.(cachePath / "source-tarballs")
-        };
-      let%bind () = Fs.createDir(cacheTarballsPath);
-
-      let cacheSourcesPath =
+      let sourcePath =
         switch (cacheSourcesPath) {
         | Some(path) => path
         | None => Path.(cachePath / "source")
         };
-      let%bind () = Fs.createDir(cacheTarballsPath);
+      let%bind () = Fs.createDir(sourcePath);
+
+      let sourceArchivePath =
+        switch (cacheTarballsPath) {
+        | Some(path) => path
+        | None => Path.(sourcePath / "a")
+        };
+      let%bind () = Fs.createDir(sourceArchivePath);
+
+      let sourceStagePath = Path.(sourcePath / "s");
+      let%bind () = Fs.createDir(sourceStagePath);
+
+      let sourceInstallPath = Path.(sourcePath / "i");
+      let%bind () = Fs.createDir(sourceInstallPath);
 
       let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
 
@@ -89,8 +98,10 @@ let make =
 
       return({
         esySolveCmd,
-        cacheTarballsPath,
-        cacheSourcesPath,
+        fastreplacestringCmd,
+        sourceArchivePath,
+        sourceStagePath,
+        sourceInstallPath,
         opamArchivesIndexPath,
         opamRepository,
         esyOpamOverride,

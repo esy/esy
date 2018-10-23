@@ -6,7 +6,7 @@ let sourceTarballPath ~cfg source =
     |> Digest.string
     |> Digest.to_hex
   in
-  Path.(cfg.Config.cacheTarballsPath // v id |> addExt "tgz")
+  Path.(cfg.Config.sourceArchivePath // v id |> addExt "tgz")
 
 let fetchSourceIntoPath source path =
   let open RunAsync.Syntax in
@@ -20,7 +20,7 @@ let fetchSourceIntoPath source path =
       Fs.copyPath ~src ~dst
     in
     let%bind () =
-      RunAsync.List.waitAll (List.map ~f:copy names)
+      RunAsync.List.mapAndWait ~f:copy names
     in
     return (Ok ())
 

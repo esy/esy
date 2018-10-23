@@ -7,6 +7,11 @@ const fs = require('../test/fs.js');
 
 helpers.skipSuiteOnWindows();
 
+async function requireJson(p, req) {
+  const {stdout} = await p.esy(`node -p "JSON.stringify(require('${req}'))"`);
+  return JSON.parse(stdout);
+}
+
 describe(`Basic tests for npm packages`, () => {
   test(`it should correctly install a single dependency that contains no sub-dependencies`, async () => {
     const fixture = [
@@ -19,8 +24,14 @@ describe(`Basic tests for npm packages`, () => {
 
     const p = await helpers.createTestSandbox(...fixture);
     await p.esy('install');
+    await p.esy('build');
 
     expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
+
+    expect(await requireJson(p, 'no-deps/package.json')).toMatchObject({
+      name: 'no-deps',
+      version: '1.0.0',
+    });
 
     await expect(
       p.runJavaScriptInNodeAndReturnJson(`require('no-deps')`),
