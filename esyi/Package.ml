@@ -281,7 +281,7 @@ module Resolution = struct
     | SourceOverride of {source : Source.t; override : override}
 
   and override = {
-    origin : Source.t option;
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -316,7 +316,7 @@ module Resolution = struct
     } = override in
     `Assoc (
       []
-      |> addIfSome Source.to_yojson "origin" origin
+      |> addIfSome Dist.to_yojson "origin" origin
       |> addIfSome BuildType.to_yojson "buildsInSource" buildType
       |> addIfSome CommandList.to_yojson "build" build
       |> addIfSome CommandList.to_yojson "install" install
@@ -341,7 +341,7 @@ module Resolution = struct
   let rec override_of_yojson json =
     let open Result.Syntax in
     let field = Json.Decode.fieldOptWith in
-    let%bind origin = field ~name:"origin" Source.of_yojson json in
+    let%bind origin = field ~name:"origin" Dist.of_yojson json in
     let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
     let%bind build = field ~name:"build" CommandList.of_yojson json in
     let%bind install = field ~name:"install" CommandList.of_yojson json in
@@ -460,7 +460,7 @@ module Overrides = struct
     [@@deriving yojson]
 
   type override = Resolution.override = {
-    origin : Source.t option;
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;

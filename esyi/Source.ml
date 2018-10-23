@@ -13,13 +13,7 @@ and link = {
 let manifest (src : t) =
   match src with
   | Link info -> info.manifest
-  | Dist Git { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
-  | Dist Git _ -> None
-  | Dist Github { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
-  | Dist Github _ -> None
-  | Dist LocalPath info -> info.manifest
-  | Dist Archive _ -> None
-  | Dist NoSource -> None
+  | Dist dist -> Dist.manifest dist
 
 let toDist (src : t) =
   match src with

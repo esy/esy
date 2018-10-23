@@ -30,6 +30,8 @@ val sexp_of_t : t -> Sexplib0.Sexp.t
 val parser : t Parse.t
 val parse : string -> (t, string) result
 
+val manifest : t -> ManifestSpec.t option
+
 val parserRelaxed : t Parse.t
 val parseRelaxed : string -> (t, string) result
 

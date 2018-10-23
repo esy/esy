@@ -105,7 +105,7 @@ module Resolution : sig
     | SourceOverride of {source : Source.t; override : override}
 
   and override = {
-    origin : Source.t option;
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -145,7 +145,7 @@ module Overrides : sig
   type t
 
   type override = Resolution.override = {
-    origin : Source.t option;
+    origin : Dist.t option;
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;

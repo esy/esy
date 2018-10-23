@@ -227,12 +227,7 @@ let resolve
       }
     | Override {dist = nextDist; override}, path ->
       let override =
-        let source =
-          match dist with
-          | Dist.LocalPath {path; manifest} -> Source.Link {path; manifest;}
-          | dist -> Source.Dist dist
-        in
-        {override with Package.Resolution. origin = Some source}
+        {override with Package.Resolution. origin = Some dist}
       in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt

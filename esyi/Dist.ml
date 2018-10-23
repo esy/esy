@@ -23,6 +23,16 @@ type t =
   | NoSource
   [@@deriving ord, sexp_of]
 
+let manifest (dist : t) =
+  match dist with
+  | Git { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
+  | Git _ -> None
+  | Github { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
+  | Github _ -> None
+  | LocalPath info -> info.manifest
+  | Archive _ -> None
+  | NoSource -> None
+
 let show' ~showPath = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit

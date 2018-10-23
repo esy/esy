@@ -18,20 +18,20 @@ and node = {
 
 and override =
   | InlineOverride of Package.Resolution.override
-  | Override of Source.t
+  | Override of Dist.t
 
 let readOverride sandbox override =
   let open RunAsync.Syntax in
   match override with
   | InlineOverride override -> return override
-  | Override source ->
+  | Override dist ->
     let%bind path =
-      match source with
-      | Source.Dist dist -> FetchStorage.fetchDist ~sandbox dist
-      | Source.Link {path; manifest = _;} -> return path
+      match dist with
+      | Dist.LocalPath {path; manifest = _;} -> return path
+      | dist -> FetchStorage.fetchDist ~sandbox dist
     in
     let manifest =
-      match Source.manifest source with
+      match Dist.manifest dist with
       | None -> ManifestSpec.One (ManifestSpec.Filename.Esy, "package.json")
       | Some manifest -> manifest
     in
