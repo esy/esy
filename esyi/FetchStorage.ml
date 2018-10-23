@@ -285,7 +285,30 @@ let runLifecycle pkg sourcePath lifecycle =
 
   return ()
 
-let installBinWrapper ~binPath (name, origPath) =
+let installNodeBinWrapper binPath (name, origPath) =
+  let data, path =
+    match System.Platform.host with
+    | Windows ->
+      let data =
+      Format.asprintf
+        {|@ECHO off
+@SETLOCAL
+node "%a" %%*
+          |} Path.pp origPath
+      in
+      data, Path.(binPath / name |> addExt ".cmd")
+    | _ ->
+      let data =
+        Format.asprintf
+          {|#!/bin/sh
+exec node "%a" "$@"
+            |} Path.pp origPath
+      in
+      data, Path.(binPath / name)
+  in
+  Fs.writeFile ~perm:0o755 ~data path
+
+let installBinWrapper binPath (name, origPath) =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m ->
     m "Fetch:installBinWrapper: %a / %s -> %a"
@@ -293,11 +316,15 @@ let installBinWrapper ~binPath (name, origPath) =
   );%lwt
   if%bind Fs.exists origPath
   then (
-    let%bind () = Fs.chmod 0o777 origPath in
-    let destPath = Path.(binPath / name) in
-    if%bind Fs.exists destPath
-    then return ()
-    else Fs.symlink ~src:origPath destPath
+    if Path.hasExt ".js" origPath
+    then installNodeBinWrapper binPath (name, origPath)
+    else (
+      let%bind () = Fs.chmod 0o777 origPath in
+      let destPath = Path.(binPath / name) in
+      if%bind Fs.exists destPath
+      then return ()
+      else Fs.symlink ~src:origPath destPath
+    )
   ) else (
     Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
     return ()
@@ -373,5 +400,5 @@ let linkBins binPath installation =
   match installation.pkgJson with
   | Some pkgJson ->
     let bin = PackageJson.bin ~sourcePath:installation.sourcePath  pkgJson in
-    RunAsync.List.mapAndWait ~f:(installBinWrapper ~binPath) bin
+    RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
   | None -> RunAsync.return ()

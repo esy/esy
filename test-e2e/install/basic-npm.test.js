@@ -137,6 +137,32 @@ describe(`Basic tests for npm packages`, () => {
     ).toBeFalsy();
   });
 
+  test(`it should wrap *.js file with`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {[`dep`]: 'path:dep'},
+      }),
+      helpers.dir(
+        'dep',
+        helpers.packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          bin: 'dep.js',
+        }),
+        helpers.file('dep.js', `console.log("dep: HELLO");`),
+      ),
+    );
+
+    await p.esy('install');
+
+    const proc = await p.esy('dep');
+    expect(proc.stdout.toString().trim()).toBe('dep: HELLO');
+  });
+
   test(`node wrapper is installed`, async () => {
     const p = await helpers.createTestSandbox();
 
