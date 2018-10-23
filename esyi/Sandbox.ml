@@ -199,6 +199,7 @@ let ofSource ~cfg ~spec source =
 
 let make ~cfg (spec : SandboxSpec.t) =
   let open RunAsync.Syntax in
+
   RunAsync.contextf (
     match spec.manifest with
     | ManifestSpec.One (Esy, fname)

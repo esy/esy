@@ -9,7 +9,7 @@ type resolution = {
   overrides : Package.Overrides.t;
   (** A set of overrides. *)
 
-  source : Source.t;
+  dist : Dist.t;
   (** Final source. *)
 
   manifest : manifest option;
@@ -30,7 +30,7 @@ val resolve :
   ?overrides:Package.Overrides.t
   -> cfg:Config.t
   -> root:Path.t
-  -> Source.t
+  -> Dist.t
   -> resolution RunAsync.t
 (**
 

@@ -1,15 +1,15 @@
 module PackageOverride = struct
   type t = {
-    source : Source.t;
+    dist : Dist.t;
     override : Package.Overrides.override;
   }
 
   let of_yojson json =
     let open Result.Syntax in
-    let%bind source =
+    let%bind dist =
       Json.Decode.fieldWith
         ~name:"source"
-        Source.relaxed_of_yojson
+        Dist.relaxed_of_yojson
         json
     in
     let%bind override =
@@ -18,13 +18,13 @@ module PackageOverride = struct
       Package.Overrides.override_of_yojson
       json
     in
-    return {source; override;}
+    return {dist; override;}
 
 end
 
 type resolution = {
   overrides : Package.Overrides.t;
-  source : Source.t;
+  dist : Dist.t;
   manifest : manifest option;
   paths : Path.Set.t;
 }
@@ -41,15 +41,13 @@ type state =
   | Manifest of manifest
   | Override of PackageOverride.t
 
-let rebaseSource ~(base : Source.t) (source : Source.t) =
+let rebase ~(base : Dist.t) (source : Dist.t) =
   let open Run.Syntax in
   match source, base with
-  | Link _, _ -> error "link is not supported at manifest overrides"
-  | Dist LocalPath info, Dist LocalPath {path = basePath; _}
-  | Dist LocalPath info, Link {path = basePath; _} ->
+  | Dist.LocalPath info, Dist.LocalPath {path = basePath; _} ->
     let path = Path.(basePath // info.path |> normalizeAndRemoveEmptySeg) in
-    return (Source.Dist (LocalPath {info with path;}))
-  | Dist LocalPath _, _ -> failwith "TODO"
+    return (Dist.LocalPath {info with path;})
+  | Dist.LocalPath _, _ -> failwith "TODO"
   | source, _ -> return source
 
 let suggestPackageName ~fallback (kind, filename) =
@@ -118,9 +116,7 @@ let ofGithub
 
   tryFilename filenames
 
-let ofPath ?manifest (path : Path.t)
-  =
-
+let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
   let rec tryFilename filenames =
@@ -171,17 +167,16 @@ let resolve
   ?(overrides=Package.Overrides.empty)
   ~cfg
   ~root
-  (source : Source.t) =
+  (dist : Dist.t) =
   let open RunAsync.Syntax in
 
-  let resolve' (source : Source.t) =
-    Logs_lwt.debug (fun m -> m "fetching metadata %a" Source.pp source);%lwt
-    match source with
-    | Link {path; manifest}
-    | Dist LocalPath {path; manifest} ->
+  let resolve' (dist : Dist.t) =
+    Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist);%lwt
+    match dist with
+    | LocalPath {path; manifest} ->
       let%bind pkg = ofPath ?manifest Path.(root // path) in
       return (pkg, Some path)
-    | Dist Git {remote; commit; manifest;} ->
+    | Git {remote; commit; manifest;} ->
       let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
@@ -189,10 +184,10 @@ let resolve
         let%bind pkg = ofPath ?manifest repo in
         return (pkg, None)
       end
-    | Dist Github {user; repo; commit; manifest;} ->
+    | Github {user; repo; commit; manifest;} ->
       let%bind pkg = ofGithub ?manifest user repo commit in
       return (pkg, None)
-    | Dist (Archive _ as dist) ->
+    | Archive _ ->
       Fs.withTempDir begin fun path ->
         let%bind () =
           DistStorage.fetchAndUnpack
@@ -204,7 +199,7 @@ let resolve
       return (pkg, None)
       end
 
-    | Dist NoSource ->
+    | NoSource ->
       return (EmptyManifest, None)
   in
 
@@ -214,28 +209,28 @@ let resolve
     | None -> paths
   in
 
-  let rec loop' ~overrides ~paths source =
-    match%bind resolve' source with
+  let rec loop' ~overrides ~paths dist =
+    match%bind resolve' dist with
     | EmptyManifest, path ->
       return {
         manifest = None;
         overrides;
-        source;
+        dist;
         paths = maybeAddToPathSet path Path.Set.empty;
       }
     | Manifest manifest, path ->
       return {
         manifest = Some manifest;
         overrides;
-        source;
+        dist;
         paths = maybeAddToPathSet path Path.Set.empty;
       }
-    | Override {source = nextSource; override}, path ->
-      let%bind nextSource = RunAsync.ofRun (rebaseSource ~base:source nextSource) in
-      Logs_lwt.debug (fun m -> m "override: %a -> %a@." Source.pp source Source.pp nextSource);%lwt
+    | Override {dist = nextDist; override}, path ->
+      let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
+      Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
       let overrides = Package.Overrides.add override overrides in
       let paths = maybeAddToPathSet path paths in
-      loop' ~overrides ~paths nextSource
+      loop' ~overrides ~paths nextDist
   in
 
-  loop' ~overrides ~paths:Path.Set.empty source
+  loop' ~overrides ~paths:Path.Set.empty dist

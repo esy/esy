@@ -8,6 +8,7 @@ module SandboxSpec = EsyInstall.SandboxSpec
 module ManifestSpec = EsyInstall.ManifestSpec
 module Package = EsyInstall.Package
 module Version = EsyInstall.Version
+module Dist = EsyInstall.Dist
 module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
 module Command = Package.Command
@@ -395,12 +396,12 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
   let open RunAsync.Syntax in
   match pkg.source with
   | Solution.Package.Link { path; manifest; } ->
-    let source = Source.Link {path; manifest;} in
+    let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       SourceResolver.resolve
         ~cfg:cfg.Config.installCfg
         ~root:cfg.spec.SandboxSpec.path
-        source
+        dist
     in
     let overrides = Overrides.addMany pkg.overrides res.SourceResolver.overrides in
     let%bind manifest =

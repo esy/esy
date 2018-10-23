@@ -21,6 +21,11 @@ let manifest (src : t) =
   | Dist Archive _ -> None
   | Dist NoSource -> None
 
+let toDist (src : t) =
+  match src with
+  | Dist dist -> dist
+  | Link {path;manifest;} -> Dist.LocalPath {path;manifest;}
+
 let show' ~showPath = function
   | Dist Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit

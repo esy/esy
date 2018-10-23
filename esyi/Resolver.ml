@@ -232,12 +232,19 @@ let packageOfSource ~allowEmptyPackage ~name ~overridesOfResolutions (source : S
   in
 
   let pkg =
-    let%bind { SourceResolver. overrides; source = resolvedSource; manifest; _; } =
+    let%bind { SourceResolver. overrides; dist = resolvedDist; manifest; _; } =
       SourceResolver.resolve
         ~cfg:resolver.cfg
         ~overrides:overridesOfResolutions
         ~root:resolver.root
-        source
+        (Source.toDist source)
+    in
+
+    let%bind resolvedSource =
+      match source, resolvedDist with 
+      | Source.Dist _, _ -> return (Source.Dist resolvedDist)
+      | Source.Link _, Dist.LocalPath {path; manifest;} -> return (Source.Link {path;manifest;})
+      | Source.Link _, dist -> errorf "unable to link to %a" Dist.pp dist
     in
 
     let%bind pkg =
