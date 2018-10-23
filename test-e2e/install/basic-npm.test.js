@@ -8,9 +8,7 @@ const fs = require('../test/fs.js');
 helpers.skipSuiteOnWindows();
 
 async function requireJson(p, req) {
-  const {stdout} = await p.esy(
-    `node -p 'JSON.stringify(require(${JSON.stringify(req)}))'`,
-  );
+  const {stdout} = await p.esy(`node -p "JSON.stringify(require('${req}'))"`);
   return JSON.parse(stdout);
 }
 
