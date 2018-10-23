@@ -81,6 +81,7 @@ let ofPackage (pkg : Solution.Package.t) =
   }
 
 let computeSandboxChecksum (sandbox : Sandbox.t) =
+  let open RunAsync.Syntax in
 
   let ppDependencies fmt deps =
 
@@ -131,6 +132,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
   let hashResolutions ~resolutions digest =
     Digest.string (digest ^ "__" ^ Package.Resolutions.digest resolutions)
   in
+
   let digest =
     Digest.string ""
     |> hashResolutions
@@ -138,7 +140,37 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
     |> hashDependencies
       ~dependencies:sandbox.dependencies
   in
-  Digest.to_hex digest
+
+  let%bind digest =
+    let f digest resolution =
+      let resolution =
+        match resolution.Package.Resolution.resolution with
+        | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
+        | SourceOverride _ -> None
+        | Version (Version.Source (Source.Link _)) -> Some resolution
+        | Version _ -> None
+      in
+      match resolution with
+      | None -> return digest
+      | Some resolution ->
+        begin match%bind Resolver.package ~resolution sandbox.resolver with
+        | Error _ ->
+          errorf "unable to read package: %a" Package.Resolution.pp resolution
+        | Ok pkg ->
+          return (
+            Digest.string ""
+            |> hashDependencies
+              ~dependencies:pkg.Package.dependencies
+          )
+        end
+    in
+    RunAsync.List.foldLeft
+      ~f
+      ~init:digest
+      (Package.Resolutions.entries sandbox.resolutions)
+  in
+
+  return (Digest.to_hex digest)
 
 let solutionOfLockfile sandbox root node =
   let open RunAsync.Syntax in
@@ -171,7 +203,8 @@ let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
     in
     match lockfile with
     | Ok lockfile ->
-      if lockfile.hash = computeSandboxChecksum sandbox
+      let%bind checksum = computeSandboxChecksum sandbox in
+      if String.compare lockfile.hash checksum = 0
       then
         let%bind solution = solutionOfLockfile sandbox lockfile.root lockfile.node in
         return (Some solution)
@@ -189,8 +222,9 @@ let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
     return None
 
 let toFile ~sandbox ~(solution : Solution.t) (path : Path.t) =
+  let open RunAsync.Syntax in
   let root, node = lockfileOfSolution solution in
-  let hash = computeSandboxChecksum sandbox in
+  let%bind hash = computeSandboxChecksum sandbox in
   let lockfile = {hash; node; root = Solution.Package.id root;} in
   let json = to_yojson lockfile in
   Fs.writeJsonFile ~json path
