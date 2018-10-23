@@ -201,7 +201,7 @@ describe(`installing linked packages`, () => {
     });
   });
 
-  it.only('should re-install if linked package dependencies were changed', async () => {
+  it('should re-install if linked package dependencies were changed', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
