@@ -276,17 +276,6 @@ module OpamBuild = struct
       substs;
     }
 
-  let ofInstallationDir (path : Path.t) =
-    let open RunAsync.Syntax in
-    match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
-    | None
-    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
-      return (None, Path.Set.empty)
-    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      let name = Some (OpamPackage.Name.to_string info.name) in
-      let version = Some (Version.Opam info.version) in
-      return (Some (build ~name ~version info), Path.Set.singleton path)
-
   let ofData ~nameFallback data =
     let open Run.Syntax in
     match parseOpam data with
@@ -357,11 +346,7 @@ let ofPath ?manifest (path : Path.t) =
 
   let manifest =
     match manifest with
-    | None ->
-      begin match%bind OpamBuild.ofInstallationDir path with
-      | Some manifest, paths -> return (Some manifest, paths)
-      | None, _paths -> discoverManifest path
-      end
+    | None -> discoverManifest path
     | Some spec ->
       begin match spec with
       | ManifestSpec.One (ManifestSpec.Filename.Esy, fname) ->
@@ -431,7 +416,11 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       return (Some manifest, res.DistResolver.paths)
     end
 
-  | Solution.Package.Install { source; files = _; opam = _; } ->
+  | Solution.Package.Install { source = _; files = _; opam = Some opam; } ->
+    let name = Some (OpamPackage.Name.to_string opam.name) in
+    let version = Some (Version.Opam opam.version) in
+    return (Some (OpamBuild.build ~name ~version opam), Path.Set.empty)
+  | Solution.Package.Install { source; files = _; opam = None; } ->
     let source , _ = source in
     let manifest = Source.manifest source in
     let%bind manifest, paths = ofPath ?manifest loc in
