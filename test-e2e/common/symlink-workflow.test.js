@@ -78,15 +78,11 @@ describe('Symlink workflow', () => {
       ),
     );
 
-    const esy = args =>
-      p.esy(`${args}`, {
-        cwd: path.join(p.projectPath, 'app'),
-      });
+    p.cd('./app');
+    await p.esy('install');
+    await p.esy('build');
 
-    await esy('install');
-    await esy('build');
-
-    return {...p, esy};
+    return p;
   }
 
   it('works without changes', async () => {
