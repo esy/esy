@@ -151,8 +151,8 @@ function shuffle(array) {
 }
 
 function selectCases(array) {
-    // Start with a subset on windows...
-    return os.platform() == "win32" ? shuffle(array.slice(0, 10)) : shuffle(array);
+  // Start with a subset on windows...
+  return os.platform() == 'win32' ? shuffle(array.slice(0, 10)) : shuffle(array);
 }
 
 const startTime = new Date();
@@ -182,7 +182,7 @@ for (let c of selectCases(cases)) {
       },
       resolutions: {
         // Workaround until new version of angstrom is released
-        "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
+        '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
       },
       devDependencies: {
         ocaml: toolchain,
