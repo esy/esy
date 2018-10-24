@@ -201,6 +201,51 @@ describe(`installing linked packages`, () => {
     });
   });
 
+  test('link to ancestor directories', async () => {
+    const fixture = [
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {},
+      }),
+      dir(
+        'sub',
+        dir(
+          'dir',
+          packageJson({
+            name: 'root',
+            version: '1.0.0',
+            esy: {},
+            dependencies: {
+              dep: '*',
+            },
+            resolutions: {
+              dep: 'link:../../',
+            },
+          }),
+        ),
+      ),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    p.cd('./sub/dir');
+    await p.esy(`install`);
+
+    const layout = await helpers.readInstalledPackages(
+      path.join(p.projectPath, 'sub', 'dir'),
+    );
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        dep: {
+          name: 'dep',
+          version: 'link:../..',
+        },
+      },
+    });
+  });
+
   it('should re-install if linked package dependencies were changed', async () => {
     const p = await helpers.createTestSandbox();
 
