@@ -25,12 +25,8 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
-  - task: Npm@1
-    displayName: 'npm run build'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run build'
+  - script: 'esy build'
+    displayName: 'esy build'
 
   - task: Npm@1
     displayName: 'jest --runInBand test-e2e'
