@@ -16,12 +16,6 @@ const cases = [
     name: 'bs-platform',
   },
   {
-    name: 'browserify',
-    test: `
-      require('browserify');
-    `,
-  },
-  {
     name: 'webpack',
     test: `
       require('webpack');
@@ -50,24 +44,18 @@ const cases = [
     test: `
       require('react-scripts/bin/react-scripts.js');
     `,
-  }
+  },
 ];
 
 // All of these tests are blocked by issue #506 on Windows
 // TODO: Fix #506 and enable these!
-const windowsBlacklist = [
-    "webpack",
-    "jest-cli",
-    "babel-cli",
-    "react-scripts",
-];
+const windowsBlacklist = ['webpack', 'jest-cli', 'babel-cli', 'react-scripts'];
 
 let p;
 let reposUpdated = false;
 
 for (let c of cases) {
-
-  if (os.platform() === "win32" && windowsBlacklist.indexOf(c.name) >= 0) {
+  if (os.platform() === 'win32' && windowsBlacklist.indexOf(c.name) >= 0) {
     console.warn(`Skipping ${c.name} on Windows due to blocking bug.`);
     continue;
   }
@@ -96,7 +84,7 @@ for (let c of cases) {
   if (c.test != null) {
     const test = c.test;
     fs.writeFileSync(path.join(sandbox.path, 'test.js'), test);
-    sandbox.exec('node', './test.js');
+    sandbox.esy('node', './test.js');
   }
 
   sandbox.dispose();

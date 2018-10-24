@@ -1,4 +1,4 @@
-name: Build npm release
+name: $(Build.SourceBranchName)-$(Build.SourceVersion)
 
 resources:
   - repo: self
@@ -16,6 +16,7 @@ phases:
       name: Hosted Ubuntu 1604
 
     steps:
+      - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
       - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
@@ -32,6 +33,7 @@ phases:
       demands: node.js
 
     steps:
+      - script: brew install gmp
       - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
