@@ -5,19 +5,16 @@ steps:
       versionSpec: 8.x
 
   - script: 'npm install -g esy@0.2.11 --unsafe-perm'
-    displayName: 'install esy'
-
-  - script: 'make bootstrap'
-    displayName: 'make bootstrap'
+    displayName: 'npm install -g esy'
 
   - script: 'esy install'
     displayName: 'esy install'
 
-  - script: 'esy b dune build'
-    displayName: 'esy b dune build'
+  - script: 'esy build'
+    displayName: 'esy build'
 
-  - script: './node_modules/.bin/jest test-e2e'
-    displayName: 'jest test-e2e'
+  - script: 'esy test:e2e'
+    displayName: 'esy test:e2e'
 
-  - script: 'make build platform-release'
-    displayName: 'make ESY_RELEASE_TAG="${Build.SourceVersion}" build platform-release'
+  - script: 'esy platform-release'
+    displayName: 'esy platform-release'
