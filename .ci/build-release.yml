@@ -1,0 +1,136 @@
+name: Build npm release
+
+resources:
+  - repo: self
+
+trigger:
+  - master
+  - bryphe/*
+  - andreypopp/*
+
+phases:
+  - phase: buildLinux
+    displayName: Build Linux
+    condition: succeeded()
+    queue:
+      name: Hosted Ubuntu 1604
+
+    steps:
+      - template: build-nix.yml
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Platform Release'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: platform-linux
+
+  - phase: buildMacos
+    displayName: Build macOS
+    condition: succeeded()
+    queue:
+      name: Hosted macOS
+      demands: node.js
+
+    steps:
+      - template: build-nix.yml
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Platform Release'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: platform-darwin
+
+# TODO: fix windows build
+# - phase: buildWindows
+#   displayName: Windows
+#   condition: succeeded()
+#   queue:
+#     name: Hosted VS2017
+#     demands: npm
+
+#   steps:
+#     - template: build-windows.yml
+
+#     - task: PublishBuildArtifacts@1
+#       displayName: 'Publish Artifact: Windows'
+#       inputs:
+#         PathtoPublish: '_platformrelease'
+#         ArtifactName: Windows
+
+  - phase: buildRelease
+    displayName: Build Release
+    dependsOn:
+      - buildLinux
+      - buildMacos
+      # TODO: fix windows and re-enable it
+      # - buildWindows
+    condition: succeeded()
+    queue:
+      name: Hosted Ubuntu 1604
+
+    steps:
+
+    #
+    # Prepare linux platform release.
+    #
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Linux Artifacts'
+      inputs:
+        artifactName: platform-linux
+        downloadPath: '_release'
+    #
+    # Prepare macos platform release.
+    #
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download macOS Artifacts'
+      inputs:
+        artifactName: platform-darwin
+        downloadPath: '_release'
+
+    #
+    # Prepare windows platform release.
+    # TODO: re-enable
+    #
+
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Windows Artifacts'
+    #   inputs:
+    #     artifactName: Windows
+    #     downloadPath: '_release'
+    #   continueOnError: true
+
+    # - script: 'mkdir _release/platform-windows-x64'
+    #   displayName: 'Create _release/platform-windows-x64'
+    #   continueOnError: true
+
+    # - script: 'tar -xzf _release/Windows/*.tgz -C _release/platform-windows-x64'
+    #   displayName: 'untar Windows'
+    #   continueOnError: true
+
+    # - script: 'rm -rf _release/Windows'
+    #   displayName: 'Remove Windows artifacts'
+    #   continueOnError: true
+
+    - script: |
+        set -e
+        mkdir -p _release
+        mkdir -p _release/bin
+        mkdir -p _release/_build/default/esy/bin
+        mkdir -p _release/_build/default/esy-build-package/bin
+        cp LICENSE _release/LICENSE
+        cp README.md _release/README.md
+        cp scripts/release-postinstall.js _release/postinstall.js
+        cp bin/esyInstallRelease.js _release/bin/esyInstallRelease.js
+        touch _release/_build/default/esy/bin/esyCommand.exe
+        touch _release/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe
+        touch _release/_build/default/esy-build-package/bin/fastreplacestring.exe
+        ESY__RELEASE_VERSION_COMMIT="${BUILD_SOURCEVERSION}" node scripts/create-release-package-json.js > _release/package.json
+      displayName: 'Prepare release'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: Release'
+      inputs:
+        PathtoPublish: '_release'
+        ArtifactName: release
