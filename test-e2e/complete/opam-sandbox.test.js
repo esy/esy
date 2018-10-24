@@ -166,4 +166,125 @@ describe('complete flow for opam sandboxes', () => {
     // build shouldn't execute build commands from *.opam files
     await p.esy('build');
   });
+
+  it.only('ocaml constraints should be translated to npm versions (root)', async () => {
+    const p = await createTestSandbox();
+
+    await p.fixture(
+      helpers.file(
+        'pkg.opam',
+        outdent`
+        opam-version: "2.0"
+        build: [
+          ["true"]
+        ]
+        depends: [
+          "ocaml" { >= "4.07.1" & < "4.08"}
+        ]
+        `,
+      ),
+    );
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.7.7',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.7.1005',
+      esy: {},
+    });
+    p;
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.8.0',
+      esy: {},
+    });
+
+    await p.esy('install --skip-repository-update');
+
+    expect(await helpers.readInstalledPackages(p.projectPath, 'pkg')).toMatchObject({
+      name: 'pkg',
+      dependencies: {
+        ocaml: {
+          name: 'ocaml',
+          version: '4.7.1005',
+        },
+      },
+    });
+  });
+
+  it.only('ocaml constraints should be translated to npm versions (dep)', async () => {
+    const p = await createTestSandbox();
+
+    await p.fixture(
+      helpers.file(
+        'pkg.opam',
+        outdent`
+        opam-version: "2.0"
+        build: [
+          ["true"]
+        ]
+        depends: [
+          "dep"
+        ]
+        `,
+      ),
+    );
+
+    await p.defineOpamPackage({
+      name: 'dep',
+      version: '1.0.0',
+      opam: outdent`
+        opam-version: "2.0"
+        name: "dep"
+        version: "1.0.0"
+        build: [
+          ["true"]
+        ]
+        depends: [
+          "ocaml" { >= "4.07.1" & < "4.08"}
+        ]
+      `,
+      url: null,
+    });
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.7.7',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.7.1005',
+      esy: {},
+    });
+    p;
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '4.8.0',
+      esy: {},
+    });
+
+    await p.esy('install --skip-repository-update');
+
+    expect(await helpers.readInstalledPackages(p.projectPath, 'pkg')).toMatchObject({
+      name: 'pkg',
+      dependencies: {
+        '@opam/dep': {
+          name: '@opam/dep',
+          version: 'opam:1.0.0',
+          dependencies: {
+            ocaml: {
+              name: 'ocaml',
+              version: '4.7.1005',
+            },
+          },
+        },
+      },
+    });
+  });
 });
