@@ -40,22 +40,21 @@ phases:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-darwin
 
-# TODO: fix windows build
-# - phase: buildWindows
-#   displayName: Windows
-#   condition: succeeded()
-#   queue:
-#     name: Hosted VS2017
-#     demands: npm
+  - phase: buildWindows
+    displayName: Windows
+    condition: succeeded()
+    queue:
+      name: Hosted VS2017
+      demands: npm
 
-#   steps:
-#     - template: build-windows.yml
+    steps:
+      - template: build-windows.yml
 
-#     - task: PublishBuildArtifacts@1
-#       displayName: 'Publish Artifact: Windows'
-#       inputs:
-#         PathtoPublish: '_platformrelease'
-#         ArtifactName: Windows
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Artifact: Windows'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: Windows
 
   - phase: buildRelease
     displayName: Build Release
