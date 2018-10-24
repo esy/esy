@@ -42,6 +42,9 @@ export type TestSandbox = {
   fixture: (...fixture: Fixture) => Promise<void>,
 
   run: (args: string) => Promise<{stderr: string, stdout: string}>,
+
+  cd: (where: string) => void,
+
   esy: (
     args?: string,
     options: ?{noEsyPrefix?: boolean, env?: Object, p?: string},
@@ -111,7 +114,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       /"/g,
       '\\"',
     )})"`;
-    const p = await promiseExec(command, {cwd: projectPath});
+    const p = await promiseExec(command, {cwd});
     return JSON.parse(p.stdout);
   }
 
@@ -123,10 +126,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     };
     if (options.env != null) {
       env = {...env, ...options.env};
-    }
-    let cwd = projectPath;
-    if (options.cwd != null) {
-      cwd = options.cwd;
     }
     if (!options.noEsyPrefix) {
       env = {
@@ -151,7 +150,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   }
 
   function run(line: string) {
-    return promiseExec(line, {cwd: path.join(projectPath)});
+    return promiseExec(line, {cwd});
   }
 
   async function printEsy(cmd, options) {
@@ -169,7 +168,14 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     );
   }
 
+  let cwd = projectPath;
+
+  function cd(where) {
+    cwd = path.resolve(cwd, where);
+  }
+
   return {
+    cd,
     rootPath,
     binPath,
     projectPath,
