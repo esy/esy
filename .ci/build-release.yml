@@ -62,8 +62,7 @@ phases:
     dependsOn:
       - buildLinux
       - buildMacos
-      # TODO: fix windows and re-enable it
-      # - buildWindows
+      - buildWindows
     condition: succeeded()
     queue:
       name: Hosted Ubuntu 1604
