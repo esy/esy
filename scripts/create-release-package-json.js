@@ -3,7 +3,7 @@ let esyJson = require('../package.json');
 let version = esyJson.version;
 
 if (process.env.ESY__RELEASE_VERSION_COMMIT != null) {
-  version = version + '+' + process.env.ESY__RELEASE_VERSION_COMMIT.slice(0, 6);
+  version = version + '-' + process.env.ESY__RELEASE_VERSION_COMMIT.slice(0, 6);
 }
 
 console.log(
