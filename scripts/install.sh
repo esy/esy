@@ -38,10 +38,10 @@ else
     # Windows install
     # npm install -g jest-cli
     powershell.exe echo hi
-    cmd.exe /c where npm
+    powershell.exe where npm
     # cmd /c where jest
-    # cmd /c where esy
-    # cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
-    travis_retry cmd /c esy install
+    powershell.exe where esy
+    powershell.exe cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
+    travis_retry powershell.exe /c esy install
 
 fi
