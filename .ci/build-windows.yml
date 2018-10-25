@@ -38,10 +38,10 @@ steps:
     displayName: 'test-e2e'
     continueOnError: true
 
-  - script: "npm run test:unit"
-    displayName: "test:unit"
+  - script: "esy b dune runtest"
+    displayName: "esy b dune runtest"
     continueOnError: true
 
-  - script: "npm run bootstrap:make-release-package"
-    displayName: "bootstrap:make-release-package"
+  - script: "npm run release:make-platform-package"
+    displayName: "release:make-platform-package"
     continueOnError: true
