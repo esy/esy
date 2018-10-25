@@ -42,8 +42,7 @@ else
     powershell.exe which npm
     powershell.exe which rimraf
     # cmd /c where jest
-    powershell.exe which esy
-    # powershell.exe cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
-    travis_retry powershell.exe esy install
-
+    cp scripts/build/patched-bash-exec.js /c/ProgramData/nvs/node/8.12.0/x64/node_modules/esy/node_modules/esy-bash/bash-exec.js
+    /c/ProgramData/nvs/node/8.12.0/x64/node_modules/esy/_build/default/esy/bin/esyCommand.exe --version
+    travis_retry /c/ProgramData/nvs/node/8.12.0/x64/node_modules/esy/_build/default/esy/bin/esyCommand.exe install
 fi
