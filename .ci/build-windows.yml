@@ -38,16 +38,10 @@ steps:
     displayName: 'test-e2e'
     continueOnError: true
 
-  - task: Npm@1
-    displayName: 'npm run test:unit'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run test:unit'
+  - script: "npm run test:unit"
+    displayName: "test:unit"
+    continueOnError: true
 
-  - task: Npm@1
-    displayName: 'npm run bootstrap:make-release-package'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run bootstrap:make-release-package'
+  - script: "npm run bootstrap:make-release-package"
+    displayName: "bootstrap:make-release-package"
+    continueOnError: true
