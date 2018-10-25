@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-OS_NAME=$(uname -s)
+OS_NAME="$(uname -s)"
 
 if [[ "$OS_NAME" -eq "Linux" ]] || [["$OS_NAME" -eq "Darwin" ]]; then
     make ci
