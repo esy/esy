@@ -16,11 +16,8 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: WIN=0
     - os: osx
-      env: WIN=0
     - os: windows
-      env: WIN=1
 
 deploy:
   provider: releases
