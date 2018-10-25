@@ -41,6 +41,6 @@ steps:
     displayName: 'esy b dune runtest test'
     continueOnError: true
 
-  - script: "npm run release:make-platform-package"
-    displayName: "release:make-platform-package"
+  - script: "npm run platform-release"
+    displayName: "npm run platform-release"
     continueOnError: true
