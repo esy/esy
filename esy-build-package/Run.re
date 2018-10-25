@@ -161,7 +161,7 @@ let createTmpFile = (contents: string) => {
   Ok(filename);
 };
 
-let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)) : t(_) => {
+let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)): t(_) => {
   let visit = (path: Fpath.t) =>
     fun
     | Ok () => {
@@ -180,7 +180,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
         Path.Set.empty,
         ignore,
       );
-    `Sat(path => Ok(! Path.Set.mem(path, ignoreSet)));
+    `Sat(path => Ok(!Path.Set.mem(path, ignoreSet)));
   };
 
   let excludePathsWithinSymlink = ref(Path.Set.empty);

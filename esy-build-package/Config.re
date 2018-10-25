@@ -12,15 +12,13 @@ type config = t;
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
-let initStore = (path: Fpath.t) =>
-  Run.(
-    {
-      let%bind () = mkdir(Fpath.(path / "i"));
-      let%bind () = mkdir(Fpath.(path / "b"));
-      let%bind () = mkdir(Fpath.(path / "s"));
-      return();
-    }
-  );
+let initStore = (path: Fpath.t) => {
+  open Run;
+  let%bind () = mkdir(Fpath.(path / "i"));
+  let%bind () = mkdir(Fpath.(path / "b"));
+  let%bind () = mkdir(Fpath.(path / "s"));
+  return();
+};
 
 let make =
     (
@@ -30,40 +28,38 @@ let make =
       ~localStorePath,
       ~fastreplacestringCmd,
       (),
-    ) =>
-  Run.(
-    {
-      let%bind storePath =
-        switch (storePath) {
-        | Some(p) => return(p)
-        | None =>
-          let home = EsyLib.Path.homePath();
-          let prefixPath = home / ".esy";
-          let%bind padding = Store.getPadding(prefixPath);
-          return(prefixPath / (Store.version ++ padding));
-        };
-      let%bind () = initStore(storePath);
-      let%bind () = {
-        let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
-        if%bind (exists(shortcutPath)) {
-          return();
-        } else {
-          symlink(
-            ~target=storePath,
-            EsyLib.Path.(parent(storePath) / Store.version),
-          );
-        };
-      };
-      let%bind () = initStore(localStorePath);
-      return({
-        projectPath,
-        storePath,
-        localStorePath,
-        buildPath,
-        fastreplacestringCmd,
-      });
-    }
-  );
+    ) => {
+  open Run;
+  let%bind storePath =
+    switch (storePath) {
+    | Some(p) => return(p)
+    | None =>
+      let home = EsyLib.Path.homePath();
+      let prefixPath = home / ".esy";
+      let%bind padding = Store.getPadding(prefixPath);
+      return(prefixPath / (Store.version ++ padding));
+    };
+  let%bind () = initStore(storePath);
+  let%bind () = {
+    let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
+    if%bind (exists(shortcutPath)) {
+      return();
+    } else {
+      symlink(
+        ~target=storePath,
+        EsyLib.Path.(parent(storePath) / Store.version),
+      );
+    };
+  };
+  let%bind () = initStore(localStorePath);
+  return({
+    projectPath,
+    storePath,
+    localStorePath,
+    buildPath,
+    fastreplacestringCmd,
+  });
+};
 
 let render = (cfg, v) => {
   let path = v => v |> EsyLib.Path.show |> EsyLib.Path.normalizePathSlashes;
