@@ -5,9 +5,9 @@ install:
   - uname -s
   - echo '$HOME/.esy'
   - npm install -g esy@0.2.11
-  - ./scripts/install.sh
+  - travis_wait 40 ./scripts/install.sh
 script:
-  - ./scripts/build.sh
+  - travis_wait 40 ./scripts/build.sh
 cache:
   timeout: 360
   directories:
