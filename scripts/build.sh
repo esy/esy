@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
-OS_NAME="$(uname -s)"
+case $(uname -s) in
+Linux) OS=NIX;;
+Darwin) OS=NIX;;
+*) OS=WIN;
+esac
 
-if [[ "$OS_NAME" -eq "Linux" ]] || [["$OS_NAME" -eq "Darwin" ]]; then
+if [[ "$OS_NAME" = "NIX" ]]; then
     make ci
     make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
 else
