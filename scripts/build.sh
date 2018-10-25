@@ -7,7 +7,7 @@ Darwin) OS=NIX;;
 *) OS=WIN;
 esac
 
-if [[ "$OS_NAME" = "NIX" ]]; then
+if [[ "$OS" = "NIX" ]]; then
 
     # Linux / OSX build
     make ci
