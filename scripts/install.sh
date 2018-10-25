@@ -37,8 +37,10 @@ else
 
     # Windows install
     # npm install -g jest-cli
+    npm install -g rimraf
     powershell.exe echo hi
     powershell.exe which npm
+    powershell.exe which rimraf
     # cmd /c where jest
     powershell.exe which esy
     # powershell.exe cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
