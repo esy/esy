@@ -36,7 +36,7 @@ if [[ "$OS" = "NIX" ]]; then
 else
 
     # Windows install
-    # npm install -g jest-cli
+    npm install -g jest-cli
     npm install -g rimraf
     powershell.exe echo hi
     powershell.exe which npm
@@ -44,6 +44,6 @@ else
     # cmd /c where jest
     powershell.exe which esy
     # powershell.exe cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
-    travis_retry powershell.exe /c esy install
+    travis_retry powershell.exe esy install
 
 fi

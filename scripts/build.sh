@@ -16,10 +16,10 @@ if [[ "$OS_NAME" = "NIX" ]]; then
 else
 
     # Windows build
-    npm run build
-    jest test-e2e
-    npm run test:unit
-    npm run test:e2e-slow
-    npm run release:make-platform-package
+    powershell.exe npm run build
+    powershell.exe jest test-e2e
+    powershell.exe npm run test:unit
+    powershell.exe npm run test:e2e-slow
+    powershell.exe npm run release:make-platform-package
 
 fi
