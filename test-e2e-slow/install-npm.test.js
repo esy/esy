@@ -35,9 +35,6 @@ const cases = [
   },
   {
     name: 'babel-cli',
-    test: `
-      require('babel-core');
-    `,
   },
   {
     name: 'react-scripts',
