@@ -38,8 +38,8 @@ steps:
     displayName: 'test-e2e'
     continueOnError: true
 
-  - script: "esy b dune runtest"
-    displayName: "esy b dune runtest"
+  - script: 'esy b dune runtest test'
+    displayName: 'esy b dune runtest test'
     continueOnError: true
 
   - script: "npm run release:make-platform-package"
