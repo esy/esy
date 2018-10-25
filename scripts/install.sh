@@ -7,8 +7,6 @@ Darwin) OS=NIX;;
 *) OS=WIN;
 esac
 
-echo $OS
-
 travis_retry() {
     local result=0
     local count=1
