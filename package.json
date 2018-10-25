@@ -62,7 +62,7 @@
     "@opam/logs": "^0.6.2",
     "@opam/lwt": "*",
     "@opam/lwt_ppx": "*",
-    "@opam/menhir": "20171013",
+    "@opam/menhir": "*",
     "@opam/opam-core": "*",
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
