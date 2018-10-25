@@ -1,9 +1,9 @@
 #!/bin/bash
-set -ev
+set -e
 
 OS_NAME=$(uname -s)
 
-if [[ "$OS_NAME" == "Linux"]] || [[ "$OS_NAME" == "Darwin" ]]; then
+if [[ "$OS_NAME" -eq "Linux" ]] || [["$OS_NAME" -eq "Darwin" ]]; then
 make bootstrap
 else
 
