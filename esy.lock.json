@@ -4520,16 +4520,6 @@
       },
       "dependencies": [ "bser@2.0.0" ]
     },
-    "fastreplacestring@github:esy-ocaml/FastReplaceString#95f408b": {
-      "record": {
-        "name": "fastreplacestring",
-        "version": "github:esy-ocaml/FastReplaceString#95f408b",
-        "source": "github:esy-ocaml/FastReplaceString#95f408b",
-        "files": [],
-        "opam": null
-      },
-      "dependencies": []
-    },
     "fast-levenshtein@2.0.6": {
       "record": {
         "name": "fast-levenshtein",
@@ -4756,7 +4746,7 @@
       "dependencies": [
         "@esy-ocaml/esy-installer@0.0.1", "@esy-ocaml/merlin@3.0.5005",
         "@esy-ocaml/reason@3.2.0",
-        "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f",
+        "@opam/angstrom@github:esy-ocaml/angstrom#5a06a0",
         "@opam/bos@opam:0.2.0", "@opam/cmdliner@opam:1.0.2",
         "@opam/cudf@opam:0.9", "@opam/dose3@opam:5.0.1",
         "@opam/dune@opam:1.4.0", "@opam/fmt@opam:0.8.5",
@@ -8641,16 +8631,17 @@
         "@opam/topkg@opam:1.0.0", "ocaml@4.6.7"
       ]
     },
-    "@opam/angstrom@github:esy-ocaml/angstrom#b3a125f": {
+    "@opam/angstrom@github:esy-ocaml/angstrom#5a06a0": {
       "record": {
         "name": "@opam/angstrom",
-        "version": "github:esy-ocaml/angstrom#b3a125f",
-        "source": "github:esy-ocaml/angstrom#b3a125f",
+        "version": "github:esy-ocaml/angstrom#5a06a0",
+        "source": "github:esy-ocaml/angstrom#5a06a0",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "@opam/bigstringaf@opam:0.3.0", "@opam/jbuilder@opam:transition"
+        "@opam/bigstringaf@opam:0.3.0", "@opam/jbuilder@opam:transition",
+        "ocaml@4.6.7"
       ]
     },
     "@esy-ocaml/substs@0.0.1": {

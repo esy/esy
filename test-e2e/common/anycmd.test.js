@@ -64,8 +64,9 @@ describe('Common - anycmd', () => {
     await fs.mkdir(path.join(p.projectPath, 'subdir'));
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');
 
-    await expect(
-      p.esy('ls -1', {cwd: path.join(p.projectPath, 'subdir')}),
-    ).resolves.toEqual(expect.objectContaining({stdout: 'X\n'}));
+    p.cd('./subdir');
+    await expect(p.esy('ls -1')).resolves.toEqual(
+      expect.objectContaining({stdout: 'X\n'}),
+    );
   });
 });

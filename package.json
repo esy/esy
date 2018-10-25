@@ -37,13 +37,15 @@
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
     "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
+    "platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest test",
+    "test:e2e": "./node_modules/.bin/jest test-e2e",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
-    "@opam/angstrom": "github:esy-ocaml/angstrom#b3a125f"
+    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
@@ -74,9 +76,6 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.8",
-    "fastreplacestring": "esy-ocaml/FastReplaceString#95f408b"
-  },
-  "peerDependencies": {
     "ocaml": "~4.6.6"
   },
   "devDependencies": {
