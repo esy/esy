@@ -25,30 +25,23 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
-  - task: Npm@1
-    displayName: 'npm run build'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run build'
+  - script: 'esy build'
+    displayName: 'esy build'
 
-  - task: Npm@1
-    displayName: 'jest --runInBand test-e2e'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run test:e2e'
+  - script: 'npm run build:postinstall-esy-bash'
+    displayName: 'postinstall-esy-bash'
 
-  - task: Npm@1
-    displayName: 'npm run test:unit'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run test:unit'
+  - script: 'npm run build:postinstall-esy-solve-cudf'
+    displayName: 'postinstall-esy-cudf'
 
-  - task: Npm@1
-    displayName: 'npm run bootstrap:make-release-package'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run bootstrap:make-release-package'
+  - script: "jest --runInBand test-e2e"
+    displayName: 'test-e2e'
+    continueOnError: true
+
+  - script: 'esy b dune runtest test'
+    displayName: 'esy b dune runtest test'
+    continueOnError: true
+
+  - script: "npm run release:make-platform-package"
+    displayName: "release:make-platform-package"
+    continueOnError: true
