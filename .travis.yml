@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - '8'
 install:
+  - echo $OS_NAME
   - npm install -g esy@0.2.11
   - ./install.sh
 script:
