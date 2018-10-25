@@ -37,7 +37,8 @@ else
 
     # Windows install
     npm install -g jest-cli
-    powershell which esy
+    cmd /c where jest
+    cmd /c where esy
     # cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
     travis_retry esy install
 
