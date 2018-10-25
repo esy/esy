@@ -36,11 +36,12 @@ if [[ "$OS" = "NIX" ]]; then
 else
 
     # Windows install
-    npm install -g jest-cli
-    cmd /c where npm
-    cmd /c where jest
-    cmd /c where esy
+    # npm install -g jest-cli
+    powershell where npm
+    # cmd /c where npm
+    # cmd /c where jest
+    # cmd /c where esy
     # cp scripts/build/patched-bash-exec.js /c/Users/appveyor/AppData/Roaming/npm/node_modules/esy/node_modules/esy-bash/bash-exec.js
-    travis_retry esy install
+    travis_retry cmd /c esy install
 
 fi
