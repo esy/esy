@@ -1,9 +1,9 @@
 #!/bin/bash
-set -ev
+set -e
 
-OSNAME=$(uname -s)
+OS_NAME=$(uname -s)
 
-if [[ "$OS_NAME" == "Linux"]] || [[ "$OS_NAME" == "Darwin" ]]; then
+if [[ "$OS_NAME" -eq "Linux" ]] || [["$OS_NAME" -eq "Darwin" ]]; then
     make ci
     make ESY_RELEASE_TAG="$TRAVIS_TAG" build platform-release
 else
