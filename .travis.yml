@@ -4,9 +4,9 @@ node_js:
 install:
   - uname -s
   - npm install -g esy@0.2.11
-  - ./install.sh
+  - ./scripts/install.sh
 script:
-  - ./build.sh
+  - ./scripts/build.sh
 cache:
   timeout: 360
   directories:
