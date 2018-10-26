@@ -191,7 +191,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   | Solution.Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
 
-let unpack ~path ~files dist =
+let unpack ~path dist =
   let open RunAsync.Syntax in
 
   let%bind () =
@@ -201,22 +201,18 @@ let unpack ~path ~files dist =
     | Some archive ->
       let%bind () = Fs.rmPath path in
       let%bind () = Fs.createDir path in
-      let%bind () =
-        DistStorage.unpack
-          ~cfg:dist.sandbox.Sandbox.cfg
-          ~dst:path
-          archive
-      in
-      let%bind () =
-        RunAsync.List.mapAndWait
-          ~f:(Package.File.writeToDir ~destinationDir:path)
-          files
-      in
-
-      return ()
+      DistStorage.unpack
+        ~cfg:dist.sandbox.Sandbox.cfg
+        ~dst:path
+        archive
   in
 
   return ()
+
+let layoutFiles files path =
+  RunAsync.List.mapAndWait
+    ~f:(Package.File.writeToDir ~destinationDir:path)
+    files
 
 let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   let%lwt () = Logs_lwt.app
@@ -335,7 +331,7 @@ let install ~prepareLifecycleEnv dist =
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install { files; _ } ->
+      | Solution.Package.Install install ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -343,11 +339,15 @@ let install ~prepareLifecycleEnv dist =
           return (sourceInstallPath, pkgJson)
         else (
           let sourceStagePath = Dist.sourceStagePath dist in
+          let%bind () = unpack ~path:sourceStagePath dist in
           let%bind () =
-            unpack
-              ~files
-              ~path:sourceStagePath
-              dist
+            let files =
+              let f files override =
+                files @ override.Package.Overrides.files
+              in
+              Package.Overrides.apply dist.pkg.overrides f install.files
+            in
+            layoutFiles files sourceStagePath
           in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in

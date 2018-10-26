@@ -10,6 +10,40 @@ let isOpamPackageName name =
   | Some ("@opam", _) -> true
   | _ -> false
 
+module File = struct
+  [@@@ocaml.warning "-32"]
+  type t = {
+    name : string;
+    content : string;
+    (* file, permissions add 0o644 default for backward compat. *)
+    perm : (int [@default 0o644]);
+  } [@@deriving yojson, show, ord]
+
+  let readOfPath ~prefixPath ~filePath =
+      let open RunAsync.Syntax in
+      let p = Path.append prefixPath filePath in
+      let%bind content = Fs.readFile p
+      and stat = Fs.stat p in
+      let content = System.Environment.normalizeNewLines content in
+      let perm = stat.Unix.st_perm in
+      let name = Path.showNormalized filePath in
+      return {name; content; perm}
+
+  let writeToDir ~destinationDir file =
+      let open RunAsync.Syntax in
+      let {name; content; perm} = file in
+      let dest = Path.append destinationDir (Fpath.v name) in
+      let dirname = Path.parent dest in
+      let%bind () = Fs.createDir dirname in
+      let content =
+          if String.get content (String.length content - 1) == '\n'
+          then content
+          else content ^ "\n"
+      in
+      let%bind () = Fs.writeFile ~perm:perm ~data:content dest in
+      return()
+end
+
 module Command = struct
 
   [@@@ocaml.warning "-32"]
@@ -292,6 +326,7 @@ module Resolution = struct
     dependencies : NpmFormulaOverride.t option;
     devDependencies : NpmFormulaOverride.t option;
     resolutions : resolution StringMap.t option;
+    files: File.t list;
   }
 
   let rec override_to_yojson override =
@@ -313,6 +348,7 @@ module Resolution = struct
       dependencies;
       devDependencies;
       resolutions;
+      files = _;
     } = override in
     `Assoc (
       []
@@ -340,18 +376,18 @@ module Resolution = struct
 
   let rec override_of_yojson json =
     let open Result.Syntax in
-    let field = Json.Decode.fieldOptWith in
-    let%bind origin = field ~name:"origin" Dist.of_yojson json in
-    let%bind buildType = field ~name:"buildsInSource" BuildType.of_yojson json in
-    let%bind build = field ~name:"build" CommandList.of_yojson json in
-    let%bind install = field ~name:"install" CommandList.of_yojson json in
-    let%bind exportedEnv = field ~name:"exportedEnv" ExportedEnv.of_yojson json in
-    let%bind exportedEnvOverride = field ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
-    let%bind buildEnv = field ~name:"buildEnv" Env.of_yojson json in
-    let%bind buildEnvOverride = field ~name:"buildEnvOverride" EnvOverride.of_yojson json in
-    let%bind dependencies = field ~name:"dependencies" NpmFormulaOverride.of_yojson json in
-    let%bind devDependencies = field ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
-    let%bind resolutions = field ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
+    let open Json.Decode in
+    let%bind origin = fieldOptWith ~name:"origin" Dist.of_yojson json in
+    let%bind buildType = fieldOptWith ~name:"buildsInSource" BuildType.of_yojson json in
+    let%bind build = fieldOptWith ~name:"build" CommandList.of_yojson json in
+    let%bind install = fieldOptWith ~name:"install" CommandList.of_yojson json in
+    let%bind exportedEnv = fieldOptWith ~name:"exportedEnv" ExportedEnv.of_yojson json in
+    let%bind exportedEnvOverride = fieldOptWith ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
+    let%bind buildEnv = fieldOptWith ~name:"buildEnv" Env.of_yojson json in
+    let%bind buildEnvOverride = fieldOptWith ~name:"buildEnvOverride" EnvOverride.of_yojson json in
+    let%bind dependencies = fieldOptWith ~name:"dependencies" NpmFormulaOverride.of_yojson json in
+    let%bind devDependencies = fieldOptWith ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
+    let%bind resolutions = fieldOptWith ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
     return {
       origin;
       buildType;
@@ -364,6 +400,7 @@ module Resolution = struct
       dependencies;
       devDependencies;
       resolutions;
+      files = [];
     }
 
   and resolution_of_yojson json =
@@ -471,6 +508,7 @@ module Overrides = struct
     dependencies : NpmFormulaOverride.t option;
     devDependencies : NpmFormulaOverride.t option;
     resolutions : Resolution.resolution StringMap.t option;
+    files: File.t list;
   }
 
   let override_of_yojson = Resolution.override_of_yojson
@@ -578,40 +616,6 @@ module Dependencies = struct
     match deps with
     | NpmFormula f -> NpmFormula (findInNpmFormula f)
     | OpamFormula f -> OpamFormula (findInOpamFormula f)
-end
-
-module File = struct
-  [@@@ocaml.warning "-32"]
-  type t = {
-    name : string;
-    content : string;
-    (* file, permissions add 0o644 default for backward compat. *)
-    perm : (int [@default 0o644]);
-  } [@@deriving yojson, show, ord]
-
-  let readOfPath ~prefixPath ~filePath =
-      let open RunAsync.Syntax in
-      let p = Path.append prefixPath filePath in
-      let%bind content = Fs.readFile p
-      and stat = Fs.stat p in
-      let content = System.Environment.normalizeNewLines content in
-      let perm = stat.Unix.st_perm in
-      let name = Path.showNormalized filePath in
-      return {name; content; perm}
-
-  let writeToDir ~destinationDir file =
-      let open RunAsync.Syntax in
-      let {name; content; perm} = file in
-      let dest = Path.append destinationDir (Fpath.v name) in
-      let dirname = Path.parent dest in
-      let%bind () = Fs.createDir dirname in
-      let content =
-          if String.get content (String.length content - 1) == '\n'
-          then content
-          else content ^ "\n"
-      in
-      let%bind () = Fs.writeFile ~perm:perm ~data:content dest in
-      return()
 end
 
 module OpamOverride = struct

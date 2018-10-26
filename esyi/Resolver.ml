@@ -286,6 +286,8 @@ let applyOverride pkg override =
     buildEnv = _;
     buildEnvOverride = _;
 
+    files = _;
+
     dependencies;
     devDependencies;
     resolutions;

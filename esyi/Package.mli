@@ -1,6 +1,16 @@
 type 'a disj = 'a list
 type 'a conj = 'a list
 
+module File : sig
+  type t
+
+  val readOfPath : prefixPath:Path.t -> filePath:Path.t -> t RunAsync.t
+  val writeToDir : destinationDir:Path.t -> t -> unit RunAsync.t
+
+  include S.COMPARABLE with type t := t
+  include S.JSONABLE with type t := t
+end
+
 module Command : sig
   type t =
     | Parsed of string list
@@ -116,6 +126,7 @@ module Resolution : sig
     dependencies : NpmFormulaOverride.t option;
     devDependencies : NpmFormulaOverride.t option;
     resolutions : resolution StringMap.t option;
+    files : File.t list;
   }
 
   include S.COMPARABLE with type t := t
@@ -156,6 +167,7 @@ module Overrides : sig
     dependencies : NpmFormulaOverride.t option;
     devDependencies : NpmFormulaOverride.t option;
     resolutions : Resolution.resolution StringMap.t option;
+    files : File.t list;
   }
 
   val isEmpty : t -> bool
@@ -214,16 +226,6 @@ module Dependencies : sig
   val toApproximateRequests : t -> Req.t list
 
   val filterDependenciesByName : name:string -> t -> t
-end
-
-module File : sig
-  type t
-
-  val readOfPath : prefixPath:Path.t -> filePath:Path.t -> t RunAsync.t
-  val writeToDir : destinationDir:Path.t -> t -> unit RunAsync.t
-
-  include S.COMPARABLE with type t := t
-  include S.JSONABLE with type t := t
 end
 
 module OpamOverride : sig

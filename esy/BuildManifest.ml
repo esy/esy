@@ -105,6 +105,8 @@ let applyOverride (manifest : t) (override : Overrides.override) =
     buildEnv;
     buildEnvOverride;
 
+    files = _;
+
     dependencies = _;
     devDependencies = _;
     resolutions = _;
