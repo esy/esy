@@ -4,6 +4,9 @@ steps:
     inputs:
       versionSpec: 8.x
 
+  - script: 'git --version'
+    displayName: 'Check git version'
+
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
 
@@ -36,9 +39,14 @@ steps:
 
   - script: "jest --runInBand test-e2e"
     displayName: 'test-e2e'
+    continueOnError: true
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
+    continueOnError: true
+
+  - script: 'esy test:e2e-slow'
+    displayName: 'esy test:e2e-slow'
     continueOnError: true
 
   - script: "npm run platform-release"
