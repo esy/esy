@@ -709,7 +709,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
 
       let%bind () = runBuild();
       let%bind () =
-        if (! buildOnly) {
+        if (!buildOnly) {
           runInstall();
         } else {
           ok;
@@ -718,7 +718,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
     };
     let startTime = Unix.gettimeofday();
     let%bind () =
-      withBuild(~commit=! buildOnly, ~cfg, plan, runBuildAndInstall);
+      withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
     let%bind info = {
       let%bind sourceModTime =
         switch (sourceModTime, build.plan.sourceType) {
