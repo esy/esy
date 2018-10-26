@@ -114,7 +114,7 @@ switch (platform) {
       process.exit(1);
     }
 
-    copyPlatformBinaries('windows-x64');
+    copyPlatformBinaries('win32');
 
     console.log('Installing cygwin sandbox...');
     cp.execSync(`npm install esy-bash@0.3.1 --prefix ${__dirname}`);

@@ -36,8 +36,11 @@ start:
   e = expr; EOF { e }
 
 expr:
-  | e = exprList { e }
-  | PAREN_LEFT; e = exprList; PAREN_RIGHT { e }
+  e = nonempty_list(atom) {
+    match e with
+    | [e] -> e
+    | es -> E.Concat es
+  }
 
 (** Expressions which are allowed inside of then branch w/o parens *)
 restrictedExpr:
@@ -45,13 +48,6 @@ restrictedExpr:
   | e = atomId { e }
   | e = atomEnv { e }
   | PAREN_LEFT; e = expr; PAREN_RIGHT { e }
-
-exprList:
-  e = nonempty_list(atom) {
-    match e with
-    | [e] -> e
-    | es -> E.Concat es
-  }
 
 atom:
     PAREN_LEFT; e = atom; PAREN_RIGHT { e }
