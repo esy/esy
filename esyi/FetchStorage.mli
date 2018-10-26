@@ -3,7 +3,7 @@
  *)
 
 val fetchDist :
-  sandbox : Sandbox.t
+  cfg : Config.t
   -> Dist.t
   -> Path.t RunAsync.t
 
