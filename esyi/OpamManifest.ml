@@ -187,20 +187,11 @@ let convertOpamUrl (manifest : t) =
   in
 
   let%bind main, mirrors =
-    match manifest.override.Override.opam.Override.Opam.source with
-    | Some source ->
-      let main = Source.Dist (Archive {
-        url = source.url;
-        checksum = Checksum.Md5, source.checksum;
-      }) in
-      return (main, [])
-    | None -> begin
-      match manifest.url with
-      | Some url -> sourceOfOpamUrl url
-      | None ->
-        let main = Source.Dist NoSource in
-        Ok (main, [])
-      end
+    match manifest.url with
+    | Some url -> sourceOfOpamUrl url
+    | None ->
+      let main = Source.Dist NoSource in
+      Ok (main, [])
   in
 
   match manifest.archive with

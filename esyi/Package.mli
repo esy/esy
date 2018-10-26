@@ -229,13 +229,7 @@ end
 module OpamOverride : sig
   module Opam : sig
     type t = {
-      source: source option;
       files: File.t list;
-    }
-
-    and source = {
-      url: string;
-      checksum: string;
     }
 
     val empty : t

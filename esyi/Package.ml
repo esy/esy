@@ -618,16 +618,10 @@ module OpamOverride = struct
   module Opam = struct
     [@@@ocaml.warning "-32"]
     type t = {
-      source: (source option [@default None]);
       files: (File.t list [@default []]);
     } [@@deriving yojson, ord, show]
 
-    and source = {
-      url: string;
-      checksum: string;
-    }
-
-    let empty = {source = None; files = [];}
+    let empty = {files = [];}
 
   end
 

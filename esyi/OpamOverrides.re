@@ -111,8 +111,7 @@ let load = baseDir => {
   return({
     ...override,
     Package.OpamOverride.opam: {
-      ...override.Package.OpamOverride.opam,
-      Package.OpamOverride.Opam.files,
+      Package.OpamOverride.Opam.files: files,
     },
   });
 };
