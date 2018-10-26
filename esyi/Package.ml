@@ -648,42 +648,16 @@ module Dependencies = struct
     | OpamFormula f -> OpamFormula (findInOpamFormula f)
 end
 
-module Opam = struct
-
-  module OpamFile = struct
-    type t = OpamFile.OPAM.t
-    let pp fmt opam = Fmt.string fmt (OpamFile.OPAM.write_to_string opam)
-    let to_yojson opam = `String (OpamFile.OPAM.write_to_string opam)
-    let of_yojson = function
-      | `String s -> Ok (OpamFile.OPAM.read_from_string s)
-      | _ -> Error "expected string"
-  end
-
-  module OpamName = struct
-    type t = OpamPackage.Name.t
-    let pp fmt name = Fmt.string fmt (OpamPackage.Name.to_string name)
-    let to_yojson name = `String (OpamPackage.Name.to_string name)
-    let of_yojson = function
-      | `String name -> Ok (OpamPackage.Name.of_string name)
-      | _ -> Error "expected string"
-  end
-
-  module OpamPackageVersion = struct
-    type t = OpamPackage.Version.t
-    let pp fmt name = Fmt.string fmt (OpamPackage.Version.to_string name)
-    let to_yojson name = `String (OpamPackage.Version.to_string name)
-    let of_yojson = function
-      | `String name -> Ok (OpamPackage.Version.of_string name)
-      | _ -> Error "expected string"
-  end
-
-  type t = {
-    name : OpamName.t;
-    version : OpamPackageVersion.t;
-    opam : OpamFile.t;
-    files : unit -> File.t list RunAsync.t;
-  }
-end
+type source =
+  | Link of {
+      path : Path.t;
+      manifest : ManifestSpec.t option;
+    }
+  | Install of {
+      source : Source.t * Source.t list;
+      opam : OpamResolution.t option;
+    }
+    [@@deriving yojson]
 
 type t = {
   name : string;
@@ -699,15 +673,6 @@ type t = {
   kind : kind;
 }
 
-and source =
-  | Link of {
-      path : Path.t;
-      manifest : ManifestSpec.t option;
-    }
-  | Install of {
-      source : Source.t * Source.t list;
-      opam : Opam.t option;
-    }
 
 and kind =
   | Esy

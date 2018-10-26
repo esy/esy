@@ -212,12 +212,12 @@ let parseOpam data =
 
 module OpamBuild = struct
 
-  let build ~name ~version (manifest : Solution.Package.Opam.t) =
-    let buildCommands = OpamCommands (OpamFile.OPAM.build manifest.opam) in
-    let installCommands = OpamCommands (OpamFile.OPAM.install manifest.opam) in
+  let buildOfOpam ~name ~version (opam : OpamFile.OPAM.t) =
+    let buildCommands = OpamCommands (OpamFile.OPAM.build opam) in
+    let installCommands = OpamCommands (OpamFile.OPAM.install opam) in
 
     let patches =
-      let patches = OpamFile.OPAM.patches manifest.opam in
+      let patches = OpamFile.OPAM.patches opam in
       let f (name, filter) =
         let name = Path.v (OpamFilename.Base.to_string name) in
         (name, filter)
@@ -226,7 +226,7 @@ module OpamBuild = struct
     in
 
     let substs =
-      let names = OpamFile.OPAM.substs manifest.opam in
+      let names = OpamFile.OPAM.substs opam in
       let f name = Path.v (OpamFilename.Base.to_string name) in
       List.map ~f names
     in
@@ -262,13 +262,7 @@ module OpamBuild = struct
         try Some (Version.Opam (OpamFile.OPAM.version opam))
         with _ -> None
       in
-      let info = {
-        EsyInstall.Solution.Package.Opam.
-        name = OpamPackage.Name.of_string "unsued";
-        version = OpamPackage.Version.of_string "unused";
-        opam;
-      } in
-      return (Some (build ~name ~version info))
+      return (Some (buildOfOpam ~name ~version opam))
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
@@ -355,7 +349,7 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Solution.Package.Link { path; manifest; } ->
+  | Package.Link { path; manifest; } ->
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       DistResolver.resolve
@@ -400,38 +394,27 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       return (Some manifest, res.DistResolver.paths)
     end
 
-  | Solution.Package.Install { source = _; files = _; opam = Some opam; } ->
-    let name = Some (OpamPackage.Name.to_string opam.name) in
-    let version = Some (Version.Opam opam.version) in
-    let manifest = OpamBuild.build ~name ~version opam in
-    let%bind manifest =
-      Overrides.foldWithBuildOverrides
-        ~cfg:cfg.Config.installCfg
-        ~f:applyOverride
-        ~init:manifest
-        pkg.overrides
-    in
-    return (Some manifest, Path.Set.empty)
-  | Solution.Package.Install { source; files = _; opam = None; } ->
-    let source , _ = source in
-    let manifest = Source.manifest source in
-    let%bind manifest, paths = ofPath ?manifest loc in
-    let%bind manifest =
-      match manifest with
-      | Some manifest ->
-        let%bind manifest =
-          Overrides.foldWithBuildOverrides
-            ~cfg:cfg.Config.installCfg
-            ~f:applyOverride
-            ~init:manifest
-            pkg.overrides
-        in
-        return (Some manifest)
-      | None ->
-        if Overrides.isEmpty pkg.overrides
-        then return None
-        else
-          let manifest = empty ~name:None ~version:None () in
+  | Package.Install info ->
+    begin match%bind Solution.Package.readOpam pkg with
+    | Some {Solution.Package. opamname; opamversion; opamfile;} ->
+      let name = Some (OpamPackage.Name.to_string opamname) in
+      let version = Some (Version.Opam opamversion) in
+      let manifest = OpamBuild.buildOfOpam ~name ~version opamfile in
+      let%bind manifest =
+        Overrides.foldWithBuildOverrides
+          ~cfg:cfg.Config.installCfg
+          ~f:applyOverride
+          ~init:manifest
+          pkg.overrides
+      in
+      return (Some manifest, Path.Set.empty)
+    | None ->
+      let source , _ = info.source in
+      let manifest = Source.manifest source in
+      let%bind manifest, paths = ofPath ?manifest loc in
+      let%bind manifest =
+        match manifest with
+        | Some manifest ->
           let%bind manifest =
             Overrides.foldWithBuildOverrides
               ~cfg:cfg.Config.installCfg
@@ -440,5 +423,19 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
               pkg.overrides
           in
           return (Some manifest)
-    in
-    return (manifest, paths)
+        | None ->
+          if Overrides.isEmpty pkg.overrides
+          then return None
+          else
+            let manifest = empty ~name:None ~version:None () in
+            let%bind manifest =
+              Overrides.foldWithBuildOverrides
+                ~cfg:cfg.Config.installCfg
+                ~f:applyOverride
+                ~init:manifest
+                pkg.overrides
+            in
+            return (Some manifest)
+      in
+      return (manifest, paths)
+    end

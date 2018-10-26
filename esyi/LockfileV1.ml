@@ -10,7 +10,7 @@ type t = {
 and node = {
   name: string;
   version: Version.t;
-  source: Solution.Package.source;
+  source: Package.source;
   overrides: override list;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
@@ -150,7 +150,7 @@ let solutionOfLockfile sandbox root node =
   in
   PackageId.Map.fold f node (return (Solution.empty root))
 
-let lockfileOfSolution (sol : Solution.t) =
+let lockfileOfSolution (solution : Solution.t) =
   let open RunAsync.Syntax in
   let%bind node =
     let f pkg _dependencies nodes =
@@ -161,9 +161,9 @@ let lockfileOfSolution (sol : Solution.t) =
         node
         nodes)
     in
-    Solution.fold ~f ~init:(return PackageId.Map.empty) sol
+    Solution.fold ~f ~init:(return PackageId.Map.empty) solution
   in
-  return (Solution.root sol, node)
+  return (Solution.root solution, node)
 
 let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in

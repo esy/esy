@@ -5,11 +5,11 @@
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
-  path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
   override : Package.Override.t option;
   archive : OpamRegistryArchiveIndex.record option;
+  opamRepositoryPath : Path.t option;
 }
 
 module File : sig
@@ -38,8 +38,7 @@ val ofPath :
 (** Load opam manifest of path. *)
 
 val toPackage :
-  ?ignoreFiles:bool
-  -> ?source:Source.t
+  ?source:Source.t
   -> name : string
   -> version : Version.t
   -> t

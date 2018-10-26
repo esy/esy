@@ -167,7 +167,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   in
 
   match pkg.source with
-  | Solution.Package.Link {path; manifest;} ->
+  | Package.Link {path; manifest;} ->
     return {
       Dist.
       sandbox;
@@ -175,7 +175,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
       source = Source.Link {path;manifest;};
       archive = None;
     }
-  | Solution.Package.Install {source = main, mirrors; _} ->
+  | Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
 
 let unpack ~path dist =
@@ -314,11 +314,11 @@ let install ~prepareLifecycleEnv dist =
 
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
-      | Solution.Package.Link {path; _} ->
+      | Package.Link {path; _} ->
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install install ->
+      | Package.Install _ ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -328,12 +328,16 @@ let install ~prepareLifecycleEnv dist =
           let sourceStagePath = Dist.sourceStagePath dist in
           let%bind () = unpack ~path:sourceStagePath dist in
           let%bind () =
+            let%bind filesOfOpam =
+              Solution.Package.readOpamFiles 
+                dist.pkg
+            in
             let%bind filesOfOverride =
               Package.Overrides.files
                 ~cfg:dist.sandbox.cfg
                 dist.pkg.overrides
             in
-            layoutFiles (install.files @ filesOfOverride) sourceStagePath
+            layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
           in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in

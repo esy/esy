@@ -36,29 +36,14 @@ module File = struct
     | None -> load ()
 end
 
-let readFiles (path : Path.t) () =
-  let open RunAsync.Syntax in
-  let filesPath = Path.(path / "files") in
-  if%bind Fs.isDir filesPath
-  then
-    let collect files filePath _fileStats =
-      match Path.relativize ~root:filesPath filePath with
-      | Some name ->
-        let%bind file = Package.File.readOfPath ~prefixPath:filesPath ~filePath:name in
-        return (file::files)
-      | None -> return files
-    in
-    Fs.fold ~init:[] ~f:collect filesPath
-  else return []
-
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
-  path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
   override : Package.Override.t option;
   archive : OpamRegistryArchiveIndex.record option;
+  opamRepositoryPath : Path.t option;
 }
 
 let ofPath ~name ~version (path : Path.t) =
@@ -67,7 +52,7 @@ let ofPath ~name ~version (path : Path.t) =
   return {
     name;
     version;
-    path = Some (Path.parent path);
+    opamRepositoryPath = Some (Path.parent path);
     opam;
     url = None;
     override = None;
@@ -80,9 +65,9 @@ let ofString ~name ~version (data : string) =
   return {
     name;
     version;
-    path = None;
     opam;
     url = None;
+    opamRepositoryPath = None;
     override = None;
     archive = None;
   }
@@ -272,13 +257,8 @@ let convertDependencies manifest =
 
   return (dependencies, devDependencies, optDependencies)
 
-let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
+let toPackage ?source ~name ~version manifest =
   let open RunAsync.Syntax in
-
-  let readOpamFilesForPackage path () =
-    let%bind files = readFiles path () in
-    return files
-  in
 
   let converted =
     let open Result.Syntax in
@@ -291,18 +271,16 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   | Error err -> return (Error err)
   | Ok (sourceFromOpam, dependencies, devDependencies, optDependencies) ->
 
-    let opam = Some {
-      Package.Opam.
-      name = manifest.name;
-      version = manifest.version;
-      files = (
-        match ignoreFiles, manifest.path with
-        | true, _
-        | false, None -> (fun () -> return [])
-        | false, Some path -> readOpamFilesForPackage path
-      );
-      opam = manifest.opam;
-    } in
+    let opam =
+      match manifest.opamRepositoryPath with
+      | Some path -> Some {
+          OpamResolution.
+          name = manifest.name;
+          version = manifest.version;
+          path;
+        }
+      | None -> None
+    in
 
     let source =
       match source with
@@ -311,10 +289,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       | Some (Source.Link {path; manifest;}) ->
         Package.Link {path; manifest;}
       | Some source ->
-        Package.Install {
-          source = source, [];
-          opam;
-        }
+        Package.Install {source = source, []; opam;}
     in
 
     let overrides =

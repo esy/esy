@@ -267,35 +267,11 @@ let solutionPkgOfPkg
     PackageId.Set.fold f set StringMap.empty
   in
 
-  let%bind source =
-    match pkg.source with
-    | Package.Link {path; manifest;} ->
-      return (Solution.Package.Link {path; manifest;})
-    | Package.Install { source; opam } ->
-      let%bind files =
-        match opam with
-        | Some opam -> opam.files ()
-        | None -> return []
-      in
-
-      let opam =
-        match opam with
-        | Some opam -> Some {
-            Solution.Package.Opam.
-            name = opam.name;
-            version = opam.version;
-            opam = opam.opam;
-          }
-        | None -> None
-      in
-      return (Solution.Package.Install {opam; files; source;})
-  in
-
   return ({
     Solution.Package.
     name = pkg.name;
     version = pkg.version;
-    source;
+    source = pkg.source;
     overrides = pkg.overrides;
     dependencies;
     devDependencies;

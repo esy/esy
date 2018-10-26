@@ -238,36 +238,6 @@ module Dependencies : sig
   val filterDependenciesByName : name:string -> t -> t
 end
 
-module Opam : sig
-  module OpamFile : sig
-    type t = OpamFile.OPAM.t
-    val pp : t Fmt.t
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-  end
-
-  module OpamName : sig
-    type t = OpamPackage.Name.t
-    val pp : t Fmt.t
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-  end
-
-  module OpamPackageVersion : sig
-    type t = OpamPackage.Version.t
-    val pp : t Fmt.t
-    val to_yojson : t Json.encoder
-    val of_yojson : t Json.decoder
-  end
-
-  type t = {
-    name : OpamName.t;
-    version : OpamPackageVersion.t;
-    opam : OpamFile.t;
-    files : unit -> File.t list RunAsync.t;
-  }
-end
-
 type t = {
   name : string;
   version : Version.t;
@@ -289,7 +259,7 @@ and source =
     }
   | Install of {
       source : Source.t * Source.t list;
-      opam : Opam.t option;
+      opam : OpamResolution.t option;
     }
 
 and kind =
@@ -297,6 +267,9 @@ and kind =
   | Npm
 
 val isOpamPackageName : string -> bool
+
+val source_to_yojson : source Json.encoder
+val source_of_yojson : source Json.decoder
 
 val pp : t Fmt.t
 val compare : t -> t -> int

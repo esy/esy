@@ -86,8 +86,15 @@ module PackageInformation = struct
           in
           let dependencies =
             if PackageId.compare (Solution.Package.id package) rootId = 0
-            then Solution.dependencies ~traverse:Solution.traverseWithDevDependencies package solution
-            else Solution.dependencies package solution
+            then
+              Solution.dependencies
+                ~traverse:Solution.traverseWithDevDependencies
+                package
+                solution
+            else
+              Solution.dependencies
+                package
+                solution
           in
           List.fold_left ~f ~init:StringMap.empty dependencies
         in

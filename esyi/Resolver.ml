@@ -558,7 +558,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
             ~name
             resolver.opamRegistry
         in
-        let f (resolution : OpamRegistry.resolution) =
+        let f (resolution : OpamResolution.t) =
           let version = Version.Opam resolution.version in
           {Resolution. name; resolution = Version version}
         in
