@@ -37,7 +37,7 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
-  - script: 'esy b where git'
+  - script: 'esy b which git'
     displayName: 'which git is being picked up?'
 
   - script: "jest --runInBand test-e2e"
