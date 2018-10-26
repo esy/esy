@@ -223,18 +223,18 @@ module OpamBuild = struct
   let build ~name ~version (manifest : Solution.Package.Opam.t) =
     let buildCommands =
       match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. build = Some cmds; _} ->
+      | Some {EsyInstall.Package.Overrides. build = Some cmds; _} ->
         EsyCommands cmds
-      | Some {EsyInstall.Package.OpamOverride. build = None; _}
+      | Some {EsyInstall.Package.Overrides. build = None; _}
       | None ->
         OpamCommands (OpamFile.OPAM.build manifest.opam)
     in
 
     let installCommands =
       match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. install = Some cmds; _} ->
+      | Some {EsyInstall.Package.Overrides. install = Some cmds; _} ->
         EsyCommands cmds
-      | Some {EsyInstall.Package.OpamOverride. install = None; _}
+      | Some {EsyInstall.Package.Overrides. install = None; _}
       | None ->
         OpamCommands (OpamFile.OPAM.install manifest.opam)
     in
@@ -256,7 +256,8 @@ module OpamBuild = struct
 
     let exportedEnv =
       match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. exportedEnv;_} -> exportedEnv
+      | Some {EsyInstall.Package.Overrides. exportedEnv = Some exportedEnv;_} -> exportedEnv
+      | Some {EsyInstall.Package.Overrides. exportedEnv = None;_}
       | None -> ExportedEnv.empty
     in
 

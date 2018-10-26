@@ -84,7 +84,7 @@ let load = baseDir => {
       {
         let%bind json = Fs.readJsonFile(packageJson);
         RunAsync.ofRun(
-          Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
+          Json.parseJsonWith(Package.Overrides.override_of_yojson, json),
         );
       },
       "Reading %a",
@@ -108,12 +108,7 @@ let load = baseDir => {
     } else {
       return([]);
     };
-  return({
-    ...override,
-    Package.OpamOverride.opam: {
-      Package.OpamOverride.Opam.files: files,
-    },
-  });
+  return({...override, Package.Overrides.files});
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>

@@ -1,4 +1,8 @@
-module Override = Package.OpamOverride
+let esySubstsDep = {
+  Package.Dep.
+  name = "@esy-ocaml/substs";
+  req = Npm SemverVersion.Constraint.ANY;
+}
 
 module File = struct
   module Cache = Memoize.Make(struct
@@ -53,7 +57,7 @@ type t = {
   path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Override.t;
+  override : Package.Overrides.override option;
   archive : OpamRegistryArchiveIndex.record option;
 }
 
@@ -66,7 +70,7 @@ let ofPath ~name ~version (path : Path.t) =
     path = Some (Path.parent path);
     opam;
     url = None;
-    override = Override.empty;
+    override = None;
     archive = None;
   }
 
@@ -79,7 +83,7 @@ let ofString ~name ~version (data : string) =
     path = None;
     opam;
     url = None;
-    override = Override.empty;
+    override = None;
     archive = None;
   }
 
@@ -207,31 +211,6 @@ let convertOpamUrl (manifest : t) =
   | None ->
     Ok (main, mirrors)
 
-let toOpamFormula reqs =
-  let f reqs (req : Req.t) =
-    let update =
-      match req.spec with
-      | VersionSpec.Npm formula ->
-        let f (c : SemverVersion.Constraint.t) =
-          {Package.Dep. name = req.name; req = Npm c}
-        in
-        let formula = SemverVersion.Formula.ofDnfToCnf formula in
-        List.map ~f:(List.map ~f) formula
-      | VersionSpec.NpmDistTag tag ->
-        [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
-      | VersionSpec.Opam formula ->
-        let f (c : OpamPackageVersion.Constraint.t) =
-          {Package.Dep. name = req.name; req = Opam c}
-        in
-        let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
-        List.map ~f:(List.map ~f) formula
-      | VersionSpec.Source spec ->
-        [[{Package.Dep. name = req.name; req = Source spec}]]
-    in
-    reqs @ update
-  in
-  List.fold_left ~f ~init:[] reqs
-
 let convertDependencies manifest =
   let open Result.Syntax in
 
@@ -263,15 +242,10 @@ let convertDependencies manifest =
     let formula =
       formula
       @ [
-          [{
-            Package.Dep.
-            name = "@esy-ocaml/substs";
-            req = Npm SemverVersion.Constraint.ANY;
-          }];
+          [esySubstsDep];
         ]
-      @ toOpamFormula manifest.override.dependencies
-      @ toOpamFormula manifest.override.peerDependencies
-    in return (Package.Dependencies.OpamFormula formula)
+    in
+    return (Package.Dependencies.OpamFormula formula)
   in
 
   let%bind devDependencies =
@@ -303,7 +277,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
 
   let readOpamFilesForPackage path () =
     let%bind files = readFiles path () in
-    return (files @ manifest.override.opam.files)
+    return files
   in
 
   let converted =
@@ -328,7 +302,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
         | false, Some path -> readOpamFilesForPackage path
       );
       opam = manifest.opam;
-      override = {manifest.override with opam = Override.Opam.empty};
+      override = manifest.override;
     } in
 
     let source =

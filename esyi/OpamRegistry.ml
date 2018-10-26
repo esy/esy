@@ -1,5 +1,4 @@
 module String = Astring.String
-module Override = Package.OpamOverride
 
 module OpamPathsByVersion = Memoize.Make(struct
   type key = OpamPackage.Name.t
@@ -239,11 +238,13 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
         opam;
         url;
         path = Some path;
-        override = Override.empty;
+        override = None;
         archive;
       }
     in
     begin match%bind OpamOverrides.find ~name ~version registry.overrides with
     | None -> return (Some pkg)
-    | Some override -> return (Some {pkg with OpamManifest. override})
+    | Some override ->
+      let pkg = {pkg with OpamManifest. override = Some override;} in
+      return (Some pkg)
     end

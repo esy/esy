@@ -8,7 +8,7 @@ type t = {
   path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Package.OpamOverride.t;
+  override : Package.Overrides.override option;
   archive : OpamRegistryArchiveIndex.record option;
 }
 

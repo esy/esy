@@ -285,10 +285,7 @@ let solutionPkgOfPkg
             name = opam.name;
             version = opam.version;
             opam = opam.opam;
-            override =
-              if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
-              then None
-              else Some opam.override;
+            override = opam.override;
           }
         | None -> None
       in

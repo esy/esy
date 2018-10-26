@@ -228,31 +228,6 @@ module Dependencies : sig
   val filterDependenciesByName : name:string -> t -> t
 end
 
-module OpamOverride : sig
-  module Opam : sig
-    type t = {
-      files: File.t list;
-    }
-
-    val empty : t
-  end
-
-  type t = {
-    build : CommandList.t option;
-    install : CommandList.t option;
-    dependencies : NpmFormula.t;
-    peerDependencies : NpmFormula.t;
-    exportedEnv : ExportedEnv.t;
-    opam : Opam.t;
-  }
-
-  val empty : t
-
-  include S.JSONABLE with type t := t
-  include S.COMPARABLE with type t := t
-  include S.PRINTABLE with type t := t
-end
-
 module Opam : sig
   module OpamFile : sig
     type t = OpamFile.OPAM.t
@@ -280,9 +255,8 @@ module Opam : sig
     version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
-    override : OpamOverride.t;
+    override : Resolution.override option;
   }
-  val show : t -> string
 end
 
 type t = {

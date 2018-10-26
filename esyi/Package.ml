@@ -618,37 +618,6 @@ module Dependencies = struct
     | OpamFormula f -> OpamFormula (findInOpamFormula f)
 end
 
-module OpamOverride = struct
-  module Opam = struct
-    [@@@ocaml.warning "-32"]
-    type t = {
-      files: (File.t list [@default []]);
-    } [@@deriving yojson, ord, show]
-
-    let empty = {files = [];}
-
-  end
-
-  type t = {
-    build: CommandList.t option [@default None];
-    install: CommandList.t option [@default None];
-    dependencies: NpmFormula.t [@default NpmFormula.empty];
-    peerDependencies: NpmFormula.t [@default NpmFormula.empty];
-    exportedEnv: ExportedEnv.t [@default ExportedEnv.empty];
-    opam: Opam.t [@default Opam.empty];
-  } [@@deriving yojson, ord, show]
-
-  let empty =
-    {
-      build = None;
-      install = None;
-      dependencies = NpmFormula.empty;
-      peerDependencies = NpmFormula.empty;
-      exportedEnv = ExportedEnv.empty;
-      opam = Opam.empty;
-    }
-end
-
 module Opam = struct
 
   module OpamFile = struct
@@ -683,9 +652,8 @@ module Opam = struct
     version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
-    override : OpamOverride.t;
+    override : Overrides.override option;
   }
-  [@@deriving show]
 end
 
 type t = {
