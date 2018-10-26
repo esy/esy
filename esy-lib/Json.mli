@@ -6,6 +6,9 @@ type 'a decoder = t -> ('a, string) result
 val to_yojson : t -> t
 val of_yojson : t -> (t, string) result
 
+val compare : t -> t -> int
+
+val show : ?std:bool -> t -> string
 val pp : ?std:bool -> t Fmt.t
 
 val parse : string -> t Run.t

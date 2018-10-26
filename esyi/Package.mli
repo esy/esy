@@ -112,28 +112,10 @@ module Resolution : sig
 
   and resolution =
     | Version of Version.t
-    | SourceOverride of {source : Source.t; override : override}
-
-  and override = {
-    origin : Dist.t option;
-    buildType : BuildType.t option;
-    build : CommandList.t option;
-    install : CommandList.t option;
-    exportedEnv: ExportedEnv.t option;
-    exportedEnvOverride: ExportedEnvOverride.t option;
-    buildEnv: Env.t option;
-    buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormulaOverride.t option;
-    devDependencies : NpmFormulaOverride.t option;
-    resolutions : resolution StringMap.t option;
-    files : File.t list;
-  }
+    | SourceOverride of {source : Source.t; override : Json.t}
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
-
-  val override_to_yojson : override Json.encoder
-  val override_of_yojson : override Json.decoder
 end
 
 module Resolutions : sig
@@ -151,12 +133,12 @@ module Resolutions : sig
   val digest : t -> string
 end
 
-(** Overrides collection. *)
-module Overrides : sig
-  type t
+module Override : sig
 
-  type override = Resolution.override = {
-    origin : Dist.t option;
+  type t
+  (* Package override. *)
+
+  type build = {
     buildType : BuildType.t option;
     build : CommandList.t option;
     install : CommandList.t option;
@@ -164,11 +146,32 @@ module Overrides : sig
     exportedEnvOverride: ExportedEnvOverride.t option;
     buildEnv: Env.t option;
     buildEnvOverride: EnvOverride.t option;
+  }
+  (* Build facet of a package override. *)
+
+  val pp_build : build Fmt.t
+
+  type install = {
     dependencies : NpmFormulaOverride.t option;
     devDependencies : NpmFormulaOverride.t option;
     resolutions : Resolution.resolution StringMap.t option;
-    files : File.t list;
   }
+  (* Install facet of a package override. *)
+
+  include S.JSONABLE with type t := t
+
+  val ofDist : ?json:Json.t -> Dist.t -> t
+  val ofJson : Json.t -> t
+
+  val build : cfg:Config.t -> t -> build option RunAsync.t
+  val install : cfg:Config.t -> t -> install option RunAsync.t
+  val files : cfg:Config.t -> t -> File.t list RunAsync.t
+
+end
+
+(** Overrides collection. *)
+module Overrides : sig
+  type t
 
   val isEmpty : t -> bool
   (** If overrides are empty. *)
@@ -176,27 +179,34 @@ module Overrides : sig
   val empty : t
   (** Empty overrides. *)
 
-  val add : override -> t -> t
+  val add : Override.t -> t -> t
   (* [add override overrides] adds single [override] on top of [overrides]. *)
 
-  val addMany : override list -> t -> t
+  val addMany : Override.t list -> t -> t
   (* [add override_list overrides] adds many [overridea_list] overrides on top of [overrides]. *)
 
   val merge : t -> t -> t
   (* [merge newOverrides overrides] adds [newOverrides] on top of [overrides]. *)
 
-  val apply : t -> ('v -> override -> 'v) -> 'v -> 'v
-  (**
-   * [apply overrides f v] applies [overrides] one at a time in a specific
-   * order to [v] using [f] and returns a modified (overridden) value.
-   *)
+  val foldWithInstallOverrides :
+    cfg:Config.t
+    -> f:('v -> Override.install -> 'v)
+    -> init:'v
+    -> t
+    -> 'v RunAsync.t
 
-  val toList : t -> override list
+  val foldWithBuildOverrides :
+    cfg:Config.t
+    -> f:('v -> Override.build -> 'v)
+    -> init:'v
+    -> t
+    -> 'v RunAsync.t
+
+  val files : cfg:Config.t -> t -> File.t list RunAsync.t
+
+  val toList : t -> Override.t list
 
   include S.JSONABLE with type t := t
-
-  val override_of_yojson : override Json.decoder
-  val override_to_yojson : override Json.encoder
 end
 
 

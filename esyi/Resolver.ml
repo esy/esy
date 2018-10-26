@@ -272,22 +272,9 @@ let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
   RunAsync.contextf pkg
     "reading package metadata from %a" Source.ppPretty source
 
-let applyOverride pkg override =
+let applyOverride pkg (override : Package.Override.install) =
   let {
-    Package.Overrides.
-
-    origin = _;
-
-    buildType = _;
-    build = _;
-    install = _;
-    exportedEnv = _;
-    exportedEnvOverride = _;
-    buildEnv = _;
-    buildEnvOverride = _;
-
-    files = _;
-
+    Package.Override.
     dependencies;
     devDependencies;
     resolutions;
@@ -429,7 +416,8 @@ let package ~(resolution : Resolution.t) resolver =
         let%bind pkg, overrides = ofVersion version in
         return (pkg, overrides)
       | SourceOverride {source; override} ->
-        let overridesOfResolutions = Package.Overrides.(empty |> add override) in
+        let override = Package.Override.ofJson override in
+        let overridesOfResolutions = Package.Overrides.(add override empty) in
         let%bind pkg, overrides =
           packageOfSource
             ~name:resolution.name
@@ -441,15 +429,16 @@ let package ~(resolution : Resolution.t) resolver =
     in
     match pkg with
     | Ok pkg ->
-      let pkg =
-        Package.Overrides.apply
+      let%bind pkg =
+        Package.Overrides.foldWithInstallOverrides
+          ~cfg:resolver.cfg
+          ~f:applyOverride
+          ~init:pkg
           overrides
-          applyOverride
-          pkg
         in
       let pkg =
-        let overrides = Package.Overrides.merge pkg.overrides overrides in
-        {pkg with overrides;}
+        let overrides = Package.Overrides.merge pkg.Package.overrides overrides in
+        {pkg with Package.overrides;}
       in
       return (Ok pkg)
     | err -> return err

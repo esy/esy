@@ -46,8 +46,8 @@ let binPath spec = Path.(localPrefixPath spec / "bin")
 let lockfilePath spec =
   match spec.manifest with
   | One (Esy, "package.json")
-  | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock.json")
-  | _ -> Path.(spec.path / (name spec ^ ".esy.lock.json"))
+  | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock")
+  | _ -> Path.(spec.path / (name spec ^ ".esy.lock"))
 
 let ofPath path =
   let open RunAsync.Syntax in

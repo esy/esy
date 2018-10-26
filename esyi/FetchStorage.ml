@@ -328,13 +328,12 @@ let install ~prepareLifecycleEnv dist =
           let sourceStagePath = Dist.sourceStagePath dist in
           let%bind () = unpack ~path:sourceStagePath dist in
           let%bind () =
-            let files =
-              let f files override =
-                files @ override.Package.Overrides.files
-              in
-              Package.Overrides.apply dist.pkg.overrides f install.files
+            let%bind filesOfOverride =
+              Package.Overrides.files
+                ~cfg:dist.sandbox.cfg
+                dist.pkg.overrides
             in
-            layoutFiles files sourceStagePath
+            layoutFiles (install.files @ filesOfOverride) sourceStagePath
           in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in

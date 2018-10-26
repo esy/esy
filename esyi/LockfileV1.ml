@@ -16,44 +16,17 @@ and node = {
   devDependencies : PackageId.Set.t;
 }
 
-and override =
-  | InlineOverride of Package.Resolution.override
-  | Override of Dist.t
+and override = Package.Override.t
 
-let readOverride sandbox override =
-  let open RunAsync.Syntax in
-  match override with
-  | InlineOverride override -> return override
-  | Override dist ->
-    let%bind path =
-      match dist with
-      | Dist.LocalPath {path; manifest = _;} -> return path
-      | dist -> DistStorage.fetchAndUnpackToCache ~cfg:sandbox.Sandbox.cfg dist
-    in
-    let manifest =
-      match Dist.manifest dist with
-      | None -> ManifestSpec.One (ManifestSpec.Filename.Esy, "package.json")
-      | Some manifest -> manifest
-    in
-    begin match manifest with
-    | ManifestSpec.One (ManifestSpec.Filename.Esy, filename) ->
-      let path = Path.(path / filename) in
-      let%bind json = Fs.readJsonFile path in
-      let%bind override = RunAsync.ofStringError (DistResolver.PackageOverride.of_yojson json) in
-      return override.DistResolver.PackageOverride.override
-    | manifest ->
-      errorf "unable to read override from %a" ManifestSpec.pp manifest
-    end
+let indexFilename = "index.json"
 
-let toPackage sandbox (node : node) =
+let toPackage _sandbox (node : node) =
   let open RunAsync.Syntax in
-  let%bind overrides =
-    let%bind overrides =
-      RunAsync.List.mapAndJoin
-        ~f:(readOverride sandbox)
-        node.overrides
+  let overrides =
+    let f overrides override =
+      Package.Overrides.add override overrides
     in
-    return Package.Overrides.(addMany overrides empty)
+    List.fold_left ~f ~init:Package.Overrides.empty node.overrides
   in
   return {
     Solution.Package.
@@ -66,16 +39,12 @@ let toPackage sandbox (node : node) =
   }
 
 let ofPackage (pkg : Solution.Package.t) =
-  let ofOverride override =
-    match override.Package.Resolution.origin with
-    | Some source -> Override source
-    | None -> InlineOverride override
-  in
-  {
+  let open RunAsync.Syntax in
+  return {
     name = pkg.name;
     version = pkg.version;
     source = pkg.source;
-    overrides = List.map ~f:ofOverride (Package.Overrides.toList pkg.overrides);
+    overrides = Package.Overrides.toList pkg.overrides;
     dependencies = pkg.dependencies;
     devDependencies = pkg.devDependencies;
   }
@@ -182,23 +151,26 @@ let solutionOfLockfile sandbox root node =
   PackageId.Map.fold f node (return (Solution.empty root))
 
 let lockfileOfSolution (sol : Solution.t) =
-  let node =
+  let open RunAsync.Syntax in
+  let%bind node =
     let f pkg _dependencies nodes =
-      PackageId.Map.add
+      let%bind nodes = nodes in
+      let%bind node = ofPackage pkg in
+      return (PackageId.Map.add
         (Solution.Package.id pkg)
-        (ofPackage pkg)
-        nodes
+        node
+        nodes)
     in
-    Solution.fold ~f ~init:PackageId.Map.empty sol
+    Solution.fold ~f ~init:(return PackageId.Map.empty) sol
   in
-  Solution.root sol, node
+  return (Solution.root sol, node)
 
-let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
+let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
   if%bind Fs.exists path
   then
     let%lwt lockfile =
-      let%bind json = Fs.readJsonFile path in
+      let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
       RunAsync.ofRun (Json.parseJsonWith of_yojson json)
     in
     match lockfile with
@@ -221,10 +193,11 @@ let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
   else
     return None
 
-let toFile ~sandbox ~(solution : Solution.t) (path : Path.t) =
+let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  let root, node = lockfileOfSolution solution in
+  let%bind root, node = lockfileOfSolution solution in
   let%bind hash = computeSandboxChecksum sandbox in
   let lockfile = {hash; node; root = Solution.Package.id root;} in
-  let json = to_yojson lockfile in
-  Fs.writeJsonFile ~json path
+  let%bind () = Fs.rmPath path in
+  let%bind () = Fs.createDir path in
+  Fs.writeJsonFile ~json:(to_yojson lockfile) Path.(path / indexFilename)

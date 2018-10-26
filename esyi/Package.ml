@@ -308,102 +308,22 @@ module Resolution = struct
     name : string;
     resolution : resolution;
   }
-  [@@deriving ord]
+  [@@deriving ord, show]
 
   and resolution =
     | Version of Version.t
-    | SourceOverride of {source : Source.t; override : override}
+    | SourceOverride of {source : Source.t; override : Json.t}
 
-  and override = {
-    origin : Dist.t option;
-    buildType : BuildType.t option;
-    build : CommandList.t option;
-    install : CommandList.t option;
-    exportedEnv: ExportedEnv.t option;
-    exportedEnvOverride: ExportedEnvOverride.t option;
-    buildEnv: Env.t option;
-    buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormulaOverride.t option;
-    devDependencies : NpmFormulaOverride.t option;
-    resolutions : resolution StringMap.t option;
-    files: File.t list;
-  }
-
-  let rec override_to_yojson override =
-    let addIfSome to_yojson key value fields =
-      match value with
-      | None -> fields
-      | Some value -> (key, to_yojson value)::fields
-    in
-
-    let {
-      origin;
-      buildType;
-      build;
-      install;
-      exportedEnv;
-      exportedEnvOverride;
-      buildEnv;
-      buildEnvOverride;
-      dependencies;
-      devDependencies;
-      resolutions;
-      files = _;
-    } = override in
-    `Assoc (
-      []
-      |> addIfSome Dist.to_yojson "origin" origin
-      |> addIfSome BuildType.to_yojson "buildsInSource" buildType
-      |> addIfSome CommandList.to_yojson "build" build
-      |> addIfSome CommandList.to_yojson "install" install
-      |> addIfSome ExportedEnv.to_yojson "exportedEnv" exportedEnv
-      |> addIfSome ExportedEnvOverride.to_yojson "exportedEnvOverride" exportedEnvOverride
-      |> addIfSome Env.to_yojson "buildEnv" buildEnv
-      |> addIfSome EnvOverride.to_yojson "buildEnvOverride" buildEnvOverride
-      |> addIfSome NpmFormulaOverride.to_yojson "dependencies" dependencies
-      |> addIfSome NpmFormulaOverride.to_yojson "devDependencies" devDependencies
-      |> addIfSome (StringMap.to_yojson resolution_to_yojson) "resolutions" resolutions
-    )
-
-  and resolution_to_yojson resolution =
+  let resolution_to_yojson resolution =
     match resolution with
     | Version v -> `String (Version.show v)
     | SourceOverride {source; override} ->
       `Assoc [
         "source", Source.to_yojson source;
-        "override", override_to_yojson override;
+        "override", override;
       ]
 
-  let rec override_of_yojson json =
-    let open Result.Syntax in
-    let open Json.Decode in
-    let%bind origin = fieldOptWith ~name:"origin" Dist.of_yojson json in
-    let%bind buildType = fieldOptWith ~name:"buildsInSource" BuildType.of_yojson json in
-    let%bind build = fieldOptWith ~name:"build" CommandList.of_yojson json in
-    let%bind install = fieldOptWith ~name:"install" CommandList.of_yojson json in
-    let%bind exportedEnv = fieldOptWith ~name:"exportedEnv" ExportedEnv.of_yojson json in
-    let%bind exportedEnvOverride = fieldOptWith ~name:"exportedEnvOverride" ExportedEnvOverride.of_yojson json in
-    let%bind buildEnv = fieldOptWith ~name:"buildEnv" Env.of_yojson json in
-    let%bind buildEnvOverride = fieldOptWith ~name:"buildEnvOverride" EnvOverride.of_yojson json in
-    let%bind dependencies = fieldOptWith ~name:"dependencies" NpmFormulaOverride.of_yojson json in
-    let%bind devDependencies = fieldOptWith ~name:"devDependencies" NpmFormulaOverride.of_yojson json in
-    let%bind resolutions = fieldOptWith ~name:"resolutions" (StringMap.of_yojson resolution_of_yojson) json in
-    return {
-      origin;
-      buildType;
-      build;
-      install;
-      exportedEnv;
-      exportedEnvOverride;
-      buildEnv;
-      buildEnvOverride;
-      dependencies;
-      devDependencies;
-      resolutions;
-      files = [];
-    }
-
-  and resolution_of_yojson json =
+  let resolution_of_yojson json =
     let open Result.Syntax in
     match json with
     | `String v ->
@@ -411,7 +331,7 @@ module Resolution = struct
       return (Version version)
     | `Assoc _ ->
       let%bind source = Json.Decode.fieldWith ~name:"source" Source.relaxed_of_yojson json in
-      let%bind override = Json.Decode.fieldWith ~name:"override" override_of_yojson json in
+      let%bind override = Json.Decode.fieldWith ~name:"override" Json.of_yojson json in
       return (SourceOverride {source; override;})
     | _ -> Error "expected string or object"
 
@@ -491,28 +411,108 @@ module Resolutions = struct
 
 end
 
+module Override = struct
+
+  type t =
+    | OfDist of (Dist.t * Json.t option)
+    | OfJson of Json.t
+
+  type build = {
+    buildType : BuildType.t option [@default None];
+    build : CommandList.t option [@default None];
+    install : CommandList.t option [@default None];
+    exportedEnv: ExportedEnv.t option [@default None];
+    exportedEnvOverride: ExportedEnvOverride.t option [@default None];
+    buildEnv: Env.t option [@default None];
+    buildEnvOverride: EnvOverride.t option [@default None];
+  } [@@deriving show, of_yojson {strict = false}]
+
+  type install = {
+    dependencies : NpmFormulaOverride.t option [@default None];
+    devDependencies : NpmFormulaOverride.t option [@default None];
+    resolutions : Resolution.resolution StringMap.t option [@default None];
+  } [@@deriving of_yojson {strict = false}]
+
+  type manifest = {
+    override: Json.t;
+  } [@@deriving of_yojson {strict = false}]
+
+  let ofJson json = OfJson json
+  let ofDist ?json dist = OfDist (dist, json)
+
+  let to_yojson override =
+    match override with
+    | OfJson json -> json
+    | OfDist (dist, _) -> Dist.to_yojson dist
+
+  let of_yojson json =
+    let open Result.Syntax in
+    match json with
+    | `String _ ->
+      let%map dist = Dist.of_yojson json in
+      OfDist (dist, None)
+    | json ->
+      return (OfJson json)
+
+  let files ~cfg override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson _ -> return []
+    | OfDist (dist, _) ->
+      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg dist in
+      let filesPath = Path.(path / "files") in
+      if%bind Fs.exists filesPath
+      then
+        let%bind files = Fs.listDir filesPath in
+        let f filename =
+          File.readOfPath
+            ~prefixPath:filesPath
+            ~filePath:Path.(filesPath / filename)
+        in
+        RunAsync.List.mapAndJoin ~f files
+      else
+        return []
+
+  let fetch ~cfg override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson json -> return json
+    | OfDist (_dist, Some json) -> return json
+    | OfDist (dist, None) ->
+      let%bind path =
+        match dist with
+        | Dist.LocalPath info -> return info.path
+        | dist -> DistStorage.fetchAndUnpackToCache ~cfg dist
+      in
+      let filename =
+        match Dist.manifest dist with
+        | Some ManifestSpec.One (Esy, filename) -> filename
+        | Some ManifestSpec.One (Opam, _) -> failwith "cannot read override from Opam"
+        | Some ManifestSpec.ManyOpam -> failwith "cannot read override from ManyOpam"
+        | None -> "package.json"
+      in
+      let%bind json = Fs.readJsonFile Path.(path / filename) in
+      let%bind manifest = RunAsync.ofStringError (manifest_of_yojson json) in
+      return manifest.override
+
+  let install ~cfg override =
+    let open RunAsync.Syntax in
+    let%bind json = fetch ~cfg override in
+    let%bind override = RunAsync.ofStringError (install_of_yojson json) in
+    return (Some override)
+
+  let build ~cfg override =
+    let open RunAsync.Syntax in
+    let%bind json = fetch ~cfg override in
+    let%bind override = RunAsync.ofStringError (build_of_yojson json) in
+    return (Some override)
+
+end
+
 module Overrides = struct
   type t =
-    Resolution.override list
+    Override.t list
     [@@deriving yojson]
-
-  type override = Resolution.override = {
-    origin : Dist.t option;
-    buildType : BuildType.t option;
-    build : CommandList.t option;
-    install : CommandList.t option;
-    exportedEnv: ExportedEnv.t option;
-    exportedEnvOverride: ExportedEnvOverride.t option;
-    buildEnv: Env.t option;
-    buildEnvOverride: EnvOverride.t option;
-    dependencies : NpmFormulaOverride.t option;
-    devDependencies : NpmFormulaOverride.t option;
-    resolutions : Resolution.resolution StringMap.t option;
-    files: File.t list;
-  }
-
-  let override_of_yojson = Resolution.override_of_yojson
-  let override_to_yojson = Resolution.override_to_yojson
 
   let isEmpty = function
     | [] -> true
@@ -529,10 +529,40 @@ module Overrides = struct
   let merge newOverrides overrides =
     newOverrides @ overrides
 
+  let toList overrides = List.rev overrides
+
+  let fold' ~f ~init overrides =
+    RunAsync.List.foldLeft ~f ~init (List.rev overrides)
+
+  let files ~cfg overrides =
+    let open RunAsync.Syntax in
+    let f files override =
+      let%bind filesOfOverride = Override.files ~cfg override in
+      return (filesOfOverride @ files)
+    in
+    fold' ~f ~init:[] overrides
+
+  let foldWithBuildOverrides ~cfg ~f ~init overrides =
+    let open RunAsync.Syntax in
+    let f v override =
+      match%bind Override.build ~cfg override with
+      | Some override -> return (f v override)
+      | None -> return v
+    in
+    fold' ~f ~init overrides
+
+  let foldWithInstallOverrides ~cfg ~f ~init overrides =
+    let open RunAsync.Syntax in
+    let f v override =
+      match%bind Override.install ~cfg override with
+      | Some override -> return (f v override)
+      | None -> return v
+    in
+    fold' ~f ~init overrides
+
   let apply overrides f init =
     List.fold_left ~f ~init (List.rev overrides)
 
-  let toList overrides = List.rev overrides
 end
 
 module Dep = struct

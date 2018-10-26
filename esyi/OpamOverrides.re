@@ -81,42 +81,6 @@ let init = (~cfg, ()): RunAsync.t(t) => {
   return(overrides);
 };
 
-let load = baseDir => {
-  open RunAsync.Syntax;
-  let packageJson = Path.(baseDir / "package.json");
-  let filesPath = Path.(baseDir / "files");
-  let%bind override =
-    RunAsync.contextf(
-      {
-        let%bind json = Fs.readJsonFile(packageJson);
-        RunAsync.ofRun(
-          Json.parseJsonWith(Package.Overrides.override_of_yojson, json),
-        );
-      },
-      "Reading %a",
-      Path.pp,
-      packageJson,
-    );
-  let%bind files =
-    if%bind (Fs.exists(filesPath)) {
-      let f = (files, path, _stat) =>
-        switch (Path.relativize(~root=filesPath, path)) {
-        | Some(name) =>
-          let%bind file =
-            Package.File.readOfPath(~prefixPath=filesPath, ~filePath=name);
-          return([file, ...files]);
-        | None =>
-          /* This case isn't really possible but... */
-          return(files)
-        };
-      let%bind files = Fs.fold(~init=[], ~f, filesPath);
-      return(files);
-    } else {
-      return([]);
-    };
-  return({...override, Package.Overrides.files});
-};
-
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
   RunAsync.Syntax.(
     switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
@@ -134,7 +98,8 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
         );
       switch (override) {
       | Some({pattern: _, path}) =>
-        let%bind override = load(path);
+        let override =
+          Package.Override.ofDist(Dist.LocalPath({path, manifest: None}));
         return(Some(override));
       | None => return(None)
       };

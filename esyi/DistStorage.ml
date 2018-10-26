@@ -1,4 +1,7 @@
-type archive = {tarballPath : Path.t;}
+type archive = {
+  dist : Dist.t;
+  tarballPath : Path.t;
+}
 
 let sourceTarballPath ~cfg source =
   let id =
@@ -95,14 +98,18 @@ let fetchSourceIntoCache ~cfg source =
       | Error err -> return (Error err)
     )
 
-let fetch ~cfg source =
+let fetch ~cfg dist =
   let open RunAsync.Syntax in
-  match%bind fetchSourceIntoCache ~cfg source with
-  | Ok tarballPath -> return (Ok {tarballPath;})
-  | Error err -> return (Error err)
+  RunAsync.contextf (
+    match%bind fetchSourceIntoCache ~cfg dist with
+    | Ok tarballPath -> return (Ok {dist; tarballPath;})
+    | Error err -> return (Error err)
+  ) "fetching dist: %a" Dist.pp dist
 
-let unpack ~cfg:_ ~dst source =
-  Tarball.unpack ~dst source.tarballPath
+let unpack ~cfg:_ ~dst archive =
+  RunAsync.contextf
+    (Tarball.unpack ~dst archive.tarballPath)
+    "unpacking %a" Dist.pp archive.dist
 
 let fetchAndUnpack ~cfg ~dst source =
   let open RunAsync.Syntax in
@@ -120,5 +127,8 @@ let fetchAndUnpackToCache ~cfg (dist : Dist.t) =
   else
     let%bind archive = fetch ~cfg dist in
     let%bind archive = RunAsync.ofRun archive in
-    let%bind () = unpack ~cfg ~dst:path archive in
-    return path
+    Fs.withTempDir (fun tempPath ->
+      let%bind () = unpack ~cfg ~dst:tempPath archive in
+      let%bind () = Fs.rename ~src:tempPath path in
+      return path
+    )

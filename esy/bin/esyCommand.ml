@@ -430,7 +430,7 @@ module SandboxInfo = struct
 
         let%bind solution, filesUsed =
           let path = EsyInstall.SandboxSpec.lockfilePath copts.spec in
-          match%bind Lockfile.ofFile ~sandbox:copts.installSandbox path with
+          match%bind Lockfile.ofPath ~sandbox:copts.installSandbox path with
           | Some solution ->
             let%bind mtime = mtimeOf path in
             return (Some solution, {FileInfo. path; mtime}::filesUsed)
@@ -1239,7 +1239,7 @@ let getSandboxSolution installSandbox =
   let%bind solution = Solver.solve installSandbox in
   let lockfilePath = SandboxSpec.lockfilePath installSandbox.Sandbox.spec in
   let%bind () =
-    Lockfile.toFile ~sandbox:installSandbox ~solution lockfilePath
+    Lockfile.toPath ~sandbox:installSandbox ~solution lockfilePath
   in
   return solution
 
@@ -1252,7 +1252,7 @@ let fetch {CommonOptions. installSandbox = sandbox; _} () =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofFile ~sandbox lockfilePath with
+  match%bind Lockfile.ofPath ~sandbox lockfilePath with
   | Some solution -> Fetch.fetch ~sandbox solution
   | None -> error "no lockfile found, run 'esy solve' first"
 
@@ -1260,7 +1260,7 @@ let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofFile ~sandbox lockfilePath with
+  match%bind Lockfile.ofPath ~sandbox lockfilePath with
   | Some solution ->
     if%bind Fetch.isInstalled ~sandbox solution
     then return ()

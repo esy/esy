@@ -1,7 +1,7 @@
 module PackageOverride = struct
   type t = {
     dist : Dist.t;
-    override : Package.Overrides.override;
+    override : Json.t;
   }
 
   let of_yojson json =
@@ -15,7 +15,7 @@ module PackageOverride = struct
     let%bind override =
       Json.Decode.fieldWith
       ~name:"override"
-      Package.Overrides.override_of_yojson
+      Json.of_yojson
       json
     in
     return {dist; override;}
@@ -47,7 +47,8 @@ let rebase ~(base : Dist.t) (source : Dist.t) =
   | Dist.LocalPath info, Dist.LocalPath {path = basePath; _} ->
     let path = Path.(basePath // info.path |> normalizeAndRemoveEmptySeg) in
     return (Dist.LocalPath {info with path;})
-  | Dist.LocalPath _, _ -> failwith "TODO"
+  | Dist.LocalPath _, _ ->
+    Exn.failf "unable to rebase %a onto %a" Dist.pp source Dist.pp base
   | source, _ -> return source
 
 let suggestPackageName ~fallback (kind, filename) =
@@ -226,9 +227,7 @@ let resolve
         paths = maybeAddToPathSet path Path.Set.empty;
       }
     | Override {dist = nextDist; override}, path ->
-      let override =
-        {override with Package.Resolution. origin = Some dist}
-      in
+      let override = Package.Override.ofDist ~json:override dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
       let overrides = Package.Overrides.add override overrides in
