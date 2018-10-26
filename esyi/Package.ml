@@ -652,7 +652,6 @@ module Opam = struct
     version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
-    override : Overrides.override option;
   }
 end
 

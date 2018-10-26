@@ -6,7 +6,6 @@ module Package = struct
       name : Package.Opam.OpamName.t;
       version : Package.Opam.OpamPackageVersion.t;
       opam : Package.Opam.OpamFile.t;
-      override : Package.Overrides.override option;
     } [@@deriving yojson]
   end
 

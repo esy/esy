@@ -285,7 +285,6 @@ let solutionPkgOfPkg
             name = opam.name;
             version = opam.version;
             opam = opam.opam;
-            override = opam.override;
           }
         | None -> None
       in

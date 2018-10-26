@@ -302,7 +302,6 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
         | false, Some path -> readOpamFilesForPackage path
       );
       opam = manifest.opam;
-      override = manifest.override;
     } in
 
     let source =
@@ -318,6 +317,12 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
         }
     in
 
+    let overrides =
+      match manifest.override with
+      | None -> Package.Overrides.empty
+      | Some override -> Package.Overrides.(add override empty);
+    in
+
     return (Ok {
       Package.
       name;
@@ -326,7 +331,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalName = None;
       kind = Package.Esy;
       source;
-      overrides = Package.Overrides.empty;
+      overrides;
       dependencies;
       devDependencies;
       optDependencies;

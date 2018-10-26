@@ -255,7 +255,6 @@ module Opam : sig
     version : OpamPackageVersion.t;
     opam : OpamFile.t;
     files : unit -> File.t list RunAsync.t;
-    override : Resolution.override option;
   }
 end
 

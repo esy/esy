@@ -221,23 +221,8 @@ let parseOpam data =
 module OpamBuild = struct
 
   let build ~name ~version (manifest : Solution.Package.Opam.t) =
-    let buildCommands =
-      match manifest.override with
-      | Some {EsyInstall.Package.Overrides. build = Some cmds; _} ->
-        EsyCommands cmds
-      | Some {EsyInstall.Package.Overrides. build = None; _}
-      | None ->
-        OpamCommands (OpamFile.OPAM.build manifest.opam)
-    in
-
-    let installCommands =
-      match manifest.override with
-      | Some {EsyInstall.Package.Overrides. install = Some cmds; _} ->
-        EsyCommands cmds
-      | Some {EsyInstall.Package.Overrides. install = None; _}
-      | None ->
-        OpamCommands (OpamFile.OPAM.install manifest.opam)
-    in
+    let buildCommands = OpamCommands (OpamFile.OPAM.build manifest.opam) in
+    let installCommands = OpamCommands (OpamFile.OPAM.install manifest.opam) in
 
     let patches =
       let patches = OpamFile.OPAM.patches manifest.opam in
@@ -254,13 +239,6 @@ module OpamBuild = struct
       List.map ~f names
     in
 
-    let exportedEnv =
-      match manifest.override with
-      | Some {EsyInstall.Package.Overrides. exportedEnv = Some exportedEnv;_} -> exportedEnv
-      | Some {EsyInstall.Package.Overrides. exportedEnv = None;_}
-      | None -> ExportedEnv.empty
-    in
-
     let name =
       match name with
       | Some name -> Some (ensurehasOpamScope name)
@@ -271,7 +249,7 @@ module OpamBuild = struct
       name;
       version;
       buildType = BuildType.InSource;
-      exportedEnv;
+      exportedEnv = ExportedEnv.empty;
       buildEnv = Env.empty;
       buildCommands;
       installCommands;
@@ -297,7 +275,6 @@ module OpamBuild = struct
         name = OpamPackage.Name.of_string "unsued";
         version = OpamPackage.Version.of_string "unused";
         opam;
-        override = None;
       } in
       return (Some (build ~name ~version info))
 
