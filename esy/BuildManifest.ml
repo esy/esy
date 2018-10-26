@@ -399,7 +399,9 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
   | Solution.Package.Install { source = _; files = _; opam = Some opam; } ->
     let name = Some (OpamPackage.Name.to_string opam.name) in
     let version = Some (Version.Opam opam.version) in
-    return (Some (OpamBuild.build ~name ~version opam), Path.Set.empty)
+    let manifest = OpamBuild.build ~name ~version opam in
+    let manifest = Overrides.apply pkg.overrides applyOverride manifest in
+    return (Some manifest, Path.Set.empty)
   | Solution.Package.Install { source; files = _; opam = None; } ->
     let source , _ = source in
     let manifest = Source.manifest source in
