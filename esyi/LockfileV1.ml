@@ -28,7 +28,7 @@ let readOverride sandbox override =
     let%bind path =
       match dist with
       | Dist.LocalPath {path; manifest = _;} -> return path
-      | dist -> FetchStorage.fetchDist ~cfg:sandbox.Sandbox.cfg dist
+      | dist -> DistStorage.fetchAndUnpackToCache ~cfg:sandbox.Sandbox.cfg dist
     in
     let manifest =
       match Dist.manifest dist with

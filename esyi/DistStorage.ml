@@ -109,3 +109,16 @@ let fetchAndUnpack ~cfg ~dst source =
   match%bind fetch ~cfg source with
   | Ok source -> unpack ~cfg ~dst source
   | Error err -> Lwt.return (Error err)
+
+let fetchAndUnpackToCache ~cfg (dist : Dist.t) =
+  let open RunAsync.Syntax in
+  let id = Digest.(to_hex (string (Dist.show dist))) in
+  let path = Path.(cfg.Config.sourceInstallPath / id) in
+
+  if%bind Fs.exists path
+  then return path
+  else
+    let%bind archive = fetch ~cfg dist in
+    let%bind archive = RunAsync.ofRun archive in
+    let%bind () = unpack ~cfg ~dst:path archive in
+    return path

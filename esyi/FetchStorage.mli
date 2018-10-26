@@ -2,11 +2,6 @@
  * Package storage.
  *)
 
-val fetchDist :
-  cfg : Config.t
-  -> Dist.t
-  -> Path.t RunAsync.t
-
 (** Distribution. *)
 module Dist : sig
   type t

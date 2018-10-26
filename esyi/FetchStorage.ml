@@ -138,19 +138,6 @@ end = struct
 
 end
 
-let fetchDist ~cfg (dist : D.t) =
-  let open RunAsync.Syntax in
-  let id = Digest.(to_hex (string (D.show dist))) in
-  let path = Path.(cfg.Config.sourceInstallPath / id) in
-
-  if%bind Fs.exists path
-  then return path
-  else
-    let%bind archive = DistStorage.fetch ~cfg dist in
-    let%bind archive = RunAsync.ofRun archive in
-    let%bind () = DistStorage.unpack ~cfg ~dst:path archive in
-    return path
-
 let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
