@@ -52,7 +52,7 @@ Test the compiled executables inside the project's environment:
 esy ./_build/default/bin/Hello.exe
 ```
 
-Alternatively you can use `esy x <anycommand>` invocation which constructs and
+Alternatively you can use `esy x <anycommand>` invocation which constructs an
 environment where the root project is installed:
 
 ```shell
