@@ -1,5 +1,5 @@
-type t = OpamPackage.Name.Map.t(override)
-and override = {
+type t = OpamPackage.Name.Map.t(record)
+and record = {
   default: option(Path.t),
   version: OpamPackage.Version.Map.t(Path.t),
 };
