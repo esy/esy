@@ -479,21 +479,23 @@ module Override = struct
     | OfJson json -> return json
     | OfDist (_dist, Some json) -> return json
     | OfDist (dist, None) ->
-      let%bind path =
-        match dist with
-        | Dist.LocalPath info -> return info.path
-        | dist -> DistStorage.fetchAndUnpackToCache ~cfg dist
-      in
-      let filename =
-        match Dist.manifest dist with
-        | Some ManifestSpec.One (Esy, filename) -> filename
-        | Some ManifestSpec.One (Opam, _) -> failwith "cannot read override from Opam"
-        | Some ManifestSpec.ManyOpam -> failwith "cannot read override from ManyOpam"
-        | None -> "package.json"
-      in
-      let%bind json = Fs.readJsonFile Path.(path / filename) in
-      let%bind manifest = RunAsync.ofStringError (manifest_of_yojson json) in
-      return manifest.override
+      RunAsync.contextf (
+        let%bind path =
+          match dist with
+          | Dist.LocalPath info -> return info.path
+          | dist -> DistStorage.fetchAndUnpackToCache ~cfg dist
+        in
+        let filename =
+          match Dist.manifest dist with
+          | Some ManifestSpec.One (Esy, filename) -> filename
+          | Some ManifestSpec.One (Opam, _) -> failwith "cannot read override from Opam"
+          | Some ManifestSpec.ManyOpam -> failwith "cannot read override from ManyOpam"
+          | None -> "package.json"
+        in
+        let%bind json = Fs.readJsonFile Path.(path / filename) in
+        let%bind manifest = RunAsync.ofStringError (manifest_of_yojson json) in
+        return manifest.override
+      ) "reading override %a" Dist.pp dist
 
   let install ~cfg override =
     let open RunAsync.Syntax in
