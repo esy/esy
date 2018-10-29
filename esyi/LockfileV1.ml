@@ -47,42 +47,65 @@ and node = {
   name: string;
   version: Version.t;
   source: source;
-  overrides: override list;
+  overrides: Package.Overrides.t;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
 }
 
-and override = Package.Override.t
-
 let indexFilename = "index.json"
+
+let opampathLocked sandbox (opam : OpamResolution.t) =
+  let name = OpamPackage.Name.to_string opam.name in
+  let version = OpamPackage.Version.to_string opam.version in
+  Path.(SandboxSpec.lockfilePath sandbox.Sandbox.spec / "opam" / (name ^ "." ^ version))
+
+let ofPackage sandbox (pkg : Solution.Package.t) =
+  let open RunAsync.Syntax in
+  let%bind source =
+    match pkg.source with
+    | Link _
+    | Install {source = _; opam = None;} -> return pkg.source
+    | Install {source; opam = Some opam;} ->
+      let sandboxPath = sandbox.Sandbox.spec.path in
+      let opampath = Path.(sandboxPath // opam.path) in
+      let opampathLocked = opampathLocked sandbox opam in
+      if Path.isPrefix sandboxPath opampath
+      then return pkg.source
+      else (
+        Logs_lwt.debug (
+          fun m ->
+            m "lock: %a -> %a"
+            Path.pp opam.path
+            Path.pp opampathLocked
+        );%lwt
+        let%bind () = Fs.copyPath ~src:opam.path ~dst:opampathLocked in
+        return (Package.Install {
+          source;
+          opam = Some {
+            opam with path = Path.tryRelativize ~root:sandboxPath opampathLocked;
+          }
+        });
+      )
+  in
+  return {
+    name = pkg.name;
+    version = pkg.version;
+    source;
+    overrides = pkg.overrides;
+    dependencies = pkg.dependencies;
+    devDependencies = pkg.devDependencies;
+  }
 
 let toPackage _sandbox (node : node) =
   let open RunAsync.Syntax in
-  let overrides =
-    let f overrides override =
-      Package.Overrides.add override overrides
-    in
-    List.fold_left ~f ~init:Package.Overrides.empty node.overrides
-  in
   return {
     Solution.Package.
     name = node.name;
     version = node.version;
     source = node.source;
-    overrides;
+    overrides = node.overrides;
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
-  }
-
-let ofPackage (pkg : Solution.Package.t) =
-  let open RunAsync.Syntax in
-  return {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    overrides = Package.Overrides.toList pkg.overrides;
-    dependencies = pkg.dependencies;
-    devDependencies = pkg.devDependencies;
   }
 
 let computeSandboxChecksum (sandbox : Sandbox.t) =
@@ -186,12 +209,12 @@ let solutionOfLockfile sandbox root node =
   in
   PackageId.Map.fold f node (return (Solution.empty root))
 
-let lockfileOfSolution (solution : Solution.t) =
+let lockfileOfSolution sandbox (solution : Solution.t) =
   let open RunAsync.Syntax in
   let%bind node =
     let f pkg _dependencies nodes =
       let%bind nodes = nodes in
-      let%bind node = ofPackage pkg in
+      let%bind node = ofPackage sandbox pkg in
       return (PackageId.Map.add
         (Solution.Package.id pkg)
         node
@@ -203,6 +226,7 @@ let lockfileOfSolution (solution : Solution.t) =
 
 let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
+  Logs_lwt.debug (fun m -> m "LockfileV1.ofPath %a" Path.pp path);%lwt
   if%bind Fs.exists path
   then
     let%lwt lockfile =
@@ -231,9 +255,10 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
 
 let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  let%bind root, node = lockfileOfSolution solution in
+  Logs_lwt.debug (fun m -> m "LockfileV1.toPath %a" Path.pp path);%lwt
+  let%bind () = Fs.rmPath path in
+  let%bind root, node = lockfileOfSolution sandbox solution in
   let%bind checksum = computeSandboxChecksum sandbox in
   let lockfile = {checksum; node; root = Solution.Package.id root;} in
-  let%bind () = Fs.rmPath path in
   let%bind () = Fs.createDir path in
   Fs.writeJsonFile ~json:(to_yojson lockfile) Path.(path / indexFilename)
