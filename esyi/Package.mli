@@ -158,7 +158,7 @@ module Override : sig
   end
 
   val toLock : sandbox:SandboxSpec.t -> t -> Lock.t RunAsync.t
-  val ofLock : Lock.t -> t
+  val ofLock : sandbox:SandboxSpec.t -> Lock.t -> t
 end
 
 (** Overrides collection. *)
@@ -204,7 +204,7 @@ module Overrides : sig
   end
 
   val toLock : sandbox:SandboxSpec.t -> t -> Lock.t RunAsync.t
-  val ofLock : Lock.t -> t
+  val ofLock : sandbox:SandboxSpec.t -> Lock.t -> t
 
 end
 

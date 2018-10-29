@@ -509,10 +509,14 @@ module Override = struct
       } in
       return (Lock.OfDist {dist;})
 
-  let ofLock lock =
+  let ofLock ~sandbox lock =
     match lock with
     | Lock.OfJson {json;} -> OfJson {json;}
-    | Lock.OfDist {dist;} -> OfDist {dist;}
+    | Lock.OfDist { dist = Dist.LocalPath { path; manifest } } ->
+      let path = Path.(sandbox.SandboxSpec.path // path) in
+      let dist = Dist.LocalPath {path; manifest;} in
+      OfDist {dist;}
+    | Lock.OfDist { dist; } -> OfDist {dist;}
 
 end
 
@@ -578,8 +582,8 @@ module Overrides = struct
   let toLock ~sandbox overrides =
     RunAsync.List.mapAndJoin ~f:(Override.toLock ~sandbox) overrides
 
-  let ofLock overrides =
-    List.map ~f:Override.ofLock overrides
+  let ofLock ~sandbox overrides =
+    List.map ~f:(Override.ofLock ~sandbox) overrides
 
 end
 

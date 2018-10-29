@@ -78,14 +78,14 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
     devDependencies = pkg.devDependencies;
   }
 
-let toPackage _sandbox (node : node) =
+let toPackage sandbox (node : node) =
   let open RunAsync.Syntax in
   return {
     Solution.Package.
     name = node.name;
     version = node.version;
     source = node.source;
-    overrides = Package.Overrides.ofLock node.overrides;
+    overrides = Package.Overrides.ofLock ~sandbox:sandbox.Sandbox.spec node.overrides;
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
   }
