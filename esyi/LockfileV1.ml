@@ -1,6 +1,6 @@
 type t = {
-  (* This is hash of all dependencies/resolutios, used as a checksum. *)
-  hash : string;
+  (* This is checksum of all dependencies/resolutios, used as a checksum. *)
+  checksum : string;
   (* Id of the root package. *)
   root : PackageId.t;
   (* Map from ids to nodes. *)
@@ -176,7 +176,7 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
     match lockfile with
     | Ok lockfile ->
       let%bind checksum = computeSandboxChecksum sandbox in
-      if String.compare lockfile.hash checksum = 0
+      if String.compare lockfile.checksum checksum = 0
       then
         let%bind solution = solutionOfLockfile sandbox lockfile.root lockfile.node in
         return (Some solution)
@@ -196,8 +196,8 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
 let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
   let%bind root, node = lockfileOfSolution solution in
-  let%bind hash = computeSandboxChecksum sandbox in
-  let lockfile = {hash; node; root = Solution.Package.id root;} in
+  let%bind checksum = computeSandboxChecksum sandbox in
+  let lockfile = {checksum; node; root = Solution.Package.id root;} in
   let%bind () = Fs.rmPath path in
   let%bind () = Fs.createDir path in
   Fs.writeJsonFile ~json:(to_yojson lockfile) Path.(path / indexFilename)
