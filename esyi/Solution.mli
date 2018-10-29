@@ -2,8 +2,6 @@
  * This module represents a solution.
  *)
 
-module File : module type of Package.File
-
 (**
  * This is minimal info needed to fetch and build a package.
  *)

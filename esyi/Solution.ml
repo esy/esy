@@ -1,7 +1,5 @@
 module P = Package
 
-module File = P.File
-
 module Package = struct
 
   type t = {
