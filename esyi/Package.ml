@@ -380,9 +380,18 @@ end
 module Override = struct
 
   type t =
-    | OfDist of (Dist.t * Json.t option)
-    | OfJson of Json.t
-    | OfOpamOverride of Path.t
+    | OfJson of {
+        json : Json.t;
+      }
+    | OfOpamOverride of {
+        name : string;
+        version : string;
+        json : Json.t;
+        files : Path.t;
+      }
+    | OfDist of {
+        dist : Dist.t;
+      }
 
   type build = {
     buildType : BuildType.t option [@default None];
@@ -404,61 +413,26 @@ module Override = struct
     override: Json.t;
   } [@@deriving of_yojson {strict = false}]
 
-  let ofJson json = OfJson json
-  let ofDist ?json dist = OfDist (dist, json)
-  let ofOpamOverride path = OfOpamOverride path
-
-  let to_yojson override =
-    match override with
-    | OfJson json -> json
-    | OfDist (dist, _) -> Dist.to_yojson dist
-    | OfOpamOverride path -> `String ("opam-override:" ^ Path.show path)
-
-  let of_yojson json =
-    let open Result.Syntax in
-    match json with
-    | `String v ->
-      begin match Astring.String.cut ~sep:":" v with
-      | Some ("opam-override", v) ->
-        return (OfOpamOverride (Path.v v))
-      | _ ->
-        let%map dist = Dist.of_yojson json in
-        OfDist (dist, None)
-      end
-    | json ->
-      return (OfJson json)
+  let ofJson json = OfJson {json;}
+  let ofOpamOverride ~name ~version json files = OfOpamOverride {name; version; json; files;}
+  let ofDist dist = OfDist {dist;}
 
   let files ~cfg override =
     let open RunAsync.Syntax in
 
-    let readFiles path =
-      if%bind Fs.exists path
-      then
-        let%bind files = Fs.listDir path in
-        return (List.map ~f:(File.make path) files)
-      else
-        return []
-    in
-
     match override with
     | OfJson _ -> return []
-    | OfOpamOverride path ->
-      readFiles Path.(path / "files")
-    | OfDist (dist, _) ->
+    | OfOpamOverride {files; _} -> File.ofDir files
+    | OfDist {dist} ->
       let%bind path = DistStorage.fetchAndUnpackToCache ~cfg dist in
-      readFiles Path.(path / "files")
+      File.ofDir Path.(path / "files")
 
   let fetch ~cfg override =
     let open RunAsync.Syntax in
     match override with
-    | OfJson json -> return json
-    | OfOpamOverride path ->
-      let packageJsonPath = Path.(path / "package.json") in
-      RunAsync.contextf
-        (Fs.readJsonFile packageJsonPath)
-        "reading opam override %a" Path.pp packageJsonPath
-    | OfDist (_dist, Some json) -> return json
-    | OfDist (dist, None) ->
+    | OfJson {json;} -> return json
+    | OfOpamOverride {json;_} -> return json
+    | OfDist {dist} ->
       RunAsync.contextf (
         let%bind path =
           match dist with
@@ -489,24 +463,62 @@ module Override = struct
     let%bind override = RunAsync.ofStringError (build_of_yojson json) in
     return (Some override)
 
-  let lock ~sandbox override =
+  module Lock = struct
+    type t =
+      | OfJson of {json : Json.t;}
+      | OfDist of {dist : Dist.t;}
+
+    let of_yojson json =
+      let open Result.Syntax in
+      match json with
+      | `String _ ->
+        let%bind dist = Dist.of_yojson json in
+        return (OfDist {dist;})
+      | `Assoc _ ->
+        return (OfJson {json;})
+      | _ ->
+        error "locked override: expected a string or an array"
+
+    let to_yojson override =
+      match override with
+      | OfJson {json;} -> json
+      | OfDist {dist;} -> Dist.to_yojson dist
+  end
+
+  let toLock ~sandbox override =
     let open RunAsync.Syntax in
     match override with
-    | OfJson _ -> return override
-    | OfDist _ -> return override
+    | OfJson {json;} -> return (Lock.OfJson {json;})
+    | OfDist {dist;} -> return (Lock.OfDist {dist;})
     | OfOpamOverride src ->
       let lockPath = SandboxSpec.lockfilePath sandbox in
-      let name = src |> Path.show |> Digest.string |> Digest.to_hex in
-      let dst = Path.(lockPath / "overrides" / name) in
-      let%bind () = Fs.copyPath ~src ~dst in
-      return (OfOpamOverride (Path.tryRelativize ~root:sandbox.path dst))
+      let path = Path.(lockPath / "opam-override" / (src.name ^ "." ^ src.version)) in
+      let%bind () = Fs.createDir path in
+      let%bind () =
+        if%bind Fs.exists src.files
+        then Fs.copyPath ~src:src.files ~dst:Path.(path / "files")
+        else return ()
+      in
+      let%bind () =
+        let json = `Assoc ["override", src.json] in
+        Fs.writeJsonFile ~json Path.(path / "package.json")
+      in
+      let dist = Dist.LocalPath {
+        path = Path.tryRelativize ~root:sandbox.SandboxSpec.path path;
+        manifest = Some (ManifestSpec.One (Esy, "package.json"));
+      } in
+      return (Lock.OfDist {dist;})
+
+  let ofLock lock =
+    match lock with
+    | Lock.OfJson {json;} -> OfJson {json;}
+    | Lock.OfDist {dist;} -> OfDist {dist;}
 
 end
 
 module Overrides = struct
   type t =
     Override.t list
-    [@@deriving yojson]
 
   let isEmpty = function
     | [] -> true
@@ -557,8 +569,17 @@ module Overrides = struct
   let apply overrides f init =
     List.fold_left ~f ~init (List.rev overrides)
 
-  let lock ~sandbox overrides =
-    RunAsync.List.mapAndJoin ~f:(Override.lock ~sandbox) overrides
+  module Lock = struct
+    type t =
+      Override.Lock.t list
+      [@@deriving yojson]
+  end
+
+  let toLock ~sandbox overrides =
+    RunAsync.List.mapAndJoin ~f:(Override.toLock ~sandbox) overrides
+
+  let ofLock overrides =
+    List.map ~f:Override.ofLock overrides
 
 end
 

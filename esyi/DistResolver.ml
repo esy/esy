@@ -226,8 +226,8 @@ let resolve
         dist;
         paths = maybeAddToPathSet path Path.Set.empty;
       }
-    | Override {dist = nextDist; override}, path ->
-      let override = Package.Override.ofDist ~json:override dist in
+    | Override {dist = nextDist; override = _;}, path ->
+      let override = Package.Override.ofDist dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
       let overrides = Package.Overrides.add override overrides in

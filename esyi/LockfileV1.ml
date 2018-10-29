@@ -47,7 +47,7 @@ and node = {
   name: string;
   version: Version.t;
   source: source;
-  overrides: Package.Overrides.t;
+  overrides: Package.Overrides.Lock.t;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
 }
@@ -65,7 +65,7 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
       return (Package.Install {source; opam = Some opam;});
   in
   let%bind overrides =
-    Package.Overrides.lock
+    Package.Overrides.toLock
       ~sandbox:sandbox.Sandbox.spec
       pkg.overrides
   in
@@ -85,7 +85,7 @@ let toPackage _sandbox (node : node) =
     name = node.name;
     version = node.version;
     source = node.source;
-    overrides = node.overrides;
+    overrides = Package.Overrides.ofLock node.overrides;
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
   }

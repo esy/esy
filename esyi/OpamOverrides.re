@@ -4,7 +4,7 @@ and record = {
   version: OpamPackage.Version.Map.t(Path.t),
 };
 
-let emptyOverride = {default: None, version: OpamPackage.Version.Map.empty};
+let emptyRecord = {default: None, version: OpamPackage.Version.Map.empty};
 
 let parseOverridePattern = pattern =>
   switch (Astring.String.cut(~sep=".", pattern)) {
@@ -58,7 +58,7 @@ let init = (~cfg, ()): RunAsync.t(t) => {
         let override =
           switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
           | Some(override) => override
-          | None => emptyOverride
+          | None => emptyRecord
           };
         let override =
           switch (version) {
@@ -79,16 +79,27 @@ let init = (~cfg, ()): RunAsync.t(t) => {
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
-  switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
-  | Some(override) =>
-    let byVersion =
-      OpamPackage.Version.Map.find_opt(version, override.version);
-    switch (byVersion, override.default) {
-    | (Some(path), _)
-    | (None, Some(path)) =>
-      let override = Package.Override.ofOpamOverride(path);
-      Some(override);
-    | (None, None) => None
-    };
-  | None => None
-  };
+  RunAsync.Syntax.(
+    switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+    | Some(override) =>
+      let byVersion =
+        OpamPackage.Version.Map.find_opt(version, override.version);
+      switch (byVersion, override.default) {
+      | (Some(path), _)
+      | (None, Some(path)) =>
+        let name = OpamPackage.Name.to_string(name);
+        let version = OpamPackage.Version.to_string(version);
+        let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
+        let override =
+          Package.Override.ofOpamOverride(
+            ~name,
+            ~version,
+            json,
+            Path.(path / "files"),
+          );
+        return(Some(override));
+      | (None, None) => return(None)
+      };
+    | None => return(None)
+    }
+  );

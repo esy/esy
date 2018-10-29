@@ -148,11 +148,17 @@ module Override : sig
   }
   (* Install facet of a package override. *)
 
-  include S.JSONABLE with type t := t
-
-  val ofOpamOverride : Path.t -> t
-  val ofDist : ?json:Json.t -> Dist.t -> t
   val ofJson : Json.t -> t
+  val ofOpamOverride : name:string -> version:string -> Json.t -> Path.t -> t
+  val ofDist : Dist.t -> t
+
+  module Lock : sig
+    type t
+    include S.JSONABLE with type t := t
+  end
+
+  val toLock : sandbox:SandboxSpec.t -> t -> Lock.t RunAsync.t
+  val ofLock : Lock.t -> t
 end
 
 (** Overrides collection. *)
@@ -192,9 +198,14 @@ module Overrides : sig
 
   val toList : t -> Override.t list
 
-  val lock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
+  module Lock : sig
+    type t
+    include S.JSONABLE with type t := t
+  end
 
-  include S.JSONABLE with type t := t
+  val toLock : sandbox:SandboxSpec.t -> t -> Lock.t RunAsync.t
+  val ofLock : Lock.t -> t
+
 end
 
 

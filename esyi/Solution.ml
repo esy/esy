@@ -9,7 +9,7 @@ module Package = struct
     overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
-  } [@@deriving yojson]
+  }
 
   type opam = {
     opamname : OpamPackage.Name.t;
@@ -50,12 +50,7 @@ module Package = struct
     let open RunAsync.Syntax in
     match pkg.source with
     | P.Install { opam = Some opam; _ } ->
-      let filesPath = Path.(opam.path / "files") in
-      if%bind Fs.exists filesPath
-      then
-        let%bind files = Fs.listDir filesPath in
-        return (List.map ~f:(File.make filesPath) files)
-      else return []
+      File.ofDir Path.(opam.path / "files")
     | _ -> return []
 
   module Map = Map.Make(struct type nonrec t = t let compare = compare end)
