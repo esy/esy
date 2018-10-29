@@ -201,7 +201,7 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Versi
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
+let packageOfSource ~name ~overrides (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
   let readPackage ~name ~source {DistResolver. kind; filename = _; data; suggestedPackageName} =
@@ -235,7 +235,7 @@ let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
     let%bind { DistResolver. overrides; dist = resolvedDist; manifest; _; } =
       DistResolver.resolve
         ~cfg:resolver.cfg
-        ~overrides:overridesOfResolutions
+        ~overrides
         ~root:resolver.root
         (Source.toDist source)
     in
@@ -264,9 +264,15 @@ let packageOfSource ~name ~overridesOfResolutions (source : Source.t) resolver =
         else errorf "no manifest found at %a" Source.pp source
     in
 
+    let pkg =
+      match pkg with
+      | Ok pkg -> Ok {pkg with Package.overrides}
+      | err -> err
+    in
+
     Hashtbl.replace resolver.sourceToSource source resolvedSource;
 
-    return (pkg, overrides)
+    return pkg
   in
 
   RunAsync.contextf pkg
@@ -382,7 +388,7 @@ let package ~(resolution : Resolution.t) resolver =
           ~version
           resolver.npmRegistry ()
       in
-      return (Ok pkg, Package.Overrides.empty)
+      return (Ok pkg)
     | Version.Opam version ->
       begin match%bind
         let%bind name = RunAsync.ofRun (requireOpamName resolution.name) in
@@ -392,40 +398,34 @@ let package ~(resolution : Resolution.t) resolver =
           resolver.opamRegistry
       with
         | Some manifest ->
-          let%bind pkg = OpamManifest.toPackage
+          OpamManifest.toPackage
             ~name:resolution.name
             ~version:(Version.Opam version)
             manifest
-          in
-          return (pkg, Package.Overrides.empty)
-        | None -> error ("no such opam package: " ^ resolution.name)
+        | None ->
+          errorf "no such opam package: %a" Resolution.pp resolution
       end
 
     | Version.Source source ->
       packageOfSource
-        ~overridesOfResolutions:Package.Overrides.empty
+        ~overrides:Package.Overrides.empty
         ~name:resolution.name
         source
         resolver
   in
 
   PackageCache.compute resolver.pkgCache key begin fun _ ->
-    let%bind pkg, overrides =
+    let%bind pkg =
       match resolution.resolution with
-      | Version version ->
-        let%bind pkg, overrides = ofVersion version in
-        return (pkg, overrides)
+      | Version version -> ofVersion version
       | SourceOverride {source; override} ->
         let override = Package.Override.ofJson override in
-        let overridesOfResolutions = Package.Overrides.(add override empty) in
-        let%bind pkg, overrides =
-          packageOfSource
-            ~name:resolution.name
-            ~overridesOfResolutions
-            source
-            resolver
-        in
-        return (pkg, overrides)
+        let overrides = Package.Overrides.(add override empty) in
+        packageOfSource
+          ~name:resolution.name
+          ~overrides
+          source
+          resolver
     in
     match pkg with
     | Ok pkg ->
@@ -434,12 +434,8 @@ let package ~(resolution : Resolution.t) resolver =
           ~cfg:resolver.cfg
           ~f:applyOverride
           ~init:pkg
-          overrides
+          pkg.overrides
         in
-      let pkg =
-        let overrides = Package.Overrides.merge pkg.Package.overrides overrides in
-        {pkg with Package.overrides;}
-      in
       return (Ok pkg)
     | err -> return err
   end
@@ -511,7 +507,6 @@ let resolve' ~fullMetadata ~name ~spec resolver =
   | VersionSpec.NpmDistTag _ ->
 
     let%bind resolutions =
-      let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name VersionSpec.pp spec) in
       match%bind
         NpmRegistry.versions ~fullMetadata ~name resolver.npmRegistry ()
       with
