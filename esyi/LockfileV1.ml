@@ -1,3 +1,38 @@
+type source = Package.source
+
+let source_to_yojson source =
+  match source with
+  | Package.Link { path; manifest } ->
+    `Assoc [
+      "type", `String "link";
+      "path", Path.to_yojson path;
+      "manifest", Json.Encode.opt ManifestSpec.to_yojson manifest;
+    ]
+  | Package.Install { source = source, mirrors; opam } ->
+    `Assoc [
+      "type", `String "install";
+      "source", Json.Encode.list Source.to_yojson (source::mirrors);
+      "opam", Json.Encode.opt OpamResolution.to_yojson opam;
+    ]
+
+let source_of_yojson json =
+  let open Result.Syntax in
+  let open Json.Decode in
+  match%bind fieldWith ~name:"type" string json with
+  | "install" ->
+    let%bind source =
+      match%bind fieldWith ~name:"source" (list Source.of_yojson) json with
+      | source::mirrors -> return (source, mirrors)
+      | _ -> errorf "invalid source configuration"
+    in
+    let%bind opam = fieldOptWith ~name:"opam" OpamResolution.of_yojson json in
+    Ok (Package.Install {source; opam;})
+  | "link" ->
+    let%bind path = fieldWith ~name:"path" Path.of_yojson json in
+    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
+    Ok (Package.Link {path; manifest;})
+  | typ -> errorf "unknown source type: %s" typ
+
 type t = {
   (* This is checksum of all dependencies/resolutios, used as a checksum. *)
   checksum : string;
@@ -10,7 +45,7 @@ type t = {
 and node = {
   name: string;
   version: Version.t;
-  source: Package.source;
+  source: source;
   overrides: override list;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
