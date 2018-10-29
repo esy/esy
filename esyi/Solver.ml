@@ -451,7 +451,6 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
       let%bind filenameIn =
         let filename = Path.(path / "in.cudf") in
         let cudfData = printCudfDoc cudf in
-        Logs_lwt.debug (fun m -> m "CUDF REQ:@[<2>@;%a@]" Fmt.text cudfData);%lwt
         let%bind () = Fs.writeFile ~data:cudfData filename in
         return filename
       in
@@ -467,7 +466,6 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
         then return None
         else (
           let dataOut = normalizeSolutionData dataOut in
-          Logs_lwt.debug (fun m -> m "CUDF RES:@[<2>@;%a@]" Fmt.text dataOut);%lwt
           let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )
