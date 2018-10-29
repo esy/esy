@@ -431,16 +431,11 @@ module Override = struct
   let files ~cfg override =
     let open RunAsync.Syntax in
 
-    let readFiles filesPath =
-      if%bind Fs.exists filesPath
+    let readFiles path =
+      if%bind Fs.exists path
       then
-        let%bind files = Fs.listDir filesPath in
-        let f filename =
-          File.readOfPath
-            ~prefixPath:filesPath
-            ~filePath:Path.(filesPath / filename)
-        in
-        RunAsync.List.mapAndJoin ~f files
+        let%bind files = Fs.listDir path in
+        return (List.map ~f:(File.make path) files)
       else
         return []
     in

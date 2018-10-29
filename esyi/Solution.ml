@@ -54,12 +54,7 @@ module Package = struct
       if%bind Fs.exists filesPath
       then
         let%bind files = Fs.listDir filesPath in
-        let f filename =
-          File.readOfPath
-            ~prefixPath:filesPath
-            ~filePath:Path.(filesPath / filename)
-        in
-        RunAsync.List.mapAndJoin ~f files
+        return (List.map ~f:(File.make filesPath) files)
       else return []
     | _ -> return []
 

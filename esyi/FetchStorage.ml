@@ -198,7 +198,7 @@ let unpack ~path dist =
 
 let layoutFiles files path =
   RunAsync.List.mapAndWait
-    ~f:(File.writeToDir ~destinationDir:path)
+    ~f:(File.placeAt path)
     files
 
 let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
