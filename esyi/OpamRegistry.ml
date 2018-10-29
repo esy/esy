@@ -222,7 +222,7 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
         opamRepositoryPath = Some res.OpamResolution.path;
       }
     in
-    begin match%bind OpamOverrides.find ~name ~version registry.overrides with
+    begin match OpamOverrides.find ~name ~version registry.overrides with
     | None -> return (Some pkg)
     | Some override ->
       let pkg = {pkg with OpamManifest. override = Some override;} in

@@ -1,30 +1,21 @@
-type t = OpamPackage.Name.Map.t(list(override))
+type t = OpamPackage.Name.Map.t(override)
 and override = {
-  pattern,
-  path: Path.t,
-}
-and pattern = {
-  name: OpamPackage.Name.t,
-  version: option(OpamPackage.Version.t),
+  default: option(Path.t),
+  version: OpamPackage.Version.Map.t(Path.t),
 };
+
+let emptyOverride = {default: None, version: OpamPackage.Version.Map.empty};
 
 let parseOverridePattern = pattern =>
   switch (Astring.String.cut(~sep=".", pattern)) {
   | None =>
     let name = OpamPackage.Name.of_string(pattern);
-    Some({name, version: None});
+    Some((name, None));
   | Some(("", _)) => None
-  | Some((name, constr)) =>
-    let constr =
-      String.map(
-        fun
-        | '_' => ' '
-        | c => c,
-        constr,
-      );
+  | Some((name, version)) =>
     let name = OpamPackage.Name.of_string(name);
-    let version = OpamPackageVersion.Version.parseExn(constr);
-    Some({name, version: Some(version)});
+    let version = OpamPackageVersion.Version.parseExn(version);
+    Some((name, Some(version)));
   };
 
 let init = (~cfg, ()): RunAsync.t(t) => {
@@ -62,17 +53,23 @@ let init = (~cfg, ()): RunAsync.t(t) => {
   let overrides = {
     let f = (overrides, dirName) =>
       switch (parseOverridePattern(dirName)) {
-      | Some(pattern) =>
-        let items =
-          switch (OpamPackage.Name.Map.find_opt(pattern.name, overrides)) {
-          | Some(items) => items
-          | None => []
+      | Some((name, version)) =>
+        let path = Path.(packagesDir / dirName);
+        let override =
+          switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+          | Some(override) => override
+          | None => emptyOverride
           };
-        OpamPackage.Name.Map.add(
-          pattern.name,
-          [{pattern, path: Path.(packagesDir / dirName)}, ...items],
-          overrides,
-        );
+        let override =
+          switch (version) {
+          | None => {...override, default: Some(path)}
+          | Some(version) => {
+              ...override,
+              version:
+                OpamPackage.Version.Map.add(version, path, override.version),
+            }
+          };
+        OpamPackage.Name.Map.add(name, override, overrides);
       | None => overrides
       };
     List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
@@ -82,26 +79,16 @@ let init = (~cfg, ()): RunAsync.t(t) => {
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
-  RunAsync.Syntax.(
-    switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
-    | Some(overrides) =>
-      let override =
-        List.find_opt(
-          ~f=
-            ({pattern, path: _}) =>
-              switch (pattern.version) {
-              | None => true
-              | Some(overrideVersion) =>
-                OpamPackage.Version.compare(overrideVersion, version) == 0
-              },
-          overrides,
-        );
-      switch (override) {
-      | Some({pattern: _, path}) =>
-        let override = Package.Override.ofOpamOverride(path);
-        return(Some(override));
-      | None => return(None)
-      };
-    | None => return(None)
-    }
-  );
+  switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+  | Some(override) =>
+    let byVersion =
+      OpamPackage.Version.Map.find_opt(version, override.version);
+    switch (byVersion, override.default) {
+    | (Some(path), _)
+    | (None, Some(path)) =>
+      let override = Package.Override.ofOpamOverride(path);
+      Some(override);
+    | (None, None) => None
+    };
+  | None => None
+  };
