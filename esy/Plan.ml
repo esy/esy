@@ -306,15 +306,6 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
-    Logs.debug (fun m ->
-      let ppTask fmt task = PackageId.pp fmt task.Task.pkgId in
-      let ppDep = Fmt.(pair ~sep:comma bool (option ppTask)) in
-      let ppDeps = Fmt.(brackets (list ~sep:(unit "@;") (hbox (brackets ppDep)))) in
-      m "plan %a dependencies@[<v 2>@;%a@]"
-        PackageId.pp pkgId
-        ppDeps dependencies
-    );
-
     let source, sourcePath, sourceType =
       match pkg.source with
       | EsyInstall.Package.Install info ->

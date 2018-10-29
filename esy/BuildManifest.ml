@@ -91,8 +91,6 @@ let empty ~name ~version () = {
 
 let applyOverride (manifest : t) (override : Override.build) =
 
-  Logs.debug (fun m -> m "applyOverride: %a %a" Override.pp_build override pp manifest);
-
   let {
     Override.
     buildType;
