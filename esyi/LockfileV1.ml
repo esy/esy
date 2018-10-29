@@ -1,18 +1,19 @@
 type source = Package.source
 
 let source_to_yojson source =
+  let open Json.Encode in
   match source with
   | Package.Link { path; manifest } ->
-    `Assoc [
-      "type", `String "link";
-      "path", Path.to_yojson path;
-      "manifest", Json.Encode.opt ManifestSpec.to_yojson manifest;
+    assoc [
+      field "type" string "link";
+      field "path" Path.to_yojson path;
+      fieldOpt "manifest" ManifestSpec.to_yojson manifest;
     ]
   | Package.Install { source = source, mirrors; opam } ->
-    `Assoc [
-      "type", `String "install";
-      "source", Json.Encode.list Source.to_yojson (source::mirrors);
-      "opam", Json.Encode.opt OpamResolution.to_yojson opam;
+    assoc [
+      field "type" string "install";
+      field "source" (Json.Encode.list Source.to_yojson) (source::mirrors);
+      fieldOpt "opam" OpamResolution.to_yojson opam;
     ]
 
 let source_of_yojson json =
