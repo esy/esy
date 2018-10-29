@@ -204,7 +204,7 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
   match%bind resolve ~name ~version registry with
   | None -> return None
   | Some res ->
-    let%bind pkg =
+    let%bind manifest =
       let%bind opam = readOpamFileOfRegistry res registry in
       let%bind url =
         match OpamFile.OPAM.url opam with
@@ -223,8 +223,8 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
       }
     in
     begin match%bind OpamOverrides.find ~name ~version registry.overrides with
-    | None -> return (Some pkg)
+    | None -> return (Some manifest)
     | Some override ->
-      let pkg = {pkg with OpamManifest. override = Some override;} in
-      return (Some pkg)
+      let manifest = {manifest with OpamManifest. override = Some override;} in
+      return (Some manifest)
     end
