@@ -33,9 +33,14 @@ module Package = struct
     let open RunAsync.Syntax in
     match pkg.source with
     | P.Install { opam = Some opam; _ } ->
-      let path = Path.(opam.path / "opam" |> show) in
-      let filename = OpamFile.make (OpamFilename.of_string "opam") in
-      let opamfile = OpamFile.OPAM.read_from_string ~filename path in
+      let%bind opamfile =
+        let path = Path.(opam.path / "opam") in
+        let%bind data = Fs.readFile path in
+        let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
+        try return (OpamFile.OPAM.read_from_string ~filename data) with
+        | Failure msg -> errorf "error parsing opam metadata: %s" msg
+        | _ -> error "error parsing opam metadata"
+      in
       return (Some {
         opamname = opam.name;
         opamversion = opam.version;

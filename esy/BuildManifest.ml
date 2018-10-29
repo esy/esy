@@ -206,9 +206,18 @@ module EsyBuild = struct
 end
 
 let parseOpam data =
+  let open Run.Syntax in
   if String.trim data = ""
-  then None
-  else Some (OpamFile.OPAM.read_from_string data)
+  then return None
+  else (
+    let%bind opam =
+      try return (OpamFile.OPAM.read_from_string data)
+      with
+      | Failure msg -> errorf "error parsing opam: %s" msg
+      | _ -> errorf " error parsing opam"
+    in
+    return (Some opam)
+  )
 
 module OpamBuild = struct
 
@@ -251,7 +260,7 @@ module OpamBuild = struct
 
   let ofData ~nameFallback data =
     let open Run.Syntax in
-    match parseOpam data with
+    match%bind parseOpam data with
     | None -> return None
     | Some opam ->
       let name =
@@ -280,22 +289,27 @@ let discoverManifest path =
   let filenames =
     let dirname = Path.basename path in
     [
-      `Esy, Path.v "esy.json";
-      `Esy, Path.v "package.json";
-      `Opam, Path.(v dirname |> addExt ".opam");
-      `Opam, Path.v "opam";
+      ManifestSpec.Filename.Esy, "esy.json";
+      ManifestSpec.Filename.Esy, "package.json";
+      ManifestSpec.Filename.Opam, Path.(v dirname |> addExt ".opam" |> show);
+      ManifestSpec.Filename.Opam, "opam";
     ]
   in
 
   let rec tryLoad = function
     | [] -> return (None, Path.Set.empty)
     | (kind, fname)::rest ->
-      let fname = Path.(path // fname) in
+      Logs_lwt.debug (fun m ->
+        m "trying %a %a"
+        Path.pp path
+        ManifestSpec.Filename.pp (kind, fname)
+      );%lwt
+      let fname = Path.(path / fname) in
       if%bind Fs.exists fname
       then
         match kind with
-        | `Esy -> EsyBuild.ofFile fname
-        | `Opam -> OpamBuild.ofFile fname
+        | ManifestSpec.Filename.Esy -> EsyBuild.ofFile fname
+        | ManifestSpec.Filename.Opam -> OpamBuild.ofFile fname
       else tryLoad rest
   in
 
@@ -305,7 +319,7 @@ let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
   Logs_lwt.debug (fun m ->
-    m "Manifest.ofDir %a %a"
+    m "BuildManifest.ofPath %a %a"
     Fmt.(option ManifestSpec.pp) manifest
     Path.pp path
   );%lwt
