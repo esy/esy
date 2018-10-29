@@ -163,11 +163,6 @@ module Override : sig
   val ofOpamOverride : Path.t -> t
   val ofDist : ?json:Json.t -> Dist.t -> t
   val ofJson : Json.t -> t
-
-  val build : cfg:Config.t -> t -> build option RunAsync.t
-  val install : cfg:Config.t -> t -> install option RunAsync.t
-  val files : cfg:Config.t -> t -> File.t list RunAsync.t
-
 end
 
 (** Overrides collection. *)
@@ -206,6 +201,8 @@ module Overrides : sig
   val files : cfg:Config.t -> t -> File.t list RunAsync.t
 
   val toList : t -> Override.t list
+
+  val lock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
 
   include S.JSONABLE with type t := t
 end

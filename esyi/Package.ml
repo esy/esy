@@ -528,6 +528,18 @@ module Override = struct
     let%bind override = RunAsync.ofStringError (build_of_yojson json) in
     return (Some override)
 
+  let lock ~sandbox override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson _ -> return override
+    | OfDist _ -> return override
+    | OfOpamOverride src ->
+      let lockPath = SandboxSpec.lockfilePath sandbox in
+      let name = src |> Path.show |> Digest.string |> Digest.to_hex in
+      let dst = Path.(lockPath / "overrides" / name) in
+      let%bind () = Fs.copyPath ~src ~dst in
+      return (OfOpamOverride (Path.tryRelativize ~root:sandbox.path dst))
+
 end
 
 module Overrides = struct
@@ -583,6 +595,9 @@ module Overrides = struct
 
   let apply overrides f init =
     List.fold_left ~f ~init (List.rev overrides)
+
+  let lock ~sandbox overrides =
+    RunAsync.List.mapAndJoin ~f:(Override.lock ~sandbox) overrides
 
 end
 

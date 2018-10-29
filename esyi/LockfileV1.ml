@@ -54,11 +54,6 @@ and node = {
 
 let indexFilename = "index.json"
 
-let opampathLocked sandbox (opam : OpamResolution.t) =
-  let name = OpamPackage.Name.to_string opam.name in
-  let version = OpamPackage.Version.to_string opam.version in
-  Path.(SandboxSpec.lockfilePath sandbox.Sandbox.spec / "opam" / (name ^ "." ^ version))
-
 let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
@@ -66,32 +61,19 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
     | Link _
     | Install {source = _; opam = None;} -> return pkg.source
     | Install {source; opam = Some opam;} ->
-      let sandboxPath = sandbox.Sandbox.spec.path in
-      let opampath = Path.(sandboxPath // opam.path) in
-      let opampathLocked = opampathLocked sandbox opam in
-      if Path.isPrefix sandboxPath opampath
-      then return pkg.source
-      else (
-        Logs_lwt.debug (
-          fun m ->
-            m "lock: %a -> %a"
-            Path.pp opam.path
-            Path.pp opampathLocked
-        );%lwt
-        let%bind () = Fs.copyPath ~src:opam.path ~dst:opampathLocked in
-        return (Package.Install {
-          source;
-          opam = Some {
-            opam with path = Path.tryRelativize ~root:sandboxPath opampathLocked;
-          }
-        });
-      )
+      let%bind opam = OpamResolution.lock ~sandbox:sandbox.spec opam in
+      return (Package.Install {source; opam = Some opam;});
+  in
+  let%bind overrides =
+    Package.Overrides.lock
+      ~sandbox:sandbox.Sandbox.spec
+      pkg.overrides
   in
   return {
     name = pkg.name;
     version = pkg.version;
     source;
-    overrides = pkg.overrides;
+    overrides;
     dependencies = pkg.dependencies;
     devDependencies = pkg.devDependencies;
   }

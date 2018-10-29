@@ -19,3 +19,18 @@ type t = {
   version : OpamPackageVersion.t;
   path : Path.t;
 } [@@deriving yojson]
+
+let lock ~sandbox opam =
+  let open RunAsync.Syntax in
+  let sandboxPath = sandbox.SandboxSpec.path in
+  let opampath = Path.(sandboxPath // opam.path) in
+  let dst =
+    let name = OpamPackage.Name.to_string opam.name in
+    let version = OpamPackage.Version.to_string opam.version in
+    Path.(SandboxSpec.lockfilePath sandbox / "opam" / (name ^ "." ^ version))
+  in
+  if Path.isPrefix sandboxPath opampath
+  then return opam
+  else
+    let%bind () = Fs.copyPath ~src:opam.path ~dst in
+    return {opam with path = Path.tryRelativize ~root:sandboxPath dst;}
