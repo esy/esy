@@ -393,6 +393,12 @@ module Override = struct
         dist : Dist.t;
       }
 
+  let pp fmt override =
+    match override with
+    | OfJson _ -> Fmt.pf fmt "<inline override>"
+    | OfOpamOverride {name; version; _} -> Fmt.pf fmt "<opam override %s.%s>" name version
+    | OfDist {dist;} -> Fmt.pf fmt "<override %a>" Dist.pp dist
+
   type build = {
     buildType : BuildType.t option [@default None];
     build : CommandList.t option [@default None];
@@ -555,6 +561,7 @@ module Overrides = struct
   let foldWithBuildOverrides ~cfg ~f ~init overrides =
     let open RunAsync.Syntax in
     let f v override =
+      Logs_lwt.debug (fun m -> m "build override: %a" Override.pp override);%lwt
       match%bind Override.build ~cfg override with
       | Some override -> return (f v override)
       | None -> return v
@@ -564,6 +571,7 @@ module Overrides = struct
   let foldWithInstallOverrides ~cfg ~f ~init overrides =
     let open RunAsync.Syntax in
     let f v override =
+      Logs_lwt.debug (fun m -> m "install override: %a" Override.pp override);%lwt
       match%bind Override.install ~cfg override with
       | Some override -> return (f v override)
       | None -> return v
