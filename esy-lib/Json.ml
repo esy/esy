@@ -134,6 +134,8 @@ module Decode = struct
 end
 
 module Encode = struct
+  type field = (string * t) option
+
   let opt encode v =
     match v with
     | None -> `Null
@@ -144,4 +146,15 @@ module Encode = struct
 
   let string v = `String v
 
+  let assoc fields =
+    let fields = List.filterNone fields in
+    `Assoc fields
+
+  let field name encode value =
+    Some (name, encode value)
+
+  let fieldOpt name encode value =
+    match value with
+    | None -> None
+    | Some value -> Some (name, encode value)
 end
