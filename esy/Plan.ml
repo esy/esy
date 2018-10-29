@@ -506,14 +506,9 @@ let make
   ) in
   Logs_lwt.debug (fun m -> m "creating plan: done");%lwt
   let%bind filesUsed =
-    let f path =
-      let%bind stats = Fs.stat path in
-      let mtime = stats.Unix.st_mtime in
-      return {FileInfo. path; mtime}
-    in
     files
     |> Path.Set.elements
-    |> List.map ~f
+    |> List.map ~f:FileInfo.ofPath
     |> RunAsync.List.joinAll
   in
   return ({tasks; solution;}, filesUsed)

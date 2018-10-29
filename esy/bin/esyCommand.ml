@@ -388,19 +388,13 @@ module SandboxInfo = struct
 
     in Perf.measureLwt ~label:"writing sandbox info cache" f
 
-  let mtimeOf path =
-    let open RunAsync.Syntax in
-    let%bind stats = Fs.stat path in
-    return stats.Unix.st_mtime
-
   let checkIsStale filesUsed =
     let open RunAsync.Syntax in
     let%bind checks =
       RunAsync.List.joinAll (
-        let f {FileInfo. path; mtime} =
-          match%lwt mtimeOf path with
-          | Ok curMtime -> return (curMtime > mtime)
-          | Error _ -> return true
+        let f prev =
+          let%bind next = FileInfo.ofPath prev.FileInfo.path in
+          return (FileInfo.compare prev next <> 0)
         in
         List.map ~f filesUsed
       )
@@ -430,19 +424,21 @@ module SandboxInfo = struct
 
         let%bind solution, filesUsed =
           let path = EsyInstall.SandboxSpec.lockfilePath copts.spec in
+          let%bind info = FileInfo.ofPath Path.(path / "index.json") in
+          let filesUsed = info::filesUsed in
           match%bind Lockfile.ofPath ~sandbox:copts.installSandbox path with
           | Some solution ->
-            let%bind mtime = mtimeOf path in
-            return (Some solution, {FileInfo. path; mtime}::filesUsed)
+            return (Some solution, filesUsed)
           | None -> return (None, filesUsed)
         in
 
         let%bind installation, filesUsed =
           let path = EsyInstall.SandboxSpec.installationPath copts.spec in
+          let%bind info = FileInfo.ofPath path in
+          let filesUsed = info::filesUsed in
           match%bind EsyInstall.Installation.ofPath path with
           | Some installation ->
-            let%bind mtime = mtimeOf path in
-            return (Some installation, {FileInfo. path; mtime}::filesUsed)
+            return (Some installation, filesUsed)
           | None -> return (None, filesUsed)
         in
 
