@@ -160,6 +160,7 @@ module Override : sig
 
   include S.JSONABLE with type t := t
 
+  val ofOpamOverride : Path.t -> t
   val ofDist : ?json:Json.t -> Dist.t -> t
   val ofJson : Json.t -> t
 

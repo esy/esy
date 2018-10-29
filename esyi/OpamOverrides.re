@@ -98,8 +98,7 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
         );
       switch (override) {
       | Some({pattern: _, path}) =>
-        let override =
-          Package.Override.ofDist(Dist.LocalPath({path, manifest: None}));
+        let override = Package.Override.ofOpamOverride(path);
         return(Some(override));
       | None => return(None)
       };

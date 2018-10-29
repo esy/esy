@@ -416,6 +416,7 @@ module Override = struct
   type t =
     | OfDist of (Dist.t * Json.t option)
     | OfJson of Json.t
+    | OfOpamOverride of Path.t
 
   type build = {
     buildType : BuildType.t option [@default None];
@@ -439,28 +440,32 @@ module Override = struct
 
   let ofJson json = OfJson json
   let ofDist ?json dist = OfDist (dist, json)
+  let ofOpamOverride path = OfOpamOverride path
 
   let to_yojson override =
     match override with
     | OfJson json -> json
     | OfDist (dist, _) -> Dist.to_yojson dist
+    | OfOpamOverride path -> `String ("opam-override:" ^ Path.show path)
 
   let of_yojson json =
     let open Result.Syntax in
     match json with
-    | `String _ ->
-      let%map dist = Dist.of_yojson json in
-      OfDist (dist, None)
+    | `String v ->
+      begin match Astring.String.cut ~sep:":" v with
+      | Some ("opam-override", v) ->
+        return (OfOpamOverride (Path.v v))
+      | _ ->
+        let%map dist = Dist.of_yojson json in
+        OfDist (dist, None)
+      end
     | json ->
       return (OfJson json)
 
   let files ~cfg override =
     let open RunAsync.Syntax in
-    match override with
-    | OfJson _ -> return []
-    | OfDist (dist, _) ->
-      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg dist in
-      let filesPath = Path.(path / "files") in
+
+    let readFiles filesPath =
       if%bind Fs.exists filesPath
       then
         let%bind files = Fs.listDir filesPath in
@@ -472,11 +477,25 @@ module Override = struct
         RunAsync.List.mapAndJoin ~f files
       else
         return []
+    in
+
+    match override with
+    | OfJson _ -> return []
+    | OfOpamOverride path ->
+      readFiles Path.(path / "files")
+    | OfDist (dist, _) ->
+      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg dist in
+      readFiles Path.(path / "files")
 
   let fetch ~cfg override =
     let open RunAsync.Syntax in
     match override with
     | OfJson json -> return json
+    | OfOpamOverride path ->
+      let packageJsonPath = Path.(path / "package.json") in
+      RunAsync.contextf
+        (Fs.readJsonFile packageJsonPath)
+        "reading opam override %a" Path.pp packageJsonPath
     | OfDist (_dist, Some json) -> return json
     | OfDist (dist, None) ->
       RunAsync.contextf (
