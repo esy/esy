@@ -41,6 +41,9 @@ steps:
     displayName: 'esy b dune runtest test'
     continueOnError: true
 
+  - script: 'npm run test:e2e-slow'
+    displayName: 'npm run test:e2e-slow'
+
   - script: "npm run platform-release"
     displayName: "npm run platform-release"
     continueOnError: true
