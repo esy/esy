@@ -26,7 +26,7 @@ module Dist = struct
         |> Digest.to_hex
         |> Path.safeSeg
       in
-      Path.(dist.sandbox.cfg.sourceInstallPath / (name ^ "-" ^ id))
+      Path.(dist.sandbox.cfg.sourceStagePath / (name ^ "-" ^ id))
 
   let sourceInstallPath dist =
     match dist.source with
