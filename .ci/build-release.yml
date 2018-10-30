@@ -45,6 +45,7 @@ jobs:
   - job: buildWindows
     displayName: Windows
     condition: succeeded()
+    timeoutInMinutes: 0
     pool:
       vsImage: vs2017-win2016
       demands: npm
