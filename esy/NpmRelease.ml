@@ -255,10 +255,10 @@ let make
                            | Error _ -> raise(Not_found)
             in
             let normalizedOcamlPath = ocamlopt |> Path.parent |> Path.showNormalized in
-            `CurrentEnvOverride Astring.String.Map.(
-              add "PATH" ((Path.show userPath) ^ ";" ^ normalizedOcamlPath ^ ";" ^ currentPath) empty
+            ChildProcess.CurrentEnvOverride StringMap.(
+              add "PATH" ((Path.show userPath) ^ (System.Environment.sep ()) ^ normalizedOcamlPath ^ ";" ^ currentPath) empty
             )
-          | _ -> `CurrentEnv
+          | _ -> ChildProcess.CurrentEnv
         in
         ChildProcess.run ~env:environmentOverride compile
       in
