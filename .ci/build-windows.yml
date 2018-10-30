@@ -6,7 +6,11 @@ steps:
 
   - task: DownloadBuildArtifacts@0
     inputs:
-        buildType: current
+        buildType: specific
+        project: esy
+        pipeline: build
+        buildVersionToDownload: 'latest'
+        branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'Release'
         downloadPath: '$(Agent.HomeDirectory)\test-release-cache'
