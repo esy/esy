@@ -37,17 +37,16 @@ let localPrefixPath spec =
 
 let installationPath spec = Path.(localPrefixPath spec / "installation.json")
 let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
-let nodeModulesPath spec = Path.(localPrefixPath spec / "node_modules")
 let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
 let binPath spec = Path.(localPrefixPath spec / "bin")
 
-let lockfilePath spec =
+let solutionLockPath spec =
   match spec.manifest with
   | One (Esy, "package.json")
-  | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock.json")
-  | _ -> Path.(spec.path / (name spec ^ ".esy.lock.json"))
+  | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock")
+  | _ -> Path.(spec.path / (name spec ^ ".esy.lock"))
 
 let ofPath path =
   let open RunAsync.Syntax in

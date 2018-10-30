@@ -1,5 +1,22 @@
-type t =
-  OpamPackage.Name.Map.t(list((OpamPackageVersion.Formula.DNF.t, Fpath.t)));
+type t = OpamPackage.Name.Map.t(record)
+and record = {
+  default: option(Path.t),
+  version: OpamPackage.Version.Map.t(Path.t),
+};
+
+let emptyRecord = {default: None, version: OpamPackage.Version.Map.empty};
+
+let parseOverridePattern = pattern =>
+  switch (Astring.String.cut(~sep=".", pattern)) {
+  | None =>
+    let name = OpamPackage.Name.of_string(pattern);
+    Some((name, None));
+  | Some(("", _)) => None
+  | Some((name, version)) =>
+    let name = OpamPackage.Name.of_string(name);
+    let version = OpamPackageVersion.Version.parseExn(version);
+    Some((name, Some(version)));
+  };
 
 let init = (~cfg, ()): RunAsync.t(t) => {
   open RunAsync.Syntax;
@@ -33,40 +50,26 @@ let init = (~cfg, ()): RunAsync.t(t) => {
   let%bind names = Fs.listDir(packagesDir);
   module String = Astring.String;
 
-  let parseOverrideSpec = spec =>
-    switch (String.cut(~sep=".", spec)) {
-    | None =>
-      Some((
-        OpamPackage.Name.of_string(spec),
-        OpamPackageVersion.Formula.any,
-      ))
-    | Some(("", _)) => None
-    | Some((name, constr)) =>
-      let constr =
-        String.map(
-          fun
-          | '_' => ' '
-          | c => c,
-          constr,
-        );
-      let constr = OpamPackageVersion.Formula.parseExn(constr);
-      Some((OpamPackage.Name.of_string(name), constr));
-    };
-
   let overrides = {
     let f = (overrides, dirName) =>
-      switch (parseOverrideSpec(dirName)) {
-      | Some((name, formula)) =>
-        let items =
+      switch (parseOverridePattern(dirName)) {
+      | Some((name, version)) =>
+        let path = Path.(packagesDir / dirName);
+        let override =
           switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
-          | Some(items) => items
-          | None => []
+          | Some(override) => override
+          | None => emptyRecord
           };
-        OpamPackage.Name.Map.add(
-          name,
-          [(formula, Path.(packagesDir / dirName)), ...items],
-          overrides,
-        );
+        let override =
+          switch (version) {
+          | None => {...override, default: Some(path)}
+          | Some(version) => {
+              ...override,
+              version:
+                OpamPackage.Version.Map.add(version, path, override.version),
+            }
+          };
+        OpamPackage.Name.Map.add(name, override, overrides);
       | None => overrides
       };
     List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
@@ -75,65 +78,28 @@ let init = (~cfg, ()): RunAsync.t(t) => {
   return(overrides);
 };
 
-let load = baseDir => {
-  open RunAsync.Syntax;
-  let packageJson = Path.(baseDir / "package.json");
-  let filesPath = Path.(baseDir / "files");
-  let%bind override =
-    RunAsync.contextf(
-      {
-        let%bind json = Fs.readJsonFile(packageJson);
-        RunAsync.ofRun(
-          Json.parseJsonWith(Package.OpamOverride.of_yojson, json),
-        );
-      },
-      "Reading %a",
-      Path.pp,
-      packageJson,
-    );
-  let%bind files =
-    if%bind (Fs.exists(filesPath)) {
-      let f = (files, path, _stat) =>
-        switch (Path.relativize(~root=filesPath, path)) {
-        | Some(name) =>
-          let%bind file =
-            Package.File.readOfPath(~prefixPath=filesPath, ~filePath=name);
-          return([file, ...files]);
-        | None =>
-          /* This case isn't really possible but... */
-          return(files)
-        };
-      let%bind files = Fs.fold(~init=[], ~f, filesPath);
-      return(files);
-    } else {
-      return([]);
-    };
-  return({
-    ...override,
-    Package.OpamOverride.opam: {
-      ...override.Package.OpamOverride.opam,
-      Package.OpamOverride.Opam.files,
-    },
-  });
-};
-
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
   RunAsync.Syntax.(
     switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
-    | Some(items) =>
-      switch (
-        List.find_opt(
-          ~f=
-            ((formula, _path)) =>
-              OpamPackageVersion.Formula.DNF.matches(formula, ~version),
-          items,
-        )
-      ) {
-      | Some((_formula, path)) =>
-        let%bind override = load(path);
+    | Some(override) =>
+      let byVersion =
+        OpamPackage.Version.Map.find_opt(version, override.version);
+      switch (byVersion, override.default) {
+      | (Some(path), _)
+      | (None, Some(path)) =>
+        let name = OpamPackage.Name.to_string(name);
+        let version = OpamPackage.Version.to_string(version);
+        let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
+        let override =
+          Package.Override.ofOpamOverride(
+            ~name,
+            ~version,
+            json,
+            Path.(path / "files"),
+          );
         return(Some(override));
-      | None => return(None)
-      }
+      | (None, None) => return(None)
+      };
     | None => return(None)
     }
   );

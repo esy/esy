@@ -267,39 +267,11 @@ let solutionPkgOfPkg
     PackageId.Set.fold f set StringMap.empty
   in
 
-  let%bind source =
-    match pkg.source with
-    | Package.Link {path; manifest;} ->
-      return (Solution.Package.Link {path; manifest;})
-    | Package.Install { source; opam } ->
-      let%bind files =
-        match opam with
-        | Some opam -> opam.files ()
-        | None -> return []
-      in
-
-      let opam =
-        match opam with
-        | Some opam -> Some {
-            Solution.Package.Opam.
-            name = opam.name;
-            version = opam.version;
-            opam = opam.opam;
-            override =
-              if Package.OpamOverride.compare opam.override Package.OpamOverride.empty = 0
-              then None
-              else Some opam.override;
-          }
-        | None -> None
-      in
-      return (Solution.Package.Install {opam; files; source;})
-  in
-
   return ({
     Solution.Package.
     name = pkg.name;
     version = pkg.version;
-    source;
+    source = pkg.source;
     overrides = pkg.overrides;
     dependencies;
     devDependencies;
@@ -479,7 +451,6 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
       let%bind filenameIn =
         let filename = Path.(path / "in.cudf") in
         let cudfData = printCudfDoc cudf in
-        Logs_lwt.debug (fun m -> m "CUDF REQ:@[<2>@;%a@]" Fmt.text cudfData);%lwt
         let%bind () = Fs.writeFile ~data:cudfData filename in
         return filename
       in
@@ -495,7 +466,6 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
         then return None
         else (
           let dataOut = normalizeSolutionData dataOut in
-          Logs_lwt.debug (fun m -> m "CUDF RES:@[<2>@;%a@]" Fmt.text dataOut);%lwt
           let solution = parseCudfSolution ~cudfUniverse (dataOut ^ "\n") in
           return (Some solution)
         )

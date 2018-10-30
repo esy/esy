@@ -306,18 +306,9 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
-    Logs.debug (fun m ->
-      let ppTask fmt task = PackageId.pp fmt task.Task.pkgId in
-      let ppDep = Fmt.(pair ~sep:comma bool (option ppTask)) in
-      let ppDeps = Fmt.(brackets (list ~sep:(unit "@;") (hbox (brackets ppDep)))) in
-      m "plan %a dependencies@[<v 2>@;%a@]"
-        PackageId.pp pkgId
-        ppDeps dependencies
-    );
-
     let source, sourcePath, sourceType =
       match pkg.source with
-      | Solution.Package.Install info ->
+      | EsyInstall.Package.Install info ->
         let source, _ = info.source in
         let sourceType =
           let hasTransientDeps =
@@ -332,7 +323,7 @@ let make'
           else SourceType.Immutable
         in
         Some source, location, sourceType
-      | Solution.Package.Link _ ->
+      | EsyInstall.Package.Link _ ->
         None, location, SourceType.Transient
     in
     let sourceType =
@@ -506,14 +497,9 @@ let make
   ) in
   Logs_lwt.debug (fun m -> m "creating plan: done");%lwt
   let%bind filesUsed =
-    let f path =
-      let%bind stats = Fs.stat path in
-      let mtime = stats.Unix.st_mtime in
-      return {FileInfo. path; mtime}
-    in
     files
     |> Path.Set.elements
-    |> List.map ~f
+    |> List.map ~f:FileInfo.ofPath
     |> RunAsync.List.joinAll
   in
   return ({tasks; solution;}, filesUsed)
