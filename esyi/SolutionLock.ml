@@ -182,7 +182,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
 
   return (Digest.to_hex digest)
 
-let solutionOfLockfile sandbox root node =
+let solutionOfLock sandbox root node =
   let open RunAsync.Syntax in
   let f _id node solution =
     let%bind solution = solution in
@@ -191,7 +191,7 @@ let solutionOfLockfile sandbox root node =
   in
   PackageId.Map.fold f node (return (Solution.empty root))
 
-let lockfileOfSolution sandbox (solution : Solution.t) =
+let lockOfSolution sandbox (solution : Solution.t) =
   let open RunAsync.Syntax in
   let%bind node =
     let f pkg _dependencies nodes =
@@ -208,19 +208,19 @@ let lockfileOfSolution sandbox (solution : Solution.t) =
 
 let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  Logs_lwt.debug (fun m -> m "LockfileV1.ofPath %a" Path.pp path);%lwt
+  Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path);%lwt
   if%bind Fs.exists path
   then
-    let%lwt lockfile =
+    let%lwt lock =
       let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
       RunAsync.ofRun (Json.parseJsonWith of_yojson json)
     in
-    match lockfile with
-    | Ok lockfile ->
+    match lock with
+    | Ok lock ->
       let%bind checksum = computeSandboxChecksum sandbox in
-      if String.compare lockfile.checksum checksum = 0
+      if String.compare lock.checksum checksum = 0
       then
-        let%bind solution = solutionOfLockfile sandbox lockfile.root lockfile.node in
+        let%bind solution = solutionOfLock sandbox lock.root lock.node in
         return (Some solution)
       else return None
     | Error err ->
@@ -230,17 +230,17 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
           (Path.relativize ~root:sandbox.spec.path path)
       in
       errorf
-        "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
+        "corrupted %a lock@\nyou might want to remove it and install from scratch@\nerror: %a"
         Path.pp path Run.ppError err
   else
     return None
 
 let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  Logs_lwt.debug (fun m -> m "LockfileV1.toPath %a" Path.pp path);%lwt
+  Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
   let%bind () = Fs.rmPath path in
-  let%bind root, node = lockfileOfSolution sandbox solution in
+  let%bind root, node = lockOfSolution sandbox solution in
   let%bind checksum = computeSandboxChecksum sandbox in
-  let lockfile = {checksum; node; root = Solution.Package.id root;} in
+  let lock = {checksum; node; root = Solution.Package.id root;} in
   let%bind () = Fs.createDir path in
-  Fs.writeJsonFile ~json:(to_yojson lockfile) Path.(path / indexFilename)
+  Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)

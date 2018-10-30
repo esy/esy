@@ -18,7 +18,7 @@ val storePath : t -> Path.t
 val buildPath : t -> Path.t
 val installationPath : t -> Path.t
 val pnpJsPath : t -> Path.t
-val lockfilePath : t -> Path.t
+val solutionLockPath : t -> Path.t
 val binPath : t -> Path.t
 
 val ofPath : Path.t -> t RunAsync.t

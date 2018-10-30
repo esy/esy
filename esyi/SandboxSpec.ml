@@ -42,7 +42,7 @@ let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
 let binPath spec = Path.(localPrefixPath spec / "bin")
 
-let lockfilePath spec =
+let solutionLockPath spec =
   match spec.manifest with
   | One (Esy, "package.json")
   | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock")

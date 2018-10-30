@@ -27,7 +27,7 @@ let lock ~sandbox opam =
   let dst =
     let name = OpamPackage.Name.to_string opam.name in
     let version = OpamPackage.Version.to_string opam.version in
-    Path.(SandboxSpec.lockfilePath sandbox / "opam" / (name ^ "." ^ version))
+    Path.(SandboxSpec.solutionLockPath sandbox / "opam" / (name ^ "." ^ version))
   in
   if Path.isPrefix sandboxPath opampath
   then return opam

@@ -497,7 +497,7 @@ module Override = struct
     | OfJson {json;} -> return (Lock.OfJson {json;})
     | OfDist {dist;} -> return (Lock.OfDist {dist;})
     | OfOpamOverride src ->
-      let lockPath = SandboxSpec.lockfilePath sandbox in
+      let lockPath = SandboxSpec.solutionLockPath sandbox in
       let path = Path.(lockPath / "opam-override" / (src.name ^ "." ^ src.version)) in
       let%bind () = Fs.createDir path in
       let%bind () =

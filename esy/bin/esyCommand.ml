@@ -2,7 +2,7 @@ open Esy
 
 module SandboxSpec = EsyInstall.SandboxSpec
 module Solution = EsyInstall.Solution
-module Lockfile = EsyInstall.LockfileV1
+module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 
@@ -423,10 +423,10 @@ module SandboxInfo = struct
         let filesUsed = [] in
 
         let%bind solution, filesUsed =
-          let path = EsyInstall.SandboxSpec.lockfilePath copts.spec in
+          let path = EsyInstall.SandboxSpec.solutionLockPath copts.spec in
           let%bind info = FileInfo.ofPath Path.(path / "index.json") in
           let filesUsed = info::filesUsed in
-          match%bind Lockfile.ofPath ~sandbox:copts.installSandbox path with
+          match%bind SolutionLock.ofPath ~sandbox:copts.installSandbox path with
           | Some solution ->
             return (Some solution, filesUsed)
           | None -> return (None, filesUsed)
@@ -1233,9 +1233,9 @@ let getSandboxSolution installSandbox =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let%bind solution = Solver.solve installSandbox in
-  let lockfilePath = SandboxSpec.lockfilePath installSandbox.Sandbox.spec in
+  let lockPath = SandboxSpec.solutionLockPath installSandbox.Sandbox.spec in
   let%bind () =
-    Lockfile.toPath ~sandbox:installSandbox ~solution lockfilePath
+    SolutionLock.toPath ~sandbox:installSandbox ~solution lockPath
   in
   return solution
 
@@ -1247,16 +1247,16 @@ let solve {CommonOptions. installSandbox; _} () =
 let fetch {CommonOptions. installSandbox = sandbox; _} () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofPath ~sandbox lockfilePath with
+  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
+  match%bind SolutionLock.ofPath ~sandbox lockPath with
   | Some solution -> Fetch.fetch ~sandbox solution
-  | None -> error "no lockfile found, run 'esy solve' first"
+  | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofPath ~sandbox lockfilePath with
+  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
+  match%bind SolutionLock.ofPath ~sandbox lockPath with
   | Some solution ->
     if%bind Fetch.isInstalled ~sandbox solution
     then return ()
@@ -1807,7 +1807,7 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~name:"solve"
-      ~doc:"Solve dependencies and store the solution as a lockfile"
+      ~doc:"Solve dependencies and store the solution"
       Term.(
         const solve
         $ commonOpts
@@ -1816,7 +1816,7 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~name:"fetch"
-      ~doc:"Fetch dependencies using the solution in a lockfile"
+      ~doc:"Fetch dependencies using the stored solution"
       Term.(
         const fetch
         $ commonOpts
