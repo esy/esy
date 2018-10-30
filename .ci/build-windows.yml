@@ -4,6 +4,15 @@ steps:
     inputs:
       versionSpec: 8.x
 
+  - task: DownloadBuildArtifacts@0
+    inputs:
+        buildType: current
+        pathToPublish: '$(Agent.HomeDirectory)\.esy'
+        downloadType: 'single'
+        artifactName: 'windows-build-cache'
+        downloadPath: '$(Agent.HomeDirectory)\.esy'
+    continueOnError: true
+
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
 
@@ -27,6 +36,11 @@ steps:
 
   - script: 'esy build'
     displayName: 'esy build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+        pathToPublish: '$(Agent.HomeDirectory)\.esy'
+        artifactName: 'windows-build-cache'
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
