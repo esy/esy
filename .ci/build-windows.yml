@@ -10,6 +10,9 @@ steps:
   - script: 'echo %USERPROFILE%'
     displayName: "USERPROFILE"
 
+  - script: 'echo $(Agent.HomeDirectory)'
+    displayName: "Agent.HomeDirectory"
+
   - task: DownloadBuildArtifacts@0
     inputs:
         buildType: specific
@@ -37,6 +40,9 @@ steps:
   - script: 'esy install'
     displayName: 'esy install'
     continueOnError: true
+
+  - script: 'ls C:\Users\VssAdministrator\.esy'
+    displayName: "TEST: VssAdministrator directory"
 
   - script: 'ls $(Agent.HomeDirectory)\.esy'
     displayName: "TEST: Make sure we have the right directory"
