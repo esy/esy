@@ -47,7 +47,7 @@ jobs:
     condition: succeeded()
     timeoutInMinutes: 0
     pool:
-      vsImage: vs2017-win2016
+      vsImage: vs2015-win2012r2
       demands: npm
 
     steps:
