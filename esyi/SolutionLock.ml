@@ -1,6 +1,42 @@
+type source = Package.source
+
+let source_to_yojson source =
+  let open Json.Encode in
+  match source with
+  | Package.Link { path; manifest } ->
+    assoc [
+      field "type" string "link";
+      field "path" Path.to_yojson path;
+      fieldOpt "manifest" ManifestSpec.to_yojson manifest;
+    ]
+  | Package.Install { source = source, mirrors; opam } ->
+    assoc [
+      field "type" string "install";
+      field "source" (Json.Encode.list Source.to_yojson) (source::mirrors);
+      fieldOpt "opam" OpamResolution.to_yojson opam;
+    ]
+
+let source_of_yojson json =
+  let open Result.Syntax in
+  let open Json.Decode in
+  match%bind fieldWith ~name:"type" string json with
+  | "install" ->
+    let%bind source =
+      match%bind fieldWith ~name:"source" (list Source.of_yojson) json with
+      | source::mirrors -> return (source, mirrors)
+      | _ -> errorf "invalid source configuration"
+    in
+    let%bind opam = fieldOptWith ~name:"opam" OpamResolution.of_yojson json in
+    Ok (Package.Install {source; opam;})
+  | "link" ->
+    let%bind path = fieldWith ~name:"path" Path.of_yojson json in
+    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
+    Ok (Package.Link {path; manifest;})
+  | typ -> errorf "unknown source type: %s" typ
+
 type t = {
-  (* This is hash of all dependencies/resolutios, used as a checksum. *)
-  hash : string;
+  (* This is checksum of all dependencies/resolutios, used as a checksum. *)
+  checksum : string;
   (* Id of the root package. *)
   root : PackageId.t;
   (* Map from ids to nodes. *)
@@ -10,74 +46,48 @@ type t = {
 and node = {
   name: string;
   version: Version.t;
-  source: Solution.Package.source;
-  overrides: override list;
+  source: source;
+  overrides: Package.Overrides.Lock.t;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
 }
 
-and override =
-  | InlineOverride of Package.Resolution.override
-  | Override of Dist.t
+let indexFilename = "index.json"
 
-let readOverride sandbox override =
+let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
-  match override with
-  | InlineOverride override -> return override
-  | Override dist ->
-    let%bind path =
-      match dist with
-      | Dist.LocalPath {path; manifest = _;} -> return path
-      | dist -> FetchStorage.fetchDist ~sandbox dist
-    in
-    let manifest =
-      match Dist.manifest dist with
-      | None -> ManifestSpec.One (ManifestSpec.Filename.Esy, "package.json")
-      | Some manifest -> manifest
-    in
-    begin match manifest with
-    | ManifestSpec.One (ManifestSpec.Filename.Esy, filename) ->
-      let path = Path.(path / filename) in
-      let%bind json = Fs.readJsonFile path in
-      let%bind override = RunAsync.ofStringError (DistResolver.PackageOverride.of_yojson json) in
-      return override.DistResolver.PackageOverride.override
-    | manifest ->
-      errorf "unable to read override from %a" ManifestSpec.pp manifest
-    end
+  let%bind source =
+    match pkg.source with
+    | Link _
+    | Install {source = _; opam = None;} -> return pkg.source
+    | Install {source; opam = Some opam;} ->
+      let%bind opam = OpamResolution.lock ~sandbox:sandbox.spec opam in
+      return (Package.Install {source; opam = Some opam;});
+  in
+  let%bind overrides =
+    Package.Overrides.toLock
+      ~sandbox:sandbox.Sandbox.spec
+      pkg.overrides
+  in
+  return {
+    name = pkg.name;
+    version = pkg.version;
+    source;
+    overrides;
+    dependencies = pkg.dependencies;
+    devDependencies = pkg.devDependencies;
+  }
 
 let toPackage sandbox (node : node) =
   let open RunAsync.Syntax in
-  let%bind overrides =
-    let%bind overrides =
-      RunAsync.List.mapAndJoin
-        ~f:(readOverride sandbox)
-        node.overrides
-    in
-    return Package.Overrides.(addMany overrides empty)
-  in
   return {
     Solution.Package.
     name = node.name;
     version = node.version;
     source = node.source;
-    overrides;
+    overrides = Package.Overrides.ofLock ~sandbox:sandbox.Sandbox.spec node.overrides;
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
-  }
-
-let ofPackage (pkg : Solution.Package.t) =
-  let ofOverride override =
-    match override.Package.Resolution.origin with
-    | Some source -> Override source
-    | None -> InlineOverride override
-  in
-  {
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    overrides = List.map ~f:ofOverride (Package.Overrides.toList pkg.overrides);
-    dependencies = pkg.dependencies;
-    devDependencies = pkg.devDependencies;
   }
 
 let computeSandboxChecksum (sandbox : Sandbox.t) =
@@ -172,7 +182,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
 
   return (Digest.to_hex digest)
 
-let solutionOfLockfile sandbox root node =
+let solutionOfLock sandbox root node =
   let open RunAsync.Syntax in
   let f _id node solution =
     let%bind solution = solution in
@@ -181,32 +191,36 @@ let solutionOfLockfile sandbox root node =
   in
   PackageId.Map.fold f node (return (Solution.empty root))
 
-let lockfileOfSolution (sol : Solution.t) =
-  let node =
-    let f pkg _dependencies nodes =
-      PackageId.Map.add
-        (Solution.Package.id pkg)
-        (ofPackage pkg)
-        nodes
-    in
-    Solution.fold ~f ~init:PackageId.Map.empty sol
-  in
-  Solution.root sol, node
-
-let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
+let lockOfSolution sandbox (solution : Solution.t) =
   let open RunAsync.Syntax in
+  let%bind node =
+    let f pkg _dependencies nodes =
+      let%bind nodes = nodes in
+      let%bind node = ofPackage sandbox pkg in
+      return (PackageId.Map.add
+        (Solution.Package.id pkg)
+        node
+        nodes)
+    in
+    Solution.fold ~f ~init:(return PackageId.Map.empty) solution
+  in
+  return (Solution.root solution, node)
+
+let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
+  let open RunAsync.Syntax in
+  Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path);%lwt
   if%bind Fs.exists path
   then
-    let%lwt lockfile =
-      let%bind json = Fs.readJsonFile path in
+    let%lwt lock =
+      let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
       RunAsync.ofRun (Json.parseJsonWith of_yojson json)
     in
-    match lockfile with
-    | Ok lockfile ->
+    match lock with
+    | Ok lock ->
       let%bind checksum = computeSandboxChecksum sandbox in
-      if String.compare lockfile.hash checksum = 0
+      if String.compare lock.checksum checksum = 0
       then
-        let%bind solution = solutionOfLockfile sandbox lockfile.root lockfile.node in
+        let%bind solution = solutionOfLock sandbox lock.root lock.node in
         return (Some solution)
       else return None
     | Error err ->
@@ -216,15 +230,17 @@ let ofFile ~(sandbox : Sandbox.t) (path : Path.t) =
           (Path.relativize ~root:sandbox.spec.path path)
       in
       errorf
-        "corrupted %a lockfile@\nyou might want to remove it and install from scratch@\nerror: %a"
+        "corrupted %a lock@\nyou might want to remove it and install from scratch@\nerror: %a"
         Path.pp path Run.ppError err
   else
     return None
 
-let toFile ~sandbox ~(solution : Solution.t) (path : Path.t) =
+let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  let root, node = lockfileOfSolution solution in
-  let%bind hash = computeSandboxChecksum sandbox in
-  let lockfile = {hash; node; root = Solution.Package.id root;} in
-  let json = to_yojson lockfile in
-  Fs.writeJsonFile ~json path
+  Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
+  let%bind () = Fs.rmPath path in
+  let%bind root, node = lockOfSolution sandbox solution in
+  let%bind checksum = computeSandboxChecksum sandbox in
+  let lock = {checksum; node; root = Solution.Package.id root;} in
+  let%bind () = Fs.createDir path in
+  Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)

@@ -16,6 +16,7 @@ module CommandList = Package.CommandList
 module ExportedEnv = Package.ExportedEnv
 module Env = Package.Env
 module DistResolver = EsyInstall.DistResolver
+module Override = EsyInstall.Package.Override
 module Overrides = EsyInstall.Package.Overrides
 module Installation = EsyInstall.Installation
 
@@ -88,15 +89,10 @@ let empty ~name ~version () = {
   buildEnv = StringMap.empty;
 }
 
-let applyOverride (manifest : t) (override : Overrides.override) =
-
-  Logs.debug (fun m -> m "applyOverride: %a" pp manifest);
+let applyOverride (manifest : t) (override : Override.build) =
 
   let {
-    Overrides.
-
-    origin = _;
-
+    Override.
     buildType;
     build;
     install;
@@ -104,10 +100,6 @@ let applyOverride (manifest : t) (override : Overrides.override) =
     exportedEnvOverride;
     buildEnv;
     buildEnvOverride;
-
-    dependencies = _;
-    devDependencies = _;
-    resolutions = _;
   } = override in
 
   let manifest =
@@ -212,33 +204,27 @@ module EsyBuild = struct
 end
 
 let parseOpam data =
+  let open Run.Syntax in
   if String.trim data = ""
-  then None
-  else Some (OpamFile.OPAM.read_from_string data)
+  then return None
+  else (
+    let%bind opam =
+      try return (OpamFile.OPAM.read_from_string data)
+      with
+      | Failure msg -> errorf "error parsing opam: %s" msg
+      | _ -> errorf " error parsing opam"
+    in
+    return (Some opam)
+  )
 
 module OpamBuild = struct
 
-  let build ~name ~version (manifest : Solution.Package.Opam.t) =
-    let buildCommands =
-      match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. build = Some cmds; _} ->
-        EsyCommands cmds
-      | Some {EsyInstall.Package.OpamOverride. build = None; _}
-      | None ->
-        OpamCommands (OpamFile.OPAM.build manifest.opam)
-    in
-
-    let installCommands =
-      match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. install = Some cmds; _} ->
-        EsyCommands cmds
-      | Some {EsyInstall.Package.OpamOverride. install = None; _}
-      | None ->
-        OpamCommands (OpamFile.OPAM.install manifest.opam)
-    in
+  let buildOfOpam ~name ~version (opam : OpamFile.OPAM.t) =
+    let buildCommands = OpamCommands (OpamFile.OPAM.build opam) in
+    let installCommands = OpamCommands (OpamFile.OPAM.install opam) in
 
     let patches =
-      let patches = OpamFile.OPAM.patches manifest.opam in
+      let patches = OpamFile.OPAM.patches opam in
       let f (name, filter) =
         let name = Path.v (OpamFilename.Base.to_string name) in
         (name, filter)
@@ -247,15 +233,9 @@ module OpamBuild = struct
     in
 
     let substs =
-      let names = OpamFile.OPAM.substs manifest.opam in
+      let names = OpamFile.OPAM.substs opam in
       let f name = Path.v (OpamFilename.Base.to_string name) in
       List.map ~f names
-    in
-
-    let exportedEnv =
-      match manifest.override with
-      | Some {EsyInstall.Package.OpamOverride. exportedEnv;_} -> exportedEnv
-      | None -> ExportedEnv.empty
     in
 
     let name =
@@ -268,7 +248,7 @@ module OpamBuild = struct
       name;
       version;
       buildType = BuildType.InSource;
-      exportedEnv;
+      exportedEnv = ExportedEnv.empty;
       buildEnv = Env.empty;
       buildCommands;
       installCommands;
@@ -278,7 +258,7 @@ module OpamBuild = struct
 
   let ofData ~nameFallback data =
     let open Run.Syntax in
-    match parseOpam data with
+    match%bind parseOpam data with
     | None -> return None
     | Some opam ->
       let name =
@@ -289,14 +269,7 @@ module OpamBuild = struct
         try Some (Version.Opam (OpamFile.OPAM.version opam))
         with _ -> None
       in
-      let info = {
-        EsyInstall.Solution.Package.Opam.
-        name = OpamPackage.Name.of_string "unsued";
-        version = OpamPackage.Version.of_string "unused";
-        opam;
-        override = None;
-      } in
-      return (Some (build ~name ~version info))
+      return (Some (buildOfOpam ~name ~version opam))
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
@@ -314,22 +287,27 @@ let discoverManifest path =
   let filenames =
     let dirname = Path.basename path in
     [
-      `Esy, Path.v "esy.json";
-      `Esy, Path.v "package.json";
-      `Opam, Path.(v dirname |> addExt ".opam");
-      `Opam, Path.v "opam";
+      ManifestSpec.Filename.Esy, "esy.json";
+      ManifestSpec.Filename.Esy, "package.json";
+      ManifestSpec.Filename.Opam, Path.(v dirname |> addExt ".opam" |> show);
+      ManifestSpec.Filename.Opam, "opam";
     ]
   in
 
   let rec tryLoad = function
     | [] -> return (None, Path.Set.empty)
     | (kind, fname)::rest ->
-      let fname = Path.(path // fname) in
+      Logs_lwt.debug (fun m ->
+        m "trying %a %a"
+        Path.pp path
+        ManifestSpec.Filename.pp (kind, fname)
+      );%lwt
+      let fname = Path.(path / fname) in
       if%bind Fs.exists fname
       then
         match kind with
-        | `Esy -> EsyBuild.ofFile fname
-        | `Opam -> OpamBuild.ofFile fname
+        | ManifestSpec.Filename.Esy -> EsyBuild.ofFile fname
+        | ManifestSpec.Filename.Opam -> OpamBuild.ofFile fname
       else tryLoad rest
   in
 
@@ -339,7 +317,7 @@ let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
   Logs_lwt.debug (fun m ->
-    m "Manifest.ofDir %a %a"
+    m "BuildManifest.ofPath %a %a"
     Fmt.(option ManifestSpec.pp) manifest
     Path.pp path
   );%lwt
@@ -383,7 +361,7 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Solution.Package.Link { path; manifest; } ->
+  | Package.Link { path; manifest; } ->
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       DistResolver.resolve
@@ -409,29 +387,67 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       then return (None, Path.Set.empty)
       else
         let manifest = empty ~name:None ~version:None () in
-        let manifest = Overrides.apply overrides applyOverride manifest in
+        let%bind manifest =
+          Overrides.foldWithBuildOverrides
+            ~cfg:cfg.Config.installCfg
+            ~f:applyOverride
+            ~init:manifest
+            overrides
+        in
         return (Some manifest, res.DistResolver.paths)
     | Some manifest ->
-      let manifest = Overrides.apply overrides applyOverride manifest in
+      let%bind manifest =
+        Overrides.foldWithBuildOverrides
+          ~cfg:cfg.Config.installCfg
+          ~f:applyOverride
+          ~init:manifest
+          overrides
+      in
       return (Some manifest, res.DistResolver.paths)
     end
 
-  | Solution.Package.Install { source = _; files = _; opam = Some opam; } ->
-    let name = Some (OpamPackage.Name.to_string opam.name) in
-    let version = Some (Version.Opam opam.version) in
-    return (Some (OpamBuild.build ~name ~version opam), Path.Set.empty)
-  | Solution.Package.Install { source; files = _; opam = None; } ->
-    let source , _ = source in
-    let manifest = Source.manifest source in
-    let%bind manifest, paths = ofPath ?manifest loc in
-    let manifest =
-      match manifest with
-      | Some manifest -> Some (Overrides.apply pkg.overrides applyOverride manifest)
-      | None ->
-        if Overrides.isEmpty pkg.overrides
-        then None
-        else
-          let manifest = empty ~name:None ~version:None () in
-          Some (Overrides.apply pkg.overrides applyOverride manifest)
-    in
-    return (manifest, paths)
+  | Package.Install info ->
+    begin match%bind Solution.Package.readOpam pkg with
+    | Some {Solution.Package. opamname; opamversion; opamfile;} ->
+      let name = Some (OpamPackage.Name.to_string opamname) in
+      let version = Some (Version.Opam opamversion) in
+      let manifest = OpamBuild.buildOfOpam ~name ~version opamfile in
+      let%bind manifest =
+        Overrides.foldWithBuildOverrides
+          ~cfg:cfg.Config.installCfg
+          ~f:applyOverride
+          ~init:manifest
+          pkg.overrides
+      in
+      return (Some manifest, Path.Set.empty)
+    | None ->
+      let source , _ = info.source in
+      let manifest = Source.manifest source in
+      let%bind manifest, paths = ofPath ?manifest loc in
+      let%bind manifest =
+        match manifest with
+        | Some manifest ->
+          let%bind manifest =
+            Overrides.foldWithBuildOverrides
+              ~cfg:cfg.Config.installCfg
+              ~f:applyOverride
+              ~init:manifest
+              pkg.overrides
+          in
+          return (Some manifest)
+        | None ->
+          if Overrides.isEmpty pkg.overrides
+          then return None
+          else
+            let manifest = empty ~name:None ~version:None () in
+            let%bind manifest =
+              Overrides.foldWithBuildOverrides
+                ~cfg:cfg.Config.installCfg
+                ~f:applyOverride
+                ~init:manifest
+                pkg.overrides
+            in
+            return (Some manifest)
+      in
+      return (manifest, paths)
+    end

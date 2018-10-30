@@ -18,8 +18,6 @@ module type GRAPH = sig
   val allDependenciesBFS : ?traverse:traverse -> node -> t -> (bool * node) list
 
   val fold : f:(node -> node list -> 'v -> 'v) -> init:'v -> t -> 'v
-
-  include S.JSONABLE with type t := t
 end
 
 module type GRAPH_NODE = sig
@@ -28,14 +26,10 @@ module type GRAPH_NODE = sig
   module Id : sig
     type t
 
-    include S.JSONABLE with type t := t
     include S.COMPARABLE with type t := t
 
     module Map : sig
       include Map.S with type key := t
-
-      val to_yojson : 'a Json.encoder -> 'a t Json.encoder
-      val of_yojson : 'a Json.decoder -> 'a t Json.decoder
     end
 
     module Set : sig
@@ -47,7 +41,6 @@ module type GRAPH_NODE = sig
   val id : t -> Id.t
   val traverse : t -> Id.t list
 
-  include S.JSONABLE with type t := t
   include S.COMPARABLE with type t := t
 end
 
@@ -64,7 +57,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
   type t = {
     root : Node.Id.t;
     nodes : Node.t Node.Id.Map.t;
-  } [@@deriving yojson]
+  }
 
   let empty root = {nodes = Node.Id.Map.empty; root}
 
