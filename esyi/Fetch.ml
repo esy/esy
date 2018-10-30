@@ -95,11 +95,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let nodeModulesPath = SandboxSpec.nodeModulesPath sandbox.spec in
-
-  let%bind () = Fs.rmPath nodeModulesPath in
-  let%bind () = Fs.createDir nodeModulesPath in
-
   let pkgs, root = collectPackagesOfSolution solution in
 
   (* Fetch all package distributions *)

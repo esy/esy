@@ -37,7 +37,6 @@ let localPrefixPath spec =
 
 let installationPath spec = Path.(localPrefixPath spec / "installation.json")
 let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
-let nodeModulesPath spec = Path.(localPrefixPath spec / "node_modules")
 let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
