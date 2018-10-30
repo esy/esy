@@ -14,6 +14,7 @@ module Dist : sig
   val pkg : t -> Solution.Package.t
   val source : t -> Source.t
   val sourceInstallPath : t -> Path.t
+  val sourceStagePath : t -> Path.t
   val pp : Format.formatter -> t -> unit
 end
 
@@ -27,7 +28,11 @@ val fetch :
  *)
 
 val install :
-  Dist.t
+  prepareLifecycleEnv:(
+    Path.t
+    -> string Astring.String.Map.t
+    -> string Astring.String.Map.t RunAsync.t)
+  -> Dist.t
   -> unit RunAsync.t
 (**
  * Unpack fetched dist from storage into source cache and return path.

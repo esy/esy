@@ -3,8 +3,7 @@ let jsppString = Fmt.(quote string)
 let pnpPath path =
   Path.(path |> remEmptySeg |> show |> normalizePathSlashes) ^ "/"
 
-let pnpRelativePath (sandbox : SandboxSpec.t) path =
-  let basePath = sandbox |> SandboxSpec.pnpJsPath |> Path.parent in
+let pnpRelativePath basePath  path =
   let path = Path.v (Path.show path ^ "/") in
   path |> Path.tryRelativize ~root:basePath |> pnpPath
 
@@ -54,8 +53,8 @@ module PackageInformation = struct
     let bindings = StringOrNullMap.bindings map in
     jsppStringMap jsppStringOrNull jsppVersions fmt bindings
 
-  let ofInstallation (sandbox : SandboxSpec.t) solution installation =
-    let rootId = Solution.Package.id (Solution.root solution) in
+  let ofInstallation ~basePath:_ ~rootPath ~rootId ~solution ~installation () =
+    (* let rootId = Solution.Package.id (Solution.root solution) in *)
     let f byName (id, loc) =
       let name =
         if PackageId.compare id rootId = 0
@@ -70,7 +69,7 @@ module PackageInformation = struct
       let versions =
         let version, packageLocation =
           if PackageId.compare id rootId = 0
-          then Null, pnpPath sandbox.path
+          then Null, pnpPath rootPath
           else String (Version.show (PackageId.version id)), pnpPath loc
         in
         let package =
@@ -120,13 +119,13 @@ module LocatorsByLocations = struct
     let bindings = StringMap.bindings map in
     jsppStringMap jsppString jsppInfo fmt bindings
 
-  let ofInstallation (sandbox : SandboxSpec.t) solution installation =
-    let rootId = Solution.Package.id (Solution.root solution) in
+  let ofInstallation ~basePath ~rootPath ~rootId ~solution:_ ~installation () =
+    (* let rootId = Solution.Package.id (Solution.root solution) in *)
     let f map (id, loc) =
       if PackageId.compare rootId id = 0
       then map
       else
-        let path = pnpRelativePath sandbox loc in
+        let path = pnpRelativePath basePath loc in
         let name = PackageId.name id in
         let reference = Version.show (PackageId.version id) in
         StringMap.add path (Pkg {name; reference;}) map
@@ -134,7 +133,7 @@ module LocatorsByLocations = struct
     let init =
       StringMap.(
         empty
-        |> add (pnpRelativePath sandbox sandbox.path) TopLevel
+        |> add (pnpRelativePath basePath rootPath) TopLevel
       )
     in
     List.fold_left ~f ~init (Installation.entries installation)
@@ -145,14 +144,14 @@ module IntSet = Set.Make(struct
   let compare a b = b - a
 end)
 
-let generatePackageLocator sandbox (store : PackageInformation.t) =
+let generatePackageLocator ~basePath (store : PackageInformation.t) =
   let lengths =
     let f _name versions lengths =
       let f _version {PackageInformation. packageLocation; _} lengths =
         let len =
           packageLocation
           |> Path.v
-          |> pnpRelativePath sandbox
+          |> pnpRelativePath basePath
           |> String.length
         in
         IntSet.add len lengths
@@ -193,10 +192,37 @@ let generatePackageLocator sandbox (store : PackageInformation.t) =
   };
   |}
 
-let render ~solution ~installation ~sandbox () =
-  let packageInformation = PackageInformation.ofInstallation sandbox solution installation in
-  let locatorsByLocations = LocatorsByLocations.ofInstallation sandbox solution installation in
-  let packageLocator = generatePackageLocator sandbox packageInformation in
+let render
+  ~basePath
+  ~rootPath
+  ~rootId
+  ~solution
+  ~installation
+  () =
+  (* let basePath = sandbox |> SandboxSpec.pnpJsPath |> Path.parent in *)
+  let packageInformation =
+    PackageInformation.ofInstallation
+      ~basePath
+      ~rootPath
+      ~rootId
+      ~solution
+      ~installation
+      ()
+  in
+  let locatorsByLocations =
+    LocatorsByLocations.ofInstallation
+      ~basePath
+      ~rootPath
+      ~rootId
+      ~solution
+      ~installation
+      ()
+  in
+  let packageLocator =
+    generatePackageLocator
+      ~basePath
+      packageInformation
+  in
   Format.asprintf {|
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
@@ -229,7 +255,7 @@ const isDirRegExp = /\/$/;
 
 // Matches if the path starts with a valid path qualifier (./, ../, /)
 // eslint-disable-next-line no-unused-vars
-const isStrictRegExp = /^\.{0,2}\//;
+const isStrictRegExp = /^\.{0,2}/;
 
 // Splits a require request into its components, or return null if the request is a file path
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@@[^\/]+\/)?[^\/]+)\/?(.*|)$/;

@@ -9,8 +9,10 @@
  *)
 
 val render :
-  solution:Solution.t
+  basePath:Path.t
+  -> rootPath:Path.t
+  -> rootId:PackageId.t
+  -> solution:Solution.t
   -> installation:Installation.t
-  -> sandbox:SandboxSpec.t
   -> unit
   -> string

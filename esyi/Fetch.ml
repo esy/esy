@@ -3,16 +3,14 @@ module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
 (** This installs pnp enabled node wrapper. *)
-let installNodeWrapper sandbox =
+let installNodeWrapper ~binPath ~pnpJsPath () =
   let open RunAsync.Syntax in
   match Cmd.resolveCmd System.Environment.path "node" with
   | Ok nodeCmd ->
     let%bind binPath =
-      let binPath = SandboxSpec.binPath sandbox.spec in
       let%bind () = Fs.createDir binPath in
       return binPath
     in
-    let pnpJs = SandboxSpec.pnpJsPath sandbox.Sandbox.spec in
     let data, path =
       match System.Platform.host with
       | Windows ->
@@ -22,7 +20,7 @@ let installNodeWrapper sandbox =
 @SETLOCAL
 @SET ESY__NODE_BIN_PATH=%%%a%%
 "%s" -r "%a" %%*
-            |} Path.pp binPath nodeCmd Path.pp pnpJs
+            |} Path.pp binPath nodeCmd Path.pp pnpJsPath
         in
         data, Path.(binPath / "node.cmd")
       | _ ->
@@ -31,7 +29,7 @@ let installNodeWrapper sandbox =
             {|#!/bin/sh
 export ESY__NODE_BIN_PATH="%a"
 exec "%s" -r "%a" "$@"
-              |} Path.pp binPath nodeCmd Path.pp pnpJs
+              |} Path.pp binPath nodeCmd Path.pp pnpJsPath
         in
         data, Path.(binPath / "node")
     in
@@ -131,12 +129,24 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   (* Produce _esy/<sandbox>/pnp.js *)
   let%bind () =
     let path = SandboxSpec.pnpJsPath sandbox.spec in
-    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
+    let data = PnpJs.render
+      ~basePath:(Path.parent (SandboxSpec.pnpJsPath sandbox.spec))
+      ~rootPath:sandbox.spec.path
+      ~rootId:(Solution.Package.id (Solution.root solution))
+      ~solution
+      ~installation
+      ()
+    in
     Fs.writeFile ~data path
   in
 
   (* place <binPath>/node executable with pnp enabled *)
-  let%bind () = installNodeWrapper sandbox in
+  let%bind () =
+    installNodeWrapper
+      ~binPath:(SandboxSpec.binPath sandbox.spec)
+      ~pnpJsPath:(SandboxSpec.pnpJsPath sandbox.spec)
+      ()
+  in
 
   let%bind () =
 
@@ -144,7 +154,56 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let queue = LwtTaskQueue.create ~concurrency:15 () in
 
     let install dist =
-      LwtTaskQueue.submit queue (fun () -> FetchStorage.install dist)
+      let f () =
+
+        let prepareLifecycleEnv path env =
+          (*
+           * This creates <install>/_esy and populates it with a custom
+           * per-package pnp.js (which allows to resolve dependencies out of
+           * stage directory and a node wrapper which uses this pnp.js.
+           *)
+          let%bind () = Fs.createDir Path.(path / "_esy") in
+          let%bind () =
+            let id = Dist.id dist in
+            let installation =
+              Installation.add
+                id
+                (Dist.sourceStagePath dist)
+                installation
+            in
+            let data = PnpJs.render
+              ~basePath:Path.(path / "_esy")
+              ~rootPath:(Dist.sourceStagePath dist)
+              ~rootId:id
+              ~solution
+              ~installation
+              ()
+            in
+            Fs.writeFile ~data Path.(path / "_esy" / "pnp.js")
+          in
+          let%bind () =
+            installNodeWrapper
+              ~binPath:Path.(path / "_esy")
+              ~pnpJsPath:Path.(path / "_esy" / "pnp.js")
+              ()
+          in
+          let env =
+            let path =
+              Path.(show (path / "_esy")) (* inject path with node *)
+              ::Path.(show (SandboxSpec.binPath sandbox.spec)) (* inject path with deps *)
+              ::System.Environment.path in
+            let sep = System.Environment.sep ~name:"PATH" () in
+            Astring.String.Map.(
+              env
+              |> add "PATH" (String.concat sep path)
+            )
+          in
+
+          return env
+        in
+        FetchStorage.install ~prepareLifecycleEnv dist
+      in
+      LwtTaskQueue.submit queue f
     in
 
     let rec visit pkg =
@@ -175,13 +234,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
     in
 
     visit root
-  in
-
-  (* Produce _esy/<sandbox>/bin *)
-  let%bind () =
-    let path = SandboxSpec.pnpJsPath sandbox.spec in
-    let data = PnpJs.render ~solution ~installation ~sandbox:sandbox.spec () in
-    Fs.writeFile ~data path
   in
 
   return ()
