@@ -4,9 +4,6 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  - script: 'echo %USERPROFILE%'
-    displayName: "Check USERPROFILE - should be C:\Users\VssAdministrator"
-
   - task: DownloadBuildArtifacts@0
     inputs:
         buildType: specific
