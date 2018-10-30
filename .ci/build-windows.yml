@@ -7,8 +7,8 @@ steps:
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
 
-  - script: 'npm install -g @bryphe/esy@0.2.1011'
-    displayName: 'npm install -g @bryphe/esy@0.2.1011'
+  - script: 'npm install -g esy@0.2.11'
+    displayName: 'npm install -g esy@0.2.11'
 
   - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
     displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
