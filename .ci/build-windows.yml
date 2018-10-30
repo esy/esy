@@ -4,6 +4,12 @@ steps:
     inputs:
       versionSpec: 8.x
 
+  - script: 'echo %HOME%'
+    displayName: "HOME"
+
+  - script: 'echo %USERPROFILE%'
+    displayName: "USERPROFILE"
+
   - task: DownloadBuildArtifacts@0
     inputs:
         buildType: specific
