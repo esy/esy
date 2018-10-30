@@ -73,14 +73,6 @@ steps:
   - script: 'ls C:\Users\VssAdministrator\.esy'
     displayName: "Check contents of VSSAdministrator .esy directory"
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Upload esy build cache'
-    inputs:
-        pathToPublish: 'C:\Users\VssAdministrator\.esy'
-        artifactName: 'build-cache-windows-source-tarballs'
-        parallel: true
-        parallelCount: 8
-
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
 
