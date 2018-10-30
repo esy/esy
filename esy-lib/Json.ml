@@ -6,7 +6,13 @@ type 'a decoder = t -> ('a, string) result
 let to_yojson x = x
 let of_yojson x = Ok x
 
+let show = Yojson.Safe.pretty_to_string
 let pp = Yojson.Safe.pretty_print
+
+let compare a b =
+  String.compare
+    (Yojson.Safe.to_string a)
+    (Yojson.Safe.to_string b)
 
 let parse data =
   try Run.return (Yojson.Safe.from_string data)
@@ -128,6 +134,8 @@ module Decode = struct
 end
 
 module Encode = struct
+  type field = (string * t) option
+
   let opt encode v =
     match v with
     | None -> `Null
@@ -138,4 +146,15 @@ module Encode = struct
 
   let string v = `String v
 
+  let assoc fields =
+    let fields = List.filterNone fields in
+    `Assoc fields
+
+  let field name encode value =
+    Some (name, encode value)
+
+  let fieldOpt name encode value =
+    match value with
+    | None -> None
+    | Some value -> Some (name, encode value)
 end

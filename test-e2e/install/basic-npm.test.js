@@ -26,7 +26,7 @@ describe(`Basic tests for npm packages`, () => {
     await p.esy('install');
     await p.esy('build');
 
-    expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock'))).toBeTruthy();
 
     expect(await requireJson(p, 'no-deps/package.json')).toMatchObject({
       name: 'no-deps',

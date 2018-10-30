@@ -2,11 +2,6 @@
  * Package storage.
  *)
 
-val fetchDist :
-  sandbox : Sandbox.t
-  -> Dist.t
-  -> Path.t RunAsync.t
-
 (** Distribution. *)
 module Dist : sig
   type t

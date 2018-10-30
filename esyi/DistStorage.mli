@@ -26,3 +26,8 @@ val fetchAndUnpack :
   -> Dist.t
   -> unit RunAsync.t
 (** Shortcut for fetch & unpack *)
+
+val fetchAndUnpackToCache :
+  cfg:Config.t
+  -> Dist.t
+  -> Fpath.t RunAsync.t

@@ -21,9 +21,10 @@ Install dependencies declared in `package.json`:
 % esy install
 ```
 
-If the file `esy.lock` (an analogue of `yarn.lock`) exists then it will be used
-to resolve dependencies' version constraints to concrete versions, otherwise
-constraints resolution will be performed and saved to a fresh `esy.lock`.
+If the solution lock `esy.lock` (an analogue of `yarn.lock`) exists then it will
+be used to resolve dependencies' version constraints to concrete versions,
+otherwise constraints resolution will be performed and saved to a fresh
+`esy.lock`.
 
 This command is based on `yarn` and accepts the same command line arguments and
 options.
