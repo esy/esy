@@ -5,7 +5,7 @@ steps:
       versionSpec: 8.x
 
   - task: DownloadBuildArtifacts@0
-    displayName: 'Download esy build cache'
+    displayName: 'Cache: Restore source-tarballs'
     inputs:
         buildType: specific
         project: esy
@@ -13,8 +13,21 @@ steps:
         buildVersionToDownload: 'latest'
         branchName: 'refs/heads/master'
         downloadType: 'single'
-        artifactName: 'build-cache-windows'
-        downloadPath: 'C:\Users\VssAdministrator\.esy'
+        artifactName: 'build-cache-windows-source-tarballs'
+        downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+    continueOnError: true
+
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore install'
+    inputs:
+        buildType: specific
+        project: esy
+        pipeline: build
+        buildVersionToDownload: 'latest'
+        branchName: 'refs/heads/master'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-install'
+        downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
     continueOnError: true
 
   - script: 'npm install -g esy@0.2.11'
@@ -38,8 +51,24 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload source tarballs'
+    inputs:
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+        artifactName: 'build-cache-windows-source-tarballs'
+        parallel: true
+        parallelCount: 8
+
   - script: 'esy build'
     displayName: 'esy build'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload install folder'
+    inputs:
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\3_\i'
+        artifactName: 'build-cache-windows-install'
+        parallel: true
+        parallelCount: 8
 
   - script: 'ls C:\Users\VssAdministrator\.esy'
     displayName: "Check contents of VSSAdministrator .esy directory"
@@ -48,7 +77,9 @@ steps:
     displayName: 'Upload esy build cache'
     inputs:
         pathToPublish: 'C:\Users\VssAdministrator\.esy'
-        artifactName: 'build-cache-windows'
+        artifactName: 'build-cache-windows-source-tarballs'
+        parallel: true
+        parallelCount: 8
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
