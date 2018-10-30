@@ -7,7 +7,6 @@ steps:
   - task: DownloadBuildArtifacts@0
     inputs:
         buildType: current
-        pathToPublish: '$(Agent.HomeDirectory)\.esy'
         downloadType: 'single'
         artifactName: 'windows-build-cache'
         downloadPath: '$(Agent.HomeDirectory)\.esy'
