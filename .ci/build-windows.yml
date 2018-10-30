@@ -10,6 +10,12 @@ steps:
   - script: 'npm install -g @bryphe/esy@0.2.1011'
     displayName: 'npm install -g @bryphe/esy@0.2.1011'
 
+  - script: 'echo %USERPROFILE%'
+    displayName: 'TEST: Check USERPROFILE value'
+
+  - script: 'ls C:\Users\buildguest'
+    displayName: 'TEST: Check USERPROFILE folder'
+
   - script: 'esy install'
     displayName: 'esy install'
     continueOnError: true
