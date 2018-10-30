@@ -65,7 +65,7 @@ steps:
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload install folder'
     inputs:
-        pathToPublish: 'C:\Users\VssAdministrator\.esy\3_\i'
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\3_\i\ocaml*'
         artifactName: 'build-cache-windows-install'
         parallel: true
         parallelCount: 8
