@@ -12,8 +12,8 @@ jobs:
   - job: buildLinux
     displayName: Build Linux
     condition: succeeded()
-    queue:
-      name: Hosted Ubuntu 1604
+    pool:
+        vmImage: ubuntu-16.04
 
     steps:
       - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
@@ -28,8 +28,8 @@ jobs:
   - job: buildMacos
     displayName: Build macOS
     condition: succeeded()
-    queue:
-      name: Hosted macOS
+    pool:
+      vmImage: macOS-10.13
       demands: node.js
 
     steps:
@@ -45,8 +45,8 @@ jobs:
   - job: buildWindows
     displayName: Windows
     condition: succeeded()
-    queue:
-      name: Hosted VS2017
+    pool:
+      vsImage: vs2017-win2016
       demands: npm
 
     steps:
@@ -65,8 +65,8 @@ jobs:
       - buildMacos
       - buildWindows
     condition: succeeded()
-    queue:
-      name: Hosted Ubuntu 1604
+    pool:
+      vmImage: ubuntu-16.04
 
     steps:
 
