@@ -4,14 +4,8 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  - script: 'echo %HOME%'
-    displayName: "HOME"
-
   - script: 'echo %USERPROFILE%'
-    displayName: "USERPROFILE"
-
-  - script: 'echo $(Agent.HomeDirectory)'
-    displayName: "Agent.HomeDirectory"
+    displayName: "Check USERPROFILE - should be C:\Users\VssAdministrator"
 
   - task: DownloadBuildArtifacts@0
     inputs:
@@ -22,7 +16,7 @@ steps:
         branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows'
-        downloadPath: '$(Agent.HomeDirectory)\.esy'
+        downloadPath: 'C:\Users\VssAdministrator\.esy'
     continueOnError: true
 
   - script: 'npm install -g esy@0.2.11'
@@ -31,21 +25,12 @@ steps:
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
 
-  - script: 'ls $(Agent.HomeDirectory)'
-    displayName: "TEST: Make sure we have the right directory"
-
   - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
     displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
 
   - script: 'esy install'
     displayName: 'esy install'
     continueOnError: true
-
-  - script: 'ls C:\Users\VssAdministrator\.esy'
-    displayName: "TEST: VssAdministrator directory"
-
-  - script: 'ls $(Agent.HomeDirectory)\.esy'
-    displayName: "TEST: Make sure we have the right directory"
 
   - script: 'esy install'
     displayName: 'esy install'
@@ -58,12 +43,12 @@ steps:
   - script: 'esy build'
     displayName: 'esy build'
 
-  - script: 'ls $(Agent.HomeDirectory)\.esy'
-    displayName: "TEST: Make sure we have the right directory"
+  - script: 'ls C:\Users\VssAdministrator\.esy'
+    displayName: "Check contents of VSSAdministrator .esy directory"
 
   - task: PublishBuildArtifacts@1
     inputs:
-        pathToPublish: '$(Agent.HomeDirectory)\.esy'
+        pathToPublish: 'C:\Users\VssAdministrator\.esy'
         artifactName: 'build-cache-windows'
 
   - script: 'npm run build:postinstall-esy-bash'
