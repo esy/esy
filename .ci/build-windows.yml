@@ -8,6 +8,14 @@ steps:
     inputs:
         buildType: current
         downloadType: 'single'
+        artifactName: 'Release'
+        downloadPath: '$(Agent.HomeDirectory)\test-release-cache'
+    continueOnError: true
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+        buildType: current
+        downloadType: 'single'
         artifactName: 'windows-build-cache'
         downloadPath: '$(Agent.HomeDirectory)\.esy'
     continueOnError: true
