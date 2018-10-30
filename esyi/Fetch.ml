@@ -2,6 +2,38 @@ module Overrides = Package.Overrides
 module Package = Solution.Package
 module Dist = FetchStorage.Dist
 
+let collectPackagesOfSolution solution =
+  let pkgs, root =
+    let root = Solution.root solution in
+
+    let rec collect (seen, topo) pkg =
+      if Package.Set.mem pkg seen
+      then seen, topo
+      else
+        let seen = Package.Set.add pkg seen in
+        let seen, topo = collectDependencies (seen, topo) pkg in
+        let topo = pkg::topo in
+        seen, topo
+
+    and collectDependencies (seen, topo) pkg =
+      let isRoot = Package.compare root pkg = 0 in
+      let dependencies =
+        let traverse =
+          if isRoot
+          then Solution.traverseWithDevDependencies
+          else Solution.traverse
+        in
+        Solution.dependencies ~traverse pkg solution
+      in
+      List.fold_left ~f:collect ~init:(seen, topo) dependencies
+    in
+
+    let _, topo = collectDependencies (Package.Set.empty, []) root in
+    (List.rev topo), root
+  in
+
+  pkgs, root
+
 (** This installs pnp enabled node wrapper. *)
 let installNodeWrapper ~binPath ~pnpJsPath () =
   let open RunAsync.Syntax in
@@ -45,16 +77,19 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   | Error _
   | Ok None -> return false
   | Ok Some installation ->
-    let f pkg _deps isInstalled =
-      if%bind isInstalled
-      then
-        match Installation.find (Solution.Package.id pkg) installation with
-        | Some path -> Fs.exists path
+    let rec check = function
+      | [] -> return true
+      | pkg::pkgs ->
+        begin match Installation.find (Solution.Package.id pkg) installation with
         | None -> return false
-      else
-        return false
+        | Some path ->
+          if%bind Fs.exists path
+          then check pkgs
+          else return false
+        end
     in
-    Solution.fold ~f ~init:(return true) solution
+    let pkgs, _root = collectPackagesOfSolution solution in
+    check pkgs
 
 let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
@@ -65,14 +100,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () = Fs.rmPath nodeModulesPath in
   let%bind () = Fs.createDir nodeModulesPath in
 
-  let%bind pkgs, root =
-    let root = Solution.root solution in
-    let all =
-      let f pkg _ pkgs = Package.Set.add pkg pkgs in
-      Solution.fold ~f ~init:Package.Set.empty solution
-    in
-    return (Package.Set.remove root all, root)
-  in
+  let pkgs, root = collectPackagesOfSolution solution in
 
   (* Fetch all package distributions *)
   let%bind dists =
@@ -89,7 +117,7 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       RunAsync.List.mapAndJoin
         ~concurrency:40
         ~f:fetch
-        (Package.Set.elements pkgs)
+        pkgs
     in
 
     let%lwt () = finish () in
@@ -151,10 +179,18 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
   let%bind () =
 
     let seen = ref Package.Set.empty in
-    let queue = LwtTaskQueue.create ~concurrency:15 () in
+    let report, finish = Cli.createProgressReporter ~name:"installing" () in
+    let queue = LwtTaskQueue.create ~concurrency:40 () in
 
     let install dist =
       let f () =
+
+        let id = Dist.id dist in
+
+        let%lwt () =
+          let msg = Format.asprintf "%a" PackageId.pp id in
+          report msg
+        in
 
         let prepareLifecycleEnv path env =
           (*
@@ -164,7 +200,6 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
            *)
           let%bind () = Fs.createDir Path.(path / "_esy") in
           let%bind () =
-            let id = Dist.id dist in
             let installation =
               Installation.add
                 id
@@ -221,9 +256,9 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
           Solution.dependencies ~traverse pkg solution
         in
         let%bind () =
-          RunAsync.List.mapAndWait
-            ~f:visit
-            dependendencies
+          dependendencies
+          |> List.filter ~f:(fun pkg -> not (Package.Set.mem pkg !seen))
+          |> RunAsync.List.mapAndWait ~f:visit
         in
 
         match isRoot, PackageId.Map.find_opt (Solution.Package.id pkg) dists with
@@ -233,7 +268,9 @@ let fetch ~(sandbox : Sandbox.t) (solution : Solution.t) =
       )
     in
 
-    visit root
+    let%bind () = visit root in
+    let%lwt () = finish () in
+    return ()
   in
 
   return ()
