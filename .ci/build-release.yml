@@ -8,8 +8,8 @@ trigger:
   - bryphe/*
   - andreypopp/*
 
-phases:
-  - phase: buildLinux
+jobs:
+  - job: buildLinux
     displayName: Build Linux
     condition: succeeded()
     queue:
@@ -25,7 +25,7 @@ phases:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-linux
 
-  - phase: buildMacos
+  - job: buildMacos
     displayName: Build macOS
     condition: succeeded()
     queue:
@@ -42,7 +42,7 @@ phases:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-darwin
 
-  - phase: buildWindows
+  - job: buildWindows
     displayName: Windows
     condition: succeeded()
     queue:
@@ -58,7 +58,7 @@ phases:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-win32
 
-  - phase: buildRelease
+  - job: buildRelease
     displayName: Build Release
     dependsOn:
       - buildLinux
