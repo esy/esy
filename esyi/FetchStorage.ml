@@ -279,18 +279,11 @@ let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ~binPath pkg sourcePath lifecycle =
+let runLifecycle ~prepareLifecycleEnv pkg sourcePath lifecycle =
   let open RunAsync.Syntax in
-  let env =
-    let override =
-      let path = (Path.show binPath)::System.Environment.path in
-      let sep = System.Environment.sep ~name:"PATH" () in
-      Astring.String.Map.(
-        empty
-        |> add "PATH" (String.concat ~sep path)
-      )
-    in
-    ChildProcess.CurrentEnvOverride override
+  let%bind env =
+    let%bind override = prepareLifecycleEnv sourcePath Astring.String.Map.empty in
+    return (ChildProcess.CurrentEnvOverride override)
   in
 
   let%bind () =
@@ -325,7 +318,7 @@ let installBinWrapper ~binPath (name, origPath) =
     return ()
   )
 
-let install dist =
+let install ~prepareLifecycleEnv dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
   RunAsync.contextf (
@@ -361,7 +354,13 @@ let install dist =
           let%bind () =
             match lifecycle with
             | Some lifecycle ->
-              let%bind () = runLifecycle ~binPath dist.pkg sourceStagePath lifecycle in
+              let%bind () =
+                runLifecycle
+                  ~prepareLifecycleEnv
+                  dist.pkg
+                  sourceStagePath
+                  lifecycle
+              in
               Fastreplacestring.rewritePrefix
                 ~fastreplacestringCmd:dist.sandbox.cfg.fastreplacestringCmd
                 ~origPrefix:sourceStagePath
