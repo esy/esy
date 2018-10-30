@@ -12,15 +12,7 @@ steps:
         buildVersionToDownload: 'latest'
         branchName: 'refs/heads/master'
         downloadType: 'single'
-        artifactName: 'Release'
-        downloadPath: '$(Agent.HomeDirectory)\test-release-cache'
-    continueOnError: true
-
-  - task: DownloadBuildArtifacts@0
-    inputs:
-        buildType: current
-        downloadType: 'single'
-        artifactName: 'windows-build-cache'
+        artifactName: 'build-cache-windows'
         downloadPath: '$(Agent.HomeDirectory)\.esy'
     continueOnError: true
 
@@ -51,7 +43,7 @@ steps:
   - task: PublishBuildArtifacts@1
     inputs:
         pathToPublish: '$(Agent.HomeDirectory)\.esy'
-        artifactName: 'windows-build-cache'
+        artifactName: 'build-cache-windows'
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
