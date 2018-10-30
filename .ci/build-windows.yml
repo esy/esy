@@ -5,6 +5,7 @@ steps:
       versionSpec: 8.x
 
   - task: DownloadBuildArtifacts@0
+    displayName: 'Download esy build cache'
     inputs:
         buildType: specific
         project: esy
@@ -44,6 +45,7 @@ steps:
     displayName: "Check contents of VSSAdministrator .esy directory"
 
   - task: PublishBuildArtifacts@1
+    displayName: 'Upload esy build cache'
     inputs:
         pathToPublish: 'C:\Users\VssAdministrator\.esy'
         artifactName: 'build-cache-windows'
