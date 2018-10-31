@@ -37,6 +37,9 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
+  - script: 'esy b git --version'
+    displayName: 'what version of git is seen here?'
+
   - script: 'esy b which git'
     displayName: 'which git is being picked up?'
 
