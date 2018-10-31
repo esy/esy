@@ -23,7 +23,7 @@
 (executable
   (name esyRewritePrefixCommand)
   (modules esyRewritePrefixCommand)
-  (flags (:standard (-w -39)))
+  (flags (:include flags.sexp))
   (preprocess (pps ppx_let))
   (libraries
             EsyBuildPackage
@@ -32,6 +32,11 @@
             bos
             )
   )
+
+(rule
+    (targets c_flags.sexp cxx_flags.sexp flags.sexp)
+    (deps (:discover ./config/discover.exe))
+    (action (run %{discover})))
 
 (install
   (package esy-build-package)
