@@ -33,21 +33,10 @@
             )
   )
 
-(rule
- (targets fastreplacestring.exe)
- (deps fastreplacestring.cpp config/dune.fastreplacestring.command)
- (action  (run
-            %{read-lines:config/dune.fastreplacestring.command}
-            "-o" %{targets}
-            "fastreplacestring.cpp"
-            ))
- )
-
 (install
   (package esy-build-package)
   (section bin)
    (files
      (esyBuildPackageCommand.exe as esy-build-package)
      (esyRewritePrefixCommand.exe as esy-rewrite-prefix)
-     (fastreplacestring.exe as fastreplacestring)
      ))
