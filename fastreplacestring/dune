@@ -6,4 +6,5 @@
   (cxx_names fastreplacestring)
   (cxx_flags (:include config/dune.cxx_flags))
   (library_flags (:include config/dune.flags))
+  (c_library_flags (:include config/dune.cflags))
   )
