@@ -18,17 +18,25 @@ steps:
         downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
     continueOnError: true
 
+  - script: "ls C:\Users\VssAdministrator\.esy\source-tarballs"
+    displayName: "ls C:\Users\VssAdministrator\.esy\source-tarballs"
+    continueOnError: true
+
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore install'
     inputs:
         buildType: 'specific'
         project: 'esy'
         pipeline: 'build'
-        buildVersionToDownload: 'master'
+        buildVersionToDownload: 'specific'
         buildId: '245'
         downloadType: 'single'
         artifactName: 'build-cache-windows-install'
         downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
+    continueOnError: true
+
+  - script: "ls C:\Users\VssAdministrator\.esy\3_\i"
+    displayName: "ls C:\Users\VssAdministrator\.esy\3_\i"
     continueOnError: true
 
   - script: 'npm install -g esy@0.2.11'
