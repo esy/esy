@@ -55,6 +55,7 @@ int replace(char *filename, char *old, char *newWord) {
   // This is actually a shortcut because fopen might fail for a number of
   // reasons
   if (in == NULL) {
+    fclose(in);
     fprintf(stderr, "error: %s doesn't exist\n", filename);
     return 1;
   }
@@ -70,6 +71,7 @@ int replace(char *filename, char *old, char *newWord) {
   fseek(in, 0, SEEK_SET);
 
   if ((s = (char *)malloc(filelen)) == NULL) {
+    fclose(in);
     fprintf(stderr, "error: malloc s filelen problem \n");
     exit(1);
   }
@@ -104,6 +106,7 @@ int replace(char *filename, char *old, char *newWord) {
 
   if (c == 0) {
     free(s);
+    fclose(in);
     return 0;
   } else {
     const char *pstr = s;
@@ -117,7 +120,9 @@ int replace(char *filename, char *old, char *newWord) {
     temp = t;
 
     if (temp == NULL) {
+      free(t);
       free(s);
+      fclose(in);
       exit(1);
     }
     // replace the bytes
@@ -142,11 +147,14 @@ int replace(char *filename, char *old, char *newWord) {
     chmod(filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     in = freopen(filename, "wb", in);
     if (in == NULL) {
+      free(t);
+      fclose(in);
       fprintf(stderr, "error: %s cannot be written to.\n", filename);
       return 1;
     }
 
     fwrite(t, 1, newFilelen, in);
+    free(t);
     fclose(in);
 
     // restore st_mode
