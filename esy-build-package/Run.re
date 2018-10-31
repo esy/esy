@@ -161,16 +161,22 @@ let createTmpFile = (contents: string) => {
   Ok(filename);
 };
 
-let traverse = (path: Fpath.t, f: (Fpath.t, Unix.stats) => t(_)): t(_) => {
-  let visit = (path: Fpath.t) =>
-    fun
-    | Ok () => {
-        let%bind stats = Bos.OS.Path.symlink_stat(path);
-        f(path, stats);
-      }
-    | error => error;
-  Result.join(Bos.OS.Path.fold(~dotfiles=true, visit, Ok(), [path]));
-};
+let rec traverse = (root, f) => {
+  let%bind stats = Bos.OS.Path.symlink_stat(root);
+  switch (stats.Unix.st_kind) {
+  | Unix.S_DIR =>
+    let%bind items = Bos.OS.Dir.contents(root);
+    traverseItems(root, items, f);
+  | _ => f(root, stats)
+  };
+}
+and traverseItems = (root, items, f) =>
+  switch (items) {
+  | [] => return()
+  | [item, ...items] =>
+    let%bind () = traverse(Fpath.append(root, item), f);
+    traverseItems(root, items, f);
+  };
 
 let copyContents = (~from, ~ignore=[], dest) => {
   let traverse = {
