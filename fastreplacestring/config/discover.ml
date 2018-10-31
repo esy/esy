@@ -16,6 +16,9 @@ let () =
     in
     C.Flags.write_sexp "dune.flags" flags;
 
+    let cflags = ["-lstdc++"] in
+    C.Flags.write_sexp "dune.cflags" cflags;
+
     let cxx_flags =
       match C.ocaml_config_var c "system" with
       (* link statically on windows so we don't have to ship mingw64.dll *)
