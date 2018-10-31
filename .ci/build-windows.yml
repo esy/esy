@@ -79,12 +79,12 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
-  - script: "jest --runInBand test-e2e"
-    displayName: 'test-e2e'
-    continueOnError: true
-
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
+    continueOnError: true
+
+  - script: "jest --runInBand test-e2e"
+    displayName: 'test-e2e'
     continueOnError: true
 
   - script: "npm run platform-release"
