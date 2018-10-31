@@ -4,6 +4,32 @@ steps:
     inputs:
       versionSpec: 8.x
 
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore source-tarballs'
+    inputs:
+        buildType: specific
+        project: esy
+        pipeline: build
+        buildVersionToDownload: 'latest'
+        branchName: 'refs/heads/master'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-source-tarballs'
+        downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+    continueOnError: true
+
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore install'
+    inputs:
+        buildType: specific
+        project: esy
+        pipeline: build
+        buildVersionToDownload: 'latest'
+        branchName: 'refs/heads/master'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-install'
+        downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
+    continueOnError: true
+
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
 
@@ -25,8 +51,27 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload source tarballs'
+    inputs:
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+        artifactName: 'build-cache-windows-source-tarballs'
+        parallel: true
+        parallelCount: 8
+
   - script: 'esy build'
     displayName: 'esy build'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload install folder'
+    inputs:
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\3_\i'
+        artifactName: 'build-cache-windows-install'
+        parallel: true
+        parallelCount: 8
+
+  - script: 'ls C:\Users\VssAdministrator\.esy'
+    displayName: "Check contents of VSSAdministrator .esy directory"
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
@@ -34,14 +79,15 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
-  - script: "jest --runInBand test-e2e"
-    displayName: 'test-e2e'
-
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
   - script: 'npm run test:e2e-slow'
     displayName: 'npm run test:e2e-slow'
+
+  - script: "jest --runInBand test-e2e"
+    displayName: 'test-e2e'
+    continueOnError: true
 
   - script: "npm run platform-release"
     displayName: "npm run platform-release"

@@ -62,12 +62,12 @@ help:
 
 bootstrap:
 ifndef ESY_EXT
-	$(error "esy command is not avaialble, run 'npm install -g esy'")
+	$(error "esy command is not avaialble, run 'npm install -g esy@0.2'")
 endif
 ifeq ($(ESY_VERSION_MINOR),2)
 	@esy install
 else
-	$(error "esy command should be at least of version 0.2.0, run 'npm install -g esy'")
+	$(error "esy requires version 0.2.x installed to bootstrap, run 'npm install -g esy@0.2'")
 endif
 	@make build-dev
 

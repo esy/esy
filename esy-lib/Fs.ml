@@ -223,6 +223,15 @@ let copyFileLwt ~src ~dst =
   let%lwt () = copyStatLwt ~stat dst in
   Lwt.return ()
 
+let copyFile ~src ~dst =
+  try%lwt (
+    let%lwt () = copyFileLwt ~src ~dst in
+    let%lwt stat = Lwt_unix.stat (Path.show src) in
+    let%lwt () = copyStatLwt ~stat dst in
+    RunAsync.return ()
+  ) with Unix.Unix_error (error, _, _) ->
+    RunAsync.error (Unix.error_message error)
+
 let rec copyPathLwt ~src ~dst =
   let origPathS = Path.show src in
   let destPathS = Path.show dst in
@@ -260,6 +269,15 @@ let rec copyPathLwt ~src ~dst =
     (* XXX: Skips special files: should be an error instead? *)
     Lwt.return ()
 
+let copyPath ~src ~dst =
+  let open RunAsync.Syntax in
+  let%bind () = createDir (Path.parent dst) in
+  try%lwt (
+    let%lwt () = copyPathLwt ~src ~dst in
+    RunAsync.return ()
+  ) with Unix.Unix_error (error, _, _) ->
+    RunAsync.error (Unix.error_message error)
+
 let rec rmPathLwt path =
   let pathS = Path.show path in
   let%lwt stat = Lwt_unix.lstat pathS in
@@ -286,24 +304,6 @@ let rec rmPathLwt path =
   | _ ->
     let%lwt () = Lwt_unix.chmod pathS 0o640 in
     Lwt_unix.unlink pathS
-
-let copyFile ~src ~dst =
-  try%lwt (
-    let%lwt () = copyFileLwt ~src ~dst in
-    let%lwt stat = Lwt_unix.stat (Path.show src) in
-    let%lwt () = copyStatLwt ~stat dst in
-    RunAsync.return ()
-  ) with Unix.Unix_error (error, _, _) ->
-    RunAsync.error (Unix.error_message error)
-
-let copyPath ~src ~dst =
-  let open RunAsync.Syntax in
-  let%bind () = createDir (Path.parent dst) in
-  try%lwt (
-    let%lwt () = copyPathLwt ~src ~dst in
-    RunAsync.return ()
-  ) with Unix.Unix_error (error, _, _) ->
-    RunAsync.error (Unix.error_message error)
 
 let rmPath path =
   try%lwt (
