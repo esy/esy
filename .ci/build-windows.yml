@@ -11,7 +11,7 @@ steps:
         project: esy
         pipeline: build
         buildVersionToDownload: 'latest'
-        branchName: 'refs/heads/bryphe/ci/azure-windows-caching'
+        branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows-source-tarballs'
         downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
@@ -24,7 +24,7 @@ steps:
         project: esy
         pipeline: build
         buildVersionToDownload: 'latest'
-        branchName: 'refs/heads/bryphe/ci/azure-windows-caching'
+        branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows-install'
         downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
