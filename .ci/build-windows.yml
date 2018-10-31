@@ -18,8 +18,8 @@ steps:
         downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
     continueOnError: true
 
-  - script: "ls C:\Users\VssAdministrator\.esy\source-tarballs"
-    displayName: "ls C:\Users\VssAdministrator\.esy\source-tarballs"
+  - script: 'ls C:\Users\VssAdministrator\.esy\source-tarballs'
+    displayName: 'ls C:\Users\VssAdministrator\.esy\source-tarballs'
     continueOnError: true
 
   - task: DownloadBuildArtifacts@0
@@ -35,8 +35,8 @@ steps:
         downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
     continueOnError: true
 
-  - script: "ls C:\Users\VssAdministrator\.esy\3_\i"
-    displayName: "ls C:\Users\VssAdministrator\.esy\3_\i"
+  - script: 'ls C:\Users\VssAdministrator\.esy\3_\i'
+    displayName: 'ls C:\Users\VssAdministrator\.esy\3_\i'
     continueOnError: true
 
   - script: 'npm install -g esy@0.2.11'
@@ -80,7 +80,7 @@ steps:
         parallelCount: 8
 
   - script: 'ls C:\Users\VssAdministrator\.esy'
-    displayName: "Check contents of VSSAdministrator .esy directory"
+    displayName: 'Check contents of VSSAdministrator .esy directory'
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
@@ -92,7 +92,7 @@ steps:
     displayName: 'esy b dune runtest test'
     continueOnError: true
 
-  - script: "jest --runInBand test-e2e"
+  - script: 'jest --runInBand test-e2e'
     displayName: 'test-e2e'
     continueOnError: true
 
@@ -100,6 +100,6 @@ steps:
     displayName: 'npm run test:e2e-slow'
     continueOnError: true
 
-  - script: "npm run platform-release"
-    displayName: "npm run platform-release"
+  - script: 'npm run platform-release'
+    displayName: 'npm run platform-release'
     continueOnError: true
