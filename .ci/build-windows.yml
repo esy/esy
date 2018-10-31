@@ -81,6 +81,7 @@ steps:
 
   - script: "jest --runInBand test-e2e"
     displayName: 'test-e2e'
+    continueOnError: true
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
