@@ -672,7 +672,7 @@ let execEnv _sandbox plan task =
   |> Scope.env ~includeBuildEnv:false
 
 let rewritePrefix ~cfg ~origPrefix ~destPrefix rootPath =
-  Fastreplacestring.rewritePrefix
+  FastreplacestringWrapper.rewritePrefix
     ~fastreplacestringCmd:cfg.Config.fastreplacestringCmd
     ~origPrefix
     ~destPrefix

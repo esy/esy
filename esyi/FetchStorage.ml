@@ -351,7 +351,7 @@ let install ~prepareLifecycleEnv dist =
                   sourceStagePath
                   lifecycle
               in
-              Fastreplacestring.rewritePrefix
+              FastreplacestringWrapper.rewritePrefix
                 ~fastreplacestringCmd:dist.sandbox.cfg.fastreplacestringCmd
                 ~origPrefix:sourceStagePath
                 ~destPrefix:sourceStagePath
