@@ -1,34 +1,45 @@
 steps:
   - task: NodeTool@0
     displayName: 'Use Node 8.x'
+
     inputs:
       versionSpec: 8.x
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore source-tarballs'
     inputs:
-        buildType: specific
-        project: esy
-        pipeline: build
-        buildVersionToDownload: 'latest'
-        branchName: 'refs/heads/master'
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'specific'
+        buildId: '245'
         downloadType: 'single'
         artifactName: 'build-cache-windows-source-tarballs'
-        downloadPath: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+        downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
+
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore install'
     inputs:
-        buildType: specific
-        project: esy
-        pipeline: build
-        buildVersionToDownload: 'latest'
-        branchName: 'refs/heads/master'
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'specific'
+        buildId: '245'
         downloadType: 'single'
         artifactName: 'build-cache-windows-install'
-        downloadPath: 'C:\Users\VssAdministrator\.esy\3_\i'
+        downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
+
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
@@ -71,7 +82,7 @@ steps:
         parallelCount: 8
 
   - script: 'ls C:\Users\VssAdministrator\.esy'
-    displayName: "Check contents of VSSAdministrator .esy directory"
+    displayName: 'Check contents of VSSAdministrator .esy directory'
 
   - script: 'npm run build:postinstall-esy-bash'
     displayName: 'postinstall-esy-bash'
@@ -82,10 +93,14 @@ steps:
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
-  - script: "jest --runInBand test-e2e"
+  - script: 'jest --runInBand test-e2e'
     displayName: 'test-e2e'
     continueOnError: true
 
-  - script: "npm run platform-release"
-    displayName: "npm run platform-release"
+  - script: 'npm run test:e2e-slow'
+    displayName: 'npm run test:e2e-slow'
+    continueOnError: true
+
+  - script: 'npm run platform-release'
+    displayName: 'npm run platform-release'
     continueOnError: true
