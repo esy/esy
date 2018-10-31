@@ -1,5 +1,6 @@
 (executable
   (name esyBuildPackageCommand)
+  (modules esyBuildPackageCommand)
   (flags (:standard (-w -39)))
   (preprocess (pps ppx_let))
   (libraries
@@ -19,6 +20,19 @@
             )
   )
 
+(executable
+  (name esyRewritePrefixCommand)
+  (modules esyRewritePrefixCommand)
+  (flags (:standard (-w -39)))
+  (preprocess (pps ppx_let))
+  (libraries
+            EsyBuildPackage
+            fastreplacestring
+            cmdliner
+            bos
+            )
+  )
+
 (rule
  (targets fastreplacestring.exe)
  (deps fastreplacestring.cpp config/dune.fastreplacestring.command)
@@ -34,5 +48,6 @@
   (section bin)
    (files
      (esyBuildPackageCommand.exe as esy-build-package)
+     (esyRewritePrefixCommand.exe as esy-rewrite-prefix)
      (fastreplacestring.exe as fastreplacestring)
      ))
