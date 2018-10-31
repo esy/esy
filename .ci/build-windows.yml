@@ -11,7 +11,7 @@ steps:
         buildType: specific
         project: esy
         pipeline: build
-        buildVersionToDownload: 'latest'
+        buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows-source-tarballs'
@@ -24,7 +24,7 @@ steps:
         buildType: specific
         project: esy
         pipeline: build
-        buildVersionToDownload: 'latest'
+        buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows-install'
