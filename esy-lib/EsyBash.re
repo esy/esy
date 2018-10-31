@@ -32,7 +32,7 @@ let getBinPath = () => {
   Ok(Fpath.(rootPath / ".cygwin" / "bin"));
 };
 
-let getEsyBashPath = () =>
+let getEsyBashPath = () => {
   open Result.Syntax;
   let%bind rootPath = getEsyBashRootPath();
   Ok(Fpath.(rootPath / "re" / "_build" / "default" / "bin" / "EsyBash.exe"));

@@ -26,6 +26,8 @@ let () =
         "-static";
         "-static-libgcc";
         "-static-libstdc++";
+        "-fno-exceptions";
+        "-fno-rtti";
         ]
       | Some "macosx" -> [
           "-lstdc++";
