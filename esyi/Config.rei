@@ -2,7 +2,6 @@
 
 type t = {
   esySolveCmd: Cmd.t,
-  fastreplacestringCmd: Cmd.t,
   sourceArchivePath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
@@ -33,7 +32,6 @@ let make:
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
-    ~fastreplacestringCmd: Cmd.t,
     ~skipRepositoryUpdate: bool,
     unit
   ) =>

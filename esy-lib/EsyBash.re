@@ -11,72 +11,48 @@ let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
  */
 let getEsyBashRootPath = () => {
   open Result.Syntax;
-  let program = Sys.argv[0];
-  let%bind program = NodeResolution.realpath(Fpath.v(program));
-  let basedir = Fpath.parent(program);
-  let resolution =
-    NodeResolution.resolve(
-      "../../../../node_modules/esy-bash/package.json",
-      basedir,
-    );
-
-  switch%bind (coerceFrmMsgOnly(resolution)) {
-  | Some(path) => Ok(Fpath.parent(path))
-  | None => Error(`Msg("Unable to find 'esy-bash'"))
-  };
+  let%bind resolution =
+    NodeResolution.resolve("../../../../node_modules/esy-bash/package.json");
+  return(Path.parent(resolution));
 };
 
 /**
  * Helper method to get the `cygpath` utility path
  * Used for resolving paths
  */
-let getCygPath = () =>
-  Result.Syntax.(
-    {
-      let%bind rootPath = getEsyBashRootPath();
-      Ok(Fpath.(rootPath / ".cygwin" / "bin" / "cygpath.exe"));
-    }
-  );
+let getCygPath = () => {
+  open Result.Syntax;
+  let%bind rootPath = getEsyBashRootPath();
+  Ok(Fpath.(rootPath / ".cygwin" / "bin" / "cygpath.exe"));
+};
 
-let getBinPath = () =>
-  Result.Syntax.(
-    {
-      let%bind rootPath = getEsyBashRootPath();
-      Ok(
-        Fpath.(
-          rootPath
-          / ".cygwin"
-          / "bin"
-        ),
-      );
-    }
-  );
+let getBinPath = () => {
+  open Result.Syntax;
+  let%bind rootPath = getEsyBashRootPath();
+  Ok(Fpath.(rootPath / ".cygwin" / "bin"));
+};
 
-let getEsyBashPath = () =>
-  Result.Syntax.(
-    {
-      let%bind rootPath = getEsyBashRootPath();
-      Ok(Fpath.(rootPath / "bin" / "esy-bash.js"));
-    }
-  );
+let getEsyBashPath = () => {
+  open Result.Syntax;
+  let%bind rootPath = getEsyBashRootPath();
+  Ok(Fpath.(rootPath / "bin" / "esy-bash.js"));
+};
 
-let getMingwRuntimePath = () =>
-  Result.Syntax.(
-    {
-      let%bind rootPath = getEsyBashRootPath();
-      Ok(
-        Fpath.(
-          rootPath
-          / ".cygwin"
-          / "usr"
-          / "x86_64-w64-mingw32"
-          / "sys-root"
-          / "mingw"
-          / "bin"
-        ),
-      );
-    }
+let getMingwRuntimePath = () => {
+  open Result.Syntax;
+  let%bind rootPath = getEsyBashRootPath();
+  Ok(
+    Fpath.(
+      rootPath
+      / ".cygwin"
+      / "usr"
+      / "x86_64-w64-mingw32"
+      / "sys-root"
+      / "mingw"
+      / "bin"
+    ),
   );
+};
 
 /**
 * Helper utility to normalize paths to a cygwin style,
@@ -165,19 +141,15 @@ let normalizePathForWindows = (path: Fpath.t) =>
  * On Windows, this runs the command in a Cygwin environment
  * On other platforms, this is equivalent to running the command directly with Bos.OS.Cmd.run
  */
-let run = cmd =>
-  Result.Syntax.(
-    {
-      let%bind augmentedCommand = toEsyBashCommand(cmd);
-      Bos.OS.Cmd.run(augmentedCommand);
-    }
-  );
+let run = cmd => {
+  open Result.Syntax;
+  let%bind augmentedCommand = toEsyBashCommand(cmd);
+  Bos.OS.Cmd.run(augmentedCommand);
+};
 
-let runOut = cmd =>
-  Result.Syntax.(
-    {
-      let%bind augmentedCommand = toEsyBashCommand(cmd);
-      let ret = Bos.OS.Cmd.(run_out(augmentedCommand));
-      Bos.OS.Cmd.to_string(ret);
-    }
-  );
+let runOut = cmd => {
+  open Result.Syntax;
+  let%bind augmentedCommand = toEsyBashCommand(cmd);
+  let ret = Bos.OS.Cmd.(run_out(augmentedCommand));
+  Bos.OS.Cmd.to_string(ret);
+};

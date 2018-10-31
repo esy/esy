@@ -9,6 +9,8 @@ type t
 (** Produce a command supplying a tool. *)
 val v : string -> t
 
+val ofPath : Path.t -> t
+
 (** Add a new argument to the command. *)
 val (%) : t -> string -> t
 

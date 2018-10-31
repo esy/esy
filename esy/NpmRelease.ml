@@ -277,7 +277,7 @@ let make
         (cfg.buildCfg.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
-      Plan.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
+      RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)
