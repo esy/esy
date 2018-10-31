@@ -26,7 +26,7 @@ module Dist = struct
         |> Digest.to_hex
         |> Path.safeSeg
       in
-      Path.(dist.sandbox.cfg.sourceInstallPath / (name ^ "-" ^ id))
+      Path.(dist.sandbox.cfg.sourceStagePath / (name ^ "-" ^ id))
 
   let sourceInstallPath dist =
     match dist.source with
@@ -138,19 +138,6 @@ end = struct
 
 end
 
-let fetchDist ~sandbox (dist : D.t) =
-  let open RunAsync.Syntax in
-  let id = Digest.(to_hex (string (D.show dist))) in
-  let path = Path.(sandbox.Sandbox.cfg.sourceInstallPath / id) in
-
-  if%bind Fs.exists path
-  then return path
-  else
-    let%bind archive = DistStorage.fetch ~cfg:sandbox.cfg dist in
-    let%bind archive = RunAsync.ofRun archive in
-    let%bind () = DistStorage.unpack ~cfg:sandbox.cfg ~dst:path archive in
-    return path
-
 let fetch ~sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
 
@@ -180,7 +167,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
   in
 
   match pkg.source with
-  | Solution.Package.Link {path; manifest;} ->
+  | Package.Link {path; manifest;} ->
     return {
       Dist.
       sandbox;
@@ -188,10 +175,10 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
       source = Source.Link {path;manifest;};
       archive = None;
     }
-  | Solution.Package.Install {source = main, mirrors; _} ->
+  | Package.Install {source = main, mirrors; _} ->
     fetch' [] (main::mirrors)
 
-let unpack ~path ~files dist =
+let unpack ~path dist =
   let open RunAsync.Syntax in
 
   let%bind () =
@@ -201,22 +188,18 @@ let unpack ~path ~files dist =
     | Some archive ->
       let%bind () = Fs.rmPath path in
       let%bind () = Fs.createDir path in
-      let%bind () =
-        DistStorage.unpack
-          ~cfg:dist.sandbox.Sandbox.cfg
-          ~dst:path
-          archive
-      in
-      let%bind () =
-        RunAsync.List.mapAndWait
-          ~f:(Package.File.writeToDir ~destinationDir:path)
-          files
-      in
-
-      return ()
+      DistStorage.unpack
+        ~cfg:dist.sandbox.Sandbox.cfg
+        ~dst:path
+        archive
   in
 
   return ()
+
+let layoutFiles files path =
+  RunAsync.List.mapAndWait
+    ~f:(File.placeAt path)
+    files
 
 let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   let%lwt () = Logs_lwt.app
@@ -279,18 +262,11 @@ let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ~binPath pkg sourcePath lifecycle =
+let runLifecycle ~prepareLifecycleEnv pkg sourcePath lifecycle =
   let open RunAsync.Syntax in
-  let env =
-    let override =
-      let path = (Path.show binPath)::System.Environment.path in
-      let sep = System.Environment.sep ~name:"PATH" () in
-      Astring.String.Map.(
-        empty
-        |> add "PATH" (String.concat ~sep path)
-      )
-    in
-    ChildProcess.CurrentEnvOverride override
+  let%bind env =
+    let%bind override = prepareLifecycleEnv sourcePath Astring.String.Map.empty in
+    return (ChildProcess.CurrentEnvOverride override)
   in
 
   let%bind () =
@@ -325,7 +301,7 @@ let installBinWrapper ~binPath (name, origPath) =
     return ()
   )
 
-let install dist =
+let install ~prepareLifecycleEnv dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
   RunAsync.contextf (
@@ -338,11 +314,11 @@ let install dist =
 
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
-      | Solution.Package.Link {path; _} ->
+      | Package.Link {path; _} ->
         let%bind pkgJson = PackageJson.ofDir path in
         let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
-      | Solution.Package.Install { files; _ } ->
+      | Package.Install _ ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         if%bind Fs.exists sourceInstallPath
         then
@@ -350,18 +326,31 @@ let install dist =
           return (sourceInstallPath, pkgJson)
         else (
           let sourceStagePath = Dist.sourceStagePath dist in
+          let%bind () = unpack ~path:sourceStagePath dist in
           let%bind () =
-            unpack
-              ~files
-              ~path:sourceStagePath
-              dist
+            let%bind filesOfOpam =
+              Solution.Package.readOpamFiles 
+                dist.pkg
+            in
+            let%bind filesOfOverride =
+              Package.Overrides.files
+                ~cfg:dist.sandbox.cfg
+                dist.pkg.overrides
+            in
+            layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
           in
           let%bind pkgJson = PackageJson.ofDir sourceStagePath in
           let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
           let%bind () =
             match lifecycle with
             | Some lifecycle ->
-              let%bind () = runLifecycle ~binPath dist.pkg sourceStagePath lifecycle in
+              let%bind () =
+                runLifecycle
+                  ~prepareLifecycleEnv
+                  dist.pkg
+                  sourceStagePath
+                  lifecycle
+              in
               Fastreplacestring.rewritePrefix
                 ~fastreplacestringCmd:dist.sandbox.cfg.fastreplacestringCmd
                 ~origPrefix:sourceStagePath

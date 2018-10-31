@@ -2,7 +2,7 @@ open Esy
 
 module SandboxSpec = EsyInstall.SandboxSpec
 module Solution = EsyInstall.Solution
-module Lockfile = EsyInstall.LockfileV1
+module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 
@@ -388,19 +388,13 @@ module SandboxInfo = struct
 
     in Perf.measureLwt ~label:"writing sandbox info cache" f
 
-  let mtimeOf path =
-    let open RunAsync.Syntax in
-    let%bind stats = Fs.stat path in
-    return stats.Unix.st_mtime
-
   let checkIsStale filesUsed =
     let open RunAsync.Syntax in
     let%bind checks =
       RunAsync.List.joinAll (
-        let f {FileInfo. path; mtime} =
-          match%lwt mtimeOf path with
-          | Ok curMtime -> return (curMtime > mtime)
-          | Error _ -> return true
+        let f prev =
+          let%bind next = FileInfo.ofPath prev.FileInfo.path in
+          return (FileInfo.compare prev next <> 0)
         in
         List.map ~f filesUsed
       )
@@ -429,20 +423,22 @@ module SandboxInfo = struct
         let filesUsed = [] in
 
         let%bind solution, filesUsed =
-          let path = EsyInstall.SandboxSpec.lockfilePath copts.spec in
-          match%bind Lockfile.ofFile ~sandbox:copts.installSandbox path with
+          let path = EsyInstall.SandboxSpec.solutionLockPath copts.spec in
+          let%bind info = FileInfo.ofPath Path.(path / "index.json") in
+          let filesUsed = info::filesUsed in
+          match%bind SolutionLock.ofPath ~sandbox:copts.installSandbox path with
           | Some solution ->
-            let%bind mtime = mtimeOf path in
-            return (Some solution, {FileInfo. path; mtime}::filesUsed)
+            return (Some solution, filesUsed)
           | None -> return (None, filesUsed)
         in
 
         let%bind installation, filesUsed =
           let path = EsyInstall.SandboxSpec.installationPath copts.spec in
+          let%bind info = FileInfo.ofPath path in
+          let filesUsed = info::filesUsed in
           match%bind EsyInstall.Installation.ofPath path with
           | Some installation ->
-            let%bind mtime = mtimeOf path in
-            return (Some installation, {FileInfo. path; mtime}::filesUsed)
+            return (Some installation, filesUsed)
           | None -> return (None, filesUsed)
         in
 
@@ -1237,9 +1233,9 @@ let getSandboxSolution installSandbox =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let%bind solution = Solver.solve installSandbox in
-  let lockfilePath = SandboxSpec.lockfilePath installSandbox.Sandbox.spec in
+  let lockPath = SandboxSpec.solutionLockPath installSandbox.Sandbox.spec in
   let%bind () =
-    Lockfile.toFile ~sandbox:installSandbox ~solution lockfilePath
+    SolutionLock.toPath ~sandbox:installSandbox ~solution lockPath
   in
   return solution
 
@@ -1251,16 +1247,16 @@ let solve {CommonOptions. installSandbox; _} () =
 let fetch {CommonOptions. installSandbox = sandbox; _} () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofFile ~sandbox lockfilePath with
+  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
+  match%bind SolutionLock.ofPath ~sandbox lockPath with
   | Some solution -> Fetch.fetch ~sandbox solution
-  | None -> error "no lockfile found, run 'esy solve' first"
+  | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let lockfilePath = SandboxSpec.lockfilePath sandbox.Sandbox.spec in
-  match%bind Lockfile.ofFile ~sandbox lockfilePath with
+  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
+  match%bind SolutionLock.ofPath ~sandbox lockPath with
   | Some solution ->
     if%bind Fetch.isInstalled ~sandbox solution
     then return ()
@@ -1811,7 +1807,7 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~name:"solve"
-      ~doc:"Solve dependencies and store the solution as a lockfile"
+      ~doc:"Solve dependencies and store the solution"
       Term.(
         const solve
         $ commonOpts
@@ -1820,7 +1816,7 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~name:"fetch"
-      ~doc:"Fetch dependencies using the solution in a lockfile"
+      ~doc:"Fetch dependencies using the stored solution"
       Term.(
         const fetch
         $ commonOpts

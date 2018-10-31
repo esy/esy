@@ -19,13 +19,12 @@ point where all artifacts are built consists of the following steps:
 
 - **Solve Dependencies**
 
-  Produces `esyi.lock.json` out of `package.json`.
-  This step is optional as `esyi.lock.json` can be already present in a fresh
-  checkout.
+  Produces `esy.lock` solutuon lock out of `package.json`.  This step is
+  optional as `esy.lock` can be already present in a fresh checkout.
 
 - **Fetch Dependencies**
 
-  Ensures all packages mentioned in `esyi.lock.json` is in the [Global
+  Ensures all packages mentioned in `esy.lock` is in the [Global
   Installation Cache](#global-installation-cache).
 
 - **Install Dependencies**
@@ -60,10 +59,10 @@ Constructed package universe is then encoded as [CUDF](concepts.md#CUDF) and
 then is being fed to a CUDF solver (provided by the `esy-solve-cudf` npm package
 which uses [mccs][] solver underneath).
 
-The result of the solver is then decoded and serialized on disk as
-`esyi.lock.json` file. It is advised to commit such file to a project's VCS as
-it captures the current state of the project's dependencies thus allowing to
-reproduce the exact same environment on other hosts at other points in time.
+The result of the solver is then decoded and serialized on disk as `esy.lock`
+directory. It is advised to commit such file to a project's VCS as it captures
+the current state of the project's dependencies thus allowing to reproduce the
+exact same environment on other hosts at other points in time.
 
 [mccs]: http://www.i3s.unice.fr/~cpjm/misc/mccs.html
 

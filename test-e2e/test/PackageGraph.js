@@ -144,9 +144,9 @@ async function readSolution(
 ): Promise<?Solution> {
   let solutionPath;
   if (sandbox === 'default') {
-    solutionPath = path.join(projectPath, 'esy.lock.json');
+    solutionPath = path.join(projectPath, 'esy.lock', 'index.json');
   } else {
-    solutionPath = path.join(projectPath, `${sandbox}.esy.lock.json`);
+    solutionPath = path.join(projectPath, `${sandbox}.esy.lock`, 'index.json');
   }
 
   if (!(await fsUtils.exists(solutionPath))) {

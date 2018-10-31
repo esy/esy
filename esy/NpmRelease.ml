@@ -38,7 +38,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         | _ -> true
       )
     |> List.map ~f:(fun (name, value) ->
-        "\"" ^ name ^ "\", \"" ^ Environment.escapeDoubleQuote value ^ "\"")
+        "\"" ^ name ^ "\", \"" ^ EsyLib.Path.normalizePathSlashes value ^ "\"")
     |> String.concat ";"
   in
   Printf.sprintf {|
@@ -230,22 +230,37 @@ let make
               | Some v  -> v
               | None -> ""
             in
-            String.split_on_char ':' v
+            String.split_on_char (System.Environment.sep ()).[0] v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
         let%bind namePath = resolveBinInEnv ~env name in
         (* Create the .ml file that we will later compile and write it to disk *)
-        let data = makeBinWrapper ~environment:bindings ~bin:namePath in
+        let data = makeBinWrapper ~environment:bindings ~bin:(EsyLib.Path.normalizePathSlashes namePath) in
         let mlPath = Path.(stagePath / (name ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(
-          v (p ocamlopt)
-          % "-o" % p Path.(binPath / name)
+          v (EsyLib.Path.normalizePathSlashes (p ocamlopt))
+          % "-o" %(EsyLib.Path.normalizePathSlashes (p Path.(binPath / name)))
           % "unix.cmxa" % "str.cmxa"
-          % p mlPath
+          % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
-        ChildProcess.run compile
+        (* Needs to have ocaml in environment *)
+        let environmentOverride =
+          match (System.Platform.host) with
+          | Windows ->
+            let currentPath = Sys.getenv("PATH") in
+            let userPath = match (EsyBash.getBinPath ()) with
+                           | Result.Ok userPath -> userPath
+                           | Error _ -> raise(Not_found)
+            in
+            let normalizedOcamlPath = ocamlopt |> Path.parent |> Path.showNormalized in
+            ChildProcess.CurrentEnvOverride StringMap.(
+              add "PATH" ((Path.show userPath) ^ (System.Environment.sep ()) ^ normalizedOcamlPath ^ ";" ^ currentPath) empty
+            )
+          | _ -> ChildProcess.CurrentEnv
+        in
+        ChildProcess.run ~env:environmentOverride compile
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
