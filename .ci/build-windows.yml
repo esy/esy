@@ -23,10 +23,6 @@ steps:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
         targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
 
-  - script: 'ls C:\Users\VssAdministrator\.esy\source-tarballs'
-    displayName: 'ls C:\Users\VssAdministrator\.esy\source-tarballs'
-    continueOnError: true
-
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore install'
     inputs:
@@ -44,10 +40,6 @@ steps:
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
         targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
-
-  - script: 'ls C:\Users\VssAdministrator\.esy\3_\i'
-    displayName: 'ls C:\Users\VssAdministrator\.esy\3_\i'
-    continueOnError: true
 
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
