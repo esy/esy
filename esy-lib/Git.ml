@@ -26,8 +26,10 @@ let runGit cmd =
 
 let clone ?branch ?depth ~dst ~remote () =
   let open RunAsync.Syntax in
-  let cmd =
+  let%bind cmd = RunAsync.ofBosError (
     let open Cmd in
+    let open Result.Syntax in
+    let%bind dest = EsyBash.normalizePathForCygwin (Path.show dst) in
     let cmd = v "git" % "clone" in
     let cmd = match branch with
       | Some branch -> cmd % "--branch" % branch
@@ -37,7 +39,8 @@ let clone ?branch ?depth ~dst ~remote () =
       | Some depth -> cmd % "--depth" % string_of_int depth
       | None -> cmd
     in
-    Cmd.(cmd % remote % p dst)
+    return Cmd.(cmd % remote % dest)
+  )
   in
   let%bind _ = runGit cmd in
   return ()
