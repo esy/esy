@@ -1,34 +1,12 @@
-type t('a, 'b) =
-  result(
-    'a,
-    [> | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)] as 'b,
-  );
-
-let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
-
 /**
  * Helper method to get the root path of the 'esy-bash' node modules
  */
 let getEsyBashRootPath = () => {
-  let program = Sys.argv[0];
-  let program =
-    switch (NodeResolution.realpath(Fpath.v(program))) {
-    | Ok(program) => program
-    | Error(`Msg(msg)) => Exn.fail(msg)
-    };
-  let basedir = Fpath.parent(program);
   let resolution =
-    NodeResolution.resolve(
-      "../../../../node_modules/esy-bash/package.json",
-      basedir,
-    );
-
-  switch (coerceFrmMsgOnly(resolution)) {
-  | Ok(Some(path)) => Fpath.parent(path)
-  | Ok(None) => Exn.fail("unable to find 'esy-bash'")
+    NodeResolution.resolve("../../../../node_modules/esy-bash/package.json");
+  switch (resolution) {
+  | Ok(path) => Path.parent(path)
   | Error(`Msg(msg)) => Exn.fail(msg)
-  | Error(`CommandError(cmd, _)) =>
-    Exn.failf("command failed: %a", Bos.Cmd.pp, cmd)
   };
 };
 
@@ -37,18 +15,18 @@ let getEsyBashRootPath = () => {
  * Used for resolving paths
  */
 let getCygPath = () =>
-  Fpath.(getEsyBashRootPath() / ".cygwin" / "bin" / "cygpath.exe");
+  Path.(getEsyBashRootPath() / ".cygwin" / "bin" / "cygpath.exe");
 
-let getBinPath = () => Fpath.(getEsyBashRootPath() / ".cygwin" / "bin");
+let getBinPath = () => Path.(getEsyBashRootPath() / ".cygwin" / "bin");
 
 let getEsyBashPath = () =>
-  Fpath.(
+  Path.(
     getEsyBashRootPath() / "re" / "_build" / "default" / "bin" / "EsyBash.exe"
   );
 
 let getMingwRuntimePath = () => {
   let rootPath = getEsyBashRootPath();
-  Fpath.(
+  Path.(
     rootPath
     / ".cygwin"
     / "usr"
@@ -90,7 +68,7 @@ let toEsyBashCommand = (~env=None, cmd) => {
     let commands = Bos.Cmd.to_list(cmd);
     let esyBashPath = getEsyBashPath();
     let allCommands = List.append(environmentFilePath, commands);
-    Bos.Cmd.of_list([Fpath.to_string(esyBashPath), ...allCommands]);
+    Bos.Cmd.of_list([Path.show(esyBashPath), ...allCommands]);
   | _ => cmd
   };
 };
