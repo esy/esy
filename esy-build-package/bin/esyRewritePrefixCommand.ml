@@ -2,7 +2,9 @@ open EsyLib
 module Run = EsyBuildPackage.Run
 
 let rewritePrefixInFile' ~origPrefix ~destPrefix path =
-  Fastreplacestring.replace path origPrefix destPrefix
+  match Fastreplacestring.replace path origPrefix destPrefix with
+  | Ok () -> Ok ()
+  | Error msg -> Error (`Msg msg)
 
 let rewritePrefixesInFile ~origPrefix ~destPrefix path =
   let open Result.Syntax in
@@ -13,21 +15,22 @@ let rewritePrefixesInFile ~origPrefix ~destPrefix path =
   match System.Platform.host with
 
   | Windows ->
-    rewritePrefixInFile'
+    let%bind () = rewritePrefixInFile'
       ~origPrefix:origPrefixString
       ~destPrefix:destPrefixString
-      path;
+      path
+    in
 
     let normalizedOrigPrefix = Path.normalizePathSlashes origPrefixString in
     let normalizedDestPrefix = Path.normalizePathSlashes destPrefixString in
-    let () =
+    let%bind () =
       rewritePrefixInFile'
         ~origPrefix:normalizedOrigPrefix
         ~destPrefix:normalizedDestPrefix
         path
     in
 
-    let () =
+    let%bind () =
       let forwardSlashRegex = Str.regexp "/" in
       let escapedOrigPrefix =
         Str.global_replace forwardSlashRegex "\\\\\\\\" normalizedOrigPrefix
@@ -46,8 +49,7 @@ let rewritePrefixesInFile ~origPrefix ~destPrefix path =
     rewritePrefixInFile'
       ~origPrefix:origPrefixString
       ~destPrefix:destPrefixString
-      path;
-    return ()
+      path
 
 let rewriteTargetInSymlink ~origPrefix ~destPrefix path =
   let open Result.Syntax in

@@ -1,3 +1,4 @@
 open EsyLib;
 
-external replace : (Path.t, string, string) => unit = "caml_fastreplacestring";
+external replace: (Path.t, string, string) => result(unit, string) =
+  "caml_fastreplacestring";

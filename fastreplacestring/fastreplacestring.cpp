@@ -167,12 +167,22 @@ int replace(char *filename, char *old, char *newWord) {
 extern "C" {
   CAMLprim value caml_fastreplacestring(value vPath, value vOldWord, value vNewWord) {
     CAMLparam3(vPath, vOldWord, vNewWord);
+    CAMLlocal1(vRet);
 
     char *szPath = String_val(vPath);
     char *szOldWord = String_val(vOldWord);
     char *szNewWord = String_val(vNewWord);
 
-    replace(szPath, szOldWord, szNewWord);
-    CAMLreturn(Val_unit);
+    int ret = replace(szPath, szOldWord, szNewWord);
+    if (ret == 0) {
+      /* Ok() */
+      vRet = caml_alloc(1, 0);
+      Store_field (vRet, 0, Val_unit);
+    } else {
+      /* Error(..) */
+      vRet = caml_alloc(1, 1);
+      Store_field (vRet, 0, caml_copy_string("error rewriting file"));
+    }
+    CAMLreturn(vRet);
   }
 }
