@@ -8,9 +8,9 @@ steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore source-tarballs'
     inputs:
-        buildType: specific
-        project: esy
-        pipeline: build
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
         buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         downloadType: 'single'
@@ -21,9 +21,9 @@ steps:
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore install'
     inputs:
-        buildType: specific
-        project: esy
-        pipeline: build
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
         buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         downloadType: 'single'
