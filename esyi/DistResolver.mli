@@ -4,15 +4,6 @@
 
  *)
 
-module PackageOverride : sig
-  type t = {
-    dist : Dist.t;
-    override : Package.Resolution.override;
-  }
-
-  val of_yojson : t Json.decoder
-end
-
 type resolution = {
 
   overrides : Package.Overrides.t;

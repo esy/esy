@@ -58,7 +58,7 @@ Package at the root of a [sandbox](#sandbox).
 
 A result of solving dependencies for a project sandbox.
 
-Cached as `esyi.lock.json` file in the root of a project.
+Cached as `esy.lock` directory in the root of a project.
 
 It is advised to commit this file to a project's repository so that the build
 environment is reproducible and doesn't depend on the current state of package

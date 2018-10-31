@@ -18,7 +18,7 @@ describe(`Basic tests`, () => {
 
     await p.esy(`install`);
 
-    expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock'))).toBeTruthy();
 
     await expect(
       p.runJavaScriptInNodeAndReturnJson(`require('no-deps')`),

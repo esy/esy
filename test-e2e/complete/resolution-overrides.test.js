@@ -58,7 +58,7 @@ describe('resolutions with overrides', () => {
     ];
     await p.fixture(...fixture);
 
-    await p.esy('install --skip-repository-update');
+    await p.esy('install --verbosity=debug --skip-repository-update');
     await p.esy('build');
 
     {

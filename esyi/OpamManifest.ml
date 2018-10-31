@@ -1,4 +1,8 @@
-module Override = Package.OpamOverride
+let esySubstsDep = {
+  Package.Dep.
+  name = "@esy-ocaml/substs";
+  req = Npm SemverVersion.Constraint.ANY;
+}
 
 module File = struct
   module Cache = Memoize.Make(struct
@@ -32,29 +36,14 @@ module File = struct
     | None -> load ()
 end
 
-let readFiles (path : Path.t) () =
-  let open RunAsync.Syntax in
-  let filesPath = Path.(path / "files") in
-  if%bind Fs.isDir filesPath
-  then
-    let collect files filePath _fileStats =
-      match Path.relativize ~root:filesPath filePath with
-      | Some name ->
-        let%bind file = Package.File.readOfPath ~prefixPath:filesPath ~filePath:name in
-        return (file::files)
-      | None -> return files
-    in
-    Fs.fold ~init:[] ~f:collect filesPath
-  else return []
-
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
-  path : Path.t option;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Override.t;
+  override : Package.Override.t option;
   archive : OpamRegistryArchiveIndex.record option;
+  opamRepositoryPath : Path.t option;
 }
 
 let ofPath ~name ~version (path : Path.t) =
@@ -63,10 +52,10 @@ let ofPath ~name ~version (path : Path.t) =
   return {
     name;
     version;
-    path = Some (Path.parent path);
+    opamRepositoryPath = Some (Path.parent path);
     opam;
     url = None;
-    override = Override.empty;
+    override = None;
     archive = None;
   }
 
@@ -76,10 +65,10 @@ let ofString ~name ~version (data : string) =
   return {
     name;
     version;
-    path = None;
     opam;
     url = None;
-    override = Override.empty;
+    opamRepositoryPath = None;
+    override = None;
     archive = None;
   }
 
@@ -187,20 +176,11 @@ let convertOpamUrl (manifest : t) =
   in
 
   let%bind main, mirrors =
-    match manifest.override.Override.opam.Override.Opam.source with
-    | Some source ->
-      let main = Source.Dist (Archive {
-        url = source.url;
-        checksum = Checksum.Md5, source.checksum;
-      }) in
-      return (main, [])
-    | None -> begin
-      match manifest.url with
-      | Some url -> sourceOfOpamUrl url
-      | None ->
-        let main = Source.Dist NoSource in
-        Ok (main, [])
-      end
+    match manifest.url with
+    | Some url -> sourceOfOpamUrl url
+    | None ->
+      let main = Source.Dist NoSource in
+      Ok (main, [])
   in
 
   match manifest.archive with
@@ -215,31 +195,6 @@ let convertOpamUrl (manifest : t) =
     Ok (main, mirrors)
   | None ->
     Ok (main, mirrors)
-
-let toOpamFormula reqs =
-  let f reqs (req : Req.t) =
-    let update =
-      match req.spec with
-      | VersionSpec.Npm formula ->
-        let f (c : SemverVersion.Constraint.t) =
-          {Package.Dep. name = req.name; req = Npm c}
-        in
-        let formula = SemverVersion.Formula.ofDnfToCnf formula in
-        List.map ~f:(List.map ~f) formula
-      | VersionSpec.NpmDistTag tag ->
-        [[{Package.Dep. name = req.name; req = NpmDistTag tag}]]
-      | VersionSpec.Opam formula ->
-        let f (c : OpamPackageVersion.Constraint.t) =
-          {Package.Dep. name = req.name; req = Opam c}
-        in
-        let formula = OpamPackageVersion.Formula.ofDnfToCnf formula in
-        List.map ~f:(List.map ~f) formula
-      | VersionSpec.Source spec ->
-        [[{Package.Dep. name = req.name; req = Source spec}]]
-    in
-    reqs @ update
-  in
-  List.fold_left ~f ~init:[] reqs
 
 let convertDependencies manifest =
   let open Result.Syntax in
@@ -272,15 +227,10 @@ let convertDependencies manifest =
     let formula =
       formula
       @ [
-          [{
-            Package.Dep.
-            name = "@esy-ocaml/substs";
-            req = Npm SemverVersion.Constraint.ANY;
-          }];
+          [esySubstsDep];
         ]
-      @ toOpamFormula manifest.override.dependencies
-      @ toOpamFormula manifest.override.peerDependencies
-    in return (Package.Dependencies.OpamFormula formula)
+    in
+    return (Package.Dependencies.OpamFormula formula)
   in
 
   let%bind devDependencies =
@@ -307,13 +257,8 @@ let convertDependencies manifest =
 
   return (dependencies, devDependencies, optDependencies)
 
-let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
+let toPackage ?source ~name ~version manifest =
   let open RunAsync.Syntax in
-
-  let readOpamFilesForPackage path () =
-    let%bind files = readFiles path () in
-    return (files @ manifest.override.opam.files)
-  in
 
   let converted =
     let open Result.Syntax in
@@ -326,19 +271,16 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
   | Error err -> return (Error err)
   | Ok (sourceFromOpam, dependencies, devDependencies, optDependencies) ->
 
-    let opam = Some {
-      Package.Opam.
-      name = manifest.name;
-      version = manifest.version;
-      files = (
-        match ignoreFiles, manifest.path with
-        | true, _
-        | false, None -> (fun () -> return [])
-        | false, Some path -> readOpamFilesForPackage path
-      );
-      opam = manifest.opam;
-      override = {manifest.override with opam = Override.Opam.empty};
-    } in
+    let opam =
+      match manifest.opamRepositoryPath with
+      | Some path -> Some {
+          OpamResolution.
+          name = manifest.name;
+          version = manifest.version;
+          path;
+        }
+      | None -> None
+    in
 
     let source =
       match source with
@@ -347,10 +289,13 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       | Some (Source.Link {path; manifest;}) ->
         Package.Link {path; manifest;}
       | Some source ->
-        Package.Install {
-          source = source, [];
-          opam;
-        }
+        Package.Install {source = source, []; opam;}
+    in
+
+    let overrides =
+      match manifest.override with
+      | None -> Package.Overrides.empty
+      | Some override -> Package.Overrides.(add override empty);
     in
 
     return (Ok {
@@ -361,7 +306,7 @@ let toPackage ?(ignoreFiles=false) ?source ~name ~version manifest =
       originalName = None;
       kind = Package.Esy;
       source;
-      overrides = Package.Overrides.empty;
+      overrides;
       dependencies;
       devDependencies;
       optDependencies;

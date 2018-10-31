@@ -1,7 +1,7 @@
 module PackageOverride = struct
   type t = {
     dist : Dist.t;
-    override : Package.Overrides.override;
+    override : Json.t;
   }
 
   let of_yojson json =
@@ -15,7 +15,7 @@ module PackageOverride = struct
     let%bind override =
       Json.Decode.fieldWith
       ~name:"override"
-      Package.Overrides.override_of_yojson
+      Json.of_yojson
       json
     in
     return {dist; override;}
@@ -47,7 +47,8 @@ let rebase ~(base : Dist.t) (source : Dist.t) =
   | Dist.LocalPath info, Dist.LocalPath {path = basePath; _} ->
     let path = Path.(basePath // info.path |> normalizeAndRemoveEmptySeg) in
     return (Dist.LocalPath {info with path;})
-  | Dist.LocalPath _, _ -> failwith "TODO"
+  | Dist.LocalPath _, _ ->
+    Exn.failf "unable to rebase %a onto %a" Dist.pp source Dist.pp base
   | source, _ -> return source
 
 let suggestPackageName ~fallback (kind, filename) =
@@ -119,9 +120,9 @@ let ofGithub
 let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
-  let rec tryFilename filenames =
+  let rec tryFilename tried filenames =
     match filenames with
-    | [] -> return EmptyManifest
+    | [] -> return (tried, EmptyManifest)
     | (kind, filename)::rest ->
 
       let suggestedPackageName =
@@ -131,23 +132,24 @@ let ofPath ?manifest (path : Path.t) =
       in
 
       let path = Path.(path / filename) in
+      let tried = Path.Set.add path tried in
       if%bind Fs.exists path
       then
         let%bind data = Fs.readFile path in
         match kind with
         | ManifestSpec.Filename.Esy ->
           begin match Json.parseStringWith PackageOverride.of_yojson data with
-          | Ok override -> return (Override override)
+          | Ok override -> return (tried, Override override)
           | Error err ->
             Logs_lwt.debug (fun m ->
               m "not an override %a: %a" Path.pp path Run.ppError err
               );%lwt
-            return (Manifest {data; filename; kind; suggestedPackageName;})
+            return (tried, Manifest {data; filename; kind; suggestedPackageName;})
           end
         | ManifestSpec.Filename.Opam ->
-            return (Manifest {data; filename; kind; suggestedPackageName;})
+          return (tried, Manifest {data; filename; kind; suggestedPackageName;})
       else
-        tryFilename rest
+        tryFilename tried rest
   in
   let%bind filenames =
     match manifest with
@@ -161,7 +163,7 @@ let ofPath ?manifest (path : Path.t) =
         ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
       ]
   in
-  tryFilename filenames
+  tryFilename Path.Set.empty filenames
 
 let resolve
   ?(overrides=Package.Overrides.empty)
@@ -174,19 +176,19 @@ let resolve
     Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist);%lwt
     match dist with
     | LocalPath {path; manifest} ->
-      let%bind pkg = ofPath ?manifest Path.(root // path) in
-      return (pkg, Some path)
+      let%bind tried, pkg = ofPath ?manifest Path.(root // path) in
+      return (pkg, tried)
     | Git {remote; commit; manifest;} ->
       let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in
-        let%bind pkg = ofPath ?manifest repo in
-        return (pkg, None)
+        let%bind _, pkg = ofPath ?manifest repo in
+        return (pkg, Path.Set.empty)
       end
     | Github {user; repo; commit; manifest;} ->
       let%bind pkg = ofGithub ?manifest user repo commit in
-      return (pkg, None)
+      return (pkg, Path.Set.empty)
     | Archive _ ->
       Fs.withTempDir begin fun path ->
         let%bind () =
@@ -195,44 +197,36 @@ let resolve
             ~dst:path
             dist
         in
-        let%bind pkg = ofPath path in
-      return (pkg, None)
+        let%bind _, pkg = ofPath path in
+      return (pkg, Path.Set.empty)
       end
 
     | NoSource ->
-      return (EmptyManifest, None)
-  in
-
-  let maybeAddToPathSet path paths =
-    match path with
-    | Some path -> Path.Set.add path paths
-    | None -> paths
+      return (EmptyManifest, Path.Set.empty)
   in
 
   let rec loop' ~overrides ~paths dist =
     match%bind resolve' dist with
-    | EmptyManifest, path ->
+    | EmptyManifest, newPaths ->
       return {
         manifest = None;
         overrides;
         dist;
-        paths = maybeAddToPathSet path Path.Set.empty;
+        paths = Path.Set.union paths newPaths;
       }
-    | Manifest manifest, path ->
+    | Manifest manifest, newPaths ->
       return {
         manifest = Some manifest;
         overrides;
         dist;
-        paths = maybeAddToPathSet path Path.Set.empty;
+        paths = Path.Set.union paths newPaths;
       }
-    | Override {dist = nextDist; override}, path ->
-      let override =
-        {override with Package.Resolution. origin = Some dist}
-      in
+    | Override {dist = nextDist; override = _;}, newPaths ->
+      let override = Package.Override.ofDist dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
       let overrides = Package.Overrides.add override overrides in
-      let paths = maybeAddToPathSet path paths in
+      let paths = Path.Set.union paths newPaths in
       loop' ~overrides ~paths nextDist
   in
 

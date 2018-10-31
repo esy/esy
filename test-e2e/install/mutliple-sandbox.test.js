@@ -52,7 +52,7 @@ describe('projects with multiple sandboxes', function() {
         'default-dep': {name: 'default-dep', version: '0.0.0'},
       },
     });
-    expect(await fs.exists(path.join(p.projectPath, 'esy.lock.json'))).toBeTruthy();
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock'))).toBeTruthy();
 
     // install custom sandbox
 
@@ -66,7 +66,7 @@ describe('projects with multiple sandboxes', function() {
       },
     });
     expect(
-      await fs.exists(path.join(p.projectPath, 'package.custom.esy.lock.json')),
+      await fs.exists(path.join(p.projectPath, 'package.custom.esy.lock')),
     ).toBeTruthy();
   });
 });
