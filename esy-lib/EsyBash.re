@@ -56,7 +56,7 @@ let getEsyBashPath = () =>
   Result.Syntax.(
     {
       let%bind rootPath = getEsyBashRootPath();
-      Ok(Fpath.(rootPath / "bin" / "esy-bash.js"));
+      Ok(Fpath.(rootPath / "re" / "_build" / "default" / "bin" / "EsyBash.exe"));
     }
   );
 
@@ -99,12 +99,6 @@ let normalizePathForCygwin = path =>
     }
   );
 
-let getNodePath = () =>
-  switch (Sys.getenv_opt("ESY_NODE_PATH")) {
-  | Some(s) => s
-  | None => "node"
-  };
-
 let toEsyBashCommand = (~env=None, cmd) => {
   open Result.Syntax;
   let environmentFilePath =
@@ -120,7 +114,6 @@ let toEsyBashCommand = (~env=None, cmd) => {
     let allCommands = List.append(environmentFilePath, commands);
     Ok(
       Bos.Cmd.of_list([
-        getNodePath(),
         Fpath.to_string(esyBashPath),
         ...allCommands,
       ]),
