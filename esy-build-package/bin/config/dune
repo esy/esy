@@ -1,8 +1,0 @@
-(executable
-  (name discover)
-  (modules Discover)
-  (libraries dune.configurator))
-
-(rule
-  (targets dune.fastreplacestring.command)
-  (action (run ./discover.exe)))
