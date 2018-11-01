@@ -56,8 +56,9 @@ module PackageInformation = struct
   let ofInstallation ~basePath:_ ~rootPath ~rootId ~solution ~installation () =
     (* let rootId = Solution.Package.id (Solution.root solution) in *)
     let f byName (id, loc) =
+      let isRoot = PackageId.compare id rootId = 0 in
       let name =
-        if PackageId.compare id rootId = 0
+        if isRoot
         then Null
         else String (PackageId.name id)
       in
@@ -67,10 +68,14 @@ module PackageInformation = struct
         | Some versions -> versions
       in
       let versions =
-        let version, packageLocation =
-          if PackageId.compare id rootId = 0
-          then Null, pnpPath rootPath
-          else String (Version.show (PackageId.version id)), pnpPath loc
+        let version, packageLocation, packageDependencies =
+          if isRoot
+          then
+            Null, pnpPath rootPath, StringMap.empty
+          else
+            let version = (Version.show (PackageId.version id)) in
+            let packageDependencies = StringMap.(empty |> add (PackageId.name id) version) in
+            String version, pnpPath loc, packageDependencies
         in
         let package =
           match Solution.get id solution with
@@ -78,12 +83,6 @@ module PackageInformation = struct
           | None -> assert false
         in
         let packageDependencies =
-          let f map pkg =
-            let id = Solution.Package.id pkg in
-            let name = PackageId.name id in
-            let version = Version.show (PackageId.version id) in
-            StringMap.add name version map
-          in
           let dependencies =
             if PackageId.compare (Solution.Package.id package) rootId = 0
             then
@@ -96,7 +95,13 @@ module PackageInformation = struct
                 package
                 solution
           in
-          List.fold_left ~f ~init:StringMap.empty dependencies
+          let f map pkg =
+            let id = Solution.Package.id pkg in
+            let name = PackageId.name id in
+            let version = Version.show (PackageId.version id) in
+            StringMap.add name version map
+          in
+          List.fold_left ~f ~init:packageDependencies dependencies
         in
         StringOrNullMap.add version {packageLocation; packageDependencies;} versions
       in
