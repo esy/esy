@@ -382,7 +382,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     let env = Astring.String.Map.(
         add(
             "PATH",
-            p ++ ";" ++ Sys.getenv("PATH"),
+            Fpath.to_string(p) ++ ";" ++ Sys.getenv("PATH"),
             empty,
         )
     );
