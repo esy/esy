@@ -3,7 +3,6 @@ val make :
   -> solution:EsyInstall.Solution.t
   -> installation:EsyInstall.Installation.t
   -> ocamlopt:Path.t
-  -> esyInstallRelease:Path.t
   -> outputPath:Path.t
   -> concurrency:int
   -> cfg:Config.t

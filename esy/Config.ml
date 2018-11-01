@@ -6,7 +6,6 @@ type t = {
   spec : EsyInstall.SandboxSpec.t;
   installCfg : EsyInstall.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
-  esyBuildPackageCmd : Cmd.t;
 }
 
 let defaultPrefixPath = Path.v "~/.esy"
@@ -15,7 +14,6 @@ let make
   ~installCfg
   ~esyVersion
   ~prefixPath
-  ~esyBuildPackageCmd
   ~spec
   () =
   let value =
@@ -45,7 +43,6 @@ let make
       spec;
       installCfg;
       buildCfg;
-      esyBuildPackageCmd;
     }
   in
   Run.ofBosError value

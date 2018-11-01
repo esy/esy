@@ -30,12 +30,6 @@ module EsyRuntime = struct
     | Ok path -> path
     | Error (`Msg err) -> failwith err
 
-  let esyInstallRelease =
-    resolve "../../../../bin/esyInstallRelease.js"
-
-  let esyBuildPackageCmd =
-    Cmd.ofPath (resolve "../../esy-build-package/bin/esyBuildPackageCommand.exe")
-
   module EsyPackageJson = struct
     type t = {
       version : string
@@ -237,7 +231,6 @@ module CommonOptions = struct
               ~installCfg
               ~spec
               ~esyVersion:EsyRuntime.version
-              ~esyBuildPackageCmd:EsyRuntime.esyBuildPackageCmd
               ~prefixPath
               ()
           )
@@ -1470,7 +1463,6 @@ let release copts () =
     ~solution:solution
     ~installation:installation
     ~ocamlopt
-    ~esyInstallRelease:EsyRuntime.esyInstallRelease
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
     ~cfg:copts.CommonOptions.cfg

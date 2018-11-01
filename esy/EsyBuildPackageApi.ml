@@ -1,3 +1,8 @@
+let esyBuildPackageCmd =
+  let req =  "../../esy-build-package/bin/esyBuildPackageCommand.exe" in
+  match NodeResolution.resolve req with
+  | Ok cmd -> Cmd.ofPath cmd
+  | Error (`Msg msg) -> failwith msg
 
 let run
     ?(stdin=`Null)
@@ -18,7 +23,7 @@ let run
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
       return Cmd.(
-        cfg.esyBuildPackageCmd
+        esyBuildPackageCmd
         % action
         % "--store-path" % p cfg.buildCfg.storePath
         % "--local-store-path" % p cfg.buildCfg.localStorePath
