@@ -262,10 +262,12 @@ let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
   | _ ->
     RunAsync.error "error running subprocess"
 
-let runLifecycle ~prepareLifecycleEnv pkg sourcePath lifecycle =
+let runLifecycle pkg sourcePath lifecycle =
   let open RunAsync.Syntax in
   let%bind env =
-    let%bind override = prepareLifecycleEnv sourcePath Astring.String.Map.empty in
+    let path = Path.(show (sourcePath / "_esy"))::System.Environment.path in
+    let sep = System.Environment.sep ~name:"PATH" () in
+    let override = Astring.String.Map.(add "PATH" (String.concat ~sep path) empty) in
     return (ChildProcess.CurrentEnvOverride override)
   in
 
@@ -301,16 +303,16 @@ let installBinWrapper ~binPath (name, origPath) =
     return ()
   )
 
-let install ~prepareLifecycleEnv dist =
+type installation = {
+  pkgJson : PackageJson.t option;
+  sourcePath : Path.t;
+  dist : Dist.t;
+}
+
+let install ~onBeforeLifecycle dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
   RunAsync.contextf (
-
-    let%bind binPath =
-      let binPath = SandboxSpec.binPath dist.sandbox.Sandbox.spec in
-      let%bind () = Fs.createDir binPath in
-      return binPath
-    in
 
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
@@ -345,8 +347,10 @@ let install ~prepareLifecycleEnv dist =
             match lifecycle with
             | Some lifecycle ->
               let%bind () =
+                onBeforeLifecycle sourceStagePath
+              in
+              let%bind () =
                 runLifecycle
-                  ~prepareLifecycleEnv
                   dist.pkg
                   sourceStagePath
                   lifecycle
@@ -363,14 +367,12 @@ let install ~prepareLifecycleEnv dist =
         )
     in
 
-    (* link bin wrappers *)
-    let%bind () =
-      match pkgJson with
-      | Some pkgJson ->
-        let bin = PackageJson.bin ~sourcePath pkgJson in
-        RunAsync.List.mapAndWait ~f:(installBinWrapper ~binPath) bin
-      | None -> return ()
-    in
-
-    return ()
+    return {pkgJson; sourcePath; dist;}
   ) "installing %a" Dist.pp dist
+
+let linkBins binPath installation =
+  match installation.pkgJson with
+  | Some pkgJson ->
+    let bin = PackageJson.bin ~sourcePath:installation.sourcePath  pkgJson in
+    RunAsync.List.mapAndWait ~f:(installBinWrapper ~binPath) bin
+  | None -> RunAsync.return ()

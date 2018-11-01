@@ -22,13 +22,16 @@ val fetch :
  * return it.
  *)
 
+type installation
+
 val install :
-  prepareLifecycleEnv:(
-    Path.t
-    -> string Astring.String.Map.t
-    -> string Astring.String.Map.t RunAsync.t)
+  onBeforeLifecycle:(Path.t -> unit RunAsync.t)
   -> Dist.t
+  -> installation RunAsync.t
+(** Unpack fetched dist from storage into source cache and return path. *)
+
+val linkBins :
+  Path.t
+  -> installation
   -> unit RunAsync.t
-(**
- * Unpack fetched dist from storage into source cache and return path.
- *)
+(** Link executables declared in ["bin"] field of package.json. *)
