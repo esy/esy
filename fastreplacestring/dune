@@ -1,6 +1,5 @@
 (library
   (name fastreplacestring)
-  (libraries EsyLib)
   (modules fastreplacestring)
   (flags (:include config/dune.flags))
   (cxx_names fastreplacestring)

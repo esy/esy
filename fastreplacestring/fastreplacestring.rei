@@ -1,3 +1,1 @@
-open EsyLib;
-
-let replace: (Path.t, string, string) => result(unit, string);
+let replace: (string, string, string) => result(unit, string);

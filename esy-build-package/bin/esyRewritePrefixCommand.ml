@@ -2,7 +2,7 @@ open EsyLib
 module Run = EsyBuildPackage.Run
 
 let rewritePrefixInFile' ~origPrefix ~destPrefix path =
-  match Fastreplacestring.replace path origPrefix destPrefix with
+  match Fastreplacestring.replace (Path.show path) origPrefix destPrefix with
   | Ok () -> Ok ()
   | Error msg -> Error (`Msg msg)
 
