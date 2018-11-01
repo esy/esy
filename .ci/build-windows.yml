@@ -97,7 +97,6 @@ steps:
 
   - script: 'jest --runInBand test-e2e'
     displayName: 'test-e2e'
-    continueOnError: true
 
   - script: 'npm run test:e2e-slow'
     displayName: 'npm run test:e2e-slow'
