@@ -377,9 +377,18 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
   let%bind () = {
+    let%bind p = EsyBash.getMingwRuntimePath();
+    let env = Astring.String.Map.(
+        add(
+            "PATH",
+            p ++ ";" ++ Sys.getenv("PATH"),
+            empty,
+        )
+    );
     let%bind cmd =
       EsyLib.NodeResolution.resolve("./esyRewritePrefixCommand.exe");
     Bos.OS.Cmd.run(
+      ~env,
       Cmd.(
         v(p(cmd))
         % "--orig-prefix"
