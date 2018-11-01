@@ -36,10 +36,6 @@ module EsyRuntime = struct
   let esyBuildPackageCmd =
     Cmd.ofPath (resolve "../../esy-build-package/bin/esyBuildPackageCommand.exe")
 
-  let () =
-    let cmd = Cmd.ofPath (resolve "../../esy-build-package/bin/esyRewritePrefixCommand.exe") in
-    RewritePrefix.cmd := Some cmd
-
   module EsyPackageJson = struct
     type t = {
       version : string
