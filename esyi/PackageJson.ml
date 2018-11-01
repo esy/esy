@@ -9,7 +9,7 @@ module Manifest = struct
     name : string option [@default None];
     version : SemverVersion.Version.t option [@default None];
     dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-    peerDependencies : Json.t StringMap.t [@default StringMap.empty];
+    peerDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
     optDependencies : Json.t StringMap.t [@default StringMap.empty];
     esy : EsyPackageJson.t option [@default None];
     dist : dist option [@default None]
@@ -129,7 +129,7 @@ let packageOfJson
     overrides = Package.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
-    peerDependencies = pkgJson.peerDependencies |> StringMap.keys |> StringSet.of_list;
+    peerDependencies = pkgJson.peerDependencies;
     optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;
     resolutions;
     source;
