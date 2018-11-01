@@ -1,5 +1,5 @@
 {
-  "hash": "3c29c18cba7e9b411cc1dfdd2249fa80",
+  "hash": "8ecc55810065a16809c13f6ddbf0a6a0",
   "root": "esy@path:.",
   "node": {
     "yargs-parser@9.0.2": {
@@ -4724,12 +4724,12 @@
       },
       "dependencies": []
     },
-    "esy-bash@0.3.5": {
+    "esy-bash@0.3.6": {
       "record": {
         "name": "esy-bash",
-        "version": "0.3.5",
+        "version": "0.3.6",
         "source":
-          "archive:https://registry.npmjs.org/esy-bash/-/esy-bash-0.3.5.tgz#sha1:5eb7e10bca677408dd4605c6ae11767ad442f77b",
+          "archive:https://registry.npmjs.org/esy-bash/-/esy-bash-0.3.6.tgz#sha1:36b8c3fd11c05f2e69ddbe34be57f29bdb8f8152",
         "files": [],
         "opam": null
       },
@@ -4761,7 +4761,7 @@
         "@opam/ppx_sexp_conv@opam:v0.11.2", "@opam/re@opam:1.8.0",
         "@opam/utop@opam:2.2.0", "@opam/yojson@opam:1.4.1",
         "babel-preset-env@1.7.0", "babel-preset-flow@6.23.0", "del@3.0.0",
-        "esy-bash@0.3.5", "esy-solve-cudf@0.1.10", "flow-bin@0.77.0",
+        "esy-bash@0.3.6", "esy-solve-cudf@0.1.10", "flow-bin@0.77.0",
         "fs-extra@7.0.0", "jest-cli@23.6.0", "klaw@2.1.1", "minimatch@3.0.4",
         "ocaml@4.6.7", "outdent@0.3.0", "prettier@1.14.3", "rimraf@2.6.2",
         "semver@5.6.0", "super-resolve@1.0.0", "tar@4.4.6", "tar-fs@1.16.3",
