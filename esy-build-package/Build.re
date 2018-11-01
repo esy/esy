@@ -266,6 +266,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
           regex(sourcePath, [".*", "\\.merlin"]),
           regex(sourcePath, ["\\.merlin"]),
           regex(sourcePath, [".*\\.install"]),
+          regex(sourcePath, ["dune-project"]),
           Subpath(Path.show(buildPath)),
           Subpath(Path.show(stagePath)),
           Subpath("/private/tmp"),
