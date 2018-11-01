@@ -618,6 +618,10 @@ module Dep = struct
 
 end
 
+let yojson_of_reqs (deps : Req.t list) =
+  let f (x : Req.t) = `List [`Assoc [x.name, (VersionSpec.to_yojson x.spec)]] in
+  `List (List.map ~f deps)
+
 module Dependencies = struct
 
   type t =
@@ -676,6 +680,19 @@ module Dependencies = struct
     match deps with
     | NpmFormula f -> NpmFormula (findInNpmFormula f)
     | OpamFormula f -> OpamFormula (findInOpamFormula f)
+
+  let to_yojson = function
+    | NpmFormula deps -> yojson_of_reqs deps
+    | OpamFormula deps ->
+      let ppReq fmt = function
+        | Dep.Npm c -> SemverVersion.Constraint.pp fmt c
+        | Dep.NpmDistTag tag -> Fmt.string fmt tag
+        | Dep.Opam c -> OpamPackageVersion.Constraint.pp fmt c
+        | Dep.Source src -> SourceSpec.pp fmt src
+      in
+        let jsonOfItem {Dep. name; req;} = `Assoc [name, `String (Format.asprintf "%a" ppReq req)] in
+        let f disj = `List (List.map ~f:jsonOfItem disj) in
+          `List (List.map ~f deps)
 end
 
 type source =
@@ -717,6 +734,16 @@ let compare pkga pkgb =
   if name = 0
   then Version.compare pkga.version pkgb.version
   else name
+
+let to_yojson pkg =
+  `Assoc [
+    "name", `String pkg.name;
+    "version", `String (Version.showSimple pkg.version);
+    "dependencies", Dependencies.to_yojson pkg.dependencies;
+    "devDependencies", Dependencies.to_yojson pkg.devDependencies;
+    "peerDependencies", yojson_of_reqs pkg.peerDependencies;
+    "optDependencies", `List (List.map ~f:(fun x -> `String x) (StringSet.elements pkg.optDependencies));
+  ]
 
 module Map = Map.Make(struct
   type nonrec t = t

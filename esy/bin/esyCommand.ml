@@ -1458,6 +1458,41 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
     ~f:importBuild
     (Solution.allDependenciesBFS (Solution.root solution) solution)
 
+let show (copts : CommonOptions.t) _asJson req () =
+  let open EsyInstall in
+  let open RunAsync.Syntax in
+  let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
+  let%bind resolver = Resolver.make ~cfg:copts.cfg.installCfg ~root:copts.spec.path () in
+  let%bind resolutions =
+    RunAsync.contextf (
+      Resolver.resolve ~name:req.name ~spec:req.spec resolver
+    ) "resolving %a" Req.pp req
+  in
+  match req.spec with
+  | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+  | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
+    let f (res : Package.Resolution.t) = match res.resolution with
+    | Version v -> `String (Version.showSimple v)
+    | _ -> failwith "unreachable"
+    in
+    `Assoc ["name", `String req.name; "versions", `List (List.map ~f resolutions)]
+    |> Yojson.Safe.pretty_to_string
+    |> print_endline;
+    return ()
+  | _ ->
+    match resolutions with
+    | [] -> errorf "No package found for %a" Req.pp req
+    | resolution::_ ->
+      let%bind pkg = RunAsync.contextf (
+          Resolver.package ~resolution resolver
+        ) "resolving metadata %a" Package.Resolution.pp resolution
+      in
+      let%bind pkg = RunAsync.ofStringError pkg in
+      Package.to_yojson pkg
+      |> Yojson.Safe.pretty_to_string
+      |> print_endline;
+      return ()
+
 let release copts () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
@@ -1829,6 +1864,21 @@ let makeCommands ~sandbox () =
       Term.(
         const release
         $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"show"
+      ~doc:"Display information about available packages"
+      Term.(
+        const show
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
+        $ Arg.(
+            required
+            & pos 0 (some string) None
+            & info [] ~docv:"PACKAGE" ~doc:"Package to display information about"
+          )
         $ Cli.setupLogTerm
       );
 
