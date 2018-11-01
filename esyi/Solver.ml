@@ -231,9 +231,10 @@ let rec findResolutionForRequest resolver req = function
     else findResolutionForRequest resolver req rest
 
 let solutionPkgOfPkg
+  resolver
   (pkg : Package.t)
   (dependenciesMap : PackageId.t StringMap.t)
-  allDependenciesMap
+  (allDependenciesMap : Version.Set.t StringMap.t)
   =
   let open RunAsync.Syntax in
 
@@ -249,7 +250,13 @@ let solutionPkgOfPkg
     let f name =
       match StringMap.find name dependenciesMap with
       | Some dep -> Some dep
-      | None -> StringMap.find name allDependenciesMap
+      | None ->
+        begin match StringMap.find name allDependenciesMap with
+        | Some versions ->
+          let version = Version.Set.find_first (fun _ -> true) versions in
+          Some (PackageId.make name version)
+        | None -> None
+        end
     in
     pkg.optDependencies
     |> StringSet.elements
@@ -259,9 +266,21 @@ let solutionPkgOfPkg
   in
 
   let peerDependencies =
-    let f name = StringMap.find name allDependenciesMap in
+    let f req =
+      let versions =
+        match StringMap.find req.Req.name allDependenciesMap with
+        | Some versions -> versions
+        | None -> Version.Set.empty
+      in
+      let versions = List.rev (Version.Set.elements versions) in
+      let f version =
+        Resolver.versionMatchesReq resolver req req.Req.name version
+      in
+      match List.find_opt ~f versions with
+      | Some version -> Some (PackageId.make req.Req.name version)
+      | None -> None
+    in
     pkg.peerDependencies
-    |> StringSet.elements
     |> List.map ~f
     |> List.filterNone
     |> PackageId.Set.of_list
@@ -425,7 +444,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     overrides = Package.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
-    peerDependencies = StringSet.empty;
+    peerDependencies = Package.NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -790,13 +809,32 @@ let solve (sandbox : Sandbox.t) =
   let%bind solution =
 
     let allDependenciesByName =
-      let f _pkg deps map = StringMap.mergeOverride map deps in
+      let f _pkg deps map =
+        let f _key a b =
+          match a, b with
+          | None, None -> None
+          | Some vs, None -> Some vs
+          | None, Some v ->
+            let version = PackageId.version v in
+            Some (Version.Set.singleton version)
+          | Some vs, Some v ->
+            let version = PackageId.version v in
+            Some (Version.Set.add version vs)
+        in
+        StringMap.merge f map deps
+      in
       Package.Map.fold f packagesToDependencies StringMap.empty
     in
 
     let%bind solution =
       let dependencies = Package.Map.find sandbox.root packagesToDependencies in
-      let%bind root = solutionPkgOfPkg sandbox.root dependencies allDependenciesByName in
+      let%bind root =
+        solutionPkgOfPkg
+          sandbox.resolver
+          sandbox.root
+          dependencies
+          allDependenciesByName
+      in
       return (
         Solution.empty (Solution.Package.id root)
         |> Solution.add root
@@ -805,7 +843,13 @@ let solve (sandbox : Sandbox.t) =
 
     let%bind solution =
       let f solution (pkg, dependencies) =
-        let%bind pkg = solutionPkgOfPkg pkg dependencies allDependenciesByName in
+        let%bind pkg =
+          solutionPkgOfPkg
+            sandbox.resolver
+            pkg
+            dependencies
+            allDependenciesByName
+        in
         return (Solution.add pkg solution)
       in
       packagesToDependencies

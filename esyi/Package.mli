@@ -246,7 +246,7 @@ type t = {
   overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
-  peerDependencies: StringSet.t;
+  peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
   resolutions : Resolutions.t;
   kind : kind;
