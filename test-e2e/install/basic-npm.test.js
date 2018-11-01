@@ -551,6 +551,156 @@ describe(`Basic tests for npm packages`, () => {
     });
   });
 
+  test(`it should correctly choose a peer dependency by a constraint (choose older)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          depWithPeer: '1.0.0',
+          peer: '1.0.0',
+          dep: '1.0.0',
+        },
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'peer',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'peer',
+      version: '2.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      dependencies: {
+        peer: '^2.0.0',
+      },
+    });
+
+    await p.defineNpmPackage({
+      name: 'depWithPeer',
+      version: '1.0.0',
+      peerDependencies: {
+        peer: '^1.0.0',
+      },
+    });
+
+    await p.esy('install');
+
+    const layout = await helpers.readInstalledPackages(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        peer: {
+          name: 'peer',
+          version: '1.0.0',
+        },
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {
+            peer: {
+              name: 'peer',
+              version: '2.0.0',
+            },
+          },
+        },
+        depWithPeer: {
+          name: 'depWithPeer',
+          version: '1.0.0',
+          dependencies: {
+            peer: {
+              name: 'peer',
+              version: '1.0.0',
+            },
+          },
+        },
+      },
+    });
+  });
+
+  test(`it should correctly choose a peer dependency by a constraint (choose newer)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          depWithPeer: '1.0.0',
+          peer: '1.0.0',
+          dep: '1.0.0',
+        },
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+
+    await p.defineNpmPackage({
+      name: 'peer',
+      version: '1.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'peer',
+      version: '2.0.0',
+    });
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '1.0.0',
+      dependencies: {
+        peer: '^2.0.0',
+      },
+    });
+
+    await p.defineNpmPackage({
+      name: 'depWithPeer',
+      version: '1.0.0',
+      peerDependencies: {
+        peer: '^2.0.0',
+      },
+    });
+
+    await p.esy('install');
+
+    const layout = await helpers.readInstalledPackages(p.projectPath);
+    expect(layout).toMatchObject({
+      name: 'root',
+      dependencies: {
+        peer: {
+          name: 'peer',
+          version: '1.0.0',
+        },
+        dep: {
+          name: 'dep',
+          version: '1.0.0',
+          dependencies: {
+            peer: {
+              name: 'peer',
+              version: '2.0.0',
+            },
+          },
+        },
+        depWithPeer: {
+          name: 'depWithPeer',
+          version: '1.0.0',
+          dependencies: {
+            peer: {
+              name: 'peer',
+              version: '2.0.0',
+            },
+          },
+        },
+      },
+    });
+  });
+
   // test.skip(
   //   `it should correctly install an inter-dependency loop`,
   //   helpers.makeTemporaryEnv(
