@@ -75,7 +75,7 @@
     "@opam/ppx_sexp_conv": "v0.11.2",
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
-    "esy-solve-cudf": "^0.1.8",
+    "esy-solve-cudf": "^0.1.10",
     "ocaml": "~4.6.6"
   },
   "devDependencies": {
