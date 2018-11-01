@@ -310,5 +310,6 @@ let toPackage ?source ~name ~version manifest =
       dependencies;
       devDependencies;
       optDependencies;
+      peerDependencies = StringSet.empty;
       resolutions = Package.Resolutions.empty;
     })
