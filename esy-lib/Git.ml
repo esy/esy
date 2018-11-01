@@ -16,8 +16,7 @@ let runGit cmd =
         Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
   in
   try%lwt
-    let cmd = Cmd.getToolAndLine cmd in
-    Lwt_process.with_process_full cmd f
+    EsyBashLwt.with_process_full cmd f
   with
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
@@ -27,8 +26,10 @@ let runGit cmd =
 
 let clone ?branch ?depth ~dst ~remote () =
   let open RunAsync.Syntax in
-  let cmd =
+  let%bind cmd = RunAsync.ofBosError (
     let open Cmd in
+    let open Result.Syntax in
+    let%bind dest = EsyBash.normalizePathForCygwin (Path.show dst) in
     let cmd = v "git" % "clone" in
     let cmd = match branch with
       | Some branch -> cmd % "--branch" % branch
@@ -38,7 +39,8 @@ let clone ?branch ?depth ~dst ~remote () =
       | Some depth -> cmd % "--depth" % string_of_int depth
       | None -> cmd
     in
-    Cmd.(cmd % remote % p dst)
+    return Cmd.(cmd % remote % dest)
+  )
   in
   let%bind _ = runGit cmd in
   return ()
