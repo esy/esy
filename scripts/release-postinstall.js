@@ -24,7 +24,13 @@ const binariesToCopy = [
     'bin',
     'esyBuildPackageCommand.exe'
   ),
-  path.join('_build', 'default', 'esy-build-package', 'bin', 'fastreplacestring.exe')
+  path.join(
+    '_build',
+    'default',
+    'esy-build-package',
+    'bin',
+    'esyRewritePrefixCommand.exe'
+  )
 ];
 
 /**

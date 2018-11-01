@@ -143,6 +143,7 @@ RELEASE_FILES = \
 	bin/esyInstallRelease.js \
 	_build/default/esy/bin/esyCommand.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
+	_build/default/esy-build-package/bin/esyRewritePrefixCommand.exe \
 	postinstall.js \
 	LICENSE \
 	README.md \
@@ -212,7 +213,7 @@ $(RELEASE_ROOT)/postinstall.js:
 PLATFORM_RELEASE_NAME = _platformrelease/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz
 PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
 PLATFORM_RELEASE_FILES = \
-	_build/default/esy-build-package/bin/fastreplacestring.exe \
+	_build/default/esy-build-package/bin/esyRewritePrefixCommand.exe \
 	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
 	_build/default/esy/bin/esyCommand.exe \
 

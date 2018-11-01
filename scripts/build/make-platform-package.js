@@ -73,7 +73,7 @@ const pack = async () => {
       'default',
       'esy-build-package',
       'bin',
-      'fastreplacestring.exe'
+      'esyRewritePrefixCommand.exe'
     ),
     path.join(
       destFolder,
@@ -81,7 +81,7 @@ const pack = async () => {
       'default',
       'esy-build-package',
       'bin',
-      'fastreplacestring.exe'
+      'esyRewritePrefixCommand.exe'
     )
   );
 
