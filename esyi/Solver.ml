@@ -258,9 +258,20 @@ let solutionPkgOfPkg
     |> PackageId.Set.of_list
   in
 
+  let peerDependencies =
+    let f name = StringMap.find name allDependenciesMap in
+    pkg.peerDependencies
+    |> StringSet.elements
+    |> List.map ~f
+    |> List.filterNone
+    |> PackageId.Set.of_list
+  in
+
   let dependencies =
     let dependencies = idsOfDependencies pkg.dependencies in
-    PackageId.Set.union dependencies optDependencies
+    dependencies
+    |> PackageId.Set.union optDependencies
+    |> PackageId.Set.union peerDependencies
   in
   let devDependencies =
     let devDependencies = idsOfDependencies pkg.devDependencies in
@@ -414,6 +425,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     overrides = Package.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
+    peerDependencies = StringSet.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
