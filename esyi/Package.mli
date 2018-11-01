@@ -274,5 +274,7 @@ val source_of_yojson : source Json.decoder
 val pp : t Fmt.t
 val compare : t -> t -> int
 
+val to_yojson : t Json.encoder
+
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t
