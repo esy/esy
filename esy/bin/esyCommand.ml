@@ -357,29 +357,26 @@ module SandboxInfo = struct
           match info.plan with
           | None -> return ()
           | Some plan ->
-            begin match Plan.rootTask plan with
-            | None -> return ()
-            | Some task ->
-              let%bind commandEnv = RunAsync.ofRun (
-                let open Run.Syntax in
-                let header = "# Command environment" in
-                let%bind commandEnv = Plan.commandEnv copts.spec plan task in
-                let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
-                Environment.renderToShellSource ~header commandEnv
-              ) in
-              let%bind () =
-                let filename = Path.(sandboxBin / "command-env") in
-                writeData filename commandEnv
-              in
-              let%bind () =
-                let filename = Path.(sandboxBin / "command-exec") in
-                let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
-                let%bind () = writeData filename commandExec in
-                let%bind () = Fs.chmod 0o755 filename in
-                return ()
-              in
+            let task = Plan.rootTask plan in
+            let%bind commandEnv = RunAsync.ofRun (
+              let open Run.Syntax in
+              let header = "# Command environment" in
+              let%bind commandEnv = Plan.commandEnv copts.spec plan task in
+              let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
+              Environment.renderToShellSource ~header commandEnv
+            ) in
+            let%bind () =
+              let filename = Path.(sandboxBin / "command-env") in
+              writeData filename commandEnv
+            in
+            let%bind () =
+              let filename = Path.(sandboxBin / "command-exec") in
+              let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
+              let%bind () = writeData filename commandExec in
+              let%bind () = Fs.chmod 0o755 filename in
               return ()
-            end
+            in
+            return ()
         else
           return ()
       in
@@ -689,11 +686,7 @@ let withBuildTaskById
     | Ok None -> errorf "no build defined for %a" EsyInstall.PackageId.pp id
     | Error err -> Lwt.return (Error err)
     end
-  | None ->
-    begin match Plan.rootTask plan with
-    | Some task -> f task
-    | None -> errorf "no build defined for the root package"
-    end
+  | None -> f (Plan.rootTask plan)
 
 let buildPlan copts id () =
   let open RunAsync.Syntax in
@@ -779,7 +772,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
       root
   | Some cmd ->
     begin match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
-    | None -> errorf "root package doesn't define any build"
+    | None -> return ()
     | Some task ->
       let p =
         Plan.exec
@@ -877,11 +870,7 @@ let makeExecCommand
   let open RunAsync.Syntax in
 
   let%bind plan = SandboxInfo.plan info in
-  let task =
-    match Plan.rootTask plan with
-    | None -> failwith "TODO"
-    | Some task -> task
-  in
+  let task = Plan.rootTask plan in
 
   let%bind () =
     if checkIfDependenciesAreBuilt
@@ -938,11 +927,7 @@ let exec (copts : CommonOptions.t) cmd () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind () =
     let%bind plan = SandboxInfo.plan info in
-    let task =
-      match Plan.rootTask plan with
-      | None -> failwith "TODO"
-      | Some task -> task
-    in
+    let task = Plan.rootTask plan in
     let installPath =
       Scope.SandboxPath.toPath
         copts.cfg.buildCfg
@@ -964,11 +949,7 @@ let devExec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind plan = SandboxInfo.plan info in
-  let task =
-    match Plan.rootTask plan with
-    | None -> failwith "TODO"
-    | Some task -> task
-  in
+  let task = Plan.rootTask plan in
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
@@ -1030,14 +1011,6 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
   let%bind solution = SandboxInfo.solution info in
   let seen = ref PackageId.Set.empty in
   let root = Solution.root solution in
-
-  let () =
-    let f pkg _deps () =
-      Format.printf "%a@." Solution.Package.pp pkg;
-      ()
-    in
-    Solution.fold ~f ~init:() solution
-  in
 
   let rec draw pkg =
     let id = Solution.Package.id pkg in

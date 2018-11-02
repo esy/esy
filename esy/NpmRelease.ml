@@ -149,11 +149,7 @@ let make
   in
 
   let root = Package.id (Solution.root solution) in
-  let%bind rootTask =
-    match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
-    | Some task -> return task
-    | None -> errorf "root package doesn't have esy configuration"
-  in
+  let rootTask = Plan.rootTask plan in
 
   (* Make sure all packages are built *)
   let%bind () =
