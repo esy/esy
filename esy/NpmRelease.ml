@@ -60,7 +60,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         | _ -> true
       )
     |> List.map ~f:(fun (name, value) ->
-        "\"" ^ name ^ "\", \"" ^ EsyLib.Path.normalizePathSlashes value ^ "\"")
+        "{|" ^ name ^ "|}, {|" ^ EsyLib.Path.normalizePathSlashes value ^ "|}")
     |> String.concat ";"
   in
   Printf.sprintf {|
