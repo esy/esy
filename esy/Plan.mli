@@ -31,7 +31,7 @@ type t
 
 val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option Run.t
 val findTaskByName : t -> string -> Task.t option option
-val rootTask : t -> Task.t option
+val rootTask : t -> Task.t
 val allTasks : t -> Task.t list
 
 val make :

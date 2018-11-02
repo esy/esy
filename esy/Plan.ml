@@ -279,7 +279,23 @@ let make'
     | Some (Some build) -> return (Some build)
     | None ->
       Logs.debug (fun m -> m "plan %a" PackageId.pp id);
-      begin match PackageId.Map.find_opt id manifests with
+      let manifest =
+        match PackageId.Map.find_opt id manifests with
+        | Some manifest -> Some manifest
+        | None ->
+          if Package.compare pkg root = 0
+          then
+            let manifest =
+              BuildManifest.empty
+                ~name:(Some pkg.name)
+                ~version:(Some pkg.version)
+                ()
+            in
+            Some manifest
+          else
+            None
+      in
+      match manifest with
       | Some manifest ->
         let%bind build =
           Run.contextf
@@ -288,7 +304,6 @@ let make'
         in
         return (Some build)
       | None -> return None
-      end
 
   and aux' pkgId pkg build =
     let location = Installation.findExn pkgId installation in
@@ -506,7 +521,7 @@ let make
 
 let findTaskById plan id =
   match PackageId.Map.find_opt id plan.tasks with
-  | None -> Run.errorf "no task found for package %a" PackageId.pp id
+  | None -> Run.return None
   | Some task -> Run.return task
 
 let findTaskByName plan name =
@@ -520,9 +535,11 @@ let findTaskByName plan name =
 let rootTask plan =
   let id = Solution.Package.id (Solution.root plan.solution) in
   match PackageId.Map.find_opt id plan.tasks with
-  | None -> None
-  | Some None -> None
-  | Some (Some task) -> Some task
+  | None
+  | Some None ->
+    (* this is guaranteed by the make *)
+    failwith "invariant violation: no task was constructed for the root package"
+  | Some (Some task) -> task
 
 let allTasks plan =
   let f tasks = function
