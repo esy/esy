@@ -28,6 +28,28 @@ module OfPackageJson = struct
   } [@@deriving (of_yojson { strict = false })]
 end
 
+let configure ~(cfg : Config.t) () =
+  let open RunAsync.Syntax in
+  let docs = "https://esy.sh/docs/release.html" in
+  match cfg.spec.manifest with
+  | EsyInstall.ManifestSpec.ManyOpam
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _) ->
+    errorf "could not create releases without package.json, see %s for details" docs
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
+    let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
+    let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
+    match pkgJson.OfPackageJson.esy.release with
+    | None -> errorf "no release config found in package.json, see %s for details" docs
+    | Some releaseCfg ->
+      return {
+        name = pkgJson.name;
+        version = pkgJson.version;
+        license = pkgJson.license;
+        description = pkgJson.description;
+        releasedBinaries = releaseCfg.OfPackageJson.releasedBinaries;
+        deleteFromBinaryRelease = releaseCfg.OfPackageJson.deleteFromBinaryRelease;
+      }
+
 let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   let environmentString =
     environment
@@ -82,42 +104,6 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         Unix.execve program Sys.argv env
       )
   |} environmentString bin bin
-
-let configure ~(cfg : Config.t) () =
-  let open RunAsync.Syntax in
-  match cfg.spec.manifest with
-  | EsyInstall.ManifestSpec.ManyOpam
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _) ->
-    errorf "only projects with esy metadata (package.json) could be released"
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
-    let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
-    let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
-    match pkgJson.OfPackageJson.esy.release with
-    | None -> errorf "no release config found"
-    | Some releaseCfg ->
-      return {
-        name = pkgJson.name;
-        version = pkgJson.version;
-        license = pkgJson.license;
-        description = pkgJson.description;
-        releasedBinaries = releaseCfg.OfPackageJson.releasedBinaries;
-        deleteFromBinaryRelease = releaseCfg.OfPackageJson.deleteFromBinaryRelease;
-      }
-
-(* let dependenciesForRelease (task : Plan.Task.t) = *)
-(*   let f deps dep = *)
-(*     match dep with *)
-(*     | Task.Dependency, depTask *)
-(*     | Task.BuildTimeDependency, depTask -> *)
-(*       begin match Task.sourceType depTask with *)
-(*       | Manifest.SourceType.Immutable -> (depTask, dep)::deps *)
-(*       | _ -> deps *)
-(*       end *)
-(*     | Task.DevDependency, _ -> deps *)
-(*   in *)
-(*   Task.dependencies task *)
-(*   |> List.fold_left ~f ~init:[] *)
-(*   |> List.rev *)
 
 let make
   ~sandboxEnv
@@ -241,26 +227,27 @@ let make
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(
           v (EsyLib.Path.normalizePathSlashes (p ocamlopt))
-          % "-o" %(EsyLib.Path.normalizePathSlashes (p Path.(binPath / name)))
+          % "-o" % EsyLib.Path.normalizePathSlashes (p Path.(binPath / name))
           % "unix.cmxa" % "str.cmxa"
           % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
         (* Needs to have ocaml in environment *)
-        let environmentOverride =
-          match (System.Platform.host) with
+        let%bind env =
+          match System.Platform.host with
           | Windows ->
             let currentPath = Sys.getenv("PATH") in
-            let userPath = match (EsyBash.getBinPath ()) with
-                           | Result.Ok userPath -> userPath
-                           | Error _ -> raise(Not_found)
-            in
+            let%bind userPath = RunAsync.ofBosError (EsyBash.getBinPath ()) in
             let normalizedOcamlPath = ocamlopt |> Path.parent |> Path.showNormalized in
-            ChildProcess.CurrentEnvOverride StringMap.(
-              add "PATH" ((Path.show userPath) ^ (System.Environment.sep ()) ^ normalizedOcamlPath ^ ";" ^ currentPath) empty
-            )
-          | _ -> ChildProcess.CurrentEnv
+            let override =
+              let sep = System.Environment.sep () in
+              let path = String.concat sep [Path.show userPath; normalizedOcamlPath; currentPath] in
+              StringMap.(add "PATH" path empty)
+            in
+            return (ChildProcess.CurrentEnvOverride override)
+          | _ ->
+            return ChildProcess.CurrentEnv
         in
-        ChildProcess.run ~env:environmentOverride compile
+        ChildProcess.run ~env compile
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
