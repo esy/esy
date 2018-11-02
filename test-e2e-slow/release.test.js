@@ -36,6 +36,10 @@ fs.writeFileSync(
       buildsInSource: true,
       build: 'ocamlopt -o #{self.root / self.name}.exe #{self.root / self.name}.ml',
       install: 'cp #{self.root / self.name}.exe #{self.bin / self.name}.exe',
+      exportedEnv: {
+        'some.var': {val: 'some.val', scope: 'global'},
+        'some"var': {val: 'some"val', scope: 'global'},
+      },
       release: {
         releasedBinaries: ['release.exe', 'releaseDep.exe'],
         deleteFromBinaryRelease: ['ocaml-*'],
