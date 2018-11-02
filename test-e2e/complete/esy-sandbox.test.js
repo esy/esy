@@ -330,4 +330,49 @@ describe('complete workflow for esy sandboxes', () => {
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
+
+  it('allows to define just dependencies', async () => {
+    const fixture = [
+      packageJson({
+        dependencies: {
+          dep: '*',
+        },
+      }),
+    ];
+    const p = await createTestSandbox();
+    await p.fixture(...fixture);
+
+    await p.defineNpmPackageOfFixture([
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+        },
+        dependencies: {
+          ocaml: '*',
+        },
+      }),
+      dummyExecutable('dep'),
+    ]);
+
+    await p.esy('install --skip-repository-update');
+    await p.esy('build');
+
+    {
+      const {stdout} = await p.esy('dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
+    {
+      const {stdout} = await p.esy('b dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
+    {
+      const {stdout} = await p.esy('x dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
+  });
 });
