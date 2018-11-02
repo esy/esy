@@ -50,8 +50,6 @@ let currentPath = () =>
     failwith("Unable to determine current working dir: " ++ msg)
   };
 
-let current = () => Run.ofBosError(Bos.OS.Dir.current());
-
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
 let basename = Fpath.basename;
@@ -63,16 +61,14 @@ let tryRelativize = (~root, p) =>
   | None => p
   };
 
-let tryRelativizeToCurrent = p =>
-  switch (current()) {
-  | Ok(root) =>
-    if (Fpath.equal(root, p)) {
-      Fpath.v(".");
-    } else {
-      tryRelativize(~root, p);
-    }
-  | Error(_) => p
+let tryRelativizeToCurrent = p => {
+  let root = currentPath();
+  if (Fpath.equal(root, p)) {
+    Fpath.v(".");
+  } else {
+    tryRelativize(~root, p);
   };
+};
 
 let normalizePathSlashes = {
   let backSlashRegex = Str.regexp("\\\\");
