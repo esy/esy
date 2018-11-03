@@ -29,7 +29,7 @@ console.log(
         'postinstall.js',
         'platform-linux/',
         'platform-darwin/',
-        'platform-windows-x64/',
+        'platform-win32/',
         '_build/default/**/*.exe'
       ]
     },
