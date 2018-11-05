@@ -115,7 +115,7 @@ let resolveCmd path cmd =
   let allPaths = getAdditionalResolvePaths path in
   let find p =
     let p = Path.(v p / cmd) in
-    let%bind p = EsyBash.normalizePathForWindows p in
+    let p = EsyBash.normalizePathForWindows p in
     checkIfCommandIsAvailable p
     in
   let rec resolve =

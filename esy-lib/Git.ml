@@ -29,7 +29,7 @@ let clone ?branch ?depth ~dst ~remote () =
   let%bind cmd = RunAsync.ofBosError (
     let open Cmd in
     let open Result.Syntax in
-    let%bind dest = EsyBash.normalizePathForCygwin (Path.show dst) in
+    let dest = EsyBash.normalizePathForCygwin (Path.show dst) in
     let cmd = v "git" % "clone" in
     let cmd = match branch with
       | Some branch -> cmd % "--branch" % branch
@@ -106,7 +106,9 @@ module ShallowClone = struct
       if%bind Fs.exists dst then
 
         let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
-        and localCommit = lsRemote ~remote:(Path.show dst) () in
+        and localCommit =
+          let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
+          lsRemote ~remote () in
 
         if remoteCommit = localCommit
         then return ()

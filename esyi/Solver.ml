@@ -421,7 +421,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     ) in
 
     try%lwt
-      let%bind env = EsyLib.EsyBashLwt.getMingwEnvironmentOverride () in
+      let env = EsyLib.EsyBashLwt.getMingwEnvironmentOverride () in
       ChildProcess.run ~env cmd
     with
     | Unix.Unix_error (err, _, _) ->
