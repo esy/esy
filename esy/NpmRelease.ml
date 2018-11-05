@@ -2,6 +2,12 @@ module StringSet = Set.Make(String)
 module Solution = EsyInstall.Solution
 module Package = EsyInstall.Solution.Package
 
+let esyInstallReleaseJs =
+  let req = "../../../../bin/esyInstallRelease.js" in
+  match NodeResolution.resolve req with
+  | Ok path -> path
+  | Error (`Msg msg) -> failwith msg
+
 type config = {
   name : string;
   version : string;
@@ -110,7 +116,6 @@ let make
   ~solution
   ~installation
   ~ocamlopt
-  ~esyInstallRelease
   ~outputPath
   ~concurrency
   ~(cfg : Config.t)
@@ -260,7 +265,7 @@ let make
         (cfg.buildCfg.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
-      Plan.rewritePrefix ~cfg ~origPrefix ~destPrefix binPath
+      RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath
     in
 
     (* Emit package.json *)
@@ -293,7 +298,7 @@ let make
     in
 
     let%bind () =
-      Fs.copyFile ~src:esyInstallRelease ~dst:Path.(outputPath / "esyInstallRelease.js")
+      Fs.copyFile ~src:esyInstallReleaseJs ~dst:Path.(outputPath / "esyInstallRelease.js")
     in
 
     return ()

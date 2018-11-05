@@ -26,36 +26,9 @@ module EsyRuntime = struct
   let currentExecutable = Path.v Sys.executable_name
 
   let resolve req =
-    let open RunAsync.Syntax in
-    let%bind currentFilename = Fs.realpath currentExecutable in
-    let currentDirname = Path.parent currentFilename in
-    let%bind cmd =
-      match NodeResolution.resolve req currentDirname with
-      | Ok (Some path) -> return path
-      | Ok (None) ->
-        let msg =
-          Printf.sprintf
-          "unable to resolve %s from %s"
-          req
-          (Path.show currentDirname)
-        in
-        RunAsync.error msg
-      | Error (`Msg err) -> RunAsync.error err
-    in return cmd
-
-  let resolveCmd req =
-    let open RunAsync.Syntax in
-    let%bind path = resolve req in
-    return (Cmd.v (Path.show path))
-
-  let esyInstallRelease =
-    RunAsync.runExn (resolve "../../../../bin/esyInstallRelease.js")
-
-  let esyBuildPackageCmd =
-    RunAsync.runExn (resolveCmd "../../esy-build-package/bin/esyBuildPackageCommand.exe")
-
-  let fastreplacestringCmd =
-    RunAsync.runExn (resolveCmd "../../esy-build-package/bin/fastreplacestring.exe")
+    match NodeResolution.resolve req with
+    | Ok path -> path
+    | Error (`Msg err) -> failwith err
 
   module EsyPackageJson = struct
     type t = {
@@ -65,7 +38,7 @@ module EsyRuntime = struct
     let read () =
       let pkgJson =
         let open RunAsync.Syntax in
-        let%bind filename = resolve "../../../../package.json" in
+        let filename = resolve "../../../../package.json" in
         let%bind data = Fs.readFile filename in
         Lwt.return (Json.parseStringWith of_yojson data)
       in Lwt_main.run pkgJson
@@ -237,11 +210,10 @@ module CommonOptions = struct
 
         let%bind installCfg =
           let%bind esySolveCmd =
-            let%bind cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
+            let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
             return Cmd.(v (p cmd))
           in
           EsyInstall.Config.make
-            ~fastreplacestringCmd:EsyRuntime.fastreplacestringCmd
             ~esySolveCmd
             ~skipRepositoryUpdate
             ?cachePath
@@ -259,8 +231,6 @@ module CommonOptions = struct
               ~installCfg
               ~spec
               ~esyVersion:EsyRuntime.version
-              ~fastreplacestringCmd:EsyRuntime.fastreplacestringCmd
-              ~esyBuildPackageCmd:EsyRuntime.esyBuildPackageCmd
               ~prefixPath
               ()
           )
@@ -1493,7 +1463,6 @@ let release copts () =
     ~solution:solution
     ~installation:installation
     ~ocamlopt
-    ~esyInstallRelease:EsyRuntime.esyInstallRelease
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
     ~cfg:copts.CommonOptions.cfg

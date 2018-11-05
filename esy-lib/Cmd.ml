@@ -10,6 +10,9 @@ type t = string * string list
   [@@deriving ord]
 
 let v tool = tool, []
+
+let ofPath path = v (Path.show path)
+
 let p = Path.show
 
 let addArg arg (tool, args) =

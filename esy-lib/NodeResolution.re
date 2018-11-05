@@ -23,7 +23,7 @@ module PackageJson = {
   };
 };
 
-let stat_option = (path: Fpath.t) =>
+let stat = (path: Fpath.t) =>
   switch (Bos.OS.Path.stat(path)) {
   | Ok(stat) => Some(stat)
   | Error(_) => None
@@ -86,9 +86,9 @@ let rec realpath = (p: Fpath.t) => {
 };
 
 /** Try to resolve an absolute path */
-let resolve_path = path =>
+let resolvePath = path =>
   Result.Syntax.(
-    switch (stat_option(path)) {
+    switch (stat(path)) {
     | None => Ok(None)
     | Some(stat) =>
       switch (stat.st_kind) {
@@ -116,16 +116,16 @@ let resolve_path = path =>
   );
 
 /** Try to resolve an absolute path with different extensions */
-let resolve_extensionless_path = (path: Fpath.t) =>
-  Result.Syntax.(
-    switch%bind (resolve_path(path)) {
-    | None => resolve_path(Fpath.add_ext(".js", path))
-    | Some(_) as res => Ok(res)
-    }
-  );
+let resolveExtensionlessPath = (path: Fpath.t) => {
+  open Result.Syntax;
+  switch%bind (resolvePath(path)) {
+  | None => resolvePath(Fpath.add_ext(".js", path))
+  | Some(_) as res => Ok(res)
+  };
+};
 
 /** Try to resolve a package */
-let rec resolve_package =
+let rec resolvePackage =
         (package: Path.t, segments: option(list(string)), basedir: Fpath.t) => {
   open Result.Syntax;
   let node_modules_path = Path.(basedir / "node_modules");
@@ -133,7 +133,7 @@ let rec resolve_package =
   if%bind (Bos.OS.Path.exists(node_modules_path)) {
     if%bind (Bos.OS.Path.exists(package_path)) {
       switch (segments) {
-      | None => resolve_extensionless_path(package_path)
+      | None => resolveExtensionlessPath(package_path)
       | Some(segments) =>
         let path =
           List.fold_left(
@@ -141,14 +141,14 @@ let rec resolve_package =
             ~init=package_path,
             segments,
           );
-        resolve_extensionless_path(path);
+        resolveExtensionlessPath(path);
       };
     } else {
       let next_basedir = Fpath.parent(basedir);
       if (next_basedir === basedir) {
         Ok(None);
       } else {
-        resolve_package(package, segments, next_basedir);
+        resolvePackage(package, segments, next_basedir);
       };
     };
   } else {
@@ -156,26 +156,59 @@ let rec resolve_package =
     if (next_basedir === basedir) {
       Ok(None);
     } else {
-      resolve_package(package, segments, next_basedir);
+      resolvePackage(package, segments, next_basedir);
     };
   };
 };
 
-let resolve = (path, basedir) =>
-  Result.Syntax.(
-    switch (path) {
-    | "" => Ok(None)
+type req = string;
+
+let defaultBaseDir = ref(None);
+
+let resolve = (~basedir=?, req) => {
+  open Result.Syntax;
+  let%bind basedir =
+    switch (basedir) {
+    | Some(basedir) => return(basedir)
+    | None =>
+      switch (defaultBaseDir^) {
+      | Some(basedir) => return(basedir)
+      | None =>
+        let program = Sys.executable_name;
+        let%bind program = realpath(Path.v(program));
+        let basedir = Fpath.parent(program);
+        defaultBaseDir := Some(basedir);
+        return(basedir);
+      }
+    };
+
+  let someOrError = v =>
+    switch%bind (v) {
+    | Some(v) => Ok(v)
+    | None =>
+      let msg =
+        Printf.sprintf(
+          "Unable to resolve %s from %s",
+          req,
+          Path.show(basedir),
+        );
+      Error(`Msg(msg));
+    };
+
+  let res =
+    switch (req) {
+    | "" => Error(`Msg("empty request"))
     | path =>
       switch (path.[0]) {
       /* relative module path */
       | '.' =>
         let%bind path = Fpath.of_string(path);
         let path = path |> Fpath.append(basedir) |> Fpath.normalize;
-        resolve_extensionless_path(path);
+        someOrError(resolveExtensionlessPath(path));
       /* absolute module path */
       | '/' =>
         let%bind path = Fpath.of_string(path);
-        resolve_extensionless_path(path);
+        someOrError(resolveExtensionlessPath(path));
       /* scoped package */
       | '@' =>
         let (package, segments) =
@@ -189,8 +222,9 @@ let resolve = (path, basedir) =>
             )
           };
         switch (package) {
-        | None => Ok(None)
-        | Some(package) => resolve_package(package, segments, basedir)
+        | None => Error(`Msg("invalid request: " ++ req))
+        | Some(package) =>
+          someOrError(resolvePackage(package, segments, basedir))
         };
       /* package */
       | _ =>
@@ -201,9 +235,11 @@ let resolve = (path, basedir) =>
           | [package, ...rest] => (Some(Path.v(package)), Some(rest))
           };
         switch (package) {
-        | None => Ok(None)
-        | Some(package) => resolve_package(package, segments, basedir)
+        | None => Error(`Msg("invalid request: " ++ req))
+        | Some(package) =>
+          someOrError(resolvePackage(package, segments, basedir))
         };
       }
-    }
-  );
+    };
+  (res: result(_, [ | `Msg(string)]) :> result(_, [> | `Msg(string)]));
+};

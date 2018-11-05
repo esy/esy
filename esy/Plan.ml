@@ -688,13 +688,6 @@ let execEnv _sandbox plan task =
   |> Scope.add ~direct:true ~dep:task.Task.exportedScope
   |> Scope.env ~includeBuildEnv:false
 
-let rewritePrefix ~cfg ~origPrefix ~destPrefix rootPath =
-  Fastreplacestring.rewritePrefix
-    ~fastreplacestringCmd:cfg.Config.fastreplacestringCmd
-    ~origPrefix
-    ~destPrefix
-    rootPath
-
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in
   let buildId = Path.basename buildPath in
@@ -711,7 +704,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path
   in
-  let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix stagePath in
+  let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix stagePath in
   let%bind () = Fs.createDir (Path.parent outputPath) in
   let%bind () =
     Tarball.create ~filename:outputPath ~outpath:buildId (Path.parent stagePath)
@@ -741,7 +734,7 @@ let importBuild ~cfg buildPath =
         let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
         return (Path.v v)
       in
-      let%bind () = rewritePrefix ~cfg ~origPrefix ~destPrefix:cfg.buildCfg.storePath buildPath in
+      let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix:cfg.buildCfg.storePath buildPath in
       let%bind () = Fs.rename ~src:buildPath outputPath in
       let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
       return ()

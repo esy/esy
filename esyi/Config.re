@@ -1,6 +1,5 @@
 type t = {
   esySolveCmd: Cmd.t,
-  fastreplacestringCmd: Cmd.t,
   sourceArchivePath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
@@ -41,7 +40,6 @@ let make =
       ~esyOpamOverride=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
-      ~fastreplacestringCmd,
       ~skipRepositoryUpdate,
       (),
     ) => {
@@ -97,7 +95,6 @@ let make =
 
   return({
     esySolveCmd,
-    fastreplacestringCmd,
     sourceArchivePath,
     sourceStagePath,
     sourceInstallPath,

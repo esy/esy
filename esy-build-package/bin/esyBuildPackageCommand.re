@@ -30,21 +30,7 @@ let createConfig = (copts: commonOpts) => {
   let {storePath, buildPath, localStorePath, projectPath, _} = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
-  let%bind fastreplacestringCmd = {
-    let program = Sys.argv[0];
-    let%bind program = realpath(v(program));
-    let basedir = Fpath.parent(program);
-    switch%bind (
-      coerceFromMsgOnly(
-        EsyLib.NodeResolution.resolve("./fastreplacestring.exe", basedir),
-      )
-    ) {
-    | Some(path) => Ok(Cmd.v(Fpath.to_string(path)))
-    | None => Error(`Msg("unable to find fastreplacestring command"))
-    };
-  };
   Config.make(
-    ~fastreplacestringCmd,
     ~storePath?,
     ~buildPath=Option.orDefault(~default=projectPath / "_build", buildPath),
     ~localStorePath=
