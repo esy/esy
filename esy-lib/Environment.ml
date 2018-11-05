@@ -250,6 +250,11 @@ let current =
   let parseEnv item =
     let idx = String.index item '=' in
     let name = String.sub item 0 idx in
+    let name =
+      match System.Platform.host with
+      | System.Platform.Windows -> String.uppercase_ascii name
+      | _ -> name
+    in
     let value = String.sub item (idx + 1) (String.length item - idx - 1) in
     {Binding. name; value = ExpandedValue value; origin = None;}
   in
