@@ -10,9 +10,12 @@ let coerceFrmMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
  * Helper method to get the root path of the 'esy-bash' node modules
  */
 let getEsyBashRootPath = () => {
-  open Result.Syntax;
   let program = Sys.argv[0];
-  let%bind program = NodeResolution.realpath(Fpath.v(program));
+  let program =
+    switch (NodeResolution.realpath(Fpath.v(program))) {
+    | Ok(program) => program
+    | Error(`Msg(msg)) => Exn.fail(msg)
+    };
   let basedir = Fpath.parent(program);
   let resolution =
     NodeResolution.resolve(
@@ -20,9 +23,12 @@ let getEsyBashRootPath = () => {
       basedir,
     );
 
-  switch%bind (coerceFrmMsgOnly(resolution)) {
-  | Some(path) => Ok(Fpath.parent(path))
-  | None => Error(`Msg("Unable to find 'esy-bash'"))
+  switch (coerceFrmMsgOnly(resolution)) {
+  | Ok(Some(path)) => Fpath.parent(path)
+  | Ok(None) => Exn.fail("unable to find 'esy-bash'")
+  | Error(`Msg(msg)) => Exn.fail(msg)
+  | Error(`CommandError(cmd, _)) =>
+    Exn.failf("command failed: %a", Bos.Cmd.pp, cmd)
   };
 };
 
@@ -30,41 +36,26 @@ let getEsyBashRootPath = () => {
  * Helper method to get the `cygpath` utility path
  * Used for resolving paths
  */
-let getCygPath = () => {
-  let rootPath = getEsyBashRootPath();
-  switch (rootPath) {
-  | Ok(rootPath) => Fpath.(rootPath / ".cygwin" / "bin" / "cygpath.exe")
-  | Error(`Msg(err)) => failwith(err)
-  | Error(`CommandError(cmd, _)) =>
-    Exn.failf("command failed: %a", Bos.Cmd.pp, cmd)
-  };
-};
+let getCygPath = () =>
+  Fpath.(getEsyBashRootPath() / ".cygwin" / "bin" / "cygpath.exe");
 
-let getBinPath = () => {
-  open Result.Syntax;
-  let%bind rootPath = getEsyBashRootPath();
-  Ok(Fpath.(rootPath / ".cygwin" / "bin"));
-};
+let getBinPath = () => Fpath.(getEsyBashRootPath() / ".cygwin" / "bin");
 
-let getEsyBashPath = () => {
-  open Result.Syntax;
-  let%bind rootPath = getEsyBashRootPath();
-  Ok(Fpath.(rootPath / "re" / "_build" / "default" / "bin" / "EsyBash.exe"));
-};
+let getEsyBashPath = () =>
+  Fpath.(
+    getEsyBashRootPath() / "re" / "_build" / "default" / "bin" / "EsyBash.exe"
+  );
 
 let getMingwRuntimePath = () => {
-  open Result.Syntax;
-  let%bind rootPath = getEsyBashRootPath();
-  Ok(
-    Fpath.(
-      rootPath
-      / ".cygwin"
-      / "usr"
-      / "x86_64-w64-mingw32"
-      / "sys-root"
-      / "mingw"
-      / "bin"
-    ),
+  let rootPath = getEsyBashRootPath();
+  Fpath.(
+    rootPath
+    / ".cygwin"
+    / "usr"
+    / "x86_64-w64-mingw32"
+    / "sys-root"
+    / "mingw"
+    / "bin"
   );
 };
 
@@ -88,7 +79,6 @@ let normalizePathForCygwin = path =>
   };
 
 let toEsyBashCommand = (~env=None, cmd) => {
-  open Result.Syntax;
   let environmentFilePath =
     switch (env) {
     | None => []
@@ -98,10 +88,10 @@ let toEsyBashCommand = (~env=None, cmd) => {
   switch (System.Platform.host) {
   | Windows =>
     let commands = Bos.Cmd.to_list(cmd);
-    let%bind esyBashPath = getEsyBashPath();
+    let esyBashPath = getEsyBashPath();
     let allCommands = List.append(environmentFilePath, commands);
-    Ok(Bos.Cmd.of_list([Fpath.to_string(esyBashPath), ...allCommands]));
-  | _ => Ok(cmd)
+    Bos.Cmd.of_list([Fpath.to_string(esyBashPath), ...allCommands]);
+  | _ => cmd
   };
 };
 
@@ -134,20 +124,20 @@ let normalizePathForWindows = (path: Fpath.t) =>
   | _ => path
   };
 
+type error = [ | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)];
+
 /**
  * Helper utility to run a command with 'esy-bash'.
  * On Windows, this runs the command in a Cygwin environment
  * On other platforms, this is equivalent to running the command directly with Bos.OS.Cmd.run
  */
 let run = cmd => {
-  open Result.Syntax;
-  let%bind augmentedCommand = toEsyBashCommand(cmd);
-  Bos.OS.Cmd.run(augmentedCommand);
+  let cmd = toEsyBashCommand(cmd);
+  Bos.OS.Cmd.run(cmd);
 };
 
 let runOut = cmd => {
-  open Result.Syntax;
-  let%bind augmentedCommand = toEsyBashCommand(cmd);
-  let ret = Bos.OS.Cmd.(run_out(augmentedCommand));
+  let cmd = toEsyBashCommand(cmd);
+  let ret = Bos.OS.Cmd.(run_out(cmd));
   Bos.OS.Cmd.to_string(ret);
 };

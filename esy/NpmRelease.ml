@@ -232,7 +232,7 @@ let make
           match System.Platform.host with
           | Windows ->
             let currentPath = Sys.getenv("PATH") in
-            let%bind userPath = RunAsync.ofBosError (EsyBash.getBinPath ()) in
+            let userPath = EsyBash.getBinPath () in
             let normalizedOcamlPath = ocamlopt |> Path.parent |> Path.showNormalized in
             let override =
               let sep = System.Environment.sep () in

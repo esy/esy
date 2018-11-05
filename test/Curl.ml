@@ -22,16 +22,13 @@ let%test "curl download simple file" =
             (* This won't impact HTTP requests though - just our test using the local file system *)
             let url = EsyBash.normalizePathForCygwin (Path.show(fileToCurl)) in
 
-            match url with
-            | Error _ -> Lwt.return false
-            | Ok v ->
-                let%lwt _ = EsyLib.Curl.download ~output ("file://" ^ v) in
+            let%lwt _: unit EsyLib.Run.t = EsyLib.Curl.download ~output ("file://" ^ url) in
 
-                (* validate we were able to download it *) 
-                let%lwt result = Fs.exists (output) in
-                match result with
-                | Ok true -> Lwt.return true
-                | _ -> Lwt.return false
+            (* validate we were able to download it *) 
+            let%lwt result = Fs.exists (output) in
+            match result with
+            | Ok true -> Lwt.return true
+            | _ -> Lwt.return false
         in
         Fs.withTempDir f
     in

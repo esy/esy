@@ -89,7 +89,7 @@ module Windows = {
         Cmd.of_list(
           List.map(EsyLib.Path.normalizePathSlashes, commandAsList),
         );
-      let%bind augmentedEsyCommand =
+      let augmentedEsyCommand =
         EsyLib.EsyBash.toEsyBashCommand(
           ~env=Some(Fpath.to_string(environmentTempFile)),
           normalizedCommands,
