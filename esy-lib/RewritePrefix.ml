@@ -12,8 +12,8 @@ let rewritePrefix ~origPrefix ~destPrefix path =
     Path.pp origPrefix
     Path.pp destPrefix
   );%lwt
-  let env = EsyBashLwt.getMingwEnvironmentOverride () in
-  ChildProcess.run ~env Cmd.(
+  let env = EsyBash.currentEnvWithMingwInPath in
+  ChildProcess.run ~env:(ChildProcess.CustomEnv env) Cmd.(
     cmd
     % "--orig-prefix" % p origPrefix
     % "--dest-prefix" % p destPrefix
