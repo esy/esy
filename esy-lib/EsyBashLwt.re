@@ -1,14 +1,3 @@
-let getMingwEnvironmentOverride = () =>
-  switch (System.Platform.host) {
-  | Windows =>
-    let currentPath = Sys.getenv("PATH");
-    let path = Path.show(EsyBash.getMingwRuntimePath()) ++ ";" ++ currentPath;
-    ChildProcess.CurrentEnvOverride(
-      Astring.String.Map.(add("PATH", path, empty)),
-    );
-  | _ => ChildProcess.CurrentEnv
-  };
-
 let toRunAsyncCommand = cmd =>
   switch (Cmd.ofBosCmd(EsyBash.toEsyBashCommand(Cmd.toBosCmd(cmd)))) {
   | Ok(cmd) => cmd

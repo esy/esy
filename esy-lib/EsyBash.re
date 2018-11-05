@@ -102,6 +102,17 @@ let normalizePathForWindows = (path: Fpath.t) =>
   | _ => path
   };
 
+let currentEnvWithMingwInPath = {
+  let current = System.Environment.current;
+  switch (System.Platform.host) {
+  | System.Platform.Windows =>
+    let mingw = getMingwRuntimePath();
+    let path = [Path.show(mingw), ...System.Environment.path];
+    StringMap.add("PATH", System.Environment.join(path), current);
+  | _ => current
+  };
+};
+
 type error = [ | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)];
 
 /**

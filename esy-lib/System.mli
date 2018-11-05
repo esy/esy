@@ -32,6 +32,15 @@ module Environment : sig
   (** Environment variable separator which is used for $PATH and etc *)
   val sep : ?platform:Platform.t -> ?name:string -> unit -> string
 
+  (** Split environment variable value in a cross platform way. *)
+  val split : ?platform:Platform.t -> ?name:string -> string -> string list
+
+  (** Join environment variable value in a cross plartform way. *)
+  val join : ?platform:Platform.t -> ?name:string -> string list -> string
+
+  (** Current environment. *)
+  val current : string StringMap.t
+
   (** Value of $PATH environment variable. *)
   val path : string list
 
