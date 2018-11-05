@@ -14,32 +14,6 @@ let pp_env fmt env =
   | CustomEnv env ->
     Fmt.pf fmt "CustomEnv %a" (Astring.String.Map.pp Fmt.(pair string string)) env
 
-let currentEnv =
-  let parse item =
-    let idx = String.index item '=' in
-    let name = String.sub item 0 idx in
-    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-    name, value
-  in
-  (* Filter bash function which are being exported in env *)
-  let filter (name, _value) =
-    let starting = "BASH_FUNC_" in
-    let ending = "%%" in
-    not (
-      String.length name > String.length starting
-      && Str.first_chars name (String.length starting) = starting
-      && Str.last_chars name (String.length ending) = ending
-    )
-  in
-  let build env (name, value) =
-    if filter (name, value)
-    then StringMap.add name value env
-    else env
-  in
-  Unix.environment ()
-  |> Array.map parse
-  |> Array.fold_left build StringMap.empty
-
 let resolveCmdInEnv ~env prg =
   let path =
     let v = match StringMap.find_opt "PATH" env with
@@ -57,7 +31,7 @@ let prepareEnv env =
         Astring.String.Map.fold
           Astring.String.Map.add
           env
-          currentEnv
+          System.Environment.current
       in
       Some env
     | CustomEnv env -> Some env
@@ -135,7 +109,7 @@ let runOut ?(env=CurrentEnv) ?(resolveProgramInEnv=false) ?stdin ?stderr cmd =
         Astring.String.Map.fold
           Astring.String.Map.add
           env
-          currentEnv
+          System.Environment.current
       in
       Some env
     | CustomEnv env -> Some env

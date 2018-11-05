@@ -9,7 +9,6 @@ type env =
 
 val pp_env : env Fmt.t
 
-val currentEnv : string Astring.String.Map.t
 val prepareEnv : env -> (string StringMap.t * string array) option
 
 (** Run command. *)
