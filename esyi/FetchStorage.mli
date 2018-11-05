@@ -9,7 +9,6 @@ module Dist : sig
   val pkg : t -> Solution.Package.t
   val source : t -> Source.t
   val sourceInstallPath : t -> Path.t
-  val sourceStagePath : t -> Path.t
   val pp : Format.formatter -> t -> unit
 end
 
