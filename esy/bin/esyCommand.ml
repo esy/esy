@@ -344,20 +344,20 @@ module SandboxInfo = struct
       let%bind () =
         if EsyInstall.SandboxSpec.isDefault info.spec
         then
-          let writeData filename data =
-            let f oc =
-              let%lwt () = Lwt_io.write oc data in
-              let%lwt () = Lwt_io.flush oc in
-              return ()
-            in
-            Lwt_io.with_file ~mode:Lwt_io.Output (Path.show filename) f
-          in
           let sandboxBin = SandboxSpec.binPath info.spec in
-          let%bind () = Fs.createDir sandboxBin in
+          let sandboxBinLegacyPath = Path.(
+            info.spec.path
+            / "node_modules"
+            / ".cache"
+            / "_esy"
+            / "build"
+            / "bin"
+          ) in
           match info.plan with
           | None -> return ()
           | Some plan ->
             let task = Plan.rootTask plan in
+            let%bind () = Fs.createDir sandboxBin in
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
               let header = "# Command environment" in
@@ -365,18 +365,25 @@ module SandboxInfo = struct
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
               Environment.renderToShellSource ~header commandEnv
             ) in
-            let%bind () =
-              let filename = Path.(sandboxBin / "command-env") in
-              writeData filename commandEnv
+            let commandExec =
+              "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\""
             in
             let%bind () =
-              let filename = Path.(sandboxBin / "command-exec") in
-              let commandExec = "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"" in
-              let%bind () = writeData filename commandExec in
-              let%bind () = Fs.chmod 0o755 filename in
+              RunAsync.List.waitAll [
+                Fs.writeFile ~data:commandEnv Path.(sandboxBin / "command-env");
+                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBin / "command-exec");
+              ]
+            in
+
+            if SandboxSpec.isDefault info.spec
+            then
+              let%bind () = Fs.createDir sandboxBinLegacyPath in
+              RunAsync.List.waitAll [
+                Fs.writeFile ~data:commandEnv Path.(sandboxBinLegacyPath / "command-env");
+                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
+              ]
+            else
               return ()
-            in
-            return ()
         else
           return ()
       in
