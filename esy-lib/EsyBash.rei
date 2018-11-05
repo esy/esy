@@ -1,14 +1,14 @@
 let getMingwRuntimePath:
   unit =>
   result(
-    Fpath.t,
+    Path.t,
     [> | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)],
   );
 
 let getBinPath:
   unit =>
   result(
-    Fpath.t,
+    Path.t,
     [> | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)],
   );
 
@@ -19,19 +19,8 @@ let toEsyBashCommand:
     [> | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)],
   );
 
-let normalizePathForCygwin:
-  string =>
-  result(
-    string,
-    [> | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)],
-  );
-
-let normalizePathForWindows:
-  Fpath.t =>
-  result(
-    Fpath.t,
-    [> | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)],
-  );
+let normalizePathForCygwin: string => string;
+let normalizePathForWindows: Path.t => Path.t;
 
 let run:
   Bos.Cmd.t =>
