@@ -1,0 +1,23 @@
+steps:
+  - task: NodeTool@0
+    displayName: 'Use Node 8.x'
+    inputs:
+      versionSpec: 8.x
+
+  - script: 'npm install -g esy@0.2.11 --unsafe-perm'
+    displayName: 'npm install -g esy'
+
+  - script: 'esy install'
+    displayName: 'esy install'
+
+  - script: 'esy build'
+    displayName: 'esy build'
+
+  - script: 'esy test:e2e'
+    displayName: 'esy test:e2e'
+
+  - script: 'esy test:e2e-slow'
+    displayName: 'esy test:e2e-slow'
+
+  - script: 'esy platform-release'
+    displayName: 'esy platform-release'
