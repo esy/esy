@@ -6,14 +6,13 @@ let cmd =
   | Error (`Msg msg) -> failwith msg
 
 let rewritePrefix ~origPrefix ~destPrefix path =
-  let open RunAsync.Syntax in
   Logs_lwt.debug (fun m ->
     m "rewritePrefix %a: %a -> %a"
     Path.pp path
     Path.pp origPrefix
     Path.pp destPrefix
   );%lwt
-  let%bind env = EsyBashLwt.getMingwEnvironmentOverride () in
+  let env = EsyBashLwt.getMingwEnvironmentOverride () in
   ChildProcess.run ~env Cmd.(
     cmd
     % "--orig-prefix" % p origPrefix

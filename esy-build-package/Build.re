@@ -378,7 +378,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
   let%bind () = {
-    let%bind p = EsyBash.getMingwRuntimePath();
+    let p = EsyBash.getMingwRuntimePath();
     let%bind env = {
       let%bind current = Bos.OS.Env.current();
       let env =
