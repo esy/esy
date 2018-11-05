@@ -107,7 +107,7 @@ module ShallowClone = struct
 
         let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
         and localCommit =
-          let remote = Path.show dst in
+          let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
           lsRemote ~remote () in
 
         if remoteCommit = localCommit
