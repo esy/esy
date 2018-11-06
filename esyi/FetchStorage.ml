@@ -285,7 +285,30 @@ let runLifecycle pkg sourcePath lifecycle =
 
   return ()
 
-let installBinWrapper ~binPath (name, origPath) =
+let installNodeBinWrapper binPath (name, origPath) =
+  let data, path =
+    match System.Platform.host with
+    | Windows ->
+      let data =
+      Format.asprintf
+        {|@ECHO off
+@SETLOCAL
+node "%a" %%*
+          |} Path.pp origPath
+      in
+      data, Path.(binPath / name |> addExt ".cmd")
+    | _ ->
+      let data =
+        Format.asprintf
+          {|#!/bin/sh
+exec node "%a" "$@"
+            |} Path.pp origPath
+      in
+      data, Path.(binPath / name)
+  in
+  Fs.writeFile ~perm:0o755 ~data path
+
+let installBinWrapper binPath (name, origPath) =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m ->
     m "Fetch:installBinWrapper: %a / %s -> %a"
@@ -293,11 +316,15 @@ let installBinWrapper ~binPath (name, origPath) =
   );%lwt
   if%bind Fs.exists origPath
   then (
-    let%bind () = Fs.chmod 0o777 origPath in
-    let destPath = Path.(binPath / name) in
-    if%bind Fs.exists destPath
-    then return ()
-    else Fs.symlink ~src:origPath destPath
+    if Path.hasExt ".js" origPath
+    then installNodeBinWrapper binPath (name, origPath)
+    else (
+      let%bind () = Fs.chmod 0o777 origPath in
+      let destPath = Path.(binPath / name) in
+      if%bind Fs.exists destPath
+      then return ()
+      else Fs.symlink ~src:origPath destPath
+    )
   ) else (
     Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
     return ()
@@ -312,60 +339,99 @@ type installation = {
 let install ~onBeforeLifecycle dist =
   (** TODO: need to sync here so no two same tasks are running at the same time *)
   let open RunAsync.Syntax in
-  RunAsync.contextf (
 
+  let install sourceInstallPath () =
+    let sourceStagePath, run =
+      (* We are getting EACCESS error on Windows if we try to rename directory
+       * from stage to install after we read a file from there. It seems we are
+       * leaking fds and Windows prevent rename from working.
+       *
+       * For now we are unpacking and running lifecycle directly in a final
+       * directory and in case of an error we do a cleanup by removing the
+       * install directory (so that subsequent installation attempts try to do
+       * install again).
+       *)
+      match System.Platform.host with
+      | Windows ->
+        let run f =
+          let rec cleanup ?(n=3) () =
+            try%lwt Fs.rmPathLwt sourceInstallPath
+            with Unix.Unix_error _ as err ->
+              if n = 0
+              then raise err
+              else (Lwt_unix.sleep 0.5 ;%lwt cleanup ~n:(n - 1) ())
+          in
+          let res =
+            match%lwt f () with
+            | Ok res -> return res
+            | Error _ as err -> cleanup () ;%lwt Lwt.return err
+          in
+          try%lwt res with err -> (cleanup () ;%lwt raise err)
+        in
+        sourceInstallPath, run
+      | _ ->
+        let sourceStagePath = Dist.sourceStagePath dist in
+        let run f =
+          let%bind r = f () in
+          let%bind () = Fs.rename ~src:sourceStagePath sourceInstallPath in
+          return r
+        in
+        sourceStagePath, run
+    in
+    run (fun () ->
+      let%bind () = unpack ~path:sourceStagePath dist in
+      let%bind () =
+        let%bind filesOfOpam =
+          Solution.Package.readOpamFiles 
+            dist.pkg
+        in
+        let%bind filesOfOverride =
+          Package.Overrides.files
+            ~cfg:dist.sandbox.cfg
+            dist.pkg.overrides
+        in
+        layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
+      in
+      let%bind pkgJson = PackageJson.ofDir sourceStagePath in
+      let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
+      let%bind () =
+        match lifecycle with
+        | Some lifecycle ->
+          let%bind () =
+            onBeforeLifecycle sourceStagePath
+          in
+          let%bind () =
+            runLifecycle
+              dist.pkg
+              sourceStagePath
+              lifecycle
+          in
+          RewritePrefix.rewritePrefix
+            ~origPrefix:sourceStagePath
+            ~destPrefix:sourceInstallPath
+            sourceStagePath
+        | None -> return ()
+      in
+      return pkgJson
+    )
+  in
+
+  RunAsync.contextf (
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
       | Package.Link {path; _} ->
         let%bind pkgJson = PackageJson.ofDir path in
-        let sourcePath = Path.(dist.sandbox.Sandbox.spec.path // path) in
+        let sourcePath = Path.(dist.Dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
       | Package.Install _ ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
-        if%bind Fs.exists sourceInstallPath
-        then
-          let%bind pkgJson = PackageJson.ofDir sourceInstallPath in
-          return (sourceInstallPath, pkgJson)
-        else (
-          let sourceStagePath = Dist.sourceStagePath dist in
-          let%bind () = unpack ~path:sourceStagePath dist in
-          let%bind () =
-            let%bind filesOfOpam =
-              Solution.Package.readOpamFiles 
-                dist.pkg
-            in
-            let%bind filesOfOverride =
-              Package.Overrides.files
-                ~cfg:dist.sandbox.cfg
-                dist.pkg.overrides
-            in
-            layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
-          in
-          let%bind pkgJson = PackageJson.ofDir sourceStagePath in
-          let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
-          let%bind () =
-            match lifecycle with
-            | Some lifecycle ->
-              let%bind () =
-                onBeforeLifecycle sourceStagePath
-              in
-              let%bind () =
-                runLifecycle
-                  dist.pkg
-                  sourceStagePath
-                  lifecycle
-              in
-              RewritePrefix.rewritePrefix
-                ~origPrefix:sourceStagePath
-                ~destPrefix:sourceStagePath
-                sourceStagePath
-            | None -> return ()
-          in
-          let%bind () = Fs.rename ~src:sourceStagePath sourceInstallPath in
-          return (sourceInstallPath, pkgJson)
-        )
+        let%bind pkgJson =
+          if%bind Fs.exists sourceInstallPath
+          then PackageJson.ofDir sourceInstallPath
+          else install sourceInstallPath ()
+        in
+        return (sourceInstallPath, pkgJson)
     in
-
     return {pkgJson; sourcePath; dist;}
   ) "installing %a" Dist.pp dist
 
@@ -373,5 +439,5 @@ let linkBins binPath installation =
   match installation.pkgJson with
   | Some pkgJson ->
     let bin = PackageJson.bin ~sourcePath:installation.sourcePath  pkgJson in
-    RunAsync.List.mapAndWait ~f:(installBinWrapper ~binPath) bin
+    RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
   | None -> RunAsync.return ()

@@ -119,12 +119,7 @@ let install ~report ~queue ~installation ~solution dist dependencies =
 
       let%bind () =
         let pnpJsPath = Path.(binPath / "pnp.js") in
-        let installation =
-          Installation.add
-            id
-            (Dist.sourceStagePath dist)
-            installation
-        in
+        let installation = Installation.add id path installation in
         let data = PnpJs.render
           ~basePath:binPath
           ~rootPath:path
