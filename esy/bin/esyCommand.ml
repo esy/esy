@@ -1819,6 +1819,7 @@ let makeCommands ~sandbox () =
     makeCommand
       ~name:"show"
       ~doc:"Display information about available packages"
+      ~header:`No
       Term.(
         const show
         $ commonOpts
