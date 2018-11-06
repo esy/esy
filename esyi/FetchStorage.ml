@@ -134,7 +134,10 @@ end = struct
       (StringMap.fold f cmds [])
     | Bin.Empty, _ -> []
 
-  let lifecycle pkgJson = pkgJson.scripts
+  let lifecycle pkgJson =
+    match pkgJson.scripts with
+    | Some {Lifecycle. postinstall = None; install = None;} -> None
+    | lifecycle -> lifecycle
 
 end
 
