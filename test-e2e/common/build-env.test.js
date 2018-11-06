@@ -65,7 +65,6 @@ describe('esy build-env', () => {
     expect(env.OCAMLPATH).toBeTruthy();
     expect(env.OCAMLFIND_LDCONF).toBeTruthy();
     expect(env.OCAMLFIND_DESTDIR).toBeTruthy();
-    expect(env.OCAMLFIND_COMMANDS).toBeTruthy();
     expect(env.MAN_PATH).toBeTruthy();
     expect(env.CAML_LD_LIBRARY_PATH).toBeTruthy();
 

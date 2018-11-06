@@ -230,7 +230,6 @@ end = struct
         "cur__etc", (p SandboxPath.(installPath / "etc"));
         "OCAMLFIND_DESTDIR", (p SandboxPath.(installPath / "lib"));
         "OCAMLFIND_LDCONF", "ignore";
-        "OCAMLFIND_COMMANDS", "ocamlc=ocamlc.opt ocamldep=ocamldep.opt ocamldoc=ocamldoc.opt ocamllex=ocamllex.opt ocamlopt=ocamlopt.opt";
       ]
     in
 
