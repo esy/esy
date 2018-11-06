@@ -2,6 +2,7 @@ include EsyLib.Curl
 
 module Fs = EsyLib.Fs
 module Path = EsyLib.Path
+module RunAsync = EsyLib.RunAsync
 module System = EsyLib.System
 
 let%test "copyPathLwt - copy simple file" =
@@ -61,6 +62,26 @@ let%test "rmPathLwt - delete read only file" =
             let%lwt exists = Fs.exists src in
             match exists with
             | Ok v -> Lwt.return (v == false)
+            | _ -> Lwt.return false
+        in
+        Fs.withTempDir f
+    in
+    TestLwt.runLwtTest test
+
+let%test "read/write file" =
+    let test () =
+        let f tempPath =
+            let src = Path.(tempPath / "test.txt") in
+            let data1: string = "test-file-contents1" in
+            let data2: string = "test-file-contents2" in
+
+            let%lwt _ = Fs.writeFile ~data:data1 src in
+            let%lwt out1 = Fs.readFile src in
+            let%lwt _ = Fs.writeFile ~data:data2 src in
+            let%lwt out2 = Fs.readFile src in
+
+            match ((out1, out2)) with
+            | (Ok a, Ok b) -> Lwt.return((String.equal data1 a) && (String.equal data2 b))
             | _ -> Lwt.return false
         in
         Fs.withTempDir f
