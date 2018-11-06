@@ -154,7 +154,7 @@ let setupLogTerm =
       fun () -> let m = Buffer.contents b in Buffer.reset b; m
     in
     let mutex = Lwt_mutex.create () in
-    let app, app_flush = buf_fmt ~like:Fmt.stdout in
+    let app, app_flush = buf_fmt ~like:Fmt.stderr in
     let dst, dst_flush = buf_fmt ~like:Fmt.stderr in
     let reporter = Logs_fmt.reporter ~pp_header ~app ~dst () in
     let report src level ~over k msgf =
@@ -164,8 +164,8 @@ let setupLogTerm =
             match level with
             | Logs.App ->
               let msg = app_flush () in
-              Lwt_io.write Lwt_io.stdout msg;%lwt
-              Lwt_io.flush Lwt_io.stdout;%lwt
+              Lwt_io.write Lwt_io.stderr msg;%lwt
+              Lwt_io.flush Lwt_io.stderr;%lwt
               Lwt.return ()
             | _ ->
               let msg = dst_flush () in

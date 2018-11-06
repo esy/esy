@@ -54,6 +54,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
      
       Conflicting constraints:
@@ -95,6 +98,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
      
       Conflicting constraints:
@@ -160,6 +166,10 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info downloading opam index...
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
 
       Conflicting constraints:
@@ -216,6 +226,10 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info downloading opam index...
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
 
       No package matching:
@@ -267,6 +281,10 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info downloading opam index...
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
 
       No package matching:
@@ -305,6 +323,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
 
       No package matching:
@@ -334,6 +355,9 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
+      info resolving esy packages: done
+      info solving esy constraints: done
       error: No solution found:
 
       No package matching:
@@ -363,6 +387,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
       error: path 'missing' does not exist
         resolving missing@path:missing
       esy: exiting due to errors above
@@ -389,6 +414,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
+      info install 0.3.4
       error: no manifest found at link:missing
         reading package metadata from link:missing
         resolving metadata missing@link:missing
