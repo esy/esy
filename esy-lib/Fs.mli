@@ -52,6 +52,7 @@ val copyFile : src:Path.t -> dst:Path.t -> unit RunAsync.t
 val copyPath : src:Path.t -> dst:Path.t -> unit RunAsync.t
 
 val rmPath : Path.t -> unit RunAsync.t
+val rmPathLwt : Path.t -> unit Lwt.t
 
 val withTempDir : ?tempDir:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
 val withTempFile : data:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
