@@ -72,8 +72,8 @@ let%test "read/write file" =
     let test () =
         let f tempPath =
             let src = Path.(tempPath / "test.txt") in
-            let data1: string = "test-file-contents1" in
-            let data2: string = "test-file-contents2" in
+            let data1: string = "test-file-contents1\ntest1" in
+            let data2: string = "test-file-contents2\ntest2" in
 
             let%lwt _ = Fs.writeFile ~data:data1 src in
             let%lwt out1 = Fs.readFile src in

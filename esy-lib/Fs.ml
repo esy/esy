@@ -7,12 +7,21 @@ let toRunAsync ?(desc="I/O failed") promise =
     let msg = Unix.error_message err in
     error (Printf.sprintf "%s: %s" desc msg)
 
+(* Windows does not support Unix.O_NONBLOCK for files *)
+(* This is problematic with LWT integration, see: *)
+(* https://github.com/ocsigen/lwt/issues/574#issuecomment-381665367 *)
+let getReadFileFlags =
+    match System.Platform.host with
+    | Windows -> [Unix.O_RDONLY]
+    | _ -> [Unix.O_RDONLY; Unix.O_NONBLOCK]
+
 let readFile (path : Path.t) =
   let path = Path.show path in
   let desc = Printf.sprintf "Unable to read file %s" path in
+  let flags = getReadFileFlags in
   toRunAsync ~desc (fun () ->
     let f ic = Lwt_io.read ic in
-    Lwt_io.with_file ~mode:Lwt_io.Input path f
+    Lwt_io.with_file ~flags ~mode:Lwt_io.Input path f
   )
 
 let writeFile ?perm ~data (path : Path.t) =
