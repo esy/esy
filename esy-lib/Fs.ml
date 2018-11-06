@@ -7,33 +7,40 @@ let toRunAsync ?(desc="I/O failed") promise =
     let msg = Unix.error_message err in
     error (Printf.sprintf "%s: %s" desc msg)
 
-let readFile_windows path =
-  let fd = Unix.openfile path Unix.[O_RDONLY] 0o777 in
-  let ic = Unix.in_channel_of_descr fd in
-  let n = in_channel_length ic in
-  let s = really_input_string ic n in
-  Unix.close fd;
-  Lwt.return s
-
-let readFile_posix path =
-  let f ic = Lwt_io.read ic in
-  Lwt_io.with_file ~mode:Lwt_io.Input path f
-
 let readFile (path : Path.t) =
   let path = Path.show path in
   let desc = Printf.sprintf "Unable to read file %s" path in
+  let flags = match System.Platform.host with
+      | Windows -> Unix.[O_RDONLY]
+      | _ -> Unix.[O_RDONLY; O_NONBLOCK]
+  in
   toRunAsync ~desc (fun () -> 
-      match System.Platform.host with
-      | Windows -> readFile_windows path
-      | _ -> readFile_posix path
+      let%lwt fd = Lwt_unix.openfile path flags 0o777 in
+      let%lwt () = Lwt_unix.wait_read fd in
+      let ic = Lwt_io.of_fd ~mode:Lwt_io.Input fd in
+      let%lwt s = Lwt_io.read ic in
+      let%lwt () = Lwt_unix.close fd in
+      Lwt.return s
   )
 
 let writeFile ?perm ~data (path : Path.t) =
   let path = Path.show path in
   let desc = Printf.sprintf "Unable to write file %s" path in
+  let perm = match perm with
+      | Some x -> x
+      | _ -> 0o666
+  in
+  let flags = match System.Platform.host with
+      | Windows -> Unix.[O_WRONLY; O_CREAT; O_TRUNC]
+      | _ -> Unix.[O_WRONLY; O_CREAT; O_TRUNC; O_NONBLOCK]
+  in
   toRunAsync ~desc (fun () ->
-    let f oc = Lwt_io.write oc data in
-    Lwt_io.with_file ?perm ~mode:Lwt_io.Output path f
+    let%lwt fd = Lwt_unix.openfile path flags perm in
+    let%lwt () = Lwt_unix.wait_write fd in
+    let oc = Lwt_io.of_fd ~mode:Lwt_io.Output fd in
+    let%lwt () = Lwt_io.write oc data in
+    let%lwt () = Lwt_io.flush oc in
+    Lwt_unix.close fd
   )
 
 let openFile ~mode ~perm path =
