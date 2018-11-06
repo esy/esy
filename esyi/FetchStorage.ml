@@ -342,6 +342,15 @@ let install ~onBeforeLifecycle dist =
 
   let install sourceInstallPath () =
     let sourceStagePath, run =
+      (* We are getting EACCESS error on Windows if we try to rename directory
+       * from stage to install after we read a file from there. It seems we are
+       * leaking fds and Windows prevent rename from working.
+       *
+       * For now we are unpacking and running lifecycle directly in a final
+       * directory and in case of an error we do a cleanup by removing the
+       * install directory (so that subsequent installation attempts try to do
+       * install again).
+       *)
       match System.Platform.host with
       | Windows ->
         let run f =
@@ -350,9 +359,14 @@ let install ~onBeforeLifecycle dist =
             with Unix.Unix_error _ as err ->
               if n = 0
               then raise err
-              else cleanup ~n:(n - 1) ()
+              else (Lwt_unix.sleep 0.5 ;%lwt cleanup ~n:(n - 1) ())
           in
-          try%lwt f () with err -> (cleanup ();%lwt raise err)
+          let res =
+            match%lwt f () with
+            | Ok res -> return res
+            | Error _ as err -> cleanup () ;%lwt Lwt.return err
+          in
+          try%lwt res with err -> (cleanup () ;%lwt raise err)
         in
         sourceInstallPath, run
       | _ ->
