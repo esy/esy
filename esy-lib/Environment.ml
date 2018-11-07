@@ -42,7 +42,7 @@ module type S = sig
 
     val empty : t
     val render : ctx -> t -> string Binding.t list
-    val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
+    val eval : platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
 
     include S.COMPARABLE with type t := t
@@ -124,7 +124,7 @@ end = struct
       in
       List.map ~f bindings
 
-    let eval ?(platform=System.Platform.host) ?(init=StringMap.empty) bindings =
+    let eval ~platform ?(init=StringMap.empty) bindings =
       let open Result.Syntax in
 
       let f env binding =
@@ -138,7 +138,7 @@ end = struct
           let value = V.show value in
           let%bind value =
             match platform with
-            | Windows -> EsyShellExpansion.renderBatch ~scope value
+            | System.Platform.Windows -> EsyShellExpansion.renderBatch ~scope value
             | _ -> EsyShellExpansion.render ~scope value
           in
           let value = V.v value in

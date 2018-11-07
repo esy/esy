@@ -419,7 +419,8 @@ let make'
     let%bind buildEnv =
       let%bind bindings = Scope.env ~includeBuildEnv:true buildScope in
       Run.context
-        (Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval bindings))
+        (Run.ofStringError (
+          Scope.SandboxEnvironment.Bindings.eval ~platform:System.Platform.host bindings))
         "evaluating environment"
     in
 

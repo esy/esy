@@ -208,7 +208,7 @@ let make
     (* Emit wrappers for released binaries *)
     let%bind () =
       let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
-      let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
+      let%bind env = RunAsync.ofStringError (Environment.Bindings.eval ~platform:System.Platform.host bindings) in
 
       let generateBinaryWrapper stagePath name =
         let resolveBinInEnv ~env prg =

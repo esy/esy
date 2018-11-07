@@ -782,7 +782,7 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
       let header = header task in
       if asJson
       then
-        let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
+        let%bind env = Run.ofStringError (Environment.Bindings.eval ~platform:System.Platform.host env) in
         return (
           env
           |> Environment.to_yojson
@@ -877,7 +877,7 @@ let makeExecCommand
       env
     in
     let env = Environment.current @ env in
-    let%bind env = Environment.Bindings.eval env in
+    let%bind env = Environment.Bindings.eval ~platform:System.Platform.host env in
     return (ChildProcess.CustomEnv env)
   ) in
 

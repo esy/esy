@@ -39,7 +39,7 @@ module type S = sig
 
     val empty : t
     val render : ctx -> t -> string Binding.t list
-    val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
+    val eval : platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
 
     include S.COMPARABLE with type t := t
