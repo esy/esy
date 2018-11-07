@@ -15,8 +15,13 @@
 type scope = string -> string option
 
 val render :
-  ?fallback:string option
-  -> scope:scope
+  scope:scope
   -> string
   -> (string, string) result
 (** Render string by expanding all shell parameters found. *)
+
+val renderBatch :
+  scope:scope
+  -> string
+  -> (string, string) result
+(** Render string by expanding all batch parameters found. *)

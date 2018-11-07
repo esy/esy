@@ -15,11 +15,15 @@ let formatParseError ?src ~cnum msg =
     in
     Printf.sprintf "%s:\n>\n> %s\n> %s" msg ctx line
 
-let parseExn v =
+let parseShellExn v =
   let lexbuf = Lexing.from_string v in
   Lexer.read [] `Init lexbuf
 
-let parse src =
+let parseBatchExn v =
+  let lexbuf = Lexing.from_string v in
+  BatchLexer.read [] `Init lexbuf
+
+let parse parseExn src =
   try Ok (parseExn src)
   with
   | UnmatchedChar (pos, _) ->
@@ -33,28 +37,30 @@ let parse src =
 
 type scope = string -> string option
 
-let render ?(fallback=Some "") ~(scope : scope) v =
+let render' ~(scope : scope) parseExn v =
 
   let rec renderTokens segments tokens =
     match tokens with
     | [] -> Ok (String.concat "" (List.rev segments))
     | String v::restTokens -> renderTokens (v::segments) restTokens
     | Var (name, default)::restTokens ->
-      begin match scope name, default, fallback with
-      | Some v, _, _
-      | None, Some v, _ -> renderTokens (v::segments) restTokens
-      | None, None, Some v -> renderTokens (v::segments) restTokens
-      | _, _, _ -> Error ("unable to resolve: $" ^ name)
+      begin match scope name, default with
+      | Some v, _
+      | None, Some v -> renderTokens (v::segments) restTokens
+      | _, _ -> Error ("unable to resolve: $" ^ name)
       end
   in
 
-  match parse v with
+  match parse parseExn v with
   | Error err -> Error err
   | Ok tokens -> renderTokens [] tokens
 
+let render ~scope v = render' ~scope parseShellExn v
+let renderBatch ~scope v = render' ~scope parseBatchExn v
+
 let%test_module _ = (module struct
   let expectParseOk s expectedTokens =
-    match parse s with
+    match parse parseShellExn s with
     | Ok tokens ->
       if not (equal tokens expectedTokens) then (
         Printf.printf "Expected: %s\n" (show expectedTokens);
@@ -90,7 +96,7 @@ let%test_module _ = (module struct
     expectParseOk "${var:-def}string" [Var ("var", Some "def"); String "string"] &&
     expectParseOk "string${var:-def}" [String "string"; Var ("var", Some "def")]
 
-  let expectRenderOk scope s expectedResult =
+  let expectRenderOk render scope s expectedResult =
     match render ~scope s with
     | Ok result ->
       if result <> expectedResult then (
@@ -109,8 +115,16 @@ let%test_module _ = (module struct
       | "name" -> Some "world"
       | _ -> None
     in
-    expectRenderOk scope "hello" "hello" &&
-    expectRenderOk scope "hello, $name" "hello, world" &&
-    expectRenderOk scope "hello, ${name}!" "hello, world!" &&
-    expectRenderOk scope "hello, ${nam:-world}!" "hello, world!"
+    expectRenderOk render scope "hello" "hello" &&
+    expectRenderOk render scope "hello, $name" "hello, world" &&
+    expectRenderOk render scope "hello, ${name}!" "hello, world!" &&
+    expectRenderOk render scope "hello, ${nam:-world}!" "hello, world!"
+
+  let%test "render batch" =
+    let scope = function
+      | "name" -> Some "world"
+      | _ -> None
+    in
+    expectRenderOk renderBatch scope "hello" "hello" &&
+    expectRenderOk renderBatch scope "hello, %name%" "hello, world"
 end)

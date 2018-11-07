@@ -11,18 +11,9 @@
 let id          = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
 rule read result state = parse
- | '$' (id as id) {
+ | '^' '%'       { read ((String "^%")::result) `Init lexbuf}
+ | '%' (id as id) '%' {
       let item = Var (id, None) in
-      let result = finalizeString result state in
-      read (item::result) `Init lexbuf
-    }
- | '$' '{' (id as id) '}' {
-      let item = Var (id, None) in
-      let result = finalizeString result state in
-      read (item::result) `Init lexbuf
-    }
- | '$' '{' (id as id) ':' '-' ([^ '}' ]+ as default) '}' {
-      let item = Var (id, Some default) in
       let result = finalizeString result state in
       read (item::result) `Init lexbuf
     }
