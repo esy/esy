@@ -47,8 +47,8 @@ steps:
       customCommand: 'run test:unit'
 
   - task: Npm@1
-    displayName: 'npm run bootstrap:make-release-package'
+    displayName: 'npm run release:make-platform-package'
     inputs:
       command: custom
       verbose: false
-      customCommand: 'run bootstrap:make-release-package'
+      customCommand: 'run release:make-platform-package'
