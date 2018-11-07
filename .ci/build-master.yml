@@ -5,6 +5,7 @@ resources:
 
 trigger:
   - master
+  - 0.3.x
 
 phases:
   - phase: Phase_1
