@@ -39,7 +39,6 @@ let toLock ~sandbox opam =
   if Path.isPrefix sandboxPath opampath
   then return opam
   else (
-    Logs_lwt.app (fun m -> m "COPY OPAM: %a -> %a" Path.pp opam.path Path.pp dst);%lwt
     let%bind () = Fs.copyPath ~src:opam.path ~dst in
     return {opam with path = Path.tryRelativize ~root:sandboxPath dst;}
   )
