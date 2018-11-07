@@ -333,15 +333,20 @@ module SandboxInfo = struct
               let header = "Command environment" in
               let%bind commandEnv = Plan.commandEnv copts.spec plan task in
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
-              return (Environment.renderToShellSource ~header commandEnv)
+              match System.Platform.host with
+              | Windows -> return (Environment.renderToBatchSource ~header commandEnv)
+              | _ -> return (Environment.renderToShellSource ~header commandEnv)
             ) in
-            let commandExec =
-              "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\""
+            let commandExec, commandExecFilename =
+              match System.Platform.host with
+              | Windows ->
+                "@ECHO off\r\n@SETLOCAL\r\n" ^ commandEnv ^ "\r\n%*", "command-exec.bat"
+              | _ -> "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"", "command-exec"
             in
             let%bind () =
               RunAsync.List.waitAll [
                 Fs.writeFile ~data:commandEnv Path.(sandboxBin / "command-env");
-                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBin / "command-exec");
+                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBin / commandExecFilename);
               ]
             in
 
@@ -350,7 +355,7 @@ module SandboxInfo = struct
               let%bind () = Fs.createDir sandboxBinLegacyPath in
               RunAsync.List.waitAll [
                 Fs.writeFile ~data:commandEnv Path.(sandboxBinLegacyPath / "command-env");
-                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
+                Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / commandExecFilename);
               ]
             else
               return ()

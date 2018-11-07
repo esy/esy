@@ -264,7 +264,7 @@ let renderToBatchSource
     line::lines, origin
   in
   let lines, _ = List.fold_left ~f ~init:([], None) bindings in
-  ":: " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
+  ":: " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\r\n")
 
 let renderToList ?(platform=System.Platform.host) bindings =
   let f {Binding.name; value; origin = _} =
