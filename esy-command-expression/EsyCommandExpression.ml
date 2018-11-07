@@ -55,9 +55,19 @@ let formatName = function
   | Some namespace, name -> namespace ^ "." ^ name
   | None, name -> name
 
-let eval ~pathSep ~colon ~scope string =
+let eval ~platform ~colon ~scope string =
   let open Result.Syntax in
   let%bind expr = parse string in
+
+  let pathSep =
+    match platform with
+    | System.Platform.Unknown
+    | System.Platform.Darwin
+    | System.Platform.Linux
+    | System.Platform.Unix
+    | System.Platform.Windows
+    | System.Platform.Cygwin -> "/"
+  in
 
   let lookupValue name =
     match scope name with
@@ -84,7 +94,11 @@ let eval ~pathSep ~colon ~scope string =
     | E.Bool b -> return (V.Bool b)
     | E.PathSep -> return (V.String pathSep)
     | E.Colon -> return (V.String colon)
-    | E.EnvVar name -> return (V.String ("$" ^ name))
+    | E.EnvVar name ->
+      begin match platform with
+      | System.Platform.Windows -> return (V.String ("%" ^ name ^ "%"))
+      | _ -> return (V.String ("$" ^ name))
+      end
     | E.Var name -> lookupValue name
     | E.Condition (cond, t, e) ->
       if%bind evalToBool cond
@@ -120,9 +134,9 @@ let eval ~pathSep ~colon ~scope string =
   in
   eval expr
 
-let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
+let render ?(platform=System.Platform.host) ?(colon=":") ~(scope : scope) (string : string) =
   let open Result.Syntax in
-  match%bind eval ~pathSep ~colon ~scope string with
+  match%bind eval ~platform ~colon ~scope string with
   | V.String v -> return v
   | V.Bool true -> return "true"
   | V.Bool false -> return "false"
@@ -400,8 +414,8 @@ let%test_module "CommandExpr" = (module struct
         Not (Var (None, "async"))
       ))
 
-  let expectRenderOk scope s expected =
-    match render ~scope s with
+  let expectRenderOk ?platform scope s expected =
+    match render ?platform ~scope s with
     | Ok v ->
       if v <> expected then (
         Format.printf "  Render:@[<v 2>@\n%s@]@\n" s;
@@ -417,7 +431,10 @@ let%test_module "CommandExpr" = (module struct
 
   let expectRenderError scope s expectedError =
     match render ~scope s with
-    | Ok _ -> false
+    | Ok res ->
+      Printf.printf "Expected ERROR!";
+      Printf.printf "     Got: %s\n" res;
+      false
     | Error err ->
       let err = String.trim err in
       if (String.trim expectedError) <> err then (
@@ -451,43 +468,35 @@ let%test_module "CommandExpr" = (module struct
     && expectRenderOk scope "#{os == 'OS/2' ? 'ok' : 'oops'}" "ok"
     && expectRenderOk scope "#{os != 'macOs' ? 'ok' : 'oops'}" "ok"
 
-
-  let%test "render opam" =
-    expectRenderOk scope "Hello, %{os}%!" "Hello, MSDOS!"
-    && expectRenderOk scope "%{pkg:lib}%" "store/opam-pkg/lib"
-    && expectRenderOk scope "%{pkg1:enable}%" "enable"
-    && expectRenderOk scope "%{pkg-not:enable}%" "disable"
-    && expectRenderOk scope "%{pkg1+pkg2:enable}%" "enable"
-    && expectRenderOk scope "%{pkg1+pkg-not:enable}%" "disable"
-    && expectRenderOk scope "%{pkg1:installed}%" "true"
-    && expectRenderOk scope "%{pkg-not:installed}%" "false"
-    && expectRenderOk scope "%{pkg1+pkg2:installed}%" "true"
-    && expectRenderOk scope "%{pkg1+pkg-not:installed}%" "false"
+  let%test "render on windows" =
+    expectRenderOk ~platform:System.Platform.Windows scope
+      "#{self.lib / $NAME}"
+      "store/lib/%NAME%"
 
   let%test "render errors" =
-    expectRenderError scope "#{unknown}" "Error: Undefined variable 'unknown'"
-    && expectRenderError scope "#{ns.unknown}" "Error: Undefined variable 'ns.unknown'"
-    && expectRenderError scope "#{ns.unknown" "Error: unexpected end of string:
-  >
-  > #{ns.unknown...
-  >            ^"
-    && expectRenderError scope "#{'some" "Error: unexpected end of string:
-  >
-  > #{'some...
-  >       ^"
-    && expectRenderError scope "#{'some}" "Error: unexpected end of string:
-  >
-  > #{'some}...
-  >        ^"
-    && expectRenderError scope "#{cond ^}" "Error: unexpected token '^' found:
-  >
-  > #{cond ^}...
-  >        ^"
+    expectRenderError scope "#{unknown}" "Undefined variable 'unknown'"
+    && expectRenderError scope "#{ns.unknown}" "Undefined variable 'ns.unknown'"
+    && expectRenderError scope "#{ns.unknown" "unexpected end of string:
+>
+> #{ns.unknown...
+>            ^"
+    && expectRenderError scope "#{'some" "unexpected end of string:
+>
+> #{'some...
+>       ^"
+    && expectRenderError scope "#{'some}" "unexpected end of string:
+>
+> #{'some}...
+>        ^"
+    && expectRenderError scope "#{cond ^}" "unexpected token '^' found:
+>
+> #{cond ^}...
+>        ^"
 
   let%test "syntax errors" =
-    expectRenderError scope "#{cond &&}" "Error: Syntax error"
-    && expectRenderError scope "#{cond ?}" "Error: Syntax error"
-    && expectRenderError scope "#{cond ? then}" "Error: Syntax error"
-    && expectRenderError scope "#{cond ? then :}" "Error: Syntax error"
+    expectRenderError scope "#{cond &&}" "Syntax error"
+    && expectRenderError scope "#{cond ?}" "Syntax error"
+    && expectRenderError scope "#{cond ? then}" "Syntax error"
+    && expectRenderError scope "#{cond ? then :}" "Syntax error"
 
 end)

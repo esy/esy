@@ -287,7 +287,7 @@ let make
     finalEnv = (
       let defaultPath =
           match platform with
-          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+          | Windows -> "%PATH%;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
       SandboxEnvironment.[
@@ -327,15 +327,6 @@ let exposeUserEnvWith makeBinding name scope =
   {scope with finalEnv}
 
 let renderCommandExpr ?environmentVariableName scope expr =
-  let pathSep =
-    match scope.platform with
-    | System.Platform.Unknown
-    | System.Platform.Darwin
-    | System.Platform.Linux
-    | System.Platform.Unix
-    | System.Platform.Windows
-    | System.Platform.Cygwin -> "/"
-  in
   let envSep =
     System.Environment.sep ~platform:scope.platform ?name:environmentVariableName ()
   in
@@ -355,7 +346,13 @@ let renderCommandExpr ?environmentVariableName scope expr =
     | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show scope.platform))
     | None, _ -> None
   in
-  Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon:envSep ~scope:lookup expr)
+  Run.ofStringError (
+    EsyCommandExpression.render
+      ~platform:scope.platform
+      ~colon:envSep
+      ~scope:lookup
+      expr
+  )
 
 let makeEnvBindings bindings scope =
   let open Run.Syntax in
