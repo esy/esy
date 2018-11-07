@@ -20,7 +20,14 @@ type t = {
   path : Path.t;
 } [@@deriving yojson]
 
-let lock ~sandbox opam =
+module Lock = struct
+  type nonrec t = t
+
+  let of_yojson = of_yojson
+  let to_yojson = to_yojson
+end
+
+let toLock ~sandbox opam =
   let open RunAsync.Syntax in
   let sandboxPath = sandbox.SandboxSpec.path in
   let opampath = Path.(sandboxPath // opam.path) in
@@ -31,6 +38,14 @@ let lock ~sandbox opam =
   in
   if Path.isPrefix sandboxPath opampath
   then return opam
-  else
+  else (
+    Logs_lwt.app (fun m -> m "COPY OPAM: %a -> %a" Path.pp opam.path Path.pp dst);%lwt
     let%bind () = Fs.copyPath ~src:opam.path ~dst in
     return {opam with path = Path.tryRelativize ~root:sandboxPath dst;}
+  )
+
+let ofLock ~sandbox opam =
+  let open RunAsync.Syntax in
+  let sandboxPath = sandbox.SandboxSpec.path in
+  let opampath = Path.(sandboxPath // opam.path) in
+  return {opam with path = opampath;}
