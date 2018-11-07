@@ -47,7 +47,7 @@ let render' ~(scope : scope) parseExn v =
       begin match scope name, default with
       | Some v, _
       | None, Some v -> renderTokens (v::segments) restTokens
-      | _, _ -> Error ("unable to resolve: $" ^ name)
+      | None, None -> renderTokens segments restTokens
       end
   in
 
