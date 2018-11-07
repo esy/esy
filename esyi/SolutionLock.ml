@@ -1,19 +1,27 @@
-type source = Package.source
+type source =
+  | Link of {
+      path : Path.t;
+      manifest : ManifestSpec.t option;
+    }
+  | Install of {
+      source : Source.t * Source.t list;
+      opam : OpamResolution.Lock.t option;
+    }
 
 let source_to_yojson source =
   let open Json.Encode in
   match source with
-  | Package.Link { path; manifest } ->
+  | Link { path; manifest } ->
     assoc [
       field "type" string "link";
       field "path" Path.to_yojson path;
       fieldOpt "manifest" ManifestSpec.to_yojson manifest;
     ]
-  | Package.Install { source = source, mirrors; opam } ->
+  | Install { source = source, mirrors; opam } ->
     assoc [
       field "type" string "install";
       field "source" (Json.Encode.list Source.to_yojson) (source::mirrors);
-      fieldOpt "opam" OpamResolution.to_yojson opam;
+      fieldOpt "opam" OpamResolution.Lock.to_yojson opam;
     ]
 
 let source_of_yojson json =
@@ -26,12 +34,12 @@ let source_of_yojson json =
       | source::mirrors -> return (source, mirrors)
       | _ -> errorf "invalid source configuration"
     in
-    let%bind opam = fieldOptWith ~name:"opam" OpamResolution.of_yojson json in
-    Ok (Package.Install {source; opam;})
+    let%bind opam = fieldOptWith ~name:"opam" OpamResolution.Lock.of_yojson json in
+    Ok (Install {source; opam;})
   | "link" ->
     let%bind path = fieldWith ~name:"path" Path.of_yojson json in
     let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
-    Ok (Package.Link {path; manifest;})
+    Ok (Link {path; manifest;})
   | typ -> errorf "unknown source type: %s" typ
 
 type t = {
@@ -58,11 +66,11 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
     match pkg.source with
-    | Link _
-    | Install {source = _; opam = None;} -> return pkg.source
+    | Package.Link { path; manifest } -> return (Link {path; manifest;})
+    | Install {source; opam = None;} -> return (Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
-      let%bind opam = OpamResolution.lock ~sandbox:sandbox.spec opam in
-      return (Package.Install {source; opam = Some opam;});
+      let%bind opam = OpamResolution.toLock ~sandbox:sandbox.spec opam in
+      return (Install {source; opam = Some opam;});
   in
   let%bind overrides =
     Package.Overrides.toLock
@@ -80,11 +88,19 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
 
 let toPackage sandbox (node : node) =
   let open RunAsync.Syntax in
+  let%bind source =
+    match node.source with
+    | Link { path; manifest } -> return (Package.Link {path;manifest;})
+    | Install {source; opam = None;} -> return (Package.Install {source; opam = None;})
+    | Install {source; opam = Some opam;} ->
+      let%bind opam = OpamResolution.ofLock ~sandbox:sandbox.Sandbox.spec opam in
+      return (Package.Install {source; opam = Some opam;});
+  in
   return {
     Solution.Package.
     name = node.name;
     version = node.version;
-    source = node.source;
+    source;
     overrides = Package.Overrides.ofLock ~sandbox:sandbox.Sandbox.spec node.overrides;
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
