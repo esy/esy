@@ -340,7 +340,7 @@ module SandboxInfo = struct
             let commandExec, commandExecFilename =
               match System.Platform.host with
               | Windows ->
-                "@ECHO off\r\n@SETLOCAL\r\n" ^ commandEnv ^ "\r\n%*", "command-exec.bat"
+                "@ECHO off\n@SETLOCAL\n" ^ commandEnv ^ "\n\n%*", "command-exec.bat"
               | _ -> "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\"", "command-exec"
             in
             let%bind () =

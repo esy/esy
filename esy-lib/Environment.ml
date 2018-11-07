@@ -240,7 +240,7 @@ let renderToBatchSource
     let lines = if prevOrigin <> origin || emptyLines lines then
       let header = match origin with
       | Some origin -> Printf.sprintf "\n::\n:: %s\n::" origin
-      | None -> "\n::\n:: Built-in\n#"
+      | None -> "\n::\n:: Built-in\n::"
       in header::lines
     else
       lines
@@ -255,16 +255,16 @@ let renderToBatchSource
     | Prefix value ->
       let sep = System.Environment.sep ~platform ~name () in
       let value = escapeDoubleQuote value in
-      Printf.sprintf "@SET %s=\"%s%s$%s\"" name value sep name
+      Printf.sprintf "@SET %s=%s%s%%%s%%" name value sep name
     | Suffix value ->
       let sep = System.Environment.sep ~platform ~name () in
       let value = escapeDoubleQuote value in
-      Printf.sprintf "@SET %s=\"$%s%s%s\"" name name sep value
+      Printf.sprintf "@SET %s=%%%s%%%s%s" name name sep value
     in
     line::lines, origin
   in
   let lines, _ = List.fold_left ~f ~init:([], None) bindings in
-  ":: " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\r\n")
+  ":: " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
 
 let renderToList ?(platform=System.Platform.host) bindings =
   let f {Binding.name; value; origin = _} =
