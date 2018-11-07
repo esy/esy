@@ -67,7 +67,7 @@ let toOCamlVersion version =
     major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
   | _ -> version
 
-let renderEsyCommands ~env scope commands =
+let renderEsyCommands ~platform ~env scope commands =
   let open Run.Syntax in
   let envScope name =
     match Scope.SandboxEnvironment.find name env with
@@ -77,7 +77,11 @@ let renderEsyCommands ~env scope commands =
 
   let renderArg v =
     let%bind v = Scope.renderCommandExpr scope v in
-    Run.ofStringError (EsyShellExpansion.render ~scope:envScope v)
+    Run.ofStringError (
+      match platform with
+      | System.Platform.Windows -> EsyShellExpansion.renderBatch ~scope:envScope v
+      | _ -> EsyShellExpansion.render ~scope:envScope v
+    )
   in
 
   let renderCommand =
@@ -438,7 +442,7 @@ let make'
       Run.context
         begin match build.buildCommands with
         | BuildManifest.EsyCommands commands ->
-          let%bind commands = renderEsyCommands ~env:buildEnv buildScope commands in
+          let%bind commands = renderEsyCommands ~platform ~env:buildEnv buildScope commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
@@ -455,7 +459,7 @@ let make'
       Run.context
         begin match build.installCommands with
         | BuildManifest.EsyCommands commands ->
-          renderEsyCommands ~env:buildEnv buildScope commands
+          renderEsyCommands ~platform ~env:buildEnv buildScope commands
         | BuildManifest.OpamCommands commands ->
           renderOpamCommands opamEnv commands
         end

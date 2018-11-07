@@ -136,7 +136,11 @@ end = struct
         match binding.Binding.value with
         | Value value ->
           let value = V.show value in
-          let%bind value = EsyShellExpansion.render ~scope value in
+          let%bind value =
+            match platform with
+            | Windows -> EsyShellExpansion.renderBatch ~scope value
+            | _ -> EsyShellExpansion.render ~scope value
+          in
           let value = V.v value in
           Ok (StringMap.add binding.name value env)
         | ExpandedValue value ->
@@ -275,10 +279,16 @@ let renderToList ?(platform=System.Platform.host) bindings =
       | Binding.ExpandedValue value -> value
       | Binding.Prefix value ->
         let sep = System.Environment.sep ~platform ~name () in
-        value ^ sep ^ "$" ^ name
+        begin match platform with
+        | Windows -> value ^ sep ^ "%" ^ name ^ "%"
+        | _ -> value ^ sep ^ "$" ^ name
+        end
       | Binding.Suffix value ->
         let sep = System.Environment.sep ~platform ~name () in
-        "$" ^ name ^ sep ^ value
+        begin match platform with
+        | Windows -> "%" ^ name ^ "%" ^ sep ^ value
+        | _ -> "$" ^ name ^ sep ^ value
+        end
     in
     name, value
   in
