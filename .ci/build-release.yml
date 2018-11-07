@@ -60,7 +60,7 @@ phases:
     dependsOn:
       - Phase_1
       - Phase_2
-      #- Phase_3 skip Windows for now
+      - Phase_3
     condition: succeeded()
     queue:
       name: Hosted Ubuntu 1604
