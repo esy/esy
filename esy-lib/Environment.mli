@@ -61,6 +61,13 @@ val renderToShellSource :
   -> string Run.t
 (** Render environment bindings as shell export statements. *)
 
+val renderToBatchSource :
+  ?header:value
+  -> ?platform:System.Platform.t
+  -> Bindings.t
+  -> string
+(** Render environment bindings as batch set statements. *)
+
 val renderToList :
   ?platform : System.Platform.t
   -> Bindings.t

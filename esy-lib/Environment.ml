@@ -229,6 +229,44 @@ let renderToShellSource
   let%bind lines, _ = Run.List.foldLeft ~f ~init:([], None) bindings in
   return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
 
+let renderToBatchSource
+    ?(header=":: Environment")
+    ?(platform=System.Platform.host)
+    (bindings : string Binding.t list) =
+  let emptyLines = function
+    | [] -> true
+    | _ -> false
+  in
+  let f (lines, prevOrigin) {Binding. name; value; origin} =
+    let lines = if prevOrigin <> origin || emptyLines lines then
+      let header = match origin with
+      | Some origin -> Printf.sprintf "\n::\n:: %s\n::" origin
+      | None -> "\n::\n:: Built-in\n#"
+      in header::lines
+    else
+      lines
+    in
+    let line = match value with
+    | Value value ->
+      let value = escapeDoubleQuote value in
+      Printf.sprintf "@SET %s=\"%s\"" name value
+    | ExpandedValue value ->
+      let value = escapeSingleQuote value in
+      Printf.sprintf "@SET %s=\'%s\'" name value
+    | Prefix value ->
+      let sep = System.Environment.sep ~platform ~name () in
+      let value = escapeDoubleQuote value in
+      Printf.sprintf "@SET %s=\"%s%s$%s\"" name value sep name
+    | Suffix value ->
+      let sep = System.Environment.sep ~platform ~name () in
+      let value = escapeDoubleQuote value in
+      Printf.sprintf "@SET %s=\"$%s%s%s\"" name name sep value
+    in
+    line::lines, origin
+  in
+  let lines, _ = List.fold_left ~f ~init:([], None) bindings in
+  header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
+
 let renderToList ?(platform=System.Platform.host) bindings =
   let f {Binding.name; value; origin = _} =
     let value =
