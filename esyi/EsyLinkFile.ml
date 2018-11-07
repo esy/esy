@@ -36,7 +36,7 @@ let ofDirIfExists path =
   if%bind Fs.exists fname
   then
     let%bind link = ofFile fname in
-    return (Some link)
+    return (Some (link, fname))
   else
     return None
 

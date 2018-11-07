@@ -368,7 +368,7 @@ let readOpam path =
 module OpamManifest : sig
   include MANIFEST
 
-  val ofInstallationDir : Path.t -> t option RunAsync.t
+  val ofInstallationDir : Path.t -> (t * Path.Set.t) option RunAsync.t
   val ofFile : Path.t -> t RunAsync.t
   val ofString : filename:string -> string -> t Run.t
 end = struct
@@ -517,10 +517,10 @@ end = struct
     let open RunAsync.Syntax in
     match%bind EsyInstall.EsyLinkFile.ofDirIfExists path with
     | None
-    | Some { EsyInstall.EsyLinkFile. opam = None; _ } ->
+    | Some ({ EsyInstall.EsyLinkFile. opam = None; _ }, _) ->
       return None
-    | Some { EsyInstall.EsyLinkFile. opam = Some info; _ } ->
-      return (Some info)
+    | Some ({ EsyInstall.EsyLinkFile. opam = Some info; _ }, fname) ->
+      return (Some (info, Path.Set.singleton fname))
 
   let ofString ~filename (data : string) =
     let open Run.Syntax in
@@ -724,14 +724,14 @@ end = struct
   let loadOpamManifestOfInstallation path =
     let open RunAsync.Syntax in
     match%bind OpamManifest.ofInstallationDir path with
-    | Some manifest ->
+    | Some (manifest, paths) ->
       let m =
         (module struct
           include OpamManifest
           let manifest = manifest
         end : QUERY_MANIFEST)
       in
-      return (Some (m, Path.Set.empty))
+      return (Some (m, paths))
     | None -> return None
 
   let discoverManifest path =

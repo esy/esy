@@ -18,7 +18,7 @@ type t = {
   opam : Solution.Record.Opam.t option;
 }
 
-val ofDirIfExists : Path.t -> t option RunAsync.t
+val ofDirIfExists : Path.t -> (t * Path.t) option RunAsync.t
 (** Read from path. *)
 
 val ofDir : Path.t -> t RunAsync.t
