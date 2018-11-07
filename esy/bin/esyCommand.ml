@@ -330,10 +330,10 @@ module SandboxInfo = struct
             let%bind () = Fs.createDir sandboxBin in
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
-              let header = "# Command environment" in
+              let header = "Command environment" in
               let%bind commandEnv = Plan.commandEnv copts.spec plan task in
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
-              Environment.renderToShellSource ~header commandEnv
+              return (Environment.renderToShellSource ~header commandEnv)
             ) in
             let commandExec =
               "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\""
@@ -778,14 +778,12 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
-        Ok (
+        return (
           env
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        Environment.renderToShellSource
-          ~header
-          env
+        return (Environment.renderToShellSource ~header env)
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
@@ -794,7 +792,7 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
 let buildEnv =
   let header (task : Plan.Task.t) =
     Format.asprintf
-      "# Build environment for %s@%a"
+      "Build environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
@@ -810,7 +808,7 @@ let commandEnv =
   let open RunAsync.Syntax in
   let header (task : Plan.Task.t) =
     Format.asprintf
-      "# Command environment for %s@%a"
+      "Command environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
@@ -825,7 +823,7 @@ let sandboxEnv =
   let open RunAsync.Syntax in
   let header (task : Plan.Task.t) =
     Format.asprintf
-      "# Sandbox environment for %s@%a"
+      "Sandbox environment for %s@%a"
       task.name Version.pp task.version
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =

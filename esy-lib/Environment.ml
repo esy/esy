@@ -191,10 +191,9 @@ let escapeSingleQuote value =
   Str.global_replace re "''" value
 
 let renderToShellSource
-    ?(header="# Environment")
+    ?(header="Environment")
     ?(platform=System.Platform.host)
     (bindings : string Binding.t list) =
-  let open Run.Syntax in
   let emptyLines = function
     | [] -> true
     | _ -> false
@@ -208,29 +207,29 @@ let renderToShellSource
     else
       lines
     in
-    let%bind line = match value with
+    let line = match value with
     | Value value ->
       let value = escapeDoubleQuote value in
-      Ok (Printf.sprintf "export %s=\"%s\"" name value)
+      Printf.sprintf "export %s=\"%s\"" name value
     | ExpandedValue value ->
       let value = escapeSingleQuote value in
-      Ok (Printf.sprintf "export %s=\'%s\'" name value)
+      Printf.sprintf "export %s=\'%s\'" name value
     | Prefix value ->
       let sep = System.Environment.sep ~platform ~name () in
       let value = escapeDoubleQuote value in
-      Ok (Printf.sprintf "export %s=\"%s%s$%s\"" name value sep name)
+      Printf.sprintf "export %s=\"%s%s$%s\"" name value sep name
     | Suffix value ->
       let sep = System.Environment.sep ~platform ~name () in
       let value = escapeDoubleQuote value in
-      Ok (Printf.sprintf "export %s=\"$%s%s%s\"" name name sep value)
+      Printf.sprintf "export %s=\"$%s%s%s\"" name name sep value
     in
-    Ok (line::lines, origin)
+    line::lines, origin
   in
-  let%bind lines, _ = Run.List.foldLeft ~f ~init:([], None) bindings in
-  return (header ^ "\n" ^ (lines |> List.rev |> String.concat "\n"))
+  let lines, _ = List.fold_left ~f ~init:([], None) bindings in
+  "# " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
 
 let renderToBatchSource
-    ?(header=":: Environment")
+    ?(header="Environment")
     ?(platform=System.Platform.host)
     (bindings : string Binding.t list) =
   let emptyLines = function
@@ -265,7 +264,7 @@ let renderToBatchSource
     line::lines, origin
   in
   let lines, _ = List.fold_left ~f ~init:([], None) bindings in
-  header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
+  ":: " ^ header ^ "\n" ^ (lines |> List.rev |> String.concat "\n")
 
 let renderToList ?(platform=System.Platform.host) bindings =
   let f {Binding.name; value; origin = _} =
