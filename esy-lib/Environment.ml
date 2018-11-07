@@ -190,6 +190,10 @@ let escapeSingleQuote value =
   let re = Str.regexp "'" in
   Str.global_replace re "''" value
 
+let escapePercent value =
+  let re = Str.regexp "%" in
+  Str.global_replace re "^%" value
+
 let renderToShellSource
     ?(header="Environment")
     ?(platform=System.Platform.host)
@@ -247,18 +251,15 @@ let renderToBatchSource
     in
     let line = match value with
     | Value value ->
-      let value = escapeDoubleQuote value in
-      Printf.sprintf "@SET %s=\"%s\"" name value
+      Printf.sprintf "@SET %s=%s" name value
     | ExpandedValue value ->
-      let value = escapeSingleQuote value in
-      Printf.sprintf "@SET %s=\'%s\'" name value
+      let value = escapePercent value in
+      Printf.sprintf "@SET %s=%s" name value
     | Prefix value ->
       let sep = System.Environment.sep ~platform ~name () in
-      let value = escapeDoubleQuote value in
       Printf.sprintf "@SET %s=%s%s%%%s%%" name value sep name
     | Suffix value ->
       let sep = System.Environment.sep ~platform ~name () in
-      let value = escapeDoubleQuote value in
       Printf.sprintf "@SET %s=%%%s%%%s%s" name name sep value
     in
     line::lines, origin
