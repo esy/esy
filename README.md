@@ -2,10 +2,7 @@
 
 `package.json` workflow for native development with Reason/OCaml.
 
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/0x1mwqeblcgpqyc0/branch/master?svg=true)](https://ci.appveyor.com/project/esy/esy/branch/master)
-[![Travis](https://travis-ci.org/esy/esy.svg?branch=master)](https://travis-ci.org/esy/esy)
-[![npm](https://img.shields.io/npm/v/esy.svg)](https://www.npmjs.com/package/esy)
-[![npm (tag)](https://img.shields.io/npm/v/esy/next.svg)](https://www.npmjs.com/package/esy)
+[![Build Status](https://dev.azure.com/esy-dev/esy/_apis/build/status/build)](https://dev.azure.com/esy-dev/esy/_build/latest?definitionId=1)
 
 This README serves as a development documentation for esy. For user
 documentation refer to [esy.sh][] documentation site.
