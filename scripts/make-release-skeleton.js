@@ -1,7 +1,7 @@
 // @flow
 
 const {execSync} = require('child_process');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const esyJson = require('../package.json');
 
@@ -10,20 +10,32 @@ function exec(cmd) {
   return execSync(cmd).toString();
 }
 
+function mkdirpSync(p) {
+  if (fs.existsSync(p)) {
+    return;
+  }
+  mkdirpSync(path.dirname(p));
+  fs.mkdirSync(p);
+}
+
+function removeSync(p) {
+  exec(`rm -rf "${p}"`);
+}
+
 const args = process.argv.slice(2);
 const commit = args[0] != null ? args[0] : exec(`git rev-parse --verify HEAD`);
 
 const src = path.resolve(path.join(__dirname, '..'));
 const dst = path.resolve(path.join(__dirname, '..', '_release'));
 
-fs.removeSync(dst);
-fs.mkdirpSync(dst);
+removeSync(dst);
+mkdirpSync(dst);
 
 const filesToCopy = ['LICENSE', 'README.md', 'bin/esyInstallRelease.js'];
 
 for (const file of filesToCopy) {
   const p = path.join(dst, file);
-  fs.mkdirpSync(path.dirname(p));
+  mkdirpSync(path.dirname(p));
   fs.copyFileSync(path.join(src, file), p);
 }
 
@@ -40,7 +52,7 @@ const filesToTouch = [
 
 for (const file of filesToTouch) {
   const p = path.join(dst, file);
-  fs.mkdirpSync(path.dirname(p));
+  mkdirpSync(path.dirname(p));
   fs.writeFileSync(p, '');
 }
 
