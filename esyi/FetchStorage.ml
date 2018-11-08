@@ -240,9 +240,16 @@ let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
       | Windows -> Path.show sourcePath
       | _ -> Filename.quote (Path.show sourcePath)
     in
+    (* On Windows, cd by itself won't switch between drives *)
+    (* We'll add the /d flag to allow switching drives - *)
+    let changeDirCommand = match System.Platform.host with
+      | Windows -> "/d"
+      | _ -> ""
+    in
     let script =
       Printf.sprintf
-        "cd %s && %s"
+        "cd %s %s && %s"
+        changeDirCommand
         installationPath
         script
     in
