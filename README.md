@@ -2,10 +2,7 @@
 
 `package.json` workflow for native development with Reason/OCaml.
 
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/0x1mwqeblcgpqyc0/branch/master?svg=true)](https://ci.appveyor.com/project/esy/esy/branch/master)
-[![Travis](https://travis-ci.org/esy/esy.svg?branch=master)](https://travis-ci.org/esy/esy)
-[![npm](https://img.shields.io/npm/v/esy.svg)](https://www.npmjs.com/package/esy)
-[![npm (tag)](https://img.shields.io/npm/v/esy/next.svg)](https://www.npmjs.com/package/esy)
+[![Build Status](https://dev.azure.com/esy-dev/esy/_apis/build/status/build)](https://dev.azure.com/esy-dev/esy/_build/latest?definitionId=1)
 
 This README serves as a development documentation for esy. For user
 documentation refer to [esy.sh][] documentation site.
@@ -150,41 +147,61 @@ Issues are tracked at [esy/esy][].
 esy is released on npm.
 
 Because esy is written in OCaml/Reason and compiled into a native executable we
-need to acquire a set of prebuilt binaries. We employ CI servers (thanks Travis
-CI) to build platform specific releases.
+need to acquire a set of prebuilt binaries for each supported platform (Windows,
+macOS and Linux). We employ CI servers (thanks Azure) to build platform specific
+releases.
 
 The release workflow is the following:
 
-1.  Ensure you arre on `master` branch and run
+1.  Ensure you are on `master` branch and assuming you want to release the
+    version currently defined in `package.json` (see step 6.), run
 
     ```
-    % make bump-patch-verson
+    % make release-tag
     % git push && git push --tags
     ```
 
-    (this bumps patch version, use `bump-minor-version` or `bump-major-version`
-    correspondingly to bump either minor or major version of esy)
+2.  Wait till CI finishes its task and release `@esy-nightly/esy` package.
 
-2.  Wait till CI finishes its task and uploads releases on GitHub,
-    check https://github.com/esy/esy/releases for them.
+    You can test it manually.
 
 3.  Run
 
     ```
-    % make release
+    % make release-prepare
     ```
 
-    Which downloads platform specific releases (which CI uploaded GitHub) and
-    produces an npm releases with needed metadata inside `_release` directory.
+    which downloads the nightly corresponding to the current commit working
+    directory is at and "promotes" it to a release. It will create
+    `_release/package` directory.
 
-4.  Ensure release inside `_release` directory is ok.
+4.  Ensure release inside `_release/package` directory is ok.
 
-    You can `cd _release && npm pack && npm install -g ./esy-*.tgz` to test how
+    You can `cd _release/package && npm pack && npm install -g ./esy-*.tgz` to test how
     release installs and feels.
 
-5.  Run `cd _release && npm publish` to publish release on npm.
+5.  Run
 
-    Release tag `next` is used to publish preview releases.
+    ```
+    % make release-publish
+    ```
+
+    to upload the release on npm.
+
+    Use
+
+    ```
+    % make NPM_RELEASE_TAG=next release-publish
+    ```
+
+    To publish release under `next` tag (so users won't get it automatically but
+    only explicitly requested).
+
+6.  Bump version in `package.json` to the next patch version.
+
+    We expect next version to be patch version most of the time. In case you
+    want to release new minor or major version you need to bump it before the
+    reelase.
 
 [hello-ocaml]: https://github.com/esy-ocaml/hello-ocaml
 [hello-reason]: https://github.com/esy-ocaml/hello-reason

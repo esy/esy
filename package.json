@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
@@ -36,8 +36,7 @@
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
-    "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
-    "platform-release": "node ./scripts/make-platform-release.js",
+    "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest test",
     "test:e2e": "./node_modules/.bin/jest test-e2e",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"

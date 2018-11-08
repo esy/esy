@@ -19,5 +19,5 @@ steps:
   - script: 'esy test:e2e-slow'
     displayName: 'esy test:e2e-slow'
 
-  - script: 'esy platform-release'
+  - script: 'esy release:platform-release'
     displayName: 'esy platform-release'

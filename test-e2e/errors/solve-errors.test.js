@@ -3,6 +3,7 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const {packageJson, file, dir} = helpers;
+const {version} = require('../../package.json');
 
 helpers.skipSuiteOnWindows('needs fixes for path pretty printing');
 
@@ -54,7 +55,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -98,7 +99,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -166,7 +167,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info downloading opam index...
       info resolving esy packages: done
       info solving esy constraints: done
@@ -226,7 +227,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info downloading opam index...
       info resolving esy packages: done
       info solving esy constraints: done
@@ -281,7 +282,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info downloading opam index...
       info resolving esy packages: done
       info solving esy constraints: done
@@ -323,7 +324,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -355,7 +356,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -387,7 +388,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       error: path 'missing' does not exist
         resolving missing@path:missing
       esy: exiting due to errors above
@@ -414,7 +415,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install 0.3.4
+      info install ${version}
       error: no manifest found at link:missing
         reading package metadata from link:missing
         resolving metadata missing@link:missing

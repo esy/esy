@@ -72,18 +72,15 @@ jobs:
 
     steps:
 
-    #
-    # Prepare linux platform release.
-    #
+    - script: |
+        node scripts/make-release-skeleton.js
+      displayName: 'Prepare release'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Linux Artifacts'
       inputs:
         artifactName: platform-linux
         downloadPath: '_release'
-    #
-    # Prepare macos platform release.
-    #
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download macOS Artifacts'
@@ -91,43 +88,11 @@ jobs:
         artifactName: platform-darwin
         downloadPath: '_release'
 
-    #
-    # Prepare windows platform release.
-    #
-
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Windows Artifacts'
       inputs:
         artifactName: platform-win32
         downloadPath: '_release'
-
-    # - script: 'mkdir _release/platform-windows-x64'
-    #   displayName: 'Create _release/platform-windows-x64'
-    #   continueOnError: true
-
-    # - script: 'tar -xzf _release/Windows/*.tgz -C _release/platform-windows-x64'
-    #   displayName: 'untar Windows'
-    #   continueOnError: true
-
-    # - script: 'rm -rf _release/Windows'
-    #   displayName: 'Remove Windows artifacts'
-    #   continueOnError: true
-
-    - script: |
-        set -e
-        mkdir -p _release
-        mkdir -p _release/bin
-        mkdir -p _release/_build/default/esy/bin
-        mkdir -p _release/_build/default/esy-build-package/bin
-        cp LICENSE _release/LICENSE
-        cp README.md _release/README.md
-        cp scripts/release-postinstall.js _release/postinstall.js
-        cp bin/esyInstallRelease.js _release/bin/esyInstallRelease.js
-        touch _release/_build/default/esy/bin/esyCommand.exe
-        touch _release/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe
-        touch _release/_build/default/esy-build-package/bin/fastreplacestring.exe
-        ESY__RELEASE_VERSION_COMMIT="${BUILD_SOURCEVERSION}" node scripts/create-release-package-json.js > _release/package.json
-      displayName: 'Prepare release'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: Release'
