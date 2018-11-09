@@ -122,9 +122,9 @@ switch (platform) {
 
     copyPlatformBinaries('win32');
 
-    console.log('Installing cygwin sandbox...');
+    console.log('Installing native compiler toolchain for Windows...');
     cp.execSync(`npm install esy-bash@0.3.9 --prefix ${__dirname}`);
-    console.log('Cygwin installed successfully.');
+    console.log('Native compiler toolchain installed successfully.');
     break;
   case 'linux':
   case 'darwin':
