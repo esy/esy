@@ -4,128 +4,379 @@
 
 include Types
 
-(* TODO: this should really be lazy but we don't care as we don't expect .esyrc
- * to be large, make it lazy when we are going to use it for large inputs like
- * .esy.lock files.
- *)
-let tokensOf v =
+let tokenize v =
   let lexbuf = Lexing.from_string v in
-  let rec loop ~acc = function
-  | EOF -> List.rev (EOF::acc)
-  | x ->  loop ~acc:(x::acc) (Lexer.read lexbuf)
+  let rec dedent tokens till indents =
+    match indents with
+    | [] -> 0, [], tokens
+    | indent::indents ->
+      if indent <= till then indent, indents, tokens
+      else dedent (DEDENT::tokens) till indents
   in
-  loop ~acc:[] (Lexer.read lexbuf)
+  let rec loop (indent, indents) tokens =
+    match Lexer.read lexbuf with
+    | EOF ->
+      let _, _, tokens = dedent tokens 0 (indent::indents) in
+      List.rev (EOF::tokens)
+    | NEWLINE nextIndent as token ->
+      let indent, indents, tokens =
+        if nextIndent > indent
+        then nextIndent, (indent::indents), (INDENT::tokens)
+        else if nextIndent < indent
+        then
+          let indent, indents, tokens = dedent tokens nextIndent (indent::indents) in
+          indent, indents, token::tokens
+        else indent, indents, token::tokens
+      in
+      loop (indent, indents) tokens
+    | token ->
+      loop (indent, indents) (token::tokens)
+  in
+  loop (0, []) []
 
-type parseState =
-  | InMapping of { items : (string * t) list }
-  | InValue of { key : string; items : (string * t) list }
+let parse src =
+  let open Result.Syntax in
+  let src = String.trim src in
+  let rtokens = ref (tokenize src) in
+  let getToken _lexbuf =
+    match !rtokens with
+    | token::tokens ->
+      rtokens := tokens;
+      token
+    | [] -> Types.EOF
+  in
+  let lexbuf = Lexing.from_string src in
+  try
+    return (Parser.start getToken lexbuf)
+  with
+  | Failure v ->
+    error v
+  | Parser.Error ->
+    error "Syntax error"
+  | Types.SyntaxError msg ->
+    error msg
 
-let parseExn v =
-  let tokens = tokensOf v in
-  let rec loop state tokens = match state, tokens with
-  | InMapping {items}, EOF::[] -> Mapping items
-  | InMapping {items}, (STRING v)::tokens
-  | InMapping {items}, (IDENTIFIER v)::tokens -> loop (InValue { key = v; items = items }) tokens
-  | InMapping _, (NEWLINE)::tokens -> loop state tokens
-  | InMapping _, (EOF::_) -> raise (SyntaxError "tokens after EOF")
-  | InMapping _, (NUMBER _)::_ -> raise (SyntaxError "expected newline or string, got number")
-  | InMapping _, (FALSE)::_ -> raise (SyntaxError "expected newline or string, got boolean")
-  | InMapping _, (TRUE)::_ -> raise (SyntaxError "expected newline or string, got boolean")
-  | InMapping _, (COLON)::_ -> raise (SyntaxError "expected newline or string, got colon")
-  | InValue _, [] -> raise (SyntaxError "expected value, got EOF")
-  | InValue _, EOF::_ -> raise (SyntaxError "expected value, got EOF")
-  | InValue _, (COLON)::tokens -> loop state tokens
-  | InValue _, (NEWLINE)::tokens -> loop state tokens
-  | InValue {key; items}, (NUMBER v)::tokens ->
-    let item = (key, Number v) in
-    loop (InMapping { items = List.rev (item::items) }) tokens
-  | InValue {key; items}, (FALSE)::tokens ->
-    let item = (key, Boolean false) in
-    loop (InMapping { items = List.rev (item::items) }) tokens
-  | InValue {key; items}, (TRUE)::tokens ->
-    let item = (key, Boolean true) in
-    loop (InMapping { items = List.rev (item::items) }) tokens
-  | InValue {key; items}, (STRING v)::tokens
-  | InValue {key; items}, (IDENTIFIER v)::tokens ->
-    let item = (key, String v) in
-    loop (InMapping { items = List.rev (item::items) }) tokens
-  | _state, (COMMA)::_tokens -> raise (SyntaxError "syntax is not supported")
-  | _, [] -> failwith "token stream does not end with EOF"
-  in loop (InMapping { items = [] }) tokens
+let parseExn src =
+  match parse src with
+  | Ok v -> v
+  | Error err -> raise (SyntaxError err)
 
-let parse v =
-  try Ok (parseExn v)
-  with SyntaxError err -> Error err
+let%test_module "tokenizing" = (module struct
+
+  let printTokens string =
+    let tokens = tokenize (String.trim string) in
+    let tokens = List.map ~f:Types.sexp_of_token tokens in
+    Format.printf "%a@." (Fmt.list ~sep:(Fmt.unit "@.") Sexplib0.Sexp.pp) tokens
+
+  let%expect_test _ =
+    printTokens {|a: "b"|};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      (STRING b)
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+      a: "b"
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      (STRING b)
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+      a:
+        b: "x"
+          c: "y"
+        c: "y"
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER b)
+      COLON
+      (STRING x)
+      INDENT
+      (IDENTIFIER c)
+      COLON
+      (STRING y)
+      DEDENT
+      (NEWLINE 9)
+      (IDENTIFIER c)
+      COLON
+      (STRING y)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+      a:
+        b: "x"
+      c: "y"
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER b)
+      COLON
+      (STRING x)
+      DEDENT
+      (NEWLINE 7)
+      (IDENTIFIER c)
+      COLON
+      (STRING y)
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a: b
+c: d
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      (IDENTIFIER b)
+      (NEWLINE 0)
+      (IDENTIFIER c)
+      COLON
+      (IDENTIFIER d)
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  c: d
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER c)
+      COLON
+      (IDENTIFIER d)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  c: d
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER c)
+      COLON
+      (IDENTIFIER d)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  c: d
+e: f
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER c)
+      COLON
+      (IDENTIFIER d)
+      DEDENT
+      (NEWLINE 0)
+      (IDENTIFIER e)
+      COLON
+      (IDENTIFIER f)
+      EOF |}]
+
+end)
 
 let%test_module _ = (module struct
-  let expectParseOk s expectedTokens =
+
+  let printAst s =
     match parse s with
-    | Ok tokens ->
-      if not (equal tokens expectedTokens) then (
-        Printf.printf "Expected: %s\n" (show expectedTokens);
-        Printf.printf "     Got: %s\n" (show tokens);
-        false
-      ) else
-        true
-    | Error err ->
-      let msg = Printf.sprintf "parse error: %s" err in
-      print_endline msg;
-      false
+    | Ok s -> Format.printf "%a@." Sexplib0.Sexp.pp_hum (sexp_of_t s)
+    | Error err -> Format.printf "ERROR: %s@." err
 
-  let%test "empty" =
-    expectParseOk "" (Mapping [])
+  let%expect_test "empty" =
+    printAst "";
+    [%expect {| (Mapping ()) |}]
 
-  let%test "empty with newline" =
-    expectParseOk "\n" (Mapping [])
+  let%expect_test "empty with newline" =
+    printAst "\n";
+    [%expect {| (Mapping ()) |}]
 
-  let%test "id:true" =
-    expectParseOk "id:true" (Mapping [("id", Boolean true)])
+  let%expect_test "id:true" =
+    printAst "id:true";
+    [%expect {| (Mapping ((id (Boolean true)))) |}]
 
-  let%test "id: true" =
-    expectParseOk "id: true" (Mapping [("id", Boolean true)])
+  let%expect_test "id: true" =
+    printAst "id: true";
+    [%expect {| (Mapping ((id (Boolean true)))) |}]
 
-  let%test "id :true" =
-    expectParseOk "id :true" (Mapping [("id", Boolean true)])
+  let%expect_test "id :true" =
+    printAst "id :true";
+    [%expect {| (Mapping ((id (Boolean true)))) |}]
 
-  let%test " id:true" =
-    expectParseOk " id:true" (Mapping [("id", Boolean true)])
+  let%expect_test " id:true" =
+    printAst " id:true";
+    [%expect {| (Mapping ((id (Boolean true)))) |}]
 
-  let%test "id:true " =
-    expectParseOk "id:true " (Mapping [("id", Boolean true)])
+  let%expect_test "id:true " =
+    printAst "id:true ";
+    [%expect {| (Mapping ((id (Boolean true)))) |}]
 
-  let%test "id: false" =
-    expectParseOk "id: false" (Mapping [("id", Boolean false)])
+  let%expect_test "id: false" =
+    printAst "id: false";
+    [%expect {| (Mapping ((id (Boolean false)))) |}]
 
-  let%test "id: id" =
-    expectParseOk "id: id" (Mapping [("id", String "id")])
+  let%expect_test "id: id" =
+    printAst "id: id";
+    [%expect {| (Mapping ((id (String id)))) |}]
 
-  let%test "id: string" =
-    expectParseOk "id: \"string\"" (Mapping [("id", String "string")])
+  let%expect_test "id: string" =
+    printAst {|id: "string"|};
+    [%expect {| (Mapping ((id (String string)))) |}]
 
-  let%test "id: 1" =
-    expectParseOk "id: 1" (Mapping [("id", Number 1.)])
+  let%expect_test "id: 1" =
+    printAst "id: 1";
+    [%expect {| (Mapping ((id (Number 1)))) |}]
 
-  let%test "id: 1.5" =
-    expectParseOk "id: 1.5" (Mapping [("id", Number 1.5)])
+  let%expect_test "id: 1.5" =
+    printAst "id: 1.5";
+    [%expect {| (Mapping ((id (Number 1.5)))) |}]
 
-  let%test "\"string\": ok" =
-    expectParseOk "\"string\": ok" (Mapping [("string", String "ok")])
+  let%expect_test "\"string\": ok" =
+    printAst "\"string\": ok";
+    [%expect {| (Mapping ((string (String ok)))) |}]
 
-  let%test "a:b\nc:d" =
-    expectParseOk "a:b\nc:d" (Mapping [("a", String "b"); ("c", String "d")])
+  let%expect_test "a:b\nc:d" =
+    printAst "a:b\nc:d";
+    [%expect {| (Mapping ((a (String b)) (c (String d)))) |}]
 
-  let%test "a:b\n" =
-    expectParseOk "a:b\n" (Mapping [("a", String "b")])
+  let%expect_test "a:b\n" =
+    printAst "a:b\n";
+    [%expect {| (Mapping ((a (String b)))) |}]
 
-  let%test "\na:b" =
-    expectParseOk "\na:b" (Mapping [("a", String "b")])
+  let%expect_test "\na:b" =
+    printAst "\na:b";
+    [%expect {| (Mapping ((a (String b)))) |}]
 
-  let%test "esy-store-path: \"/some/path\"" =
-    expectParseOk "esy-store-path: \"/some/path\"" (Mapping [("esy-store-path", String "/some/path")])
+  let%expect_test "esy-store-path: \"/some/path\"" =
+    printAst "esy-store-path: \"/some/path\"";
+    [%expect {| (Mapping ((esy-store-path (String /some/path)))) |}]
 
-  let%test "esy-store-path: \"./some/path\"" =
-    expectParseOk "esy-store-path: \"./some/path\"" (Mapping [("esy-store-path", String "./some/path")])
+  let%expect_test "esy-store-path: \"./some/path\"" =
+    printAst "esy-store-path: \"./some/path\"";
+    [%expect {| (Mapping ((esy-store-path (String ./some/path)))) |}]
 
-  let%test "esy-store-path: ./some/path" =
-    expectParseOk "esy-store-path: ./some/path" (Mapping [("esy-store-path", String "./some/path")])
+  let%expect_test "esy-store-path: ./some/path" =
+    printAst "esy-store-path: ./some/path";
+    [%expect {| (Mapping ((esy-store-path (String ./some/path)))) |}]
+
+  let%expect_test _ =
+    printAst {|
+      a: b
+    |};
+    [%expect {| (Mapping ((a (String b)))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a: b
+c: d
+    |};
+    [%expect {| (Mapping ((a (String b)) (c (String d)))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c: d
+    |};
+    [%expect {| (Mapping ((a (Mapping ((c (String d))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c: d
+  e: f
+    |};
+    [%expect {| (Mapping ((a (Mapping ((c (String d)) (e (String f))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c: d
+e: f
+    |};
+    [%expect {| (Mapping ((a (Mapping ((c (String d))))) (e (String f)))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c:
+    e: f
+    |};
+    [%expect {| (Mapping ((a (Mapping ((c (Mapping ((e (String f)))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c:
+    e:
+      g: h
+  x: y
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Mapping ((c (Mapping ((e (Mapping ((g (String h)))))))) (x (String y))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  c:
+    e:
+      g: h
+x: y
+    |};
+    [%expect {|
+      (Mapping
+       ((a (Mapping ((c (Mapping ((e (Mapping ((g (String h)))))))))))
+        (x (String y)))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  1
+  2
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((Number 1) (Number 2)))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  2
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((Number 2)))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  a
+  b
+  c
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}]
+
 end)

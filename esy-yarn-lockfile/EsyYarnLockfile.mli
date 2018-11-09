@@ -5,6 +5,7 @@
  *)
 type t =
   | Mapping of (string * t) list
+  | Sequence of t list
   | Number of float
   | String of string
   | Boolean of bool

@@ -1,5 +1,35 @@
 {
-include Types
+
+  include Types
+
+  let pp_pos fmt pos =
+    Format.fprintf
+      fmt
+      "pos_lnum = %i pos_bol = %i pos_cnum = %i"
+      pos.Lexing.pos_lnum
+      pos.Lexing.pos_bol
+      pos.Lexing.pos_cnum
+
+  let ppos lexbuf =
+    let start = Lexing.lexeme_start_p lexbuf in
+    let stop = Lexing.lexeme_end_p lexbuf in
+    Format.printf "start = (%a)@. stop = (%a)@." pp_pos start pp_pos stop
+
+  let get_indent lexbuf =
+    let pos = lexbuf.Lexing.lex_curr_p in
+    pos.pos_bol
+
+  let newline lexbuf =
+    let pos = lexbuf.Lexing.lex_curr_p in
+    lexbuf.lex_curr_p <-
+      { pos with pos_lnum = pos.pos_lnum + 1; }
+
+  let indent lexbuf =
+    let start = Lexing.lexeme_start_p lexbuf in
+    let pos = lexbuf.Lexing.lex_curr_p in
+    lexbuf.lex_curr_p <-
+      { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum - start.pos_cnum; }
+
 }
 
 let digit   = ['0'-'9']
@@ -13,7 +43,8 @@ let id      = ['a'-'z' 'A'-'Z' '_' '/' '.'] ['a'-'z' 'A'-'Z' '0'-'9' '_' '-' '/'
 
 rule read =
   parse
-  | newline  { NEWLINE }
+  | newline     { newline lexbuf; NEWLINE 0 }
+  | newline ws+ { indent lexbuf; NEWLINE (get_indent lexbuf) }
   | ws       { read lexbuf }
   | "true"   { TRUE }
   | "false"  { FALSE }
@@ -21,7 +52,6 @@ rule read =
   | float    { NUMBER (float_of_string (Lexing.lexeme lexbuf)) }
   | '"'      { read_string (Buffer.create 16) lexbuf }
   | ':'      { COLON }
-  | ','      { COMMA }
   | _        {
       let msg = Printf.sprintf "Unexpected char: '%s'" (Lexing.lexeme lexbuf) in
       raise (SyntaxError msg)
