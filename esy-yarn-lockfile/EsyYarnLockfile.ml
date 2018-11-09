@@ -3,6 +3,7 @@
  *)
 
 include Types
+include Printer
 
 let tokenize v =
   let lexbuf = Lexing.from_string v in
@@ -380,5 +381,80 @@ a:
     |};
     [%expect {|
       (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}]
+
+end)
+
+let%test_module _ = (module struct
+
+  let parsePrint s =
+    match parse s with
+    | Ok s -> Format.printf "%a@." pp s
+    | Error err -> Format.printf "ERROR: %s@." err
+
+  let%expect_test _ =
+    parsePrint {|
+a: 2
+    |};
+    [%expect {| a: 2 |}]
+
+  let%expect_test _ =
+    parsePrint {|
+a: 2
+c: d
+    |};
+    [%expect {|
+      a: 2
+      c: d |}]
+
+  let%expect_test _ =
+    parsePrint {|
+a:
+  c: d
+    |};
+    [%expect {|
+      a:
+        c: d |}]
+
+  let%expect_test _ =
+    parsePrint {|
+a:
+  c: d
+c: d
+    |};
+    [%expect {|
+      a:
+        c: d
+      c: d |}]
+
+  let%expect_test _ =
+    parsePrint {|
+a:
+  c:
+    c: d
+    |};
+    [%expect {|
+      a:
+        c:
+          c: d |}]
+
+  let%expect_test _ =
+    parsePrint {|
+a:
+  1
+  2
+  3
+    |};
+    [%expect {|
+      a:
+        1
+        2
+        3 |}]
+
+  let%expect_test _ =
+    parsePrint {|
+"key with space": "value with space"
+    |};
+    [%expect {|
+      "key with space": "value with space" |}]
 
 end)

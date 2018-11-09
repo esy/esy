@@ -18,3 +18,5 @@ val parse : string -> (t, string) result
 
 val parseExn : string -> t
 (** Same as {!val:parse} but raises {!exception:SyntaxError} *)
+
+val pp : t Fmt.t
