@@ -164,7 +164,9 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
     |> hashResolutions
       ~resolutions:sandbox.resolutions
     |> hashDependencies
-      ~dependencies:sandbox.dependencies
+      ~dependencies:sandbox.root.dependencies
+    |> hashDependencies
+      ~dependencies:sandbox.root.devDependencies
   in
 
   let%bind digest =
