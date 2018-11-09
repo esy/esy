@@ -92,8 +92,8 @@ steps:
   - script: 'npm run build:postinstall-esy-solve-cudf'
     displayName: 'postinstall-esy-cudf'
 
-  - script: 'esy b dune runtest test'
-    displayName: 'esy b dune runtest test'
+  # - script: 'esy b dune runtest test'
+  #   displayName: 'esy b dune runtest test'
 
   - script: 'jest --runInBand test-e2e'
     displayName: 'test-e2e'
