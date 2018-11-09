@@ -79,7 +79,7 @@ describe('build errors', function() {
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
-      error: command failed: 'false'
+      error: command failed: 'false' (exited with 1)
       esy-build-package: exiting with errors above...
       error: build failed with exit code: 1
         
@@ -114,7 +114,7 @@ describe('build errors', function() {
         build log:
           # esy-build-package: building: dep@path:dep
           # esy-build-package: running: 'false'
-          error: command failed: 'false'
+          error: command failed: 'false' (exited with 1)
           esy-build-package: exiting with errors above...
           
         building dep@path:dep
