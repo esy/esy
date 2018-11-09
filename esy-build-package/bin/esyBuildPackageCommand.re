@@ -142,9 +142,11 @@ let runToCompletion = (~forceExitOnError=false, run) =>
     } else {
       Format.fprintf(
         Format.err_formatter,
-        "@[<h>error: command failed: %a@]@.",
+        "@[<h>error: command failed: %a (%a)@]@.",
         Cmd.pp,
         cmd,
+        Bos.OS.Cmd.pp_status,
+        status,
       );
       `Error((false, "exiting with errors above..."));
     };
