@@ -46,7 +46,7 @@ module Dist = struct
     Fmt.pf fmt "%s@%a" dist.pkg.name Version.pp dist.pkg.version
 end
 
-module PackageJson : sig
+module NpmPackageJson : sig
   type t
 
   type lifecycle = {
@@ -111,14 +111,19 @@ end = struct
 
   let ofDir path =
     let open RunAsync.Syntax in
-    let filename = Path.(path / "package.json") in
-    if%bind Fs.exists filename
-    then
-      let%bind json = Fs.readJsonFile filename in
-      let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
-      return (Some manifest)
+    if%bind Fs.exists Path.(path / "esy.json")
+    then return None
     else
-      return None
+      let filename = Path.(path / "package.json") in
+      if%bind Fs.exists filename
+      then
+        let%bind json = Fs.readJsonFile filename in
+        let%bind manifest = RunAsync.ofRun (Json.parseJsonWith of_yojson json) in
+        if Option.isSome manifest.esy
+        then return None
+        else return (Some manifest)
+      else
+        return None
 
   let bin ~sourcePath pkgJson =
     let makePathToCmd cmdPath = Path.(sourcePath // v cmdPath |> normalize) in
@@ -282,13 +287,13 @@ let runLifecycle pkg sourcePath lifecycle =
   in
 
   let%bind () =
-    match lifecycle.PackageJson.install with
+    match lifecycle.NpmPackageJson.install with
     | Some cmd -> runLifecycleScript ~env ~lifecycleName:"install" pkg sourcePath cmd
     | None -> return ()
   in
 
   let%bind () =
-    match lifecycle.PackageJson.postinstall with
+    match lifecycle.NpmPackageJson.postinstall with
     | Some cmd -> runLifecycleScript ~env ~lifecycleName:"postinstall" pkg sourcePath cmd
     | None -> return ()
   in
@@ -341,7 +346,7 @@ let installBinWrapper binPath (name, origPath) =
   )
 
 type installation = {
-  pkgJson : PackageJson.t option;
+  pkgJson : NpmPackageJson.t option;
   sourcePath : Path.t;
   dist : Dist.t;
 }
@@ -402,8 +407,8 @@ let install ~onBeforeLifecycle dist =
         in
         layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
       in
-      let%bind pkgJson = PackageJson.ofDir sourceStagePath in
-      let lifecycle = Option.bind ~f:PackageJson.lifecycle pkgJson in
+      let%bind pkgJson = NpmPackageJson.ofDir sourceStagePath in
+      let lifecycle = Option.bind ~f:NpmPackageJson.lifecycle pkgJson in
       let%bind () =
         match lifecycle with
         | Some lifecycle ->
@@ -430,14 +435,14 @@ let install ~onBeforeLifecycle dist =
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
       | Package.Link {path; _} ->
-        let%bind pkgJson = PackageJson.ofDir path in
+        let%bind pkgJson = NpmPackageJson.ofDir path in
         let sourcePath = Path.(dist.Dist.sandbox.Sandbox.spec.path // path) in
         return (sourcePath, pkgJson)
       | Package.Install _ ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         let%bind pkgJson =
           if%bind Fs.exists sourceInstallPath
-          then PackageJson.ofDir sourceInstallPath
+          then NpmPackageJson.ofDir sourceInstallPath
           else install sourceInstallPath ()
         in
         return (sourceInstallPath, pkgJson)
@@ -448,6 +453,6 @@ let install ~onBeforeLifecycle dist =
 let linkBins binPath installation =
   match installation.pkgJson with
   | Some pkgJson ->
-    let bin = PackageJson.bin ~sourcePath:installation.sourcePath  pkgJson in
+    let bin = NpmPackageJson.bin ~sourcePath:installation.sourcePath  pkgJson in
     RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
   | None -> RunAsync.return ()
