@@ -35,7 +35,8 @@ const filesToCopy = [
   'LICENSE',
   'README.md',
   'bin/esyInstallRelease.js',
-  'bin/fastreplacestring'
+  'bin/fastreplacestring',
+  'scripts/postinstall.js'
 ];
 
 for (const file of filesToCopy) {
@@ -43,11 +44,6 @@ for (const file of filesToCopy) {
   mkdirpSync(path.dirname(p));
   fs.copyFileSync(path.join(src, file), p);
 }
-
-fs.copyFileSync(
-  path.join(src, 'scripts', 'release-postinstall.js'),
-  path.join(dst, 'postinstall.js')
-);
 
 const filesToTouch = [
   '_build/default/esy/bin/esyCommand.exe',
@@ -70,14 +66,14 @@ const pkgJson = {
     'esy-solve-cudf': esyJson.dependencies['esy-solve-cudf']
   },
   scripts: {
-    postinstall: 'node ./postinstall.js'
+    postinstall: 'node ./scripts/postinstall.js'
   },
   bin: {
     esy: '_build/default/esy/bin/esyCommand.exe'
   },
   files: [
     'bin/',
-    'postinstall.js',
+    'scripts/',
     'platform-linux/',
     'platform-darwin/',
     'platform-win32/',
