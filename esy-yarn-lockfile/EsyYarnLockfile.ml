@@ -62,6 +62,44 @@ let parseExn src =
   | Ok v -> v
   | Error err -> raise (SyntaxError err)
 
+type 'a decoder = t -> ('a, string) result
+
+module Decode = struct
+
+  let string = function
+    | Scalar (String v) -> Ok v
+    | _ -> Error "expected string"
+
+  let number = function
+    | Scalar (Number v) -> Ok v
+    | _ -> Error "expected number"
+
+  let boolean = function
+    | Scalar (Boolean v) -> Ok v
+    | _ -> Error "expected true or false"
+
+  let mapping decode = function
+    | Mapping items ->
+      let f items (k, v) =
+        match decode v with
+        | Ok v -> Ok ((k, v)::items)
+        | Error err -> Error err
+      in
+      Result.List.foldLeft ~f ~init:[] items
+    | _ -> Error "expected mapping"
+
+  let seq decode = function
+    | Sequence items ->
+      let f items v =
+        match decode (Scalar v) with
+        | Ok v -> Ok (v::items)
+        | Error err -> Error err
+      in
+      Result.List.foldLeft ~f ~init:[] items
+    | _ -> Error "expected sequence"
+
+end
+
 let%test_module "tokenizing" = (module struct
 
   let printTokens string =

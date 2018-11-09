@@ -20,3 +20,13 @@ val parseExn : string -> t
 (** Same as {!val:parse} but raises {!exception:SyntaxError} *)
 
 val pp : t Fmt.t
+
+type 'a decoder = t -> ('a, string) result
+
+module Decode : sig
+  val string : string decoder
+  val number : float decoder
+  val boolean : bool decoder
+  val mapping : 'a decoder -> (string * 'a) list decoder
+  val seq : 'a decoder -> 'a list decoder
+end
