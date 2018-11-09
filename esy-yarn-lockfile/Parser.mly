@@ -11,6 +11,8 @@
 
 %{
 
+  open Types
+
 %}
 
 %start start
@@ -20,17 +22,20 @@
 
 start:
   v = mapping; EOF { v }
-  | EOF { Types.Mapping [] }
+  | EOF { Mapping [] }
 
 value:
-    TRUE { Types.Boolean true }
-  | FALSE { Types.Boolean false }
-  | s = STRING { Types.String s }
-  | s = IDENTIFIER { Types.String s }
-  | n = NUMBER { Types.Number n }
+    v = scalar { Scalar v }
   | INDENT; v = mapping; DEDENT { v }
   | INDENT; v = seq; DEDENT { v }
   | INDENT; DEDENT { Types.Mapping [] }
+
+scalar:
+    TRUE { Boolean true }
+  | FALSE { Boolean false }
+  | s = STRING { String s }
+  | s = IDENTIFIER { String s }
+  | n = NUMBER { Number n }
 
 mapping:
   items = separated_nonempty_list(NEWLINE, item) { Types.Mapping items }
@@ -43,4 +48,4 @@ key:
   | s = STRING { s }
 
 seq:
-  items = separated_nonempty_list(NEWLINE, value) { Types.Sequence items }
+  items = separated_nonempty_list(NEWLINE, scalar) { Types.Sequence items }

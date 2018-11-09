@@ -14,7 +14,7 @@ let ofPath path =
     | EsyYarnLockfile.Mapping items ->
       let f acc item =
         match acc, item with
-        | Ok { prefixPath = None }, ("esy-prefix-path", EsyYarnLockfile.String value) ->
+        | Ok { prefixPath = None }, ("esy-prefix-path", EsyYarnLockfile.Scalar (String value)) ->
           let open Result.Syntax in
           let%bind value = Path.ofString value in
           let value = if Path.isAbs value

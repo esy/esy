@@ -216,91 +216,91 @@ let%test_module _ = (module struct
 
   let%expect_test "id:true" =
     printAst "id:true";
-    [%expect {| (Mapping ((id (Boolean true)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean true))))) |}]
 
   let%expect_test "id: true" =
     printAst "id: true";
-    [%expect {| (Mapping ((id (Boolean true)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean true))))) |}]
 
   let%expect_test "id :true" =
     printAst "id :true";
-    [%expect {| (Mapping ((id (Boolean true)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean true))))) |}]
 
   let%expect_test " id:true" =
     printAst " id:true";
-    [%expect {| (Mapping ((id (Boolean true)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean true))))) |}]
 
   let%expect_test "id:true " =
     printAst "id:true ";
-    [%expect {| (Mapping ((id (Boolean true)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean true))))) |}]
 
   let%expect_test "id: false" =
     printAst "id: false";
-    [%expect {| (Mapping ((id (Boolean false)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Boolean false))))) |}]
 
   let%expect_test "id: id" =
     printAst "id: id";
-    [%expect {| (Mapping ((id (String id)))) |}]
+    [%expect {| (Mapping ((id (Scalar (String id))))) |}]
 
   let%expect_test "id: string" =
     printAst {|id: "string"|};
-    [%expect {| (Mapping ((id (String string)))) |}]
+    [%expect {| (Mapping ((id (Scalar (String string))))) |}]
 
   let%expect_test "id: 1" =
     printAst "id: 1";
-    [%expect {| (Mapping ((id (Number 1)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Number 1))))) |}]
 
   let%expect_test "id: 1.5" =
     printAst "id: 1.5";
-    [%expect {| (Mapping ((id (Number 1.5)))) |}]
+    [%expect {| (Mapping ((id (Scalar (Number 1.5))))) |}]
 
   let%expect_test "\"string\": ok" =
     printAst "\"string\": ok";
-    [%expect {| (Mapping ((string (String ok)))) |}]
+    [%expect {| (Mapping ((string (Scalar (String ok))))) |}]
 
   let%expect_test "a:b\nc:d" =
     printAst "a:b\nc:d";
-    [%expect {| (Mapping ((a (String b)) (c (String d)))) |}]
+    [%expect {| (Mapping ((a (Scalar (String b))) (c (Scalar (String d))))) |}]
 
   let%expect_test "a:b\n" =
     printAst "a:b\n";
-    [%expect {| (Mapping ((a (String b)))) |}]
+    [%expect {| (Mapping ((a (Scalar (String b))))) |}]
 
   let%expect_test "\na:b" =
     printAst "\na:b";
-    [%expect {| (Mapping ((a (String b)))) |}]
+    [%expect {| (Mapping ((a (Scalar (String b))))) |}]
 
   let%expect_test "esy-store-path: \"/some/path\"" =
     printAst "esy-store-path: \"/some/path\"";
-    [%expect {| (Mapping ((esy-store-path (String /some/path)))) |}]
+    [%expect {| (Mapping ((esy-store-path (Scalar (String /some/path))))) |}]
 
   let%expect_test "esy-store-path: \"./some/path\"" =
     printAst "esy-store-path: \"./some/path\"";
-    [%expect {| (Mapping ((esy-store-path (String ./some/path)))) |}]
+    [%expect {| (Mapping ((esy-store-path (Scalar (String ./some/path))))) |}]
 
   let%expect_test "esy-store-path: ./some/path" =
     printAst "esy-store-path: ./some/path";
-    [%expect {| (Mapping ((esy-store-path (String ./some/path)))) |}]
+    [%expect {| (Mapping ((esy-store-path (Scalar (String ./some/path))))) |}]
 
   let%expect_test _ =
     printAst {|
       a: b
     |};
-    [%expect {| (Mapping ((a (String b)))) |}]
+    [%expect {| (Mapping ((a (Scalar (String b))))) |}]
 
   let%expect_test _ =
     printAst {|
 a: b
 c: d
     |};
-    [%expect {| (Mapping ((a (String b)) (c (String d)))) |}]
+    [%expect {| (Mapping ((a (Scalar (String b))) (c (Scalar (String d))))) |}]
 
   let%expect_test _ =
     printAst {|
 a:
   c: d
     |};
-    [%expect {| (Mapping ((a (Mapping ((c (String d))))))) |}]
+    [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d)))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -308,7 +308,7 @@ a:
   c: d
   e: f
     |};
-    [%expect {| (Mapping ((a (Mapping ((c (String d)) (e (String f))))))) |}]
+    [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d))) (e (Scalar (String f)))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -316,7 +316,7 @@ a:
   c: d
 e: f
     |};
-    [%expect {| (Mapping ((a (Mapping ((c (String d))))) (e (String f)))) |}]
+    [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d)))))) (e (Scalar (String f))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -324,7 +324,7 @@ a:
   c:
     e: f
     |};
-    [%expect {| (Mapping ((a (Mapping ((c (Mapping ((e (String f)))))))))) |}]
+    [%expect {| (Mapping ((a (Mapping ((c (Mapping ((e (Scalar (String f))))))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -337,7 +337,9 @@ a:
     [%expect {|
       (Mapping
        ((a
-         (Mapping ((c (Mapping ((e (Mapping ((g (String h)))))))) (x (String y))))))) |}]
+         (Mapping
+          ((c (Mapping ((e (Mapping ((g (Scalar (String h)))))))))
+           (x (Scalar (String y)))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -349,8 +351,8 @@ x: y
     |};
     [%expect {|
       (Mapping
-       ((a (Mapping ((c (Mapping ((e (Mapping ((g (String h)))))))))))
-        (x (String y)))) |}]
+       ((a (Mapping ((c (Mapping ((e (Mapping ((g (Scalar (String h))))))))))))
+        (x (Scalar (String y))))) |}]
 
   let%expect_test _ =
     printAst {|
