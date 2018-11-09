@@ -375,4 +375,52 @@ describe('complete workflow for esy sandboxes', () => {
       expect(stdout.trim()).toEqual('__dep__');
     }
   });
+
+  it('should not run postinstall if esy.json is present', async () => {
+    const p = await createTestSandbox();
+    await p.fixture(
+      packageJson({
+        dependencies: {
+          dep: '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        scripts: {
+          postinstall: 'false',
+        },
+      }),
+      file('esy.json', '{}'),
+    ]);
+
+    await p.esy('install --skip-repository-update');
+  });
+
+  it('should not run postinstall if esy config is present in package.json', async () => {
+    const p = await createTestSandbox();
+    await p.fixture(
+      packageJson({
+        dependencies: {
+          dep: '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {},
+        scripts: {
+          postinstall: 'false',
+        },
+      }),
+    ]);
+
+    await p.esy('install --skip-repository-update');
+  });
 });
