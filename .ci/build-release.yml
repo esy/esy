@@ -1,49 +1,55 @@
-name: Build npm release
+name: $(Build.SourceBranchName)-$(Build.SourceVersion)
 
 resources:
   - repo: self
 
 trigger:
-  - master
   - 0.3.x
+  - master
+  - bryphe/*
+  - andreypopp/*
 
-phases:
-  - phase: Phase_1
-    displayName: Linux
+jobs:
+  - job: buildLinux
+    displayName: Build Linux
     condition: succeeded()
-    queue:
-      name: Hosted Ubuntu 1604
+    pool:
+        vmImage: ubuntu-16.04
 
     steps:
+      - script: sudo apt-get update
+      - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
       - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: Linux'
+        displayName: 'Publish Platform Release'
         inputs:
           PathtoPublish: '_platformrelease'
-          ArtifactName: Linux
+          ArtifactName: platform-linux
 
-  - phase: Phase_2
-    displayName: macOS
+  - job: buildMacos
+    displayName: Build macOS
     condition: succeeded()
-    queue:
-      name: Hosted macOS
+    pool:
+      vmImage: macOS-10.13
       demands: node.js
 
     steps:
+      - script: brew install gmp
       - template: build-nix.yml
 
       - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: macOS'
+        displayName: 'Publish Platform Release'
         inputs:
           PathtoPublish: '_platformrelease'
-          ArtifactName: macOS
+          ArtifactName: platform-darwin
 
-  - phase: Phase_3
+  - job: buildWindows
     displayName: Windows
     condition: succeeded()
-    queue:
-      name: Hosted VS2017
+    timeoutInMinutes: 0
+    pool:
+      vmImage: vs2017-win2016
       demands: npm
 
     steps:
@@ -53,82 +59,44 @@ phases:
         displayName: 'Publish Artifact: Windows'
         inputs:
           PathtoPublish: '_platformrelease'
-          ArtifactName: Windows
+          ArtifactName: platform-win32
 
-  - phase: Phase_4
-    displayName: Agent job
+  - job: buildRelease
+    displayName: Build Release
     dependsOn:
-      - Phase_1
-      - Phase_2
-      - Phase_3
+      - buildLinux
+      - buildMacos
+      - buildWindows
     condition: succeeded()
-    queue:
-      name: Hosted Ubuntu 1604
+    pool:
+      vmImage: ubuntu-16.04
+
     steps:
+
+    - script: |
+        node scripts/make-release-skeleton.js
+      displayName: 'Prepare release'
+
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Linux Artifacts'
       inputs:
-        artifactName: Linux
+        artifactName: platform-linux
         downloadPath: '_release'
-
-    - script: 'mkdir _release/platform-linux'
-      displayName: 'Create _release/platform-linux'
-
-    - script: 'tar -xzf _release/Linux/*.tgz -C _release/platform-linux'
-      displayName: 'untar Linux'
-
-    - script: 'rm -rf _release/Linux'
-      displayName: 'Remove Linux artifacts'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download macOS Artifacts'
       inputs:
-        artifactName: macOS
+        artifactName: platform-darwin
         downloadPath: '_release'
-
-    - script: 'mkdir _release/platform-darwin'
-      displayName: 'Create _release/platform-darwin'
-
-    - script: 'tar -xzf _release/macOS/*.tgz -C _release/platform-darwin'
-      displayName: 'untar macOS'
-
-    - script: 'rm -rf _release/macOS'
-      displayName: 'Remove macOS artifacts'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Windows Artifacts'
       inputs:
-        artifactName: Windows
+        artifactName: platform-win32
         downloadPath: '_release'
-      continueOnError: true
-
-    - script: 'mkdir _release/platform-windows-x64'
-      displayName: 'Create _release/platform-windows-x64'
-      continueOnError: true
-
-    - script: 'tar -xzf _release/Windows/*.tgz -C _release/platform-windows-x64'
-      displayName: 'untar Windows'
-      continueOnError: true
-
-    - script: 'rm -rf _release/Windows'
-      displayName: 'Remove Windows artifacts'
-      continueOnError: true
-
-    - script: 'cp LICENSE _release/LICENSE'
-      displayName: 'copy LICENSE'
-
-    - script: 'cp README.md _release/README.md'
-      displayName: 'copy README.md'
-
-    - script: 'cp scripts/release-postinstall.js _release/postinstall.js'
-      displayName: 'copy postinstall.js'
-
-    - script: 'node scripts/create-release-package-json.js > _release/package.json'
-      displayName: 'Create package.json'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: Release'
       inputs:
         PathtoPublish: '_release'
-        ArtifactName: Release 
-
+        ArtifactName: release

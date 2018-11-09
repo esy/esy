@@ -1,8 +1,45 @@
 steps:
   - task: NodeTool@0
     displayName: 'Use Node 8.x'
+
     inputs:
       versionSpec: 8.x
+
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore source-tarballs'
+    inputs:
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'specific'
+        buildId: '245'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-source-tarballs'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    continueOnError: true
+
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore install'
+    inputs:
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'specific'
+        buildId: '245'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-install'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    continueOnError: true
+
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
   - script: 'npm install -g esy@0.2.11'
     displayName: 'npm install -g esy@0.2.11'
@@ -25,30 +62,46 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
-  - task: Npm@1
-    displayName: 'npm run build'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload source tarballs'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run build'
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+        artifactName: 'build-cache-windows-source-tarballs'
+        parallel: true
+        parallelCount: 8
 
-  - task: Npm@1
-    displayName: 'jest --runInBand test-e2e'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run test:e2e'
+  - script: 'esy build'
+    displayName: 'esy build'
 
-  - task: Npm@1
-    displayName: 'npm run test:unit'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Cache: Upload install folder'
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run test:unit'
+        pathToPublish: 'C:\Users\VssAdministrator\.esy\3_\i'
+        artifactName: 'build-cache-windows-install'
+        parallel: true
+        parallelCount: 8
 
-  - task: Npm@1
-    displayName: 'npm run release:make-platform-package'
-    inputs:
-      command: custom
-      verbose: false
-      customCommand: 'run release:make-platform-package'
+  - script: 'ls C:\Users\VssAdministrator\.esy'
+    displayName: 'Check contents of VSSAdministrator .esy directory'
+
+  - script: 'npm run build:postinstall-esy-bash'
+    displayName: 'postinstall-esy-bash'
+
+  - script: 'npm run build:postinstall-esy-solve-cudf'
+    displayName: 'postinstall-esy-cudf'
+
+  - script: 'esy b dune runtest test'
+    displayName: 'esy b dune runtest test'
+
+  - script: 'jest --runInBand test-e2e'
+    displayName: 'test-e2e'
+
+  - script: 'npm run test:e2e-slow'
+    displayName: 'npm run test:e2e-slow'
+    continueOnError: true
+
+  - script: 'npm run release:platform-release'
+    displayName: 'npm run release:platform-release'
+    continueOnError: true

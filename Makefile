@@ -10,6 +10,8 @@ VERSION = $(shell node -p "require('./package.json').version")
 PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
 NPM_RELEASE_TAG ?= latest
 ESY_RELEASE_TAG ?= v$(VERSION)
+GIT_BRANCH_NAME = $(shell git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT_SHA = $(shell git rev-parse --verify HEAD)
 
 #
 # Tools
@@ -136,107 +138,17 @@ ci::
 # Release
 #
 
-RELEASE_ROOT = _release
-RELEASE_FILES = \
-	platform-linux \
-	platform-darwin \
-	platform-windows-x64 \
-	bin/esyInstallRelease.js \
-	_build/default/esy/bin/esyCommand.exe \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	postinstall.js \
-	LICENSE \
-	README.md \
-	package.json
+release-tag:
+ifneq ($(GIT_BRANCH_NAME),master)
+	$(error "cannot tag on '$(GIT_BRANCH_NAME)' branch, 'master' branch required")
+endif
+	@git tag $(ESY_RELEASE_TAG)
 
-release:
-	@echo "Creating $(ESY_RELEASE_TAG) release"
-	@rm -rf $(RELEASE_ROOT)
-	@mkdir -p $(RELEASE_ROOT)
-	@$(MAKE) -j $(RELEASE_FILES:%=$(RELEASE_ROOT)/%)
+release-prepare:
+	@node ./scripts/promote-nightly-release.js $(GIT_COMMIT_SHA)
 
-$(RELEASE_ROOT)/%: $(PWD)/%
-	@mkdir -p $(@D)
-	@cp $(<) $(@)
-
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64: PLATFORM=$(@:$(RELEASE_ROOT)/platform-%=%)
-$(RELEASE_ROOT)/platform-linux $(RELEASE_ROOT)/platform-darwin $(RELEASE_ROOT)/platform-windows-x64:
-	@wget \
-		-q --show-progress \
-		-O $(RELEASE_ROOT)/$(PLATFORM).tgz \
-		'https://github.com/esy/esy/releases/download/$(ESY_RELEASE_TAG)/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz'
-	@mkdir $(@)
-	@tar -xzf $(RELEASE_ROOT)/$(PLATFORM).tgz -C $(@)
-	@rm $(RELEASE_ROOT)/$(PLATFORM).tgz
-
-define MAKE_PACKAGE_JSON
-let esyJson = require('./package.json');
-console.log(
-  JSON.stringify({
-		name: esyJson.name,
-		version: esyJson.version,
-		license: esyJson.license,
-		description: esyJson.description,
-		repository: esyJson.repository,
-		dependencies: {
-			"@esy-ocaml/esy-opam": "0.0.15",
-			"esy-solve-cudf": esyJson.dependencies["esy-solve-cudf"]
-		},
-		scripts: {
-			postinstall: "node ./postinstall.js"
-		},
-		bin: {
-			esy: "_build/default/esy/bin/esyCommand.exe"
-		},
-		files: [
-			"bin/",
-			"postinstall.js",
-			"platform-linux/",
-			"platform-darwin/",
-			"platform-windows-x64/",
-			"_build/default/**/*.exe"
-		]
-	}, null, 2));
-endef
-export MAKE_PACKAGE_JSON
-
-$(RELEASE_ROOT)/package.json:
-	@node -e "$$MAKE_PACKAGE_JSON" > $(@)
-
-$(RELEASE_ROOT)/postinstall.js:
-	@cp scripts/release-postinstall.js $(@)
-
-#
-# Platform Specific Release
-#
-
-PLATFORM_RELEASE_NAME = _platformrelease/esy-$(ESY_RELEASE_TAG)-$(PLATFORM).tgz
-PLATFORM_RELEASE_ROOT = _platformrelease/$(PLATFORM)
-PLATFORM_RELEASE_FILES = \
-	bin/fastreplacestring \
-	_build/default/esy-build-package/bin/esyBuildPackageCommand.exe \
-	_build/default/esy/bin/esyCommand.exe \
-
-platform-release: $(PLATFORM_RELEASE_NAME)
-
-$(PLATFORM_RELEASE_NAME): $(PLATFORM_RELEASE_FILES)
-	@echo "Creating $(PLATFORM_RELEASE_NAME)"
-	@rm -rf $(PLATFORM_RELEASE_ROOT)
-	@$(MAKE) $(^:%=$(PLATFORM_RELEASE_ROOT)/%)
-	@tar czf $(@) -C $(PLATFORM_RELEASE_ROOT) .
-	@rm -rf $(PLATFORM_RELEASE_ROOT)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esy/bin/esyCommand.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy/bin/esyCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/_build/default/esy-build-package/bin/esyBuildPackageCommand.exe:
-	@mkdir -p $(@D)
-	@cp _build/default/esy-build-package/bin/esyBuildPackageCommand.exe $(@)
-
-$(PLATFORM_RELEASE_ROOT)/bin/fastreplacestring:
-	@mkdir -p $(@D)
-	@cp $(shell esy which fastreplacestring) $(@)
+release-publish: release
+	@(cd _release/package && npm publish --access public --tag $(NPM_RELEASE_TAG))
 
 #
 # npm publish workflow

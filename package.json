@@ -37,7 +37,7 @@
     "build:copy-frs": "node scripts/build/copy-fastreplacestring.js",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
-    "release:make-platform-package": "node ./scripts/build/make-platform-package.js",
+    "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest test",
     "test:e2e": "jest --runInBand test-e2e",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
