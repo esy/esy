@@ -91,7 +91,7 @@ module Decode = struct
   let seq decode = function
     | Sequence items ->
       let f items v =
-        match decode (Scalar v) with
+        match decode v with
         | Ok v -> Ok (v::items)
         | Error err -> Error err
       in
@@ -235,6 +235,59 @@ e: f
       COLON
       (IDENTIFIER f)
       EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  - a: 1
+  - b: 2
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      LI
+      (IDENTIFIER a)
+      COLON
+      (NUMBER 1)
+      (NEWLINE 3)
+      LI
+      (IDENTIFIER b)
+      COLON
+      (NUMBER 2)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  - a: 1
+    b: 2
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      LI
+      (IDENTIFIER a)
+      COLON
+      (NUMBER 1)
+      INDENT
+      (IDENTIFIER b)
+      COLON
+      (NUMBER 2)
+      DEDENT
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  - - a: 1
+    - b: 2
+    |};
+    [%expect {|
+      ERROR: Syntax error |}]
 
 end)
 
@@ -396,29 +449,146 @@ x: y
   let%expect_test _ =
     printAst {|
 a:
-  1
-  2
+  - 1
+  - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Number 1) (Number 2)))))) |}]
+      (Mapping ((a (Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))) |}]
 
   let%expect_test _ =
     printAst {|
 a:
-  2
+  - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Number 2)))))) |}]
+      (Mapping ((a (Sequence ((Scalar (Number 2))))))) |}]
 
   let%expect_test _ =
     printAst {|
 a:
-  a
-  b
-  c
+  - a
+  - b
+  - c
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}]
+      (Mapping
+       ((a
+         (Sequence ((Scalar (String a)) (Scalar (String b)) (Scalar (String c))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - a: 1
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((Mapping ((a (Scalar (Number 1)))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - a: 1
+  - b: 2
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Sequence
+          ((Mapping ((a (Scalar (Number 1))))) (Mapping ((b (Scalar (Number 2)))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - a: 1
+    b: 2
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Sequence ((Mapping ((a (Scalar (Number 1))) (b (Scalar (Number 2)))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - a: 1
+    b:
+      c: e
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Sequence
+          ((Mapping
+            ((a (Scalar (Number 1))) (b (Mapping ((c (Scalar (String e))))))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - a:
+      b: 1
+    |};
+    [%expect {|
+      (Mapping
+       ((a (Sequence ((Mapping ((a (Mapping ((b (Scalar (Number 1))))))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - 1
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((Sequence ((Scalar (Number 1))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - 1
+  - - 2
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Sequence
+          ((Sequence ((Scalar (Number 1)))) (Sequence ((Scalar (Number 2))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - 1
+    - 2
+    |};
+    [%expect {|
+      (Mapping
+       ((a (Sequence ((Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - a: 1
+    |};
+    [%expect {|
+      (Mapping ((a (Sequence ((Sequence ((Mapping ((a (Scalar (Number 1)))))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - a: 1
+      b: 2
+    |};
+    [%expect {|
+      (Mapping
+       ((a
+         (Sequence
+          ((Sequence ((Mapping ((a (Scalar (Number 1))) (b (Scalar (Number 2)))))))))))) |}]
+
+  let%expect_test _ =
+    printAst {|
+a:
+  - - a: 1
+    - b: 2
+    |};
+    [%expect {|
+      ERROR: Syntax error |}]
+
 
 end)
 
@@ -478,15 +648,15 @@ a:
   let%expect_test _ =
     parsePrint {|
 a:
-  1
-  2
-  3
+  - 1
+  - 2
+  - 3
     |};
     [%expect {|
       a:
-        1
-        2
-        3 |}]
+        - 1
+        - 2
+        - 3 |}]
 
   let%expect_test _ =
     parsePrint {|

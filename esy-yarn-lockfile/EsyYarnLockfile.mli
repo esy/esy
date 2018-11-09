@@ -5,7 +5,7 @@
  *)
 type t =
   | Mapping of (string * t) list
-  | Sequence of scalar list
+  | Sequence of t list
   | Scalar of scalar
 
 and scalar =

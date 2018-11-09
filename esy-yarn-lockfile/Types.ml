@@ -10,12 +10,13 @@ type token =
   | NEWLINE of int
   | INDENT
   | DEDENT
+  | LI
   | EOF
   [@@deriving (show, eq, sexp)]
 
 type t =
   | Mapping of (string * t) list
-  | Sequence of scalar list
+  | Sequence of t list
   | Scalar of scalar
   [@@deriving (show, eq, sexp)]
 

@@ -6,6 +6,7 @@
 %token COLON
 %token INDENT
 %token DEDENT
+%token LI
 %token <int> NEWLINE
 %token EOF
 
@@ -38,7 +39,10 @@ scalar:
   | n = NUMBER { Number n }
 
 mapping:
-  items = separated_nonempty_list(NEWLINE, item) { Types.Mapping items }
+  items = items { Types.Mapping items }
+
+items:
+  items = separated_nonempty_list(NEWLINE, item) { items }
 
 item:
   key = key; COLON; value = value; { (key, value) }
@@ -48,4 +52,18 @@ key:
   | s = STRING { s }
 
 seq:
-  items = separated_nonempty_list(NEWLINE, scalar) { Types.Sequence items }
+  items = seqitems { Types.Sequence items }
+
+seqitem:
+  LI; v = seqvalue; { v }
+
+seqitems:
+    v = seqitem { [v] }
+  | v = seqitem; NEWLINE; vs = seqitems  { v::vs }
+
+seqvalue:
+    item = item { Types.Mapping [item] }
+  | item = item; INDENT; items = items; DEDENT { Types.Mapping (item::items) }
+  | item = seqitem { Types.Sequence [item] }
+  | item = seqitem; INDENT; items = seqitems; DEDENT { Types.Sequence (item::items) }
+  | s = scalar { Scalar s }

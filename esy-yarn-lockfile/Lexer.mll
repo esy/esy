@@ -52,6 +52,7 @@ rule read =
   | float    { NUMBER (float_of_string (Lexing.lexeme lexbuf)) }
   | '"'      { read_string (Buffer.create 16) lexbuf }
   | ':'      { COLON }
+  | '-'      { LI }
   | _        {
       let msg = Printf.sprintf "Unexpected char: '%s'" (Lexing.lexeme lexbuf) in
       raise (SyntaxError msg)
