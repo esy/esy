@@ -186,7 +186,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
           errorf "unable to read package: %a" Package.Resolution.pp resolution
         | Ok pkg ->
           return (
-            Digest.string ""
+            digest
             |> hashDependencies
               ~dependencies:pkg.Package.dependencies
           )
