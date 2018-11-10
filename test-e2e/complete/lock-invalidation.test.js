@@ -7,8 +7,6 @@ const helpers = require('../test/helpers.js');
 
 const {file, dir, packageJson, dummyExecutable} = helpers;
 
-helpers.skipSuiteOnWindows();
-
 async function writeJson(filename, json) {
   await fs.writeFile(filename, JSON.stringify(json, null, 2));
 }
