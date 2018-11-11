@@ -4,7 +4,12 @@ let filename = Filename.concat dirname "test.fastreplacestring"
 let%expect_test "it is working" =
   let () =
     let oc = open_out filename in
-    Printf.fprintf oc "someHeLlostring\nHeLlo at the beginning\nat the end HeLlo\n";
+    Printf.fprintf oc {|someHeLlostring
+HeLlo at the beginning
+at the end HeLlo
+HeLlo and HeLlo
+xHeLlo and HeLlox
+|};
     close_out oc;
   in
 
@@ -18,8 +23,13 @@ let%expect_test "it is working" =
   print_endline (input_line ic);
   print_endline (input_line ic);
   print_endline (input_line ic);
+  print_endline (input_line ic);
+  print_endline (input_line ic);
   close_in ic;
   [%expect {|
     someHELLOstring
     HELLO at the beginning
-    at the end HELLO |}]
+    at the end HELLO
+    HELLO and HELLO
+    xHELLO and HELLOx
+  |}]
