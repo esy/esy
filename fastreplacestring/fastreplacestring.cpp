@@ -37,7 +37,7 @@ int indexOf(const char *needle, size_t needleLen, const char *haystack,
 
   /* Searching */
   j = 0;
-  while (j <= haystackLen - needleLen - 1) {
+  while (j < haystackLen - needleLen) {
     if (hx == hy && memcmp(needle, haystack + j, needleLen) == 0) {
       return j;
     }
