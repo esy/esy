@@ -2,10 +2,13 @@
 
 ## 0.4.0 @ next
 
-- Switch from `node_modules` to Plug'n'Play (pnp) installations.
+- Switch from `node_modules`-style to Plug'n'Play-style (pnp for short)
+  installations.
 
-  esy now uses the same approach as yarn (see [pnp rfc]) and installs all
+  esy now uses same approach as yarn (see [pnp rfc]) and installs all
   package source code into a central source cache location.
+
+  `node_modules` directory is not longer populated with package sources.
 
   `esy build` command now uses this source cache location to perform builds
   from.
@@ -66,6 +69,20 @@
   Installation and build are much more robust and much more fast on Windows!
 
   Many thanks to @bryphe for that!
+
+- Native compiler toolchain on Windows (esy-bash) is greatly improved.
+
+  The entry point is rewritten in native compiled Reason which means much faster
+  installations and builds on Windows.
+
+  Thanks @prometheansacrifice for this contribution!
+
+- Fixes to `esy release` on Windows.
+
+  Thanks to @ulrikstrid we now have fixed issues with `esy release` command on
+  Windows.
+
+  The feature is still blocked on store padding support on Windows though.
 
 - Allow links only `"resolutions"`.
 
