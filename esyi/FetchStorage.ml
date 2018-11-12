@@ -17,7 +17,7 @@ module Dist = struct
   let sourceStagePath dist =
     match dist.source with
     | Source.Link link ->
-      Path.(dist.sandbox.spec.path // link.path |> normalize)
+      DistPath.toPath dist.sandbox.spec.path link.path
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
       let id =
@@ -31,7 +31,7 @@ module Dist = struct
   let sourceInstallPath dist =
     match dist.source with
     | Source.Link link ->
-      Path.(dist.sandbox.spec.path // link.path |> normalize)
+      DistPath.toPath dist.sandbox.spec.path link.path
     | _ ->
       let name = Path.safeSeg dist.pkg.name in
       let id =
@@ -154,7 +154,12 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
     | (Source.Link _ as source)::_rest ->
       return {Dist. sandbox; pkg; source; archive = None;}
     | (Source.Dist dist as source)::rest ->
-      begin match%bind DistStorage.fetch ~cfg:sandbox.Sandbox.cfg dist with
+      begin match%bind
+        DistStorage.fetch
+          ~cfg:sandbox.Sandbox.cfg
+          ~sandbox:sandbox.spec
+          dist
+      with
       | Ok archive ->
         return {Dist. sandbox; pkg; source; archive = Some archive;}
       | Error err -> fetch' ((source, err)::errs) rest
@@ -403,6 +408,7 @@ let install ~onBeforeLifecycle dist =
         let%bind filesOfOverride =
           Package.Overrides.files
             ~cfg:dist.sandbox.cfg
+            ~sandbox:dist.sandbox.spec
             dist.pkg.overrides
         in
         layoutFiles (filesOfOpam @ filesOfOverride) sourceStagePath
@@ -435,9 +441,9 @@ let install ~onBeforeLifecycle dist =
     let%bind sourcePath, pkgJson =
       match dist.Dist.pkg.source with
       | Package.Link {path; _} ->
+        let path = DistPath.toPath dist.Dist.sandbox.spec.path path in
         let%bind pkgJson = NpmPackageJson.ofDir path in
-        let sourcePath = Path.(dist.Dist.sandbox.Sandbox.spec.path // path) in
-        return (sourcePath, pkgJson)
+        return (path, pkgJson)
       | Package.Install _ ->
         let sourceInstallPath = Dist.sourceInstallPath dist in
         let%bind pkgJson =

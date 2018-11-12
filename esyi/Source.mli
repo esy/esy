@@ -3,7 +3,7 @@ type t =
   | Link of link
 
 and link = {
-  path : Path.t;
+  path : DistPath.t;
   manifest : ManifestSpec.t option;
 }
 

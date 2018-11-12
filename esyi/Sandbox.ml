@@ -15,7 +15,7 @@ let ocamlReqAny =
 let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
 
-  let%bind resolver = Resolver.make ~cfg ~root:spec.path () in
+  let%bind resolver = Resolver.make ~cfg ~sandbox:spec () in
 
   let%bind opams =
 
@@ -59,7 +59,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
   in
 
   let source = Source.Link {
-    path = Path.v ".";
+    path = DistPath.v ".";
     manifest = None;
   } in
   let version = Version.Source source in
@@ -76,7 +76,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         originalVersion = None;
         originalName = None;
         source = Package.Link {
-          path = Path.v ".";
+          path = DistPath.v ".";
           manifest = None;
         };
         overrides = Package.Overrides.empty;
@@ -118,7 +118,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       originalVersion = None;
       originalName = None;
       source = Package.Link {
-        path = Path.v ".";
+        path = DistPath.v ".";
         manifest = None;
       };
       overrides = Package.Overrides.empty;
@@ -157,7 +157,7 @@ let ofSource ~cfg ~spec source =
   in
 
   let%bind resolver =
-    Resolver.make ~cfg ~root:spec.path ()
+    Resolver.make ~cfg ~sandbox:spec ()
   in
 
   match%bind Resolver.package ~resolution resolver with

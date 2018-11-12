@@ -17,7 +17,7 @@ type t =
       manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | NoSource
@@ -50,8 +50,8 @@ let show' ~showPath = function
     Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
   | NoSource -> "no-source:"
 
-let show = show' ~showPath:Path.show
-let showPretty = show' ~showPath:Path.showPretty
+let show = show' ~showPath:DistPath.show
+let showPretty = show' ~showPath:DistPath.showPretty
 
 let pp fmt src =
   Fmt.pf fmt "%s" (show src)
@@ -117,7 +117,7 @@ module Parse = struct
         | Error _ ->
           path, None
       in
-      make path manifest
+      make (DistPath.ofPath path) manifest
     in
 
     let path =

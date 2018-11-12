@@ -182,6 +182,7 @@ module Overrides : sig
 
   val foldWithInstallOverrides :
     cfg:Config.t
+    -> sandbox:SandboxSpec.t
     -> f:('v -> Override.install -> 'v)
     -> init:'v
     -> t
@@ -189,12 +190,17 @@ module Overrides : sig
 
   val foldWithBuildOverrides :
     cfg:Config.t
+    -> sandbox:SandboxSpec.t
     -> f:('v -> Override.build -> 'v)
     -> init:'v
     -> t
     -> 'v RunAsync.t
 
-  val files : cfg:Config.t -> t -> File.t list RunAsync.t
+  val files :
+    cfg:Config.t
+    -> sandbox:SandboxSpec.t
+    -> t
+    -> File.t list RunAsync.t
 
   val toList : t -> Override.t list
 
@@ -254,7 +260,7 @@ type t = {
 
 and source =
   | Link of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | Install of {

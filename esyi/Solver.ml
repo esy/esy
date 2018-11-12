@@ -438,7 +438,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     originalVersion = None;
     originalName = root.originalName;
     source = Package.Link {
-      path = Path.v ".";
+      path = DistPath.v ".";
       manifest = None;
     };
     overrides = Package.Overrides.empty;

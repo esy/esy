@@ -41,7 +41,7 @@ let rebaseDependencies source reqs =
     | (Source.Dist LocalPath {path = basePath; _}
       | Source.Link {path = basePath; _}),
       VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) ->
-      let path = Path.(basePath // path |> normalizeAndRemoveEmptySeg) in
+      let path = DistPath.rebase ~base:basePath path in
       let spec = VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) in
       return (Req.make ~name:req.name ~spec)
     | _, VersionSpec.Source (SourceSpec.LocalPath _) ->

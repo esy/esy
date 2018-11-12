@@ -29,7 +29,7 @@ and manifest = {
 val resolve :
   ?overrides:Package.Overrides.t
   -> cfg:Config.t
-  -> root:Path.t
+  -> sandbox:SandboxSpec.t
   -> Dist.t
   -> resolution RunAsync.t
 (**

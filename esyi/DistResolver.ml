@@ -45,7 +45,7 @@ let rebase ~(base : Dist.t) (source : Dist.t) =
   let open Run.Syntax in
   match source, base with
   | Dist.LocalPath info, Dist.LocalPath {path = basePath; _} ->
-    let path = Path.(basePath // info.path |> normalizeAndRemoveEmptySeg) in
+    let path = DistPath.rebase ~base:basePath info.path in
     return (Dist.LocalPath {info with path;})
   | Dist.LocalPath _, _ ->
     Exn.failf "unable to rebase %a onto %a" Dist.pp source Dist.pp base
@@ -168,7 +168,7 @@ let ofPath ?manifest (path : Path.t) =
 let resolve
   ?(overrides=Package.Overrides.empty)
   ~cfg
-  ~root
+  ~sandbox
   (dist : Dist.t) =
   let open RunAsync.Syntax in
 
@@ -176,7 +176,7 @@ let resolve
     Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist);%lwt
     match dist with
     | LocalPath {path; manifest} ->
-      let%bind tried, pkg = ofPath ?manifest Path.(root // path) in
+      let%bind tried, pkg = ofPath ?manifest (DistPath.toPath sandbox.SandboxSpec.path path) in
       return (pkg, tried)
     | Git {remote; commit; manifest;} ->
       let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
@@ -194,6 +194,7 @@ let resolve
         let%bind () =
           DistStorage.fetchAndUnpack
             ~cfg
+            ~sandbox
             ~dst:path
             dist
         in
