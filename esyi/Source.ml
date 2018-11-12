@@ -6,7 +6,7 @@ type t =
   [@@deriving ord, sexp_of]
 
 and link = {
-  path : Path.t;
+  path : DistPath.t;
   manifest : ManifestSpec.t option;
 }
 
@@ -41,8 +41,8 @@ let show' ~showPath = function
   | Link {path; manifest = Some manifest;} ->
     Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.show manifest)
 
-let show = show' ~showPath:Path.show
-let showPretty = show' ~showPath:Path.showPretty
+let show = show' ~showPath:DistPath.show
+let showPretty = show' ~showPath:DistPath.showPretty
 
 let pp fmt src =
   Fmt.pf fmt "%s" (show src)
@@ -67,7 +67,7 @@ module Parse = struct
         | Error _ ->
           path, None
       in
-      make path manifest
+      make (DistPath.ofPath path) manifest
     in
 
     let path =

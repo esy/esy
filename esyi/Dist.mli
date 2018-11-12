@@ -15,7 +15,7 @@ type t =
       manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | NoSource

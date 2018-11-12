@@ -11,11 +11,12 @@ let sourceTarballPath ~cfg source =
   in
   Path.(cfg.Config.sourceArchivePath // v id |> addExt "tgz")
 
-let fetchSourceIntoPath source path =
+let fetchSourceIntoPath root source path =
   let open RunAsync.Syntax in
   match source with
 
   | Dist.LocalPath { path = srcPath; manifest = _; } ->
+    let srcPath = DistPath.toPath root srcPath in
     let%bind names = Fs.listDir srcPath in
     let copy name =
       let src = Path.(srcPath / name) in
@@ -66,7 +67,7 @@ let fetchSourceIntoPath source path =
     let%bind () = Fs.rmPath Path.(path / ".git") in
     return (Ok ())
 
-let fetchSourceIntoCache ~cfg source =
+let fetchSourceIntoCache ~cfg ~sandbox source =
   let open RunAsync.Syntax in
   let tarballPath = sourceTarballPath ~cfg source in
 
@@ -80,7 +81,7 @@ let fetchSourceIntoCache ~cfg source =
       let%bind fetched =
         RunAsync.contextf (
           let%bind () = Fs.createDir sourcePath in
-          fetchSourceIntoPath source sourcePath
+          fetchSourceIntoPath sandbox.SandboxSpec.path source sourcePath
         )
         "fetching %a" Dist.pp source
       in
@@ -98,10 +99,10 @@ let fetchSourceIntoCache ~cfg source =
       | Error err -> return (Error err)
     )
 
-let fetch ~cfg dist =
+let fetch ~cfg ~sandbox dist =
   let open RunAsync.Syntax in
   RunAsync.contextf (
-    match%bind fetchSourceIntoCache ~cfg dist with
+    match%bind fetchSourceIntoCache ~cfg ~sandbox dist with
     | Ok tarballPath -> return (Ok {dist; tarballPath;})
     | Error err -> return (Error err)
   ) "fetching dist: %a" Dist.pp dist
@@ -111,13 +112,13 @@ let unpack ~cfg:_ ~dst archive =
     (Tarball.unpack ~dst archive.tarballPath)
     "unpacking %a" Dist.pp archive.dist
 
-let fetchAndUnpack ~cfg ~dst source =
+let fetchAndUnpack ~cfg ~sandbox ~dst source =
   let open RunAsync.Syntax in
-  match%bind fetch ~cfg source with
+  match%bind fetch ~cfg ~sandbox source with
   | Ok source -> unpack ~cfg ~dst source
   | Error err -> Lwt.return (Error err)
 
-let fetchAndUnpackToCache ~cfg (dist : Dist.t) =
+let fetchAndUnpackToCache ~cfg ~sandbox (dist : Dist.t) =
   let open RunAsync.Syntax in
   let id = Digest.(to_hex (string (Dist.show dist))) in
   let path = Path.(cfg.Config.sourceInstallPath / id) in
@@ -125,7 +126,7 @@ let fetchAndUnpackToCache ~cfg (dist : Dist.t) =
   if%bind Fs.exists path
   then return path
   else
-    let%bind archive = fetch ~cfg dist in
+    let%bind archive = fetch ~cfg ~sandbox dist in
     let%bind archive = RunAsync.ofRun archive in
     Fs.withTempDir (fun tempPath ->
       let%bind () = unpack ~cfg ~dst:tempPath archive in

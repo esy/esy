@@ -55,7 +55,7 @@ let toOpamOcamlVersion version =
 
 type t = {
   cfg: Config.t;
-  root: Path.t;
+  sandbox: SandboxSpec.t;
   pkgCache: PackageCache.t;
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
@@ -109,10 +109,10 @@ let emptyInstall ~name ~source () =
     kind = Esy;
   }
 
-let make ~cfg ~root () =
+let make ~cfg ~sandbox () =
   RunAsync.return {
     cfg;
-    root;
+    sandbox;
     pkgCache = PackageCache.make ();
     srcCache = SourceCache.make ();
     opamRegistry = OpamRegistry.make ~cfg ();
@@ -237,8 +237,8 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
     let%bind { DistResolver. overrides; dist = resolvedDist; manifest; _; } =
       DistResolver.resolve
         ~cfg:resolver.cfg
+        ~sandbox:resolver.sandbox
         ~overrides
-        ~root:resolver.root
         (Source.toDist source)
     in
 
@@ -434,6 +434,7 @@ let package ~(resolution : Resolution.t) resolver =
       let%bind pkg =
         Package.Overrides.foldWithInstallOverrides
           ~cfg:resolver.cfg
+          ~sandbox:resolver.sandbox
           ~f:applyOverride
           ~init:pkg
           pkg.overrides
@@ -491,7 +492,7 @@ let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
         return (Source.Dist (Archive {url; checksum}))
 
       | SourceSpec.LocalPath {path; manifest;} ->
-        let abspath = Path.(resolver.root // path) in
+        let abspath = DistPath.toPath resolver.sandbox.path path in
         if%bind Fs.exists abspath
         then return (Source.Dist (LocalPath {path; manifest;}))
         else errorf "path '%a' does not exist" Path.ppPretty abspath

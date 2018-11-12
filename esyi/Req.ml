@@ -271,7 +271,7 @@ let%test_module "parsing" = (module struct
     {
       name = "pkg";
       spec = VersionSpec.Source (SourceSpec.LocalPath {
-        path = Path.v "some/file";
+        path = DistPath.v "some/file";
         manifest = None;
       });
     };

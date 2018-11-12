@@ -4,7 +4,7 @@ type t
 (** Make new resolver *)
 val make :
   cfg:Config.t
-  -> root:Path.t
+  -> sandbox:SandboxSpec.t
   -> unit
   -> t RunAsync.t
 

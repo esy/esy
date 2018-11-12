@@ -1412,7 +1412,7 @@ let show (copts : CommonOptions.t) _asJson req () =
   let open EsyInstall in
   let open RunAsync.Syntax in
   let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
-  let%bind resolver = Resolver.make ~cfg:copts.cfg.installCfg ~root:copts.spec.path () in
+  let%bind resolver = Resolver.make ~cfg:copts.cfg.installCfg ~sandbox:copts.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver

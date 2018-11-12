@@ -1,6 +1,6 @@
 type source =
   | Link of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | Install of {
@@ -14,7 +14,7 @@ let source_to_yojson source =
   | Link { path; manifest } ->
     assoc [
       field "type" string "link";
-      field "path" Path.to_yojson path;
+      field "path" DistPath.to_yojson path;
       fieldOpt "manifest" ManifestSpec.to_yojson manifest;
     ]
   | Install { source = source, mirrors; opam } ->
@@ -37,7 +37,7 @@ let source_of_yojson json =
     let%bind opam = fieldOptWith ~name:"opam" OpamResolution.Lock.of_yojson json in
     Ok (Install {source; opam;})
   | "link" ->
-    let%bind path = fieldWith ~name:"path" Path.of_yojson json in
+    let%bind path = fieldWith ~name:"path" DistPath.of_yojson json in
     let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
     Ok (Link {path; manifest;})
   | typ -> errorf "unknown source type: %s" typ

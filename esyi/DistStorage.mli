@@ -9,6 +9,7 @@ type archive
 
 val fetch :
   cfg : Config.t
+  -> sandbox:SandboxSpec.t
   -> Dist.t
   -> archive Run.t RunAsync.t
 (** Fetch source. *)
@@ -22,6 +23,7 @@ val unpack :
 
 val fetchAndUnpack :
   cfg : Config.t
+  -> sandbox:SandboxSpec.t
   -> dst : Path.t
   -> Dist.t
   -> unit RunAsync.t
@@ -29,5 +31,6 @@ val fetchAndUnpack :
 
 val fetchAndUnpackToCache :
   cfg:Config.t
+  -> sandbox:SandboxSpec.t
   -> Dist.t
   -> Fpath.t RunAsync.t

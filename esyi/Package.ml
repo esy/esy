@@ -423,17 +423,17 @@ module Override = struct
   let ofOpamOverride ~name ~version json files = OfOpamOverride {name; version; json; files;}
   let ofDist dist = OfDist {dist;}
 
-  let files ~cfg override =
+  let files ~cfg ~sandbox override =
     let open RunAsync.Syntax in
 
     match override with
     | OfJson _ -> return []
     | OfOpamOverride {files; _} -> File.ofDir files
     | OfDist {dist} ->
-      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg dist in
+      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg ~sandbox dist in
       File.ofDir Path.(path / "files")
 
-  let fetch ~cfg override =
+  let fetch ~cfg ~sandbox override =
     let open RunAsync.Syntax in
     match override with
     | OfJson {json;} -> return json
@@ -442,8 +442,9 @@ module Override = struct
       RunAsync.contextf (
         let%bind path =
           match dist with
-          | Dist.LocalPath info -> return info.path
-          | dist -> DistStorage.fetchAndUnpackToCache ~cfg dist
+          | Dist.LocalPath info ->
+            return (DistPath.toPath sandbox.SandboxSpec.path info.path)
+          | dist -> DistStorage.fetchAndUnpackToCache ~cfg ~sandbox dist
         in
         let filename =
           match Dist.manifest dist with
@@ -457,15 +458,15 @@ module Override = struct
         return manifest.override
       ) "reading override %a" Dist.pp dist
 
-  let install ~cfg override =
+  let install ~cfg ~sandbox override =
     let open RunAsync.Syntax in
-    let%bind json = fetch ~cfg override in
+    let%bind json = fetch ~cfg ~sandbox override in
     let%bind override = RunAsync.ofStringError (install_of_yojson json) in
     return (Some override)
 
-  let build ~cfg override =
+  let build ~cfg ~sandbox override =
     let open RunAsync.Syntax in
-    let%bind json = fetch ~cfg override in
+    let%bind json = fetch ~cfg ~sandbox override in
     let%bind override = RunAsync.ofStringError (build_of_yojson json) in
     return (Some override)
 
@@ -510,7 +511,7 @@ module Override = struct
         Fs.writeJsonFile ~json Path.(path / "package.json")
       in
       let dist = Dist.LocalPath {
-        path = Path.tryRelativize ~root:sandbox.SandboxSpec.path path;
+        path = DistPath.ofPath (Path.tryRelativize ~root:sandbox.SandboxSpec.path path);
         manifest = Some (ManifestSpec.One (Esy, "package.json"));
       } in
       return (Lock.OfDist {dist;})
@@ -519,8 +520,8 @@ module Override = struct
     match lock with
     | Lock.OfJson {json;} -> OfJson {json;}
     | Lock.OfDist { dist = Dist.LocalPath { path; manifest } } ->
-      let path = Path.(sandbox.SandboxSpec.path // path) in
-      let dist = Dist.LocalPath {path; manifest;} in
+      let path = DistPath.toPath sandbox.SandboxSpec.path path in
+      let dist = Dist.LocalPath {path = DistPath.ofPath path; manifest;} in
       OfDist {dist;}
     | Lock.OfDist { dist; } -> OfDist {dist;}
 
@@ -550,29 +551,29 @@ module Overrides = struct
   let fold' ~f ~init overrides =
     RunAsync.List.foldLeft ~f ~init (List.rev overrides)
 
-  let files ~cfg overrides =
+  let files ~cfg ~sandbox overrides =
     let open RunAsync.Syntax in
     let f files override =
-      let%bind filesOfOverride = Override.files ~cfg override in
+      let%bind filesOfOverride = Override.files ~cfg ~sandbox override in
       return (filesOfOverride @ files)
     in
     fold' ~f ~init:[] overrides
 
-  let foldWithBuildOverrides ~cfg ~f ~init overrides =
+  let foldWithBuildOverrides ~cfg ~sandbox ~f ~init overrides =
     let open RunAsync.Syntax in
     let f v override =
       Logs_lwt.debug (fun m -> m "build override: %a" Override.pp override);%lwt
-      match%bind Override.build ~cfg override with
+      match%bind Override.build ~cfg ~sandbox override with
       | Some override -> return (f v override)
       | None -> return v
     in
     fold' ~f ~init overrides
 
-  let foldWithInstallOverrides ~cfg ~f ~init overrides =
+  let foldWithInstallOverrides ~cfg ~sandbox ~f ~init overrides =
     let open RunAsync.Syntax in
     let f v override =
       Logs_lwt.debug (fun m -> m "install override: %a" Override.pp override);%lwt
-      match%bind Override.install ~cfg override with
+      match%bind Override.install ~cfg ~sandbox override with
       | Some override -> return (f v override)
       | None -> return v
     in
@@ -697,7 +698,7 @@ end
 
 type source =
   | Link of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | Install of {

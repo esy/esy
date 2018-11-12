@@ -366,7 +366,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     let%bind res =
       DistResolver.resolve
         ~cfg:cfg.Config.installCfg
-        ~root:cfg.spec.SandboxSpec.path
+        ~sandbox:cfg.spec
         dist
     in
     let overrides = Overrides.merge pkg.overrides res.DistResolver.overrides in
@@ -390,6 +390,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
         let%bind manifest =
           Overrides.foldWithBuildOverrides
             ~cfg:cfg.Config.installCfg
+            ~sandbox:cfg.spec
             ~f:applyOverride
             ~init:manifest
             overrides
@@ -399,6 +400,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       let%bind manifest =
         Overrides.foldWithBuildOverrides
           ~cfg:cfg.Config.installCfg
+          ~sandbox:cfg.spec
           ~f:applyOverride
           ~init:manifest
           overrides
@@ -415,6 +417,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       let%bind manifest =
         Overrides.foldWithBuildOverrides
           ~cfg:cfg.Config.installCfg
+          ~sandbox:cfg.spec
           ~f:applyOverride
           ~init:manifest
           pkg.overrides
@@ -430,6 +433,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
           let%bind manifest =
             Overrides.foldWithBuildOverrides
               ~cfg:cfg.Config.installCfg
+              ~sandbox:cfg.spec
               ~f:applyOverride
               ~init:manifest
               pkg.overrides
@@ -443,6 +447,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
             let%bind manifest =
               Overrides.foldWithBuildOverrides
                 ~cfg:cfg.Config.installCfg
+                ~sandbox:cfg.spec
                 ~f:applyOverride
                 ~init:manifest
                 pkg.overrides

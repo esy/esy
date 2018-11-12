@@ -17,7 +17,7 @@ type t =
       manifest : ManifestSpec.Filename.t option;
     }
   | LocalPath of {
-      path : Path.t;
+      path : DistPath.t;
       manifest : ManifestSpec.t option;
     }
   | NoSource
@@ -48,9 +48,9 @@ let show = function
     Printf.sprintf "archive:%s" url
 
   | LocalPath {path; manifest = None;} ->
-    Printf.sprintf "path:%s" (Path.show path)
+    Printf.sprintf "path:%s" (DistPath.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (Path.show path) (ManifestSpec.show manifest)
+    Printf.sprintf "path:%s/%s" (DistPath.show path) (ManifestSpec.show manifest)
 
   | NoSource -> "no-source:"
 
@@ -144,7 +144,7 @@ module Parse = struct
         | Error _ ->
           path, None
       in
-      make path manifest
+      make (DistPath.ofPath path) manifest
     in
     (make <$> path)
 
