@@ -5,8 +5,17 @@
 include Types
 include Printer
 
+let indentSize = 2
+
 let tokenize v =
   let lexbuf = Lexing.from_string v in
+
+  let rec indent till curIndent indents tokens =
+    if till > 0
+    then indent (till - indentSize) (curIndent + indentSize) (curIndent::indents) (INDENT::tokens) 
+    else curIndent, indents, tokens
+  in
+
   let rec dedent tokens till indents =
     match indents with
     | [] -> 0, [], tokens
@@ -14,24 +23,25 @@ let tokenize v =
       if indent <= till then indent, indents, tokens
       else dedent (DEDENT::tokens) till indents
   in
-  let rec loop (indent, indents) tokens =
+
+  let rec loop (curIndent, indents) tokens =
     match Lexer.read lexbuf with
     | EOF ->
-      let _, _, tokens = dedent tokens 0 (indent::indents) in
+      let _, _, tokens = dedent tokens 0 (curIndent::indents) in
       List.rev (EOF::tokens)
     | NEWLINE nextIndent as token ->
-      let indent, indents, tokens =
-        if nextIndent > indent
-        then nextIndent, (indent::indents), (INDENT::tokens)
-        else if nextIndent < indent
+      let curIndent, indents, tokens =
+        if nextIndent > curIndent
+        then indent (nextIndent - curIndent) curIndent indents tokens
+        else if nextIndent < curIndent
         then
-          let indent, indents, tokens = dedent tokens nextIndent (indent::indents) in
-          indent, indents, token::tokens
-        else indent, indents, token::tokens
+          let curIndent, indents, tokens = dedent tokens nextIndent (curIndent::indents) in
+          curIndent, indents, token::tokens
+        else curIndent, indents, token::tokens
       in
-      loop (indent, indents) tokens
+      loop (curIndent, indents) tokens
     | token ->
-      loop (indent, indents) (token::tokens)
+      loop (curIndent, indents) (token::tokens)
   in
   loop (0, []) []
 
@@ -247,6 +257,22 @@ a:
     printTokens {|
 a:
   c: d
+  e: f
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      (IDENTIFIER c)
+      COLON
+      (IDENTIFIER d)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  c: d
     |};
     [%expect {|
       (IDENTIFIER a)
@@ -325,6 +351,11 @@ a:
 end)
 
 let%test_module _ = (module struct
+
+  let printTokens string =
+    let tokens = tokenize (String.trim string) in
+    let tokens = List.map ~f:Types.sexp_of_token tokens in
+    Format.printf "%a@." (Fmt.list ~sep:(Fmt.unit "@.") Sexplib0.Sexp.pp) tokens
 
   let printAst s =
     match parse s with
@@ -428,6 +459,11 @@ a:
     [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d)))))))) |}]
 
   let%expect_test _ =
+    printTokens {|
+a:
+  c: d
+  e: f
+    |};
     printAst {|
 a:
   c: d
@@ -435,152 +471,150 @@ a:
     |};
     [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d))) (e (Scalar (String f)))))))) |}]
 
-  let%expect_test _ =
-    printAst {|
-a:
-  c: d
-e: f
-    |};
-    [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d)))))) (e (Scalar (String f))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* c: d *)
+(* e: f *)
+  (*   |}; *)
+  (*   [%expect {| (Mapping ((a (Mapping ((c (Scalar (String d)))))) (e (Scalar (String f))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  c:
-    e: f
-    |};
-    [%expect {| (Mapping ((a (Mapping ((c (Mapping ((e (Scalar (String f))))))))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* c: *)
+  (*   e: f *)
+  (*   |}; *)
+  (*   [%expect {| (Mapping ((a (Mapping ((c (Mapping ((e (Scalar (String f))))))))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  c:
-    e:
-      g: h
-  x: y
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Mapping
-          ((c (Mapping ((e (Mapping ((g (Scalar (String h)))))))))
-           (x (Scalar (String y)))))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* c: *)
+  (*   e: *)
+  (*     g: h *)
+  (* x: y *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     (Mapping *)
+  (*      ((a *)
+  (*        (Mapping *)
+  (*         ((c (Mapping ((e (Mapping ((g (Scalar (String h))))))))) *)
+  (*          (x (Scalar (String y)))))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  c:
-    e:
-      g: h
-x: y
-    |};
-    [%expect {|
-      (Mapping
-       ((a (Mapping ((c (Mapping ((e (Mapping ((g (Scalar (String h))))))))))))
-        (x (Scalar (String y))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* c: *)
+  (*   e: *)
+  (*     g: h *)
+(* x: y *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     (Mapping *)
+  (*      ((a (Mapping ((c (Mapping ((e (Mapping ((g (Scalar (String h)))))))))))) *)
+  (*       (x (Scalar (String y))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  - 1
-  - 2
-    |};
-    [%expect {|
-      (Mapping ((a (Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* - 1 *)
+  (* - 2 *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     (Mapping ((a (Sequence ((Number 1) (Number 2)))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  - 2
-    |};
-    [%expect {|
-      (Mapping ((a (Sequence ((Scalar (Number 2))))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* - 2 *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     (Mapping ((a (Sequence ((Number 2)))))) |}] *)
 
-  let%expect_test _ =
-    printAst {|
-a:
-  - a
-  - b
-  - c
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence ((Scalar (String a)) (Scalar (String b)) (Scalar (String c))))))) |}]
+  (* let%expect_test _ = *)
+  (*   printAst {| *)
+(* a: *)
+  (* - a *)
+  (* - b *)
+  (* - c *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}] *)
 
-end)
+(* end) *)
 
-let%test_module _ = (module struct
+(* let%test_module _ = (module struct *)
 
-  let parsePrint s =
-    match parse s with
-    | Ok s -> Format.printf "%a@." pp s
-    | Error err -> Format.printf "ERROR: %s@." err
+  (* let parsePrint s = *)
+  (*   match parse s with *)
+  (*   | Ok s -> Format.printf "%a@." pp s *)
+  (*   | Error err -> Format.printf "ERROR: %s@." err *)
 
-  let%expect_test _ =
-    parsePrint {|
-a: 2
-    |};
-    [%expect {| a: 2 |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: 2 *)
+  (*   |}; *)
+  (*   [%expect {| a: 2 |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-a: 2
-c: d
-    |};
-    [%expect {|
-      a: 2
-      c: d |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: 2 *)
+(* c: d *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     a: 2 *)
+  (*     c: d |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-a:
-  c: d
-    |};
-    [%expect {|
-      a:
-        c: d |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: *)
+  (* c: d *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     a: *)
+  (*       c: d |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-a:
-  c: d
-c: d
-    |};
-    [%expect {|
-      a:
-        c: d
-      c: d |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: *)
+  (* c: d *)
+(* c: d *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     a: *)
+  (*       c: d *)
+  (*     c: d |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-a:
-  c:
-    c: d
-    |};
-    [%expect {|
-      a:
-        c:
-          c: d |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: *)
+  (* c: *)
+  (*   c: d *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     a: *)
+  (*       c: *)
+  (*         c: d |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-a:
-  - 1
-  - 2
-  - 3
-    |};
-    [%expect {|
-      a:
-        - 1
-        - 2
-        - 3 |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* a: *)
+  (* - 1 *)
+  (* - 2 *)
+  (* - 3 *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     a: *)
+  (*       - 1 *)
+  (*       - 2 *)
+  (*       - 3 |}] *)
 
-  let%expect_test _ =
-    parsePrint {|
-"key with space": "value with space"
-    |};
-    [%expect {|
-      "key with space": "value with space" |}]
+  (* let%expect_test _ = *)
+  (*   parsePrint {| *)
+(* "key with space": "value with space" *)
+  (*   |}; *)
+  (*   [%expect {| *)
+  (*     "key with space": "value with space" |}] *)
 
 end)

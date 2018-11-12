@@ -30,6 +30,7 @@ value:
   | INDENT; v = mapping; DEDENT { v }
   | INDENT; v = seq; DEDENT { v }
   | INDENT; DEDENT { Types.Mapping [] }
+  | INDENT; v = value; DEDENT { v }
 
 scalar:
     TRUE { Boolean true }
