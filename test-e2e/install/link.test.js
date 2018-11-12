@@ -240,7 +240,7 @@ describe(`installing linked packages`, () => {
       dependencies: {
         dep: {
           name: 'dep',
-          version: `link:..${path.sep}..`,
+          version: `link:../..`,
         },
       },
     });
