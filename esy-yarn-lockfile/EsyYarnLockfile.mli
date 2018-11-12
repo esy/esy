@@ -33,3 +33,16 @@ module Decode : sig
   val mapping : 'a decoder -> (string * 'a) list decoder
   val seq : 'a scalarDecoder -> 'a list decoder
 end
+
+type 'a encoder = 'a -> t
+type 'a scalarEncoder = 'a -> scalar
+
+module Encode : sig
+
+  val string : string scalarEncoder
+  val number : float scalarEncoder
+  val boolean : bool scalarEncoder
+
+  val scalar : 'a scalarEncoder -> 'a encoder
+  val seq : 'a scalarEncoder -> 'a list encoder
+end

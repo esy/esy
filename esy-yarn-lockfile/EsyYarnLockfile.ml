@@ -105,6 +105,19 @@ module Decode = struct
 
 end
 
+type 'a encoder = 'a -> t
+type 'a scalarEncoder = 'a -> scalar
+
+module Encode = struct
+
+  let string v = String v
+  let number v = Number v
+  let boolean v = Boolean v
+
+  let scalar encode v = Scalar (encode v)
+  let seq encode vs = Sequence (List.map ~f:encode vs)
+end
+
 let%test_module "tokenizing" = (module struct
 
   let printTokens string =
@@ -239,6 +252,50 @@ e: f
       (IDENTIFIER e)
       COLON
       (IDENTIFIER f)
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  - a: 1
+  - b: 2
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      LI
+      (IDENTIFIER a)
+      COLON
+      (NUMBER 1)
+      (NEWLINE 3)
+      LI
+      (IDENTIFIER b)
+      COLON
+      (NUMBER 2)
+      DEDENT
+      EOF |}]
+
+  let%expect_test _ =
+    printTokens {|
+a:
+  - a: 1
+    b: 2
+    |};
+    [%expect {|
+      (IDENTIFIER a)
+      COLON
+      INDENT
+      LI
+      (IDENTIFIER a)
+      COLON
+      (NUMBER 1)
+      INDENT
+      (IDENTIFIER b)
+      COLON
+      (NUMBER 2)
+      DEDENT
+      DEDENT
       EOF |}]
 
 end)
@@ -405,7 +462,7 @@ a:
   - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Number 1) (Number 2)))))) |}]
+      (Mapping ((a (Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -413,7 +470,7 @@ a:
   - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Number 2)))))) |}]
+      (Mapping ((a (Sequence ((Scalar (Number 2))))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -423,7 +480,9 @@ a:
   - c
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}]
+      (Mapping
+       ((a
+         (Sequence ((Scalar (String a)) (Scalar (String b)) (Scalar (String c))))))) |}]
 
 end)
 
