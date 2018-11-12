@@ -88,6 +88,9 @@ module RelocateSourceLifecycle: LIFECYCLE = {
     let%bind () = mkdir(build.buildPath);
     let%bind () = {
       let ignore = [
+        ".git",
+        ".hg",
+        ".svn",
         "node_modules",
         "_esy",
         "_build",
@@ -413,10 +416,13 @@ let findSourceModTime = (build: build) => {
     `Sat(
       path =>
         switch (Path.basename(path)) {
-        | "node_modules" => Ok(false)
-        | "_esy" => Ok(false)
-        | "_release" => Ok(false)
-        | "_build" => Ok(false)
+        | ".git"
+        | ".hg"
+        | ".svn"
+        | "node_modules"
+        | "_esy"
+        | "_release"
+        | "_build"
         | "_install" => Ok(false)
         | fname when isHidden(fname) => Ok(false)
         | _ => Ok(true)
