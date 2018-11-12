@@ -322,6 +322,31 @@ describe(`Installing with resolutions`, () => {
     });
   });
 
+  test(`should display a warning in case of unused resolutions`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: `2.0.0`,
+    });
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {dep: `1.0.0`},
+        resolutions: {dep: `2.0.0`, unused: `1.0.0`},
+      }),
+    );
+
+    const result = await p.esy(`install`);
+
+    expect(result.stderr.includes("warn Resolution 'unused' is unused")).toBe(true);
+
+  })
+
+
   test(`resolutions overrides could inject linked packages to non local packages`, async () => {
     const p = await helpers.createTestSandbox();
 
