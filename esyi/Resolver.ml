@@ -63,10 +63,12 @@ type t = {
   mutable ocamlVersion : Version.t option;
   mutable resolutions : Package.Resolutions.t;
   resolutionCache : ResolutionCache.t;
+  resolutionUsage : (Resolution.t, int) Hashtbl.t;
 
   npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
   sourceSpecToSource : (SourceSpec.t, Source.t) Hashtbl.t;
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
+
 }
 
 let emptyLink ~name ~path ~manifest () =
@@ -120,6 +122,7 @@ let make ~cfg ~sandbox () =
     ocamlVersion = None;
     resolutions = Package.Resolutions.empty;
     resolutionCache = ResolutionCache.make ();
+    resolutionUsage = Hashtbl.create 500;
     npmDistTags = Hashtbl.create 500;
     sourceSpecToSource = Hashtbl.create 500;
     sourceToSource = Hashtbl.create 500;
@@ -129,7 +132,23 @@ let setOCamlVersion ocamlVersion resolver =
   resolver.ocamlVersion <- Some ocamlVersion
 
 let setResolutions resolutions resolver =
-  resolver.resolutions <- resolutions
+  (* First we set the resolutions *)
+  resolver.resolutions <- resolutions;
+  (* Then we set the usage of every resolution to 0 *)
+  List.iter
+    ~f:(fun r -> Hashtbl.add resolver.resolutionUsage r 0)
+    (Resolutions.entries resolutions)
+  
+let getUnusedResolutions resolver =
+  Hashtbl.fold
+    (fun (res:Resolution.t) count unused -> if count = 0 then (res.name)::unused else unused)
+    resolver.resolutionUsage
+    []
+
+(* This function increments the resolution usage count of that resolution *)
+let didUse resolver resolution =
+  let curr_count = Hashtbl.find resolver.resolutionUsage resolution in
+  Hashtbl.replace resolver.resolutionUsage resolution (curr_count + 1)
 
 let sourceMatchesSpec resolver spec source =
   match Hashtbl.find_opt resolver.sourceSpecToSource spec with
@@ -592,7 +611,10 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
   match Resolutions.find resolver.resolutions name with
-  | Some resolution -> return [resolution]
+  | Some resolution -> 
+    (* increment usage counter for that resolution so that we know it was used *)
+    didUse resolver resolution;
+    return [resolution]
   | None ->
     let spec =
       match spec with
