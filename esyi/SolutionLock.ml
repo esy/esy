@@ -8,22 +8,6 @@ type source =
       opam : OpamResolution.Lock.t option;
     }
 
-let source_to_yojson source =
-  let open Json.Encode in
-  match source with
-  | Link { path; manifest } ->
-    assoc [
-      field "type" string "link";
-      field "path" DistPath.to_yojson path;
-      fieldOpt "manifest" ManifestSpec.to_yojson manifest;
-    ]
-  | Install { source = source, mirrors; opam } ->
-    assoc [
-      field "type" string "install";
-      field "source" (Json.Encode.list Source.to_yojson) (source::mirrors);
-      fieldOpt "opam" OpamResolution.Lock.to_yojson opam;
-    ]
-
 let source_of_yojson json =
   let open Result.Syntax in
   let open Json.Decode in
@@ -49,7 +33,7 @@ type t = {
   root : PackageId.t;
   (* Map from ids to nodes. *)
   node : node PackageId.Map.t
-} [@@deriving yojson]
+} [@@deriving of_yojson]
 
 and node = {
   name: string;
@@ -59,6 +43,119 @@ and node = {
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
 }
+
+module Encode = struct
+  open EsyYarnLockfile.Encode
+
+  let manifestSpec spec =
+    string (ManifestSpec.show spec)
+
+  let pkgId source =
+    string (PackageId.show source)
+
+  let pkgIdMap encode map =
+    let f id value fields = (field (PackageId.show id) encode value)::fields in
+    let fields = PackageId.Map.fold f map [] in
+    mapping fields
+
+  let pkgIdSet set =
+    seq pkgId (PackageId.Set.elements set)
+
+  let pkgSource source =
+    string (Source.show source)
+
+  let pkgVersion version =
+    string (Version.show version)
+
+  let source source =
+    match source with
+    | Link {path; manifest;} ->
+      mapping [
+        field "type" (scalar string) "link";
+        field "path" (scalar string) (DistPath.show path);
+        fieldOpt "manifest" (scalar manifestSpec) manifest;
+      ]
+    | Install {source = source, mirrors; opam = _;} ->
+      mapping [
+        field "type" (scalar string) "install";
+        field "source" (seq pkgSource) (source::mirrors);
+        (* TODO: *)
+        (* fieldOpt "manifest" manifestSpec_to_lock manifest; *)
+      ]
+
+  let node node =
+    mapping [
+      field "name" (scalar string) node.name;
+      field "version" (scalar pkgVersion) node.version;
+      field "source" source node.source;
+      field "dependencies" pkgIdSet node.dependencies;
+      field "devDependencies" pkgIdSet node.devDependencies;
+      (* TODO: overrides *)
+    ]
+
+  let lock lock =
+    mapping [
+      field "checksum" (scalar string) lock.checksum;
+      field "root" (scalar pkgId) lock.root;
+      field "node" (pkgIdMap node) lock.node;
+    ]
+end
+
+(* module Decode = struct *)
+(*   open EsyYarnLockfile.Decode *)
+(*   open Result.Syntax *)
+
+(*   let manifestSpec spec = *)
+(*     string (ManifestSpec.show spec) *)
+
+(*   let pkgId tree = *)
+(*     let%bind s = string tree in *)
+(*     PackageId.parse s *)
+
+(*   let pkgIdMap decode map = *)
+(*     let f id value fields = (field (PackageId.show id) encode value)::fields in *)
+(*     let fields = PackageId.Map.fold f map [] in *)
+(*     mapping fields *)
+
+(*   let pkgSource tree = *)
+(*     let%bind s = string tree in *)
+(*     Source.parse s *)
+
+(*   let pkgVersion tree = *)
+(*     let%bind s = string tree in *)
+(*     Version.parse s *)
+
+(*   let source source = *)
+(*     match source with *)
+(*     | Link {path; manifest;} -> *)
+(*       mapping [ *)
+(*         field "type" (scalar string) "link"; *)
+(*         field "path" (scalar string) (DistPath.show path); *)
+(*         fieldOpt "manifest" (scalar manifestSpec) manifest; *)
+(*       ] *)
+(*     | Install {source = source, mirrors; opam = _;} -> *)
+(*       mapping [ *)
+(*         field "type" (scalar string) "install"; *)
+(*         field "source" (seq pkgSource) (source::mirrors); *)
+(*         (1* TODO: *1) *)
+(*         (1* fieldOpt "manifest" manifestSpec_to_lock manifest; *1) *)
+(*       ] *)
+
+(*   let node tree = *)
+(*     let%bind fields = mapping tree in *)
+(*     let%bind name = field "name" (scalar string) fields in *)
+(*     let%bind version = field "version" (scalar pkgVersion) fields in *)
+(*     let%bind source = field "source" (scalar pkgSource) fields in *)
+(*     (1* TODO: overrides, dependencies, devDependencies *1) *)
+(*     return {name; version; source;} *)
+
+(*   let lock tree = *)
+(*     let%bind fields = mapping tree in *)
+(*     let%bind checksum = field "checksum" (scalar string) fields in *)
+(*     let%bind root = field "root" (scalar pkgId) fields in *)
+(*     let%bind node = field "node" (pkgIdMap node) fields in *)
+(*     return {checksum; node; root;} *)
+(* end *)
 
 let indexFilename = "index.json"
 
@@ -261,4 +358,8 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let%bind checksum = computeSandboxChecksum sandbox in
   let lock = {checksum; node; root = Solution.Package.id root;} in
   let%bind () = Fs.createDir path in
-  Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)
+  let data =
+    let s = Encode.lock lock in
+    Format.asprintf "%a" EsyYarnLockfile.pp s
+  in
+  Fs.writeFile ~data Path.(path / indexFilename)

@@ -83,16 +83,6 @@ module Decode = struct
     | Scalar scalar -> decode scalar
     | _ -> Error "expected scalar value"
 
-  let mapping decode = function
-    | Mapping items ->
-      let f items (k, v) =
-        match decode v with
-        | Ok v -> Ok ((k, v)::items)
-        | Error err -> Error err
-      in
-      Result.List.foldLeft ~f ~init:[] items
-    | _ -> Error "expected mapping"
-
   let seq decode = function
     | Sequence items ->
       let f items v =
@@ -102,6 +92,30 @@ module Decode = struct
       in
       Result.List.foldLeft ~f ~init:[] items
     | _ -> Error "expected sequence"
+
+  type fields = t StringMap.t
+  type 'a fieldDecoder = fields -> ('a, string) result
+
+  let mapping = function
+    | Mapping fields ->
+      let f fields (name, value) = StringMap.add name value fields in
+      let fields = List.fold_left ~f ~init:StringMap.empty fields in
+      Ok fields
+    | _ -> Error "expected mapping"
+
+  let field name decode fields =
+    match StringMap.find_opt name fields with
+    | None -> Result.errorf "no such field '%s' found" name
+    | Some (value : t) -> decode value
+
+  let fieldOpt name decode fields =
+    match StringMap.find_opt name fields with
+    | None -> Ok None
+    | Some value ->
+      begin match decode value with
+      | Ok v -> Ok (Some v)
+      | Error err -> Error err
+      end
 
 end
 
@@ -114,8 +128,18 @@ module Encode = struct
   let number v = Number v
   let boolean v = Boolean v
 
+
   let scalar encode v = Scalar (encode v)
   let seq encode vs = Sequence (List.map ~f:encode vs)
+
+  type field = (string * t) option
+
+  let mapping fields = Mapping (List.filterNone fields)
+  let field name encode v = Some (name, encode v)
+  let fieldOpt name encode v =
+    match v with
+    | None -> None
+    | Some v -> Some (name, encode v)
 end
 
 let%test_module "tokenizing" = (module struct

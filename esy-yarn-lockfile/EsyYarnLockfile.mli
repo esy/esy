@@ -30,8 +30,15 @@ module Decode : sig
   val boolean : bool scalarDecoder
 
   val scalar : 'a scalarDecoder -> 'a decoder
-  val mapping : 'a decoder -> (string * 'a) list decoder
   val seq : 'a scalarDecoder -> 'a list decoder
+
+  type fields = t StringMap.t
+  type 'a fieldDecoder = fields -> ('a, string) result
+
+  val mapping : fields decoder
+
+  val field : string -> 'a decoder -> 'a fieldDecoder
+  val fieldOpt : string -> 'a decoder -> 'a option fieldDecoder
 end
 
 type 'a encoder = 'a -> t
@@ -45,4 +52,10 @@ module Encode : sig
 
   val scalar : 'a scalarEncoder -> 'a encoder
   val seq : 'a scalarEncoder -> 'a list encoder
+
+  type field
+
+  val mapping : field list -> t
+  val field : string -> 'a encoder -> 'a -> field
+  val fieldOpt : string -> 'a encoder -> 'a option -> field
 end
