@@ -1190,8 +1190,11 @@ let getSandboxSolution installSandbox =
   return solution
 
 let solve {CommonOptions. installSandbox; _} () =
+  let open EsyInstall in
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution installSandbox in
+  let unused = Resolver.getUnusedResolutions installSandbox.resolver in
+  let%lwt () = Lwt_list.iter_p (fun name -> (Logs_lwt.warn (fun m -> m "Resolution '%s' is unused" name))) unused in
   return ()
 
 let fetch {CommonOptions. installSandbox = sandbox; _} () =
