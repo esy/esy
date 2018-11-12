@@ -63,12 +63,11 @@ type t = {
   mutable ocamlVersion : Version.t option;
   mutable resolutions : Package.Resolutions.t;
   resolutionCache : ResolutionCache.t;
-  resolutionUsage : (Resolution.t, int) Hashtbl.t;
+  resolutionUsage : (Resolution.t, bool) Hashtbl.t;
 
   npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
   sourceSpecToSource : (SourceSpec.t, Source.t) Hashtbl.t;
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
-
 }
 
 let emptyLink ~name ~path ~manifest () =
@@ -122,7 +121,7 @@ let make ~cfg ~sandbox () =
     ocamlVersion = None;
     resolutions = Package.Resolutions.empty;
     resolutionCache = ResolutionCache.make ();
-    resolutionUsage = Hashtbl.create 500;
+    resolutionUsage = Hashtbl.create 10;
     npmDistTags = Hashtbl.create 500;
     sourceSpecToSource = Hashtbl.create 500;
     sourceToSource = Hashtbl.create 500;
@@ -136,19 +135,18 @@ let setResolutions resolutions resolver =
   resolver.resolutions <- resolutions;
   (* Then we set the usage of every resolution to 0 *)
   List.iter
-    ~f:(fun r -> Hashtbl.add resolver.resolutionUsage r 0)
+    ~f:(fun r -> Hashtbl.add resolver.resolutionUsage r false)
     (Resolutions.entries resolutions)
   
 let getUnusedResolutions resolver =
   Hashtbl.fold
-    (fun (res:Resolution.t) count unused -> if count = 0 then (res.name)::unused else unused)
+    (fun (res:Resolution.t) used unused -> if not used then (res.name)::unused else unused)
     resolver.resolutionUsage
     []
 
 (* This function increments the resolution usage count of that resolution *)
 let didUse resolver resolution =
-  let curr_count = Hashtbl.find resolver.resolutionUsage resolution in
-  Hashtbl.replace resolver.resolutionUsage resolution (curr_count + 1)
+  Hashtbl.replace resolver.resolutionUsage resolution true
 
 let sourceMatchesSpec resolver spec source =
   match Hashtbl.find_opt resolver.sourceSpecToSource spec with
