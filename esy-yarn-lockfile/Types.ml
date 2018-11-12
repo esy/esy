@@ -16,7 +16,7 @@ type token =
 
 type t =
   | Mapping of (string * t) list
-  | Sequence of t list
+  | Sequence of scalar list
   | Scalar of scalar
   [@@deriving (show, eq, sexp)]
 

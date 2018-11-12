@@ -24,7 +24,7 @@ let rec pp fmt (v : t) =
     Fmt.(vbox (list ~sep:(unit "@;") ppItem)) fmt items
   | Sequence items ->
     let ppItem fmt v =
-      Fmt.pf fmt "- %a" pp v
+      Fmt.pf fmt "- %a" ppScalar v
     in
     Fmt.(vbox (list ~sep:(unit "@;") ppItem)) fmt items
   | Scalar scalar -> ppScalar fmt scalar

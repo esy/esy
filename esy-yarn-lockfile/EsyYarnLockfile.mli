@@ -5,7 +5,7 @@
  *)
 type t =
   | Mapping of (string * t) list
-  | Sequence of t list
+  | Sequence of scalar list
   | Scalar of scalar
 
 and scalar =
@@ -22,11 +22,14 @@ val parseExn : string -> t
 val pp : t Fmt.t
 
 type 'a decoder = t -> ('a, string) result
+type 'a scalarDecoder = scalar -> ('a, string) result
 
 module Decode : sig
-  val string : string decoder
-  val number : float decoder
-  val boolean : bool decoder
+  val string : string scalarDecoder
+  val number : float scalarDecoder
+  val boolean : bool scalarDecoder
+
+  val scalar : 'a scalarDecoder -> 'a decoder
   val mapping : 'a decoder -> (string * 'a) list decoder
-  val seq : 'a decoder -> 'a list decoder
+  val seq : 'a scalarDecoder -> 'a list decoder
 end

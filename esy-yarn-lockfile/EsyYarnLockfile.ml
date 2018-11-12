@@ -63,20 +63,25 @@ let parseExn src =
   | Error err -> raise (SyntaxError err)
 
 type 'a decoder = t -> ('a, string) result
+type 'a scalarDecoder = scalar -> ('a, string) result
 
 module Decode = struct
 
   let string = function
-    | Scalar (String v) -> Ok v
+    | String v -> Ok v
     | _ -> Error "expected string"
 
   let number = function
-    | Scalar (Number v) -> Ok v
+    | Number v -> Ok v
     | _ -> Error "expected number"
 
   let boolean = function
-    | Scalar (Boolean v) -> Ok v
+    | Boolean v -> Ok v
     | _ -> Error "expected true or false"
+
+  let scalar decode = function
+    | Scalar scalar -> decode scalar
+    | _ -> Error "expected scalar value"
 
   let mapping decode = function
     | Mapping items ->
@@ -235,59 +240,6 @@ e: f
       COLON
       (IDENTIFIER f)
       EOF |}]
-
-  let%expect_test _ =
-    printTokens {|
-a:
-  - a: 1
-  - b: 2
-    |};
-    [%expect {|
-      (IDENTIFIER a)
-      COLON
-      INDENT
-      LI
-      (IDENTIFIER a)
-      COLON
-      (NUMBER 1)
-      (NEWLINE 3)
-      LI
-      (IDENTIFIER b)
-      COLON
-      (NUMBER 2)
-      DEDENT
-      EOF |}]
-
-  let%expect_test _ =
-    printTokens {|
-a:
-  - a: 1
-    b: 2
-    |};
-    [%expect {|
-      (IDENTIFIER a)
-      COLON
-      INDENT
-      LI
-      (IDENTIFIER a)
-      COLON
-      (NUMBER 1)
-      INDENT
-      (IDENTIFIER b)
-      COLON
-      (NUMBER 2)
-      DEDENT
-      DEDENT
-      EOF |}]
-
-  let%expect_test _ =
-    printTokens {|
-a:
-  - - a: 1
-    - b: 2
-    |};
-    [%expect {|
-      ERROR: Syntax error |}]
 
 end)
 
@@ -453,7 +405,7 @@ a:
   - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))) |}]
+      (Mapping ((a (Sequence ((Number 1) (Number 2)))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -461,7 +413,7 @@ a:
   - 2
     |};
     [%expect {|
-      (Mapping ((a (Sequence ((Scalar (Number 2))))))) |}]
+      (Mapping ((a (Sequence ((Number 2)))))) |}]
 
   let%expect_test _ =
     printAst {|
@@ -471,124 +423,7 @@ a:
   - c
     |};
     [%expect {|
-      (Mapping
-       ((a
-         (Sequence ((Scalar (String a)) (Scalar (String b)) (Scalar (String c))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - a: 1
-    |};
-    [%expect {|
-      (Mapping ((a (Sequence ((Mapping ((a (Scalar (Number 1)))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - a: 1
-  - b: 2
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence
-          ((Mapping ((a (Scalar (Number 1))))) (Mapping ((b (Scalar (Number 2)))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - a: 1
-    b: 2
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence ((Mapping ((a (Scalar (Number 1))) (b (Scalar (Number 2)))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - a: 1
-    b:
-      c: e
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence
-          ((Mapping
-            ((a (Scalar (Number 1))) (b (Mapping ((c (Scalar (String e))))))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - a:
-      b: 1
-    |};
-    [%expect {|
-      (Mapping
-       ((a (Sequence ((Mapping ((a (Mapping ((b (Scalar (Number 1))))))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - 1
-    |};
-    [%expect {|
-      (Mapping ((a (Sequence ((Sequence ((Scalar (Number 1))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - 1
-  - - 2
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence
-          ((Sequence ((Scalar (Number 1)))) (Sequence ((Scalar (Number 2))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - 1
-    - 2
-    |};
-    [%expect {|
-      (Mapping
-       ((a (Sequence ((Sequence ((Scalar (Number 1)) (Scalar (Number 2))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - a: 1
-    |};
-    [%expect {|
-      (Mapping ((a (Sequence ((Sequence ((Mapping ((a (Scalar (Number 1)))))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - a: 1
-      b: 2
-    |};
-    [%expect {|
-      (Mapping
-       ((a
-         (Sequence
-          ((Sequence ((Mapping ((a (Scalar (Number 1))) (b (Scalar (Number 2)))))))))))) |}]
-
-  let%expect_test _ =
-    printAst {|
-a:
-  - - a: 1
-    - b: 2
-    |};
-    [%expect {|
-      ERROR: Syntax error |}]
-
+      (Mapping ((a (Sequence ((String a) (String b) (String c)))))) |}]
 
 end)
 

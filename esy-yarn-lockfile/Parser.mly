@@ -54,16 +54,9 @@ key:
 seq:
   items = seqitems { Types.Sequence items }
 
-seqitem:
-  LI; v = seqvalue; { v }
-
 seqitems:
     v = seqitem { [v] }
   | v = seqitem; NEWLINE; vs = seqitems  { v::vs }
 
-seqvalue:
-    item = item { Types.Mapping [item] }
-  | item = item; INDENT; items = items; DEDENT { Types.Mapping (item::items) }
-  | item = seqitem { Types.Sequence [item] }
-  | item = seqitem; INDENT; items = seqitems; DEDENT { Types.Sequence (item::items) }
-  | s = scalar { Scalar s }
+seqitem:
+  LI; v = scalar; { v }
