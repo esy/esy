@@ -71,8 +71,8 @@ steps:
         parallel: true
         parallelCount: 8
 
-  - script: 'esy build'
-    displayName: 'esy build'
+  - script: 'npm run build'
+    displayName: 'npm run build'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload install folder'
