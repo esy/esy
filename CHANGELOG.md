@@ -1,6 +1,114 @@
 # CHANGELOG
 
-## 0.3.4 @ next
+## 0.4.0 @ next
+
+- Switch from `node_modules`-style to Plug'n'Play-style (pnp for short)
+  installations.
+
+  esy now uses same approach as yarn (see [pnp rfc]) and installs all
+  package source code into a central source cache location.
+
+  `node_modules` directory is not longer populated with package sources.
+
+  `esy build` command now uses this source cache location to perform builds
+  from.
+
+  `_esy/default/pnp.js` is created with yarn's pnp runtime so that we keep
+  compatibility with JS ecosystem.
+
+  This result in much faster installation in case cache is warm and in less disk
+  space wasted on duplicated sources between the sandboxes.
+
+  To invoke npm installed binaries (`"bin"` field in `package.json`) one must
+  use:
+
+  ```
+  % esy webpack
+  ```
+
+  invocations. That means npm installed binaries are no in command environment
+  path.
+
+  To invoke `node` interpreter enhanced with pnp:
+
+  ```
+  % esy webpack
+  ```
+
+- New lock format.
+
+  esy 0.4.0 comes with a new lock format. Previously we stored everything in a
+  single JSON file `esy.lock.json`.
+
+  But as esy needs to store significantly more metadata about used packages
+  (opam metadata included and custom patches from overrides) single JSON file
+  isn't very good choice - it's big (over 9K lines usually), it's hard to review
+  during changes.
+
+  Instead of a single `esy.lock.json` file esy now produces `esy.lock` directory
+  with a JSON file `esy.lock/index.json` which keeps package graph and a set of
+  files, one for each opam/override/patch file store.
+
+- Added new command `esy show`.
+
+  Such command can be used to query metadata about npm, opam or other packages
+  (hosted on github for example).
+
+  Example:
+
+  ```
+  % esy show react
+  % esy show @opam/dune
+  % esy show github:facebook/reason
+  ```
+
+  Thanks to @kazcw for the feature.
+
+- Numerous fixes and improvements for Windows.
+
+  Installation and build are much more robust and much more fast on Windows!
+
+  Many thanks to @bryphe for that!
+
+- Native compiler toolchain on Windows (esy-bash) is greatly improved.
+
+  The entry point is rewritten in native compiled Reason which means much faster
+  installations and builds on Windows.
+
+  Thanks @prometheansacrifice for this contribution!
+
+- Fixes to `esy release` on Windows.
+
+  Thanks to @ulrikstrid we now have fixed issues with `esy release` command on
+  Windows.
+
+  The feature is still blocked on store padding support on Windows though.
+
+- Allow links only `"resolutions"`.
+
+  Previously `link:` dependencies were allowed in `"dependencies"`
+  configuration. That isn't correct as `"dependencies"` are constraints while
+  `link:` declaration is a resolution (it's unifies only with itself as a
+  constraint).
+
+  Therefore we allow `link:` only `"resolutions"` now.
+
+- Add `dune-project` to sandbox white list.
+
+  This will make `esy b dune` not fail on fresh projects.
+
+  Thanks to @rizo for fixing this.
+
+- Support root packages without `"esy"` configuration.
+
+  Such packages will still have their dependencies built.
+
+- Make esy generate batch scripts with `.cmd` extensions for npm binaries
+  (`"bin"` field in `package.json`).
+
+[pnp rfc]: https://github.com/yarnpkg/rfcs/pull/101
+
+## 0.3.4 @ latest
 
 - One more fix for `esy import-build` which ensures we can run it on a
   completely fresh project.
