@@ -342,9 +342,8 @@ describe(`Installing with resolutions`, () => {
 
     const result = await p.esy(`install`);
 
-    console.log(result.stderr);
-
     expect(result.stderr.includes('warn resolution "unused" is unused (defined in package.json)')).toBe(true);
+    expect(result.stderr.includes('warn resolution "dep" is unused (defined in package.json)')).toBe(false);
 
   })
 
