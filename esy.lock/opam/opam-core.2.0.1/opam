@@ -1,0 +1,44 @@
+opam-version: "2.0"
+maintainer: "opam-devel@lists.ocaml.org"
+authors: [
+  "Vincent Bernardoff <vb@luminar.eu.org>"
+  "Raja Boujbel <raja.boujbel@ocamlpro.com>"
+  "Roberto Di Cosmo <roberto@dicosmo.org>"
+  "Thomas Gazagnaire <thomas@gazagnaire.org>"
+  "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  "Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>"
+  "Anil Madhavapeddy <anil@recoil.org>"
+  "Guillem Rieu <guillem.rieu@ocamlpro.com>"
+  "Ralf Treinen <ralf.treinen@pps.jussieu.fr>"
+  "Frederic Tuong <tuong@users.gforge.inria.fr>"
+]
+homepage: "https://opam.ocaml.org/"
+bug-reports: "https://github.com/ocaml/opam/issues"
+depends: [
+  "ocaml" {>= "4.02.3"}
+  "base-unix"
+  "base-bigarray"
+  "ocamlgraph"
+  "re" {>= "1.5.0"}
+  "jbuilder" {build & >= "1.0+beta17"}
+  "cppo" {build}
+]
+conflicts: ["extlib-compat"]
+build: [
+  ["./configure" "--disable-checks" "--prefix" prefix]
+  [make "%{name}%.install"]
+]
+dev-repo: "git+https://github.com/ocaml/opam.git"
+url {
+  src: "https://github.com/ocaml/opam/archive/2.0.1.tar.gz"
+  checksum: [
+    "md5=1e55c234fa09e678e8115a31f3ec2a05"
+    "sha512=d71c362d70a6b6cb9fe54cc43bfbea8079cca05d4721a7dda951196f543a1ff5af81399a246e0cd68bc590c7bdca388d96c7127217ed637261957047ce725516"
+  ]
+}
+description:"""
+opam 2.0 development libraries
+
+Small standard library extensions, and generic system interaction modules used
+by opam.
+"""

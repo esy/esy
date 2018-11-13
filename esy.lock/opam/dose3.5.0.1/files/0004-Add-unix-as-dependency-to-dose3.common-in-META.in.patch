@@ -1,0 +1,25 @@
+From b94cf24739818e5aff397e0a83b19ea32dc81f42 Mon Sep 17 00:00:00 2001
+From: Louis Gesbert <louis.gesbert@ocamlpro.com>
+Date: Tue, 6 Feb 2018 10:15:45 +0100
+Subject: [PATCH 3/3] Add "unix" as dependency to dose3.common in META.in
+
+---
+ META.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/META.in b/META.in
+index aa2cd8d..0f9d337 100644
+--- a/META.in
++++ b/META.in
+@@ -8,7 +8,7 @@ package "common" (
+ version = "@PACKAGE_VERSION@"
+ archive(byte) = "common.cma"
+ archive(native) = "common.cmxa"
+-requires = "extlib, re.pcre, cudf, @ZIP@, @BZ2@"
++requires = "extlib, re.pcre, cudf, unix, @ZIP@, @BZ2@"
+ )
+ 
+ package "algo" (
+-- 
+2.11.0
+
