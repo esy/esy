@@ -41,26 +41,14 @@ steps:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
         targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
-  - script: 'npm install -g esy@0.2.11'
-    displayName: 'npm install -g esy@0.2.11'
+  - script: 'npm install -g esy@0.4.0'
+    displayName: 'npm install -g esy@0.4.0'
 
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
 
-  - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
-    displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
-
   - script: 'esy install'
     displayName: 'esy install'
-    continueOnError: true
-
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
-
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
 
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload source tarballs'
@@ -82,15 +70,6 @@ steps:
         artifactName: 'build-cache-windows-install'
         parallel: true
         parallelCount: 8
-
-  - script: 'ls C:\Users\VssAdministrator\.esy'
-    displayName: 'Check contents of VSSAdministrator .esy directory'
-
-  - script: 'npm run build:postinstall-esy-bash'
-    displayName: 'postinstall-esy-bash'
-
-  - script: 'npm run build:postinstall-esy-solve-cudf'
-    displayName: 'postinstall-esy-cudf'
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
