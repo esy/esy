@@ -1,0 +1,2 @@
+# Set files to binary mode, so that the newlines aren't 'CRLF'-ized on windows.
+* binary
