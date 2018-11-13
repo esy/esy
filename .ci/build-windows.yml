@@ -18,10 +18,10 @@ steps:
   #       downloadPath: '$(System.ArtifactsDirectory)'
   #   continueOnError: true
 
-  - task: CopyFiles@2
-    inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
-        targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+  # - task: CopyFiles@2
+  #   inputs:
+  #       sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+  #       targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
 
   # - task: DownloadBuildArtifacts@0
   #   displayName: 'Cache: Restore install'
@@ -36,10 +36,10 @@ steps:
   #       downloadPath: '$(System.ArtifactsDirectory)'
   #   continueOnError: true
 
-  - task: CopyFiles@2
-    inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
-        targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
+  # - task: CopyFiles@2
+  #   inputs:
+  #       sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+  #       targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
   - script: 'npm install -g esy@0.4.0'
     displayName: 'npm install -g esy@0.4.0'
