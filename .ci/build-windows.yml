@@ -5,36 +5,36 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Cache: Restore source-tarballs'
-    inputs:
-        buildType: 'specific'
-        project: 'esy'
-        pipeline: 'build'
-        buildVersionToDownload: 'specific'
-        buildId: '245'
-        downloadType: 'single'
-        artifactName: 'build-cache-windows-source-tarballs'
-        downloadPath: '$(System.ArtifactsDirectory)'
-    continueOnError: true
+  # - task: DownloadBuildArtifacts@0
+  #   displayName: 'Cache: Restore source-tarballs'
+  #   inputs:
+  #       buildType: 'specific'
+  #       project: 'esy'
+  #       pipeline: 'build'
+  #       buildVersionToDownload: 'specific'
+  #       buildId: '245'
+  #       downloadType: 'single'
+  #       artifactName: 'build-cache-windows-source-tarballs'
+  #       downloadPath: '$(System.ArtifactsDirectory)'
+  #   continueOnError: true
 
   - task: CopyFiles@2
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
         targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
 
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Cache: Restore install'
-    inputs:
-        buildType: 'specific'
-        project: 'esy'
-        pipeline: 'build'
-        buildVersionToDownload: 'specific'
-        buildId: '245'
-        downloadType: 'single'
-        artifactName: 'build-cache-windows-install'
-        downloadPath: '$(System.ArtifactsDirectory)'
-    continueOnError: true
+  # - task: DownloadBuildArtifacts@0
+  #   displayName: 'Cache: Restore install'
+  #   inputs:
+  #       buildType: 'specific'
+  #       project: 'esy'
+  #       pipeline: 'build'
+  #       buildVersionToDownload: 'specific'
+  #       buildId: '245'
+  #       downloadType: 'single'
+  #       artifactName: 'build-cache-windows-install'
+  #       downloadPath: '$(System.ArtifactsDirectory)'
+  #   continueOnError: true
 
   - task: CopyFiles@2
     inputs:
