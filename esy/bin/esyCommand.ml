@@ -1194,7 +1194,19 @@ let solve {CommonOptions. installSandbox; _} () =
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution installSandbox in
   let unused = Resolver.getUnusedResolutions installSandbox.resolver in
-  let%lwt () = Lwt_list.iter_p (fun name -> (Logs_lwt.warn (fun m -> m "Resolution '%s' is unused" name))) unused in
+  let%lwt () =
+    let log resolution =
+      Logs_lwt.warn (
+        fun m ->
+          m "resolution %a is unused (defined in %a)"
+          Fmt.(quote string)
+          resolution
+          ManifestSpec.pp
+          installSandbox.spec.manifest
+      )
+    in
+    Lwt_list.iter_s log unused
+  in
   return ()
 
 let fetch {CommonOptions. installSandbox = sandbox; _} () =
