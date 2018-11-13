@@ -131,18 +131,17 @@ let setOCamlVersion ocamlVersion resolver =
   resolver.ocamlVersion <- Some ocamlVersion
 
 let setResolutions resolutions resolver =
-  (* First we set the resolutions *)
-  resolver.resolutions <- resolutions;
-  (* Then we set the usage of every resolution to 0 *)
-  List.iter
-    ~f:(fun r -> Hashtbl.add resolver.resolutionUsage r false)
-    (Resolutions.entries resolutions)
+  resolver.resolutions <- resolutions
   
+
 let getUnusedResolutions resolver =
-  Hashtbl.fold
-    (fun (res:Resolution.t) used unused -> if not used then (res.name)::unused else unused)
-    resolver.resolutionUsage
-    []
+  let nameIfUnused usage (resolution:Resolution.t) =
+    match Hashtbl.find_opt usage resolution with
+    | Some true -> None
+    | _         -> Some resolution.name
+  in
+  List.filter_map ~f:(nameIfUnused resolver.resolutionUsage) (Resolutions.entries resolver.resolutions)
+
 
 (* This function increments the resolution usage count of that resolution *)
 let markResolutionAsUsed resolver resolution =
