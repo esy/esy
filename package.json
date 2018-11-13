@@ -31,6 +31,7 @@
     "buildsInSource": "_build"
   },
   "scripts": {
+    "bootstrap": "esy node scripts/bootstrap.js",
     "install:esy": "esy install",
     "build": "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
@@ -87,11 +88,13 @@
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
+    "jest-pnp-resolver": "^1.0.1",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
     "ocaml": "~4.6.6",
     "outdent": "^0.3.0",
     "prettier": "^1.13.7",
+    "invariant": "^2.2.4",
     "rimraf": "^2.6.2",
     "semver": "^5.5.0",
     "super-resolve": "^1.0.0",

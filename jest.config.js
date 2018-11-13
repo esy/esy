@@ -1,4 +1,5 @@
 module.exports = {
+  resolver: require.resolve('jest-pnp-resolver'),
   displayName: 'e2e:fast',
   moduleFileExtensions: ['js'],
   testMatch: ['<rootDir>/test-e2e/**/*.test.js'],

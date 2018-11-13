@@ -1,5 +1,5 @@
 {
-  "checksum": "9e03bec0c7b014d46127a23b2caecbc4",
+  "checksum": "547f1e974f6303d408c39daea344b9fd",
   "root": "esy@link:./package.json",
   "node": {
     "yargs-parser@9.0.2": {
@@ -3629,6 +3629,19 @@
       "dependencies": [],
       "devDependencies": []
     },
+    "jest-pnp-resolver@1.0.1": {
+      "name": "jest-pnp-resolver",
+      "version": "1.0.1",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/jest-pnp-resolver/-/jest-pnp-resolver-1.0.1.tgz#sha1:f397cd71dbcd4a1947b2e435f6da8e9a347308fa"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [ "jest-resolve@23.6.0" ],
+      "devDependencies": []
+    },
     "jest-mock@23.2.0": {
       "name": "jest-mock",
       "version": "23.2.0",
@@ -5581,7 +5594,8 @@
       "devDependencies": [
         "tmp@0.0.33", "tar-fs@1.16.3", "tar@4.4.8", "super-resolve@1.0.0",
         "semver@5.6.0", "rimraf@2.6.2", "prettier@1.15.2", "outdent@0.3.0",
-        "minimatch@3.0.4", "klaw@2.1.1", "jest-cli@23.6.0", "fs-extra@7.0.1",
+        "minimatch@3.0.4", "klaw@2.1.1", "jest-pnp-resolver@1.0.1",
+        "jest-cli@23.6.0", "invariant@2.2.4", "fs-extra@7.0.1",
         "flow-bin@0.77.0", "esy-bash@0.3.16", "del@3.0.0",
         "babel-preset-flow@6.23.0", "babel-preset-env@1.7.0",
         "@opam/utop@opam:2.2.0", "@opam/merlin@opam:3.2.2"
