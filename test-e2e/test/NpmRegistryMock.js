@@ -21,6 +21,7 @@ const fsUtils = require('./fs');
 export type PackageRegistry = {
   packages: PackageCollection,
   serverUrl: string,
+  shutdown: () => Promise<void>,
 };
 
 type PackageCollection = Map<string, PackageEntry>;
@@ -403,7 +404,7 @@ async function initialize(
     return true;
   }
 
-  const serverUrl = await new Promise((resolve, reject) => {
+  const {serverUrl, server} = await new Promise((resolve, reject) => {
     const server = http.createServer(
       (req, res) =>
         void (async () => {
@@ -449,11 +450,27 @@ async function initialize(
     }
     server.listen(() => {
       const {port} = server.address();
-      resolve(`http://localhost:${port}`);
+      resolve({serverUrl: `http://localhost:${port}`, server});
     });
   });
 
-  const packageRegistry = {serverUrl, packages};
+  function shutdown() {
+    return new Promise((resolve, reject) => {
+      server.close(function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
+  const packageRegistry = {
+    serverUrl,
+    packages,
+    shutdown,
+  };
 
   return packageRegistry;
 }
