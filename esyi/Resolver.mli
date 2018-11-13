@@ -10,6 +10,9 @@ val make :
 
 val setOCamlVersion : Version.t -> t -> unit
 val setResolutions : Package.Resolutions.t -> t -> unit
+val getUnusedResolutions : t -> string list
+
+
 
 (**
  * Resolve package request into a list of resolutions

@@ -63,6 +63,7 @@ type t = {
   mutable ocamlVersion : Version.t option;
   mutable resolutions : Package.Resolutions.t;
   resolutionCache : ResolutionCache.t;
+  resolutionUsage : (Resolution.t, bool) Hashtbl.t;
 
   npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
   sourceSpecToSource : (SourceSpec.t, Source.t) Hashtbl.t;
@@ -120,6 +121,7 @@ let make ~cfg ~sandbox () =
     ocamlVersion = None;
     resolutions = Package.Resolutions.empty;
     resolutionCache = ResolutionCache.make ();
+    resolutionUsage = Hashtbl.create 10;
     npmDistTags = Hashtbl.create 500;
     sourceSpecToSource = Hashtbl.create 500;
     sourceToSource = Hashtbl.create 500;
@@ -130,6 +132,20 @@ let setOCamlVersion ocamlVersion resolver =
 
 let setResolutions resolutions resolver =
   resolver.resolutions <- resolutions
+  
+
+let getUnusedResolutions resolver =
+  let nameIfUnused usage (resolution:Resolution.t) =
+    match Hashtbl.find_opt usage resolution with
+    | Some true -> None
+    | _         -> Some resolution.name
+  in
+  List.filter_map ~f:(nameIfUnused resolver.resolutionUsage) (Resolutions.entries resolver.resolutions)
+
+
+(* This function increments the resolution usage count of that resolution *)
+let markResolutionAsUsed resolver resolution =
+  Hashtbl.replace resolver.resolutionUsage resolution true
 
 let sourceMatchesSpec resolver spec source =
   match Hashtbl.find_opt resolver.sourceSpecToSource spec with
@@ -592,7 +608,10 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
   match Resolutions.find resolver.resolutions name with
-  | Some resolution -> return [resolution]
+  | Some resolution -> 
+    (* increment usage counter for that resolution so that we know it was used *)
+    markResolutionAsUsed resolver resolution;
+    return [resolution]
   | None ->
     let spec =
       match spec with

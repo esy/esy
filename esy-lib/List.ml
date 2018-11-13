@@ -9,6 +9,13 @@ let filterNone xs =
   in
   rev (loop xs [])
 
+let rec filter_map ~f = function
+    [] -> []
+  | a::l -> match f a with 
+            | Some r -> r :: filter_map ~f l
+            | None   -> filter_map ~f l
+
+
 let diff xs ys =
   filter ~f:(fun elem -> not (mem ~set:ys elem)) xs
 

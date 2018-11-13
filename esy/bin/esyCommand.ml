@@ -1187,9 +1187,24 @@ let getSandboxSolution installSandbox =
   let%bind () =
     SolutionLock.toPath ~sandbox:installSandbox ~solution lockPath
   in
+  let unused = Resolver.getUnusedResolutions installSandbox.resolver in
+  let%lwt () =
+    let log resolution =
+      Logs_lwt.warn (
+        fun m ->
+          m "resolution %a is unused (defined in %a)"
+          Fmt.(quote string)
+          resolution
+          ManifestSpec.pp
+          installSandbox.spec.manifest
+      )
+    in
+    Lwt_list.iter_s log unused
+  in
   return solution
 
 let solve {CommonOptions. installSandbox; _} () =
+  let open EsyInstall in
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution installSandbox in
   return ()
