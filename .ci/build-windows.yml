@@ -62,6 +62,9 @@ steps:
   - script: 'esy build'
     displayName: 'esy build'
 
+  - script: 'esy bootstrap'
+    displayName: 'esy bootstrap'
+
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload install folder'
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))

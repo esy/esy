@@ -13,6 +13,9 @@ steps:
   - script: 'esy build'
     displayName: 'esy build'
 
+  - script: 'esy bootstrap'
+    displayName: 'esy bootstrap'
+
   - script: 'esy test:e2e'
     displayName: 'esy test:e2e'
 
