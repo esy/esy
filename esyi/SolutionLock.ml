@@ -4,7 +4,7 @@ type source =
       manifest : ManifestSpec.t option;
     }
   | Install of {
-      source : Source.t * Source.t list;
+      source : Dist.t * Dist.t list;
       opam : OpamResolution.Lock.t option;
     }
 
@@ -20,7 +20,7 @@ let source_to_yojson source =
   | Install { source = source, mirrors; opam } ->
     assoc [
       field "type" string "install";
-      field "source" (Json.Encode.list Source.to_yojson) (source::mirrors);
+      field "source" (Json.Encode.list Dist.to_yojson) (source::mirrors);
       fieldOpt "opam" OpamResolution.Lock.to_yojson opam;
     ]
 
@@ -30,7 +30,7 @@ let source_of_yojson json =
   match%bind fieldWith ~name:"type" string json with
   | "install" ->
     let%bind source =
-      match%bind fieldWith ~name:"source" (list Source.of_yojson) json with
+      match%bind fieldWith ~name:"source" (list Dist.of_yojson) json with
       | source::mirrors -> return (source, mirrors)
       | _ -> errorf "invalid source configuration"
     in

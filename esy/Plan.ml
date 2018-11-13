@@ -200,7 +200,7 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
 
   return (paths, manifests)
 
-let buildId ~sandboxEnv ~name ~version build source dependencies =
+let buildId ~sandboxEnv ~name ~version build dist dependencies =
 
   let hash =
 
@@ -228,9 +228,9 @@ let buildId ~sandboxEnv ~name ~version build source dependencies =
 
     (* a special tag which is communicated by the installer and specifies
       * the version of distribution of vcs commit sha *)
-    let source =
-      match source with
-      | Some source -> BuildManifest.Source.show source
+    let dist =
+      match dist with
+      | Some dist -> EsyInstall.Dist.show dist
       | None -> "-"
     in
 
@@ -240,7 +240,7 @@ let buildId ~sandboxEnv ~name ~version build source dependencies =
       |> Yojson.Safe.to_string
     in
 
-    String.concat "__" (sandboxEnv::source::self::dependencies)
+    String.concat "__" (sandboxEnv::dist::self::dependencies)
     |> Digest.string
     |> Digest.to_hex
     |> fun hash -> String.sub hash 0 8

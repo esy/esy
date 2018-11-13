@@ -151,9 +151,7 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
 
   let rec fetch' errs sources =
     match sources with
-    | (Source.Link _ as source)::_rest ->
-      return {Dist. sandbox; pkg; source; archive = None;}
-    | (Source.Dist dist as source)::rest ->
+    | dist::rest ->
       begin match%bind
         DistStorage.fetch
           ~cfg:sandbox.Sandbox.cfg
@@ -161,15 +159,15 @@ let fetch ~sandbox (pkg : Solution.Package.t) =
           dist
       with
       | Ok archive ->
-        return {Dist. sandbox; pkg; source; archive = Some archive;}
-      | Error err -> fetch' ((source, err)::errs) rest
+        return {Dist. sandbox; pkg; source = Source.Dist dist; archive = Some archive;}
+      | Error err -> fetch' ((dist, err)::errs) rest
       end
     | [] ->
       Logs_lwt.err (fun m ->
         let ppErr fmt (source, err) =
           Fmt.pf fmt
             "source: %a@\nerror: %a"
-            Source.pp source
+            D.pp source
             Run.ppError err
         in
         m "unable to fetch %a:@[<v 2>@\n%a@]"
