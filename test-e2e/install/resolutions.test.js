@@ -322,7 +322,7 @@ describe(`Installing with resolutions`, () => {
     });
   });
 
-  test(`should display a warning in case of unused resolutions`, async () => {
+  test(`should display a warning in case of unused resolutions during install`, async () => {
     const p = await helpers.createTestSandbox();
 
     await p.defineNpmPackage({
@@ -341,6 +341,30 @@ describe(`Installing with resolutions`, () => {
     );
 
     const result = await p.esy(`install`);
+
+    expect(result.stderr.includes('warn resolution "unused" is unused (defined in package.json)')).toBe(true);
+    expect(result.stderr.includes('warn resolution "dep" is unused (defined in package.json)')).toBe(false);
+
+  })
+
+  test(`should display a warning in case of unused resolutions during add`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: `2.0.0`,
+    });
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        resolutions: {dep: `2.0.0`, unused: `1.0.0`},
+      }),
+    );
+
+    const result = await p.esy(`add dep`);
 
     expect(result.stderr.includes('warn resolution "unused" is unused (defined in package.json)')).toBe(true);
     expect(result.stderr.includes('warn resolution "dep" is unused (defined in package.json)')).toBe(false);
