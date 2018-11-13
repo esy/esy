@@ -145,7 +145,7 @@ let getUnusedResolutions resolver =
     []
 
 (* This function increments the resolution usage count of that resolution *)
-let didUse resolver resolution =
+let markResolutionAsUsed resolver resolution =
   Hashtbl.replace resolver.resolutionUsage resolution true
 
 let sourceMatchesSpec resolver spec source =
@@ -611,7 +611,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
   match Resolutions.find resolver.resolutions name with
   | Some resolution -> 
     (* increment usage counter for that resolution so that we know it was used *)
-    didUse resolver resolution;
+    markResolutionAsUsed resolver resolution;
     return [resolution]
   | None ->
     let spec =
