@@ -1,2 +1,2 @@
-# Set files to binary mode, so that the newlines aren't 'CRLF'-ized on windows.
-* binary
+# Force LF eol, so that they aren't CRLF-ized on Windows.
+* text eol=lf
