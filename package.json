@@ -30,10 +30,10 @@
     ],
     "buildsInSource": "_build",
     "exportedEnv": {
-        "FLEXLINKFLAGS": {
-            "val": "-v -v",
-            "scope": "global"
-        }
+      "FLEXLINKFLAGS": {
+        "val": "-v -v",
+        "scope": "global"
+      }
     }
   },
   "scripts": {
@@ -51,7 +51,9 @@
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
-    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
+    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
+    "@opam/seq": "opam:0.1",
+    "ocaml": "github:esy-ocaml/ocaml#981c778377d6b3402c6c0055e899407287d400bb"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
