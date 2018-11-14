@@ -68,7 +68,6 @@ let gitAttributesContents = {|
 * binary
 |}
 
-
 let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
