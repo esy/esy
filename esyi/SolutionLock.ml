@@ -261,7 +261,6 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
 
 let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  print_endline ("SolutionLock::toPath" ^ (Path.show path));
   Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
