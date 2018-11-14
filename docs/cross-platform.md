@@ -84,3 +84,36 @@ Longer-term, the build for `esy` should be as simple as:
 - `npm install -g esy`
 - `esy install`
 - `esy build`
+
+## Developer considerations
+
+There are currently some additional challenges when working as a developer, building cross-platform code with OCaml - even using the pure standard libraries.
+
+Long-term, we'd like to provide a cross-platform abstraction layer that frees the developer from the cognitive load of these challenges - something that Node/Javascript was very successful at. One thing the NPM/Node ecosystem was successful at is making it _simple_ to build cross-platform solutions, with minimal effort from the developer.
+
+This section is the first stage of such a cross-platform abstraction layer - identifying pain points in cross-platform development today, so that we can iron those out.
+
+### Binary Mode vs Text Mode channels
+
+A common source of problems is in the differing behavior of input / output channels. 
+
+Specifically, on Linux / OSX, the default is for channels to be in `binary` mode. On Windows, however, several APIs default to a `text mode` channel, which does some OS-specific conversions.
+
+This can be summed up in the following table:
+
+| Command  | Windows  | OSX / Linux  |
+|---|---|---|
+|`open_in`   | Text   | Binary   |
+|`open_in_bin`   | Binary   | Binary |
+|`open_out`  | Text  | Binary   |
+|`open_out_bin` | Binary | Binary |
+
+> __RECOMMENDATION:__ Always use the `open_in_bin` and `open_out_bin` methods by default. In general, binary mode is what you want anyway - especially when using marshalling functions like `input_value` and `output_value`.
+
+This also impacts the default `stdin` / `stdout` channels on Windows. By default, again, these are _text mode_ channels, which will be problematic when used by another process that assumes binary (again, in the marshalling case).
+
+> __RECOMMENDATION:__ Set `stdin` / `stdout` to use binary mode explicitly to ensure consistent cross-platform behavior.
+
+These particular issues are examples:
+- https://github.com/facebook/reason/pull/2256 - `ocamlmerlin-reason`: An error bubbled up as `output_value: not a binary channel` on Windows, due to the default stdout-text-channel behavior. Fix was to explicitly set the `stdout` channel to binary mode.
+- https://gitlab.inria.fr/fpottier/menhir/issues/16 - `menhir`: Menhir attempted to write to a file with `open_out` and then use `output_value`, which fails on Windows due to the channel not being binary. Fix was to use `open_out_bin.`
