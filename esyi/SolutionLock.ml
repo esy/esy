@@ -61,11 +61,15 @@ and node = {
 }
 
 let indexFilename = "index.json"
-let gitAttributesFilename = ".gitattributes"
 
 let gitAttributesContents = {|
-#Set files to binary mode, so that the newlines aren't 'CRLF'-ized on windows.
-* binary
+# Set eol to LF so files aren't converted to CRLF-eol on Windows.
+* text eol=lf
+|}
+
+let gitIgnoreContents = {|
+# Reset any possible .gitignore, we want all esy.lock to be un-ignored.
+!*
 |}
 
 let ofPackage sandbox (pkg : Solution.Package.t) =
@@ -268,4 +272,6 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let lock = {checksum; node; root = Solution.Package.id root;} in
   let%bind () = Fs.createDir path in
   let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
-  Fs.writeFile ~data:gitAttributesContents Path.(path / gitAttributesFilename)
+  let%bind () = Fs.writeFile ~data:gitAttributesContents Path.(path / ".gitattributes") in
+  let%bind () = Fs.writeFile ~data:gitIgnoreContents Path.(path / ".gitignore") in
+  return ()
