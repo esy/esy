@@ -28,13 +28,7 @@
         "./esy.install"
       ]
     ],
-    "buildsInSource": "_build",
-    "exportedEnv": {
-      "FLEXLINKFLAGS": {
-        "val": "-v -v",
-        "scope": "global"
-      }
-    }
+    "buildsInSource": "_build"
   },
   "scripts": {
     "bootstrap": "esy node scripts/bootstrap.js",
@@ -51,9 +45,7 @@
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
-    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
-    "@opam/seq": "opam:0.1",
-    "ocaml": "github:esy-ocaml/ocaml#981c778377d6b3402c6c0055e899407287d400bb"
+    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
@@ -84,7 +76,7 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.10",
-    "ocaml": "~4.6.8"
+    "ocaml": "~4.6.9"
   },
   "devDependencies": {
     "@opam/merlin": "*",
@@ -99,7 +91,7 @@
     "jest-pnp-resolver": "^1.0.1",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
-    "ocaml": "~4.6.6",
+    "ocaml": "~4.6.9",
     "outdent": "^0.3.0",
     "prettier": "^1.13.7",
     "invariant": "^2.2.4",
