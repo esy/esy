@@ -43,8 +43,6 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "ocaml": "github:esy-ocaml/ocaml#b29b1fe82",
-    "@opam/seq": "0.1",
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
@@ -78,7 +76,7 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.10",
-    "ocaml": "~4.6.6"
+    "ocaml": "~4.6.8"
   },
   "devDependencies": {
     "@opam/merlin": "*",
