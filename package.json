@@ -43,7 +43,7 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "ocaml": "github:esy-ocaml/ocaml#f78a1776e",
+    "ocaml": "github:esy-ocaml/ocaml#fd4264009",
     "@opam/seq": "0.1",
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
