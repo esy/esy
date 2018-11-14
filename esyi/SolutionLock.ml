@@ -61,6 +61,12 @@ and node = {
 }
 
 let indexFilename = "index.json"
+let gitAttributesFilename = ".gitattributes"
+
+let gitAttributesContents = {|
+#Set files to binary mode, so that the newlines aren't 'CRLF'-ized on windows.
+* binary
+|}
 
 let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
@@ -261,4 +267,5 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let%bind checksum = computeSandboxChecksum sandbox in
   let lock = {checksum; node; root = Solution.Package.id root;} in
   let%bind () = Fs.createDir path in
-  Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)
+  let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
+  Fs.writeFile ~data:gitAttributesContents Path.(path / gitAttributesFilename)
