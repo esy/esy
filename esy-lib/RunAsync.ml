@@ -66,6 +66,14 @@ let runExn ?err v =
   let v = Lwt_main.run v in
   Run.runExn ?err v
 
+let cleanup comp handler =
+  let res =
+    match%lwt comp with
+    | Ok res -> return res
+    | Error _ as err -> handler () ;%lwt Lwt.return err
+  in
+  try%lwt res with err -> (handler () ;%lwt raise err)
+
 module List = struct
 
   let foldLeft ~(f : 'a -> 'b -> 'a t) ~(init : 'a) (xs : 'b list) =
