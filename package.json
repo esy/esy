@@ -28,7 +28,13 @@
         "./esy.install"
       ]
     ],
-    "buildsInSource": "_build"
+    "buildsInSource": "_build",
+    "exportedEnv": {
+        "FLEXLINKFLAGS": {
+            "val": "-v -v",
+            "scope": "global"
+        }
+    }
   },
   "scripts": {
     "bootstrap": "esy node scripts/bootstrap.js",
@@ -43,8 +49,6 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "ocaml": "github:esy-ocaml/ocaml#fd4264009",
-    "@opam/seq": "0.1",
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
