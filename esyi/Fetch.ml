@@ -245,7 +245,6 @@ end = struct
           Fmt.(styled `Bold string) lifecycleName
         )
       in
-
       let readAndCloseFile path =
         let%lwt ic = Lwt_io.(open_file ~mode:Input path) in
         Lwt.finalize
@@ -304,7 +303,6 @@ end = struct
         in
         let logFileName = lifecycleName ^ ".log" in
         let logFilePath = Path.show (Fpath.(sourcePath / logFileName)) in
-        (Logs_lwt.app (fun m -> m "%s" logFilePath));%lwt
         let fd = Unix.(openfile logFilePath [O_RDWR; O_CREAT] 0o660) in
         Lwt_process.with_process_out ?env ~stdout:(`FD_copy fd) ~stderr:(`FD_copy fd) cmd (make_f logFilePath fd)
       with
