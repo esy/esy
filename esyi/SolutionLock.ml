@@ -52,6 +52,7 @@ type t = {
 } [@@deriving yojson]
 
 and node = {
+  id: PackageId.t;
   name: string;
   version: Version.t;
   source: source;
@@ -88,6 +89,7 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
       pkg.overrides
   in
   return {
+    id = pkg.id;
     name = pkg.name;
     version = pkg.version;
     source;
@@ -108,6 +110,7 @@ let toPackage sandbox (node : node) =
   in
   return {
     Solution.Package.
+    id = node.id;
     name = node.name;
     version = node.version;
     source;

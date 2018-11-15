@@ -20,6 +20,19 @@ type t = {
   path : Path.t;
 } [@@deriving yojson]
 
+let readFiles res =
+  File.ofDir Path.(res.path / "files")
+
+let digest res =
+  let open RunAsync.Syntax in
+  let%bind files = readFiles res in
+  let checksums = List.map ~f:File.checksum files in
+  let%bind opamChecksum = Checksum.computeOfFile Path.(res.path / "opam") in
+  let checksums = opamChecksum::checksums in
+  let parts = List.map ~f:Checksum.show checksums in
+  let parts = List.sort ~cmp:String.compare parts in
+  return (Digest.string (String.concat "--" parts))
+
 module Lock = struct
   type nonrec t = t
 

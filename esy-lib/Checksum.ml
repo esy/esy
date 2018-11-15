@@ -60,6 +60,24 @@ let sha1sum = Cmd.(v "shasum" % "--algorithm" % "1")
 let sha256sum = Cmd.(v "shasum" % "--algorithm" % "256")
 let sha512sum = Cmd.(v "shasum" % "--algorithm" % "512")
 
+let computeOfFile ?(kind=Sha256) path =
+  let cmd =
+    match kind with
+    | Md5 -> md5sum
+    | Sha1 -> sha1sum
+    | Sha256 -> sha256sum
+    | Sha512 -> sha512sum
+  in
+  (* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths *)
+  RunAsync.ofBosError (
+    let open Result.Syntax in
+    let path = EsyBash.normalizePathForCygwin (Path.show path) in
+    let%bind out = EsyBash.runOut Cmd.(cmd % path |> toBosCmd) in
+    match Astring.String.cut ~sep:" " out with
+    | Some (v, _) -> return (kind, v)
+    | None -> return (kind, String.trim out)
+  )
+
 let checkFile ~path (checksum : t) =
   let open RunAsync.Syntax in
 

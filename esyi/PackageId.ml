@@ -1,21 +1,49 @@
-type t = string * Version.t [@@deriving ord]
+type t = {
+  name : string;
+  version : Version.t;
+  digest : string option;
+} [@@deriving ord]
 
-let make name version = name, version
-let name (name, _version) = name
-let version (_name, version) = version
+let make name version digest =
+  let digest =
+    match digest with
+    | Some digest ->
+      let digest = Digest.to_hex digest in
+      let digest = String.sub digest 0 8 in
+      Some digest
+    | None -> None
+  in
+  {name; version; digest}
+let name {name; _} = name
+let version {version; _} = version
 
-let rec parse v =
+let parse v =
   let open Result.Syntax in
-  match Astring.String.cut ~sep:"@" v with
-  | Some ("", name) ->
-    let%bind name, version = parse name in
-    return ("@" ^ name, version)
-  | Some (name, version) ->
+  let split v = Astring.String.cut ~sep:"@" v in
+  let rec parseName v =
+    let open Result.Syntax in
+    match split v with
+    | Some ("", name) ->
+      let%bind name, version = parseName name in
+      return ("@" ^ name, version)
+    | Some (name, version) ->
+      return (name, version)
+    | None -> error "invalid id: missing version"
+  in
+  let%bind name, v = parseName v in
+  match split v with
+  | Some (version, digest) ->
     let%bind version = Version.parse version in
-    return (name, version)
-  | None -> Error "invalid id"
+    return {name; version; digest = Some digest;}
+  | None ->
+    let%bind version = Version.parse v in
+    return {name; version; digest = None;}
 
-let show (name, version) = name ^ "@" ^ Version.show version
+let show {name; version; digest;} =
+  match digest with
+  | Some digest -> name ^ "@" ^ Version.show version ^ "@" ^ digest
+  | None -> name ^ "@" ^ Version.show version
+
 let pp fmt id = Fmt.pf fmt "%s" (show id)
 
 let to_yojson id =
@@ -52,8 +80,8 @@ module Map = struct
 
   let to_yojson v_to_yojson map =
     let items =
-      let f (name, version) v items =
-        let k = name ^ "@" ^ Version.show version in
+      let f id v items =
+        let k = show id in
         (k, v_to_yojson v)::items
       in
       fold f map []

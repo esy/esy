@@ -10,7 +10,7 @@ include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t
 include S.JSONABLE with type t := t
 
-val make : string -> Version.t -> t
+val make : string -> Version.t -> Digest.t option -> t
 val name : t -> string
 val version : t -> Version.t
 val parse : string -> (t, string) result

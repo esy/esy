@@ -4,6 +4,8 @@ type t = {
   path : Path.t;
 }
 
+val digest : t -> Digest.t RunAsync.t
+
 module Lock : sig
   type t
 

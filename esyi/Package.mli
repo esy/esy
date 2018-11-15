@@ -14,8 +14,7 @@ end
 module CommandList : sig
 
   type t = Command.t list
-
-  include S.COMPARABLE with type t := t
+include S.COMPARABLE with type t := t
   include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
 
@@ -281,6 +280,12 @@ val pp : t Fmt.t
 val compare : t -> t -> int
 
 val to_yojson : t Json.encoder
+
+val computeId :
+  cfg:Config.t
+  -> sandbox:SandboxSpec.t
+  -> t
+  -> PackageId.t RunAsync.t
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

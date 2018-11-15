@@ -8,6 +8,7 @@
 module Package : sig
 
   type t = {
+    id: PackageId.t;
     name: string;
     version: Version.t;
     source: Package.source;

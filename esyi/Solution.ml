@@ -3,6 +3,7 @@ module P = Package
 module Package = struct
 
   type t = {
+    id : PackageId.t;
     name: string;
     version: Version.t;
     source: Package.source;
@@ -17,7 +18,7 @@ module Package = struct
     opamfile : OpamFile.OPAM.t;
   }
 
-  let id r = PackageId.make r.name r.version
+  let id pkg = pkg.id
 
   let compare a b =
     PackageId.compare (id a) (id b)
