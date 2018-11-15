@@ -36,7 +36,7 @@ describe('offline installation workflow', function() {
 
     // remove caches
     await fs.remove(path.join(p.projectPath, '_esy'));
-    await fs.remove(path.join(p.esyPrefixPath, '_esy', 'source'));
+    await fs.remove(path.join(p.esyPrefixPath, 'esyi', 'source'));
 
     await p.npmRegistry.shutdown();
 

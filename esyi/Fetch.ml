@@ -356,7 +356,9 @@ end = struct
     in
 
     let%bind () =
-      DistStorage.unpack fetched stagePath
+      RunAsync.contextf
+        (DistStorage.unpack fetched stagePath)
+        "unpacking %a" Solution.Package.pp pkg
     in
 
     let%bind () = copyFiles sandbox pkg stagePath in

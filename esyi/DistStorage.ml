@@ -21,14 +21,17 @@ type fetchedDist =
   (* no sources, corresponds to Dist.NoSource *)
   | Empty
   (* cached source path which could be safely removed *)
-  | CachedPath of Path.t
+  | Path of Path.t
   (* source path from some local package, should be retained *)
   | SourcePath of Path.t
+  (* downloaded tarball *)
   | Tarball of Path.t
+  (* cached tarball *)
+  | CachedTarball of Path.t
 
 let ofDir path = SourcePath path
 
-let fetchDistIntoPath' sandbox dist =
+let fetch' sandbox dist =
   let open RunAsync.Syntax in
   match dist with
 
@@ -76,7 +79,7 @@ let fetchDistIntoPath' sandbox dist =
       let%bind () = Git.checkout ~ref:git.commit ~repo:stagePath () in
       let%bind () = Fs.rmPath Path.(stagePath / ".git") in
       let%bind () = Fs.rename ~src:stagePath path in
-      return (CachedPath path)
+      return (Path path)
     )
 
 (* unpack fetched dist into directory *)
@@ -85,7 +88,7 @@ let unpack fetched path =
   match fetched with
   | Empty -> Fs.createDir path
   | SourcePath srcPath
-  | CachedPath srcPath ->
+  | Path srcPath ->
     let%bind names = Fs.listDir srcPath in
     let copy name =
       let src = Path.(srcPath / name) in
@@ -98,6 +101,8 @@ let unpack fetched path =
     return ()
   | Tarball tarballPath ->
     Tarball.unpack ~stripComponents:1 ~dst:path tarballPath
+  | CachedTarball tarballPath ->
+    Tarball.unpack ~stripComponents:0 ~dst:path tarballPath
 
 (* repack fetched dist into another fetched dist (tarball) *)
 let pack fetched tarballPath =
@@ -116,7 +121,7 @@ let pack fetched tarballPath =
     let%bind () = Tarball.create ~filename:tempTarballPath path in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
     return ()
-  | CachedPath path ->
+  | Path path ->
     let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
     let%bind () = Tarball.create ~filename:tempTarballPath path in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
@@ -131,6 +136,8 @@ let pack fetched tarballPath =
     let%bind () = Fs.rmPath path in
     let%bind () = Fs.rmPath unpackPath in
     return ()
+  | CachedTarball path ->
+    Fs.copyFile ~src:path ~dst:tarballPath
 
 let fetch ~cfg ~sandbox dist =
   let open RunAsync.Syntax in
@@ -138,16 +145,16 @@ let fetch ~cfg ~sandbox dist =
   let fetched =
     (* check if we have tarball cache configured *)
     match CachePaths.tarball cfg dist with
-    | None -> fetchDistIntoPath' sandbox dist
+    | None -> fetch' sandbox dist
     | Some tarballPath ->
       begin match%bind Fs.exists tarballPath with
-      | true -> return (Tarball tarballPath)
+      | true -> return (CachedTarball tarballPath)
       | false ->
         (* tarball cache configured but not fetched, fetch and repack then *)
         let%bind () = Fs.createDir (Path.parent tarballPath) in
-        let%bind fetched = fetchDistIntoPath' sandbox dist in
+        let%bind fetched = fetch' sandbox dist in
         let%bind () = pack fetched tarballPath in
-        return (Tarball tarballPath)
+        return (CachedTarball tarballPath)
       end
   in
 
