@@ -430,7 +430,7 @@ module Override = struct
     | OfJson _ -> return []
     | OfOpamOverride {files; _} -> File.ofDir files
     | OfDist {dist} ->
-      let%bind path = DistStorage.fetchAndUnpackToCache ~cfg ~sandbox dist in
+      let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox dist in
       File.ofDir Path.(path / "files")
 
   let fetch ~cfg ~sandbox override =
@@ -444,7 +444,7 @@ module Override = struct
           match dist with
           | Dist.LocalPath info ->
             return (DistPath.toPath sandbox.SandboxSpec.path info.path)
-          | dist -> DistStorage.fetchAndUnpackToCache ~cfg ~sandbox dist
+          | dist -> DistStorage.fetchIntoCache ~cfg ~sandbox dist
         in
         let filename =
           match Dist.manifest dist with

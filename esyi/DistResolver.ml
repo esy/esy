@@ -192,11 +192,11 @@ let resolve
     | Archive _ ->
       Fs.withTempDir begin fun path ->
         let%bind () =
-          DistStorage.fetchAndUnpack
+          DistStorage.fetch
             ~cfg
             ~sandbox
-            ~dst:path
             dist
+            path
         in
         let%bind _, pkg = ofPath path in
       return (pkg, Path.Set.empty)

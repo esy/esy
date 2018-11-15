@@ -1,17 +1,17 @@
-type archive = {
-  dist : Dist.t;
-  tarballPath : Path.t;
-}
+let distId dist =
+  Digest.to_hex (Digest.string (Dist.show dist))
 
-let sourceTarballPath ~cfg source =
-  let id =
-    Dist.show source
-    |> Digest.string
-    |> Digest.to_hex
-  in
-  Path.(cfg.Config.sourceArchivePath // v id |> addExt "tgz")
+let distTarballPath ~cfg dist =
+  match cfg.Config.sourceArchivePath with
+  | Some sourceArchivePath ->
+    let id = distId dist in
+    Some Path.(sourceArchivePath // v id |> addExt "tgz")
+  | None -> None
 
-let fetchSourceIntoPath root source path =
+let distCachePath ~cfg dist =
+  Path.(cfg.Config.sourceFetchPath / distId dist)
+
+let fetchDistIntoPath' root source path =
   let open RunAsync.Syntax in
   match source with
 
@@ -26,21 +26,19 @@ let fetchSourceIntoPath root source path =
     let%bind () =
       RunAsync.List.mapAndWait ~f:copy names
     in
-    return (Ok ())
+    return ()
 
   | Dist.NoSource ->
-    return (Ok ())
+    return ()
 
   | Dist.Archive {url; checksum}  ->
     let f tempPath =
       let%bind () = Fs.createDir tempPath in
       let tarballPath = Path.(tempPath / Filename.basename url) in
-      match%lwt Curl.download ~output:tarballPath url with
-      | Ok () ->
-        let%bind () = Checksum.checkFile ~path:tarballPath checksum in
-        let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
-        return (Ok ())
-      | Error err -> return (Error err)
+      let%bind () = Curl.download ~output:tarballPath url in
+      let%bind () = Checksum.checkFile ~path:tarballPath checksum in
+      let%bind () = Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
+      return ()
     in
     Fs.withTempDir f
 
@@ -57,7 +55,7 @@ let fetchSourceIntoPath root source path =
         Curl.download ~output:tarballPath url
       in
       let%bind () =  Tarball.unpack ~stripComponents:1 ~dst:path tarballPath in
-      return (Ok ())
+      return ()
     in
     Fs.withTempDir f
 
@@ -65,71 +63,41 @@ let fetchSourceIntoPath root source path =
     let%bind () = Git.clone ~dst:path ~remote:git.remote () in
     let%bind () = Git.checkout ~ref:git.commit ~repo:path () in
     let%bind () = Fs.rmPath Path.(path / ".git") in
-    return (Ok ())
+    return ()
 
-let fetchSourceIntoCache ~cfg ~sandbox source =
+let fetchDistIntoPath ~cfg ~sandbox dist path =
   let open RunAsync.Syntax in
-  let tarballPath = sourceTarballPath ~cfg source in
-
-  let%bind tarballIsInCache = Fs.exists tarballPath in
-
-  match tarballIsInCache with
-  | true ->
-    return (Ok tarballPath)
-  | false ->
-    Fs.withTempDir (fun sourcePath ->
-      let%bind fetched =
-        RunAsync.contextf (
-          let%bind () = Fs.createDir sourcePath in
-          fetchSourceIntoPath sandbox.SandboxSpec.path source sourcePath
-        )
-        "fetching %a" Dist.pp source
+  match distTarballPath ~cfg dist with
+  | Some tarballPath ->
+    begin match%bind Fs.exists tarballPath with
+    | true ->
+      Tarball.unpack ~dst:path tarballPath
+    | false ->
+      let%bind () =
+        fetchDistIntoPath' sandbox.SandboxSpec.path dist path
       in
+      let%bind () =
+        let%bind () = Fs.createDir (Path.parent tarballPath) in
+        let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
+        let%bind () = Tarball.create ~filename:tempTarballPath path in
+        let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+        return ()
+      in
+      return ()
+    end
+  | None ->
+    fetchDistIntoPath' sandbox.SandboxSpec.path dist path
 
-      match fetched with
-      | Ok () ->
-        let%bind () =
-          let%bind () = Fs.createDir (Path.parent tarballPath) in
-          let tempTarballPath = Path.(tarballPath |> addExt ".tmp") in
-          let%bind () = Tarball.create ~filename:tempTarballPath sourcePath in
-          let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-          return ()
-        in
-        return (Ok tarballPath)
-      | Error err -> return (Error err)
-    )
-
-let fetch ~cfg ~sandbox dist =
-  let open RunAsync.Syntax in
-  RunAsync.contextf (
-    match%bind fetchSourceIntoCache ~cfg ~sandbox dist with
-    | Ok tarballPath -> return (Ok {dist; tarballPath;})
-    | Error err -> return (Error err)
-  ) "fetching dist: %a" Dist.pp dist
-
-let unpack ~cfg:_ ~dst archive =
+let fetch ~cfg ~sandbox dist path =
   RunAsync.contextf
-    (Tarball.unpack ~dst archive.tarballPath)
-    "unpacking %a" Dist.pp archive.dist
+    (fetchDistIntoPath ~cfg ~sandbox dist path)
+    "fetching dist: %a" Dist.pp dist
 
-let fetchAndUnpack ~cfg ~sandbox ~dst source =
+let fetchIntoCache ~cfg ~sandbox (dist : Dist.t) =
   let open RunAsync.Syntax in
-  match%bind fetch ~cfg ~sandbox source with
-  | Ok source -> unpack ~cfg ~dst source
-  | Error err -> Lwt.return (Error err)
-
-let fetchAndUnpackToCache ~cfg ~sandbox (dist : Dist.t) =
-  let open RunAsync.Syntax in
-  let id = Digest.(to_hex (string (Dist.show dist))) in
-  let path = Path.(cfg.Config.sourceInstallPath / id) in
-
+  let path = distCachePath ~cfg dist in
   if%bind Fs.exists path
   then return path
   else
-    let%bind archive = fetch ~cfg ~sandbox dist in
-    let%bind archive = RunAsync.ofRun archive in
-    Fs.withTempDir (fun tempPath ->
-      let%bind () = unpack ~cfg ~dst:tempPath archive in
-      let%bind () = Fs.rename ~src:tempPath path in
-      return path
-    )
+    let%bind () = fetch ~cfg ~sandbox dist path in
+    return path

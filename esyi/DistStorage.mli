@@ -1,36 +1,18 @@
 (**
 
-    Storage for package sources.
+    Storage for package dists.
 
  *)
 
-type archive
-(** Fetched source. *)
+val fetchIntoCache :
+  cfg : Config.t
+  -> sandbox:SandboxSpec.t
+  -> Dist.t
+  -> Path.t RunAsync.t
 
 val fetch :
   cfg : Config.t
   -> sandbox:SandboxSpec.t
   -> Dist.t
-  -> archive Run.t RunAsync.t
-(** Fetch source. *)
-
-val unpack :
-  cfg : Config.t
-  -> dst : Path.t
-  -> archive
+  -> Path.t
   -> unit RunAsync.t
-(** Unpack fetched source in a specified directory. *)
-
-val fetchAndUnpack :
-  cfg : Config.t
-  -> sandbox:SandboxSpec.t
-  -> dst : Path.t
-  -> Dist.t
-  -> unit RunAsync.t
-(** Shortcut for fetch & unpack *)
-
-val fetchAndUnpackToCache :
-  cfg:Config.t
-  -> sandbox:SandboxSpec.t
-  -> Dist.t
-  -> Fpath.t RunAsync.t

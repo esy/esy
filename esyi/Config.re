@@ -1,6 +1,7 @@
 type t = {
   esySolveCmd: Cmd.t,
-  sourceArchivePath: Path.t,
+  sourceArchivePath: option(Path.t),
+  sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
   opamArchivesIndexPath: Path.t,
@@ -63,12 +64,16 @@ let make =
     };
   let%bind () = Fs.createDir(sourcePath);
 
-  let sourceArchivePath =
+  let%bind sourceArchivePath =
     switch (cacheTarballsPath) {
-    | Some(path) => path
-    | None => Path.(sourcePath / "a")
+    | Some(path) =>
+      let%bind () = Fs.createDir(path);
+      return(Some(path));
+    | None => return(None)
     };
-  let%bind () = Fs.createDir(sourceArchivePath);
+
+  let sourceFetchPath = Path.(sourcePath / "f");
+  let%bind () = Fs.createDir(sourceFetchPath);
 
   let sourceStagePath = Path.(sourcePath / "s");
   let%bind () = Fs.createDir(sourceStagePath);
@@ -96,6 +101,7 @@ let make =
   return({
     esySolveCmd,
     sourceArchivePath,
+    sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
     opamArchivesIndexPath,
