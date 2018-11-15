@@ -10,9 +10,17 @@ val fetchIntoCache :
   -> Dist.t
   -> Path.t RunAsync.t
 
+type fetchedDist
+
+val ofDir : Path.t -> fetchedDist
+
 val fetch :
   cfg : Config.t
   -> sandbox:SandboxSpec.t
   -> Dist.t
+  -> fetchedDist RunAsync.t
+
+val unpack :
+  fetchedDist
   -> Path.t
   -> unit RunAsync.t

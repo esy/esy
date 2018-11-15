@@ -101,11 +101,6 @@ end = struct
 
 end
 
-type installation = {
-  pkgJson : NpmPackageJson.t option;
-  path : Path.t;
-}
-
 module PackagePaths = struct
 
   let key pkg =
@@ -132,7 +127,11 @@ module PackagePaths = struct
     | _ -> Path.(sandbox.Sandbox.cfg.sourceStagePath / key pkg)
 
   let installPath sandbox pkg =
-    Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
+    match pkg.Solution.Package.source with
+    | Package.Link { path; manifest = _; } ->
+      DistPath.toPath sandbox.Sandbox.spec.path path
+    | Package.Install _ ->
+      Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
 
   let commit ~needRewrite stagePath installPath =
     let open RunAsync.Syntax in
@@ -154,253 +153,297 @@ module PackagePaths = struct
 
 end
 
-let runLifecycleScript ?env ~lifecycleName pkg sourcePath script =
-  let%lwt () = Logs_lwt.app
-    (fun m ->
-      m "%a: running %a lifecycle"
-      Solution.Package.pp pkg
-      Fmt.(styled `Bold string) lifecycleName
-    )
-  in
+module FetchPackage : sig
 
-  let readAndCloseChan ic =
-    Lwt.finalize
-      (fun () -> Lwt_io.read ic)
-      (fun () -> Lwt_io.close ic)
-  in
+  type fetch
 
-  let f p =
-    let%lwt stdout = readAndCloseChan p#stdout
-    and stderr = readAndCloseChan p#stderr in
-    match%lwt p#status with
-    | Unix.WEXITED 0 ->
-      RunAsync.return ()
-    | _ ->
-      Logs_lwt.err (fun m -> m
-        "@[<v>command failed: %s@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
-        script stderr stdout
-      );%lwt
-      RunAsync.error "error running command"
-  in
+  type installation = {
+    pkgJson : NpmPackageJson.t option;
+    path : Path.t;
+  }
 
-  try%lwt
-    (* We don't need to wrap the install path on Windows in quotes *)
-    let installationPath =
-      match System.Platform.host with
-      | Windows -> Path.show sourcePath
-      | _ -> Filename.quote (Path.show sourcePath)
-    in
-    (* On Windows, cd by itself won't switch between drives *)
-    (* We'll add the /d flag to allow switching drives - *)
-    let changeDirCommand = match System.Platform.host with
-      | Windows -> "/d"
-      | _ -> ""
-    in
-    let script =
-      Printf.sprintf
-        "cd %s %s && %s"
-        changeDirCommand
-        installationPath
-        script
-    in
-    let cmd =
-      match System.Platform.host with
-      | Windows -> ("", [|"cmd.exe";("/c " ^ script)|])
-      | _ -> ("/bin/bash", [|"/bin/bash";"-c";script|])
-    in
-    let env =
-      let open Option.Syntax in
-      let%bind env = env in
-      let%bind _, env = ChildProcess.prepareEnv env in
-      return env
-    in
-    Lwt_process.with_process_full ?env cmd f
-  with
-  | Unix.Unix_error (err, _, _) ->
-    let msg = Unix.error_message err in
-    RunAsync.error msg
-  | _ ->
-    RunAsync.error "error running subprocess"
+  val fetch : Sandbox.t -> Solution.Package.t -> fetch RunAsync.t
+  val install : (Path.t -> unit RunAsync.t) -> Sandbox.t -> fetch -> installation RunAsync.t
 
-let runLifecycle pkg sourcePath lifecycle =
-  let open RunAsync.Syntax in
-  let%bind env =
-    let path = Path.(show (sourcePath / "_esy"))::System.Environment.path in
-    let sep = System.Environment.sep ~name:"PATH" () in
-    let override = Astring.String.Map.(add "PATH" (String.concat ~sep path) empty) in
-    return (ChildProcess.CurrentEnvOverride override)
-  in
+end = struct
 
-  let%bind () =
-    match lifecycle.NpmPackageJson.install with
-    | Some cmd -> runLifecycleScript ~env ~lifecycleName:"install" pkg sourcePath cmd
-    | None -> return ()
-  in
+  type fetch = Solution.Package.t * kind
 
-  let%bind () =
-    match lifecycle.NpmPackageJson.postinstall with
-    | Some cmd -> runLifecycleScript ~env ~lifecycleName:"postinstall" pkg sourcePath cmd
-    | None -> return ()
-  in
+  and kind =
+    | Fetched of DistStorage.fetchedDist
+    | Installed of Path.t
+    | Linked of Path.t
 
-  return ()
+  type installation = {
+    pkgJson : NpmPackageJson.t option;
+    path : Path.t;
+  }
 
-let installNodeBinWrapper binPath (name, origPath) =
-  let data, path =
-    match System.Platform.host with
-    | Windows ->
-      let data =
-      Format.asprintf
-        {|@ECHO off
-@SETLOCAL
-node "%a" %%*
-          |} Path.pp origPath
-      in
-      data, Path.(binPath / name |> addExt ".cmd")
-    | _ ->
-      let data =
-        Format.asprintf
-          {|#!/bin/sh
-exec node "%a" "$@"
-            |} Path.pp origPath
-      in
-      data, Path.(binPath / name)
-  in
-  Fs.writeFile ~perm:0o755 ~data path
 
-let installBinWrapper binPath (name, origPath) =
-  let open RunAsync.Syntax in
-  Logs_lwt.debug (fun m ->
-    m "Fetch:installBinWrapper: %a / %s -> %a"
-    Path.pp origPath name Path.pp binPath
-  );%lwt
-  if%bind Fs.exists origPath
-  then (
-    if Path.hasExt ".js" origPath
-    then installNodeBinWrapper binPath (name, origPath)
-    else (
-      let%bind () = Fs.chmod 0o777 origPath in
-      let destPath = Path.(binPath / name) in
-      if%bind Fs.exists destPath
-      then return ()
-      else Fs.symlink ~src:origPath destPath
-    )
-  ) else (
-    Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
-    return ()
-  )
+  (* fetch any of the dists for the package *)
+  let fetch' sandbox pkg dists =
+    let open RunAsync.Syntax in
 
-let layoutFiles sandbox pkg path =
-  let open RunAsync.Syntax in
-
-  let%bind filesOfOpam = Solution.Package.readOpamFiles pkg in
-  let%bind filesOfOverride =
-    Package.Overrides.files
-      ~cfg:sandbox.Sandbox.cfg
-      ~sandbox:sandbox.Sandbox.spec
-      pkg.Solution.Package.overrides
-  in
-
-  RunAsync.List.mapAndWait
-    ~f:(File.placeAt path)
-    (filesOfOpam @ filesOfOverride)
-
-let linkBins binPath installation =
-  match installation.pkgJson with
-  | Some pkgJson ->
-    let bin = NpmPackageJson.bin ~sourcePath:installation.path pkgJson in
-    RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
-  | None -> RunAsync.return ()
-
-(* fetch any of the dists for the package *)
-let fetchAnyDist sandbox pkg alternatives path =
-  let open RunAsync.Syntax in
-
-  let rec cleanup ?(n=3) path () =
-    try%lwt Fs.rmPathLwt path
-    with Unix.Unix_error _ as err ->
-      if n = 0
-      then raise err
-      else (Lwt_unix.sleep 0.5 ;%lwt cleanup ~n:(n - 1) path ())
-  in
-
-  let fetchDist dist =
-    RunAsync.cleanup
-      (DistStorage.fetch
-        ~cfg:sandbox.Sandbox.cfg
-        ~sandbox:sandbox.spec
-        dist
-        path)
-      (cleanup path)
-  in
-
-  let rec fetchAny errs alternatives =
-    match alternatives with
-    | Dist.NoSource::_rest ->
-      Fs.createDir path
-    | dist::rest ->
-      begin match%lwt fetchDist dist with
-      | Ok () -> return ()
-      | Error err -> fetchAny ((dist, err)::errs) rest
-      end
-    | [] ->
-      Logs_lwt.err (fun m ->
-        let ppErr fmt (source, err) =
-          Fmt.pf fmt
-            "source: %a@\nerror: %a"
-            Dist.pp source
-            Run.ppError err
+    let rec fetchAny errs alternatives =
+      match alternatives with
+      | dist::rest ->
+        let fetched =
+          DistStorage.fetch
+            ~cfg:sandbox.Sandbox.cfg
+            ~sandbox:sandbox.spec
+            dist
         in
-        m "unable to fetch %a:@[<v 2>@\n%a@]"
+        begin match%lwt fetched with
+        | Ok fetched -> return fetched
+        | Error err -> fetchAny ((dist, err)::errs) rest
+        end
+      | [] ->
+        Logs_lwt.err (fun m ->
+          let ppErr fmt (source, err) =
+            Fmt.pf fmt
+              "source: %a@\nerror: %a"
+              Dist.pp source
+              Run.ppError err
+          in
+          m "unable to fetch %a:@[<v 2>@\n%a@]"
+            Solution.Package.pp pkg
+            Fmt.(list ~sep:(unit "@\n") ppErr) errs
+        );%lwt
+        error "installation error"
+    in
+
+    fetchAny [] dists
+
+  let fetch sandbox pkg =
+    (** TODO: need to sync here so no two same tasks are running at the same time *)
+    let open RunAsync.Syntax in
+
+    RunAsync.contextf (
+      match pkg.Solution.Package.source with
+      | Package.Link {path; _} ->
+        let path = DistPath.toPath sandbox.Sandbox.spec.path path in
+        return (pkg, Linked path)
+      | Package.Install { source = main, mirrors; opam = _; } ->
+        let path = PackagePaths.installPath sandbox pkg in
+        if%bind Fs.exists path
+        then
+          return (pkg, Installed path)
+        else
+          let dists = main::mirrors in
+          let%bind dist = fetch' sandbox pkg dists in
+          return (pkg, Fetched dist)
+    ) "fetching %a" Solution.Package.pp pkg
+
+
+  module Lifecycle = struct
+
+    let runScript ?env ~lifecycleName pkg sourcePath script =
+      let%lwt () = Logs_lwt.app
+        (fun m ->
+          m "%a: running %a lifecycle"
           Solution.Package.pp pkg
-          Fmt.(list ~sep:(unit "@\n") ppErr) errs
-      );%lwt
-      error "installation error"
-  in
+          Fmt.(styled `Bold string) lifecycleName
+        )
+      in
 
-  fetchAny [] alternatives
+      let readAndCloseChan ic =
+        Lwt.finalize
+          (fun () -> Lwt_io.read ic)
+          (fun () -> Lwt_io.close ic)
+      in
 
-let fetchAndInstall onBeforeLifecycle sandbox pkg alternatives installPath =
-  let open RunAsync.Syntax in
-  let stagePath = PackagePaths.stagePath sandbox pkg in
-  let%bind () = Fs.rmPath stagePath in
-  let%bind () = fetchAnyDist sandbox pkg alternatives stagePath in
-  let%bind () = layoutFiles sandbox pkg stagePath in
-  let%bind pkgJson = NpmPackageJson.ofDir stagePath in
-  let lifecycle = Option.bind ~f:NpmPackageJson.lifecycle pkgJson in
-  let%bind () =
-    match lifecycle with
-    | Some lifecycle ->
-      let%bind () = onBeforeLifecycle stagePath in
-      let%bind () = runLifecycle pkg stagePath lifecycle in
-      let%bind () = PackagePaths.commit ~needRewrite:true stagePath installPath in
+      let f p =
+        let%lwt stdout = readAndCloseChan p#stdout
+        and stderr = readAndCloseChan p#stderr in
+        match%lwt p#status with
+        | Unix.WEXITED 0 ->
+          RunAsync.return ()
+        | _ ->
+          Logs_lwt.err (fun m -> m
+            "@[<v>command failed: %s@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
+            script stderr stdout
+          );%lwt
+          RunAsync.error "error running command"
+      in
+
+      try%lwt
+        (* We don't need to wrap the install path on Windows in quotes *)
+        let installationPath =
+          match System.Platform.host with
+          | Windows -> Path.show sourcePath
+          | _ -> Filename.quote (Path.show sourcePath)
+        in
+        (* On Windows, cd by itself won't switch between drives *)
+        (* We'll add the /d flag to allow switching drives - *)
+        let changeDirCommand = match System.Platform.host with
+          | Windows -> "/d"
+          | _ -> ""
+        in
+        let script =
+          Printf.sprintf
+            "cd %s %s && %s"
+            changeDirCommand
+            installationPath
+            script
+        in
+        let cmd =
+          match System.Platform.host with
+          | Windows -> ("", [|"cmd.exe";("/c " ^ script)|])
+          | _ -> ("/bin/bash", [|"/bin/bash";"-c";script|])
+        in
+        let env =
+          let open Option.Syntax in
+          let%bind env = env in
+          let%bind _, env = ChildProcess.prepareEnv env in
+          return env
+        in
+        Lwt_process.with_process_full ?env cmd f
+      with
+      | Unix.Unix_error (err, _, _) ->
+        let msg = Unix.error_message err in
+        RunAsync.error msg
+      | _ ->
+        RunAsync.error "error running subprocess"
+
+    let run pkg sourcePath lifecycle =
+      let open RunAsync.Syntax in
+      let%bind env =
+        let path = Path.(show (sourcePath / "_esy"))::System.Environment.path in
+        let sep = System.Environment.sep ~name:"PATH" () in
+        let override = Astring.String.Map.(add "PATH" (String.concat ~sep path) empty) in
+        return (ChildProcess.CurrentEnvOverride override)
+      in
+
+      let%bind () =
+        match lifecycle.NpmPackageJson.install with
+        | Some cmd -> runScript ~env ~lifecycleName:"install" pkg sourcePath cmd
+        | None -> return ()
+      in
+
+      let%bind () =
+        match lifecycle.NpmPackageJson.postinstall with
+        | Some cmd -> runScript ~env ~lifecycleName:"postinstall" pkg sourcePath cmd
+        | None -> return ()
+      in
+
       return ()
-    | None ->
-      let%bind () = PackagePaths.commit ~needRewrite:false stagePath installPath in
-      return ()
-  in
-  return {path = installPath; pkgJson}
+  end
 
-let install ~onBeforeLifecycle ~sandbox pkg =
-  (** TODO: need to sync here so no two same tasks are running at the same time *)
-  let open RunAsync.Syntax in
+  let copyFiles sandbox pkg path =
+    let open RunAsync.Syntax in
 
-  RunAsync.contextf (
-    match pkg.Solution.Package.source with
-    | Package.Link {path; _} ->
-      let path = DistPath.toPath sandbox.Sandbox.spec.path path in
-      let%bind pkgJson = NpmPackageJson.ofDir path in
-      return {path; pkgJson}
-    | Package.Install { source = main, mirrors; opam = _; } ->
-      let path = PackagePaths.installPath sandbox pkg in
-      if%bind Fs.exists path
-      then
+    let%bind filesOfOpam = Solution.Package.readOpamFiles pkg in
+    let%bind filesOfOverride =
+      Package.Overrides.files
+        ~cfg:sandbox.Sandbox.cfg
+        ~sandbox:sandbox.Sandbox.spec
+        pkg.Solution.Package.overrides
+    in
+
+    RunAsync.List.mapAndWait
+      ~f:(File.placeAt path)
+      (filesOfOpam @ filesOfOverride)
+
+  let install' onBeforeLifecycle sandbox pkg fetched =
+    let open RunAsync.Syntax in
+
+    let installPath = PackagePaths.installPath sandbox pkg in
+
+    let%bind stagePath =
+      let path = PackagePaths.stagePath sandbox pkg in
+      let%bind () = Fs.rmPath path in
+      return path
+    in
+
+    let%bind () =
+      DistStorage.unpack fetched stagePath
+    in
+
+    let%bind () = copyFiles sandbox pkg stagePath in
+    let%bind pkgJson = NpmPackageJson.ofDir stagePath in
+
+    let%bind () =
+      match Option.bind ~f:NpmPackageJson.lifecycle pkgJson with
+      | Some lifecycle ->
+        let%bind () = onBeforeLifecycle stagePath in
+        let%bind () = Lifecycle.run pkg stagePath lifecycle in
+        let%bind () = PackagePaths.commit ~needRewrite:true stagePath installPath in
+        return ()
+      | None ->
+        let%bind () = PackagePaths.commit ~needRewrite:false stagePath installPath in
+        return ()
+    in
+
+    return {path = installPath; pkgJson}
+
+  let install onBeforeLifecycle sandbox (pkg, fetch) =
+    let open RunAsync.Syntax in
+
+    RunAsync.contextf (
+      match fetch with
+      | Linked path
+      | Installed path ->
         let%bind pkgJson = NpmPackageJson.ofDir path in
-        return {path; pkgJson}
-      else
-        let alternatives = main::mirrors in
-        fetchAndInstall onBeforeLifecycle sandbox pkg alternatives path
-  ) "installing %a" Solution.Package.pp pkg
+        return {path; pkgJson;}
+      | Fetched fetched ->
+        install' onBeforeLifecycle sandbox pkg fetched
+    ) "installing %a" Solution.Package.pp pkg
+end
+
+module LinkBin = struct
+
+  let installNodeBinWrapper binPath (name, origPath) =
+    let data, path =
+      match System.Platform.host with
+      | Windows ->
+        let data =
+        Format.asprintf
+          {|@ECHO off
+  @SETLOCAL
+  node "%a" %%*
+            |} Path.pp origPath
+        in
+        data, Path.(binPath / name |> addExt ".cmd")
+      | _ ->
+        let data =
+          Format.asprintf
+            {|#!/bin/sh
+  exec node "%a" "$@"
+              |} Path.pp origPath
+        in
+        data, Path.(binPath / name)
+    in
+    Fs.writeFile ~perm:0o755 ~data path
+
+  let installBinWrapper binPath (name, origPath) =
+    let open RunAsync.Syntax in
+    Logs_lwt.debug (fun m ->
+      m "Fetch:installBinWrapper: %a / %s -> %a"
+      Path.pp origPath name Path.pp binPath
+    );%lwt
+    if%bind Fs.exists origPath
+    then (
+      if Path.hasExt ".js" origPath
+      then installNodeBinWrapper binPath (name, origPath)
+      else (
+        let%bind () = Fs.chmod 0o777 origPath in
+        let destPath = Path.(binPath / name) in
+        if%bind Fs.exists destPath
+        then return ()
+        else Fs.symlink ~src:origPath destPath
+      )
+    ) else (
+      Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
+      return ()
+    )
+
+  let link binPath installation =
+    match installation.FetchPackage.pkgJson with
+    | Some pkgJson ->
+      let bin = NpmPackageJson.bin ~sourcePath:installation.path pkgJson in
+      RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
+    | None -> RunAsync.return ()
+end
 
 let collectPackagesOfSolution solution =
   let pkgs, root =
@@ -491,61 +534,37 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let pkgs, _root = collectPackagesOfSolution solution in
     check pkgs
 
-let install ~report ~queue ~installation ~solution ~sandbox pkg dependencies =
-  let open RunAsync.Syntax in
-  let f () =
-
-    let id = Solution.Package.id pkg in
-
-    let%lwt () =
-      let msg = Format.asprintf "%a" PackageId.pp id in
-      report msg
-    in
-
-    let onBeforeLifecycle path =
-      (*
-        * This creates <install>/_esy and populates it with a custom
-        * per-package pnp.js (which allows to resolve dependencies out of
-        * stage directory and a node wrapper which uses this pnp.js.
-        *)
-      let binPath = Path.(path / "_esy") in
-      let%bind () = Fs.createDir binPath in
-
-      let%bind () =
-        RunAsync.List.mapAndWait
-          ~f:(linkBins binPath)
-          dependencies
-      in
-
-      let%bind () =
-        let pnpJsPath = Path.(binPath / "pnp.js") in
-        let installation = Installation.add id path installation in
-        let data = PnpJs.render
-          ~basePath:binPath
-          ~rootPath:path
-          ~rootId:id
-          ~solution
-          ~installation
-          ()
-        in
-        let%bind () = Fs.writeFile ~data pnpJsPath in
-        installNodeWrapper
-          ~binPath
-          ~pnpJsPath
-          ()
-      in
-
-      return ()
-    in
-    install ~onBeforeLifecycle ~sandbox pkg
-  in
-  LwtTaskQueue.submit queue f
-
 let fetch sandbox solution =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
   let pkgs, root = collectPackagesOfSolution solution in
+
+  (* Fetch all packages. *)
+  let%bind fetched =
+    let report, finish = Cli.createProgressReporter ~name:"fetching" () in
+    let%bind items =
+      let f pkg =
+        let%lwt () =
+          let msg = Format.asprintf "%a" PackageId.pp (Solution.Package.id pkg) in
+          report msg
+        in
+        let%bind fetch = FetchPackage.fetch sandbox pkg in
+        return (pkg, fetch)
+      in
+      let%bind items = RunAsync.List.mapAndJoin ~concurrency:40 ~f pkgs in
+      finish ();%lwt
+      return items
+    in
+    let fetched =
+      let f map (pkg, fetch) =
+        let id = Solution.Package.id pkg in
+        PackageId.Map.add id fetch map
+      in
+      List.fold_left ~f ~init:PackageId.Map.empty items
+    in
+    return fetched
+  in
 
   (* Produce _esy/<sandbox>/installation.json *)
   let%bind installation =
@@ -573,6 +592,7 @@ let fetch sandbox solution =
     return installation
   in
 
+  (* Install all packages. *)
   let%bind () =
 
     let report, finish = Cli.createProgressReporter ~name:"installing" () in
@@ -580,20 +600,66 @@ let fetch sandbox solution =
 
     let tasks = Memoize.make () in
 
+    let install pkg dependencies =
+      let open RunAsync.Syntax in
+      let f () =
+
+        let id = Solution.Package.id pkg in
+
+        let onBeforeLifecycle path =
+          (*
+            * This creates <install>/_esy and populates it with a custom
+            * per-package pnp.js (which allows to resolve dependencies out of
+            * stage directory and a node wrapper which uses this pnp.js.
+            *)
+          let binPath = Path.(path / "_esy") in
+          let%bind () = Fs.createDir binPath in
+
+          let%bind () =
+            RunAsync.List.mapAndWait
+              ~f:(LinkBin.link binPath)
+              dependencies
+          in
+
+          let%bind () =
+            let pnpJsPath = Path.(binPath / "pnp.js") in
+            let installation = Installation.add id path installation in
+            let data = PnpJs.render
+              ~basePath:binPath
+              ~rootPath:path
+              ~rootId:id
+              ~solution
+              ~installation
+              ()
+            in
+            let%bind () = Fs.writeFile ~data pnpJsPath in
+            installNodeWrapper
+              ~binPath
+              ~pnpJsPath
+              ()
+          in
+
+          return ()
+        in
+
+        let fetched = PackageId.Map.find id fetched in
+        FetchPackage.install onBeforeLifecycle sandbox fetched
+      in
+      LwtTaskQueue.submit queue f
+    in
+
     let rec visit' seen pkg =
       let%bind dependencies =
         RunAsync.List.mapAndJoin
           ~f:(visit seen)
           (Solution.dependencies pkg solution)
       in
-      install
-        ~report
-        ~queue
-        ~installation
-        ~solution
-        ~sandbox
-        pkg
-        (List.filterNone dependencies)
+      let%lwt () =
+        let id = Solution.Package.id pkg in
+        let msg = Format.asprintf "%a" PackageId.pp id in
+        report msg
+      in
+      install pkg (List.filterNone dependencies)
 
     and visit seen pkg =
       let id = Solution.Package.id pkg in
@@ -615,7 +681,7 @@ let fetch sandbox solution =
       let binPath = SandboxSpec.binPath sandbox.spec in
       let%bind () = Fs.createDir binPath in
       RunAsync.List.mapAndWait
-        ~f:(linkBins binPath)
+        ~f:(LinkBin.link binPath)
         (List.filterNone rootDependencies)
     in
 
@@ -644,5 +710,7 @@ let fetch sandbox solution =
       ~pnpJsPath:(SandboxSpec.pnpJsPath sandbox.spec)
       ()
   in
+
+  let%bind () = Fs.rmPath (SandboxSpec.distPath sandbox.Sandbox.spec) in
 
   return ()
