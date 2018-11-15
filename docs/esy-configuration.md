@@ -35,7 +35,7 @@ Prefix path could also be set using `$ESY__PREFIX` environment variable.
 
 Any of the yarn configuration parameters can be set in `.esyrc` similar to
 `.yarnrc`. See a corresponding [yarn
-documentation][https://yarnpkg.com/en/docs/yarnrc] on the matter.
+documentation](https://yarnpkg.com/en/docs/yarnrc) on the matter.
 
 Those parameters will be used by `esy install` and `esy add` commands (which use
 yarn under the hood).
