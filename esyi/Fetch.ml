@@ -246,26 +246,31 @@ end = struct
         )
       in
 
-      let readAndCloseChan ic =
+      let readAndCloseFile path =
+        let%lwt ic = Lwt_io.(open_file ~mode:Input path) in
         Lwt.finalize
           (fun () -> Lwt_io.read ic)
           (fun () -> Lwt_io.close ic)
       in
-
-      let f p =
-        let%lwt stdout = readAndCloseChan p#stdout
-        and stderr = readAndCloseChan p#stderr in
-        match%lwt p#status with
-        | Unix.WEXITED 0 ->
-          RunAsync.return ()
-        | _ ->
-          Logs_lwt.err (fun m -> m
-            "@[<v>command failed: %s@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
-            script stderr stdout
-          );%lwt
-          RunAsync.error "error running command"
+      let make_f path fd =
+        (* we build a function to handle the process depending on the path
+          of the file that contains the output and the filedescriptor to close *)
+        let f p =
+          Unix.close fd;
+          match%lwt p#status with
+          | Unix.WEXITED 0 ->
+            let%lwt output = readAndCloseFile path in
+            Logs_lwt.app (fun m -> m "%s" output);%lwt
+            RunAsync.return ()
+          | _ ->
+            let%lwt output = readAndCloseFile path in
+            Logs_lwt.err (fun m -> m
+                "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]"
+                script output
+            );%lwt
+            RunAsync.error "error running command"
+        in f
       in
-
       try%lwt
         (* We don't need to wrap the install path on Windows in quotes *)
         let installationPath =
@@ -297,7 +302,11 @@ end = struct
           let%bind _, env = ChildProcess.prepareEnv env in
           return env
         in
-        Lwt_process.with_process_full ?env cmd f
+        let logFileName = lifecycleName ^ ".log" in
+        let logFilePath = Path.show (Fpath.(sourcePath / logFileName)) in
+        (Logs_lwt.app (fun m -> m "%s" logFilePath));%lwt
+        let fd = Unix.(openfile logFilePath [O_RDWR; O_CREAT] 0o660) in
+        Lwt_process.with_process_out ?env ~stdout:(`FD_copy fd) ~stderr:(`FD_copy fd) cmd (make_f logFilePath fd)
       with
       | Unix.Unix_error (err, _, _) ->
         let msg = Unix.error_message err in
