@@ -21,3 +21,5 @@ val create :
   -> ?outpath:string
   -> Path.t
   -> unit RunAsync.t
+
+val checkIfZip : Path.t -> bool Lwt.t
