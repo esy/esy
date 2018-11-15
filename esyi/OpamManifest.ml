@@ -153,10 +153,10 @@ let convertOpamUrl (manifest : t) =
     let convert (url : OpamUrl.t) =
       match url.backend with
       | `http ->
-        return (Source.Dist (Archive {
+        return (Dist.Archive {
           url = OpamUrl.to_string url;
           checksum;
-        }))
+        })
       | `rsync -> Error "unsupported source for opam: rsync"
       | `hg -> Error "unsupported source for opam: hg"
       | `darcs -> Error "unsupported source for opam: darcs"
@@ -179,7 +179,7 @@ let convertOpamUrl (manifest : t) =
     match manifest.url with
     | Some url -> sourceOfOpamUrl url
     | None ->
-      let main = Source.Dist NoSource in
+      let main = Dist.NoSource in
       Ok (main, [])
   in
 
@@ -187,10 +187,10 @@ let convertOpamUrl (manifest : t) =
   | Some archive ->
     let mirrors = main::mirrors in
     let main =
-      Source.Dist (Archive {
+      Dist.Archive {
         url = archive.url;
         checksum = Checksum.Md5, archive.md5;
-      })
+      }
     in
     Ok (main, mirrors)
   | None ->
@@ -288,7 +288,7 @@ let toPackage ?source ~name ~version manifest =
         Package.Install {source = sourceFromOpam; opam;}
       | Some (Source.Link {path; manifest;}) ->
         Package.Link {path; manifest;}
-      | Some source ->
+      | Some (Source.Dist source) ->
         Package.Install {source = source, []; opam;}
     in
 

@@ -264,7 +264,7 @@ and source =
       manifest : ManifestSpec.t option;
     }
   | Install of {
-      source : Source.t * Source.t list;
+      source : Dist.t * Dist.t list;
       opam : OpamResolution.t option;
     }
 

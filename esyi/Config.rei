@@ -2,7 +2,8 @@
 
 type t = {
   esySolveCmd: Cmd.t,
-  sourceArchivePath: Path.t,
+  sourceArchivePath: option(Path.t),
+  sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
   opamArchivesIndexPath: Path.t,

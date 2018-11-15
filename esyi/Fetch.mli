@@ -5,7 +5,7 @@
  *)
 
 val fetch :
-  sandbox:Sandbox.t
+  Sandbox.t
   -> Solution.t
   -> unit RunAsync.t
 (**

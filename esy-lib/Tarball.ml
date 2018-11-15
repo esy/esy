@@ -76,12 +76,36 @@ let unpackWithUnzip ?stripComponents ~dst filename =
     end
   | None -> unpack dst
 
+let zipHeader =
+  (*
+   * From https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+   *
+   *   0x50 0x4b 0x03 0x04
+   *
+   *)
+  Int32.of_string "67324752"
+
+let checkIfZip filename =
+  let checkZipHeader ic =
+    let%lwt v = Lwt_io.read_int32 ic in
+    Lwt.return (Int32.compare v zipHeader = 0)
+  in
+  try%lwt
+    let buffer = Lwt_bytes.create 16 in
+    Lwt_io.(with_file ~buffer ~mode:Input (Path.show filename) checkZipHeader)
+  with _ -> Lwt.return false
+
 let unpack ?stripComponents ~dst filename =
-  let ext = Path.getExt filename in
-  begin match ext with
+  match Path.getExt ~multi:true filename with
+  | ".gz"
+  | ".tar"
+  | ".tar.gz"
+  | ".tar.bz2" -> unpackWithTar ?stripComponents ~dst filename
   | ".zip" -> unpackWithUnzip ?stripComponents ~dst filename
-  | _ -> unpackWithTar ?stripComponents ~dst filename
-  end
+  | _ ->
+    if%lwt checkIfZip filename
+    then unpackWithUnzip ?stripComponents ~dst filename
+    else unpackWithTar ?stripComponents ~dst filename
 
 let create ~filename ?outpath:(outpath=".") src =
   RunAsync.ofBosError (

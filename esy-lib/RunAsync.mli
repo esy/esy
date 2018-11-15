@@ -35,6 +35,12 @@ val contextf : 'v t -> ('a, Format.formatter, unit, 'v t) format4 -> 'a
  *)
 val withContextOfLog : ?header:string -> string -> 'a t -> 'a t
 
+val cleanup : 'a t -> (unit -> unit Lwt.t) -> 'a t
+(**
+ * [cleanup comp handler] executes [handler] in case of any error happens during
+ * [comp] execution. Note that [handler] sometimes can fire two times.
+ *)
+
 (**
  * Run computation and throw an exception in case of a failure.
  *

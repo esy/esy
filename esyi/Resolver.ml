@@ -94,7 +94,7 @@ let emptyInstall ~name ~source () =
   {
     Package.
     name;
-    version = Version.Source source;
+    version = Version.Source (Dist source);
     originalVersion = None;
     originalName = None;
     source = Package.Install {
@@ -277,7 +277,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
             let pkg = emptyLink ~name ~path ~manifest () in
             return (Ok pkg)
           | _ ->
-            let pkg = emptyInstall ~name ~source:resolvedSource () in
+            let pkg = emptyInstall ~name ~source:resolvedDist () in
             return (Ok pkg)
         else errorf "no manifest found at %a" Source.pp source
     in

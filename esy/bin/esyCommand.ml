@@ -1214,7 +1214,7 @@ let fetch {CommonOptions. installSandbox = sandbox; _} () =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
   match%bind SolutionLock.ofPath ~sandbox lockPath with
-  | Some solution -> Fetch.fetch ~sandbox solution
+  | Some solution -> Fetch.fetch sandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =

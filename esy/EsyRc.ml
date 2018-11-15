@@ -1,8 +1,10 @@
-type t =
-  { prefixPath : Path.t option }
-  [@@deriving (show)]
+type t = {
+  prefixPath : Path.t option;
+} [@@deriving (show)]
 
-let empty = {prefixPath = None}
+let empty = {
+  prefixPath = None;
+}
 
 let ofPath path =
   let open RunAsync.Syntax in
@@ -13,22 +15,23 @@ let ofPath path =
     match ast with
     | EsyYarnLockfile.Mapping items ->
       let f acc item =
-        match acc, item with
-        | Ok { prefixPath = None }, ("esy-prefix-path", EsyYarnLockfile.String value) ->
-          let open Result.Syntax in
+        let open Result.Syntax in
+        match item with
+        | "esy-prefix-path", EsyYarnLockfile.String value ->
           let%bind value = Path.ofString value in
-          let value = if Path.isAbs value
+          let value =
+            if Path.isAbs value
             then value
-            else Path.(value |> (append path) |> normalize)
+            else Path.(normalize (append path value))
           in
-          Ok {prefixPath = Some value}
-        | Ok _, ("esy-prefix-path", _) ->
-          Error (`Msg "\"esy-prefix-path\" should be a string")
-        | _, _ ->
-          acc
+          return {prefixPath = Some value;}
+        | "esy-prefix-path", _ ->
+          error (`Msg "esy-prefix-path should be a string")
+        | _ ->
+          return acc
       in
       begin
-      match List.fold_left ~init:(Ok { prefixPath = None }) ~f items with
+      match Result.List.foldLeft ~init:empty ~f items with
       | Ok esyRc -> return esyRc
       | v -> v |> Run.ofBosError |> RunAsync.ofRun
       end

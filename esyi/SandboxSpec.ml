@@ -41,6 +41,7 @@ let cachePath spec = Path.(localPrefixPath spec / "cache")
 let storePath spec = Path.(localPrefixPath spec / "store")
 let buildPath spec = Path.(localPrefixPath spec / "build")
 let binPath spec = Path.(localPrefixPath spec / "bin")
+let distPath spec = Path.(localPrefixPath spec / "dist")
 
 let solutionLockPath spec =
   match spec.manifest with

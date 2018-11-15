@@ -425,7 +425,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       return (Some manifest, Path.Set.empty)
     | None ->
       let source , _ = info.source in
-      let manifest = Source.manifest source in
+      let manifest = Dist.manifest source in
       let%bind manifest, paths = ofPath ?manifest loc in
       let%bind manifest =
         match manifest with

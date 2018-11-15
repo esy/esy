@@ -124,7 +124,6 @@ let safeSeg = {
   let replaceAt = Str.regexp("@");
   let replaceUnderscore = Str.regexp("_+");
   let replaceSlash = Str.regexp("\\/");
-  let replaceDot = Str.regexp("\\.");
   let replaceDash = Str.regexp("\\-");
   let replaceColon = Str.regexp(":");
   let make = (name: string) =>
@@ -133,7 +132,6 @@ let safeSeg = {
     |> Str.global_replace(replaceAt, "")
     |> Str.global_replace(replaceUnderscore, "__")
     |> Str.global_replace(replaceSlash, "__s__")
-    |> Str.global_replace(replaceDot, "__d__")
     |> Str.global_replace(replaceColon, "__c__")
     |> Str.global_replace(replaceDash, "_");
   make;
