@@ -8,24 +8,24 @@
 module Package : sig
 
   type t = {
+    id: PackageId.t;
     name: string;
     version: Version.t;
-    source: Package.source;
+    source: source;
     overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   }
 
-  type opam = {
-    opamname : OpamPackage.Name.t;
-    opamversion : OpamPackage.Version.t;
-    opamfile : OpamFile.OPAM.t;
-  }
-
-  val id : t -> PackageId.t
-
-  val readOpam : t -> opam option RunAsync.t
-  val readOpamFiles : t -> File.t list RunAsync.t
+  and source =
+    | Link of {
+        path : DistPath.t;
+        manifest : ManifestSpec.t option;
+      }
+    | Install of {
+        source : Dist.t * Dist.t list;
+        opam : OpamResolution.t option;
+      }
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t

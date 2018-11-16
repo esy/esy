@@ -128,9 +128,9 @@ module PackagePaths = struct
 
   let installPath sandbox pkg =
     match pkg.Solution.Package.source with
-    | Package.Link { path; manifest = _; } ->
+    | Solution.Package.Link { path; manifest = _; } ->
       DistPath.toPath sandbox.Sandbox.spec.path path
-    | Package.Install _ ->
+    | Install _ ->
       Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
 
   let commit ~needRewrite stagePath installPath =
@@ -220,10 +220,10 @@ end = struct
 
     RunAsync.contextf (
       match pkg.Solution.Package.source with
-      | Package.Link {path; _} ->
+      | Solution.Package.Link {path; _} ->
         let path = DistPath.toPath sandbox.Sandbox.spec.path path in
         return (pkg, Linked path)
-      | Package.Install { source = main, mirrors; opam = _; } ->
+      | Install { source = main, mirrors; opam = _; } ->
         let path = PackagePaths.installPath sandbox pkg in
         if%bind Fs.exists path
         then
@@ -332,7 +332,13 @@ end = struct
   let copyFiles sandbox pkg path =
     let open RunAsync.Syntax in
 
-    let%bind filesOfOpam = Solution.Package.readOpamFiles pkg in
+    let%bind filesOfOpam =
+      match pkg.source with
+      | Solution.Package.Link _
+      | Install { opam = None; _ } -> return []
+      | Install { opam = Some opam; _ } -> OpamResolution.files opam
+    in
+
     let%bind filesOfOverride =
       Package.Overrides.files
         ~cfg:sandbox.Sandbox.cfg
@@ -525,7 +531,7 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let rec check = function
       | [] -> return true
       | pkg::pkgs ->
-        begin match Installation.find (Solution.Package.id pkg) installation with
+        begin match Installation.find pkg.Solution.Package.id installation with
         | None -> return false
         | Some path ->
           if%bind Fs.exists path
@@ -547,10 +553,7 @@ let fetch sandbox solution =
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
     let%bind items =
       let f pkg =
-        let%lwt () =
-          let msg = Format.asprintf "%a" PackageId.pp (Solution.Package.id pkg) in
-          report msg
-        in
+        report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
         let%bind fetch = FetchPackage.fetch sandbox pkg in
         return (pkg, fetch)
       in
@@ -560,7 +563,7 @@ let fetch sandbox solution =
     in
     let fetched =
       let f map (pkg, fetch) =
-        let id = Solution.Package.id pkg in
+        let id = pkg.Solution.Package.id in
         PackageId.Map.add id fetch map
       in
       List.fold_left ~f ~init:PackageId.Map.empty items
@@ -572,14 +575,14 @@ let fetch sandbox solution =
   let%bind installation =
     let installation =
       let f installation pkg =
-        let id = Solution.Package.id pkg in
+        let id = pkg.Solution.Package.id in
         let path = PackagePaths.installPath sandbox pkg in
         Installation.add id path installation
       in
       let init =
         Installation.empty
         |> Installation.add
-            (Solution.Package.id root)
+            root.Solution.Package.id
             sandbox.spec.path;
       in
       List.fold_left ~f ~init pkgs
@@ -606,7 +609,7 @@ let fetch sandbox solution =
       let open RunAsync.Syntax in
       let f () =
 
-        let id = Solution.Package.id pkg in
+        let id = pkg.Solution.Package.id in
 
         let onBeforeLifecycle path =
           (*
@@ -656,15 +659,11 @@ let fetch sandbox solution =
           ~f:(visit seen)
           (Solution.dependencies pkg solution)
       in
-      let%lwt () =
-        let id = Solution.Package.id pkg in
-        let msg = Format.asprintf "%a" PackageId.pp id in
-        report msg
-      in
+      report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
       install pkg (List.filterNone dependencies)
 
     and visit seen pkg =
-      let id = Solution.Package.id pkg in
+      let id = pkg.Solution.Package.id in
       if not (PackageId.Set.mem id seen)
       then
         let seen = PackageId.Set.add id seen in
@@ -697,7 +696,7 @@ let fetch sandbox solution =
     let data = PnpJs.render
       ~basePath:(Path.parent (SandboxSpec.pnpJsPath sandbox.spec))
       ~rootPath:sandbox.spec.path
-      ~rootId:(Solution.Package.id (Solution.root solution))
+      ~rootId:( (Solution.root solution).Solution.Package.id)
       ~solution
       ~installation
       ()

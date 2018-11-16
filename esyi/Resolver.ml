@@ -573,7 +573,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
             resolver.opamRegistry
         in
         let f (resolution : OpamResolution.t) =
-          let version = Version.Opam resolution.version in
+          let version = OpamResolution.version resolution in
           {Resolution. name; resolution = Version version}
         in
         return (List.map ~f versions)

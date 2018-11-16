@@ -52,6 +52,7 @@ type t = {
 } [@@deriving yojson]
 
 and node = {
+  id: PackageId.t;
   name: string;
   version: Version.t;
   source: source;
@@ -76,7 +77,7 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
     match pkg.source with
-    | Package.Link { path; manifest } -> return (Link {path; manifest;})
+    | Solution.Package.Link { path; manifest } -> return (Link {path; manifest;})
     | Install {source; opam = None;} -> return (Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = OpamResolution.toLock ~sandbox:sandbox.spec opam in
@@ -88,6 +89,7 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
       pkg.overrides
   in
   return {
+    id = pkg.id;
     name = pkg.name;
     version = pkg.version;
     source;
@@ -100,14 +102,15 @@ let toPackage sandbox (node : node) =
   let open RunAsync.Syntax in
   let%bind source =
     match node.source with
-    | Link { path; manifest } -> return (Package.Link {path;manifest;})
-    | Install {source; opam = None;} -> return (Package.Install {source; opam = None;})
+    | Link { path; manifest } -> return (Solution.Package.Link {path;manifest;})
+    | Install {source; opam = None;} -> return (Solution.Package.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = OpamResolution.ofLock ~sandbox:sandbox.Sandbox.spec opam in
-      return (Package.Install {source; opam = Some opam;});
+      return (Solution.Package.Install {source; opam = Some opam;});
   in
   return {
     Solution.Package.
+    id = node.id;
     name = node.name;
     version = node.version;
     source;
@@ -225,10 +228,11 @@ let lockOfSolution sandbox (solution : Solution.t) =
     let f pkg _dependencies nodes =
       let%bind nodes = nodes in
       let%bind node = ofPackage sandbox pkg in
-      return (PackageId.Map.add
-        (Solution.Package.id pkg)
-        node
-        nodes)
+      return (
+        PackageId.Map.add
+          pkg.Solution.Package.id
+          node
+          nodes)
     in
     Solution.fold ~f ~init:(return PackageId.Map.empty) solution
   in
@@ -269,7 +273,7 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
   let%bind checksum = computeSandboxChecksum sandbox in
-  let lock = {checksum; node; root = Solution.Package.id root;} in
+  let lock = {checksum; node; root = root.Solution.Package.id;} in
   let%bind () = Fs.createDir path in
   let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
   let%bind () = Fs.writeFile ~data:gitAttributesContents Path.(path / ".gitattributes") in

@@ -200,7 +200,7 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
 
   return (paths, manifests)
 
-let buildId ~sandboxEnv ~name ~version build dist dependencies =
+let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
 
   let hash =
 
@@ -240,11 +240,14 @@ let buildId ~sandboxEnv ~name ~version build dist dependencies =
       |> Yojson.Safe.to_string
     in
 
-    String.concat "__" (sandboxEnv::dist::self::dependencies)
+    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::dependencies)
     |> Digest.string
     |> Digest.to_hex
     |> fun hash -> String.sub hash 0 8
   in
+
+  let name = PackageId.name id in
+  let version = PackageId.version id in
 
   match version with
   | Version.Npm _
@@ -273,7 +276,7 @@ let make'
   let tasks = ref PackageId.Map.empty in
 
   let rec aux pkg =
-    let id = Package.id pkg in
+    let id = pkg.Package.id in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
@@ -314,16 +317,16 @@ let make'
         return (direct, build)
       in
       let traverse =
-        if PackageId.compare (Solution.Package.id root) pkgId = 0
+        if PackageId.compare root.Solution.Package.id pkgId = 0
         then Solution.traverseWithDevDependencies
         else Solution.traverse
       in
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
-    let source, sourcePath, sourceType =
+    let dist, sourcePath, sourceType =
       match pkg.source with
-      | EsyInstall.Package.Install info ->
+      | EsyInstall.Solution.Package.Install info ->
         let source, _ = info.source in
         let sourceType =
           let hasTransientDeps =
@@ -338,7 +341,7 @@ let make'
           else SourceType.Immutable
         in
         Some source, location, sourceType
-      | EsyInstall.Package.Link _ ->
+      | EsyInstall.Solution.Package.Link _ ->
         None, location, SourceType.Transient
     in
     let sourceType =
@@ -349,7 +352,7 @@ let make'
 
     let name = PackageId.name pkgId in
     let version = PackageId.version pkgId in
-    let id = buildId ~sandboxEnv:BuildManifest.Env.empty ~name ~version build source dependencies in
+    let id = buildId ~sandboxEnv ~id:pkgId ~dist ~build ~dependencies () in
     let sourcePath = Scope.SandboxPath.ofPath buildCfg sourcePath in
 
     let exportedScope, buildScope =
@@ -479,7 +482,7 @@ let make'
       buildScope;
     } in
 
-    tasks := PackageId.Map.add (Package.id pkg) (Some task) !tasks;
+    tasks := PackageId.Map.add pkg.Package.id (Some task) !tasks;
 
     return task
 
@@ -532,8 +535,17 @@ let findTaskByName plan name =
   | None -> None
   | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
 
+let findTaskByNameVersion plan name version =
+  let compare = [%derive.ord: string * Version.t] in
+  let f _id (pkg : Solution.Package.t) =
+    compare (pkg.name, pkg.version) (name, version) >= 0
+  in
+  match Solution.find f plan.solution with
+  | None -> None
+  | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
+
 let rootTask plan =
-  let id = Solution.Package.id (Solution.root plan.solution) in
+  let id = (Solution.root plan.solution).id in
   match PackageId.Map.find_opt id plan.tasks with
   | None
   | Some None ->
@@ -604,7 +616,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
         then return ()
         else LwtTaskQueue.submit queue (run ~quiet:false task)
     in
-    let id = Solution.Package.id pkg in
+    let id = pkg.Solution.Package.id in
     match Hashtbl.find_opt tasks id with
     | Some running -> running
     | None ->
@@ -623,7 +635,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   in
 
   let rec process pkg =
-    let id = Solution.Package.id pkg in
+    let id = pkg.Solution.Package.id in
     match PackageId.Map.find id plan.tasks with
     | Some _ ->
       let%bind () = processDependencies pkg in
@@ -633,7 +645,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   and processDependencies pkg =
     let dependencies =
       let traverse =
-        if PackageId.compare (Solution.Package.id root) (Solution.Package.id pkg) = 0
+        if Package.compare root pkg = 0
         then Solution.traverseWithDevDependencies
         else Solution.traverse
       in

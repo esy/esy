@@ -14,4 +14,5 @@ val sexp_of_t : t -> Sexplib0.Sexp.t
 val parser : t Parse.t
 val parse : string -> (t, string) result
 
+val computeOfFile : ?kind:kind -> Path.t -> t RunAsync.t
 val checkFile : path:Path.t -> t -> unit RunAsync.t

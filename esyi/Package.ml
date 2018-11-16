@@ -433,6 +433,23 @@ module Override = struct
       let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox dist in
       File.ofDir Path.(path / "files")
 
+  let digest ~cfg ~sandbox override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson {json;} -> return (Some (Digest.string (Yojson.Safe.to_string json)))
+    | OfOpamOverride _ ->
+      let%bind files = files ~cfg ~sandbox override in
+      let%bind parts =
+        let f file =
+          let%bind checksum = File.checksum file in
+          return (Checksum.show checksum)
+        in
+        RunAsync.List.mapAndJoin ~f files
+      in
+      let parts = List.sort ~cmp:String.compare parts in
+      return (Some (Digest.string (String.concat ~sep:"--" parts)))
+    | OfDist _ -> return None
+
   let fetch ~cfg ~sandbox override =
     let open RunAsync.Syntax in
     match override with
@@ -558,6 +575,20 @@ module Overrides = struct
       return (filesOfOverride @ files)
     in
     fold' ~f ~init:[] overrides
+
+  let digest ~cfg ~sandbox overrides =
+    let open RunAsync.Syntax in
+    match overrides with
+    | [] -> return None
+    | overrides ->
+      let f override =
+        match%bind Override.digest ~cfg ~sandbox override with
+        | Some digest -> return (Some digest)
+        | None -> return None
+      in
+      let%bind parts = RunAsync.List.mapAndJoin ~concurrency:40 ~f overrides in
+      let parts = List.filterNone parts in
+      return (Some Digest.(string (String.concat ~sep:"--" parts)))
 
   let foldWithBuildOverrides ~cfg ~sandbox ~f ~init overrides =
     let open RunAsync.Syntax in
@@ -722,10 +753,31 @@ type t = {
   kind : kind;
 }
 
-
 and kind =
   | Esy
   | Npm
+
+let computeId ~cfg ~sandbox pkg =
+  let open RunAsync.Syntax in
+  match pkg.source with
+  | Link _ ->
+    return (PackageId.make pkg.name pkg.version None)
+  | Install { source = _; opam = None; } ->
+    let%bind digest =
+      match%bind Overrides.digest ~cfg ~sandbox pkg.overrides with
+      | Some digest -> return (Some digest)
+      | None -> return None
+    in
+    return (PackageId.make pkg.name pkg.version digest)
+  | Install { source = _; opam = Some opam; } ->
+    let%bind opamDigest = OpamResolution.digest opam in
+    let%bind digest =
+      match%bind Overrides.digest ~cfg ~sandbox pkg.overrides with
+      | Some overrideDigest ->
+        return (Digest.string (overrideDigest ^ "--" ^ opamDigest))
+      | None -> return opamDigest
+    in
+    return (PackageId.make pkg.name pkg.version (Some digest))
 
 let pp fmt pkg =
   Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version

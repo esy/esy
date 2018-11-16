@@ -21,7 +21,7 @@ and registry = {
 }
 
 let readOpamFileOfRegistry res registry =
-  let path = Path.(res.OpamResolution.path / "opam") in
+  let path = Path.(OpamResolution.path res / "opam") in
   OpamManifest.File.ofPath
     ?upgradeIfOpamVersionIsLessThan:registry.version
     ~cache:registry.opamCache
@@ -29,7 +29,7 @@ let readOpamFileOfRegistry res registry =
 
 let readUrlFileOfRegistry res _registry =
   let open RunAsync.Syntax in
-  let path = Path.(res.OpamResolution.path / "url") in
+  let path = Path.(OpamResolution.path res / "url") in
   if%bind Fs.exists path
   then
     let%bind data = Fs.readFile path in
@@ -135,7 +135,7 @@ let resolve
   =
   let open RunAsync.Syntax in
   let%bind path = findPackagePath (name, version) registry in
-  let res = {OpamResolution. name; version; path;} in
+  let res = OpamResolution.make name version path in
   let%bind available =
     let env (var : OpamVariable.Full.t) =
       let scope = OpamVariable.Full.scope var in
@@ -219,7 +219,7 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
         url;
         override = None;
         archive;
-        opamRepositoryPath = Some res.OpamResolution.path;
+        opamRepositoryPath = Some (OpamResolution.path res);
       }
     in
     begin match%bind OpamOverrides.find ~name ~version registry.overrides with

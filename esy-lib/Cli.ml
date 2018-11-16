@@ -69,10 +69,15 @@ end = struct
 end
 
 let createProgressReporter ~name () =
-  let progress msg =
-    let status = Format.asprintf ".... %s %s" name msg in
-    ProgressReporter.setStatus status
+
+  let progress fmt =
+    let kerr _ =
+      let msg = Format.flush_str_formatter () in
+      ProgressReporter.setStatus (".... " ^ name ^ " " ^ msg)
+    in
+    Format.kfprintf kerr Format.str_formatter fmt
   in
+
   let finish () =
     let%lwt () = ProgressReporter.clearStatus () in
     Logs_lwt.app (fun m -> m "%s: done" name)
