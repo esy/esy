@@ -12,7 +12,6 @@ type t = {
   stagePath: Path.t,
   buildPath: Path.t,
   lockPath: Path.t,
-  infoPath: Path.t,
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
   install: list(Cmd.t),
@@ -254,8 +253,6 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   let buildPath = Path.(storePath / EsyLib.Store.buildTree / plan.id);
   let lockPath =
     Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".lock"));
-  let infoPath =
-    Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".info"));
 
   let%bind sandbox = {
     let%bind config = {
@@ -294,7 +291,6 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
       stagePath,
       buildPath,
       lockPath,
-      infoPath,
       sandbox,
     },
     (module Lifecycle): (module LIFECYCLE),
@@ -398,46 +394,6 @@ let commitBuildToStore = (config: Config.t, build: build) => {
   };
   let%bind () = mv(build.stagePath, build.installPath);
   ok;
-};
-
-let findSourceModTime = (build: build) => {
-  let visit = (path: Path.t) =>
-    fun
-    | Ok(maxTime) =>
-      if (path == build.sourcePath) {
-        Ok(maxTime);
-      } else {
-        let%bind {Unix.st_mtime: time, _} = lstat(path);
-        Ok(time > maxTime ? time : maxTime);
-      }
-    | error => error;
-  let traverse = {
-    let isHidden = fname => String.length(fname) > 0 && fname.[0] == '.';
-    `Sat(
-      path =>
-        switch (Path.basename(path)) {
-        | ".git"
-        | ".hg"
-        | ".svn"
-        | "node_modules"
-        | "_esy"
-        | "_release"
-        | "_build"
-        | "_install" => Ok(false)
-        | fname when isHidden(fname) => Ok(false)
-        | _ => Ok(true)
-        },
-    );
-  };
-  EsyLib.Result.join(
-    Bos.OS.Path.fold(
-      ~dotfiles=true,
-      ~traverse,
-      visit,
-      Ok(0.),
-      [build.sourcePath],
-    ),
-  );
 };
 
 let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
@@ -552,7 +508,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
   let%bind (build, lifecycle) = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
-  let performBuild = sourceModTime => {
+  let performBuild = () => {
     Logs.debug(m => m("building"));
     Logs.app(m =>
       m(
@@ -655,60 +611,21 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
         };
       ok;
     };
-    let startTime = Unix.gettimeofday();
-    let%bind () =
-      withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
-    let%bind info = {
-      let%bind sourceModTime =
-        switch (sourceModTime, build.plan.sourceType) {
-        | (None, EsyLib.SourceType.Transient) =>
-          if (isRoot(build)) {
-            Ok(None);
-          } else {
-            Logs.debug(m => m("computing build mtime"));
-            let%bind v = findSourceModTime(build);
-            Ok(Some(v));
-          }
-        | (v, _) => Ok(v)
-        };
-      Ok(
-        BuildInfo.{
-          sourceModTime,
-          timeSpent: Unix.gettimeofday() -. startTime,
-        },
-      );
-    };
-    BuildInfo.toFile(build.infoPath, info);
+    withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
   };
-  switch (force, build.plan.sourceType) {
-  | (true, _) =>
-    Logs.debug(m => m("forcing build"));
-    performBuild(None);
-  | (false, EsyLib.SourceType.Transient) =>
-    if (isRoot(build)) {
-      performBuild(None);
+  switch (build.plan.sourceType) {
+  | EsyLib.SourceType.Transient => performBuild()
+  | EsyLib.SourceType.Immutable =>
+    if (force) {
+      Logs.debug(m => m("forcing build"));
+      performBuild();
     } else {
-      Logs.debug(m => m("checking for staleness"));
-      let%bind info = BuildInfo.ofFile(build.infoPath);
-      let prevSourceModTime =
-        Option.bind(~f=v => v.BuildInfo.sourceModTime, info);
-      let%bind sourceModTime = findSourceModTime(build);
-      switch (prevSourceModTime) {
-      | Some(prevSourceModTime) when sourceModTime > prevSourceModTime =>
-        performBuild(Some(sourceModTime))
-      | None => performBuild(Some(sourceModTime))
-      | Some(_) =>
-        Logs.debug(m => m("source code is not modified, skipping"));
+      if%bind (exists(build.installPath)) {
+        Logs.debug(m => m("build exists in store, skipping"));
         ok;
+      } else {
+        performBuild();
       };
     }
-  | (false, EsyLib.SourceType.Immutable) =>
-    let%bind installPathExists = exists(build.installPath);
-    if (installPathExists) {
-      Logs.debug(m => m("build exists in store, skipping"));
-      ok;
-    } else {
-      performBuild(None);
-    };
   };
 };

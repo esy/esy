@@ -39,8 +39,10 @@ module Task = struct
 
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
+  let sourcePath t = Scope.sourcePath t.exportedScope
   let installPath t = Scope.installPath t.exportedScope
   let logPath t = Scope.logPath t.exportedScope
+  let buildInfoPath t = Scope.buildInfoPath t.exportedScope
 
   let renderExpression ~cfg task expr =
     let open Run.Syntax in
@@ -568,6 +570,49 @@ let exec ~cfg task cmd =
   let plan = Task.plan task in
   EsyBuildPackageApi.buildExec ~cfg plan cmd
 
+let findMaxModifyTime path =
+  let open RunAsync.Syntax in
+  let skipTraverse path =
+    match Path.basename path with
+    | "node_modules"
+    | ".git"
+    | ".hg"
+    | ".svn"
+    | ".merlin"
+    | "esy.lock"
+    | "_esy"
+    | "_release"
+    | "_build"
+    | "_install" -> true
+    | _ ->
+      begin match Path.getExt path with
+      (* dune can touch this *)
+      | ".install" -> true
+      | _ -> false
+      end
+  in
+  let f (prevpath, prevmtime) path stat =
+    return (
+      let mtime = stat.Unix.st_mtime in
+      if mtime > prevmtime
+      then path, mtime
+      else prevpath, prevmtime
+    )
+  in
+  let label = Printf.sprintf "computing mtime for %s" (Path.show path) in
+  Perf.measureLwt ~label (fun () -> Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path)
+
+module Changes = struct
+  type t =
+    | Yes
+    | No
+
+  let (+) a b =
+    match a, b with
+    | No, No -> No
+    | _ -> Yes
+end
+
 let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
@@ -583,6 +628,38 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
 
+  let findMaxModifyTimeMem =
+    let mem = Memoize.make () in
+    fun path -> Memoize.compute mem path (fun () -> findMaxModifyTime path)
+  in
+
+  let checkFreshModifyTime infoPath sourcePath =
+    let open RunAsync.Syntax in
+
+    let prevmtime =
+      Lwt.catch
+        (fun () ->
+          match%bind BuildInfo.ofFile infoPath with
+          | Some info -> return info.BuildInfo.sourceModTime
+          | None -> return None)
+        (fun _exn -> return None)
+    in
+
+    let%bind mpath, mtime = findMaxModifyTimeMem sourcePath in
+    match%bind prevmtime with
+    | None ->
+      Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
+      return (Changes.Yes, mtime)
+    | Some prevmtime ->
+      if mtime > prevmtime
+      then (
+        Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
+        return (Changes.Yes, mtime)
+      )
+      else
+        return (Changes.No, mtime)
+  in
+
   let queue = LwtTaskQueue.create ~concurrency () in
   let root = Solution.root plan.solution in
   let tasks = Hashtbl.create 100 in
@@ -594,6 +671,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   in
 
   let run ~quiet task () =
+    let start = Unix.gettimeofday () in
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId)
     else Lwt.return ();%lwt
@@ -602,19 +680,43 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId)
     else Lwt.return ();%lwt
-    return ()
+    let stop = Unix.gettimeofday () in
+    return (stop -. start)
   in
 
-  let runIfNeeded pkg =
+  let runIfNeeded changesInDependencies pkg =
     let run task () =
+      let p = Scope.SandboxPath.toPath cfg.Config.buildCfg in
+      let infoPath = p (Task.buildInfoPath task) in
+      let sourcePath = p (Task.sourcePath task) in
       let%bind isBuilt = isBuilt task in
       match task.Task.sourceType with
       | SourceType.Transient ->
-        LwtTaskQueue.submit queue (run ~quiet:isBuilt task)
+        let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
+        begin match Changes.(changesInDependencies + changesInSources) with
+        | Changes.No ->
+          Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
+          return Changes.No
+        | Changes.Yes ->
+          let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+          let%bind () = BuildInfo.toFile infoPath {
+            BuildInfo.
+            timeSpent;
+            sourceModTime = Some mtime;
+          } in
+          return Changes.Yes
+        end
       | SourceType.Immutable ->
         if isBuilt
-        then return ()
-        else LwtTaskQueue.submit queue (run ~quiet:false task)
+        then return Changes.No
+        else
+          let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+          let%bind () = BuildInfo.toFile infoPath {
+            BuildInfo.
+            timeSpent;
+            sourceModTime = None;
+          } in
+          return Changes.No
     in
     let id = pkg.Solution.Package.id in
     match Hashtbl.find_opt tasks id with
@@ -629,8 +731,8 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
         in
         Hashtbl.replace tasks id running;
         running
-      | None -> RunAsync.return ()
-      | exception Not_found -> RunAsync.return ()
+      | None -> RunAsync.return Changes.No
+      | exception Not_found -> RunAsync.return Changes.No
       end
   in
 
@@ -638,10 +740,10 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
     let id = pkg.Solution.Package.id in
     match PackageId.Map.find id plan.tasks with
     | Some _ ->
-      let%bind () = processDependencies pkg in
-      runIfNeeded pkg
-    | None -> RunAsync.return ()
-    | exception Not_found -> RunAsync.return ()
+      let%bind changes = processDependencies pkg in
+      runIfNeeded changes pkg
+    | None -> RunAsync.return Changes.No
+    | exception Not_found -> RunAsync.return Changes.No
   and processDependencies pkg =
     let dependencies =
       let traverse =
@@ -651,12 +753,16 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
       in
       Solution.dependencies ~traverse pkg plan.solution
     in
-    RunAsync.List.mapAndWait ~f:process dependencies
+    let%bind changes = RunAsync.List.mapAndJoin ~f:process dependencies in
+    let changes = List.fold_left ~f:Changes.(+) ~init:Changes.No changes in
+    return changes
   in
 
   match Solution.get id plan.solution with
   | None -> RunAsync.errorf "no such package %a" PackageId.pp id
-  | Some pkg -> processDependencies pkg
+  | Some pkg ->
+    let%bind _: Changes.t = processDependencies pkg in
+    return ()
 
 let exposeUserEnv scope =
   scope
