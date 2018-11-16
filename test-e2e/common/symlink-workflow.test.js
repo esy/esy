@@ -50,6 +50,7 @@ describe('Symlink workflow', () => {
               ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
             ],
           },
+          dependencies: {anotherDep: '*'},
         }),
         dummyExecutable('dep'),
       ),
@@ -79,14 +80,31 @@ describe('Symlink workflow', () => {
     );
 
     p.cd('./app');
-    await p.esy('install');
-    await p.esy('build');
 
     return p;
   }
 
   it('works without changes', async () => {
     const p = await createTestSandbox();
+
+    await p.esy('install');
+
+    {
+      // initial build builds everything
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
+
+    {
+      // second build builds nothing
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).not.toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).not.toContain('info building dep@link:../dep');
+    }
+
     const dep = await p.esy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('__dep__');
     const anotherDep = await p.esy('anotherDep.cmd');
@@ -95,6 +113,15 @@ describe('Symlink workflow', () => {
 
   it('works with modified dep sources', async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
+
+    {
+      // initial build builds everything
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
 
     {
       const dep = await p.esy('dep.cmd');
@@ -111,9 +138,57 @@ describe('Symlink workflow', () => {
       `,
     );
 
-    await p.esy('build');
+    {
+      // second build builds dep (it was changed)
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).not.toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
+
     {
       const dep = await p.esy('dep.cmd');
+      expect(dep.stdout.trim()).toEqual('MODIFIED!');
+    }
+  });
+
+  it('works with modified anotherDep sources', async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+
+    {
+      // initial build builds everything
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
+
+    {
+      const dep = await p.esy('anotherDep.cmd');
+      expect(dep.stdout.trim()).toEqual('__anotherDep__');
+    }
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await fs.writeFile(
+      path.join(p.projectPath, 'anotherDep', 'anotherDep.js'),
+      outdent`
+        console.log('MODIFIED!');
+      `,
+    );
+
+    {
+      // second build builds anotherDep (it was changed) and dep (depends on anotherDep)
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
+
+    {
+      const dep = await p.esy('anotherDep.cmd');
       expect(dep.stdout.trim()).toEqual('MODIFIED!');
     }
   });
