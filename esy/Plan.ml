@@ -532,6 +532,15 @@ let findTaskByName plan name =
   | None -> None
   | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
 
+let findTaskByNameVersion plan name version =
+  let compare = [%derive.ord: string * Version.t] in
+  let f _id (pkg : Solution.Package.t) =
+    compare (pkg.name, pkg.version) (name, version) >= 0
+  in
+  match Solution.find f plan.solution with
+  | None -> None
+  | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
+
 let rootTask plan =
   let id = (Solution.root plan.solution).id in
   match PackageId.Map.find_opt id plan.tasks with

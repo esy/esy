@@ -658,10 +658,12 @@ let withBuildTaskById
   let%bind plan = SandboxInfo.plan info in
   match id with
   | Some id ->
-    begin match Plan.findTaskById plan id with
-    | Ok Some task -> f task
-    | Ok None -> errorf "no build defined for %a" EsyInstall.PackageId.pp id
-    | Error err -> Lwt.return (Error err)
+    let name = PackageId.name id in
+    let version = PackageId.version id in
+    begin match Plan.findTaskByNameVersion plan name version with
+    | Some Some task -> f task
+    | Some None
+    | None -> errorf "no build defined for %a" EsyInstall.PackageId.pp id
     end
   | None -> f (Plan.rootTask plan)
 
