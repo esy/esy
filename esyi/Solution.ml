@@ -18,10 +18,8 @@ module Package = struct
     opamfile : OpamFile.OPAM.t;
   }
 
-  let id pkg = pkg.id
-
   let compare a b =
-    PackageId.compare (id a) (id b)
+    PackageId.compare a.id b.id
 
   let pp fmt pkg =
     Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
@@ -72,5 +70,6 @@ let traverseWithDevDependencies pkg =
 include Graph.Make(struct
   include Package
   let traverse = traverse
+  let id pkg = pkg.id
   module Id = PackageId
 end)

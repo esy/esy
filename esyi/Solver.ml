@@ -867,7 +867,7 @@ let solve (sandbox : Sandbox.t) =
           allDependenciesByName
       in
       return (
-        Solution.empty (Solution.Package.id root)
+        Solution.empty root.Solution.Package.id
         |> Solution.add root
       )
     in

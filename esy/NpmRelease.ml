@@ -153,7 +153,7 @@ let make
     filterOut
   in
 
-  let root = Package.id (Solution.root solution) in
+  let root = (Solution.root solution).id in
   let rootTask = Plan.rootTask plan in
 
   (* Make sure all packages are built *)

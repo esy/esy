@@ -23,8 +23,6 @@ module Package : sig
     opamfile : OpamFile.OPAM.t;
   }
 
-  val id : t -> PackageId.t
-
   val readOpam : t -> opam option RunAsync.t
   val readOpamFiles : t -> File.t list RunAsync.t
 

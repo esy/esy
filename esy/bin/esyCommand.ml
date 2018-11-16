@@ -730,7 +730,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let%bind info = SandboxInfo.make copts in
   let%bind plan = SandboxInfo.plan info in
   let%bind solution = SandboxInfo.solution info in
-  let root = Solution.Package.id (Solution.root solution) in
+  let root = (Solution.root solution).id in
   let%bind () =
     Plan.buildDependencies
       ~cfg:copts.cfg
@@ -990,7 +990,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
   let root = Solution.root solution in
 
   let rec draw pkg =
-    let id = Solution.Package.id pkg in
+    let id = pkg.Solution.Package.id in
     if PackageId.Set.mem id !seen then
       return None
     else (
@@ -1150,7 +1150,7 @@ let lsModules copts only () =
         return []
     in
 
-    let isNotRoot = PackageId.compare task.pkgId (Solution.Package.id root) <> 0 in
+    let isNotRoot = PackageId.compare task.pkgId root.id <> 0 in
     let constraintsSet = List.length only <> 0 in
     let noMatchedLibs = List.length (List.intersect only libs) = 0 in
 
@@ -1340,7 +1340,7 @@ let exportDependencies (copts : CommonOptions.t) () =
 
   let exportBuild (_, pkg) =
     let task =
-      RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg))
+      RunAsync.ofRun (Plan.findTaskById plan pkg.Solution.Package.id)
     in
     match%bind task with
     | None -> return ()
@@ -1397,7 +1397,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   in
 
   let importBuild (_direct, pkg) =
-    match%bind RunAsync.ofRun (Plan.findTaskById plan (Solution.Package.id pkg)) with
+    match%bind RunAsync.ofRun (Plan.findTaskById plan pkg.Solution.Package.id) with
     | Some task ->
       let installPath = Scope.SandboxPath.toPath copts.cfg.buildCfg (Plan.Task.installPath task) in
       if%bind Fs.exists installPath

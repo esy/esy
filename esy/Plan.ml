@@ -273,7 +273,7 @@ let make'
   let tasks = ref PackageId.Map.empty in
 
   let rec aux pkg =
-    let id = Package.id pkg in
+    let id = pkg.Package.id in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
@@ -314,7 +314,7 @@ let make'
         return (direct, build)
       in
       let traverse =
-        if PackageId.compare (Solution.Package.id root) pkgId = 0
+        if PackageId.compare root.Solution.Package.id pkgId = 0
         then Solution.traverseWithDevDependencies
         else Solution.traverse
       in
@@ -479,7 +479,7 @@ let make'
       buildScope;
     } in
 
-    tasks := PackageId.Map.add (Package.id pkg) (Some task) !tasks;
+    tasks := PackageId.Map.add pkg.Package.id (Some task) !tasks;
 
     return task
 
@@ -533,7 +533,7 @@ let findTaskByName plan name =
   | Some (id, _) -> Some (PackageId.Map.find id plan.tasks)
 
 let rootTask plan =
-  let id = Solution.Package.id (Solution.root plan.solution) in
+  let id = (Solution.root plan.solution).id in
   match PackageId.Map.find_opt id plan.tasks with
   | None
   | Some None ->
@@ -604,7 +604,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
         then return ()
         else LwtTaskQueue.submit queue (run ~quiet:false task)
     in
-    let id = Solution.Package.id pkg in
+    let id = pkg.Solution.Package.id in
     match Hashtbl.find_opt tasks id with
     | Some running -> running
     | None ->
@@ -623,7 +623,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   in
 
   let rec process pkg =
-    let id = Solution.Package.id pkg in
+    let id = pkg.Solution.Package.id in
     match PackageId.Map.find id plan.tasks with
     | Some _ ->
       let%bind () = processDependencies pkg in
@@ -633,7 +633,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   and processDependencies pkg =
     let dependencies =
       let traverse =
-        if PackageId.compare (Solution.Package.id root) (Solution.Package.id pkg) = 0
+        if Package.compare root pkg = 0
         then Solution.traverseWithDevDependencies
         else Solution.traverse
       in
