@@ -1,5 +1,64 @@
 # CHANGELOG
 
+## 0.4.1 @ next
+
+- `esy install` command now warns about unused resolutions.
+
+  In case resolutions are configured but not used by any dependency constraints
+  a warning message is printed.
+
+  Thanks @giltho for implementing that!
+
+- `esy install` now logs output of stderr/stdout of npm lifecycle scripts.
+
+  Thanks @giltho for implementing that!
+
+- Improve package fetching mechanism.
+
+  We don't store re-packed tarballs anymore (unless `--cache-tarballs-path` is
+  passed). This improve `esy install` performance and wastes less disk space.
+
+- Improve linking workflow.
+
+  - Make staleness check ignore `*.install`, `.merlin` files which can be
+    touched by `dune`.
+
+  - Fix the case where multiple packages are linked from the same path as the
+    root package. Previously staleness check didn't work in such scenariou.
+
+  - Cache staleness check by source path. This speeds up the case when multiple
+    packages are linked from the same source path.
+
+- Fix configuration of `buildsInSource` field in overrides (regression
+  introduced in 0.4.0).
+
+- Fix propagating info about changes in linked packages (regression introduced
+  in 0.4.0).
+
+- Fix installation cache corruption (regression introduced in 0.4.0).
+
+- Fix build store corruption due to `sandboxEnv` not being tracked in build ids
+  (regression introduced in 0.4.0).
+
+- Fix `esy.lock` to be safe from user's configuration of git.
+
+  In particular `esy.lock/.gitattributes` and `esy.lock/.gitignore` is now
+  placed to make sure we files inside `esy.lock` are not ignored by git and line
+  endings are preserved to `LF`.
+
+  Thanks @bryphe!
+
+- Fixes handling of long commands on Windows.
+
+  esy-ocaml/flexdll is patched and new ocaml compiler packages are published.
+
+  Thanks @bryphe!
+
+- Fix `esy add` command to correctly update lockfile checksum.
+
+  Previously `esy add` didn't update lockfile checksum which made an
+  invocation of `esy install` required. Fixes #640.
+
 ## 0.4.0 @ next
 
 - Switch from `node_modules`-style to Plug'n'Play-style (pnp for short)
