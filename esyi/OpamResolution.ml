@@ -41,7 +41,7 @@ let files res = File.ofDir Path.(res.path / "files")
 let digest res =
   let open RunAsync.Syntax in
   let%bind files = files res in
-  let checksums = List.map ~f:File.checksum files in
+  let%bind checksums = RunAsync.List.mapAndJoin ~f:File.checksum files in
   let%bind opamChecksum = Checksum.computeOfFile Path.(res.path / "opam") in
   let checksums = opamChecksum::checksums in
   let parts = List.map ~f:Checksum.show checksums in

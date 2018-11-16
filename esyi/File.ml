@@ -1,20 +1,17 @@
 type t = {
   name : string;
   root : Path.t;
-  checksum : Checksum.t;
 }
 
-let checksum file = file.checksum
+let checksum file =
+  Checksum.computeOfFile ~kind:Checksum.Sha256 Path.(file.root / file.name)
 
 let ofDir root =
   let open RunAsync.Syntax in
   if%bind Fs.exists root
   then
     let%bind files = Fs.listDir root in
-    let f name =
-      let%bind checksum = Checksum.computeOfFile ~kind:Checksum.Sha256 Path.(root / name) in
-      return {name; root; checksum;}
-    in
+    let f name = return {name; root;} in
     RunAsync.List.mapAndJoin ~concurrency:20 ~f files
   else
     return []

@@ -439,8 +439,13 @@ module Override = struct
     | OfJson {json;} -> return (Some (Digest.string (Yojson.Safe.to_string json)))
     | OfOpamOverride _ ->
       let%bind files = files ~cfg ~sandbox override in
-      let f file = Checksum.show (File.checksum file) in
-      let parts = List.map ~f files in
+      let%bind parts =
+        let f file =
+          let%bind checksum = File.checksum file in
+          return (Checksum.show checksum)
+        in
+        RunAsync.List.mapAndJoin ~f files
+      in
       let parts = List.sort ~cmp:String.compare parts in
       return (Some (Digest.string (String.concat ~sep:"--" parts)))
     | OfDist _ -> return None
