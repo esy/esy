@@ -17,12 +17,6 @@ module Package : sig
     devDependencies : PackageId.Set.t;
   }
 
-  type opam = {
-    opamname : OpamPackage.Name.t;
-    opamversion : OpamPackage.Version.t;
-    opamfile : OpamFile.OPAM.t;
-  }
-
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
 

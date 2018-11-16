@@ -12,12 +12,6 @@ module Package = struct
     devDependencies : PackageId.Set.t;
   }
 
-  type opam = {
-    opamname : OpamPackage.Name.t;
-    opamversion : OpamPackage.Version.t;
-    opamfile : OpamFile.OPAM.t;
-  }
-
   let compare a b =
     PackageId.compare a.id b.id
 
