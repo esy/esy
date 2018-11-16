@@ -352,7 +352,7 @@ let make'
 
     let name = PackageId.name pkgId in
     let version = PackageId.version pkgId in
-    let id = buildId ~sandboxEnv:BuildManifest.Env.empty ~id:pkgId ~dist ~build ~dependencies () in
+    let id = buildId ~sandboxEnv ~id:pkgId ~dist ~build ~dependencies () in
     let sourcePath = Scope.SandboxPath.ofPath buildCfg sourcePath in
 
     let exportedScope, buildScope =
