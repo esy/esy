@@ -200,7 +200,7 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
 
   return (paths, manifests)
 
-let buildId ~sandboxEnv ~name ~version build dist dependencies =
+let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
 
   let hash =
 
@@ -240,11 +240,14 @@ let buildId ~sandboxEnv ~name ~version build dist dependencies =
       |> Yojson.Safe.to_string
     in
 
-    String.concat "__" (sandboxEnv::dist::self::dependencies)
+    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::dependencies)
     |> Digest.string
     |> Digest.to_hex
     |> fun hash -> String.sub hash 0 8
   in
+
+  let name = PackageId.name id in
+  let version = PackageId.version id in
 
   match version with
   | Version.Npm _
@@ -321,7 +324,7 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
-    let source, sourcePath, sourceType =
+    let dist, sourcePath, sourceType =
       match pkg.source with
       | EsyInstall.Package.Install info ->
         let source, _ = info.source in
@@ -349,7 +352,7 @@ let make'
 
     let name = PackageId.name pkgId in
     let version = PackageId.version pkgId in
-    let id = buildId ~sandboxEnv:BuildManifest.Env.empty ~name ~version build source dependencies in
+    let id = buildId ~sandboxEnv:BuildManifest.Env.empty ~id:pkgId ~dist ~build ~dependencies () in
     let sourcePath = Scope.SandboxPath.ofPath buildCfg sourcePath in
 
     let exportedScope, buildScope =
