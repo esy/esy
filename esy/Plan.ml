@@ -39,8 +39,10 @@ module Task = struct
 
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
+  let sourcePath t = Scope.sourcePath t.exportedScope
   let installPath t = Scope.installPath t.exportedScope
   let logPath t = Scope.logPath t.exportedScope
+  let buildInfoPath t = Scope.buildInfoPath t.exportedScope
 
   let renderExpression ~cfg task expr =
     let open Run.Syntax in
@@ -556,6 +558,63 @@ let exec ~cfg task cmd =
   let plan = Task.plan task in
   EsyBuildPackageApi.buildExec ~cfg plan cmd
 
+let findMaxModifyTime path =
+  let open RunAsync.Syntax in
+  let skipTraverse path =
+    match Path.basename path with
+    | "node_modules"
+    | ".git"
+    | ".hg"
+    | ".svn"
+    | ".merlin"
+    | "esy.lock"
+    | "_esy"
+    | "_release"
+    | "_build"
+    | "_install" -> true
+    | _ ->
+      begin match Path.getExt path with
+      (* dune can touch this *)
+      | ".install" -> true
+      | _ -> false
+      end
+  in
+  let f (prevpath, prevmtime) path stat =
+    return (
+      let mtime = stat.Unix.st_mtime in
+      if mtime > prevmtime
+      then path, mtime
+      else prevpath, prevmtime
+    )
+  in
+  let label = Printf.sprintf "computing mtime for %s" (Path.show path) in
+  Perf.measureLwt ~label (fun () -> Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path)
+
+let checkFreshModifyTime infoPath sourcePath =
+  let open RunAsync.Syntax in
+
+  let prevmtime =
+    Lwt.catch
+      (fun () ->
+        match%bind BuildInfo.ofFile infoPath with
+        | Some info -> return info.BuildInfo.sourceModTime
+        | None -> return None)
+      (fun _exn -> return None)
+  in
+
+  let%bind mpath, mtime = findMaxModifyTime sourcePath in
+  match%bind prevmtime with
+  | None ->
+    Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
+    return (Some mtime)
+  | Some prevmtime ->
+    if mtime > prevmtime
+    then (
+      Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
+      return (Some mtime)
+    )
+    else return None
+
 let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
@@ -582,6 +641,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   in
 
   let run ~quiet task () =
+    let start = Unix.gettimeofday () in
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId)
     else Lwt.return ();%lwt
@@ -590,19 +650,42 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId)
     else Lwt.return ();%lwt
-    return ()
+    let stop = Unix.gettimeofday () in
+    return (stop -. start)
   in
 
   let runIfNeeded pkg =
     let run task () =
+      let p = Scope.SandboxPath.toPath cfg.Config.buildCfg in
+      let infoPath = p (Task.buildInfoPath task) in
+      let sourcePath = p (Task.sourcePath task) in
       let%bind isBuilt = isBuilt task in
       match task.Task.sourceType with
       | SourceType.Transient ->
-        LwtTaskQueue.submit queue (run ~quiet:isBuilt task)
+        begin match%bind checkFreshModifyTime infoPath sourcePath with
+        | None ->
+          Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
+          return ()
+        | Some mtime ->
+          let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+          let%bind () = BuildInfo.toFile infoPath {
+            BuildInfo.
+            timeSpent;
+            sourceModTime = Some mtime;
+          } in
+          return ()
+        end
       | SourceType.Immutable ->
         if isBuilt
         then return ()
-        else LwtTaskQueue.submit queue (run ~quiet:false task)
+        else
+          let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+          let%bind () = BuildInfo.toFile infoPath {
+            BuildInfo.
+            timeSpent;
+            sourceModTime = None;
+          } in
+          return ()
     in
     let id = Solution.Package.id pkg in
     match Hashtbl.find_opt tasks id with

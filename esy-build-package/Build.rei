@@ -5,20 +5,20 @@
 
  */
 
-type t = pri {
-  plan: Plan.t,
-  sourcePath: EsyLib.Path.t,
-  storePath: EsyLib.Path.t,
-  installPath: EsyLib.Path.t,
-  stagePath: EsyLib.Path.t,
-  buildPath: EsyLib.Path.t,
-  lockPath: EsyLib.Path.t,
-  infoPath: EsyLib.Path.t,
-  env: Bos.OS.Env.t,
-  build: list(Cmd.t),
-  install: list(Cmd.t),
-  sandbox: Sandbox.sandbox,
-};
+type t =
+  pri {
+    plan: Plan.t,
+    sourcePath: EsyLib.Path.t,
+    storePath: EsyLib.Path.t,
+    installPath: EsyLib.Path.t,
+    stagePath: EsyLib.Path.t,
+    buildPath: EsyLib.Path.t,
+    lockPath: EsyLib.Path.t,
+    env: Bos.OS.Env.t,
+    build: list(Cmd.t),
+    install: list(Cmd.t),
+    sandbox: Sandbox.sandbox,
+  };
 
 /**
 
@@ -32,12 +32,8 @@ type t = pri {
 
  */
 let build:
-  (
-    ~buildOnly: bool=?,
-    ~force: bool=?,
-    ~cfg: Config.t,
-    Plan.t
-  ) => Run.t(unit, 'b);
+  (~buildOnly: bool=?, ~force: bool=?, ~cfg: Config.t, Plan.t) =>
+  Run.t(unit, 'b);
 
 /**
 
@@ -47,23 +43,19 @@ let build:
 
  */
 let withBuild:
-  (
-    ~commit: bool=?,
-    ~cfg: Config.t,
-    Plan.t,
-    t => Run.t(unit, 'b)
-  ) => Run.t(unit, 'b);
+  (~commit: bool=?, ~cfg: Config.t, Plan.t, t => Run.t(unit, 'b)) =>
+  Run.t(unit, 'b);
 
 /**
 
 	Run command in the build environment.
 
  */
-let runCommand : (t, Cmd.t) => Run.t(unit, _)
+let runCommand: (t, Cmd.t) => Run.t(unit, _);
 
 /**
 
 	Run command interactively in the build environment.
 
  */
-let runCommandInteractive : (t, Cmd.t) => Run.t(unit, _)
+let runCommandInteractive: (t, Cmd.t) => Run.t(unit, _);
