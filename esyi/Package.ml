@@ -265,11 +265,6 @@ end
 
 module Resolution = struct
 
-  module BuildType = struct
-    include EsyLib.BuildType
-    include EsyLib.BuildType.AsInPackageJson
-  end
-
   type t = {
     name : string;
     resolution : resolution;
@@ -399,8 +394,13 @@ module Override = struct
     | OfOpamOverride {name; version; _} -> Fmt.pf fmt "<opam override %s.%s>" name version
     | OfDist {dist;} -> Fmt.pf fmt "<override %a>" Dist.pp dist
 
+  module BuildType = struct
+    include EsyLib.BuildType
+    include EsyLib.BuildType.AsInPackageJson
+  end
+
   type build = {
-    buildType : BuildType.t option [@default None];
+    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
     build : CommandList.t option [@default None];
     install : CommandList.t option [@default None];
     exportedEnv: ExportedEnv.t option [@default None];
