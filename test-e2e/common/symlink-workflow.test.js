@@ -192,4 +192,114 @@ describe('Symlink workflow', () => {
       expect(dep.stdout.trim()).toEqual('MODIFIED!');
     }
   });
+
+  it('turns all revdeps of linked deps into linked deps', async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      dir(
+        'app',
+        packageJson({
+          name: 'app',
+          version: '1.0.0',
+          esy: {
+            build: 'true',
+          },
+          dependencies: {
+            dep: '*',
+            anotherDep: '*',
+          },
+          resolutions: {
+            dep: 'path:../dep',
+            anotherDep: 'link:../anotherDep',
+          },
+        }),
+      ),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {
+            build: [
+              [
+                'cp',
+                '#{self.original_root / self.name}.js',
+                '#{self.target_dir / self.name}.js',
+              ],
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            install: [
+              ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+              ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+            ],
+          },
+          dependencies: {anotherDep: '*'},
+        }),
+        dummyExecutable('dep'),
+      ),
+      dir(
+        'anotherDep',
+        packageJson({
+          name: 'anotherDep',
+          version: '1.0.0',
+          license: 'MIT',
+          esy: {
+            build: [
+              [
+                'cp',
+                '#{self.original_root / self.name}.js',
+                '#{self.target_dir / self.name}.js',
+              ],
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            install: [
+              ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+              ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+            ],
+          },
+        }),
+        dummyExecutable('anotherDep'),
+      ),
+    );
+
+    p.cd('./app');
+
+    await p.esy('install');
+
+    {
+      // initial build builds everything
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@path:../dep');
+    }
+
+    {
+      const dep = await p.esy('anotherDep.cmd');
+      expect(dep.stdout.trim()).toEqual('__anotherDep__');
+    }
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await fs.writeFile(
+      path.join(p.projectPath, 'anotherDep', 'anotherDep.js'),
+      outdent`
+        console.log('MODIFIED!');
+      `,
+    );
+
+    {
+      // second build builds anotherDep (it was changed) and dep (depends on anotherDep)
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@path:../dep');
+    }
+
+    {
+      const dep = await p.esy('anotherDep.cmd');
+      expect(dep.stdout.trim()).toEqual('MODIFIED!');
+    }
+  });
 });
