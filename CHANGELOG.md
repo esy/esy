@@ -29,6 +29,9 @@
   - Cache staleness check by source path. This speeds up the case when multiple
     packages are linked from the same source path.
 
+- Fix configuration of `buildsInSource` field in overrides (regression
+  introduced in 0.4.0).
+
 - Fix propagating info about changes in linked packages (regression introduced
   in 0.4.0).
 
