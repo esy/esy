@@ -279,3 +279,13 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let%bind () = Fs.writeFile ~data:gitAttributesContents Path.(path / ".gitattributes") in
   let%bind () = Fs.writeFile ~data:gitIgnoreContents Path.(path / ".gitignore") in
   return ()
+
+let unsafeUpdateChecksum ~sandbox path =
+  let open RunAsync.Syntax in
+  let%bind lock =
+    let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
+    RunAsync.ofRun (Json.parseJsonWith of_yojson json)
+  in
+  let%bind checksum = computeSandboxChecksum sandbox in
+  let lock = {lock with checksum;} in
+  Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)

@@ -9,3 +9,7 @@ val ofPath :
   -> Fpath.t
   -> Solution.t option RunAsync.t
 
+val unsafeUpdateChecksum :
+  sandbox:Sandbox.t
+  -> Fpath.t
+  -> unit RunAsync.t
