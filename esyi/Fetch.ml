@@ -547,10 +547,7 @@ let fetch sandbox solution =
     let report, finish = Cli.createProgressReporter ~name:"fetching" () in
     let%bind items =
       let f pkg =
-        let%lwt () =
-          let msg = Format.asprintf "%a" PackageId.pp pkg.Solution.Package.id in
-          report msg
-        in
+        report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
         let%bind fetch = FetchPackage.fetch sandbox pkg in
         return (pkg, fetch)
       in
@@ -656,11 +653,7 @@ let fetch sandbox solution =
           ~f:(visit seen)
           (Solution.dependencies pkg solution)
       in
-      let%lwt () =
-        let id = pkg.Solution.Package.id in
-        let msg = Format.asprintf "%a" PackageId.pp id in
-        report msg
-      in
+      report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
       install pkg (List.filterNone dependencies)
 
     and visit seen pkg =

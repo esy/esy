@@ -348,10 +348,7 @@ let add ~(dependencies : Dependencies.t) solver =
       RunAsync.List.mapAndWait ~f reqs
 
   and addDependency (req : Req.t) =
-    let%lwt () =
-      let status = Format.asprintf "%s" req.name in
-      report status
-    in
+    report "%s" req.name;%lwt
     let%bind resolutions =
       RunAsync.contextf (
         Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
@@ -572,10 +569,7 @@ let solveDependenciesNaively
   in
 
   let resolveOfOutside req =
-    let%lwt () =
-      let status = Format.asprintf "%a" Req.pp req in
-      report status
-    in
+    report "%a" Req.pp req;%lwt
     let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     match findResolutionForRequest solver.resolver req resolutions with
     | Some resolution ->
