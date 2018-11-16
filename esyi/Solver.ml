@@ -538,7 +538,6 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     end
 
 let solveDependenciesNaively
-  ~(sandbox : Sandbox.t)
   ~(installed : Package.Set.t)
   ~(root : Package.t)
   (dependencies : Dependencies.t)
@@ -603,16 +602,18 @@ let solveDependenciesNaively
     return pkg
   in
 
-  let lookupDependencies, addDependencies =
+  let sealDependencies, addDependencies =
     let solved = Hashtbl.create 100 in
     let key pkg = pkg.Package.name ^ "." ^ (Version.show pkg.Package.version) in
-    let lookup pkg =
-      Hashtbl.find_opt solved (key pkg)
+    let sealDependencies () =
+      let f _key (pkg, dependencies) map = Package.Map.add pkg dependencies map in
+      Hashtbl.fold f solved Package.Map.empty
+      (* Hashtbl.find_opt solved (key pkg) *)
     in
-    let register pkg task =
-      Hashtbl.add solved (key pkg) task
+    let register pkg dependencies =
+      Hashtbl.add solved (key pkg) (pkg, dependencies)
     in
-    lookup, register
+    sealDependencies, register
   in
 
   let solveDependencies trace dependencies =
@@ -673,59 +674,7 @@ let solveDependenciesNaively
   in
 
   finish ();%lwt
-
-  let%bind packageInfo =
-    let%bind packageById, idByPackage =
-      let rec aux (packageById, idByPackage as acc) = function
-        | pkg::rest ->
-          let%bind id = Package.computeId ~sandbox:sandbox.Sandbox.spec ~cfg:solver.cfg pkg in
-          begin match PackageId.Map.find_opt id packageById with
-          | Some _ -> aux acc rest
-          | None ->
-            let deps =
-              match lookupDependencies pkg with
-              | Some deps -> deps
-              | None -> Exn.failf "no dependencies solved found for %a" Package.pp pkg
-            in
-            let acc =
-              let packageById = PackageId.Map.add id pkg packageById in
-              let idByPackage = Package.Map.add pkg id idByPackage in
-              (packageById, idByPackage)
-            in
-            aux acc (rest @ deps)
-          end
-        | [] -> return (packageById, idByPackage)
-      in
-
-      let packageById = PackageId.Map.empty in
-      let idByPackage = Package.Map.empty in
-
-      aux (packageById, idByPackage) [root]
-    in
-
-    let dependencies =
-      let f pkg id map =
-        let dependencies =
-          match lookupDependencies pkg with
-          | Some deps -> deps
-          | None -> Exn.failf "no dependencies solved found for %a" Package.pp pkg
-        in
-        let dependencies =
-          let f deps pkg =
-            let id = Package.Map.find pkg idByPackage in
-            StringMap.add pkg.Package.name id deps
-          in
-          List.fold_left ~f ~init:StringMap.empty dependencies
-        in
-        PackageId.Map.add id dependencies map
-      in
-      Package.Map.fold f idByPackage PackageId.Map.empty
-    in
-
-    return (packageById, idByPackage, dependencies)
-  in
-
-  return packageInfo
+  return (sealDependencies ())
 
 let solveOCamlReq (req : Req.t) resolver =
   let open RunAsync.Syntax in
@@ -812,7 +761,7 @@ let solve (sandbox : Sandbox.t) =
     return (solver, dependencies)
   in
 
-  (* Solve runtime dependencies first *)
+  (* Solve esy dependencies first. *)
   let%bind installed =
     let%bind res =
       solveDependencies
@@ -821,16 +770,68 @@ let solve (sandbox : Sandbox.t) =
         ~strategy:Strategy.trendy
         dependencies
         solver
-    in getResultOrExplain res
+    in
+    getResultOrExplain res
   in
 
-  let%bind packageById, idByPackage, dependenciesById =
+  (* Solve npm dependencies now. *)
+  let%bind dependenciesMap =
     solveDependenciesNaively
-      ~sandbox
       ~installed
       ~root:sandbox.root
       dependencies
       solver
+  in
+
+  let%bind packageById, idByPackage, dependenciesById =
+    let%bind packageById, idByPackage =
+      let rec aux (packageById, idByPackage as acc) = function
+        | pkg::rest ->
+          let%bind id = Package.computeId ~sandbox:sandbox.Sandbox.spec ~cfg:solver.cfg pkg in
+          begin match PackageId.Map.find_opt id packageById with
+          | Some _ -> aux acc rest
+          | None ->
+            let deps =
+              match Package.Map.find_opt pkg dependenciesMap with
+              | Some deps -> deps
+              | None -> Exn.failf "no dependencies solved found for %a" Package.pp pkg
+            in
+            let acc =
+              let packageById = PackageId.Map.add id pkg packageById in
+              let idByPackage = Package.Map.add pkg id idByPackage in
+              (packageById, idByPackage)
+            in
+            aux acc (rest @ deps)
+          end
+        | [] -> return (packageById, idByPackage)
+      in
+
+      let packageById = PackageId.Map.empty in
+      let idByPackage = Package.Map.empty in
+
+      aux (packageById, idByPackage) [sandbox.root]
+    in
+
+    let dependencies =
+      let f pkg id map =
+        let dependencies =
+          match Package.Map.find_opt pkg dependenciesMap with
+          | Some deps -> deps
+          | None -> Exn.failf "no dependencies solved found for %a" Package.pp pkg
+        in
+        let dependencies =
+          let f deps pkg =
+            let id = Package.Map.find pkg idByPackage in
+            StringMap.add pkg.Package.name id deps
+          in
+          List.fold_left ~f ~init:StringMap.empty dependencies
+        in
+        PackageId.Map.add id dependencies map
+      in
+      Package.Map.fold f idByPackage PackageId.Map.empty
+    in
+
+    return (packageById, idByPackage, dependencies)
   in
 
   let%bind solution =
