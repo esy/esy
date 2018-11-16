@@ -128,9 +128,9 @@ module PackagePaths = struct
 
   let installPath sandbox pkg =
     match pkg.Solution.Package.source with
-    | Package.Link { path; manifest = _; } ->
+    | Solution.Package.Link { path; manifest = _; } ->
       DistPath.toPath sandbox.Sandbox.spec.path path
-    | Package.Install _ ->
+    | Install _ ->
       Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
 
   let commit ~needRewrite stagePath installPath =
@@ -220,10 +220,10 @@ end = struct
 
     RunAsync.contextf (
       match pkg.Solution.Package.source with
-      | Package.Link {path; _} ->
+      | Solution.Package.Link {path; _} ->
         let path = DistPath.toPath sandbox.Sandbox.spec.path path in
         return (pkg, Linked path)
-      | Package.Install { source = main, mirrors; opam = _; } ->
+      | Install { source = main, mirrors; opam = _; } ->
         let path = PackagePaths.installPath sandbox pkg in
         if%bind Fs.exists path
         then
@@ -334,9 +334,9 @@ end = struct
 
     let%bind filesOfOpam =
       match pkg.source with
-      | Package.Link _
-      | Package.Install { opam = None; _ } -> return []
-      | Package.Install { opam = Some opam; _ } -> OpamResolution.files opam
+      | Solution.Package.Link _
+      | Install { opam = None; _ } -> return []
+      | Install { opam = Some opam; _ } -> OpamResolution.files opam
     in
 
     let%bind filesOfOverride =

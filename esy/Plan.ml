@@ -326,7 +326,7 @@ let make'
 
     let dist, sourcePath, sourceType =
       match pkg.source with
-      | EsyInstall.Package.Install info ->
+      | EsyInstall.Solution.Package.Install info ->
         let source, _ = info.source in
         let sourceType =
           let hasTransientDeps =
@@ -341,7 +341,7 @@ let make'
           else SourceType.Immutable
         in
         Some source, location, sourceType
-      | EsyInstall.Package.Link _ ->
+      | EsyInstall.Solution.Package.Link _ ->
         None, location, SourceType.Transient
     in
     let sourceType =

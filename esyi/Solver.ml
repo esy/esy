@@ -298,12 +298,18 @@ let solutionPkgOfPkg
     PackageId.Set.diff devDependencies dependencies
   in
 
+  let source =
+    match pkg.source with
+    | Package.Link {path; manifest;} -> Solution.Package.Link {path;manifest;}
+    | Package.Install { source; opam } -> Solution.Package.Install {source;opam;}
+  in
+
   return {
     Solution.Package.
     id;
     name = pkg.name;
     version = pkg.version;
-    source = pkg.source;
+    source;
     overrides = pkg.overrides;
     dependencies;
     devDependencies;
