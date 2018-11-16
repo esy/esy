@@ -282,8 +282,7 @@ end = struct
           let%bind _, env = ChildProcess.prepareEnv env in
           return env
         in
-        let logFileName = lifecycleName ^ ".log" in
-        let logFilePath = Path.(sourcePath / logFileName) in
+        let logFilePath = Path.(sourcePath / "_esy" / (lifecycleName ^ ".log")) in
         let%lwt fd = Lwt_unix.(openfile (Path.show logFilePath) [O_RDWR; O_CREAT] 0o660) in
         let stderrout = (`FD_copy (Lwt_unix.unix_file_descr fd)) in
         Lwt_process.with_process_out
