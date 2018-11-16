@@ -26,7 +26,7 @@ To provide a seamless build experience for Windows, we use `cygwin` on provide a
 
 The good news is that the majority of OCaml build tools do support building from a `cygwin` environment - and often, that is the recommended environment for building on Windows.
 
-Note that, even though our build commands on Windows are executed in a `cygwin` shell, the __binaries that are produced are truly native__. This applies both to all the packages we build, as well as the resultant binary for your project itself. Cygwin provides two compilers - a cygwin `gcc` compiler, and a `mingw` cross-compiler that compiles to native windows executables. We leverage the latter so the result is that `esy build` on Windows gives you native executables. This means that you can use `esy` to build apps natively for any platform!
+Note that, even though our build commands on Windows are executed in a `cygwin` shell, the __binaries that are produced are truly native__. This applies both to all the packages we build, as well as the resultant binary for your project itself. Cygwin provides two compilers - a cygwin `gcc` compiler, and a `mingw` cross-compiler that compiles to native windows executables. We leverage the `mingw` cross-compiler in our builds - the result is `esy build` on Windows gives you native executables. This means that you can use `esy` to build apps natively for _any platform_!
 
 ## Platform Differences
 
