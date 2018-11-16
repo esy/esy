@@ -245,27 +245,12 @@ end = struct
           Fmt.(styled `Bold string) lifecycleName
         )
       in
-
-      let readAndCloseChan ic =
+      let readAndCloseFile path =
+        let%lwt ic = Lwt_io.(open_file ~mode:Input (Path.show path)) in
         Lwt.finalize
           (fun () -> Lwt_io.read ic)
           (fun () -> Lwt_io.close ic)
       in
-
-      let f p =
-        let%lwt stdout = readAndCloseChan p#stdout
-        and stderr = readAndCloseChan p#stderr in
-        match%lwt p#status with
-        | Unix.WEXITED 0 ->
-          RunAsync.return ()
-        | _ ->
-          Logs_lwt.err (fun m -> m
-            "@[<v>command failed: %s@\nstderr:@[<v 2>@\n%s@]@\nstdout:@[<v 2>@\n%s@]@]"
-            script stderr stdout
-          );%lwt
-          RunAsync.error "error running command"
-      in
-
       try%lwt
         (* We don't need to wrap the install path on Windows in quotes *)
         let installationPath =
@@ -297,7 +282,28 @@ end = struct
           let%bind _, env = ChildProcess.prepareEnv env in
           return env
         in
-        Lwt_process.with_process_full ?env cmd f
+        let logFilePath = Path.(sourcePath / "_esy" / (lifecycleName ^ ".log")) in
+        let%lwt fd = Lwt_unix.(openfile (Path.show logFilePath) [O_RDWR; O_CREAT] 0o660) in
+        let stderrout = (`FD_copy (Lwt_unix.unix_file_descr fd)) in
+        Lwt_process.with_process_out
+          ?env
+          ~stdout:stderrout
+          ~stderr:stderrout
+          cmd
+          (fun p ->
+            Lwt_unix.close fd;%lwt
+            match%lwt p#status with
+            | Unix.WEXITED 0 ->
+              Logs_lwt.debug (fun m -> m "log at %a" Path.pp logFilePath);%lwt
+              RunAsync.return ()
+            | _ ->
+              let%lwt output = readAndCloseFile logFilePath in
+              Logs_lwt.err (fun m -> m
+                "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]"
+                script output
+              );%lwt
+              RunAsync.error "error running command"
+          )
       with
       | Unix.Unix_error (err, _, _) ->
         let msg = Unix.error_message err in
