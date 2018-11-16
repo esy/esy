@@ -590,31 +590,6 @@ let findMaxModifyTime path =
   let label = Printf.sprintf "computing mtime for %s" (Path.show path) in
   Perf.measureLwt ~label (fun () -> Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path)
 
-let checkFreshModifyTime infoPath sourcePath =
-  let open RunAsync.Syntax in
-
-  let prevmtime =
-    Lwt.catch
-      (fun () ->
-        match%bind BuildInfo.ofFile infoPath with
-        | Some info -> return info.BuildInfo.sourceModTime
-        | None -> return None)
-      (fun _exn -> return None)
-  in
-
-  let%bind mpath, mtime = findMaxModifyTime sourcePath in
-  match%bind prevmtime with
-  | None ->
-    Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
-    return (Some mtime)
-  | Some prevmtime ->
-    if mtime > prevmtime
-    then (
-      Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
-      return (Some mtime)
-    )
-    else return None
-
 let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
@@ -629,6 +604,37 @@ let build ?force ?quiet ?buildOnly ?logPath ~cfg plan id =
 let buildDependencies ?(concurrency=1) ~cfg plan id =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
+
+  let findMaxModifyTimeMem =
+    let mem = Memoize.make () in
+    fun path -> Memoize.compute mem path (fun () -> findMaxModifyTime path)
+  in
+
+  let checkFreshModifyTime findMaxModifyTime infoPath sourcePath =
+    let open RunAsync.Syntax in
+
+    let prevmtime =
+      Lwt.catch
+        (fun () ->
+          match%bind BuildInfo.ofFile infoPath with
+          | Some info -> return info.BuildInfo.sourceModTime
+          | None -> return None)
+        (fun _exn -> return None)
+    in
+
+    let%bind mpath, mtime = findMaxModifyTime sourcePath in
+    match%bind prevmtime with
+    | None ->
+      Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
+      return (Some mtime)
+    | Some prevmtime ->
+      if mtime > prevmtime
+      then (
+        Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
+        return (Some mtime)
+      )
+      else return None
+  in
 
   let queue = LwtTaskQueue.create ~concurrency () in
   let root = Solution.root plan.solution in
@@ -662,7 +668,7 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
       let%bind isBuilt = isBuilt task in
       match task.Task.sourceType with
       | SourceType.Transient ->
-        begin match%bind checkFreshModifyTime infoPath sourcePath with
+        begin match%bind checkFreshModifyTime findMaxModifyTimeMem infoPath sourcePath with
         | None ->
           Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
           return ()
