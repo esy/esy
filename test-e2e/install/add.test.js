@@ -27,7 +27,10 @@ describe('adding dependencies', function() {
       dependencies: {},
     });
 
-    await p.esy(`add new-dep`);
+    {
+      const {stderr} = await p.esy(`add new-dep`);
+      expect(stderr).toContain('info solving esy constraints: done');
+    }
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
       dependencies: {
@@ -44,6 +47,11 @@ describe('adding dependencies', function() {
     );
     const packageJson = JSON.parse(packageJsonData);
     expect(packageJson.dependencies['new-dep']).toEqual('^2.0.0');
+
+    {
+      const {stderr, stdout} = await p.esy(`install`);
+      expect(stderr).not.toContain('info solving esy constraints: done');
+    }
   });
 
   test(`simply add a new dep with constraint`, async () => {
@@ -86,6 +94,11 @@ describe('adding dependencies', function() {
     );
     const packageJson = JSON.parse(packageJsonData);
     expect(packageJson.dependencies['new-dep']).toEqual('^1.0.0');
+
+    {
+      const {stderr, stdout} = await p.esy(`install`);
+      expect(stderr).not.toContain('info solving esy constraints: done');
+    }
   });
 
   test(`adding multiple deps`, async () => {
@@ -133,5 +146,10 @@ describe('adding dependencies', function() {
     const packageJson = JSON.parse(packageJsonData);
     expect(packageJson.dependencies['new-dep']).toEqual('^1.0.0');
     expect(packageJson.dependencies['another-new-dep']).toEqual('^1.0.0');
+
+    {
+      const {stderr, stdout} = await p.esy(`install`);
+      expect(stderr).not.toContain('info solving esy constraints: done');
+    }
   });
 });

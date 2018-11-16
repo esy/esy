@@ -1234,23 +1234,21 @@ let solveAndFetch ({CommonOptions. installSandbox = sandbox; _} as copts) () =
 let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
   let open EsyInstall in
   let open RunAsync.Syntax in
-  let aggOpamErrorMsg =
-    "The esy add command doesn't work with opam sandboxes. "
-    ^ "Please send a pull request to fix this!"
+  let opamError =
+    "add dependencies manually when working with opam sandboxes"
   in
 
   let%bind reqs = RunAsync.ofStringError (
     Result.List.map ~f:Req.parse reqs
   ) in
 
-  let addReqs origDeps =
-    let open Package.Dependencies in
-    match origDeps with
-    | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
-    | OpamFormula _ -> error aggOpamErrorMsg
-  in
-
   let%bind installSandbox =
+    let addReqs origDeps =
+      let open Package.Dependencies in
+      match origDeps with
+      | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
+      | OpamFormula _ -> error opamError
+    in
     let%bind combinedDeps = addReqs installSandbox.root.dependencies in
     let%bind sbDeps = addReqs installSandbox.dependencies in
     let root = { installSandbox.root with dependencies = combinedDeps } in
@@ -1292,8 +1290,8 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
       let spec = copts.installSandbox.Sandbox.spec in
       match spec.manifest with
       | ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
-      | One (Opam, _) -> error aggOpamErrorMsg
-      | ManyOpam -> error aggOpamErrorMsg
+      | One (Opam, _) -> error opamError
+      | ManyOpam -> error opamError
       in
       return (addedDependencies, path)
     in
@@ -1325,6 +1323,19 @@ let add ({CommonOptions. installSandbox; _} as copts) (reqs : string list) () =
         return json
       in
       let%bind () = Fs.writeJsonFile ~json configPath in
+
+      let%bind () =
+        let%bind installSandbox =
+          EsyInstall.Sandbox.make
+            ~cfg:installSandbox.cfg
+            installSandbox.spec
+        in
+        (* we can only do this because we keep invariant that the constraint we
+         * save in manifest covers the installed version *)
+        SolutionLock.unsafeUpdateChecksum
+          ~sandbox:installSandbox
+          (SandboxSpec.solutionLockPath installSandbox.spec)
+      in
       return ()
 
 let exportBuild (copts : CommonOptions.t) buildPath () =
