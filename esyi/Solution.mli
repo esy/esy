@@ -23,9 +23,6 @@ module Package : sig
     opamfile : OpamFile.OPAM.t;
   }
 
-  val readOpam : t -> opam option RunAsync.t
-  val readOpamFiles : t -> File.t list RunAsync.t
-
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t
 

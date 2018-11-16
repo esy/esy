@@ -1,4 +1,4 @@
-module OpamPackageName = struct
+module OpamPackage_Name = struct
   type t = OpamPackage.Name.t
   let to_yojson name = `String (OpamPackage.Name.to_string name)
   let of_yojson = function
@@ -6,7 +6,7 @@ module OpamPackageName = struct
     | _ -> Error "expected string"
 end
 
-module OpamPackageVersion = struct
+module OpamPackage_Version = struct
   type t = OpamPackage.Version.t
   let to_yojson name = `String (OpamPackage.Version.to_string name)
   let of_yojson = function
@@ -15,17 +15,32 @@ module OpamPackageVersion = struct
 end
 
 type t = {
-  name : OpamPackageName.t;
-  version : OpamPackageVersion.t;
+  name : OpamPackage_Name.t;
+  version : OpamPackage_Version.t;
   path : Path.t;
 } [@@deriving yojson]
 
-let readFiles res =
-  File.ofDir Path.(res.path / "files")
+let make name version path =
+  {name; version; path;}
+
+let name {name;_} = OpamPackage.Name.to_string name
+let version {version;_} = Version.Opam version
+let path {path;_} = path
+
+let opam res =
+  let open RunAsync.Syntax in
+  let path = Path.(res.path / "opam") in
+  let%bind data = Fs.readFile path in
+  let filename = OpamFile.make (OpamFilename.of_string (Path.show path)) in
+  try return (OpamFile.OPAM.read_from_string ~filename data) with
+  | Failure msg -> errorf "error parsing opam metadata %a: %s" Path.pp path msg
+  | _ -> error "error parsing opam metadata"
+
+let files res = File.ofDir Path.(res.path / "files")
 
 let digest res =
   let open RunAsync.Syntax in
-  let%bind files = readFiles res in
+  let%bind files = files res in
   let checksums = List.map ~f:File.checksum files in
   let%bind opamChecksum = Checksum.computeOfFile Path.(res.path / "opam") in
   let checksums = opamChecksum::checksums in

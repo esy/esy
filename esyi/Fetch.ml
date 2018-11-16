@@ -332,7 +332,13 @@ end = struct
   let copyFiles sandbox pkg path =
     let open RunAsync.Syntax in
 
-    let%bind filesOfOpam = Solution.Package.readOpamFiles pkg in
+    let%bind filesOfOpam =
+      match pkg.source with
+      | Package.Link _
+      | Package.Install { opam = None; _ } -> return []
+      | Package.Install { opam = Some opam; _ } -> OpamResolution.files opam
+    in
+
     let%bind filesOfOverride =
       Package.Overrides.files
         ~cfg:sandbox.Sandbox.cfg

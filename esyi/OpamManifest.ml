@@ -273,12 +273,11 @@ let toPackage ?source ~name ~version manifest =
 
     let opam =
       match manifest.opamRepositoryPath with
-      | Some path -> Some {
-          OpamResolution.
-          name = manifest.name;
-          version = manifest.version;
-          path;
-        }
+      | Some path -> Some (
+          OpamResolution.make
+            manifest.name
+            manifest.version
+            path)
       | None -> None
     in
 
