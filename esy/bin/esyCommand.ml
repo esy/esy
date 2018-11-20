@@ -434,19 +434,6 @@ module SandboxInfo = struct
           | _, None
           | None, _ -> return (None, filesUsed)
         in
-        (* let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun ( *)
-        (*   let open Run.Syntax in *)
-        (*   let%bind task = Task.ofSandbox sandbox in *)
-        (*   let%bind commandEnv = *)
-        (*     let%bind env = Task.commandEnv task in *)
-        (*     return (Sandbox.Environment.Bindings.render sandbox.buildCfg env) *)
-        (*   in *)
-        (*   let%bind sandboxEnv = *)
-        (*     let%bind env = Task.sandboxEnv task in *)
-        (*     return (Sandbox.Environment.Bindings.render sandbox.buildCfg env) *)
-        (*   in *)
-        (*   return (task, commandEnv, sandboxEnv) *)
-        (* ) in *)
         return {
           solution;
           installation;
