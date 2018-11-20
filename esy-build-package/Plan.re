@@ -12,7 +12,12 @@ type t = {
   build: list(list(Config.Value.t)),
   install: list(list(Config.Value.t)),
   sourcePath: Config.Value.t,
+  rootPath: Config.Value.t,
+  buildPath: Config.Value.t,
+  stagePath: Config.Value.t,
+  installPath: Config.Value.t,
   env: Env.t,
+  jbuilderHackEnabled: bool,
 };
 
 let ofFile = (path: Path.t) => {

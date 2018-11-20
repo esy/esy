@@ -24,6 +24,18 @@ module Task = struct
   }
 
   let plan (t : t) =
+    let rootPath = Scope.rootPath t.buildScope in
+    let buildPath = Scope.buildPath t.buildScope in
+    let stagePath = Scope.stagePath t.buildScope in
+    let installPath = Scope.installPath t.buildScope in
+    let jbuilderHackEnabled =
+      match t.buildType, t.sourceType with
+      | JbuilderLike, Transient -> true
+      | JbuilderLike, _ -> false
+      | InSource, _
+      | OutOfSource, _
+      | Unsafe, _ -> false
+    in
     {
       EsyBuildPackage.Plan.
       id = t.id;
@@ -34,6 +46,11 @@ module Task = struct
       build = t.buildCommands;
       install = t.installCommands;
       sourcePath = Scope.SandboxPath.toValue t.sourcePath;
+      rootPath = Scope.SandboxPath.toValue rootPath;
+      buildPath = Scope.SandboxPath.toValue buildPath;
+      stagePath = Scope.SandboxPath.toValue stagePath;
+      installPath = Scope.SandboxPath.toValue installPath;
+      jbuilderHackEnabled;
       env = t.env;
     }
 

@@ -8,8 +8,9 @@
 type t =
   pri {
     plan: Plan.t,
-    sourcePath: EsyLib.Path.t,
     storePath: EsyLib.Path.t,
+    sourcePath: EsyLib.Path.t,
+    rootPath: EsyLib.Path.t,
     installPath: EsyLib.Path.t,
     stagePath: EsyLib.Path.t,
     buildPath: EsyLib.Path.t,
