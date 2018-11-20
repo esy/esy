@@ -8,9 +8,6 @@ type t = {
   plan: Plan.t,
   sourcePath: Path.t,
   storePath: Path.t,
-  installPath: Path.t,
-  stagePath: Path.t,
-  buildPath: Path.t,
   lockPath: Path.t,
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
@@ -30,6 +27,9 @@ let regex = (base, segments) => {
 
 module type LIFECYCLE = {
   let rootPath: build => Path.t;
+  let buildPath: build => Path.t;
+  let stagePath: build => Path.t;
+  let installPath: build => Path.t;
 
   let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
   let prepare: (~cfg: Config.t, build) => Run.t(unit, _);
@@ -45,6 +45,12 @@ module type LIFECYCLE = {
  */
 module OutOfSourceLifecycle: LIFECYCLE = {
   let rootPath = build => build.sourcePath;
+  let buildPath = build =>
+    Path.(build.storePath / EsyLib.Store.buildTree / build.plan.id);
+  let stagePath = build =>
+    Path.(build.storePath / EsyLib.Store.stageTree / build.plan.id);
+  let installPath = build =>
+    Path.(build.storePath / EsyLib.Store.installTree / build.plan.id);
 
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = (~cfg as _, _build) => ok;
@@ -64,12 +70,20 @@ module OutOfSourceLifecycle: LIFECYCLE = {
 
  */
 module RelocateSourceLifecycle: LIFECYCLE = {
-  let rootPath = build => build.buildPath;
+  let rootPath = build =>
+    Path.(build.storePath / EsyLib.Store.buildTree / build.plan.id);
+  let buildPath = build =>
+    Path.(build.storePath / EsyLib.Store.buildTree / build.plan.id);
+  let stagePath = build =>
+    Path.(build.storePath / EsyLib.Store.stageTree / build.plan.id);
+  let installPath = build =>
+    Path.(build.storePath / EsyLib.Store.installTree / build.plan.id);
+
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
   let prepare = (~cfg as _, build: build) => {
-    let%bind () = rm(build.buildPath);
-    let%bind () = mkdir(build.buildPath);
+    let%bind () = rm(buildPath(build));
+    let%bind () = mkdir(buildPath(build));
     let%bind () = {
       let ignore = [
         ".git",
@@ -83,7 +97,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
         "_esybuild",
         "_esyinstall",
       ];
-      copyContents(~from=build.sourcePath, ~ignore, build.buildPath);
+      copyContents(~from=build.sourcePath, ~ignore, buildPath(build));
     };
     ok;
   };
@@ -99,6 +113,13 @@ module RelocateSourceLifecycle: LIFECYCLE = {
  */
 module JBuilderLifecycle: LIFECYCLE = {
   let rootPath = (build: build) => build.sourcePath;
+  let buildPath = build =>
+    Path.(build.storePath / EsyLib.Store.buildTree / build.plan.id);
+  let stagePath = build =>
+    Path.(build.storePath / EsyLib.Store.stageTree / build.plan.id);
+  let installPath = build =>
+    Path.(build.storePath / EsyLib.Store.installTree / build.plan.id);
+
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[
       Subpath(Path.show(sourcePath / "_build")),
@@ -110,7 +131,7 @@ module JBuilderLifecycle: LIFECYCLE = {
     ];
 
   let prepareImpl = (build: build) => {
-    let savedBuild = build.buildPath / "_build";
+    let savedBuild = buildPath(build) / "_build";
     let currentBuild = build.sourcePath / "_build";
     let backupBuild = build.sourcePath / "_build.prev";
 
@@ -126,7 +147,7 @@ module JBuilderLifecycle: LIFECYCLE = {
   };
 
   let commitImpl = (build: build) => {
-    let savedBuild = build.buildPath / "_build";
+    let savedBuild = buildPath(build) / "_build";
     let currentBuild = build.sourcePath / "_build";
     let backupBuild = build.sourcePath / "_build.prev";
 
@@ -181,6 +202,12 @@ module JBuilderLifecycle: LIFECYCLE = {
  */
 module UnsafeLifecycle: LIFECYCLE = {
   let rootPath = (build: build) => build.sourcePath;
+  let buildPath = build =>
+    Path.(build.storePath / EsyLib.Store.buildTree / build.plan.id);
+  let stagePath = build =>
+    Path.(build.storePath / EsyLib.Store.stageTree / build.plan.id);
+  let installPath = build =>
+    Path.(build.storePath / EsyLib.Store.installTree / build.plan.id);
 
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.show(sourcePath))];
@@ -245,7 +272,6 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     let sourcePath = Config.Value.render(cfg, plan.sourcePath);
     Path.v(sourcePath);
   };
-  let installPath = Path.(storePath / EsyLib.Store.installTree / plan.id);
   let stagePath = Path.(storePath / EsyLib.Store.stageTree / plan.id);
   let buildPath = Path.(storePath / EsyLib.Store.buildTree / plan.id);
   let lockPath =
@@ -277,19 +303,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   };
 
   return((
-    {
-      plan,
-      env,
-      build,
-      install,
-      sourcePath,
-      storePath,
-      installPath,
-      stagePath,
-      buildPath,
-      lockPath,
-      sandbox,
-    },
+    {plan, env, build, install, sourcePath, storePath, lockPath, sandbox},
     (module Lifecycle): (module LIFECYCLE),
   ));
 };
@@ -374,11 +388,14 @@ let withLock = (lockPath: Path.t, f) => {
   res;
 };
 
-let commitBuildToStore = (config: Config.t, build: build) => {
+let commitBuildToStore = (build: build, lifecycle) => {
+  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
+  let stagePath = Lifecycle.stagePath(build);
+  let installPath = Lifecycle.installPath(build);
   let%bind () =
     write(
-      ~data=Path.show(config.storePath),
-      Path.(build.stagePath / "_esy" / "storePrefix"),
+      ~data=Path.show(build.storePath),
+      Path.(stagePath / "_esy" / "storePrefix"),
     );
   let%bind () = {
     let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
@@ -389,14 +406,14 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       Cmd.(
         v(p(cmd))
         % "--orig-prefix"
-        % p(build.stagePath)
+        % p(stagePath)
         % "--dest-prefix"
-        % p(build.installPath)
-        % p(build.stagePath)
+        % p(installPath)
+        % p(stagePath)
       ),
     );
   };
-  let%bind () = mv(build.stagePath, build.installPath);
+  let%bind () = mv(stagePath, installPath);
   ok;
 };
 
@@ -404,6 +421,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   let%bind (build, lifecycle) = configureBuild(~cfg, plan);
 
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
+
+  let buildPath = Lifecycle.buildPath(build);
+  let stagePath = Lifecycle.stagePath(build);
+  let installPath = Lifecycle.installPath(build);
 
   let initStoreAt = (path: Path.t) => {
     let%bind () = mkdir(Path.(path / "i"));
@@ -416,21 +437,21 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   let%bind () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let%bind () = rm(build.installPath);
-    let%bind () = rm(build.stagePath);
-    let%bind () = mkdir(build.stagePath);
-    let%bind () = mkdir(build.stagePath / "bin");
-    let%bind () = mkdir(build.stagePath / "lib");
-    let%bind () = mkdir(build.stagePath / "etc");
-    let%bind () = mkdir(build.stagePath / "sbin");
-    let%bind () = mkdir(build.stagePath / "man");
-    let%bind () = mkdir(build.stagePath / "share");
-    let%bind () = mkdir(build.stagePath / "toplevel");
-    let%bind () = mkdir(build.stagePath / "doc");
-    let%bind () = mkdir(build.stagePath / "_esy");
+    let%bind () = rm(installPath);
+    let%bind () = rm(stagePath);
+    let%bind () = mkdir(stagePath);
+    let%bind () = mkdir(stagePath / "bin");
+    let%bind () = mkdir(stagePath / "lib");
+    let%bind () = mkdir(stagePath / "etc");
+    let%bind () = mkdir(stagePath / "sbin");
+    let%bind () = mkdir(stagePath / "man");
+    let%bind () = mkdir(stagePath / "share");
+    let%bind () = mkdir(stagePath / "toplevel");
+    let%bind () = mkdir(stagePath / "doc");
+    let%bind () = mkdir(stagePath / "_esy");
     let%bind () = Lifecycle.prepare(~cfg, build);
-    let%bind () = mkdir(build.buildPath);
-    let%bind () = mkdir(build.buildPath / "_esy");
+    let%bind () = mkdir(buildPath);
+    let%bind () = mkdir(buildPath / "_esy");
 
     let rootPath = Lifecycle.rootPath(build);
 
@@ -439,7 +460,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
       | Ok () =>
         let%bind () =
           if (commit) {
-            commitBuildToStore(cfg, build);
+            commitBuildToStore(build, (module Lifecycle));
           } else {
             ok;
           };
@@ -513,7 +534,10 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   let%bind (build, lifecycle) = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
+
   let rootPath = Lifecycle.rootPath(build);
+  let stagePath = Lifecycle.stagePath(build);
+
   Logs.debug(m => m("building"));
   Logs.app(m =>
     m(
@@ -542,7 +566,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => ok
         | [installFilename] =>
           install(
-            ~prefixPath=build.stagePath,
+            ~prefixPath=stagePath,
             ~rootPath,
             ~installFilename=Path.v(installFilename),
             (),
@@ -556,7 +580,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => error("no *.install files found")
         | [installFilename] =>
           install(
-            ~prefixPath=build.stagePath,
+            ~prefixPath=stagePath,
             ~rootPath,
             ~installFilename=Path.v(installFilename),
             (),
@@ -566,7 +590,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       | Some(installFilenames) =>
         let f = ((), installFilename) =>
           install(
-            ~prefixPath=build.stagePath,
+            ~prefixPath=stagePath,
             ~rootPath,
             ~installFilename=Path.v(installFilename),
             (),
