@@ -208,12 +208,23 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   let (module Lifecycle): (module LIFECYCLE) =
     switch (plan.buildType, plan.sourceType) {
     | (InSource, Immutable) => (module RelocateSourceLifecycle)
+    | (InSource, ImmutableWithTransientDependencies) =>
+      (module RelocateSourceLifecycle)
     | (InSource, Transient) => (module RelocateSourceLifecycle)
+
     | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
+    | (JbuilderLike, ImmutableWithTransientDependencies) =>
+      (module RelocateSourceLifecycle)
     | (JbuilderLike, Transient) => (module JBuilderLifecycle)
+
     | (OutOfSource, Immutable) => (module OutOfSourceLifecycle)
+    | (OutOfSource, ImmutableWithTransientDependencies) =>
+      (module OutOfSourceLifecycle)
     | (OutOfSource, Transient) => (module OutOfSourceLifecycle)
+
     | (Unsafe, Immutable) => (module RelocateSourceLifecycle)
+    | (Unsafe, ImmutableWithTransientDependencies) =>
+      (module RelocateSourceLifecycle)
     | (Unsafe, Transient) => (module UnsafeLifecycle)
     };
 
@@ -241,6 +252,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   let storePath =
     switch (plan.sourceType) {
     | Immutable => cfg.storePath
+    | ImmutableWithTransientDependencies
     | Transient => cfg.localStorePath
     };
 
@@ -450,8 +462,9 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 
   switch (build.plan.sourceType) {
-  | EsyLib.SourceType.Transient => withLock(build.lockPath, perform)
-  | EsyLib.SourceType.Immutable => perform()
+  | Transient
+  | ImmutableWithTransientDependencies => withLock(build.lockPath, perform)
+  | Immutable => perform()
   };
 };
 
@@ -615,8 +628,9 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
     withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
   };
   switch (build.plan.sourceType) {
-  | EsyLib.SourceType.Transient => performBuild()
-  | EsyLib.SourceType.Immutable =>
+  | Transient
+  | ImmutableWithTransientDependencies => performBuild()
+  | Immutable =>
     if (force) {
       Logs.debug(m => m("forcing build"));
       performBuild();
