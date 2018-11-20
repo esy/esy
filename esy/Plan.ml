@@ -648,7 +648,8 @@ let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
 let buildTask ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
-  EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg plan
+  let label = Fmt.strf "build %a" PackageId.pp task.Task.pkgId in
+  Perf.measureLwt ~label (fun () -> EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg plan)
 
 let build ~force ?quiet ?buildOnly ?logPath ~cfg plan id =
   let open RunAsync.Syntax in
