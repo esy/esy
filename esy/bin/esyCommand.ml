@@ -893,13 +893,7 @@ let makeExecCommand
 let exec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
-  let%bind () =
-    let%bind plan = SandboxInfo.plan info in
-    let task = Plan.rootTask plan in
-    if%bind Plan.isBuilt ~cfg:copts.cfg task
-    then return ()
-    else build ~buildOnly:false copts None ()
-  in
+  let%bind () = build ~buildOnly:false copts None () in
   makeExecCommand
     ~env:`SandboxEnv
     ~copts
