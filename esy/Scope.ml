@@ -159,12 +159,21 @@ end = struct
 
   let rootPath scope =
     match scope.build.buildType, scope.sourceType with
-    | InSource, _  -> buildPath scope
-    | JbuilderLike, (Immutable | ImmutableWithTransientDependencies) -> buildPath scope
+    | InSource, Immutable
+    | InSource, ImmutableWithTransientDependencies
+    | InSource, Transient  -> buildPath scope
+
+    | JbuilderLike, Immutable
+    | JbuilderLike, ImmutableWithTransientDependencies -> buildPath scope
     | JbuilderLike, Transient -> scope.sourcePath
-    | OutOfSource, _ -> scope.sourcePath
-    | Unsafe, Immutable  -> buildPath scope
-    | Unsafe, _  -> scope.sourcePath
+
+    | OutOfSource, Immutable
+    | OutOfSource, ImmutableWithTransientDependencies
+    | OutOfSource, Transient -> scope.sourcePath
+
+    | Unsafe, Immutable
+    | Unsafe, ImmutableWithTransientDependencies -> buildPath scope
+    | Unsafe, Transient -> scope.sourcePath
 
   let exportedEnvLocal scope = scope.exportedEnvLocal
   let exportedEnvGlobal scope = scope.exportedEnvGlobal
