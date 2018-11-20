@@ -32,8 +32,8 @@ module type LIFECYCLE = {
   let installPath: build => Path.t;
 
   let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
-  let prepare: build => Run.t(unit, _);
-  let finalize: build => Run.t(unit, _);
+  let prepare: (~cfg: Config.t, build) => Run.t(unit, _);
+  let finalize: (~cfg: Config.t, build) => Run.t(unit, _);
 };
 
 /*
@@ -53,8 +53,8 @@ module OutOfSourceLifecycle: LIFECYCLE = {
     Path.(build.storePath / EsyLib.Store.installTree / build.plan.id);
 
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
-  let prepare = _build => ok;
-  let finalize = _build => ok;
+  let prepare = (~cfg as _, _build) => ok;
+  let finalize = (~cfg as _, _build) => ok;
 };
 
 /*
@@ -81,7 +81,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
 
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
-  let prepare = (build: build) => {
+  let prepare = (~cfg as _, build: build) => {
     let%bind () = rm(buildPath(build));
     let%bind () = mkdir(buildPath(build));
     let%bind () = {
@@ -102,7 +102,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let finalize = _build => Ok();
+  let finalize = (~cfg as _, _build) => Ok();
 };
 
 /*
@@ -166,7 +166,7 @@ module JBuilderLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let prepare = (build: build) =>
+  let prepare = (~cfg as _, build: build) =>
     if (isRoot(build)) {
       let duneBuildDir = build.sourcePath / "_build";
       let%bind () =
@@ -180,7 +180,7 @@ module JBuilderLifecycle: LIFECYCLE = {
       prepareImpl(build);
     };
 
-  let finalize = (build: build) =>
+  let finalize = (~cfg as _, build: build) =>
     if (isRoot(build)) {
       ok;
     } else {
@@ -212,8 +212,8 @@ module UnsafeLifecycle: LIFECYCLE = {
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.show(sourcePath))];
 
-  let prepare = _build => ok;
-  let finalize = _build => ok;
+  let prepare = (~cfg as _, _build) => Ok();
+  let finalize = (~cfg as _, _build) => Ok();
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
@@ -449,7 +449,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(stagePath / "toplevel");
     let%bind () = mkdir(stagePath / "doc");
     let%bind () = mkdir(stagePath / "_esy");
-    let%bind () = Lifecycle.prepare(build);
+    let%bind () = Lifecycle.prepare(~cfg, build);
     let%bind () = mkdir(buildPath);
     let%bind () = mkdir(buildPath / "_esy");
 
@@ -464,10 +464,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
           } else {
             ok;
           };
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(~cfg, build);
         ok;
       | error =>
-        let%bind () = Lifecycle.finalize(build);
+        let%bind () = Lifecycle.finalize(~cfg, build);
         error;
       };
 
