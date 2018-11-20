@@ -29,7 +29,8 @@ let regex = (base, segments) => {
 };
 
 module type LIFECYCLE = {
-  let getRootPath: build => Path.t;
+  let rootPath: build => Path.t;
+
   let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
   let prepare: (~cfg: Config.t, build) => Run.t(unit, _);
   let finalize: (~cfg: Config.t, build) => Run.t(unit, _);
@@ -43,7 +44,8 @@ module type LIFECYCLE = {
 
  */
 module OutOfSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.sourcePath;
+  let rootPath = build => build.sourcePath;
+
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
   let prepare = (~cfg as _, _build) => ok;
   let finalize = (~cfg as _, _build) => ok;
@@ -62,7 +64,7 @@ module OutOfSourceLifecycle: LIFECYCLE = {
 
  */
 module RelocateSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.buildPath;
+  let rootPath = build => build.buildPath;
   let getAllowedToWritePaths = (_task, _sourcePath) => [];
 
   let prepare = (~cfg as _, build: build) => {
@@ -96,7 +98,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
 
  */
 module JBuilderLifecycle: LIFECYCLE = {
-  let getRootPath = (build: build) => build.sourcePath;
+  let rootPath = (build: build) => build.sourcePath;
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[
       Subpath(Path.show(sourcePath / "_build")),
@@ -178,7 +180,7 @@ module JBuilderLifecycle: LIFECYCLE = {
 
  */
 module UnsafeLifecycle: LIFECYCLE = {
-  let getRootPath = (build: build) => build.sourcePath;
+  let rootPath = (build: build) => build.sourcePath;
 
   let getAllowedToWritePaths = (_task, sourcePath) =>
     Sandbox.[Subpath(Path.show(sourcePath))];
@@ -430,7 +432,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.buildPath);
     let%bind () = mkdir(build.buildPath / "_esy");
 
-    let rootPath = Lifecycle.getRootPath(build);
+    let rootPath = Lifecycle.rootPath(build);
 
     let%bind () =
       switch (withCwd(rootPath, ~f=() => f(build))) {
@@ -511,7 +513,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   let%bind (build, lifecycle) = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
-  let rootPath = Lifecycle.getRootPath(build);
+  let rootPath = Lifecycle.rootPath(build);
   Logs.debug(m => m("building"));
   Logs.app(m =>
     m(
