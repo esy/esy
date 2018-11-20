@@ -330,25 +330,25 @@ let make'
       Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
     in
 
-    let dist, sourcePath, sourceType =
+    let dist, sourceType =
       match pkg.source with
       | EsyInstall.Solution.Package.Install info ->
-        let source, _ = info.source in
-        let sourceType =
-          let hasTransientDeps =
-            let f = function
-              | _, Some {Task. sourceType = SourceType.Transient; _} -> true
-              | _, _ -> false
-            in
-            List.exists ~f dependencies
+        let hasTransientDeps =
+          let f = function
+            | _, Some {Task. sourceType = SourceType.Transient; _} -> true
+            | _, _ -> false
           in
+          List.exists ~f dependencies
+        in
+        let dist, _ = info.source in
+        let sourceType =
           if hasTransientDeps
-          then SourceType.Transient
+          then SourceType.ImmutableWithTransientDependencies
           else SourceType.Immutable
         in
-        Some source, location, sourceType
+        Some dist, sourceType
       | EsyInstall.Solution.Package.Link _ ->
-        None, location, SourceType.Transient
+        None, SourceType.Transient
     in
     let sourceType =
       if forceImmutable
@@ -359,7 +359,7 @@ let make'
     let name = PackageId.name pkgId in
     let version = PackageId.version pkgId in
     let id = buildId ~sandboxEnv ~id:pkgId ~dist ~build ~dependencies () in
-    let sourcePath = Scope.SandboxPath.ofPath buildCfg sourcePath in
+    let sourcePath = Scope.SandboxPath.ofPath buildCfg location in
 
     let exportedScope, buildScope =
 
@@ -709,16 +709,32 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
       match task.Task.sourceType with
       | SourceType.Transient ->
         let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
-        begin match Changes.(changesInDependencies + changesInSources) with
-        | Changes.No ->
+        begin match isBuilt, Changes.(changesInDependencies + changesInSources) with
+        | true, Changes.No ->
           Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
           return Changes.No
-        | Changes.Yes ->
+        | true, Changes.Yes
+        | false, _ ->
           let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
           let%bind () = BuildInfo.toFile infoPath {
             BuildInfo.
             timeSpent;
             sourceModTime = Some mtime;
+          } in
+          return Changes.Yes
+        end
+      | SourceType.ImmutableWithTransientDependencies ->
+        begin match isBuilt, changesInDependencies with
+        | true, Changes.No ->
+          Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
+          return Changes.No
+        | true, Changes.Yes
+        | false, _ ->
+          let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+          let%bind () = BuildInfo.toFile infoPath {
+            BuildInfo.
+            timeSpent;
+            sourceModTime = None;
           } in
           return Changes.Yes
         end

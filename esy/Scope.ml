@@ -132,8 +132,8 @@ end = struct
 
   let storePath scope =
     match scope.sourceType with
-    | BuildManifest.SourceType.Immutable -> SandboxPath.store
-    | BuildManifest.SourceType.Transient -> SandboxPath.localStore
+    | Immutable -> SandboxPath.store
+    | ImmutableWithTransientDependencies | Transient -> SandboxPath.localStore
 
   let buildPath scope =
     let storePath = storePath scope in
@@ -159,12 +159,21 @@ end = struct
 
   let rootPath scope =
     match scope.build.buildType, scope.sourceType with
-    | InSource, _  -> buildPath scope
-    | JbuilderLike, Immutable -> buildPath scope
+    | InSource, Immutable
+    | InSource, ImmutableWithTransientDependencies
+    | InSource, Transient  -> buildPath scope
+
+    | JbuilderLike, Immutable
+    | JbuilderLike, ImmutableWithTransientDependencies -> buildPath scope
     | JbuilderLike, Transient -> scope.sourcePath
-    | OutOfSource, _ -> scope.sourcePath
-    | Unsafe, Immutable  -> buildPath scope
-    | Unsafe, _  -> scope.sourcePath
+
+    | OutOfSource, Immutable
+    | OutOfSource, ImmutableWithTransientDependencies
+    | OutOfSource, Transient -> scope.sourcePath
+
+    | Unsafe, Immutable
+    | Unsafe, ImmutableWithTransientDependencies -> buildPath scope
+    | Unsafe, Transient -> scope.sourcePath
 
   let exportedEnvLocal scope = scope.exportedEnvLocal
   let exportedEnvGlobal scope = scope.exportedEnvGlobal
@@ -197,8 +206,8 @@ end = struct
     | "etc" -> p SandboxPath.(installPath / "etc")
     | "dev" -> b (
       match scope.sourceType with
-      | SourceType.Immutable -> false
-      | SourceType.Transient -> true)
+      | Immutable | ImmutableWithTransientDependencies -> false
+      | Transient -> true)
     | _ -> None
 
   let buildEnv scope =
@@ -471,8 +480,8 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     | _, "build-id" -> Some (string (PackageScope.id scope))
     | _, "dev" -> Some (bool (
       match PackageScope.sourceType scope with
-      | BuildManifest.SourceType.Immutable -> false
-      | BuildManifest.SourceType.Transient -> true))
+      | Immutable | ImmutableWithTransientDependencies -> false
+      | Transient -> true))
     | _, "prefix" -> Some (configPath installPath)
     | _, "bin" -> Some (configPath SandboxPath.(installPath / "bin"))
     | _, "sbin" -> Some (configPath SandboxPath.(installPath / "sbin"))
