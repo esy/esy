@@ -1,5 +1,6 @@
 // @flow
 
+const path = require('path');
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const {packageJson, dir} = helpers;
@@ -107,12 +108,16 @@ describe('build errors', function() {
     );
 
     await p.esy('install');
+
+    const depBuildPlan = JSON.parse((await p.esy('build-plan dep@0.0.0')).stdout);
+
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
       error: build failed with exit code: 1
         build log:
           # esy-build-package: building: dep@path:dep
+          # esy-build-package: pwd: ${depBuildPlan.sourcePath}
           # esy-build-package: running: 'false'
           error: command failed: 'false' (exited with 1)
           esy-build-package: exiting with errors above...
