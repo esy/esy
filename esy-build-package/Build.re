@@ -508,6 +508,7 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
   let%bind (build, lifecycle) = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
   let (module Lifecycle): (module LIFECYCLE) = lifecycle;
+  let rootPath = Lifecycle.getRootPath(build);
   let performBuild = () => {
     Logs.debug(m => m("building"));
     Logs.app(m =>
@@ -517,10 +518,10 @@ let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
         build.plan.version,
       )
     );
+    Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, rootPath));
 
     let runBuildAndInstall = (build: build) => {
       let runEsyInstaller = installFilenames => {
-        let rootPath = Lifecycle.getRootPath(build);
         let findInstallFilenames = () => {
           let%bind items = Run.ls(rootPath);
           return(
