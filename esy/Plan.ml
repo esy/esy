@@ -40,6 +40,7 @@ module Task = struct
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
   let sourcePath t = Scope.sourcePath t.exportedScope
+  let buildPath t = Scope.buildPath t.exportedScope
   let installPath t = Scope.installPath t.exportedScope
   let logPath t = Scope.logPath t.exportedScope
   let buildInfoPath t = Scope.buildInfoPath t.exportedScope
@@ -621,6 +622,23 @@ let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
 let build ?force ?quiet ?buildOnly ?logPath ~cfg plan id =
   match PackageId.Map.find_opt id plan.tasks with
   | Some (Some task) -> buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task
+  | Some None
+  | None -> RunAsync.return ()
+
+let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
+  let open RunAsync.Syntax in
+  let root = Solution.root plan.solution in
+  match PackageId.Map.find_opt root.id plan.tasks with
+  | Some (Some task) ->
+    let%bind () = buildTask ?force ?quiet ?buildOnly ~cfg task in
+    let buildPath = Scope.SandboxPath.toPath cfg.Config.buildCfg (Task.buildPath task) in
+    let%bind () =
+      let buildPathLink = EsyInstall.SandboxSpec.buildPath cfg.Config.spec in
+      let%bind () = Fs.rmPath buildPathLink in
+      let%bind () = Fs.symlink ~src:buildPath buildPathLink in
+      return ()
+    in
+    return ()
   | Some None
   | None -> RunAsync.return ()
 

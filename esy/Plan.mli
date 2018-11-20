@@ -69,6 +69,14 @@ val build :
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
 
+val buildRoot :
+  ?force:bool
+  -> ?quiet:bool
+  -> ?buildOnly:bool
+  -> cfg:Config.t
+  -> t
+  -> unit RunAsync.t
+
 val buildDependencies :
   ?concurrency:int
   -> cfg:Config.t

@@ -742,13 +742,12 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   in
   begin match cmd with
   | None ->
-    Plan.build
+    Plan.buildRoot
       ~cfg:copts.cfg
       ~force:true
       ~quiet:true
       ~buildOnly
       plan
-      root
   | Some cmd ->
     begin match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
     | None -> return ()
