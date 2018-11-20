@@ -146,7 +146,12 @@ end = struct
 
   let stagePath scope =
     let storePath = storePath scope in
-    SandboxPath.(storePath / Store.stageTree / scope.id)
+    match scope.build.buildType, scope.sourceType with
+    | OutOfSource, Transient
+    | OutOfSource, ImmutableWithTransientDependencies ->
+      SandboxPath.(storePath / Store.installTree / scope.id)
+    | _ ->
+      SandboxPath.(storePath / Store.stageTree / scope.id)
 
   let installPath scope =
     let storePath = storePath scope in
