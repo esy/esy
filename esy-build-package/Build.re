@@ -328,11 +328,18 @@ module Installer =
   });
 
 let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
-  Logs.app(m =>
-    m("# esy-build-package: installing using built-in installer")
+  let label =
+    Fmt.(strf("esy-installer: %a", option(Path.pp), installFilename));
+  EsyLib.Perf.measure(
+    ~label,
+    () => {
+      Logs.app(m =>
+        m("# esy-build-package: installing using built-in installer")
+      );
+      let res = Installer.run(~prefixPath, ~rootPath, installFilename);
+      Run.coerceFromClosed(res);
+    },
   );
-  let res = Installer.run(~prefixPath, ~rootPath, installFilename);
-  Run.coerceFromClosed(res);
 };
 
 let withLock = (lockPath: Path.t, f) => {
