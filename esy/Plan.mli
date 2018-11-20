@@ -15,7 +15,9 @@ module Task : sig
     platform : System.Platform.t;
   }
 
-  val installPath : t -> Scope.SandboxPath.t
+  val installPath : Config.t -> t -> Path.t
+  val buildPath : Config.t -> t -> Path.t
+  val sourcePath : Config.t -> t -> Path.t
 
   val renderExpression :
     cfg:Config.t
@@ -62,12 +64,20 @@ val build :
   ?force:bool
   -> ?quiet:bool
   -> ?buildOnly:bool
-  -> ?logPath:Scope.SandboxPath.t
+  -> ?logPath:Path.t
   -> cfg:Config.t
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
+
+val buildRoot :
+  ?force:bool
+  -> ?quiet:bool
+  -> ?buildOnly:bool
+  -> cfg:Config.t
+  -> t
+  -> unit RunAsync.t
 
 val buildDependencies :
   ?concurrency:int
@@ -75,6 +85,11 @@ val buildDependencies :
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
+
+val isBuilt :
+  cfg:Config.t
+  -> Task.t
+  -> bool RunAsync.t
 
 val buildEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 val commandEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t

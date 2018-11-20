@@ -477,14 +477,8 @@ module SandboxInfo = struct
     | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
     | Some None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
     | Some (Some task) ->
-      let installPath =
-        Scope.SandboxPath.toPath
-          copts.CommonOptions.cfg.buildCfg
-          (Plan.Task.installPath task)
-      in
-      let%bind built = Fs.exists installPath in
-      if built
-      then return installPath
+      if%bind Plan.isBuilt ~cfg:copts.CommonOptions.cfg task
+      then return (Plan.Task.installPath copts.CommonOptions.cfg task)
       else errorf "package %s isn't built yet, run 'esy build'" pkgName
 
   let ocamlfind = resolvePackage ~pkgName:"@opam/ocamlfind"
@@ -504,9 +498,7 @@ module SandboxInfo = struct
     let ocamlpath =
       match task with
       | Some task ->
-        Scope.SandboxPath.(Plan.Task.installPath task / "lib")
-        |> Scope.SandboxPath.toPath copts.CommonOptions.cfg.buildCfg
-        |> Path.show
+        Path.(Plan.Task.installPath copts.CommonOptions.cfg task / "lib" |> show)
       | None -> ""
     in
     let env =
@@ -565,8 +557,7 @@ module SandboxInfo = struct
     let query ~ocamlfind ~task copts lib =
       let open RunAsync.Syntax in
       let ocamlpath =
-        Scope.SandboxPath.(Plan.Task.installPath task / "lib")
-        |> Scope.SandboxPath.toPath copts.CommonOptions.cfg.buildCfg
+        Path.(Plan.Task.installPath copts.CommonOptions.cfg task / "lib")
       in
       let env =
         ChildProcess.CustomEnv Astring.String.Map.(
@@ -742,13 +733,12 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   in
   begin match cmd with
   | None ->
-    Plan.build
+    Plan.buildRoot
       ~cfg:copts.cfg
       ~force:true
       ~quiet:true
       ~buildOnly
       plan
-      root
   | Some cmd ->
     begin match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
     | None -> return ()
@@ -907,15 +897,9 @@ let exec (copts : CommonOptions.t) cmd () =
   let%bind () =
     let%bind plan = SandboxInfo.plan info in
     let task = Plan.rootTask plan in
-    let installPath =
-      Scope.SandboxPath.toPath
-        copts.cfg.buildCfg
-        (Plan.Task.installPath task)
-    in
-    if%bind Fs.exists installPath then
-      return ()
-    else
-      build ~buildOnly:false copts None ()
+    if%bind Plan.isBuilt ~cfg:copts.cfg task
+    then return ()
+    else build ~buildOnly:false copts None ()
   in
   makeExecCommand
     ~env:`SandboxEnv
@@ -1038,17 +1022,13 @@ let formatPackageInfo ~built:(built : bool)  (task : Plan.Task.t) =
   let line = Printf.sprintf "%s%s %s" task.name version status in
   return line
 
-let taskIsBuilt copts task =
-  let installPath = Plan.Task.installPath task in
-  Fs.exists (Scope.SandboxPath.toPath copts.CommonOptions.cfg.buildCfg installPath)
-
 let lsBuilds (copts : CommonOptions.t) includeTransitive () =
   let open RunAsync.Syntax in
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
 
   let computeTermNode task children =
-    let%bind built = taskIsBuilt copts task in
+    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
@@ -1066,7 +1046,7 @@ let lsLibs copts includeTransitive () =
   let%bind builtIns = SandboxInfo.libraries ~ocamlfind copts in
 
   let computeTermNode (task: Plan.Task.t) children =
-    let%bind built = taskIsBuilt copts task in
+    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
@@ -1142,7 +1122,7 @@ let lsModules copts only () =
   in
 
   let computeTermNode (task: Plan.Task.t) children =
-    let%bind built = taskIsBuilt copts task in
+    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
@@ -1359,8 +1339,7 @@ let exportDependencies (copts : CommonOptions.t) () =
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
-      let buildPath = Scope.SandboxPath.toPath copts.cfg.buildCfg
-      (Plan.Task.installPath task) in
+      let buildPath = Plan.Task.installPath copts.CommonOptions.cfg task in
       if%bind Fs.exists buildPath
       then
         let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
@@ -1412,11 +1391,10 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   let importBuild (_direct, pkg) =
     match%bind RunAsync.ofRun (Plan.findTaskById plan pkg.Solution.Package.id) with
     | Some task ->
-      let installPath = Scope.SandboxPath.toPath copts.cfg.buildCfg (Plan.Task.installPath task) in
-      if%bind Fs.exists installPath
+      if%bind Plan.isBuilt ~cfg:copts.cfg task
       then return ()
       else (
-        let id = task.id in
+        let id = task.Plan.Task.id in
         let pathDir = Path.(fromPath / id) in
         let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
         if%bind Fs.exists pathDir

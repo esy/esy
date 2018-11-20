@@ -188,7 +188,7 @@ let make
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = Scope.SandboxPath.toPath cfg.buildCfg (Plan.Task.installPath task) in
+        let buildPath = Plan.Task.installPath cfg task in
         let outputPrefixPath = Path.(outputPath / "_export") in
         Plan.exportBuild ~cfg ~outputPrefixPath buildPath
     in
