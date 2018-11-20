@@ -61,7 +61,7 @@ val exec :
 (** [exec task cmd ()] executes [cmd] command in a [task]'s build environment. *)
 
 val build :
-  ?force:bool
+  force:bool
   -> ?quiet:bool
   -> ?buildOnly:bool
   -> ?logPath:Path.t
@@ -72,8 +72,7 @@ val build :
 (** [build task ()] builds the [task]. *)
 
 val buildRoot :
-  ?force:bool
-  -> ?quiet:bool
+  ?quiet:bool
   -> ?buildOnly:bool
   -> cfg:Config.t
   -> t

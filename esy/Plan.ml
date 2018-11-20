@@ -617,23 +617,32 @@ module Changes = struct
     | _ -> Yes
 end
 
-let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
+let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
+
+let buildTask ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
-  EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~cfg plan
+  EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg plan
 
-let build ?force ?quiet ?buildOnly ?logPath ~cfg plan id =
+let build ~force ?quiet ?buildOnly ?logPath ~cfg plan id =
+  let open RunAsync.Syntax in
   match PackageId.Map.find_opt id plan.tasks with
-  | Some (Some task) -> buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task
+  | Some (Some task) ->
+    if not force
+    then
+      if%bind isBuilt ~cfg task
+      then return ()
+      else buildTask ?quiet ?buildOnly ?logPath ~cfg task
+    else buildTask ?quiet ?buildOnly ?logPath ~cfg task
   | Some None
   | None -> RunAsync.return ()
 
-let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
+let buildRoot ?quiet ?buildOnly ~cfg plan =
   let open RunAsync.Syntax in
   let root = Solution.root plan.solution in
   match PackageId.Map.find_opt root.id plan.tasks with
   | Some (Some task) ->
-    let%bind () = buildTask ?force ?quiet ?buildOnly ~cfg task in
+    let%bind () = buildTask ?quiet ?buildOnly ~cfg task in
     let%bind () =
       let buildPath = Task.buildPath cfg task in
       let buildPathLink = EsyInstall.SandboxSpec.buildPath cfg.Config.spec in
@@ -644,8 +653,6 @@ let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
     return ()
   | Some None
   | None -> RunAsync.return ()
-
-let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
 
 let buildDependencies ?(concurrency=1) ~cfg plan id =
   let open RunAsync.Syntax in

@@ -27,13 +27,8 @@ type t =
   if [buildOnly] (set to true by default) is set to true then only build
   commands of a task are executed, other install commands are executed too.
 
-  If [force] is (set to false by default) is set to true then all staleness
-  checks are not performed and build is executed.
-
  */
-let build:
-  (~buildOnly: bool=?, ~force: bool=?, ~cfg: Config.t, Plan.t) =>
-  Run.t(unit, 'b);
+let build: (~buildOnly: bool=?, ~cfg: Config.t, Plan.t) => Run.t(unit, 'b);
 
 /**
 

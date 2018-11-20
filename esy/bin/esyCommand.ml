@@ -735,7 +735,6 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   | None ->
     Plan.buildRoot
       ~cfg:copts.cfg
-      ~force:true
       ~quiet:true
       ~buildOnly
       plan
