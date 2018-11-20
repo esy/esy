@@ -39,11 +39,14 @@ module Task = struct
 
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
-  let sourcePath t = Scope.sourcePath t.exportedScope
-  let buildPath t = Scope.buildPath t.exportedScope
-  let installPath t = Scope.installPath t.exportedScope
-  let logPath t = Scope.logPath t.exportedScope
-  let buildInfoPath t = Scope.buildInfoPath t.exportedScope
+  let toPathWith cfg t make =
+    Scope.SandboxPath.toPath cfg.Config.buildCfg (make t.exportedScope)
+
+  let sourcePath cfg t = toPathWith cfg t Scope.sourcePath
+  let buildPath cfg t = toPathWith cfg t Scope.buildPath
+  let installPath cfg t = toPathWith cfg t Scope.installPath
+  let logPath cfg t = toPathWith cfg t Scope.logPath
+  let buildInfoPath cfg t = toPathWith cfg t Scope.buildInfoPath
 
   let renderExpression ~cfg task expr =
     let open Run.Syntax in
@@ -631,8 +634,8 @@ let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
   match PackageId.Map.find_opt root.id plan.tasks with
   | Some (Some task) ->
     let%bind () = buildTask ?force ?quiet ?buildOnly ~cfg task in
-    let buildPath = Scope.SandboxPath.toPath cfg.Config.buildCfg (Task.buildPath task) in
     let%bind () =
+      let buildPath = Task.buildPath cfg task in
       let buildPathLink = EsyInstall.SandboxSpec.buildPath cfg.Config.spec in
       let%bind () = Fs.rmPath buildPathLink in
       let%bind () = Fs.symlink ~src:buildPath buildPathLink in
@@ -641,6 +644,8 @@ let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
     return ()
   | Some None
   | None -> RunAsync.return ()
+
+let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
 
 let buildDependencies ?(concurrency=1) ~cfg plan id =
   let open RunAsync.Syntax in
@@ -682,18 +687,12 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
   let root = Solution.root plan.solution in
   let tasks = Hashtbl.create 100 in
 
-  let isBuilt task =
-    let installPath = Task.installPath task in
-    let installPath = Scope.SandboxPath.toPath cfg.Config.buildCfg installPath in
-    Fs.exists installPath
-  in
-
   let run ~quiet task () =
     let start = Unix.gettimeofday () in
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a" PackageId.pp task.Task.pkgId)
     else Lwt.return ();%lwt
-    let logPath = Task.logPath task in
+    let logPath = Task.logPath cfg task in
     let%bind () = buildTask ~cfg ~logPath task in
     if not quiet
     then Logs_lwt.app (fun m -> m "building %a: done" PackageId.pp task.Task.pkgId)
@@ -704,10 +703,9 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
 
   let runIfNeeded changesInDependencies pkg =
     let run task () =
-      let p = Scope.SandboxPath.toPath cfg.Config.buildCfg in
-      let infoPath = p (Task.buildInfoPath task) in
-      let sourcePath = p (Task.sourcePath task) in
-      let%bind isBuilt = isBuilt task in
+      let infoPath = Task.buildInfoPath cfg task in
+      let sourcePath = Task.sourcePath cfg task in
+      let%bind isBuilt = isBuilt ~cfg task in
       match task.Task.sourceType with
       | SourceType.Transient ->
         let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in

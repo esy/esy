@@ -9,7 +9,7 @@ val build :
   ?force:bool
   -> ?buildOnly:bool
   -> ?quiet:bool
-  -> ?logPath:Scope.SandboxPath.t
+  -> ?logPath:Path.t
   -> cfg:Config.t
   -> EsyBuildPackage.Plan.t
   -> unit RunAsync.t
