@@ -385,7 +385,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     begin match manifest with
     | None ->
       if Overrides.isEmpty overrides
-      then return (None, Path.Set.empty)
+      then return (None, res.DistResolver.paths)
       else
         let manifest = empty ~name:None ~version:None () in
         let%bind manifest =

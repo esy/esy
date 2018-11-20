@@ -189,14 +189,15 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
           loc
       in
       match manifest with
-      | Some manifest -> return (id, Some (manifest, paths))
+      | Some manifest -> return (id, paths, Some manifest)
       | None ->
         if isRoot
         then
           let manifest = BuildManifest.empty ~name:None ~version:None () in
-          return (id, Some (manifest, Path.Set.empty))
+          return (id, paths, Some manifest)
         else
-          return (id, None)
+          (* we don't want to track non-esy manifest, hence Path.Set.empty *)
+          return (id, Path.Set.empty, None)
     ) "reading manifest %a" PackageId.pp id
   in
 
@@ -208,10 +209,12 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
   in
 
   let paths, manifests =
-    let f (paths, manifests) (id, manifest) =
+    let f (paths, manifests) (id, manifestPaths, manifest) =
       match manifest with
-      | None -> paths, manifests
-      | Some (manifest, manifestPaths) ->
+      | None ->
+        let paths = Path.Set.union paths manifestPaths in
+        paths, manifests
+      | Some manifest ->
         let paths = Path.Set.union paths manifestPaths in
         let manifests = PackageId.Map.add id manifest manifests in
         paths, manifests
