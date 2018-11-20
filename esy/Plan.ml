@@ -693,11 +693,12 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
       match task.Task.sourceType with
       | SourceType.Transient ->
         let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
-        begin match Changes.(changesInDependencies + changesInSources) with
-        | Changes.No ->
+        begin match isBuilt, Changes.(changesInDependencies + changesInSources) with
+        | true, Changes.No ->
           Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
           return Changes.No
-        | Changes.Yes ->
+        | true, Changes.Yes
+        | false, _ ->
           let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
           let%bind () = BuildInfo.toFile infoPath {
             BuildInfo.
@@ -707,11 +708,12 @@ let buildDependencies ?(concurrency=1) ~cfg plan id =
           return Changes.Yes
         end
       | SourceType.ImmutableWithTransientDependencies ->
-        begin match changesInDependencies with
-        | Changes.No ->
+        begin match isBuilt, changesInDependencies with
+        | true, Changes.No ->
           Logs_lwt.debug (fun m -> m "building %a: skipping" PackageId.pp task.Task.pkgId);%lwt
           return Changes.No
-        | Changes.Yes ->
+        | true, Changes.Yes
+        | false, _ ->
           let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
           let%bind () = BuildInfo.toFile infoPath {
             BuildInfo.
