@@ -60,16 +60,12 @@ let shell = (copts: commonOpts) => {
   let ppBanner = (build: Build.t) => {
     open Fmt;
 
-    let ppList = (ppItem, ppf, (title, items)) => {
+    let ppList = (ppItems, ppf, (title, items)) => {
       let pp =
-        switch (items) {
-        | [] => hbox(pair(string, unit(" <empty> ")))
-        | items =>
-          vbox(
-            ~indent=2,
-            pair(string, const(prefix(cut, vbox(list(ppItem))), items)),
-          )
-        };
+        vbox(
+          ~indent=2,
+          pair(string, const(prefix(cut, vbox(ppItems)), items)),
+        );
       pp(ppf, (title, ()));
     };
 
@@ -78,10 +74,14 @@ let shell = (copts: commonOpts) => {
       fmt("Package: %s@%s", ppf, plan.Plan.name, plan.Plan.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Cmd.pp, ppf, ("Build Commands:", build.build));
+      ppList(Fmt.list(Cmd.pp), ppf, ("Build Commands:", build.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Cmd.pp, ppf, ("Install Commands:", build.install));
+      ppList(
+        Fmt.option(Fmt.list(Cmd.pp)),
+        ppf,
+        ("Install Commands:", build.install),
+      );
       Fmt.cut(ppf, ());
       Format.close_box();
     };

@@ -17,7 +17,7 @@ type t =
     lockPath: EsyLib.Path.t,
     env: Bos.OS.Env.t,
     build: list(Cmd.t),
-    install: list(Cmd.t),
+    install: option(list(Cmd.t)),
     sandbox: Sandbox.sandbox,
   };
 

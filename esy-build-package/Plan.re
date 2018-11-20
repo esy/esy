@@ -10,7 +10,7 @@ type t = {
   sourceType: EsyLib.SourceType.t,
   buildType: EsyLib.BuildType.t,
   build: list(list(Config.Value.t)),
-  install: list(list(Config.Value.t)),
+  install: option(list(list(Config.Value.t))),
   sourcePath: Config.Value.t,
   rootPath: Config.Value.t,
   buildPath: Config.Value.t,

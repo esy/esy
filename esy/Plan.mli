@@ -6,7 +6,7 @@ module Task : sig
     version : EsyInstall.Version.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list option;
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;

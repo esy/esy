@@ -15,7 +15,7 @@ type t = {
   lockPath: Path.t,
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
-  install: list(Cmd.t),
+  install: option(list(Cmd.t)),
   sandbox: Sandbox.sandbox,
 };
 
@@ -142,8 +142,14 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     };
     EsyLib.Result.List.map(~f, cmds);
   };
-  let%bind install = renderCommands(~cfg, plan.install);
   let%bind build = renderCommands(~cfg, plan.build);
+  let%bind install =
+    switch (plan.install) {
+    | Some(cmds) =>
+      let%bind cmds = renderCommands(~cfg, cmds);
+      return(Some(cmds));
+    | None => return(None)
+    };
 
   let storePath =
     switch (plan.sourceType) {
@@ -308,6 +314,9 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     );
   let%bind () =
     if (Path.compare(build.stagePath, build.installPath) == 0) {
+      Logs.app(m =>
+        m("# esy-build-package: stage path and install path are the same")
+      );
       return();
     } else {
       Logs.app(m =>
@@ -553,8 +562,9 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
 
     let runInstall = () =>
       switch (build.install) {
-      | [] => runEsyInstaller(None)
-      | commands => runCommands(commands)
+      | None => return()
+      | Some([]) => runEsyInstaller(None)
+      | Some(commands) => runCommands(commands)
       };
 
     let%bind () = runBuild();

@@ -14,7 +14,7 @@ module Task = struct
     version : Version.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list option;
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
@@ -466,16 +466,18 @@ let make'
     let%bind buildCommands =
       Run.context
         begin match build.buildCommands with
-        | BuildManifest.EsyCommands commands ->
+        | EsyCommands commands ->
           let%bind commands = renderEsyCommands ~env:buildEnv buildScope commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | BuildManifest.OpamCommands commands ->
+        | OpamCommands commands ->
           let%bind commands = renderOpamCommands opamEnv commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
+        | NoCommands ->
+          return []
         end
         "processing esy.build"
     in
@@ -483,10 +485,14 @@ let make'
     let%bind installCommands =
       Run.context
         begin match build.installCommands with
-        | BuildManifest.EsyCommands commands ->
-          renderEsyCommands ~env:buildEnv buildScope commands
-        | BuildManifest.OpamCommands commands ->
-          renderOpamCommands opamEnv commands
+        | EsyCommands commands ->
+          let%bind cmds = renderEsyCommands ~env:buildEnv buildScope commands in
+          return (Some cmds)
+        | OpamCommands commands ->
+          let%bind cmds = renderOpamCommands opamEnv commands in
+          return (Some cmds)
+        | NoCommands ->
+          return None
         end
         "processing esy.install"
     in
