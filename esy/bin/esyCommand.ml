@@ -367,6 +367,7 @@ module SandboxInfo = struct
     let%bind checks =
       RunAsync.List.joinAll (
         let f prev =
+          Logs_lwt.debug (fun m -> m "SandboxInfo.checkIsStale %a" Path.pp prev.FileInfo.path);%lwt
           let%bind next = FileInfo.ofPath prev.FileInfo.path in
           return (FileInfo.compare prev next <> 0)
         in
