@@ -81,6 +81,9 @@ let read: EsyLib.Path.t => t(string, _);
 /** Write data into file */
 let write: (~perm: int=?, ~data: string, EsyLib.Path.t) => t(unit, _);
 
+/** Copy file. */
+let copyFile: (~perm: int=?, Fpath.t, Fpath.t) => t(unit, _);
+
 /** Create temporary file with data. */
 let createTmpFile: string => t(EsyLib.Path.t, _);
 

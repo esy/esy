@@ -21,4 +21,6 @@ val install :
   symlinks and/or hardlinks instead of copying files (note this will only work
   if installer don't install across different mount points).
 
+  Note that this is designed so it the prefix path doesn't contain any files.
+
  *)

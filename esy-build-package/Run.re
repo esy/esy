@@ -122,6 +122,11 @@ let write = (~perm=?, ~data, path) =>
   Bos.OS.File.write(~mode=?perm, path, data);
 let read = path => Bos.OS.File.read(path);
 
+let copyFile = (~perm=?, srcPath, dstPath) => {
+  let%bind data = read(srcPath);
+  write(~data, ~perm?, dstPath);
+};
+
 let mv = Bos.OS.Path.move;
 
 let bind = Result.Syntax.Let_syntax.bind;

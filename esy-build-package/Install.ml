@@ -59,10 +59,12 @@ let installFile
       let%bind () =
         (* make sure it works on windows, try junctions? *)
         if enableLinkingOptimization && origPerm = perm
-        then Run.symlink ~target:srcPath dstPath
+        then
+          match EsyLib.System.Platform.host with
+          | Windows -> Run.link ~force:true ~target:srcPath dstPath
+          | _ -> Run.symlink ~force:true ~target:srcPath dstPath
         else
-          let%bind data = Run.read srcPath in
-          Run.write ~data ~perm dstPath
+          Run.copyFile ~perm srcPath dstPath
       in
       Run.return ()
 
