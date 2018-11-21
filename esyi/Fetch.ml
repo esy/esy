@@ -429,6 +429,24 @@ module LinkBin = struct
     in
     Fs.writeFile ~perm:0o755 ~data path
 
+  let installBinWrapperAsBatch binPath (name, origPath) =
+    let data =
+      Fmt.strf
+        {|@ECHO off
+@SETLOCAL
+"%a" %%*
+          |} Path.pp origPath
+    in
+    Fs.writeFile ~perm:0o755 ~data Path.(binPath / name |> addExt ".cmd")
+
+  let installBinWrapperAsSymlink binPath (name, origPath) =
+    let open RunAsync.Syntax in
+    let%bind () = Fs.chmod 0o777 origPath in
+    let destPath = Path.(binPath / name) in
+    if%bind Fs.exists destPath
+    then return ()
+    else Fs.symlink ~src:origPath destPath
+
   let installBinWrapper binPath (name, origPath) =
     let open RunAsync.Syntax in
     Logs_lwt.debug (fun m ->
@@ -440,11 +458,9 @@ module LinkBin = struct
       if Path.hasExt ".js" origPath
       then installNodeBinWrapper binPath (name, origPath)
       else (
-        let%bind () = Fs.chmod 0o777 origPath in
-        let destPath = Path.(binPath / name) in
-        if%bind Fs.exists destPath
-        then return ()
-        else Fs.symlink ~src:origPath destPath
+        match System.Platform.host with
+        | Windows -> installBinWrapperAsBatch binPath (name, origPath)
+        | _ -> installBinWrapperAsSymlink binPath (name, origPath)
       )
     ) else (
       Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
