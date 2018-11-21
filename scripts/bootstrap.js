@@ -14,7 +14,7 @@ const bin = path.join(root, 'bin');
 fs.mkdirpSync(bin);
 
 function which(cmd) {
-  const which = isWindows ? 'where' : 'which';
+  const which = isWindows ? 'C:\\Windows\\System32\\WHERE' : 'which';
   return child_process.execSync(`${which} esy-solve-cudf`).toString().trim();
 }
 
