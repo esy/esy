@@ -602,15 +602,6 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-(* let pkgPathTerm = *)
-(*   let open Cmdliner in *)
-(*   let doc = "Path to package." in *)
-(*   Arg.( *)
-(*     value *)
-(*     & pos 0  (some resolvedPathTerm) None *)
-(*     & info [] ~doc *)
-(*   ) *)
-
 let pkgIdTerm =
   let open Cmdliner in
   let pkgIdConv =
@@ -629,10 +620,7 @@ let pkgIdTerm =
     & info [] ~doc
   )
 
-let withBuildTaskById
-    ~(info : SandboxInfo.t)
-    id
-    f =
+let withTask info id f =
   let open RunAsync.Syntax in
   let%bind plan = SandboxInfo.plan info in
   match id with
@@ -657,7 +645,7 @@ let buildPlan copts id () =
     print_endline data;
     return ()
   in
-  withBuildTaskById ~info id f
+  withTask info id f
 
 let buildShell (copts : CommonOptions.t) packagePath () =
   let open RunAsync.Syntax in
@@ -683,7 +671,8 @@ let buildShell (copts : CommonOptions.t) packagePath () =
     | Unix.WEXITED n
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
-  in withBuildTaskById ~info packagePath f
+  in
+  withTask info packagePath f
 
 let buildPackage (copts : CommonOptions.t) packagePath () =
   let open RunAsync.Syntax in
@@ -704,7 +693,7 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
       plan
       task.Plan.Task.pkgId
   in
-  withBuildTaskById ~info packagePath f
+  withTask info packagePath f
 
 let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
@@ -768,7 +757,8 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
-  in withBuildTaskById ~info packagePath f
+  in
+  withTask info packagePath f
 
 let buildEnv =
   let header (task : Plan.Task.t) =
