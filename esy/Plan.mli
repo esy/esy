@@ -31,9 +31,10 @@ end
 type t
 (** A collection of tasks. *)
 
-val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option Run.t
-val findTaskByName : t -> string -> Task.t option option
-val findTaskByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option option
+val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option
+val findTaskByName : t -> string -> Task.t option
+val findTaskByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
+
 val rootTask : t -> Task.t
 val allTasks : t -> Task.t list
 
