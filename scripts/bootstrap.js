@@ -15,8 +15,13 @@ fs.mkdirpSync(bin);
 
 function which(cmd) {
   const which = isWindows ? 'C:\\Windows\\System32\\WHERE' : 'which';
-  return child_process.execSync(`${which} esy-solve-cudf`).toString().trim();
+  return child_process
+    .execSync(`${which} esy-solve-cudf`)
+    .toString()
+    .trim();
 }
+
+const esyBashPath = path.dirname(require.resolve('esy-bash/package.json'));
 
 const esySolveCudf = which('esy-solve-cudf');
 
@@ -28,6 +33,7 @@ if (isWindows) {
     @ECHO off
     @SETLOCAL
     @SET ESY__SOLVE_CUDF_COMMAND=${esySolveCudf}
+    @SET ESY__ESY_BASH=${esyBashPath}
     "${root}/_build/default/esy/bin/esyCommand.exe" %%*
     `
   );
@@ -38,9 +44,9 @@ if (isWindows) {
     outdent`
     #!/bin/bash
     export ESY__SOLVE_CUDF_COMMAND="${esySolveCudf}"
+    export ESY__ESY_BASH="${esyBashPath}"
     exec "${root}/_build/default/esy/bin/esyCommand.exe" "$@"
     `
   );
   fs.chmodSync(esy, 0o755);
-
 }
