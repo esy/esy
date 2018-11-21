@@ -367,6 +367,7 @@ module SandboxInfo = struct
     let%bind checks =
       RunAsync.List.joinAll (
         let f prev =
+          Logs_lwt.debug (fun m -> m "SandboxInfo.checkIsStale %a" Path.pp prev.FileInfo.path);%lwt
           let%bind next = FileInfo.ofPath prev.FileInfo.path in
           return (FileInfo.compare prev next <> 0)
         in
@@ -433,19 +434,6 @@ module SandboxInfo = struct
           | _, None
           | None, _ -> return (None, filesUsed)
         in
-        (* let%bind task, commandEnv, sandboxEnv = RunAsync.ofRun ( *)
-        (*   let open Run.Syntax in *)
-        (*   let%bind task = Task.ofSandbox sandbox in *)
-        (*   let%bind commandEnv = *)
-        (*     let%bind env = Task.commandEnv task in *)
-        (*     return (Sandbox.Environment.Bindings.render sandbox.buildCfg env) *)
-        (*   in *)
-        (*   let%bind sandboxEnv = *)
-        (*     let%bind env = Task.sandboxEnv task in *)
-        (*     return (Sandbox.Environment.Bindings.render sandbox.buildCfg env) *)
-        (*   in *)
-        (*   return (task, commandEnv, sandboxEnv) *)
-        (* ) in *)
         return {
           solution;
           installation;
@@ -735,7 +723,6 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   | None ->
     Plan.buildRoot
       ~cfg:copts.cfg
-      ~force:true
       ~quiet:true
       ~buildOnly
       plan
@@ -894,13 +881,7 @@ let makeExecCommand
 let exec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
-  let%bind () =
-    let%bind plan = SandboxInfo.plan info in
-    let task = Plan.rootTask plan in
-    if%bind Plan.isBuilt ~cfg:copts.cfg task
-    then return ()
-    else build ~buildOnly:false copts None ()
-  in
+  let%bind () = build ~buildOnly:false copts None () in
   makeExecCommand
     ~env:`SandboxEnv
     ~copts

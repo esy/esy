@@ -15,6 +15,7 @@ module Env : module type of EsyInstall.Package.Env
 type commands =
   | OpamCommands of OpamTypes.command list
   | EsyCommands of CommandList.t
+  | NoCommands
 
 type t = {
   name : string option;

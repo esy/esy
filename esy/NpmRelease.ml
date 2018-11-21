@@ -170,6 +170,7 @@ let make
       Plan.build
         ~buildOnly:false
         ~quiet:true
+        ~force:false
         ~cfg
         plan
         root

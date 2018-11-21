@@ -43,6 +43,7 @@ end
 type commands =
   | OpamCommands of OpamTypes.command list
   | EsyCommands of CommandList.t
+  | NoCommands
   [@@deriving to_yojson]
 
 let pp_commands fmt cmds =
@@ -53,6 +54,8 @@ let pp_commands fmt cmds =
   | EsyCommands cmds ->
     let json = CommandList.to_yojson cmds in
     Fmt.pf fmt "EsyCommands %a" (Json.pp ~std:true) json
+  | NoCommands ->
+    Fmt.pf fmt "NoCommands"
 
 type patch = Path.t * OpamTypes.filter option
 
@@ -83,7 +86,7 @@ let empty ~name ~version () = {
   version;
   buildType = BuildType.OutOfSource;
   buildCommands = EsyCommands [];
-  installCommands = EsyCommands [];
+  installCommands = NoCommands;
   patches = [];
   substs = [];
   exportedEnv = ExportedEnv.empty;
@@ -385,7 +388,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     begin match manifest with
     | None ->
       if Overrides.isEmpty overrides
-      then return (None, Path.Set.empty)
+      then return (None, res.DistResolver.paths)
       else
         let manifest = empty ~name:None ~version:None () in
         let%bind manifest =

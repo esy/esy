@@ -6,8 +6,7 @@
  * Build task.
  *)
 val build :
-  ?force:bool
-  -> ?buildOnly:bool
+  ?buildOnly:bool
   -> ?quiet:bool
   -> ?logPath:Path.t
   -> cfg:Config.t

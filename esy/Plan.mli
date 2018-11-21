@@ -6,7 +6,7 @@ module Task : sig
     version : EsyInstall.Version.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list option;
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
@@ -61,7 +61,7 @@ val exec :
 (** [exec task cmd ()] executes [cmd] command in a [task]'s build environment. *)
 
 val build :
-  ?force:bool
+  force:bool
   -> ?quiet:bool
   -> ?buildOnly:bool
   -> ?logPath:Path.t
@@ -72,8 +72,7 @@ val build :
 (** [build task ()] builds the [task]. *)
 
 val buildRoot :
-  ?force:bool
-  -> ?quiet:bool
+  ?quiet:bool
   -> ?buildOnly:bool
   -> cfg:Config.t
   -> t

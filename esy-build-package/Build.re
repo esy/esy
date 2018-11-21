@@ -6,15 +6,16 @@ open Run;
 
 type t = {
   plan: Plan.t,
-  sourcePath: Path.t,
   storePath: Path.t,
+  sourcePath: Path.t,
+  rootPath: Path.t,
   installPath: Path.t,
   stagePath: Path.t,
   buildPath: Path.t,
   lockPath: Path.t,
   env: Bos.OS.Env.t,
   build: list(Cmd.t),
-  install: list(Cmd.t),
+  install: option(list(Cmd.t)),
   sandbox: Sandbox.sandbox,
 };
 
@@ -28,65 +29,25 @@ let regex = (base, segments) => {
   Sandbox.Regex(pat);
 };
 
-module type LIFECYCLE = {
-  let getRootPath: build => Path.t;
-  let getAllowedToWritePaths: (Plan.t, Path.t) => list(Sandbox.pattern);
-  let prepare: (~cfg: Config.t, build) => Run.t(unit, _);
-  let finalize: (~cfg: Config.t, build) => Run.t(unit, _);
-};
-
-/*
-
-   A lifecycle of a build which is performed in its original source tree and
-   adheres to all esy convention (most importantly uses $cur__target_dir for its
-   build dir).
-
- */
-module OutOfSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.sourcePath;
-  let getAllowedToWritePaths = (_task, _sourcePath) => [];
-  let prepare = (~cfg as _, _build) => ok;
-  let finalize = (~cfg as _, _build) => ok;
-};
-
-/*
-
-   A lifecycle which defensively copies all project source tree into build dir
-   before running a build.
-
-   This is designed so that projects which don't implement out of source builds
-   still can be used safely with multiple sandboxes.
-
-   Also we use this lifecycle when building into global store as we want as much
-   safety as possible.
-
- */
-module RelocateSourceLifecycle: LIFECYCLE = {
-  let getRootPath = build => build.buildPath;
-  let getAllowedToWritePaths = (_task, _sourcePath) => [];
-
-  let prepare = (~cfg as _, build: build) => {
-    let%bind () = rm(build.buildPath);
-    let%bind () = mkdir(build.buildPath);
-    let%bind () = {
-      let ignore = [
-        ".git",
-        ".hg",
-        ".svn",
-        "node_modules",
-        "_esy",
-        "_build",
-        "_install",
-        "_release",
-        "_esybuild",
-        "_esyinstall",
-      ];
-      copyContents(~from=build.sourcePath, ~ignore, build.buildPath);
-    };
-    ok;
+let relocateSourcePath = (sourcePath, rootPath) => {
+  let%bind () = rm(rootPath);
+  let%bind () = mkdir(rootPath);
+  let%bind () = {
+    let ignore = [
+      ".git",
+      ".hg",
+      ".svn",
+      "node_modules",
+      "_esy",
+      "_build",
+      "_install",
+      "_release",
+      "_esybuild",
+      "_esyinstall",
+    ];
+    copyContents(~ignore, ~from=sourcePath, rootPath);
   };
-
-  let finalize = (~cfg as _, _build) => Ok();
+  ok;
 };
 
 /*
@@ -95,18 +56,7 @@ module RelocateSourceLifecycle: LIFECYCLE = {
   subdirectory as a build dir.
 
  */
-module JBuilderLifecycle: LIFECYCLE = {
-  let getRootPath = (build: build) => build.sourcePath;
-  let getAllowedToWritePaths = (_task, sourcePath) =>
-    Sandbox.[
-      Subpath(Path.show(sourcePath / "_build")),
-      regex(sourcePath, [".*", "[^/]*\\.install"]),
-      regex(sourcePath, ["[^/]*\\.install"]),
-      regex(sourcePath, [".*", "[^/]*\\.opam"]),
-      regex(sourcePath, ["[^/]*\\.opam"]),
-      regex(sourcePath, [".*", "jbuild-ignore"]),
-    ];
-
+module JbuilderHack = {
   let prepareImpl = (build: build) => {
     let savedBuild = build.buildPath / "_build";
     let currentBuild = build.sourcePath / "_build";
@@ -143,74 +93,37 @@ module JBuilderLifecycle: LIFECYCLE = {
     ok;
   };
 
-  let prepare = (~cfg as _, build: build) =>
-    if (isRoot(build)) {
-      let duneBuildDir = build.sourcePath / "_build";
-      let%bind () =
-        switch (lstat(duneBuildDir)) {
-        | Ok({Unix.st_kind: S_DIR, _}) => ok
-        | Ok(_) => rm(duneBuildDir)
-        | Error(_) => ok
-        };
-      ok;
+  let prepare = (build: build) =>
+    if (build.plan.jbuilderHackEnabled) {
+      if (isRoot(build)) {
+        let duneBuildDir = build.sourcePath / "_build";
+        let%bind () =
+          switch (lstat(duneBuildDir)) {
+          | Ok({Unix.st_kind: S_DIR, _}) => ok
+          | Ok(_) => rm(duneBuildDir)
+          | Error(_) => ok
+          };
+        ok;
+      } else {
+        prepareImpl(build);
+      };
     } else {
-      prepareImpl(build);
+      ok;
     };
 
-  let finalize = (~cfg as _, build: build) =>
-    if (isRoot(build)) {
-      ok;
+  let finalize = (build: build) =>
+    if (build.plan.jbuilderHackEnabled) {
+      if (isRoot(build)) {
+        ok;
+      } else {
+        commitImpl(build);
+      };
     } else {
-      commitImpl(build);
+      ok;
     };
-};
-
-/*
-
-   Same as OutOfSourceLifecycle but allows to write into project's root
-   directory.
-
-   This makes it unsafe by definiton. Projects which use such lifecycle for its
-   builds can't be linked to other sandboxes as they pollute their own source
-   tree.
-
-   Currently only opam packages use this strategy.
-
- */
-module UnsafeLifecycle: LIFECYCLE = {
-  let getRootPath = (build: build) => build.sourcePath;
-
-  let getAllowedToWritePaths = (_task, sourcePath) =>
-    Sandbox.[Subpath(Path.show(sourcePath))];
-
-  let prepare = (~cfg as _, _build) => Ok();
-  let finalize = (~cfg as _, _build) => Ok();
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
-  let (module Lifecycle): (module LIFECYCLE) =
-    switch (plan.buildType, plan.sourceType) {
-    | (InSource, Immutable) => (module RelocateSourceLifecycle)
-    | (InSource, ImmutableWithTransientDependencies) =>
-      (module RelocateSourceLifecycle)
-    | (InSource, Transient) => (module RelocateSourceLifecycle)
-
-    | (JbuilderLike, Immutable) => (module RelocateSourceLifecycle)
-    | (JbuilderLike, ImmutableWithTransientDependencies) =>
-      (module RelocateSourceLifecycle)
-    | (JbuilderLike, Transient) => (module JBuilderLifecycle)
-
-    | (OutOfSource, Immutable) => (module OutOfSourceLifecycle)
-    | (OutOfSource, ImmutableWithTransientDependencies) =>
-      (module OutOfSourceLifecycle)
-    | (OutOfSource, Transient) => (module OutOfSourceLifecycle)
-
-    | (Unsafe, Immutable) => (module RelocateSourceLifecycle)
-    | (Unsafe, ImmutableWithTransientDependencies) =>
-      (module RelocateSourceLifecycle)
-    | (Unsafe, Transient) => (module UnsafeLifecycle)
-    };
-
   let%bind env = {
     let f = (k, v) =>
       fun
@@ -229,8 +142,14 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     };
     EsyLib.Result.List.map(~f, cmds);
   };
-  let%bind install = renderCommands(~cfg, plan.install);
   let%bind build = renderCommands(~cfg, plan.build);
+  let%bind install =
+    switch (plan.install) {
+    | Some(cmds) =>
+      let%bind cmds = renderCommands(~cfg, cmds);
+      return(Some(cmds));
+    | None => return(None)
+    };
 
   let storePath =
     switch (plan.sourceType) {
@@ -239,13 +158,12 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     | Transient => cfg.localStorePath
     };
 
-  let sourcePath = {
-    let sourcePath = Config.Value.render(cfg, plan.sourcePath);
-    Path.v(sourcePath);
-  };
-  let installPath = Path.(storePath / EsyLib.Store.installTree / plan.id);
-  let stagePath = Path.(storePath / EsyLib.Store.stageTree / plan.id);
-  let buildPath = Path.(storePath / EsyLib.Store.buildTree / plan.id);
+  let p = path => Path.v(Config.Value.render(cfg, path));
+  let sourcePath = p(plan.sourcePath);
+  let installPath = p(plan.installPath);
+  let buildPath = p(plan.buildPath);
+  let stagePath = p(plan.stagePath);
+  let rootPath = p(plan.rootPath);
   let lockPath =
     Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".lock"));
 
@@ -256,83 +174,75 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
         let%bind v = realpath(v);
         Ok(Path.show(v));
       };
-      Ok({
-        Sandbox.allowWrite: [
-          regex(sourcePath, [".*", "\\.merlin"]),
-          regex(sourcePath, ["\\.merlin"]),
-          regex(sourcePath, [".*\\.install"]),
-          regex(sourcePath, ["dune-project"]),
-          Subpath(Path.show(buildPath)),
-          Subpath(Path.show(stagePath)),
-          Subpath("/private/tmp"),
-          Subpath("/tmp"),
-          Subpath(tempPath),
-          ...Lifecycle.getAllowedToWritePaths(plan, sourcePath),
-        ],
-      });
+      let allowWrite = [
+        regex(sourcePath, [".*", "\\.merlin"]),
+        regex(sourcePath, ["\\.merlin"]),
+        regex(sourcePath, [".*\\.install"]),
+        regex(sourcePath, ["dune-project"]),
+        Subpath(Path.show(buildPath)),
+        Subpath(Path.show(stagePath)),
+        Subpath("/private/tmp"),
+        Subpath("/tmp"),
+        Subpath(tempPath),
+      ];
+      let allowWrite =
+        if (plan.buildType == EsyLib.BuildType.Unsafe) {
+          [Sandbox.Subpath(Path.show(sourcePath)), ...allowWrite];
+        } else {
+          allowWrite;
+        };
+      let allowWrite =
+        if (plan.jbuilderHackEnabled) {
+          Sandbox.[
+            Subpath(Path.show(sourcePath / "_build")),
+            regex(sourcePath, [".*", "[^/]*\\.install"]),
+            regex(sourcePath, ["[^/]*\\.install"]),
+            regex(sourcePath, [".*", "[^/]*\\.opam"]),
+            regex(sourcePath, ["[^/]*\\.opam"]),
+            regex(sourcePath, [".*", "jbuild-ignore"]),
+          ]
+          @ allowWrite;
+        } else {
+          allowWrite;
+        };
+      Ok({Sandbox.allowWrite: allowWrite});
     };
     Sandbox.init(config);
   };
 
-  return((
-    {
-      plan,
-      env,
-      build,
-      install,
-      sourcePath,
-      storePath,
-      installPath,
-      stagePath,
-      buildPath,
-      lockPath,
-      sandbox,
-    },
-    (module Lifecycle): (module LIFECYCLE),
-  ));
+  return({
+    plan,
+    env,
+    build,
+    install,
+    sourcePath,
+    rootPath,
+    storePath,
+    installPath,
+    stagePath,
+    buildPath,
+    lockPath,
+    sandbox,
+  });
 };
 
-module Installer =
-  EsyInstaller.Installer.Make({
-    type computation('v) =
-      Run.t(
-        'v,
-        [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)],
+let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
+  let label = Fmt.(strf("esy-installer: %a", Path.pp, installFilename));
+  EsyLib.Perf.measure(
+    ~label,
+    () => {
+      Logs.app(m =>
+        m("# esy-build-package: installing using built-in installer")
       );
-
-    let return = Run.return;
-    let error = Run.error;
-    let handle = v =>
-      switch (v) {
-      | Ok(v) => return(Ok(v))
-      | Error(`Msg(err)) => return(Error(err))
-      | Error(`CommandError(cmd, _)) =>
-        let msg = "Error running command: " ++ Bos.Cmd.to_string(cmd);
-        return(Error(msg));
-      };
-    let bind = Run.bind;
-
-    module Fs = {
-      let read = Run.read;
-      let write = Run.write;
-      let stat = path =>
-        switch (Run.lstatOrError(path)) {
-        | Ok(stats) => Run.return(`Stats(stats))
-        | Error((Unix.ENOENT, _call, _msg)) => Run.return(`DoesNotExist)
-        | Error((errno, _call, _msg)) =>
-          Run.errorf("stat %a: %s", Path.pp, path, Unix.error_message(errno))
-        };
-      let readdir = Run.ls;
-      let mkdir = Run.mkdir;
-    };
-  });
-
-let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
-  Logs.app(m =>
-    m("# esy-build-package: installing using built-in installer")
+      let res =
+        Install.install(
+          ~enableLinkingOptimization,
+          ~prefixPath,
+          installFilename,
+        );
+      Run.coerceFromClosed(res);
+    },
   );
-  let res = Installer.run(~prefixPath, ~rootPath, installFilename);
-  Run.coerceFromClosed(res);
 };
 
 let withLock = (lockPath: Path.t, f) => {
@@ -371,30 +281,54 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       ~data=Path.show(config.storePath),
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
-  let%bind () = {
-    let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
-    let%bind cmd =
-      EsyLib.NodeResolution.resolve("./esyRewritePrefixCommand.exe");
-    Bos.OS.Cmd.run(
-      ~env,
-      Cmd.(
-        v(p(cmd))
-        % "--orig-prefix"
-        % p(build.stagePath)
-        % "--dest-prefix"
-        % p(build.installPath)
-        % p(build.stagePath)
-      ),
-    );
-  };
-  let%bind () = mv(build.stagePath, build.installPath);
+  let%bind () =
+    if (Path.compare(build.stagePath, build.installPath) == 0) {
+      Logs.app(m =>
+        m("# esy-build-package: stage path and install path are the same")
+      );
+      return();
+    } else {
+      Logs.app(m =>
+        m(
+          "# esy-build-package: rewriting prefix: %a -> %a",
+          Path.pp,
+          build.stagePath,
+          Path.pp,
+          build.installPath,
+        )
+      );
+      let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
+      let%bind cmd =
+        EsyLib.NodeResolution.resolve("./esyRewritePrefixCommand.exe");
+      let%bind () =
+        Bos.OS.Cmd.run(
+          ~env,
+          Cmd.(
+            v(p(cmd))
+            % "--orig-prefix"
+            % p(build.stagePath)
+            % "--dest-prefix"
+            % p(build.installPath)
+            % p(build.stagePath)
+          ),
+        );
+      Logs.app(m =>
+        m(
+          "# esy-build-package: committing: %a -> %a",
+          Path.pp,
+          build.stagePath,
+          Path.pp,
+          build.installPath,
+        )
+      );
+      let%bind () = mv(build.stagePath, build.installPath);
+      return();
+    };
   ok;
 };
 
 let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
-  let%bind (build, lifecycle) = configureBuild(~cfg, plan);
-
-  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
+  let%bind build = configureBuild(~cfg, plan);
 
   let initStoreAt = (path: Path.t) => {
     let%bind () = mkdir(Path.(path / "i"));
@@ -419,14 +353,19 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = mkdir(build.stagePath / "toplevel");
     let%bind () = mkdir(build.stagePath / "doc");
     let%bind () = mkdir(build.stagePath / "_esy");
-    let%bind () = Lifecycle.prepare(~cfg, build);
+    let%bind () = JbuilderHack.prepare(build);
     let%bind () = mkdir(build.buildPath);
     let%bind () = mkdir(build.buildPath / "_esy");
 
-    let rootPath = Lifecycle.getRootPath(build);
+    let%bind () =
+      if (Path.compare(build.sourcePath, build.rootPath) == 0) {
+        ok;
+      } else {
+        relocateSourcePath(build.sourcePath, build.rootPath);
+      };
 
     let%bind () =
-      switch (withCwd(rootPath, ~f=() => f(build))) {
+      switch (withCwd(build.rootPath, ~f=() => f(build))) {
       | Ok () =>
         let%bind () =
           if (commit) {
@@ -434,10 +373,10 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
           } else {
             ok;
           };
-        let%bind () = Lifecycle.finalize(~cfg, build);
+        let%bind () = JbuilderHack.finalize(build);
         ok;
       | error =>
-        let%bind () = Lifecycle.finalize(~cfg, build);
+        let%bind () = JbuilderHack.finalize(build);
         error;
       };
 
@@ -500,130 +439,114 @@ let runCommandInteractive = (build, cmd) => {
   };
 };
 
-let build = (~buildOnly=true, ~force=false, ~cfg: Config.t, plan: Plan.t) => {
-  let%bind (build, lifecycle) = configureBuild(~cfg, plan);
+let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
+  let%bind build = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
-  let (module Lifecycle): (module LIFECYCLE) = lifecycle;
-  let rootPath = Lifecycle.getRootPath(build);
-  let performBuild = () => {
-    Logs.debug(m => m("building"));
-    Logs.app(m =>
-      m(
-        "# esy-build-package: building: %s@%s",
-        build.plan.name,
-        build.plan.version,
-      )
-    );
-    Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, rootPath));
+  Logs.debug(m => m("building"));
+  Logs.app(m =>
+    m(
+      "# esy-build-package: building: %s@%s",
+      build.plan.name,
+      build.plan.version,
+    )
+  );
+  Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
 
-    let runBuildAndInstall = (build: build) => {
-      let runEsyInstaller = installFilenames => {
-        let findInstallFilenames = () => {
-          let%bind items = Run.ls(rootPath);
-          return(
-            items
-            |> List.filter(name => Path.hasExt(".install", name))
-            |> List.map(name => Path.basename(name)),
+  let runBuildAndInstall = (build: build) => {
+    let enableLinkingOptimization =
+      switch (build.plan.sourceType) {
+      | Transient => true
+      | ImmutableWithTransientDependencies => true
+      | Immutable => false
+      };
+    let runEsyInstaller = installFilenames => {
+      let findInstallFilenames = () => {
+        let%bind items = Run.ls(build.rootPath);
+        return(
+          items
+          |> List.filter(name => Path.hasExt(".install", name))
+          |> List.map(name => Path.basename(name)),
+        );
+      };
+      switch (installFilenames) {
+      /* the case where esy-installer is called implicitly, ignore the case
+       * we have no *.install files */
+      | None =>
+        switch%bind (findInstallFilenames()) {
+        | [] => ok
+        | [installFilename] =>
+          install(
+            ~enableLinkingOptimization,
+            ~prefixPath=build.stagePath,
+            Path.(build.rootPath / installFilename),
+          )
+        | _ => error("multiple *.install files found")
+        }
+      /* the case where esy-installer is called explicitly with 0 args, fail
+       * on all but a single *.install file found. */
+      | Some([]) =>
+        switch%bind (findInstallFilenames()) {
+        | [] => error("no *.install files found")
+        | [installFilename] =>
+          install(
+            ~enableLinkingOptimization,
+            ~prefixPath=build.stagePath,
+            Path.(build.rootPath / installFilename),
+          )
+        | _ => error("multiple *.install files found")
+        }
+      | Some(installFilenames) =>
+        let f = ((), installFilename) =>
+          install(
+            ~enableLinkingOptimization,
+            ~prefixPath=build.stagePath,
+            Path.(build.rootPath /\/ Path.v(installFilename)),
           );
-        };
-        switch (installFilenames) {
-        /* the case where esy-installer is called implicitly, ignore the case
-         * we have no *.install files */
-        | None =>
-          switch%bind (findInstallFilenames()) {
-          | [] => ok
-          | [installFilename] =>
-            install(
-              ~prefixPath=build.stagePath,
-              ~rootPath,
-              ~installFilename=Path.v(installFilename),
-              (),
-            )
-          | _ => error("multiple *.install files found")
-          }
-        /* the case where esy-installer is called explicitly with 0 args, fail
-         * on all but a single *.install file found. */
-        | Some([]) =>
-          switch%bind (findInstallFilenames()) {
-          | [] => error("no *.install files found")
-          | [installFilename] =>
-            install(
-              ~prefixPath=build.stagePath,
-              ~rootPath,
-              ~installFilename=Path.v(installFilename),
-              (),
-            )
-          | _ => error("multiple *.install files found")
-          }
-        | Some(installFilenames) =>
-          let f = ((), installFilename) =>
-            install(
-              ~prefixPath=build.stagePath,
-              ~rootPath,
-              ~installFilename=Path.v(installFilename),
-              (),
-            );
-          EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
-        };
+        EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
       };
-
-      let runCommand = cmd => {
-        ();
-        switch (Cmd.to_list(cmd)) {
-        | [] => error("empty command")
-        | ["esy-installer", ...installFilenames] =>
-          runEsyInstaller(Some(installFilenames))
-        | _ => runCommand(build, cmd)
-        };
-      };
-
-      let runCommands = cmds => {
-        let rec aux = cmds =>
-          switch (cmds) {
-          | [] => Ok()
-          | [cmd, ...cmds] =>
-            Logs.app(m =>
-              m("# esy-build-package: running: %s", Cmd.to_string(cmd))
-            );
-            let%bind () = runCommand(cmd);
-            aux(cmds);
-          };
-        aux(cmds);
-      };
-
-      let runBuild = () => runCommands(build.build);
-
-      let runInstall = () =>
-        switch (build.install) {
-        | [] => runEsyInstaller(None)
-        | commands => runCommands(commands)
-        };
-
-      let%bind () = runBuild();
-      let%bind () =
-        if (!buildOnly) {
-          runInstall();
-        } else {
-          ok;
-        };
-      ok;
     };
-    withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
-  };
-  switch (build.plan.sourceType) {
-  | Transient
-  | ImmutableWithTransientDependencies => performBuild()
-  | Immutable =>
-    if (force) {
-      Logs.debug(m => m("forcing build"));
-      performBuild();
-    } else {
-      if%bind (exists(build.installPath)) {
-        Logs.debug(m => m("build exists in store, skipping"));
-        ok;
-      } else {
-        performBuild();
+
+    let runCommand = cmd => {
+      ();
+      switch (Cmd.to_list(cmd)) {
+      | [] => error("empty command")
+      | ["esy-installer", ...installFilenames] =>
+        runEsyInstaller(Some(installFilenames))
+      | _ => runCommand(build, cmd)
       };
-    }
+    };
+
+    let runCommands = cmds => {
+      let rec aux = cmds =>
+        switch (cmds) {
+        | [] => Ok()
+        | [cmd, ...cmds] =>
+          Logs.app(m =>
+            m("# esy-build-package: running: %s", Cmd.to_string(cmd))
+          );
+          let%bind () = runCommand(cmd);
+          aux(cmds);
+        };
+      aux(cmds);
+    };
+
+    let runBuild = () => runCommands(build.build);
+
+    let runInstall = () =>
+      switch (build.install) {
+      | None => return()
+      | Some([]) => runEsyInstaller(None)
+      | Some(commands) => runCommands(commands)
+      };
+
+    let%bind () = runBuild();
+    let%bind () =
+      if (!buildOnly) {
+        runInstall();
+      } else {
+        ok;
+      };
+    ok;
   };
+  withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
 };

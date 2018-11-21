@@ -70,7 +70,6 @@ let run
   Fs.withTempFile ~data:buildJson runProcess
 
 let build
-    ?(force=false)
     ?(buildOnly=false)
     ?(quiet=false)
     ?logPath
@@ -83,7 +82,6 @@ let build
       if cond then arg::args else args
     in
     []
-    |> addIf force "--force"
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in

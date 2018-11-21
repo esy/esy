@@ -40,13 +40,13 @@ let createConfig = (copts: commonOpts) => {
   );
 };
 
-let build = (~buildOnly=false, ~force=false, copts: commonOpts) => {
+let build = (~buildOnly=false, copts: commonOpts) => {
   open Run;
   let {planPath, _} = copts;
   let planPath = Option.orDefault(~default=v("build.json"), planPath);
   let%bind cfg = createConfig(copts);
   let%bind plan = Plan.ofFile(planPath);
-  let%bind () = Build.build(~buildOnly, ~force, ~cfg, plan);
+  let%bind () = Build.build(~buildOnly, ~cfg, plan);
   Ok();
 };
 
@@ -60,16 +60,12 @@ let shell = (copts: commonOpts) => {
   let ppBanner = (build: Build.t) => {
     open Fmt;
 
-    let ppList = (ppItem, ppf, (title, items)) => {
+    let ppList = (ppItems, ppf, (title, items)) => {
       let pp =
-        switch (items) {
-        | [] => hbox(pair(string, unit(" <empty> ")))
-        | items =>
-          vbox(
-            ~indent=2,
-            pair(string, const(prefix(cut, vbox(list(ppItem))), items)),
-          )
-        };
+        vbox(
+          ~indent=2,
+          pair(string, const(prefix(cut, vbox(ppItems)), items)),
+        );
       pp(ppf, (title, ()));
     };
 
@@ -78,10 +74,14 @@ let shell = (copts: commonOpts) => {
       fmt("Package: %s@%s", ppf, plan.Plan.name, plan.Plan.version);
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Cmd.pp, ppf, ("Build Commands:", build.build));
+      ppList(Fmt.list(Cmd.pp), ppf, ("Build Commands:", build.build));
       Fmt.cut(ppf, ());
       Fmt.cut(ppf, ());
-      ppList(Cmd.pp, ppf, ("Install Commands:", build.install));
+      ppList(
+        Fmt.option(Fmt.list(Cmd.pp)),
+        ppf,
+        ("Install Commands:", build.install),
+      );
       Fmt.cut(ppf, ());
       Format.close_box();
     };
@@ -298,18 +298,13 @@ let () = {
     let sdocs = Manpage.s_common_options;
     let exits = Term.default_exits;
     let man = help_secs;
-    let cmd = (opts, buildOnly, force) =>
-      runToCompletion(build(~buildOnly, ~force, opts));
-    let forceT = {
-      let doc = "Force build without running any staleness checks.";
-      Arg.(value & flag & info(["f", "force"], ~doc));
-    };
+    let cmd = (opts, buildOnly) => runToCompletion(build(~buildOnly, opts));
     let buildOnlyT = {
       let doc = "Only run build commands (skipping install commands).";
       Arg.(value & flag & info(["build-only"], ~doc));
     };
     (
-      Term.(ret(const(cmd) $ commonOptsT $ buildOnlyT $ forceT)),
+      Term.(ret(const(cmd) $ commonOptsT $ buildOnlyT)),
       Term.info("build", ~doc, ~sdocs, ~exits, ~man),
     );
   };

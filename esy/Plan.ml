@@ -14,7 +14,7 @@ module Task = struct
     version : Version.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list;
+    installCommands : Scope.SandboxValue.t list list option;
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
@@ -24,6 +24,18 @@ module Task = struct
   }
 
   let plan (t : t) =
+    let rootPath = Scope.rootPath t.buildScope in
+    let buildPath = Scope.buildPath t.buildScope in
+    let stagePath = Scope.stagePath t.buildScope in
+    let installPath = Scope.installPath t.buildScope in
+    let jbuilderHackEnabled =
+      match t.buildType, t.sourceType with
+      | JbuilderLike, Transient -> true
+      | JbuilderLike, _ -> false
+      | InSource, _
+      | OutOfSource, _
+      | Unsafe, _ -> false
+    in
     {
       EsyBuildPackage.Plan.
       id = t.id;
@@ -34,6 +46,11 @@ module Task = struct
       build = t.buildCommands;
       install = t.installCommands;
       sourcePath = Scope.SandboxPath.toValue t.sourcePath;
+      rootPath = Scope.SandboxPath.toValue rootPath;
+      buildPath = Scope.SandboxPath.toValue buildPath;
+      stagePath = Scope.SandboxPath.toValue stagePath;
+      installPath = Scope.SandboxPath.toValue installPath;
+      jbuilderHackEnabled;
       env = t.env;
     }
 
@@ -172,14 +189,15 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
           loc
       in
       match manifest with
-      | Some manifest -> return (id, Some (manifest, paths))
+      | Some manifest -> return (id, paths, Some manifest)
       | None ->
         if isRoot
         then
           let manifest = BuildManifest.empty ~name:None ~version:None () in
-          return (id, Some (manifest, Path.Set.empty))
+          return (id, paths, Some manifest)
         else
-          return (id, None)
+          (* we don't want to track non-esy manifest, hence Path.Set.empty *)
+          return (id, Path.Set.empty, None)
     ) "reading manifest %a" PackageId.pp id
   in
 
@@ -191,10 +209,12 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
   in
 
   let paths, manifests =
-    let f (paths, manifests) (id, manifest) =
+    let f (paths, manifests) (id, manifestPaths, manifest) =
       match manifest with
-      | None -> paths, manifests
-      | Some (manifest, manifestPaths) ->
+      | None ->
+        let paths = Path.Set.union paths manifestPaths in
+        paths, manifests
+      | Some manifest ->
         let paths = Path.Set.union paths manifestPaths in
         let manifests = PackageId.Map.add id manifest manifests in
         paths, manifests
@@ -446,16 +466,18 @@ let make'
     let%bind buildCommands =
       Run.context
         begin match build.buildCommands with
-        | BuildManifest.EsyCommands commands ->
+        | EsyCommands commands ->
           let%bind commands = renderEsyCommands ~env:buildEnv buildScope commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | BuildManifest.OpamCommands commands ->
+        | OpamCommands commands ->
           let%bind commands = renderOpamCommands opamEnv commands in
           let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
           let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
           return (applySubstsCommands @ applyPatchesCommands @ commands)
+        | NoCommands ->
+          return []
         end
         "processing esy.build"
     in
@@ -463,10 +485,14 @@ let make'
     let%bind installCommands =
       Run.context
         begin match build.installCommands with
-        | BuildManifest.EsyCommands commands ->
-          renderEsyCommands ~env:buildEnv buildScope commands
-        | BuildManifest.OpamCommands commands ->
-          renderOpamCommands opamEnv commands
+        | EsyCommands commands ->
+          let%bind cmds = renderEsyCommands ~env:buildEnv buildScope commands in
+          return (Some cmds)
+        | OpamCommands commands ->
+          let%bind cmds = renderOpamCommands opamEnv commands in
+          return (Some cmds)
+        | NoCommands ->
+          return None
         end
         "processing esy.install"
     in
@@ -617,23 +643,33 @@ module Changes = struct
     | _ -> Yes
 end
 
-let buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task =
+let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
+
+let buildTask ?quiet ?buildOnly ?logPath ~cfg task =
   Logs_lwt.debug (fun m -> m "build %a" PackageId.pp task.Task.pkgId);%lwt
   let plan = Task.plan task in
-  EsyBuildPackageApi.build ?force ?quiet ?buildOnly ?logPath ~cfg plan
+  let label = Fmt.strf "build %a" PackageId.pp task.Task.pkgId in
+  Perf.measureLwt ~label (fun () -> EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg plan)
 
-let build ?force ?quiet ?buildOnly ?logPath ~cfg plan id =
+let build ~force ?quiet ?buildOnly ?logPath ~cfg plan id =
+  let open RunAsync.Syntax in
   match PackageId.Map.find_opt id plan.tasks with
-  | Some (Some task) -> buildTask ?force ?quiet ?buildOnly ?logPath ~cfg task
+  | Some (Some task) ->
+    if not force
+    then
+      if%bind isBuilt ~cfg task
+      then return ()
+      else buildTask ?quiet ?buildOnly ?logPath ~cfg task
+    else buildTask ?quiet ?buildOnly ?logPath ~cfg task
   | Some None
   | None -> RunAsync.return ()
 
-let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
+let buildRoot ?quiet ?buildOnly ~cfg plan =
   let open RunAsync.Syntax in
   let root = Solution.root plan.solution in
   match PackageId.Map.find_opt root.id plan.tasks with
   | Some (Some task) ->
-    let%bind () = buildTask ?force ?quiet ?buildOnly ~cfg task in
+    let%bind () = buildTask ?quiet ?buildOnly ~cfg task in
     let%bind () =
       let buildPath = Task.buildPath cfg task in
       let buildPathLink = EsyInstall.SandboxSpec.buildPath cfg.Config.spec in
@@ -644,8 +680,6 @@ let buildRoot ?force ?quiet ?buildOnly ~cfg plan =
     return ()
   | Some None
   | None -> RunAsync.return ()
-
-let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
 
 let buildDependencies ?(concurrency=1) ~cfg plan id =
   let open RunAsync.Syntax in
