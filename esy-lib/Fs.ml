@@ -365,32 +365,31 @@ let readlinkOpt (path : Path.t) =
 
 let symlink ?(force=false) ~src dst =
   let open RunAsync.Syntax in
+
   let symlink' src dst =
     let src = Path.show src in
     let dst = Path.show dst in
     try%lwt
       let%lwt () = Lwt_unix.symlink src dst in
-      RunAsync.return ()
+      Lwt.return (Ok ())
     with Unix.Unix_error (err, _, _) ->
-      errorf "symlink %s -> %s: %s" src dst (Unix.error_message err)
+      Lwt.return (Error err)
   in
-  if force
-  then
-    match%lwt readlinkOpt dst with
-    | Error _ ->
-      (* try rm path but ignore errors *)
-      let%lwt _: unit Run.t = rmPath dst in
-      symlink' src dst
-    | Ok None -> symlink' src dst
-    | Ok Some prevSrc ->
-      if Path.compare prevSrc src = 0
-      then
-        return ()
-      else
-        let%bind () = unlink dst in
-        symlink' src dst
-  else
-    symlink' src dst
+
+  let mkError err =
+    errorf "symlink %a -> %a: %s" Path.pp src Path.pp dst (Unix.error_message err)
+  in
+
+  match%lwt symlink' src dst with
+  | Ok () -> return ()
+  | Error Unix.EEXIST when force ->
+    (* try rm path but ignore errors *)
+    let%lwt _: unit Run.t = rmPath dst in
+    begin match%lwt symlink' src dst with
+    | Ok () -> return ()
+    | Error err -> mkError err
+    end
+  | Error err -> mkError err
 
 let realpath path =
   let open RunAsync.Syntax in
