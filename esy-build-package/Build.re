@@ -227,7 +227,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
 };
 
 module Installer =
-  EsyInstaller.Installer.Make({
+  Install.Make({
     type computation('v) =
       Run.t(
         'v,

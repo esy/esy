@@ -4,7 +4,6 @@
   (preprocess (pps ppx_let ppx_deriving_yojson ppx_deriving.std))
   (libraries
             EsyLib
-            EsyInstaller
             cmdliner
             yojson
             bos
@@ -17,5 +16,6 @@
             fmt.tty
             ppx_deriving_yojson.runtime
             rresult
+            opam-format
             )
   )
