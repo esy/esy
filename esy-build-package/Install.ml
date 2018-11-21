@@ -1,14 +1,14 @@
-(* This checks if we should try adding .exe extension *)
-let shouldTryAddExeIfNotExist =
-  match Sys.getenv_opt "ESY_INSTALLER__FORCE_EXE", Sys.os_type with
-    | (None | Some "false"), "Win32" -> true
-    | (None | Some "false"), "Unix" -> false
-    | (None | Some "false"), "Cygwin" -> false
-    | _, _ -> true (* won't make it worse, I guess *)
-
 module Let_syntax = Run.Let_syntax
 
 module F = OpamFile.Dot_install
+
+(* This checks if we should try adding .exe extension *)
+let shouldTryAddExeIfNotExist =
+  match Sys.getenv_opt "ESY_INSTALLER__FORCE_EXE", EsyLib.System.Platform.host with
+    | (None | Some "false"), Windows -> true
+    | (None | Some "false"), (Linux | Darwin | Unix | Cygwin) -> false
+    | (None | Some "false"), Unknown -> true  (* won't make it worse, I guess *)
+    | Some _, _ -> true
 
 let setExecutable perm = perm lor 0o111
 let unsetExecutable perm = perm land (lnot 0o111)
