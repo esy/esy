@@ -15,7 +15,7 @@ let unsetExecutable perm = perm land (lnot 0o111)
 
 let installFile
   ?(executable=false)
-  ~trySymlink
+  ~enableLinkingOptimization
   ~rootPath
   ~prefixPath
   ~(dstFilename : Fpath.t option)
@@ -58,7 +58,7 @@ let installFile
       let%bind () = Run.mkdir (Fpath.parent dstPath) in
       let%bind () =
         (* make sure it works on windows, try junctions? *)
-        if trySymlink && origPerm = perm
+        if enableLinkingOptimization && origPerm = perm
         then Run.symlink ~target:srcPath dstPath
         else
           let%bind data = Run.read srcPath in
@@ -74,7 +74,7 @@ let installFile
 
   copy ~tryAddExeIfNotExist:shouldTryAddExeIfNotExist srcPath dstPath
 
-  let installSection ~trySymlink ~executable ?makeDstFilename ~rootPath ~prefixPath files =
+  let installSection ~enableLinkingOptimization ~executable ?makeDstFilename ~rootPath ~prefixPath files =
     let rec aux = function
       | [] -> Run.return ()
       | (src, dstFilenameSpec)::rest ->
@@ -86,26 +86,16 @@ let installFile
             Some (makeDstFilename src)
           | None, None -> None
         in
-        let%bind () = installFile ~executable ~trySymlink ~rootPath ~prefixPath ~dstFilename src in
+        let%bind () = installFile ~executable ~enableLinkingOptimization ~rootPath ~prefixPath ~dstFilename src in
         aux rest
     in
     aux files
 
-let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : Fpath.t option) =
+let install ~enableLinkingOptimization ~prefixPath filename =
 
-  let%bind (packageName, spec) =
-    let%bind filename =
-      match filename with
-      | Some name -> Run.return Fpath.(rootPath // name)
-      | None ->
-        let%bind items = Run.ls rootPath in
-        let isInstallFile filename = Fpath.has_ext ".install" filename in
-        begin match List.filter isInstallFile items with
-        | [filename] -> Run.return filename
-        | [] -> Run.error "no *.install files found"
-        | _ -> Run.error "multiple *.install files found"
-        end
-      in
+  let rootPath = Fpath.parent filename in
+
+  let%bind packageName, spec =
     let%bind data = Run.read filename in
     let packageName = Fpath.basename (Fpath.rem_ext filename) in
     let spec =
@@ -124,7 +114,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
@@ -133,7 +123,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib")
@@ -142,7 +132,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:true
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
@@ -151,7 +141,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:true
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib")
@@ -160,7 +150,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:true
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "bin")
@@ -169,7 +159,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:true
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "sbin")
@@ -178,7 +168,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib" / "toplevel")
@@ -187,7 +177,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "share" / packageName)
@@ -196,7 +186,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "share")
@@ -205,7 +195,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "etc" / packageName)
@@ -214,7 +204,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "doc" / packageName)
@@ -223,7 +213,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
 
   let%bind () =
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:true
       ~rootPath
       ~prefixPath:Fpath.(prefixPath / "lib" / "stublibs")
@@ -236,7 +226,7 @@ let install ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename 
       Fpath.(v ("man" ^ num) / basename src)
     in
     installSection
-      ~trySymlink
+      ~enableLinkingOptimization
       ~executable:false
       ~makeDstFilename
       ~rootPath

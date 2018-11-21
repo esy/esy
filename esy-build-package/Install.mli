@@ -1,5 +1,24 @@
+(**
+
+  This implements "esy-installer" command.
+
+  See [1] for documentation.
+
+  [1]: https://opam.ocaml.org/doc/Manual.html#lt-pkgname-gt-install
+
+ *)
+
 val install :
-  trySymlink:bool
-  -> rootPath:Fpath.t
+  enableLinkingOptimization:bool
   -> prefixPath:Fpath.t
-  -> Fpath.t option -> (unit, _) Run.t
+  -> Fpath.t -> (unit, _) Run.t
+(**
+
+  [install ~prefixPath installFilename] executes installation as described in an
+  *.install file [installFilename] to [prefixPath] path.
+
+  if [enableLinkingOptimization] is enabled then installer is free to try to use
+  symlinks and/or hardlinks instead of copying files (note this will only work
+  if installer don't install across different mount points).
+
+ *)

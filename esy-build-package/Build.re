@@ -226,9 +226,8 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   });
 };
 
-let install = (~trySymlink, ~prefixPath, ~rootPath, ~installFilename=?, ()) => {
-  let label =
-    Fmt.(strf("esy-installer: %a", option(Path.pp), installFilename));
+let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
+  let label = Fmt.(strf("esy-installer: %a", Path.pp, installFilename));
   EsyLib.Perf.measure(
     ~label,
     () => {
@@ -236,7 +235,11 @@ let install = (~trySymlink, ~prefixPath, ~rootPath, ~installFilename=?, ()) => {
         m("# esy-build-package: installing using built-in installer")
       );
       let res =
-        Install.install(~trySymlink, ~prefixPath, ~rootPath, installFilename);
+        Install.install(
+          ~enableLinkingOptimization,
+          ~prefixPath,
+          installFilename,
+        );
       Run.coerceFromClosed(res);
     },
   );
@@ -450,7 +453,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
 
   let runBuildAndInstall = (build: build) => {
-    let trySymlink =
+    let enableLinkingOptimization =
       switch (build.plan.sourceType) {
       | Transient => true
       | ImmutableWithTransientDependencies => true
@@ -473,11 +476,9 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => ok
         | [installFilename] =>
           install(
-            ~trySymlink,
+            ~enableLinkingOptimization,
             ~prefixPath=build.stagePath,
-            ~rootPath=build.rootPath,
-            ~installFilename=Path.v(installFilename),
-            (),
+            Path.(build.rootPath / installFilename),
           )
         | _ => error("multiple *.install files found")
         }
@@ -488,22 +489,18 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => error("no *.install files found")
         | [installFilename] =>
           install(
-            ~trySymlink,
+            ~enableLinkingOptimization,
             ~prefixPath=build.stagePath,
-            ~rootPath=build.rootPath,
-            ~installFilename=Path.v(installFilename),
-            (),
+            Path.(build.rootPath / installFilename),
           )
         | _ => error("multiple *.install files found")
         }
       | Some(installFilenames) =>
         let f = ((), installFilename) =>
           install(
-            ~trySymlink,
+            ~enableLinkingOptimization,
             ~prefixPath=build.stagePath,
-            ~rootPath=build.rootPath,
-            ~installFilename=Path.v(installFilename),
-            (),
+            Path.(build.rootPath /\/ Path.v(installFilename)),
           );
         EsyLib.Result.List.foldLeft(~f, ~init=(), installFilenames);
       };
