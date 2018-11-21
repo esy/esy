@@ -1,5 +1,5 @@
 {
-  "checksum": "ae8bf6e672c808713aaf5b6c3068165f",
+  "checksum": "3b21d7a725d735d5f9f515b487cab811",
   "root": "esy@link:./package.json",
   "node": {
     "yargs-parser@9.0.2": {
@@ -5967,7 +5967,7 @@
       "source": { "type": "link", "path": ".", "manifest": "package.json" },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.6.9", "esy-solve-cudf@0.1.10",
+        "ocaml@4.6.9", "is-ci@1.2.1", "esy-solve-cudf@0.1.10",
         "@opam/yojson@opam:1.4.1@008b9b27", "@opam/re@opam:1.8.0@b017e421",
         "@opam/ppx_sexp_conv@opam:v0.11.2@60c73e26",
         "@opam/ppx_let@opam:v0.11.0@f94e4e24",
