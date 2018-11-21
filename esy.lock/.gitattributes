@@ -1,2 +1,3 @@
-# Force LF eol, so that they aren't CRLF-ized on Windows.
+
+# Set eol to LF so files aren't converted to CRLF-eol on Windows.
 * text eol=lf
