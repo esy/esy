@@ -9,6 +9,7 @@ module type IO = sig
   module Fs : sig
     val mkdir : Fpath.t -> unit computation
     val readdir : Fpath.t -> Fpath.t list computation
+    val symlink : Fpath.t -> Fpath.t -> unit computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
     val stat : Fpath.t -> [ | `Stats of Unix.stats | `DoesNotExist ] computation
@@ -17,7 +18,12 @@ end
 
 module type INSTALLER = sig
   type 'v computation
-  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> Fpath.t option -> unit computation
+  val run :
+    trySymlink:bool
+    -> rootPath:Fpath.t
+    -> prefixPath:Fpath.t
+    -> Fpath.t option
+    -> unit computation
 end
 
 (* This checks if we should try adding .exe extension *)
@@ -45,6 +51,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
   let installFile
     ?(executable=false)
+    ~trySymlink
     ~rootPath
     ~prefixPath
     ~(dstFilename : Fpath.t option)
@@ -76,15 +83,22 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
           else error (Format.asprintf "source path %a does not exist" Fpath.pp srcPath)
 
       | Ok (`Stats stats) ->
+        let origPerm = stats.Unix.st_perm in
         let perm =
           if executable
-          then setExecutable stats.Unix.st_perm
-          else unsetExecutable stats.Unix.st_perm
+          then setExecutable origPerm
+          else unsetExecutable origPerm
         in
+        if origPerm <> perm
+        then Printf.printf "bailing out of opt %o %o %s\n" origPerm perm (Fpath.to_string srcPath);
         let%bind () = Fs.mkdir (Fpath.parent dstPath) in
         let%bind () =
-          let%bind data = Fs.read srcPath in
-          Fs.write ~data ~perm dstPath
+          (* make sure it works on windows, try junctions? *)
+          if trySymlink && origPerm = perm
+          then Fs.symlink srcPath dstPath
+          else
+            let%bind data = Fs.read srcPath in
+            Fs.write ~data ~perm dstPath
         in
         return ()
 
@@ -96,7 +110,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     copy ~tryAddExeIfNotExist:shouldTryAddExeIfNotExist srcPath dstPath
 
-    let installSection ?executable ?makeDstFilename ~rootPath ~prefixPath files =
+    let installSection ~trySymlink ~executable ?makeDstFilename ~rootPath ~prefixPath files =
       let rec aux = function
         | [] -> return ()
         | (src, dstFilenameSpec)::rest ->
@@ -108,12 +122,12 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
               Some (makeDstFilename src)
             | None, None -> None
           in
-          let%bind () = installFile ?executable ~rootPath ~prefixPath ~dstFilename src in
+          let%bind () = installFile ~executable ~trySymlink ~rootPath ~prefixPath ~dstFilename src in
           aux rest
       in
       aux files
 
-  let run ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : Fpath.t option) =
+  let run ~trySymlink ~(rootPath : Fpath.t) ~(prefixPath : Fpath.t) (filename : Fpath.t option) =
 
     let%bind (packageName, spec) =
       let%bind filename =
@@ -146,6 +160,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
         (F.lib spec)
@@ -153,6 +169,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib")
         (F.lib_root spec)
@@ -160,6 +178,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
         ~executable:true
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib" / packageName)
@@ -168,6 +187,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
         ~executable:true
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib")
@@ -176,6 +196,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
         ~executable:true
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "bin")
@@ -184,6 +205,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
         ~executable:true
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "sbin")
@@ -192,6 +214,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib" / "toplevel")
         (F.toplevel spec)
@@ -199,6 +223,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "share" / packageName)
         (F.share spec)
@@ -206,6 +232,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "share")
         (F.share_root spec)
@@ -213,6 +241,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "etc" / packageName)
         (F.etc spec)
@@ -220,6 +250,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
+        ~executable:false
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "doc" / packageName)
         (F.doc spec)
@@ -227,6 +259,7 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
 
     let%bind () =
       installSection
+        ~trySymlink
         ~executable:true
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "lib" / "stublibs")
@@ -239,6 +272,8 @@ module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation =
         Fpath.(v ("man" ^ num) / basename src)
       in
       installSection
+        ~trySymlink
+        ~executable:false
         ~makeDstFilename
         ~rootPath
         ~prefixPath:Fpath.(prefixPath / "man")

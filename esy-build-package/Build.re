@@ -247,10 +247,12 @@ module Installer =
     let bind = Run.bind;
 
     module Fs = {
+      let symlink = (src, dst) => Run.symlink(~target=src, dst);
       let read = Run.read;
       let write = Run.write;
       let stat = path =>
-        switch (Run.lstatOrError(path)) {
+        /* TODO: figure out if stat is ok here */
+        switch (Run.statOrError(path)) {
         | Ok(stats) => Run.return(`Stats(stats))
         | Error((Unix.ENOENT, _call, _msg)) => Run.return(`DoesNotExist)
         | Error((errno, _call, _msg)) =>
@@ -261,7 +263,7 @@ module Installer =
     };
   });
 
-let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
+let install = (~trySymlink, ~prefixPath, ~rootPath, ~installFilename=?, ()) => {
   let label =
     Fmt.(strf("esy-installer: %a", option(Path.pp), installFilename));
   EsyLib.Perf.measure(
@@ -270,7 +272,8 @@ let install = (~prefixPath, ~rootPath, ~installFilename=?, ()) => {
       Logs.app(m =>
         m("# esy-build-package: installing using built-in installer")
       );
-      let res = Installer.run(~prefixPath, ~rootPath, installFilename);
+      let res =
+        Installer.run(~trySymlink, ~prefixPath, ~rootPath, installFilename);
       Run.coerceFromClosed(res);
     },
   );
@@ -484,6 +487,12 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
 
   let runBuildAndInstall = (build: build) => {
+    let trySymlink =
+      switch (build.plan.sourceType) {
+      | Transient => true
+      | ImmutableWithTransientDependencies => true
+      | Immutable => false
+      };
     let runEsyInstaller = installFilenames => {
       let findInstallFilenames = () => {
         let%bind items = Run.ls(build.rootPath);
@@ -501,6 +510,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => ok
         | [installFilename] =>
           install(
+            ~trySymlink,
             ~prefixPath=build.stagePath,
             ~rootPath=build.rootPath,
             ~installFilename=Path.v(installFilename),
@@ -515,6 +525,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         | [] => error("no *.install files found")
         | [installFilename] =>
           install(
+            ~trySymlink,
             ~prefixPath=build.stagePath,
             ~rootPath=build.rootPath,
             ~installFilename=Path.v(installFilename),
@@ -525,6 +536,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       | Some(installFilenames) =>
         let f = ((), installFilename) =>
           install(
+            ~trySymlink,
             ~prefixPath=build.stagePath,
             ~rootPath=build.rootPath,
             ~installFilename=Path.v(installFilename),

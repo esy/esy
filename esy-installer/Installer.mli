@@ -9,6 +9,7 @@ module type IO = sig
   module Fs : sig
     val mkdir : Fpath.t -> unit computation
     val readdir : Fpath.t -> Fpath.t list computation
+    val symlink : Fpath.t -> Fpath.t -> unit computation
     val read : Fpath.t -> string computation
     val write : ?perm:int -> data:string -> Fpath.t -> unit computation
     val stat : Fpath.t -> [ | `Stats of Unix.stats | `DoesNotExist ] computation
@@ -20,7 +21,7 @@ module type INSTALLER = sig
   type 'v computation
 
   (** Perform installation given the root and a prefix. *)
-  val run : rootPath:Fpath.t -> prefixPath:Fpath.t -> Fpath.t option -> unit computation
+  val run : trySymlink:bool -> rootPath:Fpath.t -> prefixPath:Fpath.t -> Fpath.t option -> unit computation
 end
 
 module Make (Io : IO) : INSTALLER with type 'v computation = 'v Io.computation
