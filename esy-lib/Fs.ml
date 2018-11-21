@@ -99,17 +99,6 @@ let unlink (path : Path.t) =
   let%lwt () = Lwt_unix.unlink path in
   RunAsync.return ()
 
-let readlink (path : Path.t) =
-  let path = Path.show path in
-  let%lwt link = Lwt_unix.readlink path in
-  RunAsync.return (Path.v link)
-
-let symlink ~src target =
-  let src = Path.show src in
-  let target = Path.show target in
-  let%lwt () = Lwt_unix.symlink src target in
-  RunAsync.return ()
-
 let rename ~src target =
   let src = Path.show src in
   let target = Path.show target in
@@ -353,6 +342,54 @@ let withTempFile ~data f =
       (* never fail on removing a temp file. *)
       try%lwt Lwt_unix.unlink path
       with Unix.Unix_error _ -> Lwt.return ())
+
+let readlink (path : Path.t) =
+  let open RunAsync.Syntax in
+  let path = Path.show path in
+  try%lwt
+    let%lwt link = Lwt_unix.readlink path in
+    return (Path.v link)
+  with Unix.Unix_error (err, _, _) ->
+    errorf "readlink %s: %s" path (Unix.error_message err)
+
+let readlinkOpt (path : Path.t) =
+  let open RunAsync.Syntax in
+  let path = Path.show path in
+  try%lwt
+    let%lwt link = Lwt_unix.readlink path
+    in return (Some (Path.v link))
+  with
+    | Unix.Unix_error (ENOENT, _, _) -> return None
+    | Unix.Unix_error (err, _, _) ->
+      errorf "readlink %s: %s" path (Unix.error_message err)
+
+let symlink ?(force=false) ~src dst =
+  let open RunAsync.Syntax in
+
+  let symlink' src dst =
+    let src = Path.show src in
+    let dst = Path.show dst in
+    try%lwt
+      let%lwt () = Lwt_unix.symlink src dst in
+      Lwt.return (Ok ())
+    with Unix.Unix_error (err, _, _) ->
+      Lwt.return (Error err)
+  in
+
+  let mkError err =
+    errorf "symlink %a -> %a: %s" Path.pp src Path.pp dst (Unix.error_message err)
+  in
+
+  match%lwt symlink' src dst with
+  | Ok () -> return ()
+  | Error Unix.EEXIST when force ->
+    (* try rm path but ignore errors *)
+    let%lwt _: unit Run.t = rmPath dst in
+    begin match%lwt symlink' src dst with
+    | Ok () -> return ()
+    | Error err -> mkError err
+    end
+  | Error err -> mkError err
 
 let realpath path =
   let open RunAsync.Syntax in

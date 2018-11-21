@@ -20,8 +20,13 @@ val isDir : Path.t -> bool RunAsync.t
 
 val unlink : Path.t -> unit RunAsync.t
 
+(** readlink *)
 val readlink : Path.t -> Path.t RunAsync.t
-val symlink : src:Path.t -> Path.t -> unit RunAsync.t
+
+(** Link readlink but returns [None] if path doesn't not exist. *)
+val readlinkOpt : Path.t -> Path.t option RunAsync.t
+
+val symlink : ?force:bool -> src:Path.t -> Path.t -> unit RunAsync.t
 val rename : src:Path.t -> Path.t -> unit RunAsync.t
 
 val realpath : Path.t -> Path.t RunAsync.t

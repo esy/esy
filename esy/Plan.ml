@@ -673,9 +673,9 @@ let buildRoot ?quiet ?buildOnly ~cfg plan =
     let%bind () =
       let buildPath = Task.buildPath cfg task in
       let buildPathLink = EsyInstall.SandboxSpec.buildPath cfg.Config.spec in
-      let%bind () = Fs.rmPath buildPathLink in
-      let%bind () = Fs.symlink ~src:buildPath buildPathLink in
-      return ()
+      match System.Platform.host with
+      | Windows -> return ()
+      | _ -> Fs.symlink ~force:true ~src:buildPath buildPathLink
     in
     return ()
   | Some None
