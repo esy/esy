@@ -90,4 +90,26 @@ describe('esy build-env', () => {
     expect(env.devDep__local).toBe(undefined);
     expect(env.devDep__global).toBe(undefined);
   });
+
+  it('allows to query build env for a dep (by name)', async () => {
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
+
+    await p.esy('install');
+    await p.esy('build');
+
+    const env = JSON.parse((await p.esy('build-env --json dep')).stdout);
+    expect(env.cur__name).toBe('dep');
+  });
+
+  it('allows to query build env for a dep (by name, version)', async () => {
+    const p = await createTestSandbox();
+    await p.fixture(...fixture.makeSimpleProject(p));
+
+    await p.esy('install');
+    await p.esy('build');
+
+    const env = JSON.parse((await p.esy('build-env --json dep@1.0.0')).stdout);
+    expect(env.cur__name).toBe('dep');
+  });
 });
