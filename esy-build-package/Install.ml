@@ -53,11 +53,8 @@ let installFile
         then setExecutable origPerm
         else unsetExecutable origPerm
       in
-      if origPerm <> perm
-      then Printf.printf "bailing out of opt %o %o %s\n" origPerm perm (Fpath.to_string srcPath);
       let%bind () = Run.mkdir (Fpath.parent dstPath) in
       let%bind () =
-        (* make sure it works on windows, try junctions? *)
         if enableLinkingOptimization && origPerm = perm
         then
           match EsyLib.System.Platform.host with
