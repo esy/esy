@@ -226,43 +226,6 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   });
 };
 
-module Installer =
-  Install.Make({
-    type computation('v) =
-      Run.t(
-        'v,
-        [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)],
-      );
-
-    let return = Run.return;
-    let error = Run.error;
-    let handle = v =>
-      switch (v) {
-      | Ok(v) => return(Ok(v))
-      | Error(`Msg(err)) => return(Error(err))
-      | Error(`CommandError(cmd, _)) =>
-        let msg = "Error running command: " ++ Bos.Cmd.to_string(cmd);
-        return(Error(msg));
-      };
-    let bind = Run.bind;
-
-    module Fs = {
-      let symlink = (src, dst) => Run.symlink(~target=src, dst);
-      let read = Run.read;
-      let write = Run.write;
-      let stat = path =>
-        /* TODO: figure out if stat is ok here */
-        switch (Run.statOrError(path)) {
-        | Ok(stats) => Run.return(`Stats(stats))
-        | Error((Unix.ENOENT, _call, _msg)) => Run.return(`DoesNotExist)
-        | Error((errno, _call, _msg)) =>
-          Run.errorf("stat %a: %s", Path.pp, path, Unix.error_message(errno))
-        };
-      let readdir = Run.ls;
-      let mkdir = Run.mkdir;
-    };
-  });
-
 let install = (~trySymlink, ~prefixPath, ~rootPath, ~installFilename=?, ()) => {
   let label =
     Fmt.(strf("esy-installer: %a", option(Path.pp), installFilename));
@@ -273,7 +236,7 @@ let install = (~trySymlink, ~prefixPath, ~rootPath, ~installFilename=?, ()) => {
         m("# esy-build-package: installing using built-in installer")
       );
       let res =
-        Installer.run(~trySymlink, ~prefixPath, ~rootPath, installFilename);
+        Install.install(~trySymlink, ~prefixPath, ~rootPath, installFilename);
       Run.coerceFromClosed(res);
     },
   );

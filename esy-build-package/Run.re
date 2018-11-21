@@ -76,6 +76,14 @@ let rec statOrError = p =>
   | Unix.Unix_error(errno, call, msg) => Error((errno, call, msg))
   };
 
+let statIfExists = path =>
+  switch (statOrError(path)) {
+  | Ok(stats) => return(Some(stats))
+  | Error((Unix.ENOENT, _call, _msg)) => return(None)
+  | Error((errno, _call, _msg)) =>
+    errorf("stat %a: %s", Path.pp, path, Unix.error_message(errno))
+  };
+
 let lstat = Bos.OS.Path.symlink_stat;
 
 let rec lstatOrError = p =>
