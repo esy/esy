@@ -88,10 +88,11 @@ describe(`installing linked packages`, () => {
       },
     });
 
-    const binPath = path.join(p.projectPath, '_esy', 'default', 'bin', 'dep');
-    expect(await helpers.exists(binPath)).toBeTruthy();
-    const binContents = await helpers.readFile(binPath);
-    expect(binContents.toString()).toEqual('something');
+    if (helpers.isWindows) {
+      await expect(p.esy('where dep')).resolves.not.toThrow();
+    } else {
+      await expect(p.esy('which dep')).resolves.not.toThrow();
+    }
   });
 
   test('it should install local packages of dependencies (path: -> path:)', async () => {
