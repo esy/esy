@@ -53,6 +53,8 @@
 
 - Fix incremental builds for the root package on Windows (#657).
 
+- Fix duplicating `$PATH` entries in `esy ...` environment (#668).
+
 ## 0.4.1 @ next
 
 - `esy install` command now warns about unused resolutions.
