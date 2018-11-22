@@ -23,6 +23,11 @@ function which(cmd) {
 
 const esyBashPath = path.dirname(require.resolve('esy-bash/package.json'));
 
+const unitTestBinPath = path.join(__dirname, "..", "test", "bin");
+const esyBashPathFile = path.join(unitTestBinPath, ".esy-bash-path")
+
+fs.writeFileSync(esyBashPathFile, esyBashPath.split("\\").join("/"));
+
 const esySolveCudf = which('esy-solve-cudf');
 
 if (isWindows) {
