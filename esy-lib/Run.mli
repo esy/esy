@@ -85,5 +85,8 @@ end
 
 module List : sig
   val foldLeft : f:('a -> 'b -> 'a t) -> init:'a -> 'b list -> 'a t
+
+  val waitAll : unit t list -> unit t
+  val mapAndWait : f:('a -> unit t) -> 'a list -> unit t
 end
 
