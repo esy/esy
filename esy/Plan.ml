@@ -72,6 +72,8 @@ module Task = struct
     let expr = Scope.SandboxValue.render cfg.Config.buildCfg expr in
     return expr
 
+  let pp fmt task = PackageId.pp fmt task.pkgId
+
 end
 
 type t = {
@@ -193,7 +195,12 @@ let readManifests ~cfg (solution : Solution.t) (installation : Installation.t) =
       | None ->
         if isRoot
         then
-          let manifest = BuildManifest.empty ~name:None ~version:None () in
+          let manifest =
+            BuildManifest.empty
+              ~name:(Some pkg.name)
+              ~version:(Some pkg.version)
+              ()
+          in
           return (id, paths, Some manifest)
         else
           (* we don't want to track non-esy manifest, hence Path.Set.empty *)
@@ -301,54 +308,40 @@ let make'
   let root = Solution.root solution in
   let tasks = ref PackageId.Map.empty in
 
-  let rec aux pkg =
+  let rec visit pkg =
     let id = pkg.Package.id in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
     | Some (Some build) -> return (Some build)
     | None ->
-      Logs.debug (fun m -> m "plan %a" PackageId.pp id);
-      let manifest =
-        match PackageId.Map.find_opt id manifests with
-        | Some manifest -> Some manifest
-        | None ->
-          if Package.compare pkg root = 0
-          then
-            let manifest =
-              BuildManifest.empty
-                ~name:(Some pkg.name)
-                ~version:(Some pkg.version)
-                ()
-            in
-            Some manifest
-          else
-            None
-      in
-      match manifest with
+      match PackageId.Map.find_opt id manifests with
       | Some manifest ->
         let%bind build =
           Run.contextf
-            (aux' id pkg manifest)
+            (visit' id pkg manifest)
             "processing %a" PackageId.pp id
         in
         return (Some build)
       | None -> return None
 
-  and aux' pkgId pkg build =
+  and visit' pkgId pkg build =
     let location = Installation.findExn pkgId installation in
 
     let%bind dependencies =
       let f (direct, pkg) =
-        let%bind build = aux pkg in
+        let%bind build = visit pkg in
         return (direct, build)
       in
-      let traverse =
-        if PackageId.compare root.Solution.Package.id pkgId = 0
-        then Solution.traverseWithDevDependencies
-        else Solution.traverse
-      in
-      Result.List.map ~f (Solution.allDependenciesBFS ~traverse pkg solution)
+      Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
     in
+
+    Logs.debug (fun m -> m "plan %a" Package.pp pkg);
+    Logs.debug (fun m ->
+      let dependencies =
+        dependencies
+        |> List.filter_map ~f:(fun (_, t) -> t)
+      in
+      m "dependencies @[<v>%a@]" Fmt.(list ~sep:(unit "@;") Task.pp) dependencies);
 
     let dist, sourceType =
       match pkg.source with
@@ -421,16 +414,12 @@ let make'
           match dep with
           | None -> (seen, exportedScope, buildScope)
           | Some build ->
-            (* don't add dev dependencies to build scope *)
-            if PackageId.Set.mem build.Task.pkgId pkg.devDependencies
-            then (seen, exportedScope, buildScope)
+            if StringSet.mem build.Task.id seen
+            then seen, exportedScope, buildScope
             else
-              if StringSet.mem build.Task.id seen
-              then seen, exportedScope, buildScope
-              else
-                StringSet.add build.Task.id seen,
-                Scope.add ~direct ~dep:build.exportedScope exportedScope,
-                Scope.add ~direct ~dep:build.exportedScope buildScope
+              StringSet.add build.Task.id seen,
+              Scope.add ~direct ~dep:build.exportedScope exportedScope,
+              Scope.add ~direct ~dep:build.exportedScope buildScope
         in
         List.fold_left
           ~f
@@ -520,7 +509,18 @@ let make'
 
   in
 
-  let%bind (_ : Task.t option) = aux root in
+  let visitAndIgnore id =
+    let pkg = Solution.getExn id solution in
+    let%bind (_ : Task.t option) = visit pkg in
+    return ()
+  in
+
+  let%bind () = visitAndIgnore root.id in
+  let%bind () =
+    Run.List.mapAndWait
+      ~f:visitAndIgnore
+      (PackageId.Set.elements root.devDependencies)
+  in
 
   return !tasks
 
