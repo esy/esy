@@ -830,8 +830,6 @@ let buildDependencies ?concurrency ~cfg plan id =
 
 let exposeUserEnv scope =
   scope
-  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.suffixValue "PATH"
-  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.suffixValue "MAN_PATH"
   |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
 
 let exposeDevDependenciesEnv plan task scope =
