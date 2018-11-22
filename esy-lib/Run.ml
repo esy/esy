@@ -110,4 +110,16 @@ module List = struct
     in
     fold (Ok init) xs
 
+  let waitAll xs =
+    let rec _waitAll xs = match xs with
+      | [] -> return ()
+      | x::xs ->
+        let f () = _waitAll xs in
+        bind ~f x
+    in
+    _waitAll xs
+
+  let mapAndWait ~f xs =
+    waitAll (List.map ~f xs)
+
 end
