@@ -77,11 +77,11 @@ steps:
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
-  - script: 'jest --runInBand test-e2e'
-    displayName: 'test-e2e'
+  - script: 'esy test:e2e'
+    displayName: 'esy test:e2e'
 
-  - script: 'npm run test:e2e-slow'
-    displayName: 'npm run test:e2e-slow'
+  - script: 'esy test:e2e-slow'
+    displayName: 'esy test:e2e-slow'
     continueOnError: true
 
   - script: 'npm run release:platform-release'
