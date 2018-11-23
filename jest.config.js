@@ -1,3 +1,11 @@
+var isCi = require('is-ci');
+
+var reporters = ['default'];
+
+if (isCi) {
+  reporters = reporters.concat(['jest-junit']);
+}
+
 module.exports = {
   displayName: 'e2e:fast',
   moduleFileExtensions: ['js'],
@@ -8,6 +16,6 @@ module.exports = {
     '<rootDir>/test-e2e/build/fixtures/',
   ],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
-  reporters: ['default', 'jest-junit'],
-  collectCoverage: true
+  reporters: reporters,
+  collectCoverage: isCi,
 };
