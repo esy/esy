@@ -13,7 +13,7 @@ steps:
         pipeline: 'build'
         branchName: 'refs/heads/master'
         buildVersionToDownload: 'latestFromBranch'
-        downloadType: 'single'
+        downloadType: 'specific'
         artifactName: 'build-cache-windows-source-tarballs'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
