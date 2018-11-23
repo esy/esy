@@ -14,13 +14,13 @@ steps:
         buildVersionToDownload: 'specific'
         buildId: '245'
         downloadType: 'single'
-        artifactName: 'build-cache-windows-source-tarballs'
+        artifactName: 'build-cache-$(Agent.OS)-source-tarballs'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
   - task: CopyFiles@2
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-$(Agent.OS)-source-tarballs'
         targetFolder: '$(ESY__CACHE_SOURCE_TARBALL_PATH)'
 
   - task: DownloadBuildArtifacts@0
@@ -32,13 +32,13 @@ steps:
         buildVersionToDownload: 'specific'
         buildId: '245'
         downloadType: 'single'
-        artifactName: 'build-cache-windows-install'
+        artifactName: 'build-cache-$(Agent.OS)-install'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
   - task: CopyFiles@2
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-$(Agent.OS)-install'
         targetFolder: '$(ESY__CACHE_INSTALL_PATH)'
 
   - script: 'npm install -g esy@0.2.11'
