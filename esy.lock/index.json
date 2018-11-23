@@ -1,5 +1,5 @@
 {
-  "checksum": "3b21d7a725d735d5f9f515b487cab811",
+  "checksum": "d953575a028eec1b63f5d0e0ac289c69",
   "root": "esy@link:./package.json",
   "node": {
     "yargs-parser@9.0.2": {
@@ -36,14 +36,14 @@
       ],
       "devDependencies": []
     },
-    "yallist@3.0.2": {
-      "id": "yallist@3.0.2",
+    "yallist@3.0.3": {
+      "id": "yallist@3.0.3",
       "name": "yallist",
-      "version": "3.0.2",
+      "version": "3.0.3",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/yallist/-/yallist-3.0.2.tgz#sha1:8452b4bb7e83c7c188d8041c1a837c773d6d8bb9"
+          "archive:https://registry.npmjs.org/yallist/-/yallist-3.0.3.tgz#sha1:b4b049e314be545e3ce802236d6cd22cd91c3de9"
         ]
       },
       "overrides": [],
@@ -86,6 +86,20 @@
         "type": "install",
         "source": [
           "archive:https://registry.npmjs.org/xml-name-validator/-/xml-name-validator-3.0.0.tgz#sha1:6ae73e06de4d8c6e47f9fb181f78d648ad457c6a"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
+      "devDependencies": []
+    },
+    "xml@1.0.1": {
+      "id": "xml@1.0.1",
+      "name": "xml",
+      "version": "1.0.1",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/xml/-/xml-1.0.1.tgz#sha1:78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
         ]
       },
       "overrides": [],
@@ -773,7 +787,7 @@
       },
       "overrides": [],
       "dependencies": [
-        "yallist@3.0.2", "safe-buffer@5.1.2", "mkdirp@0.5.1",
+        "yallist@3.0.3", "safe-buffer@5.1.2", "mkdirp@0.5.1",
         "minizlib@1.1.1", "minipass@2.3.5", "fs-minipass@1.2.5",
         "chownr@1.1.1"
       ],
@@ -3031,7 +3045,7 @@
         ]
       },
       "overrides": [],
-      "dependencies": [ "yallist@3.0.2", "safe-buffer@5.1.2" ],
+      "dependencies": [ "yallist@3.0.3", "safe-buffer@5.1.2" ],
       "devDependencies": []
     },
     "minimist@1.2.0": {
@@ -3281,7 +3295,7 @@
         ]
       },
       "overrides": [],
-      "dependencies": [ "yallist@3.0.2", "pseudomap@1.0.2" ],
+      "dependencies": [ "yallist@3.0.3", "pseudomap@1.0.2" ],
       "devDependencies": []
     },
     "loose-envify@1.4.0": {
@@ -3953,6 +3967,23 @@
       },
       "overrides": [],
       "dependencies": [ "pretty-format@23.6.0" ],
+      "devDependencies": []
+    },
+    "jest-junit@5.2.0": {
+      "id": "jest-junit@5.2.0",
+      "name": "jest-junit",
+      "version": "5.2.0",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://registry.npmjs.org/jest-junit/-/jest-junit-5.2.0.tgz#sha1:980401db7aa69999cf117c6d740a8135c22ae379"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [
+        "xml@1.0.1", "strip-ansi@4.0.0", "mkdirp@0.5.1",
+        "jest-validate@23.6.0", "jest-config@23.6.0"
+      ],
       "devDependencies": []
     },
     "jest-jasmine2@23.6.0": {
@@ -5994,8 +6025,8 @@
         "tmp@0.0.33", "tar-fs@1.16.3", "tar@4.4.8", "super-resolve@1.0.0",
         "semver@5.6.0", "rimraf@2.6.2", "prettier@1.15.2", "outdent@0.3.0",
         "minimatch@3.0.4", "klaw@2.1.1", "jest-pnp-resolver@1.0.2",
-        "jest-cli@23.6.0", "invariant@2.2.4", "fs-extra@7.0.1",
-        "flow-bin@0.77.0", "esy-bash@0.3.16", "del@3.0.0",
+        "jest-junit@5.2.0", "jest-cli@23.6.0", "invariant@2.2.4",
+        "fs-extra@7.0.1", "flow-bin@0.77.0", "esy-bash@0.3.16", "del@3.0.0",
         "babel-preset-flow@6.23.0", "babel-preset-env@1.7.0",
         "@opam/utop@opam:2.2.0@3bcdc63e", "@opam/merlin@opam:3.2.2@10612b59"
       ]
