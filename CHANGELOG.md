@@ -1,5 +1,64 @@
 # CHANGELOG
 
+## 0.4.3 @ next
+
+- Restore fetching opam packages from opam cache (#671).
+
+## 0.4.2 @ next
+
+- Make `esy x ...` invocation always build the root package (#656).
+
+  Previously we cached the first build and didn't attempt to rebuild. This led
+  to a pattern like this:
+
+  ```
+  % esy build && esy x MyApp.exe
+  ```
+
+  which is cumbersome.
+
+  Now we don't cache and thus
+
+  ```
+  % esy x MyApp.exe
+  ```
+
+  is enough for always run the latest version of `MyApp.exe`.
+
+  This was made possible because of speeding up the `esy-installer` (see below).
+
+- Speed up `esy-installer` invocation for linked packages (#656).
+
+  We symlink instead of copying files now. Also we skip staging directory for
+  linked packages which is safe as we don't install linked packages into a global
+  store.
+
+- Generate `*.cmd` wrappers for non `*.js` executables declared in `"bin"`
+  config of npm packages. (#659).
+
+- Fix dependencies which depend on linked dependencies (#655).
+
+  We didn't correctly rebuild them on changes in linked dependencies.
+
+- Fix handling of multiple linked packages at the same root (#654).
+
+  We were having a race condition in `esy-build-package`.
+
+- `esy build-plan`/`esy build-env`/`esy build-package` commands now accept just
+  package name as their argument (#657).
+
+  Previously they required `name@version`.
+
+- Fix combinatorial explosion which led to slowdowns and even stackoverflow
+  errors on big dependency graphs (#661).
+
+- Fix a bug where dependency was ignored from the build environment because it
+  was appeated in `"devDependencies"` (#665).
+
+- Fix incremental builds for the root package on Windows (#657).
+
+- Fix duplicating `$PATH` entries in `esy ...` environment (#668).
+
 ## 0.4.1 @ next
 
 - `esy install` command now warns about unused resolutions.

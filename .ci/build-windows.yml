@@ -84,6 +84,20 @@ steps:
     displayName: 'esy test:e2e-slow'
     continueOnError: true
 
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '**junit*.xml'
+      testRunTitle: TestRun ${{ parameters.name }} $(node_version)
+      
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage results'
+    condition: succeededOrFailed()
+    inputs:
+      codeCoverageTool: 'cobertura'
+      summaryFileLocation: '**/coverage/cobertura-coverage.xml'
+
   - script: 'npm run release:platform-release'
     displayName: 'npm run release:platform-release'
     continueOnError: true

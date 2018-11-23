@@ -6,6 +6,55 @@ module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 
+type pkgRef =
+  | PkgByName of string
+  | PkgByNameVersion of string * Version.t
+  | PkgById of PackageId.t
+
+let pp_pkgRef fmt pkgRef =
+  match pkgRef with
+  | PkgById id -> EsyInstall.PackageId.pp fmt id
+  | PkgByName name -> Fmt.string fmt name
+  | PkgByNameVersion (name, version) -> Fmt.pf fmt "%s@%a" name Version.pp version
+
+let pkgRefTerm =
+  let open Cmdliner in
+  let open Result.Syntax in
+  let parse v =
+    let split = Astring.String.cut ~sep:"@" in
+    let rec parsename v =
+      match split v with
+      | Some ("", v) ->
+        let name, rest = parsename v in
+        "@" ^ name, rest
+      | Some (name, rest) ->
+        name, Some rest
+      | None -> v, None
+    in
+    match parsename v with
+    | name, Some ""
+    | name, None -> return (PkgByName name)
+    | name, Some rest ->
+      begin match split rest with
+      | Some (version, digest) ->
+        let%bind version = Version.parse version in
+        return (PkgById (PackageId.make name version (Some digest)))
+      | None ->
+        let%bind version = Version.parse rest in
+        return (PkgByNameVersion (name, version))
+      end
+  in
+  let pkgIdConv =
+    let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (parse v) in
+    Arg.conv ~docv:"PATH" (parse, pp_pkgRef)
+  in
+  let doc = "Package identifier." in
+  Arg.(
+    value
+    & pos 0  (some pkgIdConv) None
+    & info [] ~doc
+  )
+
 let runAsyncToCmdlinerRet res =
   match Lwt_main.run res with
   | Ok v -> `Ok v
@@ -478,8 +527,7 @@ module SandboxInfo = struct
     in
     match task with
     | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
-    | Some None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
-    | Some (Some task) ->
+    | Some task ->
       if%bind Plan.isBuilt ~cfg:copts.CommonOptions.cfg task
       then return (Plan.Task.installPath copts.CommonOptions.cfg task)
       else errorf "package %s isn't built yet, run 'esy build'" pkgName
@@ -617,47 +665,24 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-(* let pkgPathTerm = *)
-(*   let open Cmdliner in *)
-(*   let doc = "Path to package." in *)
-(*   Arg.( *)
-(*     value *)
-(*     & pos 0  (some resolvedPathTerm) None *)
-(*     & info [] ~doc *)
-(*   ) *)
-
-let pkgIdTerm =
-  let open Cmdliner in
-  let pkgIdConv =
-    let parse v =
-      match EsyInstall.PackageId.parse v with
-      | Ok v -> Ok v
-      | Error err -> Error (`Msg err)
-    in
-    let print = EsyInstall.PackageId.pp in
-    Arg.conv ~docv:"PATH" (parse, print)
-  in
-  let doc = "Package identifier." in
-  Arg.(
-    value
-    & pos 0  (some pkgIdConv) None
-    & info [] ~doc
-  )
-
-let withBuildTaskById
-    ~(info : SandboxInfo.t)
-    id
-    f =
+let withTask info ref f =
   let open RunAsync.Syntax in
   let%bind plan = SandboxInfo.plan info in
-  match id with
-  | Some id ->
-    let name = PackageId.name id in
-    let version = PackageId.version id in
+  match ref with
+  | Some (PkgByName name as ref) ->
+    begin match Plan.findTaskByName plan name with
+    | Some task -> f task
+    | None -> errorf "no build found for package name %a" pp_pkgRef ref
+    end
+  | Some (PkgByNameVersion (name, version) as ref) ->
     begin match Plan.findTaskByNameVersion plan name version with
-    | Some Some task -> f task
-    | Some None
-    | None -> errorf "no build defined for %a" EsyInstall.PackageId.pp id
+    | Some task -> f task
+    | None -> errorf "no build found for %a" pp_pkgRef ref
+    end
+  | Some (PkgById id) ->
+    begin match Plan.findTaskById plan id with
+    | None -> errorf "no build found for %a" EsyInstall.PackageId.pp id
+    | Some task -> f task
     end
   | None -> f (Plan.rootTask plan)
 
@@ -672,7 +697,7 @@ let buildPlan copts id () =
     print_endline data;
     return ()
   in
-  withBuildTaskById ~info id f
+  withTask info id f
 
 let buildShell (copts : CommonOptions.t) packagePath () =
   let open RunAsync.Syntax in
@@ -698,7 +723,8 @@ let buildShell (copts : CommonOptions.t) packagePath () =
     | Unix.WEXITED n
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
-  in withBuildTaskById ~info packagePath f
+  in
+  withTask info packagePath f
 
 let buildPackage (copts : CommonOptions.t) packagePath () =
   let open RunAsync.Syntax in
@@ -719,7 +745,7 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
       plan
       task.Plan.Task.pkgId
   in
-  withBuildTaskById ~info packagePath f
+  withTask info packagePath f
 
 let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
@@ -742,7 +768,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
       ~buildOnly
       plan
   | Some cmd ->
-    begin match%bind RunAsync.ofRun (Plan.findTaskById plan root) with
+    begin match Plan.findTaskById plan root with
     | None -> return ()
     | Some task ->
       let p =
@@ -783,7 +809,8 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
       ) in
     let%lwt () = Lwt_io.print source in
     return ()
-  in withBuildTaskById ~info packagePath f
+  in
+  withTask info packagePath f
 
 let buildEnv =
   let header (task : Plan.Task.t) =
@@ -978,7 +1005,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
     else (
       let isRoot = Solution.isRoot pkg solution in
       seen := PackageId.Set.add id !seen;
-      match%bind RunAsync.ofRun (Plan.findTaskById plan id) with
+      match Plan.findTaskById plan id with
       | None -> return None
       | Some task ->
         let%bind children =
@@ -1328,10 +1355,7 @@ let exportDependencies (copts : CommonOptions.t) () =
   let%bind solution = SandboxInfo.solution info in
 
   let exportBuild (_, pkg) =
-    let task =
-      RunAsync.ofRun (Plan.findTaskById plan pkg.Solution.Package.id)
-    in
-    match%bind task with
+    match Plan.findTaskById plan pkg.Solution.Package.id with
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
@@ -1385,7 +1409,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   in
 
   let importBuild (_direct, pkg) =
-    match%bind RunAsync.ofRun (Plan.findTaskById plan pkg.Solution.Package.id) with
+    match Plan.findTaskById plan pkg.Solution.Package.id with
     | Some task ->
       if%bind Plan.isBuilt ~cfg:copts.cfg task
       then return ()
@@ -1599,7 +1623,7 @@ let makeCommands ~sandbox () =
       Term.(
         const buildPlan
         $ commonOpts
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 
@@ -1609,7 +1633,7 @@ let makeCommands ~sandbox () =
       Term.(
         const buildShell
         $ commonOpts
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 
@@ -1619,7 +1643,7 @@ let makeCommands ~sandbox () =
       Term.(
         const buildPackage
         $ commonOpts
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 
@@ -1641,7 +1665,7 @@ let makeCommands ~sandbox () =
         const buildEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 
@@ -1653,7 +1677,7 @@ let makeCommands ~sandbox () =
         const commandEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 
@@ -1665,7 +1689,7 @@ let makeCommands ~sandbox () =
         const sandboxEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgIdTerm
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 

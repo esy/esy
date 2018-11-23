@@ -17,7 +17,6 @@ and registry = {
   overrides : OpamOverrides.t;
   pathsCache : OpamPathsByVersion.t;
   opamCache : OpamManifest.File.Cache.t;
-  archiveIndex : OpamRegistryArchiveIndex.t;
 }
 
 let readOpamFileOfRegistry res registry =
@@ -58,7 +57,6 @@ let make ~cfg () =
     in
 
     let%bind overrides = OpamOverrides.init ~cfg () in
-    let%bind archiveIndex = OpamRegistryArchiveIndex.init ~cfg () in
 
     let%bind repo =
       let path = Path.(repoPath / "repo") in
@@ -74,7 +72,6 @@ let make ~cfg () =
       pathsCache = OpamPathsByVersion.make ();
       opamCache = OpamManifest.File.Cache.make ();
       overrides;
-      archiveIndex;
     }
   in {init; lock = Lwt_mutex.create (); registry = None;}
 
@@ -211,14 +208,12 @@ let version ~(name : OpamPackage.Name.t) ~version registry =
         | Some url -> return (Some url)
         | None -> readUrlFileOfRegistry res registry
       in
-      let archive = OpamRegistryArchiveIndex.find ~name ~version registry.archiveIndex in
       return {
         OpamManifest.name;
         version;
         opam;
         url;
         override = None;
-        archive;
         opamRepositoryPath = Some (OpamResolution.path res);
       }
     in
