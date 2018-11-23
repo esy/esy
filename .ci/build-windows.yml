@@ -41,8 +41,8 @@ steps:
   #       sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
   #       targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
-  - script: 'npm install -g esy@0.4.1'
-    displayName: 'npm install -g esy@0.4.1'
+  - script: 'npm install -g esy@0.4.2'
+    displayName: 'npm install -g esy@0.4.2'
 
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
