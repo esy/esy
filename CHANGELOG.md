@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.4.3 @ next
+
+- Restore fetching opam packages from opam cache (#671).
+
 ## 0.4.2 @ next
 
 - Make `esy x ...` invocation always build the root package (#656).
