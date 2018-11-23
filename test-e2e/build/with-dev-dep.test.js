@@ -134,7 +134,6 @@ describe('devDep workflow', () => {
       cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
       cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-      SHELL: `env -i /bin/bash --norc --noprofile`,
       PATH: [
         `${p.esyStorePath}/i/${depId}/bin`,
         ``,
@@ -143,7 +142,7 @@ describe('devDep workflow', () => {
         `/bin`,
         `/usr/sbin`,
         `/sbin`,
-      ].join(':'),
+      ].join(path.delimiter),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
@@ -170,8 +169,9 @@ describe('devDep workflow', () => {
       cur__etc: `${p.esyStorePath}/s/${depId}/etc`,
       cur__doc: `${p.esyStorePath}/s/${depId}/doc`,
       cur__bin: `${p.esyStorePath}/s/${depId}/bin`,
-      SHELL: `env -i /bin/bash --norc --noprofile`,
-      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(':'),
+      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
+        path.delimiter,
+      ),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${depId}/lib`,
     });
@@ -197,8 +197,9 @@ describe('devDep workflow', () => {
       cur__etc: `${p.esyStorePath}/s/${devDepId}/etc`,
       cur__doc: `${p.esyStorePath}/s/${devDepId}/doc`,
       cur__bin: `${p.esyStorePath}/s/${devDepId}/bin`,
-      SHELL: `env -i /bin/bash --norc --noprofile`,
-      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(':'),
+      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
+        path.delimiter,
+      ),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${devDepId}/lib`,
     });
@@ -209,7 +210,7 @@ describe('devDep workflow', () => {
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
     const {stdout} = await p.esy('sandbox-env --json');
-    const envpath = JSON.parse(stdout).PATH.split(':');
+    const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
     expect(
       envpath.includes(`${p.projectPath}/_esy/default/store/i/${id}/bin`),
     ).toBeTruthy();
@@ -239,12 +240,11 @@ describe('devDep workflow', () => {
       cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
       cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-      SHELL: process.env.SHELL,
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
     });
-    const envpath = env.PATH.split(':');
+    const envpath = env.PATH.split(path.delimiter);
     expect(envpath.includes(`${p.esyStorePath}/i/${depId}/bin`)).toBeTruthy();
     expect(envpath.includes(`${p.esyStorePath}/i/${devDepId}/bin`)).toBeTruthy();
   });

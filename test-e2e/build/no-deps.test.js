@@ -1,5 +1,6 @@
 // @flow
 
+const path = require('path');
 const helpers = require('../test/helpers');
 
 function makeFixture(p, buildDep) {
@@ -65,9 +66,8 @@ describe('Build simple executable with no deps', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-          SHELL: `env -i /bin/bash --norc --noprofile`,
           PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
-            ':',
+            path.delimiter,
           ),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
@@ -81,7 +81,7 @@ describe('Build simple executable with no deps', () => {
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('sandbox-env --json');
-        const envpath = JSON.parse(stdout).PATH.split(':');
+        const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
         expect(
           envpath.includes(`${p.projectPath}/_esy/default/store/i/${id}/bin`),
         ).toBeTruthy();
@@ -110,7 +110,6 @@ describe('Build simple executable with no deps', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-          SHELL: process.env.SHELL,
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
           DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,

@@ -100,19 +100,24 @@ var ESY_STORE_PADDING_LENGTH =
   MAX_SHEBANG_LENGTH -
   '!#'.length -
   ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
+
 function getStorePathForPrefix(prefix) {
-  var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;
-  var paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
-  if (paddingLength < 0) {
-    throw new Error(
-      "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts",
-    );
+  if (isWindows) {
+    return path.join(prefix, '3_');
+  } else {
+    var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;
+    var paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;
+    if (paddingLength < 0) {
+      throw new Error(
+        "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts",
+      );
+    }
+    var p = path.join(prefix, String(ESY_STORE_VERSION));
+    while (p.length < ESY_STORE_PADDING_LENGTH) {
+      p = p + '_';
+    }
+    return p;
   }
-  var p = path.join(prefix, String(ESY_STORE_VERSION));
-  while (p.length < ESY_STORE_PADDING_LENGTH) {
-    p = p + '_';
-  }
-  return p;
 }
 
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
@@ -206,10 +211,10 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     cd,
     rootPath,
     binPath,
-    projectPath,
-    esyPrefixPath,
-    esyStorePath,
-    npmPrefixPath,
+    projectPath: projectPath.replace(/\\/g, '/'),
+    esyPrefixPath: esyPrefixPath.replace(/\\/g, '/'),
+    esyStorePath: esyStorePath.replace(/\\/g, '/'),
+    npmPrefixPath: npmPrefixPath.replace(/\\/g, '/'),
     run,
     esy,
     printEsy,
