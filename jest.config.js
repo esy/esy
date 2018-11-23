@@ -7,4 +7,7 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>/test-e2e/build/fixtures/',
   ],
+  coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
+  reporters: ['default', 'jest-junit'],
+  collectCoverage: true
 };
