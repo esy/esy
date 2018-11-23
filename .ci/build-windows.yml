@@ -58,9 +58,8 @@ steps:
     displayName: 'esy install'
     continueOnError: true
 
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
+  - script: 'powershell ./.ci/esy-install-windows.ps1'
+    displayName: 'esy-install-windows.ps1'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload source tarballs'
