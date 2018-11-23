@@ -42,7 +42,6 @@ type t = {
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
   override : Package.Override.t option;
-  archive : OpamRegistryArchiveIndex.record option;
   opamRepositoryPath : Path.t option;
 }
 
@@ -56,7 +55,6 @@ let ofPath ~name ~version (path : Path.t) =
     opam;
     url = None;
     override = None;
-    archive = None;
   }
 
 let ofString ~name ~version (data : string) =
@@ -69,7 +67,6 @@ let ofString ~name ~version (data : string) =
     url = None;
     opamRepositoryPath = None;
     override = None;
-    archive = None;
   }
 
 let ocamlOpamVersionToOcamlNpmVersion v =
@@ -129,72 +126,57 @@ let convertOpamFormula f =
 let convertOpamUrl (manifest : t) =
   let open Result.Syntax in
 
+  let convChecksum hash =
+    match OpamHash.kind hash with
+    | `MD5 -> Checksum.Md5, OpamHash.contents hash
+    | `SHA256 -> Checksum.Sha256, OpamHash.contents hash
+    | `SHA512 -> Checksum.Sha512, OpamHash.contents hash
+  in
+
+  let convUrl (url : OpamUrl.t) =
+    match url.backend with
+    | `http -> return (OpamUrl.to_string url)
+    | _ -> errorf "unsupported dist for opam package: %s" (OpamUrl.to_string url)
+  in
+
   let sourceOfOpamUrl url =
-    let%bind checksum =
-      let checksums = OpamFile.URL.checksum url in
-      let f c =
-        match OpamHash.kind c with
-        | `MD5 -> Checksum.Md5, OpamHash.contents c
-        | `SHA256 -> Checksum.Sha256, OpamHash.contents c
-        | `SHA512 -> Checksum.Sha512, OpamHash.contents c
-      in
-      match List.map ~f checksums with
+
+    let%bind hash =
+      match OpamFile.URL.checksum url with
       | [] ->
-        let msg =
-          Format.asprintf
-            "no checksum provided for %s@%s"
-            (OpamPackage.Name.to_string manifest.name)
-            (OpamPackage.Version.to_string manifest.version)
-        in
-        Error msg
-      | checksum::_ -> Ok checksum
+        errorf
+          "no checksum provided for %s@%s"
+          (OpamPackage.Name.to_string manifest.name)
+          (OpamPackage.Version.to_string manifest.version)
+      | hash::_ -> return hash
     in
 
-    let convert (url : OpamUrl.t) =
-      match url.backend with
-      | `http ->
-        return (Dist.Archive {
-          url = OpamUrl.to_string url;
-          checksum;
-        })
-      | `rsync -> Error "unsupported source for opam: rsync"
-      | `hg -> Error "unsupported source for opam: hg"
-      | `darcs -> Error "unsupported source for opam: darcs"
-      | `git -> Error "unsupported source for opam: git"
-    in
-
-    let%bind main = convert (OpamFile.URL.url url) in
     let mirrors =
+      let urls =
+        (OpamFile.URL.url url)
+        ::(OpamFile.URL.mirrors url)
+      in
       let f mirrors url =
-        match convert url with
-        | Ok mirror -> mirror::mirrors
+        match convUrl url with
+        | Ok url -> Dist.Archive {url; checksum = convChecksum hash;}::mirrors
         | Error _ -> mirrors
       in
-      List.fold_left ~f ~init:[] (OpamFile.URL.mirrors url)
+      List.fold_left ~f ~init:[] urls
     in
+
+    let main =
+      let url = "https://opam.ocaml.org/cache/" ^ String.concat "/" (OpamHash.to_path hash) in
+      Dist.Archive {url; checksum = convChecksum hash;}
+    in
+
     return (main, mirrors)
   in
 
-  let%bind main, mirrors =
-    match manifest.url with
-    | Some url -> sourceOfOpamUrl url
-    | None ->
-      let main = Dist.NoSource in
-      Ok (main, [])
-  in
-
-  match manifest.archive with
-  | Some archive ->
-    let mirrors = main::mirrors in
-    let main =
-      Dist.Archive {
-        url = archive.url;
-        checksum = Checksum.Md5, archive.md5;
-      }
-    in
-    Ok (main, mirrors)
+  match manifest.url with
+  | Some url -> sourceOfOpamUrl url
   | None ->
-    Ok (main, mirrors)
+    let main = Dist.NoSource in
+    Ok (main, [])
 
 let convertDependencies manifest =
   let open Result.Syntax in
