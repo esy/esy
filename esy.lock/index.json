@@ -8714,6 +8714,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/f7/f75c3094af1a22f9801d5ca5eb2d40e0#md5:f75c3094af1a22f9801d5ca5eb2d40e0",
           "archive:https://github.com/diml/zed/releases/download/1.6/zed-1.6.tbz#md5:f75c3094af1a22f9801d5ca5eb2d40e0"
         ],
         "opam": {
@@ -8738,6 +8739,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/3e/3ea6e36422dd670e8ab880710d5f7398#md5:3ea6e36422dd670e8ab880710d5f7398",
           "archive:https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz#md5:3ea6e36422dd670e8ab880710d5f7398"
         ],
         "opam": {
@@ -8762,6 +8764,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/30/3031317975df165cc3154578680eddfb#md5:3031317975df165cc3154578680eddfb",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/variantslib-v0.11.0.tar.gz#md5:3031317975df165cc3154578680eddfb"
         ],
         "opam": {
@@ -8786,6 +8789,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/c8/c8e4805883ce27a2ef27b0e4322d6f04#md5:c8e4805883ce27a2ef27b0e4322d6f04",
           "archive:https://github.com/diml/utop/releases/download/2.2.0/utop-2.2.0.tbz#md5:c8e4805883ce27a2ef27b0e4322d6f04"
         ],
         "opam": {
@@ -8816,6 +8820,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/c9/c9ba2c738d264c420c642f7bb1cf4a36#md5:c9ba2c738d264c420c642f7bb1cf4a36",
           "archive:https://github.com/ocaml/uchar/releases/download/v0.0.2/uchar-0.0.2.tbz#md5:c9ba2c738d264c420c642f7bb1cf4a36"
         ],
         "opam": {
@@ -8838,6 +8843,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e3/e3d76bda06bf68cb5853caf6627da603#md5:e3d76bda06bf68cb5853caf6627da603",
           "archive:http://erratique.ch/software/topkg/releases/topkg-1.0.0.tbz#md5:e3d76bda06bf68cb5853caf6627da603"
         ],
         "opam": {
@@ -8861,6 +8867,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/2d/2db42ee38c91b3ff7126c2634c407b99#md5:2db42ee38c91b3ff7126c2634c407b99",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/stdio-v0.11.0.tar.gz#md5:2db42ee38c91b3ff7126c2634c407b99"
         ],
         "opam": {
@@ -8883,6 +8890,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1c/1c14ba30b471e49f1b23fea5ff99ea6b#md5:1c14ba30b471e49f1b23fea5ff99ea6b",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/sexplib0-v0.11.0.tar.gz#md5:1c14ba30b471e49f1b23fea5ff99ea6b"
         ],
         "opam": {
@@ -8905,6 +8913,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/0e/0e87f9709541ed46ecb6f414bc31458c#md5:0e87f9709541ed46ecb6f414bc31458c",
           "archive:https://github.com/c-cube/seq/archive/0.1.tar.gz#md5:0e87f9709541ed46ecb6f414bc31458c"
         ],
         "opam": {
@@ -8927,6 +8936,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ab/aba88cffa29081714468c2c7bcdf7fb1#md5:aba88cffa29081714468c2c7bcdf7fb1",
           "archive:http://erratique.ch/software/rresult/releases/rresult-0.6.0.tbz#md5:aba88cffa29081714468c2c7bcdf7fb1"
         ],
         "opam": {
@@ -8951,6 +8961,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/4b/4beebefd41f7f899b6eeba7414e7ae01#md5:4beebefd41f7f899b6eeba7414e7ae01",
           "archive:https://github.com/janestreet/result/releases/download/1.3/result-1.3.tbz#md5:4beebefd41f7f899b6eeba7414e7ae01"
         ],
         "opam": {
@@ -8973,6 +8984,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ce/ce1454438ce4e9d2931248d3abba1fcc#md5:ce1454438ce4e9d2931248d3abba1fcc",
           "archive:http://erratique.ch/software/react/releases/react-1.2.1.tbz#md5:ce1454438ce4e9d2931248d3abba1fcc"
         ],
         "opam": {
@@ -8996,6 +9008,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/76/765f6f8d3e6ab200866e719ed7e5178d#md5:765f6f8d3e6ab200866e719ed7e5178d",
           "archive:https://github.com/ocaml/ocaml-re/releases/download/1.8.0/re-1.8.0.tbz#md5:765f6f8d3e6ab200866e719ed7e5178d"
         ],
         "opam": {
@@ -9018,6 +9031,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/d8/d83dd03bc744651d4642b84063bffcf9#md5:d83dd03bc744651d4642b84063bffcf9",
           "archive:https://github.com/ocaml-ppx/ppxlib/releases/download/0.3.1/ppxlib-0.3.1.tbz#md5:d83dd03bc744651d4642b84063bffcf9"
         ],
         "opam": {
@@ -9044,6 +9058,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/14/146b49b84315b7d67c1ca758fcbf2fb2#md5:146b49b84315b7d67c1ca758fcbf2fb2",
           "archive:https://github.com/janestreet/ppx_variants_conv/archive/v0.11.1.tar.gz#md5:146b49b84315b7d67c1ca758fcbf2fb2"
         ],
         "opam": {
@@ -9069,6 +9084,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1a/1ae6ae43ec161fbbf12c2b4d3a7e26f5#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5",
           "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5"
         ],
         "opam": {
@@ -9091,6 +9107,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/6b/6ba2e9690b1f579ba562b86022d1c308#md5:6ba2e9690b1f579ba562b86022d1c308",
           "archive:https://github.com/ocaml-ppx/ppx_tools/archive/5.1+4.06.0.tar.gz#md5:6ba2e9690b1f579ba562b86022d1c308"
         ],
         "opam": {
@@ -9113,6 +9130,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/77/77d3b30b3d9c5810552bde2027656b8d#md5:77d3b30b3d9c5810552bde2027656b8d",
           "archive:https://github.com/janestreet/ppx_sexp_conv/archive/v0.11.2.tar.gz#md5:77d3b30b3d9c5810552bde2027656b8d"
         ],
         "opam": {
@@ -9137,6 +9155,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/40/40d1798d7724816c65eb5cdabd20f150#md5:40d1798d7724816c65eb5cdabd20f150",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_let-v0.11.0.tar.gz#md5:40d1798d7724816c65eb5cdabd20f150"
         ],
         "opam": {
@@ -9161,6 +9180,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1f/1f2e014332373638696d8893d87f4682#md5:1f2e014332373638696d8893d87f4682",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_inline_test-v0.11.0.tar.gz#md5:1f2e014332373638696d8893d87f4682"
         ],
         "opam": {
@@ -9185,6 +9205,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/47/479c9cd5f6ef90c2df9f01eab9d6c91d#md5:479c9cd5f6ef90c2df9f01eab9d6c91d",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_here-v0.11.0.tar.gz#md5:479c9cd5f6ef90c2df9f01eab9d6c91d"
         ],
         "opam": {
@@ -9209,6 +9230,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/72/72f207c23d65f7f3eaabcc92e33ccdab#md5:72f207c23d65f7f3eaabcc92e33ccdab",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_fields_conv-v0.11.0.tar.gz#md5:72f207c23d65f7f3eaabcc92e33ccdab"
         ],
         "opam": {
@@ -9234,6 +9256,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ee/ee183ff3ca85954a84a54d32b8073546#md5:ee183ff3ca85954a84a54d32b8073546",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_expect-v0.11.0.tar.gz#md5:ee183ff3ca85954a84a54d32b8073546"
         ],
         "opam": {
@@ -9269,6 +9292,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/83/83128c06b0569309351886d9fd0dbb74#md5:83128c06b0569309351886d9fd0dbb74",
           "archive:https://github.com/ocaml-ppx/ppx_deriving_yojson/archive/v3.1.tar.gz#md5:83128c06b0569309351886d9fd0dbb74"
         ],
         "opam": {
@@ -9298,6 +9322,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/21/2195fccf2a527c3ff9ec5b4e36e2f0a8#md5:2195fccf2a527c3ff9ec5b4e36e2f0a8",
           "archive:https://github.com/ocaml-ppx/ppx_deriving/archive/v4.2.1.tar.gz#md5:2195fccf2a527c3ff9ec5b4e36e2f0a8"
         ],
         "opam": {
@@ -9328,6 +9353,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/4d/4ddce8f43fdb9b0ef0ab6a7cbfebc3e3#md5:4ddce8f43fdb9b0ef0ab6a7cbfebc3e3",
           "archive:https://github.com/ocaml-ppx/ppx_derivers/archive/1.0.tar.gz#md5:4ddce8f43fdb9b0ef0ab6a7cbfebc3e3"
         ],
         "opam": {
@@ -9350,6 +9376,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/b7/b7cf49585319576dd77f6ddd6db95b21#md5:b7cf49585319576dd77f6ddd6db95b21",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_custom_printf-v0.11.0.tar.gz#md5:b7cf49585319576dd77f6ddd6db95b21"
         ],
         "opam": {
@@ -9375,6 +9402,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/3d/3df1a90fc90d180b1f96cdd30e64145d#md5:3df1a90fc90d180b1f96cdd30e64145d",
           "archive:https://github.com/janestreet/ppx_compare/archive/v0.11.1.tar.gz#md5:3df1a90fc90d180b1f96cdd30e64145d"
         ],
         "opam": {
@@ -9399,6 +9427,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/0b/0b3aed19391e9a23217a5abf022dfe10#md5:0b3aed19391e9a23217a5abf022dfe10",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ppx_assert-v0.11.0.tar.gz#md5:0b3aed19391e9a23217a5abf022dfe10"
         ],
         "opam": {
@@ -9426,6 +9455,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1e/1e55c234fa09e678e8115a31f3ec2a05#md5:1e55c234fa09e678e8115a31f3ec2a05",
           "archive:https://github.com/ocaml/opam/archive/2.0.1.tar.gz#md5:1e55c234fa09e678e8115a31f3ec2a05"
         ],
         "opam": {
@@ -9448,6 +9478,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1e/1e55c234fa09e678e8115a31f3ec2a05#md5:1e55c234fa09e678e8115a31f3ec2a05",
           "archive:https://github.com/ocaml/opam/archive/2.0.1.tar.gz#md5:1e55c234fa09e678e8115a31f3ec2a05"
         ],
         "opam": {
@@ -9470,6 +9501,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1e/1e55c234fa09e678e8115a31f3ec2a05#md5:1e55c234fa09e678e8115a31f3ec2a05",
           "archive:https://github.com/ocaml/opam/archive/2.0.1.tar.gz#md5:1e55c234fa09e678e8115a31f3ec2a05"
         ],
         "opam": {
@@ -9493,6 +9525,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/d7/d7852cb63df0f442bed14ba2c5740135#md5:d7852cb63df0f442bed14ba2c5740135",
           "archive:https://github.com/ocaml/opam-file-format/archive/2.0.0.tar.gz#md5:d7852cb63df0f442bed14ba2c5740135"
         ],
         "opam": {
@@ -9512,6 +9545,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1e/1e55c234fa09e678e8115a31f3ec2a05#md5:1e55c234fa09e678e8115a31f3ec2a05",
           "archive:https://github.com/ocaml/opam/archive/2.0.1.tar.gz#md5:1e55c234fa09e678e8115a31f3ec2a05"
         ],
         "opam": {
@@ -9538,6 +9572,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/9d/9d71ca69271055bd22d0dfe4e939831a#md5:9d71ca69271055bd22d0dfe4e939831a",
           "archive:http://ocamlgraph.lri.fr/download/ocamlgraph-1.8.8.tar.gz#md5:9d71ca69271055bd22d0dfe4e939831a"
         ],
         "opam": {
@@ -9560,8 +9595,9 @@
       "source": {
         "type": "install",
         "source": [
-          "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
-          "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
+          "archive:https://opam.ocaml.org/cache/md5/a7/a710c559667672077a93d34eb6a42e5b#md5:a710c559667672077a93d34eb6a42e5b",
+          "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
+          "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
         ],
         "opam": {
           "name": "ocamlfind",
@@ -9585,6 +9621,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/44/442baa19470bd49150f153122e22907b#md5:442baa19470bd49150f153122e22907b",
           "archive:https://github.com/ocaml/ocamlbuild/archive/0.12.0.tar.gz#md5:442baa19470bd49150f153122e22907b"
         ],
         "opam": {
@@ -9606,6 +9643,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/7d/7dd4808e27af98065f63604c9658d311#md5:7dd4808e27af98065f63604c9658d311",
           "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz#md5:7dd4808e27af98065f63604c9658d311"
         ],
         "opam": {
@@ -9628,6 +9666,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e1/e170c16186aa55b7e8b11e461418a10a#md5:e170c16186aa55b7e8b11e461418a10a",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/ocaml-compiler-libs-v0.11.0.tar.gz#md5:e170c16186aa55b7e8b11e461418a10a"
         ],
         "opam": {
@@ -9650,6 +9689,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/9c/9c6dfd4f53328f02f12fcc265f4e2dda#md5:9c6dfd4f53328f02f12fcc265f4e2dda",
           "archive:https://github.com/let-def/merlin-extend/archive/v0.3.tar.gz#md5:9c6dfd4f53328f02f12fcc265f4e2dda"
         ],
         "opam": {
@@ -9674,6 +9714,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ed/ede35b65f8ac9c440cfade5445662c54#md5:ede35b65f8ac9c440cfade5445662c54",
           "archive:https://github.com/ocaml/merlin/releases/download/v3.2.2/merlin-v3.2.2.tbz#md5:ede35b65f8ac9c440cfade5445662c54"
         ],
         "opam": {
@@ -9697,6 +9738,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/69/69ce441a06ea131cd43e7b44c4303f3c#md5:69ce441a06ea131cd43e7b44c4303f3c",
           "archive:https://gitlab.inria.fr/fpottier/menhir/repository/20181113/archive.tar.gz#md5:69ce441a06ea131cd43e7b44c4303f3c"
         ],
         "opam": {
@@ -9719,6 +9761,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/3b/3bbde866884e32cc7a9d9cbd1e52bde3#md5:3bbde866884e32cc7a9d9cbd1e52bde3",
           "archive:https://github.com/ocsigen/lwt/archive/4.0.0.tar.gz#md5:3bbde866884e32cc7a9d9cbd1e52bde3"
         ],
         "opam": {
@@ -9742,6 +9785,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e9/e919bee206f18b3d49250ecf9584fde7#md5:e919bee206f18b3d49250ecf9584fde7",
           "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
         ],
         "opam": {
@@ -9766,6 +9810,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/92/92142135d01a4d7e805990cc98653d55#md5:92142135d01a4d7e805990cc98653d55",
           "archive:https://github.com/aantron/lwt_log/archive/1.1.0.tar.gz#md5:92142135d01a4d7e805990cc98653d55"
         ],
         "opam": {
@@ -9788,6 +9833,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e9/e919bee206f18b3d49250ecf9584fde7#md5:e919bee206f18b3d49250ecf9584fde7",
           "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7"
         ],
         "opam": {
@@ -9814,6 +9860,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/19/19f824c02c83c6dddc3bfb6459e4743e#md5:19f824c02c83c6dddc3bfb6459e4743e",
           "archive:http://erratique.ch/software/logs/releases/logs-0.6.2.tbz#md5:19f824c02c83c6dddc3bfb6459e4743e"
         ],
         "opam": {
@@ -9840,6 +9887,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/c1/c13826a97014d4d573b927b623c7e043#md5:c13826a97014d4d573b927b623c7e043",
           "archive:https://github.com/diml/lambda-term/releases/download/1.13/lambda-term-1.13.tbz#md5:c13826a97014d4d573b927b623c7e043"
         ],
         "opam": {
@@ -9888,6 +9936,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/52/52c7ecb0bf180088336f3c645875fa41#md5:52c7ecb0bf180088336f3c645875fa41",
           "archive:http://erratique.ch/software/fpath/releases/fpath-0.7.2.tbz#md5:52c7ecb0bf180088336f3c645875fa41"
         ],
         "opam": {
@@ -9913,6 +9962,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/77/77b64aa6f20f09de28f2405d6195f12c#md5:77b64aa6f20f09de28f2405d6195f12c",
           "archive:http://erratique.ch/software/fmt/releases/fmt-0.8.5.tbz#md5:77b64aa6f20f09de28f2405d6195f12c"
         ],
         "opam": {
@@ -9939,6 +9989,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/a4/a42506b460a1dc47fb65a37d875211ae#md5:a42506b460a1dc47fb65a37d875211ae",
           "archive:https://ocaml.janestreet.com/ocaml-core/v0.11/files/fieldslib-v0.11.0.tar.gz#md5:a42506b460a1dc47fb65a37d875211ae"
         ],
         "opam": {
@@ -9963,8 +10014,9 @@
       "source": {
         "type": "install",
         "source": [
-          "archive:http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f",
-          "archive:https://github.com/ygrek/ocaml-extlib/releases/download/1.7.5/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f"
+          "archive:https://opam.ocaml.org/cache/md5/d9/d989951536077563bf4c5e3479c3866f#md5:d989951536077563bf4c5e3479c3866f",
+          "archive:https://github.com/ygrek/ocaml-extlib/releases/download/1.7.5/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f",
+          "archive:http://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.5.tar.gz#md5:d989951536077563bf4c5e3479c3866f"
         ],
         "opam": {
           "name": "extlib",
@@ -9987,6 +10039,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/4e/4e163700fb88fdcd6b8976c3a216c8ea#md5:4e163700fb88fdcd6b8976c3a216c8ea",
           "archive:https://github.com/mjambon/easy-format/archive/v1.3.1.tar.gz#md5:4e163700fb88fdcd6b8976c3a216c8ea"
         ],
         "opam": {
@@ -10009,6 +10062,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/07/071ff387b85e08bdfd49dee728dc8358#md5:071ff387b85e08bdfd49dee728dc8358",
           "archive:https://github.com/ocaml/dune/releases/download/1.5.1/dune-1.5.1.tbz#md5:071ff387b85e08bdfd49dee728dc8358"
         ],
         "opam": {
@@ -10028,6 +10082,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e7/e7d4b1840383c6732f29a47c08ba5650#md5:e7d4b1840383c6732f29a47c08ba5650",
           "archive:https://gforge.inria.fr/frs/download.php/file/36063/dose3-5.0.1.tar.gz#md5:e7d4b1840383c6732f29a47c08ba5650"
         ],
         "opam": {
@@ -10054,6 +10109,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/a4/a4c0e652e56e74c7b388a43f9258d119#md5:a4c0e652e56e74c7b388a43f9258d119",
           "archive:https://gforge.inria.fr/frs/download.php/36602/cudf-0.9.tar.gz#md5:a4c0e652e56e74c7b388a43f9258d119"
         ],
         "opam": {
@@ -10077,6 +10133,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ae/aee411b3546bc5d198c71ae9185cade4#md5:aee411b3546bc5d198c71ae9185cade4",
           "archive:https://github.com/mjambon/cppo/archive/v1.6.0.tar.gz#md5:aee411b3546bc5d198c71ae9185cade4"
         ],
         "opam": {
@@ -10101,6 +10158,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/1c/1cd25741d31417995b0973fe0b6f6c82#md5:1cd25741d31417995b0973fe0b6f6c82",
           "archive:https://github.com/mjambon/cppo/archive/v1.6.5.tar.gz#md5:1cd25741d31417995b0973fe0b6f6c82"
         ],
         "opam": {
@@ -10174,6 +10232,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ab/ab2f0130e88e8dcd723ac6154c98a881#md5:ab2f0130e88e8dcd723ac6154c98a881",
           "archive:http://erratique.ch/software/cmdliner/releases/cmdliner-1.0.2.tbz#md5:ab2f0130e88e8dcd723ac6154c98a881"
         ],
         "opam": {
@@ -10198,6 +10257,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/82/82e016653431353a07f22c259adc6e05#md5:82e016653431353a07f22c259adc6e05",
           "archive:https://github.com/yoriyuki/Camomile/releases/download/1.0.1/camomile-1.0.1.tbz#md5:82e016653431353a07f22c259adc6e05"
         ],
         "opam": {
@@ -10220,6 +10280,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/ae/aeae7447567db459c856ee41b5a66fd2#md5:aeae7447567db459c856ee41b5a66fd2",
           "archive:http://erratique.ch/software/bos/releases/bos-0.2.0.tbz#md5:aeae7447567db459c856ee41b5a66fd2"
         ],
         "opam": {
@@ -10248,6 +10309,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/f3/f3e92358e832ed94eaf23ce622ccc2f9#md5:f3e92358e832ed94eaf23ce622ccc2f9",
           "archive:https://github.com/mjambon/biniou/archive/v1.2.0.tar.gz#md5:f3e92358e832ed94eaf23ce622ccc2f9"
         ],
         "opam": {
@@ -10271,6 +10333,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/d1/d1ff1ab40aad48627686f9b8c02d985a#md5:d1ff1ab40aad48627686f9b8c02d985a",
           "archive:https://github.com/inhabitedtype/bigstringaf/releases/download/0.4.0/bigstringaf-0.4.0.tbz#md5:d1ff1ab40aad48627686f9b8c02d985a"
         ],
         "opam": {
@@ -10364,6 +10427,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/e7/e7e7dc5db3f1fea19d74a31bbd4ac621#md5:e7e7dc5db3f1fea19d74a31bbd4ac621",
           "archive:https://github.com/janestreet/base/releases/download/v0.11.1/base-v0.11.1.tbz#md5:e7e7dc5db3f1fea19d74a31bbd4ac621"
         ],
         "opam": {
@@ -10388,6 +10452,7 @@
       "source": {
         "type": "install",
         "source": [
+          "archive:https://opam.ocaml.org/cache/md5/c5/c5bf6352b9ac27fbeab342740f4fa870#md5:c5bf6352b9ac27fbeab342740f4fa870",
           "archive:http://erratique.ch/software/astring/releases/astring-0.8.3.tbz#md5:c5bf6352b9ac27fbeab342740f4fa870"
         ],
         "opam": {
