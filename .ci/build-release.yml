@@ -15,6 +15,10 @@ jobs:
     pool:
         vmImage: ubuntu-16.04
 
+    variables:
+        ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i/
+        ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source-tarballs
+
     steps:
       - script: sudo apt-get update
       - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
@@ -33,6 +37,10 @@ jobs:
       vmImage: macOS-10.13
       demands: node.js
 
+    variables:
+        ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i/
+        ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source-tarballs
+
     steps:
       - script: brew install gmp
       - template: build-nix.yml
@@ -50,6 +58,10 @@ jobs:
     pool:
       vmImage: vs2017-win2016
       demands: npm
+
+    variables:
+        ESY__CACHE_INSTALL_PATH: C:\Users\VssAdministrator\.esy\3_\i
+        ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source-tarballs
 
     steps:
       - template: build-windows.yml
