@@ -50,17 +50,8 @@ steps:
   - script: 'cp scripts/build/patched-bash-exec.js C:\npm\prefix\node_modules\esy\node_modules\esy-bash\bash-exec.js'
     displayName: 'Workaround for issue fixed in bryphe/esy-bash#18'
 
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
-
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
-
-  - script: 'esy install'
-    displayName: 'esy install'
-    continueOnError: true
+  - script: 'powershell ./.ci/esy-install-windows.ps1'
+    displayName: 'esy-install-windows.ps1'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload source tarballs'
