@@ -20,7 +20,7 @@ steps:
 
   - task: CopyFiles@2
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-$(Agent.OS)-source-tarballs'
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
         targetFolder: '$(ESY__CACHE_SOURCE_TARBALL_PATH)'
 
   - task: DownloadBuildArtifacts@0
@@ -38,7 +38,7 @@ steps:
 
   - task: CopyFiles@2
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-$(Agent.OS)-install'
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
         targetFolder: '$(ESY__CACHE_INSTALL_PATH)'
 
   - script: 'npm install -g esy@0.2.11'
