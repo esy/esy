@@ -14,7 +14,7 @@ steps:
         buildVersionToDownload: 'specific'
         buildId: '245'
         downloadType: 'single'
-        artifactName: 'build-cache-$(Agent.OS)-source-tarballs'
+        artifactName: 'build-cache-windows-source-tarballs'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
@@ -32,7 +32,7 @@ steps:
         buildVersionToDownload: 'specific'
         buildId: '245'
         downloadType: 'single'
-        artifactName: 'build-cache-$(Agent.OS)-install'
+        artifactName: 'build-cache-windows-install'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
