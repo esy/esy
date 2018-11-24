@@ -118,6 +118,7 @@ function createSandbox() /* : TestSandbox */ {
       return retry(() => exec(esyCommand, ...args));
     },
     dispose: () => {
+      retry(() => exec(esyCommand, "gc"));
       rmSync(sandboxPath);
     },
   };
