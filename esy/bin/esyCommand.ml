@@ -36,9 +36,9 @@ let pkgRefTerm =
     | name, None -> return (PkgByName name)
     | name, Some rest ->
       begin match split rest with
-      | Some (version, digest) ->
-        let%bind version = Version.parse version in
-        return (PkgById (PackageId.make name version (Some digest)))
+      | Some _ ->
+        let%bind id = PackageId.parse v in
+        return (PkgById id)
       | None ->
         let%bind version = Version.parse rest in
         return (PkgByNameVersion (name, version))
