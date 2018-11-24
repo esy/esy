@@ -1,6 +1,7 @@
 // @flow
 
 const {execSync} = require('child_process');
+const {createSandbox} = require('./setup.js')
 const os = require('os');
 
 const isTaggedCommit = () => {
@@ -62,3 +63,8 @@ if (!isWindows) {
   // Windows: Release blocked by #418
   require('./release.test.js');
 }
+
+console.log(`*** Running esy gc ***`);
+const sandbox = createSandbox();
+sandbox.esy("gc");
+sandbox.dispose();
