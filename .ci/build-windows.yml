@@ -67,7 +67,7 @@ steps:
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
         pathToPublish: '$(ESY__CACHE_SOURCE_TARBALL_PATH)'
-        artifactName: 'build-cache-windows-source-tarballs'
+        artifactName: 'cache-$(Agent.OS)-source-tarballs'
         parallel: true
         parallelCount: 8
 
@@ -79,7 +79,7 @@ steps:
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
         pathToPublish: '$(ESY__CACHE_INSTALL_PATH)'
-        artifactName: 'build-cache-windows-install'
+        artifactName: 'cache-$(Agent.OS)-install'
         parallel: true
         parallelCount: 8
 
