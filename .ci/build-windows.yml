@@ -30,7 +30,7 @@ steps:
         project: 'esy'
         pipeline: 'build'
         buildVersionToDownload: 'latestFromBranch'
-        branchName: 'refs/head/master'
+        branchName: 'refs/heads/master'
         downloadType: 'single'
         artifactName: 'build-cache-windows-install'
         downloadPath: '$(System.ArtifactsDirectory)'
