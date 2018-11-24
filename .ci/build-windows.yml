@@ -98,6 +98,5 @@ steps:
       codeCoverageTool: 'cobertura'
       summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
-  - script: 'npm run release:platform-release'
-    displayName: 'npm run release:platform-release'
-    continueOnError: true
+  - script: 'esy release:platform-release'
+    displayName: 'esy platform-release'
