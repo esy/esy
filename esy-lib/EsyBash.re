@@ -1,14 +1,19 @@
 /**
  * Helper method to get the root path of the 'esy-bash' node modules
  */
-let getEsyBashRootPath = () => {
-  let resolution =
-    NodeResolution.resolve("../../../../node_modules/esy-bash/package.json");
-  switch (resolution) {
-  | Ok(path) => Path.parent(path)
-  | Error(`Msg(msg)) => Exn.fail(msg)
+let getEsyBashRootPath = () =>
+  switch (Sys.getenv_opt("ESY__ESY_BASH")) {
+  | Some(path) => Path.v(path)
+  | None =>
+    let resolution =
+      NodeResolution.resolve(
+        "../../../../node_modules/esy-bash/package.json",
+      );
+    switch (resolution) {
+    | Ok(path) => Path.parent(path)
+    | Error(`Msg(msg)) => Exn.fail(msg)
+    };
   };
-};
 
 /**
  * Helper method to get the `cygpath` utility path

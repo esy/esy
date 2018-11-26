@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
@@ -17,19 +16,11 @@ const output = input.replace(/\.[^\.]+$/, '.cmd');
 const script = './' + path.basename(input);
 
 if (isWindows) {
-  fs.writeFileSync(
-    output,
-    outdent`
-      @${JSON.stringify(process.execPath)} ${JSON.stringify('%~dp0\\' + script)} %*
-    `,
-  );
+  let args = JSON.stringify('%~dp0\\' + script);
+  let program = `@${JSON.stringify(process.execPath)} ${args} %*`;
+  fs.writeFileSync(output, program);
 } else {
-  fs.writeFileSync(
-    output,
-    outdent`
-      #!${process.execPath}
-      require(${JSON.stringify(script)});
-    `,
-  );
+  let program = `#!${process.execPath}\nrequire(${JSON.stringify(script)});`;
+  fs.writeFileSync(output, program);
   fs.chmodSync(output, 0755);
 }

@@ -6,4 +6,4 @@
 (alias
   (name    runtest)
   (deps    test_runner.exe)
-  (action  (run %{deps} inline-test-runner Test)))
+  (action  (setenv ESY__ESY_BASH %{read-strings:.esy-bash-path} (run %{deps} inline-test-runner Test))))
