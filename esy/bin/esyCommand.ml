@@ -220,6 +220,15 @@ module CommonOptions = struct
       & info ["cache-path"] ~env ~doc
     )
 
+  let solveCudfCommandArg =
+    let doc = "Set command which is used for solving CUDF problems." in
+    let env = Arg.env_var "ESY__SOLVE_CUDF_COMMAND" ~doc in
+    Arg.(
+      value
+      & opt (some Cli.cmdConv) None
+      & info ["solve-cudf-command"] ~env ~doc
+    )
+
   let term sandboxPath =
 
     let sandboxPath =
@@ -243,6 +252,7 @@ module CommonOptions = struct
       npmRegistry
       solveTimeout
       skipRepositoryUpdate
+      solveCudfCommand
       =
       let copts =
         let open RunAsync.Syntax in
@@ -257,11 +267,15 @@ module CommonOptions = struct
             return rc.EsyRc.prefixPath
         in
 
-        let%bind installCfg =
-          let%bind esySolveCmd =
+        let%bind esySolveCmd =
+          match solveCudfCommand with
+          | Some cmd -> return cmd
+          | None ->
             let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
             return Cmd.(v (p cmd))
-          in
+        in
+
+        let%bind installCfg =
           EsyInstall.Config.make
             ~esySolveCmd
             ~skipRepositoryUpdate
@@ -303,6 +317,7 @@ module CommonOptions = struct
       $ npmRegistryArg
       $ solveTimeoutArg
       $ skipRepositoryUpdateArg
+      $ solveCudfCommandArg
     ))
 
 end

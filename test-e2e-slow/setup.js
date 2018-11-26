@@ -13,11 +13,11 @@ const ocamlVersion = '4.6.6';
 
 const esyCommand =
   process.platform === 'win32'
-    ? require.resolve('../_build/default/esy/bin/esyCommand.exe')
+    ? require.resolve('../bin/esy.cmd')
     : require.resolve('../bin/esy');
 
 function getTempDir() {
-  // The appveyor temp folder has some permission issues - 
+  // The appveyor temp folder has some permission issues -
   // so in that environment, we'll run these tests from a root folder.
   const appVeyorTempFolder = "C:/esy-ci-temp";
   return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';

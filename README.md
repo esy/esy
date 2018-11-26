@@ -91,21 +91,22 @@ To make changes to `esy` and test them locally:
 ```
 % git clone git://github.com/esy/esy.git
 % cd esy
-% make bootstrap
+% esy
+% esy bootstrap
 ```
-
-Run:
-
-```
-% make
-```
-
-to see the description of development workflow.
 
 ### Running Tests
 
+Unit tests:
+
 ```
-% make test
+% esy test:unit
+```
+
+E2E tests:
+
+```
+% esy test:e2e
 ```
 
 ### Branches
@@ -114,7 +115,8 @@ There are two branches:
 
 - `master` — the active development, we cut new versions out of there regularly.
 - `0.0.x` — maintainance branch for 0.0.x releases.
-
+- `0.2.x` — maintainance branch for 0.2.x releases.
+- `0.3.x` — maintainance branch for 0.3.x releases.
 
 ## Workflow for esy.sh
 

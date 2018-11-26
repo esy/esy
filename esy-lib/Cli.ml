@@ -90,6 +90,12 @@ let pathConv =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
+let cmdConv =
+  let open Cmdliner in
+  let parse v = Ok (Cmd.v v) in
+  let print = Cmd.pp in
+  Arg.conv ~docv:"COMMAND" (parse, print)
+
 let checkoutConv =
   let open Cmdliner in
   let parse v =

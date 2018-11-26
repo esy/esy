@@ -61,14 +61,15 @@ help:
 
 bootstrap:
 ifndef ESY_EXT
-	$(error "esy command is not avaialble, run 'npm install -g esy@0.2'")
+	$(error "esy command is not avaialble, run 'npm install -g esy@0.4.x'")
 endif
-ifeq ($(ESY_VERSION_MINOR),2)
+ifeq ($(ESY_VERSION_MINOR),4)
 	@esy install
+	@esy build
+	@esy bootstrap
 else
 	$(error "esy requires version 0.2.x installed to bootstrap, run 'npm install -g esy@0.2'")
 endif
-	@make build-dev
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
