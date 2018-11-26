@@ -5,44 +5,44 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  # - task: DownloadBuildArtifacts@0
-  #   displayName: 'Cache: Restore source-tarballs'
-  #   inputs:
-  #       buildType: 'specific'
-  #       project: 'esy'
-  #       pipeline: 'build'
-  #       buildVersionToDownload: 'specific'
-  #       buildId: '245'
-  #       downloadType: 'single'
-  #       artifactName: 'build-cache-windows-source-tarballs'
-  #       downloadPath: '$(System.ArtifactsDirectory)'
-  #   continueOnError: true
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore source-tarballs'
+    inputs:
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        branchName: 'refs/heads/master'
+        buildVersionToDownload: 'latestFromBranch'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-source-tarballs'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    continueOnError: true
 
-  # - task: CopyFiles@2
-  #   inputs:
-  #       sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
-  #       targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\source-tarballs'
 
-  # - task: DownloadBuildArtifacts@0
-  #   displayName: 'Cache: Restore install'
-  #   inputs:
-  #       buildType: 'specific'
-  #       project: 'esy'
-  #       pipeline: 'build'
-  #       buildVersionToDownload: 'specific'
-  #       buildId: '245'
-  #       downloadType: 'single'
-  #       artifactName: 'build-cache-windows-install'
-  #       downloadPath: '$(System.ArtifactsDirectory)'
-  #   continueOnError: true
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Cache: Restore install'
+    inputs:
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'latestFromBranch'
+        branchName: 'refs/heads/master'
+        downloadType: 'single'
+        artifactName: 'build-cache-windows-install'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    continueOnError: true
 
-  # - task: CopyFiles@2
-  #   inputs:
-  #       sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
-  #       targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
+  - task: CopyFiles@2
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+        targetFolder: 'C:\Users\VssAdministrator\.esy\3_\i'
 
-  - script: 'npm install -g esy@0.4.2'
-    displayName: 'npm install -g esy@0.4.2'
+  - script: 'npm install -g esy@0.4.3'
+    displayName: 'npm install -g esy@0.4.3'
 
   - script: 'npm install -g jest-cli'
     displayName: 'npm install -g jest-cli'
