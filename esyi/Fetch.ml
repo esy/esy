@@ -447,7 +447,7 @@ module LinkBin = struct
     let destPath = Path.(binPath / name) in
     if%bind Fs.exists destPath
     then return ()
-    else Fs.symlink ~src:origPath destPath
+    else Fs.symlink ~force:true ~src:origPath destPath
 
   let installBinWrapper binPath (name, origPath) =
     let open RunAsync.Syntax in
