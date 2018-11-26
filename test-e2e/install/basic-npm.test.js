@@ -727,6 +727,62 @@ describe(`Basic tests for npm packages`, () => {
     });
   });
 
+  test(`there can be multiple bins of the same name, esy warns about this but doesn't fail`, async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          dep: `1.0.0`,
+          anotherDep: `1.0.0`,
+        },
+      }),
+    );
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        bin: {oops: 'dep.js'},
+      }),
+      helpers.file(
+        'dep.js',
+        outdent`
+          #!/usr/bin/env node
+          console.log('__dep__');
+        `,
+      ),
+    ]);
+
+    await p.defineNpmPackageOfFixture([
+      helpers.packageJson({
+        name: 'anotherDep',
+        version: '1.0.0',
+        bin: {oops: 'anotherDep.js'},
+      }),
+      helpers.file(
+        'anotherDep.js',
+        outdent`
+          #!/usr/bin/env node
+          console.log('__anotherDep__');
+        `,
+      ),
+    ]);
+
+    const {stderr} = await p.esy('install');
+
+    expect(stderr).toContain(
+      "warn executable 'oops' is installed by several packages: dep@1.0.0, anotherDep@1.0.0",
+    );
+
+    {
+      const {stdout} = await p.esy('oops');
+      expect(stdout.toString().trim()).toBe('__dep__');
+    }
+  });
+
   // test.skip(
   //   `it should correctly install an inter-dependency loop`,
   //   helpers.makeTemporaryEnv(

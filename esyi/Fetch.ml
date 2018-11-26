@@ -158,6 +158,7 @@ module FetchPackage : sig
   type fetch
 
   type installation = {
+    pkg : Solution.Package.t;
     pkgJson : NpmPackageJson.t option;
     path : Path.t;
   }
@@ -175,6 +176,7 @@ end = struct
     | Linked of Path.t
 
   type installation = {
+    pkg : Solution.Package.t;
     pkgJson : NpmPackageJson.t option;
     path : Path.t;
   }
@@ -388,7 +390,7 @@ end = struct
         return ()
     in
 
-    return {path = installPath; pkgJson}
+    return {pkg; path = installPath; pkgJson}
 
   let install onBeforeLifecycle sandbox (pkg, fetch) =
     let open RunAsync.Syntax in
@@ -398,7 +400,7 @@ end = struct
       | Linked path
       | Installed path ->
         let%bind pkgJson = NpmPackageJson.ofDir path in
-        return {path; pkgJson;}
+        return {pkg; path; pkgJson;}
       | Fetched fetched ->
         install' onBeforeLifecycle sandbox pkg fetched
     ) "installing %a" Solution.Package.pp pkg
@@ -468,11 +470,14 @@ module LinkBin = struct
     )
 
   let link binPath installation =
+    let open RunAsync.Syntax in
     match installation.FetchPackage.pkgJson with
     | Some pkgJson ->
       let bin = NpmPackageJson.bin ~sourcePath:installation.path pkgJson in
-      RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin
-    | None -> RunAsync.return ()
+      let%bind () = RunAsync.List.mapAndWait ~f:(installBinWrapper binPath) bin in
+      return bin
+    | None ->
+      RunAsync.return []
 end
 
 let collectPackagesOfSolution solution =
@@ -643,9 +648,11 @@ let fetch sandbox solution =
           let%bind () = Fs.createDir binPath in
 
           let%bind () =
-            RunAsync.List.mapAndWait
-              ~f:(LinkBin.link binPath)
-              dependencies
+            let f dep =
+              let%bind _: (string * Path.t) list = LinkBin.link binPath dep in
+              return ()
+            in
+            RunAsync.List.mapAndWait ~f dependencies
           in
 
           let%bind () =
@@ -701,11 +708,35 @@ let fetch sandbox solution =
     in
 
     let%bind () =
+
+
       let binPath = SandboxSpec.binPath sandbox.spec in
       let%bind () = Fs.createDir binPath in
-      RunAsync.List.mapAndWait
-        ~f:(LinkBin.link binPath)
-        (List.filterNone rootDependencies)
+
+      let%bind _ =
+        let f seen dep =
+          let%bind bins = LinkBin.link binPath dep in
+          let f seen (name, _) =
+            match StringMap.find_opt name seen with
+            | None ->
+              StringMap.add name [dep.FetchPackage.pkg] seen
+            | Some pkgs ->
+              let pkgs = dep.FetchPackage.pkg::pkgs in
+              Logs.warn
+                (fun m ->
+                  m "executable '%s' is installed by several packages: @[<h>%a@]@;"
+                  name Fmt.(list ~sep:(unit ", ") Solution.Package.pp) pkgs);
+              StringMap.add name pkgs seen
+          in
+          return (List.fold_left ~f ~init:seen bins)
+        in
+        RunAsync.List.foldLeft
+          ~f
+          ~init:StringMap.empty
+          (List.filterNone rootDependencies)
+      in
+
+      return ()
     in
 
     let%lwt () = finish () in
