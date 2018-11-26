@@ -65,6 +65,15 @@ steps:
   - script: 'esy bootstrap'
     displayName: 'esy bootstrap'
 
+  # Workaround out-of-space errors - we'll clean up the b/s folders
+  - task: DeleteFiles@1
+    inputs:
+        sourceFolder: 'C:\Users\VssAdministrator\.esy\3_\b'
+
+  - task: DeleteFiles@1
+    inputs:
+        sourceFolder: 'C:\Users\VssAdministrator\.esy\3_\s'
+
   - task: PublishBuildArtifacts@1
     displayName: 'Cache: Upload install folder'
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -90,7 +99,7 @@ steps:
     inputs:
       testResultsFiles: '**junit*.xml'
       testRunTitle: TestRun ${{ parameters.name }} $(node_version)
-      
+
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage results'
     condition: succeededOrFailed()
