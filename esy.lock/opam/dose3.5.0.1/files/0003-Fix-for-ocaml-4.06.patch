@@ -1,0 +1,52 @@
+From aeca7656f499d7f4595319858f242276920e31bb Mon Sep 17 00:00:00 2001
+From: Louis Gesbert <louis.gesbert@ocamlpro.com>
+Date: Sat, 2 Dec 2017 12:51:01 +0100
+Subject: [PATCH] Fix for ocaml 4.06
+
+---
+ common/criteria_lexer.mll | 8 ++++----
+ common/util.ml            | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/common/criteria_lexer.mll b/common/criteria_lexer.mll
+index 71f9178..fc4eae3 100644
+--- a/common/criteria_lexer.mll
++++ b/common/criteria_lexer.mll
+@@ -18,7 +18,7 @@
+     let c = Lexing.lexeme_char lexbuf 2 in (* the delimiter can be any character *)
+     (* find the terminating delimiter *)
+     let endpos =
+-      try String.index_from lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) c with
++      try Bytes.index_from lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) c with
+       |Invalid_argument _ ->
+           raise (Format822.Syntax_error (
+             Format822.error lexbuf "String too short"))
+@@ -27,9 +27,9 @@
+             Format822.error lexbuf (Printf.sprintf "cannot find: %c" c)))
+     in
+     let len = endpos - (lexbuf.lex_start_pos + 3) in
+-    let s = String.sub lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) len in
+-    lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_start_pos + ((String.length s)+4);
+-    s
++    let s = Bytes.sub lexbuf.lex_buffer (lexbuf.lex_start_pos + 3) len in
++    lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_start_pos + ((Bytes.length s)+4);
++    Bytes.to_string s
+ 
+ }
+ 
+diff --git a/common/util.ml b/common/util.ml
+index 598f266..36ca3d1 100644
+--- a/common/util.ml
++++ b/common/util.ml
+@@ -87,7 +87,7 @@ module MakeMessages(X : sig val label : string end) = struct
+   let clean label =
+     try 
+       let s = Filename.chop_extension (Filename.basename label) in
+-      String.capitalize s
++      String.capitalize_ascii s
+     with Invalid_argument _ -> label
+ 
+   let create ?(enabled=false) label =
+-- 
+2.11.0
+

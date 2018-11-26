@@ -5,40 +5,30 @@
   "license": "MIT",
   "esy": {
     "build": [
+      [ "dune", "build", "-j", "4" ],
       [
-        "dune",
-        "build",
-        "-j",
-        "4"
-      ],
-      [
-        "dune",
-        "build",
-        "esy/bin/esyCommand.exe",
+        "dune", "build", "esy/bin/esyCommand.exe",
         "esy-build-package/bin/esyBuildPackageCommand.exe"
       ]
     ],
     "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
+      [ "esy-installer", "./esy-build-package.install" ],
+      [ "esy-installer", "./esy.install" ]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
+    "bootstrap": "esy node scripts/bootstrap.js",
     "install:esy": "esy install",
-    "build": "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
+    "build":
+      "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
-    "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
+    "build:postinstall-esy-solve-cudf":
+      "cd node_modules/esy-solve-cudf && npm install",
     "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest test",
-    "test:e2e": "./node_modules/.bin/jest test-e2e",
+    "test:e2e": "jest test-e2e",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
@@ -75,7 +65,8 @@
     "@opam/re": "^1.8.0",
     "@opam/yojson": "*",
     "esy-solve-cudf": "^0.1.10",
-    "ocaml": "~4.6.6"
+    "is-ci": "^1.2.1",
+    "ocaml": "~4.6.9"
   },
   "devDependencies": {
     "@opam/merlin": "*",
@@ -87,12 +78,14 @@
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
+    "jest-pnp-resolver": "^1.0.1",
     "jest-junit": "^5.0.0",
     "klaw": "^2.1.1",
     "minimatch": "^3.0.4",
-    "ocaml": "~4.6.6",
+    "ocaml": "~4.6.9",
     "outdent": "^0.3.0",
     "prettier": "^1.13.7",
+    "invariant": "^2.2.4",
     "rimraf": "^2.6.2",
     "semver": "^5.5.0",
     "super-resolve": "^1.0.0",

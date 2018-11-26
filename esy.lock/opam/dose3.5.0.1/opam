@@ -1,0 +1,58 @@
+opam-version: "2.0"
+maintainer: "pietro.abate@inria.fr"
+authors: [
+  "Pietro Abate"
+  "Jaap Boender"
+  "Roberto Di Cosmo"
+  "Johannes Schauer"
+  "Ralf Treinen"
+  "Stefano Zacchiroli"
+  "Jakub Zwolakowski"
+  "Olivier Rosello"
+]
+homepage: "http://www.mancoosi.org/software/"
+bug-reports: "https://gforge.inria.fr/tracker/?group_id=4395"
+license: "LGPL-v3+ with OCaml linking exception"
+dev-repo: "git+https://gforge.inria.fr/git/dose/dose.git"
+build: [
+  ["./configure"]
+  [make "printconf"]
+  [make]
+]
+install: [make "installlib"]
+remove: [
+  ["./configure"]
+  [make "uninstalllib"]
+]
+depends: [
+  "ocaml"
+  "ocamlgraph" {>= "1.8.6"}
+  "cudf" {>= "0.7"}
+  "conf-perl" {build}
+  ("extlib" {>= "1.7.0"} | "extlib-compat" {>= "1.7.0"})
+  "re" {>= "1.2.2"}
+  "ocamlbuild" {build}
+  "cppo" {build & >= "1.1.2"}
+]
+conflicts: "dose"
+patches: [
+  "0001-Install-mli-cmx-etc.patch"
+  "0002-dont-make-printconf.patch"
+  "0003-Fix-for-ocaml-4.06.patch" {ocaml:version >= "4.06.0"}
+  "0004-Add-unix-as-dependency-to-dose3.common-in-META.in.patch"
+]
+synopsis: "Dose library (part of Mancoosi tools)"
+extra-files: [
+  [
+    "0004-Add-unix-as-dependency-to-dose3.common-in-META.in.patch"
+    "md5=618265012624df95902a98f756f1ca13"
+  ]
+  ["0003-Fix-for-ocaml-4.06.patch" "md5=877eedb18916f9e260525b1aee6da544"]
+  ["0002-dont-make-printconf.patch" "md5=a6e83acee4b55d35f5f30a8ef98df04f"]
+  ["0001-Install-mli-cmx-etc.patch" "md5=977b675e7e6e7ccc5d3d57534370c68c"]
+]
+url {
+  src:
+    "https://gforge.inria.fr/frs/download.php/file/36063/dose3-5.0.1.tar.gz"
+  checksum: "md5=e7d4b1840383c6732f29a47c08ba5650"
+}

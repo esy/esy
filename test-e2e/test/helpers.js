@@ -20,7 +20,9 @@ const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
-const ESY = require.resolve('../../_build/default/esy/bin/esyCommand.exe');
+const ESY = isWindows
+  ? require.resolve('../../bin/esy.cmd')
+  : require.resolve('../../bin/esy');
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
