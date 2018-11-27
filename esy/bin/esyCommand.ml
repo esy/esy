@@ -1501,23 +1501,6 @@ let release copts () =
     ~cfg:copts.CommonOptions.cfg
     ()
 
-let gc (copts : CommonOptions.t) dryRun () =
-  let open RunAsync.Syntax in
-  let perform path =
-    if dryRun
-    then (
-      print_endline (Path.show path);
-      return ()
-    ) else Fs.rmPath path
-  in
-  let%bind () =
-    let storePath = copts.cfg.buildCfg.storePath in
-    let%bind () = perform Path.(storePath / Store.stageTree) in
-    let%bind () = perform Path.(storePath / Store.buildTree) in
-    return ()
-  in
-  return ()
-
 let makeCommand
   ?(header=`Standard)
   ?(sdocs=Cmdliner.Manpage.s_common_options)
@@ -1872,21 +1855,6 @@ let makeCommands ~sandbox () =
             & pos 0 (some string) None
             & info [] ~docv:"PACKAGE" ~doc:"Package to display information about"
           )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"gc"
-      ~doc:"Perform garbage collection of unused build artifacts."
-      ~header:`No
-      Term.(
-        const gc
-        $ commonOpts
-        $ Arg.(
-            value
-            & flag
-            & info ["dry-run";] ~doc:"Only print directories which should be removed."
-         )
         $ Cli.setupLogTerm
       );
 
