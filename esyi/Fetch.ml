@@ -126,6 +126,17 @@ module PackagePaths = struct
     | Windows -> Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
     | _ -> Path.(sandbox.Sandbox.cfg.sourceStagePath / key pkg)
 
+  let cachedTarballPath sandbox pkg =
+    match sandbox.Sandbox.cfg.sourceArchivePath, pkg.Solution.Package.source with
+    | None, _ ->
+      None
+    | Some _, Solution.Package.Link _ ->
+      (* has config, not caching b/c it's a link *)
+      None
+    | Some sourceArchivePath, Solution.Package.Install _ ->
+      let id = key pkg in
+      Some Path.(sourceArchivePath // v id |> addExt "tgz")
+
   let installPath sandbox pkg =
     match pkg.Solution.Package.source with
     | Solution.Package.Link { path; manifest = _; } ->
@@ -226,16 +237,34 @@ end = struct
         let path = DistPath.toPath sandbox.Sandbox.spec.path path in
         return (pkg, Linked path)
       | Install { source = main, mirrors; opam = _; } ->
+
+        let%bind cached =
+          match PackagePaths.cachedTarballPath sandbox pkg with
+          | None -> return None
+          | Some cachedTarballPath ->
+            if%bind Fs.exists cachedTarballPath
+            then
+              let dist = DistStorage.ofCachedTarball cachedTarballPath in
+              return (Some (pkg, Fetched dist))
+            else
+              let dists = main::mirrors in
+              let%bind dist = fetch' sandbox pkg dists in
+              let%bind dist = DistStorage.cache dist cachedTarballPath in
+              return (Some (pkg, Fetched dist))
+        in
+
         let path = PackagePaths.installPath sandbox pkg in
         if%bind Fs.exists path
         then
           return (pkg, Installed path)
         else
-          let dists = main::mirrors in
-          let%bind dist = fetch' sandbox pkg dists in
-          return (pkg, Fetched dist)
+          match cached with
+          | Some cached -> return cached
+          | None ->
+            let dists = main::mirrors in
+            let%bind dist = fetch' sandbox pkg dists in
+            return (pkg, Fetched dist)
     ) "fetching %a" Solution.Package.pp pkg
-
 
   module Lifecycle = struct
 
@@ -555,19 +584,60 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
   | Error _
   | Ok None -> return false
   | Ok Some installation ->
-    let rec check = function
+
+    let rec checkSourcePaths = function
       | [] -> return true
       | pkg::pkgs ->
         begin match Installation.find pkg.Solution.Package.id installation with
         | None -> return false
         | Some path ->
           if%bind Fs.exists path
-          then check pkgs
+          then checkSourcePaths pkgs
           else return false
         end
     in
+
+    let rec checkCachedTarballPaths = function
+      | [] -> return true
+      | pkg::pkgs ->
+        begin match PackagePaths.cachedTarballPath sandbox pkg with
+        | None -> checkCachedTarballPaths pkgs
+        | Some cachedTarballPath ->
+          if%bind Fs.exists cachedTarballPath
+          then checkCachedTarballPaths pkgs
+          else return false
+        end
+    in
+
     let pkgs, _root = collectPackagesOfSolution solution in
-    check pkgs
+    if%bind checkSourcePaths pkgs
+    then checkCachedTarballPaths pkgs
+    else return false
+
+let fetchPackages sandbox solution =
+  let open RunAsync.Syntax in
+
+  (* Collect packages which from the solution *)
+  let pkgs, _root = collectPackagesOfSolution solution in
+
+  let report, finish = Cli.createProgressReporter ~name:"fetching" () in
+  let%bind items =
+    let f pkg =
+      report "%a" Solution.Package.pp pkg;%lwt
+      let%bind fetch = FetchPackage.fetch sandbox pkg in
+      return (pkg, fetch)
+    in
+    let%bind items = RunAsync.List.mapAndJoin ~concurrency:40 ~f pkgs in
+    finish ();%lwt
+    return items
+  in
+  let fetched =
+    let f map (pkg, fetch) =
+      Solution.Package.Map.add pkg fetch map
+    in
+    List.fold_left ~f ~init:Solution.Package.Map.empty items
+  in
+  return fetched
 
 let fetch sandbox solution =
   let open RunAsync.Syntax in
@@ -576,27 +646,7 @@ let fetch sandbox solution =
   let pkgs, root = collectPackagesOfSolution solution in
 
   (* Fetch all packages. *)
-  let%bind fetched =
-    let report, finish = Cli.createProgressReporter ~name:"fetching" () in
-    let%bind items =
-      let f pkg =
-        report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
-        let%bind fetch = FetchPackage.fetch sandbox pkg in
-        return (pkg, fetch)
-      in
-      let%bind items = RunAsync.List.mapAndJoin ~concurrency:40 ~f pkgs in
-      finish ();%lwt
-      return items
-    in
-    let fetched =
-      let f map (pkg, fetch) =
-        let id = pkg.Solution.Package.id in
-        PackageId.Map.add id fetch map
-      in
-      List.fold_left ~f ~init:PackageId.Map.empty items
-    in
-    return fetched
-  in
+  let%bind fetched = fetchPackages sandbox solution in
 
   (* Produce _esy/<sandbox>/installation.json *)
   let%bind installation =
@@ -676,7 +726,7 @@ let fetch sandbox solution =
           return ()
         in
 
-        let fetched = PackageId.Map.find id fetched in
+        let fetched = Solution.Package.Map.find pkg fetched in
         FetchPackage.install onBeforeLifecycle sandbox fetched
       in
       LwtTaskQueue.submit queue f
