@@ -7,6 +7,7 @@ steps:
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Cache: Restore source-tarballs'
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
         buildType: 'specific'
         project: 'esy'
@@ -19,11 +20,13 @@ steps:
     continueOnError: true
 
   - task: CopyFiles@2
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
         targetFolder: '$(ESYCI__CACHE_INSTALL)'
 
   - task: DownloadBuildArtifacts@0
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     displayName: 'Cache: Restore install'
     inputs:
         buildType: 'specific'
@@ -37,6 +40,7 @@ steps:
     continueOnError: true
 
   - task: CopyFiles@2
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
         targetFolder: '$(ESYCI__CACHE_BUILD)'
