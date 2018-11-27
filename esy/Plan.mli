@@ -1,7 +1,7 @@
 module Task : sig
   type t = {
     id : string;
-    pkgId : EsyInstall.PackageId.t;
+    pkg : EsyInstall.Solution.Package.t;
     name : string;
     version : EsyInstall.Version.t;
     env : Scope.SandboxEnvironment.t;
