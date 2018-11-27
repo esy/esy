@@ -16,8 +16,8 @@ jobs:
         vmImage: ubuntu-16.04
 
     variables:
-        ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i/
-        ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source-tarballs
+        ESYCI__CACHE_BUILD: /home/vsts/.esy/3_____________________________________________________________________/i/
+        ESYCI__CACHE_INSTALL: /home/vsts/.esy/source/i
 
     steps:
       - script: sudo apt-get update
@@ -38,8 +38,8 @@ jobs:
       demands: node.js
 
     variables:
-        ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i/
-        ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source-tarballs
+        ESYCI__CACHE_BUILD: /Users/vsts/.esy/3____________________________________________________________________/i/
+        ESYCI__CACHE_INSTALL: /Users/vsts/.esy/source/i
 
     steps:
       - script: brew install gmp
@@ -60,8 +60,8 @@ jobs:
       demands: npm
 
     variables:
-        ESY__CACHE_INSTALL_PATH: C:\Users\VssAdministrator\.esy\3_\i
-        ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source-tarballs
+        ESYCI__CACHE_BUILD: C:\Users\VssAdministrator\.esy\3_\i
+        ESYCI__CACHE_INSTALL: C:\Users\VssAdministrator\.esy\source\i
 
     steps:
       - template: build-windows.yml
