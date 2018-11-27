@@ -15,12 +15,13 @@ steps:
         branchName: 'refs/heads/master'
         buildVersionToDownload: 'latestFromBranch'
         downloadType: 'single'
-        artifactName: 'build-cache-windows-source-tarballs'
+        artifactName: 'cache-$(Agent.OS)-source-tarballs'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
   - task: CopyFiles@2
     condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+    continueOnError: true
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
         targetFolder: '$(ESYCI__CACHE_INSTALL)'
@@ -35,12 +36,13 @@ steps:
         buildVersionToDownload: 'latestFromBranch'
         branchName: 'refs/heads/master'
         downloadType: 'single'
-        artifactName: 'build-cache-windows-install'
+        artifactName: 'cache-$(Agent.OS)-install'
         downloadPath: '$(System.ArtifactsDirectory)'
     continueOnError: true
 
   - task: CopyFiles@2
     condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+    continueOnError: true
     inputs:
         sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
         targetFolder: '$(ESYCI__CACHE_BUILD)'
