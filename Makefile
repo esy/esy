@@ -110,16 +110,14 @@ refmt::
 # Test
 #
 
-JEST = $(BIN)/jest
-
 test-unit::
-	@esy b dune build @runtest
+	esy test:unit
 
 test-e2e::
-	@$(BIN)/jest test-e2e
+	esy test:e2e
 
 test-e2e-slow::
-	@node ./test-e2e-slow/run-slow-tests
+	esy test:e2e-slow
 
 test::
 	@echo "Running test suite: unit tests"
