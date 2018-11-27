@@ -11,18 +11,11 @@ module Package : sig
     id: PackageId.t;
     name: string;
     version: Version.t;
-    source: source;
+    source: Package.source;
     overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   }
-
-  and source =
-    | Link of Source.link
-    | Install of {
-        source : Dist.t * Dist.t list;
-        opam : OpamResolution.t option;
-      }
 
   include S.COMPARABLE with type t := t
   include S.PRINTABLE with type t := t

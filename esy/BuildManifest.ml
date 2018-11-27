@@ -365,7 +365,7 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Solution.Package.Link { path; manifest; } ->
+  | Link { path; manifest; } ->
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       DistResolver.resolve
@@ -412,7 +412,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       return (Some manifest, res.DistResolver.paths)
     end
 
-  | Solution.Package.Install { source = _; opam = Some opam } ->
+  | Install { source = _; opam = Some opam } ->
     let name = Some (OpamResolution.name opam) in
     let version = Some (OpamResolution.version opam) in
     let%bind opamfile = OpamResolution.opam opam in
@@ -427,7 +427,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     in
     return (Some manifest, Path.Set.empty)
 
-  | Solution.Package.Install { source = source, _; opam = None } ->
+  | Install { source = source, _; opam = None } ->
     let manifest = Dist.manifest source in
     let%bind manifest, paths = ofPath ?manifest loc in
     let%bind manifest =

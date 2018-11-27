@@ -74,7 +74,7 @@ let ofPackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
     match pkg.source with
-    | Solution.Package.Link { path; manifest } -> return (Link {path; manifest;})
+    | Link { path; manifest } -> return (Link {path; manifest;})
     | Install {source; opam = None;} -> return (Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = OpamResolution.toLock ~sandbox:sandbox.spec opam in
@@ -99,11 +99,11 @@ let toPackage sandbox (node : node) =
   let open RunAsync.Syntax in
   let%bind source =
     match node.source with
-    | Link { path; manifest } -> return (Solution.Package.Link {path;manifest;})
-    | Install {source; opam = None;} -> return (Solution.Package.Install {source; opam = None;})
+    | Link { path; manifest } -> return (Package.Link {path;manifest;})
+    | Install {source; opam = None;} -> return (Package.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = OpamResolution.ofLock ~sandbox:sandbox.Sandbox.spec opam in
-      return (Solution.Package.Install {source; opam = Some opam;});
+      return (Package.Install {source; opam = Some opam;});
   in
   return {
     Solution.Package.
