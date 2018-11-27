@@ -23,7 +23,7 @@ steps:
     condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     continueOnError: true
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
+        sourceFolder: '$(System.ArtifactsDirectory)\cache-$(Agent.OS)-source-tarballs'
         targetFolder: '$(ESYCI__CACHE_INSTALL)'
 
   - task: DownloadBuildArtifacts@0
@@ -44,7 +44,7 @@ steps:
     condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
     continueOnError: true
     inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
+        sourceFolder: '$(System.ArtifactsDirectory)\cache-$(Agent.OS)-install'
         targetFolder: '$(ESYCI__CACHE_BUILD)'
 
   - script: 'npm install -g esy@0.4.3'
