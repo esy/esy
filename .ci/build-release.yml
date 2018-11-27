@@ -64,6 +64,7 @@ jobs:
         ESYCI__CACHE_INSTALL: C:\Users\VssAdministrator\.esy\source\i
 
     steps:
+      # - template: restore-build-cache.yml
       - template: build-windows.yml
 
       - task: PublishBuildArtifacts@1
