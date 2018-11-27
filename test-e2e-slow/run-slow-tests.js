@@ -1,7 +1,6 @@
 // @flow
 
 const {execSync} = require('child_process');
-const {createSandbox} = require('./setup.js')
 const os = require('os');
 
 const isTaggedCommit = () => {
