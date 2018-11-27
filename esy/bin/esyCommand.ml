@@ -785,6 +785,18 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
     end
   end
 
+let buildDependencies (copts : CommonOptions.t) () =
+  let open RunAsync.Syntax in
+  let%bind info = SandboxInfo.make copts in
+  let%bind plan = SandboxInfo.plan info in
+  let%bind solution = SandboxInfo.solution info in
+  let root = (Solution.root solution).id in
+  Plan.buildDependencies
+    ~cfg:copts.cfg
+    ~concurrency:EsyRuntime.concurrency
+    plan
+    root
+
 let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let open RunAsync.Syntax in
 
@@ -1615,6 +1627,15 @@ let makeCommands ~sandbox () =
 
     installCommand;
     buildCommand;
+
+    makeCommand
+      ~name:"build-dependencies"
+      ~doc:"Build dependencies"
+      Term.(
+        const buildDependencies
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~header:`No
