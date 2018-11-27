@@ -15,9 +15,12 @@ const sandbox = createSandbox();
 console.log(`*** Release test at ${sandbox.path} ***`);
 
 function npm(cwd, cmd) {
+  console.log(`EXEC: npm ${cmd}`);
+  // make sure we run npm w/o pnp
+  const PATH = path.dirname(process.argv0) + path.delimiter + process.env.PATH;
   return childProcess.execSync(`npm ${cmd}`, {
     cwd,
-    env: {...process.env, NPM_CONFIG_PREFIX: npmPrefix},
+    env: {...process.env, PATH, NPM_CONFIG_PREFIX: npmPrefix},
     stdio: 'inherit',
   });
 }
