@@ -2,13 +2,6 @@ module CachePaths = struct
   let key dist =
     Digest.to_hex (Digest.string (Dist.show dist))
 
-  let tarball cfg dist =
-    match cfg.Config.sourceArchivePath with
-    | Some sourceArchivePath ->
-      let id = key dist in
-      Some Path.(sourceArchivePath // v id |> addExt "tgz")
-    | None -> None
-
   let fetchedDist sandbox dist =
     Path.(SandboxSpec.distPath sandbox / key dist)
 
@@ -25,10 +18,41 @@ type fetchedDist =
   (* source path from some local package, should be retained *)
   | SourcePath of Path.t
   (* downloaded tarball *)
-  | Tarball of Path.t
-  (* cached tarball *)
-  | CachedTarball of Path.t
+  | Tarball of {tarballPath : Path.t; stripComponents : int;}
 
+let cache fetched tarballPath =
+  let open RunAsync.Syntax in
+  match fetched with
+  | Empty ->
+    let unpackPath = Path.(tarballPath |> addExt ".unpack") in
+    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind () = Fs.createDir unpackPath in
+    let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
+    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+    let%bind () = Fs.rmPath unpackPath in
+    return (Tarball {tarballPath; stripComponents = 0;})
+  | SourcePath path ->
+    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind () = Tarball.create ~filename:tempTarballPath path in
+    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+    return (Tarball {tarballPath; stripComponents = 0;})
+  | Path path ->
+    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind () = Tarball.create ~filename:tempTarballPath path in
+    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+    let%bind () = Fs.rmPath path in
+    return (Tarball {tarballPath; stripComponents = 0;})
+  | Tarball info ->
+    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let unpackPath = Path.(info.tarballPath |> addExt ".unpack") in
+    let%bind () = Tarball.unpack ~stripComponents:1 ~dst:unpackPath info.tarballPath in
+    let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
+    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
+    let%bind () = Fs.rmPath info.tarballPath in
+    let%bind () = Fs.rmPath unpackPath in
+    return (Tarball {tarballPath; stripComponents = 0;})
+
+let ofCachedTarball path = Tarball {tarballPath = path; stripComponents = 0;}
 let ofDir path = SourcePath path
 
 let fetch' sandbox dist =
@@ -51,7 +75,7 @@ let fetch' sandbox dist =
       let%bind () = Checksum.checkFile ~path:tarballPath checksum in
       let%bind () = Fs.createDir (Path.parent path) in
       let%bind () = Fs.rename ~src:tarballPath path in
-      return (Tarball path)
+      return (Tarball {tarballPath = path; stripComponents = 1;})
     )
 
   | Dist.Github github ->
@@ -67,7 +91,7 @@ let fetch' sandbox dist =
       in
       let%bind () = Curl.download ~output:tarballPath url in
       let%bind () = Fs.rename ~src:tarballPath path in
-      return (Tarball path)
+      return (Tarball {tarballPath = path; stripComponents = 1;})
     )
 
   | Dist.Git git ->
@@ -81,6 +105,11 @@ let fetch' sandbox dist =
       let%bind () = Fs.rename ~src:stagePath path in
       return (Path path)
     )
+
+let fetch ~cfg:_ ~sandbox dist =
+  RunAsync.contextf
+    (fetch' sandbox dist)
+    "fetching dist: %a" Dist.pp dist
 
 (* unpack fetched dist into directory *)
 let unpack fetched path =
@@ -99,68 +128,8 @@ let unpack fetched path =
       RunAsync.List.mapAndWait ~f:copy names
     in
     return ()
-  | Tarball tarballPath ->
-    Tarball.unpack ~stripComponents:1 ~dst:path tarballPath
-  | CachedTarball tarballPath ->
-    Tarball.unpack ~stripComponents:0 ~dst:path tarballPath
-
-(* repack fetched dist into another fetched dist (tarball) *)
-let pack fetched tarballPath =
-  let open RunAsync.Syntax in
-  match fetched with
-  | Empty ->
-    let unpackPath = Path.(tarballPath |> addExt ".unpack") in
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
-    let%bind () = Fs.createDir unpackPath in
-    let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
-    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-    let%bind () = Fs.rmPath unpackPath in
-    return ()
-  | SourcePath path ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
-    let%bind () = Tarball.create ~filename:tempTarballPath path in
-    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-    return ()
-  | Path path ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
-    let%bind () = Tarball.create ~filename:tempTarballPath path in
-    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-    let%bind () = Fs.rmPath path in
-    return ()
-  | Tarball path ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
-    let unpackPath = Path.(path |> addExt ".unpack") in
-    let%bind () = Tarball.unpack ~stripComponents:1 ~dst:unpackPath path in
-    let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
-    let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
-    let%bind () = Fs.rmPath path in
-    let%bind () = Fs.rmPath unpackPath in
-    return ()
-  | CachedTarball path ->
-    Fs.copyFile ~src:path ~dst:tarballPath
-
-let fetch ~cfg ~sandbox dist =
-  let open RunAsync.Syntax in
-
-  let fetched =
-    (* check if we have tarball cache configured *)
-    match CachePaths.tarball cfg dist with
-    | None -> fetch' sandbox dist
-    | Some tarballPath ->
-      begin match%bind Fs.exists tarballPath with
-      | true -> return (CachedTarball tarballPath)
-      | false ->
-        (* tarball cache configured but not fetched, fetch and repack then *)
-        let%bind () = Fs.createDir (Path.parent tarballPath) in
-        let%bind fetched = fetch' sandbox dist in
-        let%bind () = pack fetched tarballPath in
-        return (CachedTarball tarballPath)
-      end
-  in
-
-  RunAsync.contextf
-    fetched
-    "fetching dist: %a" Dist.pp dist
+  | Tarball {tarballPath; stripComponents;} ->
+    Tarball.unpack ~stripComponents ~dst:path tarballPath
 
 let fetchIntoCache ~cfg ~sandbox (dist : Dist.t) =
   let open RunAsync.Syntax in

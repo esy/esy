@@ -12,6 +12,7 @@ val fetchIntoCache :
 
 type fetchedDist
 
+val ofCachedTarball : Path.t -> fetchedDist
 val ofDir : Path.t -> fetchedDist
 
 val fetch :
@@ -24,3 +25,8 @@ val unpack :
   fetchedDist
   -> Path.t
   -> unit RunAsync.t
+
+val cache :
+  fetchedDist
+  -> Path.t
+  -> fetchedDist RunAsync.t
