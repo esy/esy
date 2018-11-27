@@ -682,7 +682,7 @@ let buildRoot ?quiet ?buildOnly ~cfg plan =
   | Some None
   | None -> RunAsync.return ()
 
-let buildDependencies' ?(concurrency=1) ~cfg plan id =
+let buildDependencies' ~concurrency ~buildLinked ~cfg plan id =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
 
@@ -794,9 +794,13 @@ let buildDependencies' ?(concurrency=1) ~cfg plan id =
         match PackageId.Map.find id plan.tasks with
         | Some task ->
           let%bind changes = processDependencies pkg in
-          RunAsync.contextf
-            (runIfNeeded changes task)
-            "building %a" PackageId.pp id
+          begin match buildLinked, task.pkg.source with
+          | false, Link _ -> return changes
+          | _, _ ->
+            RunAsync.contextf
+              (runIfNeeded changes task)
+              "building %a" PackageId.pp id
+          end
         | None -> RunAsync.return Changes.No
         | exception Not_found -> RunAsync.return Changes.No
       in
@@ -823,10 +827,10 @@ let buildDependencies' ?(concurrency=1) ~cfg plan id =
     let%bind _: Changes.t = processDependencies pkg in
     return ()
 
-let buildDependencies ?concurrency ~cfg plan id =
+let buildDependencies ?(concurrency=1) ~buildLinked ~cfg plan id =
   Perf.measureLwt
     ~label:"buildDependencies"
-    (fun () ->buildDependencies' ?concurrency ~cfg plan id)
+    (fun () -> buildDependencies' ~concurrency ~buildLinked ~cfg plan id)
 
 let exposeUserEnv scope =
   scope

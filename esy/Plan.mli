@@ -81,6 +81,7 @@ val buildRoot :
 
 val buildDependencies :
   ?concurrency:int
+  -> buildLinked:bool
   -> cfg:Config.t
   -> t
   -> EsyInstall.PackageId.t
