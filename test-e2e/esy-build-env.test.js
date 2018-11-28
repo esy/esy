@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const helpers = require('../test/helpers');
+const helpers = require('./test/helpers');
 const {promiseExec, packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows('#301');

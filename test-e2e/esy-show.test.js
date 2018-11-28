@@ -4,8 +4,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
 
-const helpers = require('../test/helpers');
-const fixture = require('./fixture.js');
+const helpers = require('./test/helpers');
+const fixture = require('./common/fixture.js');
 
 helpers.skipSuiteOnWindows();
 

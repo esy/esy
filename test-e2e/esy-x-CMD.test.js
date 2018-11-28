@@ -4,7 +4,7 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs-extra');
 
-const helpers = require('../test/helpers');
+const helpers = require('./test/helpers');
 const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows();

@@ -3,8 +3,8 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {createTestSandbox, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
-const fixture = require('./fixture.js');
+const {createTestSandbox, promiseExec, skipSuiteOnWindows} = require('./test/helpers');
+const fixture = require('./common/fixture.js');
 
 describe('esy build-plan', () => {
   it('shows build plan in JSON', async () => {
