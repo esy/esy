@@ -4,18 +4,18 @@ const os = require('os');
 const path = require('path');
 
 const helpers = require('../test/helpers');
-const fixture = require('./fixture.js');
 const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows();
 
 describe(`'esy build CMD' invocation`, () => {
-  function createPackage(p, name) {
+  function createPackage(p, {name, dependencies}: {name: string, dependencies?: Object}) {
     return dir(
       name,
       packageJson({
         name,
         version: '1.0.0',
+        dependencies,
         esy: {
           install: [
             'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
@@ -45,9 +45,10 @@ describe(`'esy build CMD' invocation`, () => {
           linkedDep: 'link:./linkedDep',
         },
       }),
-      createPackage(p, 'dep'),
-      createPackage(p, 'linkedDep'),
-      createPackage(p, 'devDep'),
+      createPackage(p, {name: 'dep', dependencies: {depOfDep: 'path:../depOfDep'}}),
+      createPackage(p, {name: 'depOfDep'}),
+      createPackage(p, {name: 'linkedDep'}),
+      createPackage(p, {name: 'devDep'}),
     );
     return p;
   }

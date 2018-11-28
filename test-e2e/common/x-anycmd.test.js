@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const helpers = require('../test/helpers');
-const fixture = require('./fixture.js');
 const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows();
