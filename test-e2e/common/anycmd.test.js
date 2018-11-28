@@ -9,7 +9,7 @@ const fixture = require('./fixture.js');
 
 helpers.skipSuiteOnWindows();
 
-describe('Common - anycmd', () => {
+describe(`'esy CMD' invocation`, () => {
   let prevEnv = {...process.env};
 
   async function createTestSandbox() {
@@ -32,7 +32,7 @@ describe('Common - anycmd', () => {
     });
   });
 
-  it('Make sure we can pass environment from the outside dynamically', async () => {
+  it('inherits the outside environment', async () => {
     process.env.X = '1';
     const p = await createTestSandbox();
     await expect(p.esy('bash -c "echo $X"')).resolves.toEqual({
@@ -49,7 +49,7 @@ describe('Common - anycmd', () => {
     process.env = prevEnv;
   });
 
-  it('Make sure exit code is preserved', async () => {
+  it('preserves exit code of the command it runs', async () => {
     const p = await createTestSandbox();
     await expect(p.esy("bash -c 'exit 1'")).rejects.toEqual(
       expect.objectContaining({code: 1}),
@@ -59,7 +59,7 @@ describe('Common - anycmd', () => {
     );
   });
 
-  it('Make sure we can run commands out of subdirectories', async () => {
+  it(`can be invoked from project's subdirectories`, async () => {
     const p = await createTestSandbox();
     await fs.mkdir(path.join(p.projectPath, 'subdir'));
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');
