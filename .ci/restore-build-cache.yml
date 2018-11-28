@@ -1,0 +1,43 @@
+steps:
+  # - task: DownloadBuildArtifacts@0
+  #   displayName: 'Cache: Restore source-tarballs'
+  #   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  #   inputs:
+  #       buildType: 'specific'
+  #       project: 'esy'
+  #       pipeline: 'build'
+  #       branchName: 'refs/heads/master'
+  #       buildVersionToDownload: 'latestFromBranch'
+  #       downloadType: 'single'
+  #       artifactName: 'cache-$(Agent.OS)-source-tarballs'
+  #       downloadPath: '$(System.ArtifactsDirectory)'
+  #   continueOnError: true
+
+  # - task: CopyFiles@2
+  #   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+  #   continueOnError: true
+  #   inputs:
+  #       sourceFolder: '$(System.ArtifactsDirectory)\cache-$(Agent.OS)-source-tarballs'
+  #       targetFolder: '$(ESYCI__CACHE_INSTALL)'
+
+  - task: DownloadBuildArtifacts@0
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+    displayName: 'Cache: Restore install'
+    inputs:
+        buildType: 'specific'
+        project: 'esy'
+        pipeline: 'build'
+        buildVersionToDownload: 'latestFromBranch'
+        branchName: 'refs/heads/master'
+        downloadType: 'single'
+        artifactName: 'cache-$(Agent.OS)-install'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    continueOnError: true
+
+  - task: CopyFiles@2
+    condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+    continueOnError: true
+    inputs:
+        sourceFolder: '$(System.ArtifactsDirectory)\cache-$(Agent.OS)-install'
+        targetFolder: '$(ESYCI__CACHE_BUILD)'
+

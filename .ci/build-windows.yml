@@ -5,42 +5,6 @@ steps:
     inputs:
       versionSpec: 8.x
 
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Cache: Restore source-tarballs'
-    inputs:
-        buildType: 'specific'
-        project: 'esy'
-        pipeline: 'build'
-        branchName: 'refs/heads/master'
-        buildVersionToDownload: 'latestFromBranch'
-        downloadType: 'single'
-        artifactName: 'build-cache-windows-source-tarballs'
-        downloadPath: '$(System.ArtifactsDirectory)'
-    continueOnError: true
-
-  - task: CopyFiles@2
-    inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-source-tarballs'
-        targetFolder: '$(ESYCI__CACHE_INSTALL)'
-
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Cache: Restore install'
-    inputs:
-        buildType: 'specific'
-        project: 'esy'
-        pipeline: 'build'
-        buildVersionToDownload: 'latestFromBranch'
-        branchName: 'refs/heads/master'
-        downloadType: 'single'
-        artifactName: 'build-cache-windows-install'
-        downloadPath: '$(System.ArtifactsDirectory)'
-    continueOnError: true
-
-  - task: CopyFiles@2
-    inputs:
-        sourceFolder: '$(System.ArtifactsDirectory)\build-cache-windows-install'
-        targetFolder: '$(ESYCI__CACHE_BUILD)'
-
   - script: 'npm install -g esy@0.4.3'
     displayName: 'npm install -g esy@0.4.3'
 
@@ -50,14 +14,14 @@ steps:
   - script: 'esy install'
     displayName: 'esy install'
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Cache: Upload source tarballs'
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-    inputs:
-        pathToPublish: '$(ESYCI__CACHE_INSTALL)'
-        artifactName: 'cache-$(Agent.OS)-source-tarballs'
-        parallel: true
-        parallelCount: 8
+  # - task: PublishBuildArtifacts@1
+  #   displayName: 'Cache: Upload source tarballs'
+  #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  #   inputs:
+  #       pathToPublish: '$(ESYCI__CACHE_INSTALL)'
+  #       artifactName: 'cache-$(Agent.OS)-source-tarballs'
+  #       parallel: true
+  #       parallelCount: 8
 
   - script: 'esy build'
     displayName: 'esy build'
