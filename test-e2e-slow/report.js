@@ -48,7 +48,7 @@ let writeReport = (packageInfo) => {
         reportNode.success = curr.success;
         reportNode.validationTime = curr.validationTime;
         return dup;
-    }, esyVersionNode)
+    }, esyVersionNode);
 
     platformNode[esyVersion] = newVersionNode;
 
