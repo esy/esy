@@ -301,7 +301,10 @@ let make
     finalEnv = (
       let defaultPath =
           match platform with
-          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+          | Windows -> 
+              let windir = Sys.getenv("WINDIR") ^ "/System32" in
+              let windir = Path.normalizePathSlashes windir in
+              "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ^ windir
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
       SandboxEnvironment.[
