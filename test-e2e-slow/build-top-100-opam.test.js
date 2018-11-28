@@ -7,6 +7,7 @@ const {
   ocamlVersion,
   esyPrefixPath,
 } = require('./setup.js');
+const { writeReport } = require("./report.js");
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -151,14 +152,16 @@ function shuffle(array) {
 }
 
 function selectCases(array) {
-  // Start with a subset on windows...
-  return os.platform() == 'win32' ? shuffle(array.slice(0, 10)) : shuffle(array);
+  return shuffle(array);
 }
 
 const startTime = new Date();
 const runtimeLimit = 60 * 60 * 1000;
 
 setup();
+
+let anyTestsFailed = false;
+let packageResult = [];
 
 for (let c of selectCases(cases)) {
   for (let toolchain of c.toolchains) {
@@ -201,10 +204,25 @@ for (let c of selectCases(cases)) {
       reposUpdated = true;
     }
 
-    sandbox.esy(...install);
-    sandbox.esy('build');
+    let failed = false;
+    try {
+        sandbox.esy(...install);
+        sandbox.esy('build');
+    } catch (ex) {
+        console.error(ex);
+        failed = true;
+        anyTestsFailed = true;
+    }
+
+    packageResult.push({
+        ...c,
+        validationTime: Date.now(),
+        success: !failed,
+    });
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
     sandbox.dispose();
   }
 }
+
+writeReport(packageResult);
