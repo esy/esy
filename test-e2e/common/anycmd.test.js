@@ -129,4 +129,34 @@ describe(`'esy CMD' invocation`, () => {
       expect.objectContaining({stdout: 'X\n'}),
     );
   });
+
+  it(`doesn't wait for linked packages to be built`, async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          dep: 'path:./dep',
+        },
+        resolutions: {
+          dep: 'link:./dep',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {
+            build: 'false',
+          },
+          dependencies: {},
+        }),
+      ),
+    );
+    await p.esy('install');
+    // just check that we don't faail on building 'dep'
+    await p.esy('true');
+  });
 });
