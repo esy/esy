@@ -226,3 +226,7 @@ for (let c of selectCases(cases)) {
 }
 
 writeReport(packageResult);
+
+if (anyTestsFailed) {
+    exit(1);
+}
