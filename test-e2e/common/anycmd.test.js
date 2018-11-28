@@ -12,6 +12,32 @@ helpers.skipSuiteOnWindows();
 describe(`'esy CMD' invocation`, () => {
   let prevEnv = {...process.env};
 
+  function createPackage(p, {name, dependencies}: {name: string, dependencies?: Object}) {
+    return dir(
+      name,
+      packageJson({
+        name,
+        version: '1.0.0',
+        dependencies,
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          buildEnv: {
+            [`${name}__buildvar`]: `${name}__buildvar__value`,
+          },
+          exportedEnv: {
+            [`${name}__local`]: {val: `${name}__local__value`},
+            [`${name}__global`]: {val: `${name}__global__value`, scope: 'global'},
+          },
+        },
+      }),
+
+      dummyExecutable(name),
+    );
+  }
+
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(
@@ -25,36 +51,8 @@ describe(`'esy CMD' invocation`, () => {
           devDep: 'path:./devDep',
         },
       }),
-      dir(
-        'dep',
-        packageJson({
-          name: 'dep',
-          version: '1.0.0',
-          esy: {
-            install: [
-              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
-              buildCommand(p, '#{self.bin / self.name}.js'),
-            ],
-          },
-          dependencies: {},
-        }),
-
-        dummyExecutable('dep'),
-      ),
-      dir(
-        'devDep',
-        packageJson({
-          name: 'devDep',
-          version: '1.0.0',
-          esy: {
-            install: [
-              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
-              buildCommand(p, '#{self.bin / self.name}.js'),
-            ],
-          },
-        }),
-        dummyExecutable('devDep'),
-      ),
+      createPackage(p, {name: 'dep'}),
+      createPackage(p, {name: 'devDep'}),
     );
     return p;
   }

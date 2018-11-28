@@ -21,6 +21,13 @@ describe(`'esy build CMD' invocation`, () => {
             'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
             buildCommand(p, '#{self.bin / self.name}.js'),
           ],
+          buildEnv: {
+            [`${name}__buildvar`]: `${name}__buildvar__value`,
+          },
+          exportedEnv: {
+            [`${name}__local`]: {val: `${name}__local__value`},
+            [`${name}__global`]: {val: `${name}__global__value`, scope: 'global'},
+          },
         },
       }),
 
@@ -30,10 +37,20 @@ describe(`'esy build CMD' invocation`, () => {
 
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
+    const name = 'root';
     await p.fixture(
       packageJson({
-        name: 'simple-project',
+        name,
         version: '1.0.0',
+        esy: {
+          buildEnv: {
+            [`${name}__buildvar`]: `${name}__buildvar__value`,
+          },
+          exportedEnv: {
+            [`${name}__local`]: {val: `${name}__local__value`},
+            [`${name}__global`]: {val: `${name}__global__value`, scope: 'global'},
+          },
+        },
         dependencies: {
           dep: 'path:./dep',
           linkedDep: '*',
@@ -95,6 +112,17 @@ describe(`'esy build CMD' invocation`, () => {
 
     await expect(p.esy('b dep.cmd')).resolves.toEqual({
       stdout: '__dep__' + os.EOL,
+      stderr: '',
+    });
+  });
+
+  it(`sees buildEnv of the package`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
+
+    await expect(p.esy(`b bash -c 'echo $root__buildvar'`)).resolves.toEqual({
+      stdout: 'root__buildvar__value' + os.EOL,
       stderr: '',
     });
   });
