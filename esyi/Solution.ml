@@ -6,21 +6,11 @@ module Package = struct
     id : PackageId.t;
     name: string;
     version: Version.t;
-    source: source;
+    source: Package.source;
     overrides: Package.Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   }
-
-  and source =
-    | Link of {
-        path : DistPath.t;
-        manifest : ManifestSpec.t option;
-      }
-    | Install of {
-        source : Dist.t * Dist.t list;
-        opam : OpamResolution.t option;
-      }
 
   let compare a b =
     PackageId.compare a.id b.id

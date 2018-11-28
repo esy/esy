@@ -709,9 +709,10 @@ let buildShell (copts : CommonOptions.t) packagePath () =
     let%bind () =
       Plan.buildDependencies
         ~cfg:copts.cfg
+        ~buildLinked:true
         ~concurrency:EsyRuntime.concurrency
         plan
-        task.Plan.Task.pkgId
+        task.Plan.Task.pkg.id
     in
     let p =
       Plan.shell
@@ -736,14 +737,15 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
       Plan.buildDependencies
         ~cfg:copts.cfg
         ~concurrency:EsyRuntime.concurrency
+        ~buildLinked:true
         plan
-        task.Plan.Task.pkgId
+        task.Plan.Task.pkg.id
     in
     Plan.build
       ~cfg:copts.cfg
       ~force:true
       plan
-      task.Plan.Task.pkgId
+      task.Plan.Task.pkg.id
   in
   withTask info packagePath f
 
@@ -756,6 +758,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let%bind () =
     Plan.buildDependencies
       ~cfg:copts.cfg
+      ~buildLinked:true
       ~concurrency:EsyRuntime.concurrency
       plan
       root
@@ -784,6 +787,19 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
       | Unix.WSIGNALED n -> exit n
     end
   end
+
+let buildDependencies (copts : CommonOptions.t) all () =
+  let open RunAsync.Syntax in
+  let%bind info = SandboxInfo.make copts in
+  let%bind plan = SandboxInfo.plan info in
+  let%bind solution = SandboxInfo.solution info in
+  let root = (Solution.root solution).id in
+  Plan.buildDependencies
+    ~cfg:copts.cfg
+    ~buildLinked:all
+    ~concurrency:EsyRuntime.concurrency
+    plan
+    root
 
 let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let open RunAsync.Syntax in
@@ -859,6 +875,7 @@ let sandboxEnv =
 
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
+    ~buildLinked
     ~env
     ~(copts : CommonOptions.t)
     ~info
@@ -875,9 +892,10 @@ let makeExecCommand
     then
       Plan.buildDependencies
         ~cfg:copts.cfg
+        ~buildLinked
         ~concurrency:EsyRuntime.concurrency
         plan
-        task.Plan.Task.pkgId
+        task.Plan.Task.pkg.id
     else return ()
   in
 
@@ -925,6 +943,7 @@ let exec (copts : CommonOptions.t) cmd () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind () = build ~buildOnly:false copts None () in
   makeExecCommand
+    ~buildLinked:true
     ~env:`SandboxEnv
     ~copts
     ~info
@@ -970,6 +989,7 @@ let devExec (copts : CommonOptions.t) cmd () =
   ) in
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
+    ~buildLinked:false
     ~env:`CommandEnv
     ~copts
     ~info
@@ -985,6 +1005,7 @@ let devShell copts () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   makeExecCommand
     ~env:`CommandEnv
+    ~buildLinked:false
     ~copts
     ~info
     (Cmd.v shell)
@@ -1155,7 +1176,7 @@ let lsModules copts only () =
         return []
     in
 
-    let isNotRoot = PackageId.compare task.pkgId root.id <> 0 in
+    let isNotRoot = PackageId.compare task.pkg.id root.id <> 0 in
     let constraintsSet = List.length only <> 0 in
     let noMatchedLibs = List.length (List.intersect only libs) = 0 in
 
@@ -1615,6 +1636,16 @@ let makeCommands ~sandbox () =
 
     installCommand;
     buildCommand;
+
+    makeCommand
+      ~name:"build-dependencies"
+      ~doc:"Build dependencies"
+      Term.(
+        const buildDependencies
+        $ commonOpts
+        $ Arg.(value & flag & info ["all"]  ~doc:"Build all dependencies (including linked packages)")
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~header:`No

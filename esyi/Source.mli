@@ -1,11 +1,14 @@
-type t =
-  | Dist of Dist.t
-  | Link of link
-
-and link = {
+type link = {
   path : DistPath.t;
   manifest : ManifestSpec.t option;
 }
+
+val link_to_yojson : link Json.encoder
+val link_of_yojson : link Json.decoder
+
+type t =
+  | Dist of Dist.t
+  | Link of link
 
 include S.COMMON with type t := t
 

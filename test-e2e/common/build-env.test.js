@@ -3,15 +3,74 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {createTestSandbox, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
-const fixture = require('./fixture.js');
+const helpers = require('../test/helpers');
+const {promiseExec, packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
-skipSuiteOnWindows('#301');
+helpers.skipSuiteOnWindows('#301');
 
-describe('esy build-env', () => {
+describe(`'esy build-env' command`, () => {
+  function createPackage(p, {name, dependencies}: {name: string, dependencies?: Object}) {
+    return dir(
+      name,
+      packageJson({
+        name,
+        version: '1.0.0',
+        dependencies,
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          buildEnv: {
+            [`${name}__buildvar`]: `${name}__buildvar__value`,
+          },
+          exportedEnv: {
+            [`${name}__local`]: {val: `${name}__local__value`},
+            [`${name}__global`]: {val: `${name}__global__value`, scope: 'global'},
+          },
+        },
+      }),
+
+      dummyExecutable(name),
+    );
+  }
+
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      packageJson({
+        name: 'simple-project',
+        version: '1.0.0',
+        dependencies: {
+          dep: 'path:./dep',
+          linkedDep: '*',
+        },
+        devDependencies: {
+          devDep: 'path:./devDep',
+        },
+        resolutions: {
+          linkedDep: 'link:./linkedDep',
+        },
+        esy: {
+          buildEnv: {
+            root__build: 'root__build__value',
+          },
+          exportedEnv: {
+            root__local: {val: 'root__local__value'},
+            root__global: {val: 'root__global__value', scope: 'global'},
+          },
+        },
+      }),
+      createPackage(p, {name: 'dep', dependencies: {depOfDep: 'path:../depOfDep'}}),
+      createPackage(p, {name: 'depOfDep'}),
+      createPackage(p, {name: 'linkedDep'}),
+      createPackage(p, {name: 'devDep'}),
+    );
+    return p;
+  }
+
   it('generates an environment as bash source', async () => {
     const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('install');
     await p.esy('build');
@@ -35,15 +94,14 @@ describe('esy build-env', () => {
 
   it('generates an environment in JSON', async () => {
     const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('install');
-    await p.esy('build');
 
     const env = JSON.parse((await p.esy('build-env --json')).stdout);
 
-    expect(env.cur__version).toBe('1.0.0');
     expect(env.cur__name).toBe('simple-project');
+    expect(env.cur__version).toBe('1.0.0');
+    expect(env.cur__dev).toBe('true');
     expect(env.cur__toplevel).toBeTruthy();
     expect(env.cur__target_dir).toBeTruthy();
     expect(env.cur__stublibs).toBeTruthy();
@@ -93,21 +151,28 @@ describe('esy build-env', () => {
 
   it('allows to query build env for a dep (by name)', async () => {
     const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('install');
-    await p.esy('build');
 
     const env = JSON.parse((await p.esy('build-env --json dep')).stdout);
     expect(env.cur__name).toBe('dep');
+    expect(env.cur__dev).toBe('false');
+  });
+
+  it('allows to query build env for a linked dep (by name)', async () => {
+    const p = await createTestSandbox();
+
+    await p.esy('install');
+
+    const env = JSON.parse((await p.esy('build-env --json linkedDep')).stdout);
+    expect(env.cur__name).toBe('linkedDep');
+    expect(env.cur__dev).toBe('true');
   });
 
   it('allows to query build env for a dep (by name, version)', async () => {
     const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
 
     await p.esy('install');
-    await p.esy('build');
 
     const env = JSON.parse((await p.esy('build-env --json dep@1.0.0')).stdout);
     expect(env.cur__name).toBe('dep');

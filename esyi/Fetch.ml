@@ -130,16 +130,16 @@ module PackagePaths = struct
     match sandbox.Sandbox.cfg.sourceArchivePath, pkg.Solution.Package.source with
     | None, _ ->
       None
-    | Some _, Solution.Package.Link _ ->
+    | Some _, Link _ ->
       (* has config, not caching b/c it's a link *)
       None
-    | Some sourceArchivePath, Solution.Package.Install _ ->
+    | Some sourceArchivePath, Install _ ->
       let id = key pkg in
       Some Path.(sourceArchivePath // v id |> addExt "tgz")
 
   let installPath sandbox pkg =
     match pkg.Solution.Package.source with
-    | Solution.Package.Link { path; manifest = _; } ->
+    | Link { path; manifest = _; } ->
       DistPath.toPath sandbox.Sandbox.spec.path path
     | Install _ ->
       Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)
@@ -233,7 +233,7 @@ end = struct
 
     RunAsync.contextf (
       match pkg.Solution.Package.source with
-      | Solution.Package.Link {path; _} ->
+      | Link {path; _} ->
         let path = DistPath.toPath sandbox.Sandbox.spec.path path in
         return (pkg, Linked path)
       | Install { source = main, mirrors; opam = _; } ->
@@ -371,7 +371,7 @@ end = struct
 
     let%bind filesOfOpam =
       match pkg.source with
-      | Solution.Package.Link _
+      | Link _
       | Install { opam = None; _ } -> return []
       | Install { opam = Some opam; _ } -> OpamResolution.files opam
     in

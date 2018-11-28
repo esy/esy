@@ -161,6 +161,7 @@ let make
     let%lwt () = Logs_lwt.app (fun m -> m "Building packages") in
     let%bind () =
       Plan.buildDependencies
+        ~buildLinked:true
         ~concurrency
         ~cfg
         plan

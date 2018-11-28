@@ -44,7 +44,7 @@ export type TestSandbox = {
 
   fixture: (...fixture: Fixture) => Promise<void>,
 
-  run: (args: string) => Promise<{stderr: string, stdout: string}>,
+  run: (args: string, env?: Object) => Promise<{stderr: string, stdout: string}>,
 
   cd: (where: string) => void,
 
@@ -122,10 +122,13 @@ function getStorePathForPrefix(prefix) {
   }
 }
 
+const CREATED_SANDBOXES = [];
+
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.realpath(await fs.mkdtemp(path.join(tmp, 'XXXX')));
+  CREATED_SANDBOXES.push(rootPath);
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const npmPrefixPath = path.join(rootPath, 'npm');
@@ -135,7 +138,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESY, path.join(binPath, exe('esy')));
-  await fs.copyFile(process.execPath, path.join(binPath, exe('node')));
+  await fs.symlink(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
@@ -182,8 +185,11 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     });
   }
 
-  function run(line: string) {
-    return promiseExec(line, {cwd});
+  function run(line: string, env) {
+    if (env == null) {
+      env = process.env;
+    }
+    return promiseExec(line, {cwd, env});
   }
 
   async function printEsy(cmd, options) {
@@ -237,6 +243,14 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
   };
 }
+
+afterAll(function() {
+  if (process.env.TEST_ESY_DEBUG != undefined) {
+    for (const p of CREATED_SANDBOXES) {
+      fs.removeSync(p);
+    }
+  }
+});
 
 function skipSuiteOnWindows(blockingIssues?: string) {
   if (process.platform === 'win32') {
