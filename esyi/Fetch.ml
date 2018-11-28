@@ -716,7 +716,7 @@ let fetch sandbox solution =
               ~installation
               ()
             in
-            let%bind () = Fs.writeFile ~data pnpJsPath in
+            let%bind () = Fs.writeFile ~perm:0o755 ~data pnpJsPath in
             installNodeWrapper
               ~binPath
               ~pnpJsPath
