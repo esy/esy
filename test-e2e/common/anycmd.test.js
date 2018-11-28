@@ -6,6 +6,7 @@ const os = require('os');
 
 const helpers = require('../test/helpers');
 const fixture = require('./fixture.js');
+const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows();
 
@@ -14,14 +15,55 @@ describe(`'esy CMD' invocation`, () => {
 
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
-    await p.esy('install');
-    await p.esy('build');
+    await p.fixture(
+      packageJson({
+        name: 'simple-project',
+        version: '1.0.0',
+        dependencies: {
+          dep: 'path:./dep',
+        },
+        devDependencies: {
+          devDep: 'path:./devDep',
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {
+            install: [
+              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+              buildCommand(p, '#{self.bin / self.name}.js'),
+            ],
+          },
+          dependencies: {},
+        }),
+
+        dummyExecutable('dep'),
+      ),
+      dir(
+        'devDep',
+        packageJson({
+          name: 'devDep',
+          version: '1.0.0',
+          esy: {
+            install: [
+              'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+              buildCommand(p, '#{self.bin / self.name}.js'),
+            ],
+          },
+        }),
+        dummyExecutable('devDep'),
+      ),
+    );
     return p;
   }
 
-  it('normal case works', async () => {
+  it(`can execute commands defined in sandbox dependencies`, async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
     await expect(p.esy('dep.cmd')).resolves.toEqual({
       stdout: '__dep__' + os.EOL,
       stderr: '',
@@ -32,9 +74,23 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
+  it(`can execute commands defined in sandbox dependencies, dependencies will be built`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('dep.cmd');
+  });
+
+  it(`can execute commands defined in sandbox devDependencies, devDependencies will be built`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('dep.cmd');
+  });
+
   it('inherits the outside environment', async () => {
     process.env.X = '1';
     const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
     await expect(p.esy('bash -c "echo $X"')).resolves.toEqual({
       stdout: '1\n',
       stderr: '',
@@ -51,6 +107,8 @@ describe(`'esy CMD' invocation`, () => {
 
   it('preserves exit code of the command it runs', async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
     await expect(p.esy("bash -c 'exit 1'")).rejects.toEqual(
       expect.objectContaining({code: 1}),
     );
@@ -61,6 +119,8 @@ describe(`'esy CMD' invocation`, () => {
 
   it(`can be invoked from project's subdirectories`, async () => {
     const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
     await fs.mkdir(path.join(p.projectPath, 'subdir'));
     await fs.writeFile(path.join(p.projectPath, 'subdir', 'X'), '');
 
