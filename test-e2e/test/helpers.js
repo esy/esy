@@ -44,7 +44,7 @@ export type TestSandbox = {
 
   fixture: (...fixture: Fixture) => Promise<void>,
 
-  run: (args: string) => Promise<{stderr: string, stdout: string}>,
+  run: (args: string, env?: Object) => Promise<{stderr: string, stdout: string}>,
 
   cd: (where: string) => void,
 
@@ -185,8 +185,11 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     });
   }
 
-  function run(line: string) {
-    return promiseExec(line, {cwd});
+  function run(line: string, env) {
+    if (env == null) {
+      env = process.env;
+    }
+    return promiseExec(line, {cwd, env});
   }
 
   async function printEsy(cmd, options) {
