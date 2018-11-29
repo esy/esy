@@ -308,31 +308,41 @@ let make'
   let root = Solution.root solution in
   let tasks = ref PackageId.Map.empty in
 
-  let rec visit pkg =
+  let updateSeen seen pkg =
+    match List.find_opt ~f:(fun p -> Package.compare p pkg = 0) seen with
+    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" Package.pp pkg
+    | None -> return (pkg::seen)
+  in
+
+  let rec visit seen pkg =
     let id = pkg.Package.id in
     match PackageId.Map.find_opt id !tasks with
     | Some None -> return None
-    | Some (Some build) -> return (Some build)
+    | Some (Some build) ->
+      let%bind _ : Package.t list = updateSeen seen pkg in
+      return (Some build)
     | None ->
-      match PackageId.Map.find_opt id manifests with
+      begin match PackageId.Map.find_opt id manifests with
       | Some manifest ->
-        let%bind build =
-          Run.contextf
-            (visit' id pkg manifest)
-            "processing %a" PackageId.pp id
-        in
-        return (Some build)
+        let%bind seen = updateSeen seen pkg in
+        Run.contextf (
+          let%bind build = visit' seen id pkg manifest in
+          return (Some build)
+        ) "processing %a" PackageId.pp id
       | None -> return None
+      end
 
-  and visit' pkgId pkg build =
+  and visit' seen pkgId pkg build =
     let location = Installation.findExn pkgId installation in
 
     let%bind dependencies =
+      let dependencies = Solution.allDependenciesBFS pkg solution in
       let f (direct, pkg) =
-        let%bind build = visit pkg in
+        let%bind build = visit seen pkg in
         return (direct, build)
       in
-      Result.List.map ~f (Solution.allDependenciesBFS pkg solution)
+      let%bind dependencies = Result.List.map ~f dependencies in
+      return (List.rev dependencies)
     in
 
     Logs.debug (fun m -> m "plan %a" Package.pp pkg);
@@ -511,7 +521,7 @@ let make'
 
   let visitAndIgnore id =
     let pkg = Solution.getExn id solution in
-    let%bind (_ : Task.t option) = visit pkg in
+    let%bind (_ : Task.t option) = visit [] pkg in
     return ()
   in
 

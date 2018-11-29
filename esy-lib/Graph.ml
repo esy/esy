@@ -113,7 +113,8 @@ module Make (Node : GRAPH_NODE) : GRAPH
       enqueue true (traverse node);
       process (Node.Id.Set.empty, [])
     in
-    dependencies
+
+    List.rev dependencies
 
   let find f graph =
     let f id =

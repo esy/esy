@@ -17,11 +17,15 @@ const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
 const outdent = require('outdent');
+const pkgJson = require('../../package.json');
 
 const isWindows = process.platform === 'win32';
 
 const getWindowsSystemDirectory = () => {
-    return path.join(process.env["windir"], "System32").split("\\").join("/");
+  return path
+    .join(process.env['windir'], 'System32')
+    .split('\\')
+    .join('/');
 };
 
 const ESY = isWindows
@@ -309,4 +313,5 @@ module.exports = {
   dummyExecutable,
   buildCommand,
   buildCommandInOpam,
+  esyVersion: pkgJson.version,
 };
