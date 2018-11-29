@@ -20,6 +20,10 @@ const outdent = require('outdent');
 
 const isWindows = process.platform === 'win32';
 
+const getWindowsSystemDirectory = () => {
+    return path.join(process.env("windir"), "System32").split("\\").join("/");
+};
+
 const ESY = isWindows
   ? require.resolve('../../bin/esy.cmd')
   : require.resolve('../../bin/esy');
@@ -286,6 +290,7 @@ module.exports = {
   readFile: fs.readFile,
   execFile: exec.execFile,
   createTestSandbox,
+  getWindowsSystemDirectory,
   isWindows,
   dummyExecutable,
   buildCommand,

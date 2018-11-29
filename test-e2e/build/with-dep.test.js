@@ -30,10 +30,7 @@ function makeFixture(p, buildDep) {
 
 describe('Build with dep', () => {
 
-  let winsysDir = 
-        process.platform === "win32" ?  
-        [path.join(process.env["windir"], "System32").split("\\").join("/")]
-        : [];
+  let winsysDir = process.platform === "win32" ? [helpers.getWindowsSystemDirectory()] : [];
 
   async function checkDepIsInEnv(p) {
     {
