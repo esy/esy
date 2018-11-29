@@ -128,6 +128,9 @@ describe(`'esy x CMD' invocation`, () => {
       stdout: '__root__' + os.EOL,
     });
 
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await fs.writeFile(
       path.join(p.projectPath, 'root.js'),
       'console.log("__CHANGED__");',
@@ -145,6 +148,9 @@ describe(`'esy x CMD' invocation`, () => {
     await expect(p.esy('x linkedDep.cmd')).resolves.toMatchObject({
       stdout: '__linkedDep__' + os.EOL,
     });
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await fs.writeFile(
       path.join(p.projectPath, 'linkedDep', 'linkedDep.js'),
