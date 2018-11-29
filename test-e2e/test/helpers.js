@@ -17,11 +17,15 @@ const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
 const outdent = require('outdent');
+const pkgJson = require('../../package.json');
 
 const isWindows = process.platform === 'win32';
 
 const getWindowsSystemDirectory = () => {
-    return path.join(process.env["windir"], "System32").split("\\").join("/");
+  return path
+    .join(process.env['windir'], 'System32')
+    .split('\\')
+    .join('/');
 };
 
 const ESY = isWindows
@@ -158,28 +162,35 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return JSON.parse(p.stdout);
   }
 
-  function esy(args, options) {
-    options = options || {};
-    let env = {
-      ...process.env,
-      PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
-    };
-    if (options.env != null) {
-      env = {...env, ...options.env};
-    }
-    if (!options.noEsyPrefix) {
-      env = {
-        ...env,
-        ESY__PREFIX: esyPrefixPath,
-        ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
-        ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
-        ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
-        NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+  async function esy(args, options) {
+    const p = Promise.resolve().then(() => {
+      options = options || {};
+      let env = {
+        ...process.env,
+        PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
       };
-    }
+      if (options.env != null) {
+        env = {...env, ...options.env};
+      }
+      if (!options.noEsyPrefix) {
+        env = {
+          ...env,
+          ESY__PREFIX: esyPrefixPath,
+          ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
+          ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
+          ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
+          NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+        };
+      }
 
-    const execCommand = args != null ? `${ESY} ${args}` : ESY;
-    return promiseExec(execCommand, {cwd, env});
+      const execCommand = args != null ? `${ESY} ${args}` : ESY;
+      return promiseExec(execCommand, {cwd, env});
+    });
+    return p.catch(err => {
+      err.stdout = normalizeEOL(err.stdout);
+      err.stderr = normalizeEOL(err.stderr);
+      throw err;
+    });
   }
 
   function npm(args: string) {
@@ -284,7 +295,12 @@ function buildCommandInOpam(input: string) {
   return `[${node} ${genWrapper} ${JSON.stringify(input)}]`;
 }
 
+function normalizeEOL(string: string) {
+  return string.replace(/(\r\n)|\r/g, '\n');
+}
+
 module.exports = {
+  normalizeEOL,
   promiseExec,
   file: FixtureUtils.file,
   symlink: FixtureUtils.symlink,
@@ -309,4 +325,5 @@ module.exports = {
   dummyExecutable,
   buildCommand,
   buildCommandInOpam,
+  esyVersion: pkgJson.version,
 };
