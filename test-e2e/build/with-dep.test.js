@@ -29,6 +29,9 @@ function makeFixture(p, buildDep) {
 }
 
 describe('Build with dep', () => {
+
+  let winsysDir = process.platform === "win32" ? [path.join(process.env["windir"], "System32")] : [];
+
   async function checkDepIsInEnv(p) {
     {
       const {stdout} = await p.esy('dep.cmd');
@@ -102,6 +105,7 @@ describe('Build with dep', () => {
             `/bin`,
             `/usr/sbin`,
             `/sbin`,
+            ...winsysDir,
           ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
@@ -132,7 +136,7 @@ describe('Build with dep', () => {
           cur__etc: `${p.esyStorePath}/s/${depId}/etc`,
           cur__doc: `${p.esyStorePath}/s/${depId}/doc`,
           cur__bin: `${p.esyStorePath}/s/${depId}/bin`,
-          PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
+          PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`, ...winsysDir].join(
             path.delimiter,
           ),
           OCAMLFIND_LDCONF: `ignore`,
