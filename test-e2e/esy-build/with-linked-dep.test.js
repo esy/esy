@@ -81,16 +81,18 @@ describe('Build with a linked dep', () => {
     test.enableIf(isMacos)(
       'macos: build-env snapshot',
       withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }),
     );
 
     test.enableIf(isMacos)(
       'macos: build-env dep snapshot',
       withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }),
     );
   });

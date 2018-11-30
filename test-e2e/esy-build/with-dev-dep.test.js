@@ -152,14 +152,9 @@ describe('devDep workflow', () => {
 
   test.enableIf(isMacos)('macos: build-env snapshot', async function() {
     const p = await createTestSandbox();
+    const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const {stdout} = await p.esy('build-env');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
-  });
-
-  test.enableIf(isMacos)('macos: build-env --json snapshot', async function() {
-    const p = await createTestSandbox();
-    const {stdout} = await p.esy('build-env --json');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
   });
 
   test('build-env dep', async function() {
@@ -192,14 +187,9 @@ describe('devDep workflow', () => {
 
   test.enableIf(isMacos)('macos: build-env dep snapshot', async function() {
     const p = await createTestSandbox();
+    const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
     const {stdout} = await p.esy('build-env dep');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
-  });
-
-  test.enableIf(isMacos)('macos: build-env --json dep snapshot', async function() {
-    const p = await createTestSandbox();
-    const {stdout} = await p.esy('build-env --json dep');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
   });
 
   test('build-env devDep', async function() {
@@ -232,14 +222,9 @@ describe('devDep workflow', () => {
 
   test.enableIf(isMacos)('macos: build-env devDep snapshot', async function() {
     const p = await createTestSandbox();
+    const id = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
     const {stdout} = await p.esy('build-env devDep');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
-  });
-
-  test.enableIf(isMacos)('macos: build-env --json devDep snapshot', async function() {
-    const p = await createTestSandbox();
-    const {stdout} = await p.esy('build-env --json devDep');
-    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
   });
 
   test('sandbox-env', async function() {

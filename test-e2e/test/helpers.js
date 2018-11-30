@@ -241,11 +241,19 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   const projectPathRe = new RegExp(escapeForRegexp(projectPath), 'g');
   const esyPrefixPathRe = new RegExp(escapeForRegexp(esyPrefixPath), 'g');
+  const esyStorePathRe = new RegExp(escapeForRegexp(esyStorePath), 'g');
 
   function normalizePathsForSnapshot(data, replacements) {
     data = data
       .replace(projectPathRe, '%projectPath%')
+      .replace(esyStorePathRe, '%esyStorePath%')
       .replace(esyPrefixPathRe, '%esyPrefixPath%');
+    for (let to in replacements) {
+      data = data.replace(
+        new RegExp(escapeForRegexp(replacements[to]), 'g'),
+        '%' + to + '%',
+      );
+    }
     return data;
   }
 

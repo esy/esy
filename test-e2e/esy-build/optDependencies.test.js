@@ -60,13 +60,15 @@ describe('Build with optDependencies', () => {
       await p.esy('install');
 
       {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
 
       {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
     });
   });
@@ -122,13 +124,15 @@ describe('Build with optDependencies', () => {
       const p = await createTestSandbox();
       await p.esy('install');
       {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
 
       {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
     });
   });

@@ -118,16 +118,9 @@ describe('Build with dep', () => {
     test.enableIf(isMacos)(
       'macos: build-env snapshot',
       withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
-      }),
-    );
-
-    test.enableIf(isMacos)(
-      'macos: build-env --json snapshot',
-      withProject(async function(p) {
-        const {stdout} = await p.esy('build-env --json');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
       }),
     );
 
@@ -172,16 +165,9 @@ describe('Build with dep', () => {
     test.enableIf(isMacos)(
       'macos: build-env dep snapshot',
       withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
-      }),
-    );
-
-    test.enableIf(isMacos)(
-      'macos: build-env --json dep snapshot',
-      withProject(async function(p) {
-        const {stdout} = await p.esy('build-env dep --json');
-        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
       }),
     );
 
