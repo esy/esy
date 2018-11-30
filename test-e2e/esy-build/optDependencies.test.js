@@ -1,6 +1,7 @@
 // @flow
 
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos, isLinux} = helpers;
 
 function makePackage(p, {name, build, dependencies, optDependencies}, ...children) {
   return [
@@ -18,79 +19,135 @@ function makePackage(p, {name, build, dependencies, optDependencies}, ...childre
 }
 
 describe('Build with optDependencies', () => {
-  it('builds w/o opt dependency installed', async () => {
-    const p = await helpers.createTestSandbox();
+  describe('builds w/o opt dependency installed', () => {
+    async function createTestSandbox() {
+      const p = await helpers.createTestSandbox();
 
-    await p.fixture(
-      ...makePackage(
-        p,
-        {
-          name: 'root',
-          build: 'true',
-          dependencies: {
-            dep: 'path:./dep',
-          },
-          optDependencies: {},
-        },
-        helpers.dir(
-          'dep',
-          ...makePackage(p, {
-            name: 'dep',
-            build: 'optDep.installed #{optDep.installed}',
-            dependencies: {},
-            optDependencies: {optDep: '*'},
-          }),
-        ),
-      ),
-    );
-
-    await p.esy('install');
-    const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
-    expect(plan.build).toEqual([['optDep.installed', 'false']]);
-  });
-
-  it('builds w/ opt dependency installed', async () => {
-    const p = await helpers.createTestSandbox();
-
-    await p.fixture(
-      ...makePackage(
-        p,
-        {
-          name: 'root',
-          build: 'true',
-          dependencies: {
-            dep: 'path:./dep',
-            optDep: 'path:./optDep',
-          },
-          optDependencies: {},
-        },
-        helpers.dir(
-          'dep',
-          ...makePackage(p, {
-            name: 'dep',
-            build: 'optDep.installed #{optDep.installed}',
-            dependencies: {},
-            optDependencies: {optDep: '*'},
-          }),
-        ),
-        helpers.dir(
-          'optDep',
-          ...makePackage(p, {
-            name: 'optDep',
+      await p.fixture(
+        ...makePackage(
+          p,
+          {
+            name: 'root',
             build: 'true',
-            dependencies: {},
+            dependencies: {
+              dep: 'path:./dep',
+            },
             optDependencies: {},
-          }),
+          },
+          helpers.dir(
+            'dep',
+            ...makePackage(p, {
+              name: 'dep',
+              build: 'optDep.installed #{optDep.installed}',
+              dependencies: {},
+              optDependencies: {optDep: '*'},
+            }),
+          ),
         ),
-      ),
-    );
+      );
+      return p;
+    }
 
-    await p.esy('install');
-    const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
-    expect(plan.build).toEqual([['optDep.installed', 'true']]);
+    test('check build-plan', async () => {
+      const p = await createTestSandbox();
+      await p.esy('install');
+      const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+      expect(plan.build).toEqual([['optDep.installed', 'false']]);
+    });
+
+    test.enableIf(isMacos || isLinux)('snapshot build-env', async () => {
+      const p = await createTestSandbox();
+      await p.esy('install');
+
+      {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
+        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
+        const {stdout} = await p.esy('build-env');
+        expect(
+          p.normalizePathsForSnapshot(stdout, {id, depid, optdepid}),
+        ).toMatchSnapshot();
+      }
+
+      {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
+        const {stdout} = await p.esy('build-env dep');
+        expect(p.normalizePathsForSnapshot(stdout, {id, optdepid})).toMatchSnapshot();
+      }
+    });
   });
 
-  it('opam package builds w/ opt dependency installed', async () => {
+  describe('builds w/ opt dependency installed', () => {
+    async function createTestSandbox() {
+      const p = await helpers.createTestSandbox();
+
+      await p.fixture(
+        ...makePackage(
+          p,
+          {
+            name: 'root',
+            build: 'true',
+            dependencies: {
+              dep: 'path:./dep',
+              optDep: 'path:./optDep',
+            },
+            optDependencies: {},
+          },
+          helpers.dir(
+            'dep',
+            ...makePackage(p, {
+              name: 'dep',
+              build: 'optDep.installed #{optDep.installed}',
+              dependencies: {},
+              optDependencies: {optDep: '*'},
+            }),
+          ),
+          helpers.dir(
+            'optDep',
+            ...makePackage(p, {
+              name: 'optDep',
+              build: 'true',
+              dependencies: {},
+              optDependencies: {},
+            }),
+          ),
+        ),
+      );
+
+      return p;
+    }
+
+    test('check build-plan', async () => {
+      const p = await createTestSandbox();
+      await p.esy('install');
+      const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+      expect(plan.build).toEqual([['optDep.installed', 'true']]);
+    });
+
+    test.enableIf(isMacos || isLinux)('snapshot build-env', async () => {
+      const p = await createTestSandbox();
+      await p.esy('install');
+      {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
+        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
+        const {stdout} = await p.esy('build-env');
+        expect(
+          p.normalizePathsForSnapshot(stdout, {id, depid, optdepid}),
+        ).toMatchSnapshot();
+      }
+
+      {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
+        const {stdout} = await p.esy('build-env dep');
+        expect(p.normalizePathsForSnapshot(stdout, {id, optdepid})).toMatchSnapshot();
+      }
+    });
+  });
+
+  test('opam package builds w/ opt dependency installed', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.defineNpmPackage({
@@ -145,7 +202,7 @@ describe('Build with optDependencies', () => {
     ]);
   });
 
-  it('opam package builds w/o opt dependency installed', async () => {
+  test('opam package builds w/o opt dependency installed', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.defineNpmPackage({
