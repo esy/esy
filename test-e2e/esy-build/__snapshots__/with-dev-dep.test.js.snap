@@ -70,10 +70,10 @@ exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 #
 # dep@1.0.0
 #
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/dep-e7448809/stublibs:%esyStorePath%/i/dep-e7448809/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/dep-e7448809/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/dep-e7448809/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/dep-e7448809/bin:$PATH\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
 # withDevDep@1.0.0

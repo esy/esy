@@ -39,10 +39,10 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 #
 # dep@1.0.0
 #
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/dep-cb7685c8/stublibs:%esyStorePath%/i/dep-cb7685c8/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/dep-cb7685c8/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/dep-cb7685c8/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/dep-cb7685c8/bin:$PATH\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
 # withDep@1.0.0
