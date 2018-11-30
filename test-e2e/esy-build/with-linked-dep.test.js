@@ -7,6 +7,7 @@ const open = promisify(fs.open);
 const close = promisify(fs.close);
 
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos} = helpers;
 
 function makeFixture(p, buildDep) {
   return [
@@ -76,6 +77,22 @@ describe('Build with a linked dep', () => {
     }
 
     it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
+
+    test.enableIf(isMacos)(
+      'macos: build-env snapshot',
+      withProject(async function(p) {
+        const {stdout} = await p.esy('build-env');
+        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+      }),
+    );
+
+    test.enableIf(isMacos)(
+      'macos: build-env dep snapshot',
+      withProject(async function(p) {
+        const {stdout} = await p.esy('build-env dep');
+        expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+      }),
+    );
   });
 
   describe('in source build', () => {

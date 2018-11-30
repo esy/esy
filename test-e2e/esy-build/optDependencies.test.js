@@ -47,6 +47,16 @@ describe('Build with optDependencies', () => {
     await p.esy('install');
     const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
     expect(plan.build).toEqual([['optDep.installed', 'false']]);
+
+    {
+      const {stdout} = await p.esy('build-env');
+      expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    }
+
+    {
+      const {stdout} = await p.esy('build-env dep');
+      expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    }
   });
 
   it('builds w/ opt dependency installed', async () => {
@@ -88,6 +98,16 @@ describe('Build with optDependencies', () => {
     await p.esy('install');
     const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
     expect(plan.build).toEqual([['optDep.installed', 'true']]);
+
+    {
+      const {stdout} = await p.esy('build-env');
+      expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    }
+
+    {
+      const {stdout} = await p.esy('build-env dep');
+      expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+    }
   });
 
   it('opam package builds w/ opt dependency installed', async () => {

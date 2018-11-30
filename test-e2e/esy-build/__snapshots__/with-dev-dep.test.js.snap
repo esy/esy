@@ -1,0 +1,230 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`devDep workflow macos: build-env --json dep snapshot 1`] = `
+"{
+  \\"cur__version\\": \\"1.0.0\\",
+  \\"cur__toplevel\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/toplevel\\",
+  \\"cur__target_dir\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/b/dep-e7448809\\",
+  \\"cur__stublibs\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/stublibs\\",
+  \\"cur__share\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/share\\",
+  \\"cur__sbin\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/sbin\\",
+  \\"cur__root\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/b/dep-e7448809\\",
+  \\"cur__original_root\\":
+    \\"%esyPrefixPath%/esyi/source/i/dep--67b360d9a56facfd6fc9b90817f589ec\\",
+  \\"cur__name\\": \\"dep\\",
+  \\"cur__man\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/man\\",
+  \\"cur__lib\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/lib\\",
+  \\"cur__install\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809\\",
+  \\"cur__etc\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/etc\\",
+  \\"cur__doc\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/doc\\",
+  \\"cur__dev\\": \\"false\\",
+  \\"cur__bin\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/bin\\",
+  \\"SHELL\\": \\"env -i /bin/bash --norc --noprofile\\",
+  \\"PATH\\": \\":/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\",
+  \\"OCAMLFIND_LDCONF\\": \\"ignore\\",
+  \\"OCAMLFIND_DESTDIR\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/lib\\"
+}"
+`;
+
+exports[`devDep workflow macos: build-env --json devDep snapshot 1`] = `
+"{
+  \\"cur__version\\": \\"1.0.0\\",
+  \\"cur__toplevel\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/toplevel\\",
+  \\"cur__target_dir\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/b/devdep-a0236b3a\\",
+  \\"cur__stublibs\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/stublibs\\",
+  \\"cur__share\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/share\\",
+  \\"cur__sbin\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/sbin\\",
+  \\"cur__root\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/b/devdep-a0236b3a\\",
+  \\"cur__original_root\\":
+    \\"%esyPrefixPath%/esyi/source/i/devdep--6e88dff5673a130a450ce61f64675503\\",
+  \\"cur__name\\": \\"devDep\\",
+  \\"cur__man\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/man\\",
+  \\"cur__lib\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/lib\\",
+  \\"cur__install\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a\\",
+  \\"cur__etc\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/etc\\",
+  \\"cur__doc\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/doc\\",
+  \\"cur__dev\\": \\"false\\",
+  \\"cur__bin\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/bin\\",
+  \\"SHELL\\": \\"env -i /bin/bash --norc --noprofile\\",
+  \\"PATH\\": \\":/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\",
+  \\"OCAMLFIND_LDCONF\\": \\"ignore\\",
+  \\"OCAMLFIND_DESTDIR\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/lib\\"
+}"
+`;
+
+exports[`devDep workflow macos: build-env --json snapshot 1`] = `
+"{
+  \\"cur__version\\": \\"1.0.0\\",
+  \\"cur__toplevel\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/toplevel\\",
+  \\"cur__target_dir\\":
+    \\"%projectPath%/_esy/default/store/b/withdevdep-f5ff937d\\",
+  \\"cur__stublibs\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/stublibs\\",
+  \\"cur__share\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/share\\",
+  \\"cur__sbin\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/sbin\\",
+  \\"cur__root\\": \\"%projectPath%\\",
+  \\"cur__original_root\\": \\"%projectPath%\\",
+  \\"cur__name\\": \\"withDevDep\\",
+  \\"cur__man\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/man\\",
+  \\"cur__lib\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/lib\\",
+  \\"cur__install\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d\\",
+  \\"cur__etc\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/etc\\",
+  \\"cur__doc\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/doc\\",
+  \\"cur__dev\\": \\"true\\",
+  \\"cur__bin\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/bin\\",
+  \\"SHELL\\": \\"env -i /bin/bash --norc --noprofile\\",
+  \\"PATH\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/bin::/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\",
+  \\"OCAMLPATH\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/lib:\\",
+  \\"OCAMLFIND_LDCONF\\": \\"ignore\\",
+  \\"OCAMLFIND_DESTDIR\\":
+    \\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/lib\\",
+  \\"MAN_PATH\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/man:\\",
+  \\"DUNE_BUILD_DIR\\":
+    \\"%projectPath%/_esy/default/store/b/withdevdep-f5ff937d\\",
+  \\"CAML_LD_LIBRARY_PATH\\":
+    \\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/stublibs:%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/lib/stublibs:\\"
+}"
+`;
+
+exports[`devDep workflow macos: build-env dep snapshot 1`] = `
+"# Build environment for dep@path:dep
+
+#
+# dep@1.0.0
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/lib\\"
+export cur__etc=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/etc\\"
+export cur__share=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/share\\"
+export cur__toplevel=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/toplevel\\"
+export cur__stublibs=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/stublibs\\"
+export cur__doc=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/doc\\"
+export cur__man=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/man\\"
+export cur__lib=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/lib\\"
+export cur__sbin=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/sbin\\"
+export cur__bin=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809/bin\\"
+export cur__install=\\"%esyPrefixPath%/3_________________________________________________________/s/dep-e7448809\\"
+export cur__target_dir=\\"%esyPrefixPath%/3_________________________________________________________/b/dep-e7448809\\"
+export cur__original_root=\\"%esyPrefixPath%/esyi/source/i/dep--67b360d9a56facfd6fc9b90817f589ec\\"
+export cur__root=\\"%esyPrefixPath%/3_________________________________________________________/b/dep-e7448809\\"
+export cur__dev=\\"false\\"
+export cur__version=\\"1.0.0\\"
+export cur__name=\\"dep\\"
+
+#
+# Built-in
+#
+export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
+export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
+`;
+
+exports[`devDep workflow macos: build-env devDep snapshot 1`] = `
+"# Build environment for devDep@path:devDep
+
+#
+# devDep@1.0.0
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/lib\\"
+export cur__etc=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/etc\\"
+export cur__share=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/share\\"
+export cur__toplevel=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/toplevel\\"
+export cur__stublibs=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/stublibs\\"
+export cur__doc=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/doc\\"
+export cur__man=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/man\\"
+export cur__lib=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/lib\\"
+export cur__sbin=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/sbin\\"
+export cur__bin=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a/bin\\"
+export cur__install=\\"%esyPrefixPath%/3_________________________________________________________/s/devdep-a0236b3a\\"
+export cur__target_dir=\\"%esyPrefixPath%/3_________________________________________________________/b/devdep-a0236b3a\\"
+export cur__original_root=\\"%esyPrefixPath%/esyi/source/i/devdep--6e88dff5673a130a450ce61f64675503\\"
+export cur__root=\\"%esyPrefixPath%/3_________________________________________________________/b/devdep-a0236b3a\\"
+export cur__dev=\\"false\\"
+export cur__version=\\"1.0.0\\"
+export cur__name=\\"devDep\\"
+
+#
+# Built-in
+#
+export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
+export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
+`;
+
+exports[`devDep workflow macos: build-env snapshot 1`] = `
+"# Build environment for withDevDep@link:./package.json
+
+#
+# dep@1.0.0
+#
+export CAML_LD_LIBRARY_PATH=\\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/stublibs:%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/man:$MAN_PATH\\"
+export PATH=\\"%esyPrefixPath%/3_________________________________________________________/i/dep-e7448809/bin:$PATH\\"
+
+#
+# withDevDep@1.0.0
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/lib\\"
+export cur__etc=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/etc\\"
+export cur__share=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/share\\"
+export cur__toplevel=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/toplevel\\"
+export cur__stublibs=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/stublibs\\"
+export cur__doc=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/doc\\"
+export cur__man=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/man\\"
+export cur__lib=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/lib\\"
+export cur__sbin=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/sbin\\"
+export cur__bin=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d/bin\\"
+export cur__install=\\"%projectPath%/_esy/default/store/i/withdevdep-f5ff937d\\"
+export cur__target_dir=\\"%projectPath%/_esy/default/store/b/withdevdep-f5ff937d\\"
+export cur__original_root=\\"%projectPath%\\"
+export cur__root=\\"%projectPath%\\"
+export cur__dev=\\"true\\"
+export cur__version=\\"1.0.0\\"
+export cur__name=\\"withDevDep\\"
+export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/withdevdep-f5ff937d\\"
+
+#
+# Built-in
+#
+export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
+export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
+`;

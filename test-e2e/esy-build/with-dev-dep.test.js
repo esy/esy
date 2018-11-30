@@ -2,6 +2,7 @@
 
 const path = require('path');
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos} = helpers;
 
 helpers.skipSuiteOnWindows('Needs investigation');
 
@@ -149,6 +150,18 @@ describe('devDep workflow', () => {
     });
   });
 
+  test.enableIf(isMacos)('macos: build-env snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+  });
+
+  test.enableIf(isMacos)('macos: build-env --json snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env --json');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+  });
+
   test('build-env dep', async function() {
     const p = await createTestSandbox();
     const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
@@ -177,6 +190,18 @@ describe('devDep workflow', () => {
     });
   });
 
+  test.enableIf(isMacos)('macos: build-env dep snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env dep');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+  });
+
+  test.enableIf(isMacos)('macos: build-env --json dep snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env --json dep');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+  });
+
   test('build-env devDep', async function() {
     const p = await createTestSandbox();
     const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
@@ -203,6 +228,18 @@ describe('devDep workflow', () => {
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${devDepId}/lib`,
     });
+  });
+
+  test.enableIf(isMacos)('macos: build-env devDep snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env devDep');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
+  });
+
+  test.enableIf(isMacos)('macos: build-env --json devDep snapshot', async function() {
+    const p = await createTestSandbox();
+    const {stdout} = await p.esy('build-env --json devDep');
+    expect(p.normalizePathsForSnapshot(stdout)).toMatchSnapshot();
   });
 
   test('sandbox-env', async function() {

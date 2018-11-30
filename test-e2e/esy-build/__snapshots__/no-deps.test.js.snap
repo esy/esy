@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`'esy build': simple executable with no deps out of source build macos: build-env --json snapshot 1`] = `
+"{
+  \\"cur__version\\": \\"1.0.0\\",
+  \\"cur__toplevel\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/toplevel\\",
+  \\"cur__target_dir\\":
+    \\"%projectPath%/_esy/default/store/b/no_deps-2b5db858\\",
+  \\"cur__stublibs\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/stublibs\\",
+  \\"cur__share\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/share\\",
+  \\"cur__sbin\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/sbin\\",
+  \\"cur__root\\": \\"%projectPath%\\",
+  \\"cur__original_root\\": \\"%projectPath%\\",
+  \\"cur__name\\": \\"no-deps\\",
+  \\"cur__man\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/man\\",
+  \\"cur__lib\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/lib\\",
+  \\"cur__install\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858\\",
+  \\"cur__etc\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/etc\\",
+  \\"cur__doc\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/doc\\",
+  \\"cur__dev\\": \\"true\\",
+  \\"cur__bin\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/bin\\",
+  \\"SHELL\\": \\"env -i /bin/bash --norc --noprofile\\",
+  \\"PATH\\": \\":/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\",
+  \\"OCAMLFIND_LDCONF\\": \\"ignore\\",
+  \\"OCAMLFIND_DESTDIR\\":
+    \\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/lib\\",
+  \\"DUNE_BUILD_DIR\\":
+    \\"%projectPath%/_esy/default/store/b/no_deps-2b5db858\\"
+}"
+`;
+
+exports[`'esy build': simple executable with no deps out of source build macos: build-env snapshot 1`] = `
+"# Build environment for no-deps@link:./package.json
+
+#
+# no-deps@1.0.0
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/lib\\"
+export cur__etc=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/etc\\"
+export cur__share=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/share\\"
+export cur__toplevel=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/toplevel\\"
+export cur__stublibs=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/stublibs\\"
+export cur__doc=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/doc\\"
+export cur__man=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/man\\"
+export cur__lib=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/lib\\"
+export cur__sbin=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/sbin\\"
+export cur__bin=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858/bin\\"
+export cur__install=\\"%projectPath%/_esy/default/store/i/no_deps-2b5db858\\"
+export cur__target_dir=\\"%projectPath%/_esy/default/store/b/no_deps-2b5db858\\"
+export cur__original_root=\\"%projectPath%\\"
+export cur__root=\\"%projectPath%\\"
+export cur__dev=\\"true\\"
+export cur__version=\\"1.0.0\\"
+export cur__name=\\"no-deps\\"
+export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/no_deps-2b5db858\\"
+
+#
+# Built-in
+#
+export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
+export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
+`;
