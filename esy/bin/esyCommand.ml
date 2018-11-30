@@ -1006,8 +1006,8 @@ let buildEnv =
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let open RunAsync.Syntax in
-    let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.buildEnv copts.spec plan task) in
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind env = RunAsync.ofRun (Plan.buildEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return env
   in

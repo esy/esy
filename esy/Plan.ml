@@ -873,7 +873,7 @@ let exposeUserEnv scope =
   scope
   |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
 
-let scopeOfSpec (sandbox : Sandbox.t) id spec =
+let scopeOfSpec ~buildIsInProgress (sandbox : Sandbox.t) id spec =
   let open Run.Syntax in
 
   let getPackageById id =
@@ -963,7 +963,7 @@ let scopeOfSpec (sandbox : Sandbox.t) id spec =
           ~version:task.pkg.version
           ~sourceType:task.sourceType
           ~sourcePath:task.sourcePath
-          ~buildIsInProgress:false
+          ~buildIsInProgress
           task.manifest
       )
   in
@@ -988,9 +988,9 @@ let scopeOfSpec (sandbox : Sandbox.t) id spec =
 
   return scope
 
-let env ~includeCurrentEnv ~includeBuildEnv ~includeNpmBin sandbox id spec =
+let env ~buildIsInProgress ~includeCurrentEnv ~includeBuildEnv ~includeNpmBin sandbox id spec =
   let open Run.Syntax in
-  let%bind scope = scopeOfSpec sandbox id spec in
+  let%bind scope = scopeOfSpec ~buildIsInProgress sandbox id spec in
   let%bind env =
     let scope =
       if includeCurrentEnv
@@ -1011,11 +1011,21 @@ let env ~includeCurrentEnv ~includeBuildEnv ~includeNpmBin sandbox id spec =
   in
   return env
 
-let buildEnv _sandbox _plan task =
-  Scope.env ~includeBuildEnv:true task.Task.buildScope
+let buildEnv sandbox id =
+  env
+    ~buildIsInProgress:true
+    ~includeCurrentEnv:false
+    ~includeBuildEnv:true
+    ~includeNpmBin:false
+    sandbox
+    id
+    ExecSpec.(
+      dependencies id
+    )
 
 let commandEnv sandbox id =
   env
+    ~buildIsInProgress:false
     ~includeCurrentEnv:true
     ~includeBuildEnv:true
     ~includeNpmBin:true
@@ -1027,6 +1037,7 @@ let commandEnv sandbox id =
 
 let execEnv sandbox id =
   env
+    ~buildIsInProgress:false
     ~includeCurrentEnv:true
     ~includeBuildEnv:false
     ~includeNpmBin:true

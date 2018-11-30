@@ -104,17 +104,6 @@ val isBuilt :
   -> Task.t
   -> bool RunAsync.t
 
-module ExecSpec : EsyInstall.DepSpec.DEPSPEC with type id = EsyInstall.PackageId.t
-
-val env :
-  includeCurrentEnv:bool
-  -> includeBuildEnv:bool
-  -> includeNpmBin:bool
-  -> Sandbox.t
-  -> EsyInstall.PackageId.t
-  -> ExecSpec.t
-  -> Scope.SandboxEnvironment.Bindings.t Run.t
-
 val commandEnv :
   Sandbox.t
   -> EsyInstall.PackageId.t
@@ -125,7 +114,10 @@ val execEnv :
   -> EsyInstall.PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
-val buildEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
+val buildEnv :
+  Sandbox.t
+  -> EsyInstall.PackageId.t
+  -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
   cfg:Config.t
