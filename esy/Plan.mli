@@ -120,8 +120,12 @@ val commandEnv :
   -> EsyInstall.PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
+val execEnv :
+  Sandbox.t
+  -> EsyInstall.PackageId.t
+  -> Scope.SandboxEnvironment.Bindings.t Run.t
+
 val buildEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
-val execEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
   cfg:Config.t

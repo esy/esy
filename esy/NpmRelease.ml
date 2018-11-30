@@ -191,7 +191,7 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox.cfg.spec plan rootTask) in
+    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox rootTask.pkg.id) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 

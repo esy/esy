@@ -873,16 +873,6 @@ let exposeUserEnv scope =
   scope
   |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
 
-let exposeDevDependenciesEnv plan task scope =
-  let pkg = Solution.getExn task.Task.pkg.id plan.solution in
-  let f id scope =
-    match PackageId.Map.find_opt id plan.tasks with
-    | Some (Some task) -> Scope.add ~direct:true ~dep:task.Task.exportedScope scope
-    | Some None
-    | None -> scope
-  in
-  PackageId.Set.fold f pkg.Package.devDependencies scope
-
 let scopeOfSpec (sandbox : Sandbox.t) id spec =
   let open Run.Syntax in
 
@@ -1035,12 +1025,16 @@ let commandEnv sandbox id =
       dependencies id + devDependencies id
     )
 
-let execEnv _sandbox plan task =
-  task.Task.buildScope
-  |> exposeUserEnv
-  |> exposeDevDependenciesEnv plan task
-  |> Scope.add ~direct:true ~dep:task.Task.exportedScope
-  |> Scope.env ~includeBuildEnv:false
+let execEnv sandbox id =
+  env
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:false
+    ~includeNpmBin:true
+    sandbox
+    id
+    ExecSpec.(
+      package id + dependencies id + devDependencies id
+    )
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in

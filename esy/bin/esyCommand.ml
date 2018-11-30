@@ -1036,8 +1036,8 @@ let sandboxEnv =
       task.name Version.pp task.version
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
-    let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.execEnv copts.spec plan task) in
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind env = RunAsync.ofRun (Plan.execEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return (Environment.current @ env)
   in
@@ -1070,11 +1070,14 @@ let makeExecCommand
   in
 
   let%bind env =
-    match env with
-    | `CommandEnv ->
-      let%bind sandbox = SandboxInfo.sandbox info in
-      RunAsync.ofRun (Plan.commandEnv sandbox task.Plan.Task.pkg.id)
-    | `SandboxEnv -> RunAsync.ofRun (Plan.execEnv copts.spec plan task)
+    let%bind sandbox = SandboxInfo.sandbox info in
+    RunAsync.ofRun (
+      match env with
+      | `CommandEnv ->
+        Plan.commandEnv sandbox task.Plan.Task.pkg.id
+      | `SandboxEnv ->
+        Plan.execEnv sandbox task.Plan.Task.pkg.id
+    )
   in
 
   let%bind env = RunAsync.ofStringError (
