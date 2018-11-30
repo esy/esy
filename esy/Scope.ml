@@ -308,7 +308,7 @@ let make
     finalEnv = (
       let defaultPath =
           match platform with
-          | Windows -> 
+          | Windows ->
               let windir = Sys.getenv("WINDIR") ^ "/System32" in
               let windir = Path.normalizePathSlashes windir in
               "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ^ windir

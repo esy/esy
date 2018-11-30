@@ -1,3 +1,22 @@
+module Sandbox : sig
+  type t = {
+    cfg : Config.t;
+    platform : System.Platform.t;
+    sandboxEnv : BuildManifest.Env.t;
+    solution : EsyInstall.Solution.t;
+    installation : EsyInstall.Installation.t;
+    manifests : BuildManifest.t EsyInstall.PackageId.Map.t;
+  }
+
+  val make :
+    ?platform:System.Platform.t
+    -> ?sandboxEnv:BuildManifest.Env.t
+    -> Config.t
+    -> EsyInstall.Solution.t
+    -> EsyInstall.Installation.t
+    -> (t * Fpath.set) RunAsync.t
+end
+
 module Task : sig
   type t = {
     id : string;
@@ -13,6 +32,7 @@ module Task : sig
     buildScope : Scope.t;
     exportedScope : Scope.t;
     platform : System.Platform.t;
+    manifest : BuildManifest.t;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -38,15 +58,7 @@ val findTaskByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
 val rootTask : t -> Task.t
 val allTasks : t -> Task.t list
 
-val make :
-  ?forceImmutable : bool
-  -> ?platform : System.Platform.t
-  -> cfg : Config.t
-  -> sandboxEnv : BuildManifest.Env.item StringMap.t
-  -> solution : EsyInstall.Solution.t
-  -> installation : EsyInstall.Installation.t
-  -> unit
-  -> (t * FileInfo.t list) RunAsync.t
+val make : ?forceImmutable : bool -> Sandbox.t -> t Run.t
 
 val shell :
   cfg:Config.t
@@ -92,8 +104,23 @@ val isBuilt :
   -> Task.t
   -> bool RunAsync.t
 
+module ExecSpec : EsyInstall.DepSpec.DEPSPEC with type id = EsyInstall.PackageId.t
+
+val env :
+  includeCurrentEnv:bool
+  -> includeBuildEnv:bool
+  -> includeNpmBin:bool
+  -> Sandbox.t
+  -> EsyInstall.PackageId.t
+  -> ExecSpec.t
+  -> Scope.SandboxEnvironment.Bindings.t Run.t
+
+val commandEnv :
+  Sandbox.t
+  -> EsyInstall.PackageId.t
+  -> Scope.SandboxEnvironment.Bindings.t Run.t
+
 val buildEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
-val commandEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 val execEnv : EsyInstall.SandboxSpec.t -> t -> Task.t -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :

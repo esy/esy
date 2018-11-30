@@ -112,18 +112,14 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   |} environmentString bin bin
 
 let make
-  ~sandboxEnv
-  ~solution
-  ~installation
   ~ocamlopt
   ~outputPath
   ~concurrency
-  ~(cfg : Config.t)
-  () =
+  (sandbox : Plan.Sandbox.t) =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
-  let%bind releaseCfg = configure ~cfg () in
+  let%bind releaseCfg = configure ~cfg:sandbox.cfg () in
 
   (*
     * Construct a task tree with all tasks marked as immutable. This will make
@@ -131,15 +127,7 @@ let make
     * the release tarball as only globally stored artefacts can be relocated
     * between stores (b/c of a fixed path length).
     *)
-  let%bind plan, _ = Plan.make
-    ~forceImmutable:true
-    ~platform:System.Platform.host
-    ~cfg
-    ~sandboxEnv
-    ~solution
-    ~installation
-    ()
-  in
+  let%bind plan = RunAsync.ofRun (Plan.make ~forceImmutable:true sandbox) in
   let tasks = Plan.allTasks plan in
 
   let shouldDeleteFromBinaryRelease =
@@ -153,7 +141,7 @@ let make
     filterOut
   in
 
-  let root = (Solution.root solution).id in
+  let root = (Solution.root sandbox.solution).id in
   let rootTask = Plan.rootTask plan in
 
   (* Make sure all packages are built *)
@@ -163,7 +151,7 @@ let make
       Plan.buildDependencies
         ~buildLinked:true
         ~concurrency
-        ~cfg
+        ~cfg:sandbox.cfg
         plan
         root
     in
@@ -172,7 +160,7 @@ let make
         ~buildOnly:false
         ~quiet:true
         ~force:false
-        ~cfg
+        ~cfg:sandbox.cfg
         plan
         root
     in
@@ -190,9 +178,9 @@ let make
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = Plan.Task.installPath cfg task in
+        let buildPath = Plan.Task.installPath sandbox.cfg task in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        Plan.exportBuild ~cfg ~outputPrefixPath buildPath
+        Plan.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath
     in
     RunAsync.List.mapAndWait
       ~concurrency:8
@@ -203,13 +191,13 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let%bind bindings = RunAsync.ofRun (Plan.execEnv cfg.spec plan rootTask) in
+    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox.cfg.spec plan rootTask) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
+      let bindings = Scope.SandboxEnvironment.Bindings.render sandbox.cfg.buildCfg bindings in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath name =
@@ -262,9 +250,9 @@ let make
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
         let nextStorePrefix =
-          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
+          String.make (String.length (Path.show sandbox.cfg.buildCfg.storePath)) '_'
         in
-        (cfg.buildCfg.storePath, Path.v nextStorePrefix)
+        (sandbox.cfg.buildCfg.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
       RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath

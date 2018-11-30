@@ -391,17 +391,18 @@ end
 module SandboxInfo = struct
 
   type t = {
+    cfg : Config.t;
     filesUsed : FileInfo.t list;
     spec: EsyInstall.SandboxSpec.t;
     solution : Solution.t option;
     installation : EsyInstall.Installation.t option;
-    plan : Plan.t option;
+    sandbox : Plan.Sandbox.t option;
     scripts : Scripts.t;
   }
 
   let plan info =
-    match info.plan with
-    | Some plan -> RunAsync.return plan
+    match info.sandbox with
+    | Some sandbox -> RunAsync.ofRun (Plan.make sandbox)
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let solution info =
@@ -409,9 +410,9 @@ module SandboxInfo = struct
     | Some solution -> RunAsync.return solution
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
-  let installation info =
-    match info.installation with
-    | Some installation -> RunAsync.return installation
+  let sandbox info =
+    match info.sandbox with
+    | Some sandbox -> RunAsync.return sandbox
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let cachePath (cfg : Config.t) (spec : EsyInstall.SandboxSpec.t) =
@@ -453,15 +454,15 @@ module SandboxInfo = struct
             / "build"
             / "bin"
           ) in
-          match info.plan with
+          match info.sandbox with
           | None -> return ()
-          | Some plan ->
-            let task = Plan.rootTask plan in
+          | Some sandbox ->
+            let root = Solution.root sandbox.solution in
             let%bind () = Fs.createDir sandboxBin in
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
               let header = "# Command environment" in
-              let%bind commandEnv = Plan.commandEnv copts.spec plan task in
+              let%bind commandEnv = Plan.commandEnv sandbox root.Solution.Package.id in
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
               Environment.renderToShellSource ~header commandEnv
             ) in
@@ -564,25 +565,27 @@ module SandboxInfo = struct
 
         let%bind scripts = Scripts.ofSandbox copts.spec in
         let%bind sandboxEnv = SandboxEnv.ofSandbox copts.spec in
-        let%bind plan, filesUsed =
+        let%bind sandbox, filesUsed =
           match installation, solution with
           | Some installation, Some solution ->
-            let%bind plan, filesUsedForPlan = Plan.make
-              ~platform:System.Platform.host
-              ~cfg:copts.cfg
-              ~sandboxEnv
-              ~solution
-              ~installation
-              ()
+            let%bind sandbox, filesUsedForPlan =
+              Plan.Sandbox.make
+                ~platform:System.Platform.host
+                ~sandboxEnv
+                copts.cfg
+                solution
+                installation
             in
-            return (Some plan, filesUsed @ filesUsedForPlan)
+            let%bind filesUsedForPlan = FileInfo.ofPathSet filesUsedForPlan in
+            return (Some sandbox, filesUsed @ filesUsedForPlan)
           | _, None
           | None, _ -> return (None, filesUsed)
         in
         return {
+          cfg = copts.cfg;
           solution;
           installation;
-          plan;
+          sandbox;
           spec = copts.spec;
           scripts;
           filesUsed;
@@ -1018,8 +1021,8 @@ let commandEnv =
       task.name Version.pp task.version
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
-    let%bind plan = SandboxInfo.plan info in
-    let%bind env = RunAsync.ofRun (Plan.commandEnv copts.spec plan task) in
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind env = RunAsync.ofRun (Plan.commandEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return (Environment.current @ env)
   in
@@ -1066,11 +1069,13 @@ let makeExecCommand
     else return ()
   in
 
-  let%bind env = RunAsync.ofRun (
+  let%bind env =
     match env with
-    | `CommandEnv -> Plan.commandEnv copts.spec plan task
-    | `SandboxEnv -> Plan.execEnv copts.spec plan task
-  ) in
+    | `CommandEnv ->
+      let%bind sandbox = SandboxInfo.sandbox info in
+      RunAsync.ofRun (Plan.commandEnv sandbox task.Plan.Task.pkg.id)
+    | `SandboxEnv -> RunAsync.ofRun (Plan.execEnv copts.spec plan task)
+  in
 
   let%bind env = RunAsync.ofStringError (
     let open Result.Syntax in
@@ -1660,8 +1665,7 @@ let show (copts : CommonOptions.t) _asJson req () =
 let release copts () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
-  let%bind installation = SandboxInfo.installation info in
-  let%bind solution = SandboxInfo.solution info in
+  let%bind sandbox = SandboxInfo.sandbox info in
 
   let%bind outputPath =
     let outputDir = "_release" in
@@ -1677,17 +1681,11 @@ let release copts () =
     return Path.(p / "bin" / "ocamlopt")
   in
 
-  let%bind sandboxEnv = SandboxEnv.ofSandbox copts.spec in
-
   NpmRelease.make
-    ~sandboxEnv
-    ~solution:solution
-    ~installation:installation
     ~ocamlopt
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
-    ~cfg:copts.CommonOptions.cfg
-    ()
+    sandbox
 
 let makeCommand
   ?(header=`Standard)
