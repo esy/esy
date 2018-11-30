@@ -39,10 +39,10 @@ exports[`Build with a linked dep out of source build macos || linux: build-env s
 #
 # dep@1.0.0
 #
-export CAML_LD_LIBRARY_PATH=\\"%projectPath%/_esy/default/store/i/dep-342de796/stublibs:%projectPath%/_esy/default/store/i/dep-342de796/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%projectPath%/_esy/default/store/i/dep-342de796/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%projectPath%/_esy/default/store/i/dep-342de796/man:$MAN_PATH\\"
-export PATH=\\"%projectPath%/_esy/default/store/i/dep-342de796/bin:$PATH\\"
+export CAML_LD_LIBRARY_PATH=\\"%projectPath%/_esy/default/store/i/%depid%/stublibs:%projectPath%/_esy/default/store/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%projectPath%/_esy/default/store/i/%depid%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%projectPath%/_esy/default/store/i/%depid%/man:$MAN_PATH\\"
+export PATH=\\"%projectPath%/_esy/default/store/i/%depid%/bin:$PATH\\"
 
 #
 # with-linked-dep-_build@1.0.0
