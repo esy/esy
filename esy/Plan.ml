@@ -652,6 +652,10 @@ module Changes = struct
     match a, b with
     | No, No -> No
     | _ -> Yes
+
+  let pp fmt = function
+    | Yes -> Fmt.unit "yes" fmt ()
+    | No -> Fmt.unit "no" fmt ()
 end
 
 let isBuilt ~cfg task = Fs.exists (Task.installPath cfg task)
@@ -754,7 +758,10 @@ let buildDependencies' ~concurrency ~buildLinked ~cfg plan id =
       let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
       begin match isBuilt, Changes.(changesInDependencies + changesInSources) with
       | true, Changes.No ->
-        Logs_lwt.debug (fun m -> m "building %a: skipping" Task.pp task);%lwt
+        Logs_lwt.debug (fun m ->
+          m "building %a: skipping (changesInDependencies: %a, changesInSources: %a)"
+          Task.pp task Changes.pp changesInDependencies Changes.pp changesInSources
+        );%lwt
         return Changes.No
       | true, Changes.Yes
       | false, _ ->
@@ -769,7 +776,10 @@ let buildDependencies' ~concurrency ~buildLinked ~cfg plan id =
     | SourceType.ImmutableWithTransientDependencies ->
       begin match isBuilt, changesInDependencies with
       | true, Changes.No ->
-        Logs_lwt.debug (fun m -> m "building %a: skipping" Task.pp task);%lwt
+        Logs_lwt.debug (fun m ->
+          m "building %a: skipping (changesInDependencies: %a)"
+          Task.pp task Changes.pp changesInDependencies
+        );%lwt
         return Changes.No
       | true, Changes.Yes
       | false, _ ->
