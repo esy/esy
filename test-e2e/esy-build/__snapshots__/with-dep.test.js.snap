@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Build with dep out of source build macos: build-env dep snapshot 1`] = `
+exports[`Build with dep out of source build macos || linux: build-env dep snapshot 1`] = `
 "# Build environment for dep@path:dep
 
 #
@@ -33,7 +33,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`Build with dep out of source build macos: build-env snapshot 1`] = `
+exports[`Build with dep out of source build macos || linux: build-env snapshot 1`] = `
 "# Build environment for withDep@link:./package.json
 
 #

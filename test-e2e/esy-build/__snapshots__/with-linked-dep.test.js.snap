@@ -1,30 +1,30 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Build with a linked dep out of source build macos: build-env dep snapshot 1`] = `
+exports[`Build with a linked dep out of source build macos || linux: build-env dep snapshot 1`] = `
 "# Build environment for dep@link:dep
 
 #
 # dep@1.0.0
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/dep-342de796/lib\\"
-export cur__etc=\\"%projectPath%/_esy/default/store/i/dep-342de796/etc\\"
-export cur__share=\\"%projectPath%/_esy/default/store/i/dep-342de796/share\\"
-export cur__toplevel=\\"%projectPath%/_esy/default/store/i/dep-342de796/toplevel\\"
-export cur__stublibs=\\"%projectPath%/_esy/default/store/i/dep-342de796/stublibs\\"
-export cur__doc=\\"%projectPath%/_esy/default/store/i/dep-342de796/doc\\"
-export cur__man=\\"%projectPath%/_esy/default/store/i/dep-342de796/man\\"
-export cur__lib=\\"%projectPath%/_esy/default/store/i/dep-342de796/lib\\"
-export cur__sbin=\\"%projectPath%/_esy/default/store/i/dep-342de796/sbin\\"
-export cur__bin=\\"%projectPath%/_esy/default/store/i/dep-342de796/bin\\"
-export cur__install=\\"%projectPath%/_esy/default/store/i/dep-342de796\\"
-export cur__target_dir=\\"%projectPath%/_esy/default/store/b/dep-342de796\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
+export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
+export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
+export cur__stublibs=\\"%projectPath%/_esy/default/store/i/%id%/stublibs\\"
+export cur__doc=\\"%projectPath%/_esy/default/store/i/%id%/doc\\"
+export cur__man=\\"%projectPath%/_esy/default/store/i/%id%/man\\"
+export cur__lib=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__sbin=\\"%projectPath%/_esy/default/store/i/%id%/sbin\\"
+export cur__bin=\\"%projectPath%/_esy/default/store/i/%id%/bin\\"
+export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
+export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export cur__original_root=\\"%projectPath%/dep\\"
 export cur__root=\\"%projectPath%/dep\\"
 export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
-export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/dep-342de796\\"
+export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 
 #
 # Built-in
@@ -33,7 +33,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`Build with a linked dep out of source build macos: build-env snapshot 1`] = `
+exports[`Build with a linked dep out of source build macos || linux: build-env snapshot 1`] = `
 "# Build environment for with-linked-dep-_build@link:./package.json
 
 #
@@ -48,24 +48,24 @@ export PATH=\\"%projectPath%/_esy/default/store/i/dep-342de796/bin:$PATH\\"
 # with-linked-dep-_build@1.0.0
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/lib\\"
-export cur__etc=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/etc\\"
-export cur__share=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/share\\"
-export cur__toplevel=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/toplevel\\"
-export cur__stublibs=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/stublibs\\"
-export cur__doc=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/doc\\"
-export cur__man=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/man\\"
-export cur__lib=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/lib\\"
-export cur__sbin=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/sbin\\"
-export cur__bin=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7/bin\\"
-export cur__install=\\"%projectPath%/_esy/default/store/i/with_linked_dep___build-825869e7\\"
-export cur__target_dir=\\"%projectPath%/_esy/default/store/b/with_linked_dep___build-825869e7\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
+export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
+export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
+export cur__stublibs=\\"%projectPath%/_esy/default/store/i/%id%/stublibs\\"
+export cur__doc=\\"%projectPath%/_esy/default/store/i/%id%/doc\\"
+export cur__man=\\"%projectPath%/_esy/default/store/i/%id%/man\\"
+export cur__lib=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__sbin=\\"%projectPath%/_esy/default/store/i/%id%/sbin\\"
+export cur__bin=\\"%projectPath%/_esy/default/store/i/%id%/bin\\"
+export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
+export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export cur__original_root=\\"%projectPath%\\"
 export cur__root=\\"%projectPath%\\"
 export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"with-linked-dep-_build\\"
-export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/with_linked_dep___build-825869e7\\"
+export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 
 #
 # Built-in

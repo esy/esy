@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`'esy build': simple executable with no deps out of source build macos: build-env snapshot 1`] = `
+exports[`'esy build': simple executable with no deps out of source build macos || linux: build-env snapshot 1`] = `
 "# Build environment for no-deps@link:./package.json
 
 #

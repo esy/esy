@@ -1,7 +1,7 @@
 // @flow
 
 const helpers = require('../test/helpers');
-const {test, isWindows, isMacos} = helpers;
+const {test, isWindows, isMacos, isLinux} = helpers;
 
 function makePackage(p, {name, build, dependencies, optDependencies}, ...children) {
   return [
@@ -55,7 +55,7 @@ describe('Build with optDependencies', () => {
       expect(plan.build).toEqual([['optDep.installed', 'false']]);
     });
 
-    test.enableIf(isMacos)('snapshot build-env', async () => {
+    test.enableIf(isMacos || isLinux)('snapshot build-env', async () => {
       const p = await createTestSandbox();
       await p.esy('install');
 
@@ -120,7 +120,7 @@ describe('Build with optDependencies', () => {
       expect(plan.build).toEqual([['optDep.installed', 'true']]);
     });
 
-    test.enableIf(isMacos)('snapshot build-env', async () => {
+    test.enableIf(isMacos || isLinux)('snapshot build-env', async () => {
       const p = await createTestSandbox();
       await p.esy('install');
       {

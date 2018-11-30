@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`devDep workflow macos: build-env dep snapshot 1`] = `
+exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
 "# Build environment for dep@path:dep
 
 #
@@ -32,7 +32,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`devDep workflow macos: build-env devDep snapshot 1`] = `
+exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
 "# Build environment for devDep@path:devDep
 
 #
@@ -64,7 +64,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`devDep workflow macos: build-env snapshot 1`] = `
+exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 "# Build environment for withDevDep@link:./package.json
 
 #
