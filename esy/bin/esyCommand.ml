@@ -402,7 +402,18 @@ module SandboxInfo = struct
 
   let plan info =
     match info.sandbox with
-    | Some sandbox -> RunAsync.ofRun (Plan.make sandbox)
+    | Some sandbox ->
+      RunAsync.ofRun (
+        let open Run.Syntax in
+        let%bind plan = Plan.make sandbox in
+        let pkg = EsyInstall.Solution.root sandbox.Plan.Sandbox.solution in
+        let root =
+          match Plan.findTaskById plan pkg.Solution.Package.id with
+          | None -> failwith "missing build for the root package"
+          | Some task -> task
+        in
+        return (root, plan)
+      )
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let solution info =
@@ -603,7 +614,8 @@ module SandboxInfo = struct
 
   let resolvePackage ~pkgName copts info =
     let open RunAsync.Syntax in
-    let%bind plan = plan info in
+    let%bind sandbox = sandbox info in
+    let%bind _, plan = plan info in
     let task =
       let open Option.Syntax in
       let%bind task = Plan.findTaskByName plan pkgName in
@@ -612,7 +624,7 @@ module SandboxInfo = struct
     match task with
     | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
     | Some task ->
-      if%bind Plan.isBuilt ~cfg:copts.CommonOptions.cfg task
+      if%bind Plan.isBuilt sandbox task
       then return (Plan.Task.installPath copts.CommonOptions.cfg task)
       else errorf "package %s isn't built yet, run 'esy build'" pkgName
 
@@ -751,7 +763,7 @@ let resolvedPathTerm =
 
 let withTask info ref f =
   let open RunAsync.Syntax in
-  let%bind plan = SandboxInfo.plan info in
+  let%bind root, plan = SandboxInfo.plan info in
   match ref with
   | Some (PkgByName name as ref) ->
     begin match Plan.findTaskByName plan name with
@@ -768,7 +780,7 @@ let withTask info ref f =
     | None -> errorf "no build found for %a" EsyInstall.PackageId.pp id
     | Some task -> f task
     end
-  | None -> f (Plan.rootTask plan)
+  | None -> f root
 
 module Status = struct
 
@@ -875,19 +887,20 @@ let buildShell (copts : CommonOptions.t) packagePath () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
 
   let f task =
-    let%bind plan = SandboxInfo.plan info in
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind _, plan = SandboxInfo.plan info in
     let%bind () =
       Plan.buildDependencies
-        ~cfg:copts.cfg
         ~buildLinked:true
         ~concurrency:EsyRuntime.concurrency
+        sandbox
         plan
         task.Plan.Task.pkg.id
     in
     let p =
       Plan.shell
-        ~cfg:copts.cfg
-        task
+        sandbox
+        task.Plan.Task.pkg.id
     in
     match%bind p with
     | Unix.WEXITED 0 -> return ()
@@ -902,18 +915,19 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
 
   let f task =
-    let%bind plan = SandboxInfo.plan info in
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind _, plan = SandboxInfo.plan info in
     let%bind () =
       Plan.buildDependencies
-        ~cfg:copts.cfg
         ~concurrency:EsyRuntime.concurrency
         ~buildLinked:true
+        sandbox
         plan
         task.Plan.Task.pkg.id
     in
     Plan.build
-      ~cfg:copts.cfg
       ~force:true
+      sandbox
       plan
       task.Plan.Task.pkg.id
   in
@@ -922,23 +936,24 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
 let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
-  let%bind plan = SandboxInfo.plan info in
+  let%bind sandbox = SandboxInfo.sandbox info in
+  let%bind _, plan = SandboxInfo.plan info in
   let%bind solution = SandboxInfo.solution info in
   let root = (Solution.root solution).id in
   let%bind () =
     Plan.buildDependencies
-      ~cfg:copts.cfg
       ~buildLinked:true
       ~concurrency:EsyRuntime.concurrency
+      sandbox
       plan
       root
   in
   begin match cmd with
   | None ->
     Plan.buildRoot
-      ~cfg:copts.cfg
       ~quiet:true
       ~buildOnly
+      sandbox
       plan
   | Some cmd ->
     begin match Plan.findTaskById plan root with
@@ -946,8 +961,8 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
     | Some task ->
       let p =
         Plan.exec
-          ~cfg:copts.cfg
-          task
+          sandbox
+          task.pkg.id
           cmd
       in
       match%bind p with
@@ -961,15 +976,14 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
 let buildDependencies (copts : CommonOptions.t) all () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
-  let%bind plan = SandboxInfo.plan info in
-  let%bind solution = SandboxInfo.solution info in
-  let root = (Solution.root solution).id in
+  let%bind sandbox = SandboxInfo.sandbox info in
+  let%bind root, plan = SandboxInfo.plan info in
   Plan.buildDependencies
-    ~cfg:copts.cfg
     ~buildLinked:all
     ~concurrency:EsyRuntime.concurrency
+    sandbox
     plan
-    root
+    root.Plan.Task.pkg.id
 
 let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   let open RunAsync.Syntax in
@@ -1053,19 +1067,17 @@ let makeExecCommand
     ()
   =
   let open RunAsync.Syntax in
-
-  let%bind plan = SandboxInfo.plan info in
-  let task = Plan.rootTask plan in
-
+  let%bind sandbox = SandboxInfo.sandbox info in
+  let%bind root, plan = SandboxInfo.plan info in
   let%bind () =
     if checkIfDependenciesAreBuilt
     then
       Plan.buildDependencies
-        ~cfg:copts.cfg
         ~buildLinked
         ~concurrency:EsyRuntime.concurrency
+        sandbox
         plan
-        task.Plan.Task.pkg.id
+        root.Plan.Task.pkg.id
     else return ()
   in
 
@@ -1074,9 +1086,9 @@ let makeExecCommand
     RunAsync.ofRun (
       match env with
       | `CommandEnv ->
-        Plan.commandEnv sandbox task.Plan.Task.pkg.id
+        Plan.commandEnv sandbox root.Plan.Task.pkg.id
       | `SandboxEnv ->
-        Plan.execEnv sandbox task.Plan.Task.pkg.id
+        Plan.execEnv sandbox root.Plan.Task.pkg.id
     )
   in
 
@@ -1128,8 +1140,7 @@ let exec (copts : CommonOptions.t) cmd () =
 let devExec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
-  let%bind plan = SandboxInfo.plan info in
-  let task = Plan.rootTask plan in
+  let%bind root, _plan = SandboxInfo.plan info in
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
@@ -1143,7 +1154,7 @@ let devExec (copts : CommonOptions.t) cmd () =
       | Parsed args ->
         let%bind args =
           Result.List.map
-            ~f:(Plan.Task.renderExpression ~cfg:copts.cfg task)
+            ~f:(Plan.Task.renderExpression ~cfg:copts.cfg root)
             args
         in
         return (Cmd.ofListExn args)
@@ -1151,7 +1162,8 @@ let devExec (copts : CommonOptions.t) cmd () =
         let%bind string =
           Plan.Task.renderExpression
             ~cfg:copts.cfg
-            task line
+            root
+            line
         in
         let%bind args = ShellSplit.split string in
         return (Cmd.ofListExn args)
@@ -1189,7 +1201,7 @@ let devShell copts () =
 let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
   let open RunAsync.Syntax in
 
-  let%bind plan = SandboxInfo.plan info in
+  let%bind _, plan = SandboxInfo.plan info in
   let%bind solution = SandboxInfo.solution info in
   let seen = ref PackageId.Set.empty in
   let root = Solution.root solution in
@@ -1245,9 +1257,10 @@ let lsBuilds (copts : CommonOptions.t) includeTransitive () =
   let open RunAsync.Syntax in
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  let%bind sandbox = SandboxInfo.sandbox info in
 
   let computeTermNode task children =
-    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
+    let%bind built = Plan.isBuilt sandbox task in
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
@@ -1263,9 +1276,10 @@ let lsLibs copts includeTransitive () =
     return Path.(p / "bin" / "ocamlfind")
   in
   let%bind builtIns = SandboxInfo.libraries ~ocamlfind copts in
+  let%bind sandbox = SandboxInfo.sandbox info in
 
   let computeTermNode (task: Plan.Task.t) children =
-    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
+    let%bind built = Plan.isBuilt sandbox task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
@@ -1291,6 +1305,7 @@ let lsModules copts only () =
   let open RunAsync.Syntax in
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  let%bind sandbox = SandboxInfo.sandbox info in
   let%bind solution = SandboxInfo.solution info in
   let root = Solution.root solution in
 
@@ -1341,7 +1356,7 @@ let lsModules copts only () =
   in
 
   let computeTermNode (task: Plan.Task.t) children =
-    let%bind built = Plan.isBuilt ~cfg:copts.cfg task in
+    let%bind built = Plan.isBuilt sandbox task in
     let%bind line = formatPackageInfo ~built task in
 
     let%bind libs =
@@ -1547,7 +1562,7 @@ let exportDependencies (copts : CommonOptions.t) () =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
-  let%bind plan = SandboxInfo.plan info in
+  let%bind _, plan = SandboxInfo.plan info in
   let%bind solution = SandboxInfo.solution info in
 
   let exportBuild (_, pkg) =
@@ -1597,7 +1612,8 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
 
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind solution = SandboxInfo.solution info in
-  let%bind plan = SandboxInfo.plan info in
+  let%bind sandbox = SandboxInfo.sandbox info in
+  let%bind _, plan = SandboxInfo.plan info in
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
@@ -1607,7 +1623,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   let importBuild (_direct, pkg) =
     match Plan.findTaskById plan pkg.Solution.Package.id with
     | Some task ->
-      if%bind Plan.isBuilt ~cfg:copts.cfg task
+      if%bind Plan.isBuilt sandbox task
       then return ()
       else (
         let id = task.Plan.Task.id in

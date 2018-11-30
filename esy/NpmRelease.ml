@@ -128,6 +128,7 @@ let make
     * between stores (b/c of a fixed path length).
     *)
   let%bind plan = RunAsync.ofRun (Plan.make ~forceImmutable:true sandbox) in
+  let root = (Solution.root sandbox.solution).id in
   let tasks = Plan.allTasks plan in
 
   let shouldDeleteFromBinaryRelease =
@@ -141,9 +142,6 @@ let make
     filterOut
   in
 
-  let root = (Solution.root sandbox.solution).id in
-  let rootTask = Plan.rootTask plan in
-
   (* Make sure all packages are built *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Building packages") in
@@ -151,7 +149,7 @@ let make
       Plan.buildDependencies
         ~buildLinked:true
         ~concurrency
-        ~cfg:sandbox.cfg
+        sandbox
         plan
         root
     in
@@ -160,7 +158,7 @@ let make
         ~buildOnly:false
         ~quiet:true
         ~force:false
-        ~cfg:sandbox.cfg
+        sandbox
         plan
         root
     in
@@ -191,7 +189,7 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox rootTask.pkg.id) in
+    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox root) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 

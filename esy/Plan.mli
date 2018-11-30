@@ -55,20 +55,19 @@ val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option
 val findTaskByName : t -> string -> Task.t option
 val findTaskByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
 
-val rootTask : t -> Task.t
 val allTasks : t -> Task.t list
 
 val make : ?forceImmutable : bool -> Sandbox.t -> t Run.t
 
 val shell :
-  cfg:Config.t
-  -> Task.t
+  Sandbox.t
+  -> EsyInstall.PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
 val exec :
-  cfg:Config.t
-  -> Task.t
+  Sandbox.t
+  -> EsyInstall.PackageId.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
 (** [exec task cmd ()] executes [cmd] command in a [task]'s build environment. *)
@@ -78,7 +77,7 @@ val build :
   -> ?quiet:bool
   -> ?buildOnly:bool
   -> ?logPath:Path.t
-  -> cfg:Config.t
+  -> Sandbox.t
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
@@ -87,20 +86,20 @@ val build :
 val buildRoot :
   ?quiet:bool
   -> ?buildOnly:bool
-  -> cfg:Config.t
+  -> Sandbox.t
   -> t
   -> unit RunAsync.t
 
 val buildDependencies :
   ?concurrency:int
   -> buildLinked:bool
-  -> cfg:Config.t
+  -> Sandbox.t
   -> t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 
 val isBuilt :
-  cfg:Config.t
+  Sandbox.t
   -> Task.t
   -> bool RunAsync.t
 
