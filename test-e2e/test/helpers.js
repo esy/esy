@@ -20,6 +20,8 @@ const outdent = require('outdent');
 const pkgJson = require('../../package.json');
 
 const isWindows = process.platform === 'win32';
+const isLinux = process.platform === 'linux';
+const isMacos = process.platform === 'darwin';
 
 const getWindowsSystemDirectory = () => {
   return path
@@ -31,6 +33,12 @@ const getWindowsSystemDirectory = () => {
 const ESY = isWindows
   ? require.resolve('../../bin/esy.cmd')
   : require.resolve('../../bin/esy');
+
+var regexpRe = /[|\\{}()[\]^$+*?.]/g;
+
+function escapeForRegexp(str) {
+  return str.replace(regexpRe, '\\$&');
+}
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -66,6 +74,7 @@ export type TestSandbox = {
   ) => Promise<void>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
+  normalizePathsForSnapshot: string => string,
   runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
 
   defineNpmPackage: (
@@ -230,6 +239,15 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   const esyStorePath = getStorePathForPrefix(esyPrefixPath);
 
+  const projectPathRe = new RegExp(escapeForRegexp(projectPath), 'g');
+  const esyPrefixPathRe = new RegExp(escapeForRegexp(esyPrefixPath), 'g');
+
+  function normalizePathsForSnapshot(data) {
+    return data
+      .replace(projectPathRe, '%projectPath%')
+      .replace(esyPrefixPathRe, '%esyPrefixPath%');
+  }
+
   return {
     cd,
     rootPath,
@@ -243,6 +261,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     printEsy,
     npm,
     npmRegistry,
+    normalizePathsForSnapshot,
     fixture: async (...fixture) => {
       await FixtureUtils.initialize(projectPath, fixture);
     },
@@ -299,7 +318,53 @@ function normalizeEOL(string: string) {
   return string.replace(/(\r\n)|\r/g, '\n');
 }
 
+function createDefineTest(params) {
+  function deftest(name, fn) {
+    if (params.disabled) {
+      return test.skip(name, fn);
+    } else if (params.focused) {
+      return test.only(name, fn);
+    } else {
+      return test(name, fn);
+    }
+  }
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'only', {
+    get() {
+      return createDefineTest({...params, focused: true});
+    },
+  });
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'skip', {
+    get() {
+      return createDefineTest({...params, disabled: true});
+    },
+  });
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'disable', {
+    get() {
+      return createDefineTest({...params, disabled: true});
+    },
+  });
+  deftest.disableIf = function(cond) {
+    if (cond) {
+      return createDefineTest({...params, disabled: true});
+    } else {
+      return createDefineTest({...params, disabled: false});
+    }
+  };
+  deftest.enableIf = function(cond) {
+    if (cond) {
+      return createDefineTest({...params, disabled: false});
+    } else {
+      return createDefineTest({...params, disabled: true});
+    }
+  };
+  return deftest;
+}
+
 module.exports = {
+  test: createDefineTest({disabled: false, focused: false}),
   normalizeEOL,
   promiseExec,
   file: FixtureUtils.file,
@@ -321,9 +386,12 @@ module.exports = {
   execFile: exec.execFile,
   createTestSandbox,
   getWindowsSystemDirectory,
-  isWindows,
   dummyExecutable,
   buildCommand,
   buildCommandInOpam,
   esyVersion: pkgJson.version,
+
+  isWindows,
+  isLinux,
+  isMacos,
 };
