@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Build with optDependencies builds w/ opt dependency installed 1`] = `
+exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 1`] = `
 "# Build environment for root@link:./package.json
 
 #
@@ -49,7 +49,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`Build with optDependencies builds w/ opt dependency installed 2`] = `
+exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 2`] = `
 "# Build environment for dep@path:dep
 
 #
@@ -90,7 +90,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`Build with optDependencies builds w/o opt dependency installed 1`] = `
+exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 1`] = `
 "# Build environment for root@link:./package.json
 
 #
@@ -131,7 +131,7 @@ export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
-exports[`Build with optDependencies builds w/o opt dependency installed 2`] = `
+exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 2`] = `
 "# Build environment for dep@path:dep
 
 #

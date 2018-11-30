@@ -74,7 +74,7 @@ export type TestSandbox = {
   ) => Promise<void>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
-  normalizePathsForSnapshot: string => string,
+  normalizePathsForSnapshot: (string, replacements?: {[s: string]: string}) => string,
   runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
 
   defineNpmPackage: (
@@ -242,10 +242,11 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   const projectPathRe = new RegExp(escapeForRegexp(projectPath), 'g');
   const esyPrefixPathRe = new RegExp(escapeForRegexp(esyPrefixPath), 'g');
 
-  function normalizePathsForSnapshot(data) {
-    return data
+  function normalizePathsForSnapshot(data, replacements) {
+    data = data
       .replace(projectPathRe, '%projectPath%')
       .replace(esyPrefixPathRe, '%esyPrefixPath%');
+    return data;
   }
 
   return {
@@ -319,7 +320,7 @@ function normalizeEOL(string: string) {
 }
 
 function createDefineTest(params) {
-  function deftest(name, fn) {
+  function deftest(name: string, fn: (done: () => void) => ?Promise<mixed>) {
     if (params.disabled) {
       return test.skip(name, fn);
     } else if (params.focused) {
