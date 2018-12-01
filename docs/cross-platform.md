@@ -1,5 +1,11 @@
 # Cross-Platform Development with `esy`
 
+## Introduction
+
+David Allsopp has an _excellent_ talk on the challenges of cross-platform development here: https://youtu.be/1DAuSSljLFI
+
+This should be required viewing for anyone interested in cross-platform development with Reason / EOL.
+
 ## Goal
 
 The goal for `esy` is to work equally well on Linux, Windows, and OSX - without needing special cases or hacks.
