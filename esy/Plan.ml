@@ -6,46 +6,39 @@ module Installation = EsyInstall.Installation
 module Source = EsyInstall.Source
 module Version = EsyInstall.Version
 
-module ExecSpec = EsyInstall.DepSpec.Make(PackageId)
-
 module DepSpec = struct
 
   module Id = struct
     type t =
       | Self
       | Root
-      (* | PackageById of PackageId.t *)
-      (* | PackageByLink of Path.t *)
       [@@deriving ord]
 
     let pp fmt = function
       | Self -> Fmt.unit "self" fmt ()
       | Root -> Fmt.unit "root" fmt ()
-      (* | PackageById id -> PackageId.pp fmt id *)
-      (* | PackageByLink path -> Fmt.pf fmt "link:%a" Path.pp path *)
   end
 
   include EsyInstall.DepSpec.Make(Id)
 
   let root = Id.Root
   let self = Id.Self
-  (* let id id = package (PackageById id) *)
-  (* let link path = package (PackageByLink path) *)
+
+  let resolve solution self id =
+    match id with
+    | Id.Root -> (Solution.root solution).id
+    | Id.Self -> self
 
   let eval solution self depspec =
-    let idToPackageId id =
-      match id with
-      | Id.Root -> (Solution.root solution).id
-      | Id.Self -> self
-    in
+    let resolve id = resolve solution self id in
     let rec eval' expr =
       match expr with
-      | Package id -> PackageId.Set.singleton (idToPackageId id)
+      | Package id -> PackageId.Set.singleton (resolve id)
       | Dependencies id ->
-        let pkg = Solution.getExn (idToPackageId id) solution in
+        let pkg = Solution.getExn (resolve id) solution in
         pkg.dependencies
       | DevDependencies id ->
-        let pkg = Solution.getExn (idToPackageId id) solution in
+        let pkg = Solution.getExn (resolve id) solution in
         pkg.devDependencies
       | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
     in
@@ -158,17 +151,16 @@ module Task = struct
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
-    buildScope : Scope.t;
-    exportedScope : Scope.t;
+    scope : Scope.t;
     platform : System.Platform.t;
     manifest : BuildManifest.t;
   }
 
   let plan (t : t) =
-    let rootPath = Scope.rootPath t.buildScope in
-    let buildPath = Scope.buildPath t.buildScope in
-    let stagePath = Scope.stagePath t.buildScope in
-    let installPath = Scope.installPath t.buildScope in
+    let rootPath = Scope.rootPath t.scope in
+    let buildPath = Scope.buildPath t.scope in
+    let stagePath = Scope.stagePath t.scope in
+    let installPath = Scope.installPath t.scope in
     let jbuilderHackEnabled =
       match t.buildType, t.sourceType with
       | JbuilderLike, Transient -> true
@@ -198,7 +190,7 @@ module Task = struct
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
   let toPathWith cfg t make =
-    Scope.SandboxPath.toPath cfg.Config.buildCfg (make t.exportedScope)
+    Scope.SandboxPath.toPath cfg.Config.buildCfg (make t.scope)
 
   let sourcePath cfg t = toPathWith cfg t Scope.sourcePath
   let buildPath cfg t = toPathWith cfg t Scope.buildPath
@@ -208,7 +200,7 @@ module Task = struct
 
   let renderExpression ~cfg task expr =
     let open Run.Syntax in
-    let%bind expr = Scope.renderCommandExpr task.exportedScope expr in
+    let%bind expr = Scope.renderCommandExpr ~buildIsInProgress:false task.scope expr in
     let expr = Scope.SandboxValue.v expr in
     let expr = Scope.SandboxValue.render cfg.Config.buildCfg expr in
     return expr
@@ -219,18 +211,7 @@ end
 
 type t = Task.t option PackageId.Map.t
 
-let toOCamlVersion version =
-  let version = Version.showSimple version in
-  match String.split_on_char '.' version with
-  | major::minor::patch::[] ->
-    let patch =
-      let v = try int_of_string patch with _ -> 0 in
-      if v < 1000 then v else v / 1000
-    in
-    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
-  | _ -> version
-
-let renderEsyCommands ~env scope commands =
+let renderEsyCommands ~env ~buildIsInProgress scope commands =
   let open Run.Syntax in
   let envScope name =
     match Scope.SandboxEnvironment.find name env with
@@ -239,7 +220,7 @@ let renderEsyCommands ~env scope commands =
   in
 
   let renderArg v =
-    let%bind v = Scope.renderCommandExpr scope v in
+    let%bind v = Scope.renderCommandExpr ~buildIsInProgress scope v in
     Run.ofStringError (EsyShellExpansion.render ~scope:envScope v)
   in
 
@@ -313,11 +294,9 @@ let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
 
     (* include ids of dependencies *)
     let dependencies =
-      let f dep =
-        match dep with
-        | _, None -> None
-        | false, Some _ -> None
-        | true, Some dep -> Some ("dep:" ^ dep.Task.id)
+      let f = function
+        | true, dep -> Some ("dep:" ^ Scope.id dep)
+        | false, _ -> None
       in
       dependencies
       |> List.map ~f
@@ -368,73 +347,88 @@ let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
       (Path.safeSeg name)
       hash
 
-let make'
-  ?(forceImmutable=false)
-  ?(platform=System.Platform.host)
-  ~buildCfg
-  ~sandboxEnv
-  ~solution
-  ~installation
-  ~manifests
-  depspec =
+let makeScope
+  ?cache
+  ~forceImmutable
+  sandbox
+  id
+  depspec
+  =
   let open Run.Syntax in
 
-  let tasks = ref PackageId.Map.empty in
+  Logs.debug (fun m -> m "makeScope %a" PackageId.pp id);
 
-  let updateSeen seen pkg =
-    match List.find_opt ~f:(fun p -> Package.compare p pkg = 0) seen with
-    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" Package.pp pkg
-    | None -> return (pkg::seen)
+  let updateSeen seen id =
+    match List.find_opt ~f:(fun p -> PackageId.compare p id = 0) seen with
+    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.pp id
+    | None -> return (id::seen)
   in
 
-  let rec visit seen (pkg : Package.t) =
-    match PackageId.Map.find_opt pkg.id !tasks with
-    | Some None -> return None
-    | Some (Some build) ->
-      let%bind _ : Package.t list = updateSeen seen pkg in
-      return (Some build)
-    | None ->
-      begin match PackageId.Map.find_opt pkg.id manifests with
-      | Some manifest ->
-        let%bind seen = updateSeen seen pkg in
-        Run.contextf (
-          let%bind build = visit' seen pkg manifest in
-          return (Some build)
-        ) "processing %a" PackageId.pp pkg.id
-      | None -> return None
-      end
+  let cache =
+    match cache with
+    | None -> Hashtbl.create 100
+    | Some cache -> cache
+  in
 
-  and visit' seen pkg build =
-    let location = Installation.findExn pkg.id installation in
+  let rec visit seen (id : PackageId.t) =
+    match Hashtbl.find_opt cache id with
+    | Some None -> return None
+    | Some (Some res) ->
+      let%bind _ : PackageId.t list = updateSeen seen id in
+      return (Some res)
+    | None ->
+      let%bind res =
+        match PackageId.Map.find_opt id sandbox.Sandbox.manifests with
+        | Some build ->
+          let%bind seen = updateSeen seen id in
+          Run.contextf (
+            let%bind scope = visit' seen id build in
+            return (Some (scope, build))
+          ) "processing %a" PackageId.pp id
+        | None -> return None
+      in
+      Hashtbl.replace cache id res;
+      return res
+
+  and visit' seen id build =
+    let pkg = Solution.getExn id sandbox.solution in
+    let location = Installation.findExn id sandbox.installation in
+
+    let matched =
+      DepSpec.eval sandbox.solution pkg.Package.id depspec
+    in
+    Logs.debug (fun m ->
+      m "depspec %a at %a matches %a"
+        DepSpec.pp
+        depspec
+        PackageId.pp
+        pkg.Package.id
+        Fmt.(list ~sep:(unit ", ") PackageId.pp)
+        (PackageId.Set.elements matched)
+    );
 
     let%bind dependencies =
-      let traverseThis pkg =
-        PackageId.Set.elements (DepSpec.eval solution pkg.Package.id depspec)
-      in
-      let dependencies = Solution.allDependenciesBFS ~traverseThis pkg solution in
-      let f dependencies (direct, pkg) =
-        let%bind build = visit seen pkg in
-        return ((direct, build)::dependencies)
-      in
-      Result.List.foldLeft ~f ~init:[] dependencies
-    in
-
-    Logs.debug (fun m -> m "plan %a" Package.pp pkg);
-    Logs.debug (fun m ->
       let dependencies =
-        dependencies
-        |> List.filter_map ~f:(fun (_, t) -> t)
+        (* remove self here so we don't call into itself *)
+        PackageId.Set.(elements (remove pkg.Package.id matched))
       in
-      m "dependencies @[<v>%a@]" Fmt.(list ~sep:(unit "@;") Task.pp) dependencies);
+      let collect dependencies (direct, pkg) =
+        match%bind visit seen pkg.Package.id with
+        | Some (scope, _build) ->
+          return ((direct, scope)::dependencies)
+        | None -> return dependencies
+      in
+      Result.List.foldLeft
+        ~f:collect
+        ~init:[]
+        (Solution.allDependenciesBFS ~dependencies id sandbox.solution)
+    in
 
     let dist, sourceType =
       match pkg.source with
       | Install info ->
         let hasTransientDeps =
-          let f = function
-            | _, Some {Task. sourceType = SourceType.Transient; _} -> true
-            | _, _ -> false
-          in
+          let f (_direct, scope) = Scope.sourceType scope = SourceType.Transient in
           List.exists ~f dependencies
         in
         let dist, _ = info.source in
@@ -453,178 +447,168 @@ let make'
       else sourceType
     in
 
-    let name = pkg.name in
-    let version = pkg.version in
-    let id = buildId ~sandboxEnv ~id:pkg.id ~dist ~build ~dependencies () in
-    let sourcePath = Scope.SandboxPath.ofPath buildCfg location in
+    let name = PackageId.name id in
+    let version = PackageId.version id in
+    let id = buildId ~sandboxEnv:sandbox.sandboxEnv ~id:pkg.id ~dist ~build ~dependencies () in
+    let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg.buildCfg location in
 
-    let exportedScope, buildScope =
-
-      let sandboxEnv =
-        let f {BuildManifest.Env. name; value} =
-          Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
-        in
-        List.map ~f (StringMap.values sandboxEnv)
+    let sandboxEnv =
+      let f {BuildManifest.Env. name; value} =
+        Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
       in
-
-      let exportedScope =
-        Scope.make
-          ~platform
-          ~sandboxEnv
-          ~id
-          ~name
-          ~version
-          ~sourceType
-          ~sourcePath
-          ~buildIsInProgress:false
-          build
-      in
-
-      let buildScope =
-        Scope.make
-          ~platform
-          ~sandboxEnv
-          ~id
-          ~name
-          ~version
-          ~sourceType
-          ~sourcePath
-          ~buildIsInProgress:true
-          build
-      in
-
-      let _, exportedScope, buildScope =
-        let f (seen, exportedScope, buildScope) (direct, dep) =
-          match dep with
-          | None -> (seen, exportedScope, buildScope)
-          | Some build ->
-            if StringSet.mem build.Task.id seen
-            then seen, exportedScope, buildScope
-            else
-              StringSet.add build.Task.id seen,
-              Scope.add ~direct ~dep:build.exportedScope exportedScope,
-              Scope.add ~direct ~dep:build.exportedScope buildScope
-        in
-        List.fold_left
-          ~f
-          ~init:(StringSet.empty, exportedScope, buildScope)
-          dependencies
-      in
-
-      exportedScope, buildScope
+      List.map ~f (StringMap.values sandbox.sandboxEnv)
     in
 
-    let%bind buildEnv =
-      let%bind bindings = Scope.env ~includeBuildEnv:true buildScope in
-      Run.context
-        (Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval bindings))
-        "evaluating environment"
+    let scope =
+      Scope.make
+        ~platform:sandbox.platform
+        ~sandboxEnv
+        ~id
+        ~name
+        ~version
+        ~sourceType
+        ~sourcePath
+        pkg
+        build
     in
 
-    let ocamlVersion =
-      let open Option.Syntax in
-      let%bind _, maybeOcaml =
-        let f = function
-          | _, Some {Task.name = "ocaml";_ } -> true
-          | _, _ -> false
-        in
-        List.find_opt ~f dependencies
+    let _, scope =
+      let f (seen, scope) (direct, dep) =
+        let id = Scope.id dep in
+        if StringSet.mem id seen
+        then seen, scope
+        else
+          let pkg = Scope.pkg dep in
+          match direct, PackageId.Set.mem pkg.id matched with
+          | true, false -> seen, scope
+          | true, true
+          | false, _ ->
+            StringSet.add id seen,
+            Scope.add ~direct ~dep scope
       in
-      let%bind ocaml = maybeOcaml in
-      return (toOCamlVersion ocaml.Task.version)
+      List.fold_left
+        ~f
+        ~init:(StringSet.empty, scope)
+        (dependencies @ [true, scope])
     in
 
-    let opamEnv = Scope.toOpamEnv ~ocamlVersion buildScope in
-
-    let%bind buildCommands =
-      Run.context
-        begin match build.buildCommands with
-        | EsyCommands commands ->
-          let%bind commands = renderEsyCommands ~env:buildEnv buildScope commands in
-          let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
-          let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
-          return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | OpamCommands commands ->
-          let%bind commands = renderOpamCommands opamEnv commands in
-          let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
-          let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
-          return (applySubstsCommands @ applyPatchesCommands @ commands)
-        | NoCommands ->
-          return []
-        end
-        "processing esy.build"
-    in
-
-    let%bind installCommands =
-      Run.context
-        begin match build.installCommands with
-        | EsyCommands commands ->
-          let%bind cmds = renderEsyCommands ~env:buildEnv buildScope commands in
-          return (Some cmds)
-        | OpamCommands commands ->
-          let%bind cmds = renderOpamCommands opamEnv commands in
-          return (Some cmds)
-        | NoCommands ->
-          return None
-        end
-        "processing esy.install"
-    in
-
-    let task = {
-      Task.
-      id;
-      pkg;
-      name;
-      version;
-      buildCommands;
-      installCommands;
-      env = buildEnv;
-      buildType = build.buildType;
-      sourceType;
-      sourcePath;
-      platform;
-      exportedScope;
-      buildScope;
-      manifest = build;
-    } in
-
-    tasks := PackageId.Map.add pkg.Package.id (Some task) !tasks;
-
-    return task
-
+    return scope
   in
 
-  let visitAndIgnore id =
-    let pkg = Solution.getExn id solution in
-    let%bind (_ : Task.t option) = visit [] pkg in
-    return ()
+  visit [] id
+
+let make'
+  ?(forceImmutable=false)
+  sandbox
+  depspec =
+  let open Run.Syntax in
+
+  let cache = Hashtbl.create 100 in
+
+  let makeTask pkg =
+    match%bind makeScope ~cache ~forceImmutable sandbox pkg.id depspec with
+    | None -> return None
+    | Some (scope, build) ->
+
+      let%bind env =
+        let%bind bindings = Scope.env ~buildIsInProgress:true ~includeBuildEnv:true scope in
+        Run.context
+          (Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval bindings))
+          "evaluating environment"
+      in
+
+      let opamEnv = Scope.toOpamEnv ~buildIsInProgress:true scope in
+
+      let%bind buildCommands =
+        Run.context
+          begin match build.buildCommands with
+          | EsyCommands commands ->
+            let%bind commands = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
+            let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
+            let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
+            return (applySubstsCommands @ applyPatchesCommands @ commands)
+          | OpamCommands commands ->
+            let%bind commands = renderOpamCommands opamEnv commands in
+            let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
+            let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
+            return (applySubstsCommands @ applyPatchesCommands @ commands)
+          | NoCommands ->
+            return []
+          end
+          "processing esy.build"
+      in
+
+      let%bind installCommands =
+        Run.context
+          begin match build.installCommands with
+          | EsyCommands commands ->
+            let%bind cmds = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
+            return (Some cmds)
+          | OpamCommands commands ->
+            let%bind cmds = renderOpamCommands opamEnv commands in
+            return (Some cmds)
+          | NoCommands ->
+            return None
+          end
+          "processing esy.install"
+      in
+
+      let task = {
+        Task.
+        id = Scope.id scope;
+        pkg;
+        name = pkg.name;
+        version = pkg.version;
+        buildCommands;
+        installCommands;
+        env;
+        buildType = build.BuildManifest.buildType;
+        sourceType = Scope.sourceType scope;
+        sourcePath = Scope.sourcePath scope;
+        platform = sandbox.Sandbox.platform;
+        scope;
+        manifest = build;
+      } in
+
+      return (Some task)
   in
 
-  return (visitAndIgnore, tasks)
+  let%bind tasks =
+    let root = Solution.root sandbox.solution in
+    let rec visit tasks = function
+      | [] -> return tasks
+      | id::ids ->
+        begin match PackageId.Map.find_opt id tasks with
+        | Some _ -> visit tasks ids
+        | None ->
+          let pkg = Solution.getExn id sandbox.solution in
+          let%bind task =
+            Run.contextf
+              (makeTask pkg)
+              "processing %a" Package.pp pkg
+          in
+          let tasks = PackageId.Map.add id task tasks in
+          let ids =
+            let deps =
+              if PackageId.compare id root.id = 0
+              then PackageId.Set.union pkg.Package.dependencies pkg.Package.devDependencies
+              else pkg.Package.dependencies
+            in
+            PackageId.Set.elements deps @ ids
+          in
+          visit tasks ids
+        end
+    in
+    visit PackageId.Map.empty [root.id]
+  in
+
+  return tasks
 
 let make ?forceImmutable (sandbox : Sandbox.t) =
-  let open Run.Syntax in
-  let%bind visit, tasks =
-    make'
-      ?forceImmutable
-      ~platform:sandbox.platform
-      ~buildCfg:sandbox.cfg.Config.buildCfg
-      ~sandboxEnv:sandbox.sandboxEnv
-      ~solution:sandbox.solution
-      ~installation:sandbox.installation
-      ~manifests:sandbox.manifests
-      DepSpec.(dependencies self)
-  in
-
-  let root = Solution.root sandbox.solution in
-
-  let%bind () = visit root.id in
-  let%bind () =
-    Run.List.mapAndWait
-      ~f:visit
-      (PackageId.Set.elements root.devDependencies)
-  in
-  return !tasks
+  make'
+    ?forceImmutable
+    sandbox
+    DepSpec.(dependencies self)
 
 let findTaskById tasks id =
   match PackageId.Map.find_opt id tasks with
@@ -928,131 +912,73 @@ let exposeUserEnv scope =
   scope
   |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
 
-let scopeOfSpec ~buildIsInProgress (sandbox : Sandbox.t) id spec =
+let makeEnv
+  ~buildIsInProgress
+  ~includeCurrentEnv
+  ~includeBuildEnv
+  ~includeNpmBin
+  ~depspec
+  ~envspec
+  sandbox
+  id
+  =
   let open Run.Syntax in
 
-  let getPackageById id =
-    match Solution.get id sandbox.solution with
-    | None -> errorf "no package found: %a" PackageId.pp id
-    | Some pkg -> return pkg
-  in
-
-  let%bind directs =
-    let rec collect acc (spec : ExecSpec.t) =
-      match spec with
-      | ExecSpec.Package id ->
-        return (PackageId.Set.add id acc)
-      | ExecSpec.Dependencies id ->
-        let%bind pkg = getPackageById id in
-        return (
-          PackageId.Set.fold
-            PackageId.Set.add
-            pkg.Package.dependencies
-            acc
-        )
-      | ExecSpec.DevDependencies id ->
-        let%bind pkg = getPackageById id in
-        return (
-          PackageId.Set.fold
-            PackageId.Set.add
-            pkg.Package.devDependencies
-            acc
-        )
-      | ExecSpec.Union (a, b) ->
-        let%bind acc = collect acc a in
-        let%bind acc = collect acc b in
-        return acc
-    in
-    collect PackageId.Set.empty spec
-  in
-
-  let _, lineage =
-
-    let rec visit (seen, dependencies) stack =
-      match stack with
-      | [] -> seen, dependencies
-      | id::rest ->
-        if PackageId.Set.mem id seen
-        then visit (seen, dependencies) rest
-        else (
-          let seen = PackageId.Set.add id seen in
-          let seen, dependencies =
-            let pkg = Solution.getExn id sandbox.solution in
-            visit (seen, dependencies) (Solution.traverse pkg)
-          in
-          let dependencies = id::dependencies in
-          visit (seen, dependencies) rest
-        )
-    in
-
-    visit (PackageId.Set.empty, []) (PackageId.Set.elements directs)
-  in
-
-  let%bind add, tasks =
-    make'
-      ~buildCfg:sandbox.cfg.Config.buildCfg
-      ~sandboxEnv:sandbox.sandboxEnv
-      ~solution:sandbox.solution
-      ~installation:sandbox.installation
-      ~manifests:sandbox.manifests
-      DepSpec.(dependencies self)
-  in
-
-  let%bind init =
-    let%bind () = add id in
-    match PackageId.Map.find id !tasks with
-    | None -> errorf "no scope provided by %a" PackageId.pp id
-    | Some task ->
-      let sandboxEnv =
-        let f {BuildManifest.Env. name; value} =
-          Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
-        in
-        List.map ~f (StringMap.values sandbox.sandboxEnv)
-      in
-      return (
-        Scope.make
-          ~platform:sandbox.platform
-          ~sandboxEnv
-          ~id:task.id
-          ~name:task.pkg.name
-          ~version:task.pkg.version
-          ~sourceType:task.sourceType
-          ~sourcePath:task.sourcePath
-          ~buildIsInProgress
-          task.manifest
-      )
-  in
-
-  let f acc id =
-    let%bind () = add id in
-    let%bind _pkg = getPackageById id in
-    match PackageId.Map.find_opt id !tasks with
-    | None
-    | Some None -> return acc
-    | Some Some task ->
-      let direct = PackageId.Set.mem id directs in
-      return (Scope.add ~direct ~dep:task.Task.exportedScope acc)
+  let cache = Hashtbl.create 100 in
+  let makeScope id =
+    match%bind makeScope ~cache ~forceImmutable:false sandbox id depspec with
+    | None -> return None
+    | Some (scope, _build) -> return (Some scope)
   in
 
   let%bind scope =
-    Result.List.foldLeft
-      ~f
-      ~init
-      (List.rev lineage)
+    match%bind makeScope id with
+    | None -> errorf "no build found for %a" PackageId.pp id
+    | Some scope -> return scope
   in
 
-  return scope
+  let matched = DepSpec.eval sandbox.solution id envspec in
+  Logs.debug (fun m ->
+    m "envspec %a at %a matches %a"
+      DepSpec.pp
+      envspec
+      PackageId.pp
+      id
+      Fmt.(list ~sep:(unit ", ") PackageId.pp)
+      (PackageId.Set.elements matched)
+  );
 
-let env ~buildIsInProgress ~includeCurrentEnv ~includeBuildEnv ~includeNpmBin sandbox id spec =
-  let open Run.Syntax in
-  let%bind scope = scopeOfSpec ~buildIsInProgress sandbox id spec in
+  let dependencies =
+    let dependencies = PackageId.Set.(elements (remove id matched)) in
+    Solution.allDependenciesBFS
+      ~dependencies
+      id
+      sandbox.solution
+  in
+
+  let%bind scope =
+    let collect scope (_direct, pkg) =
+      if PackageId.Set.mem pkg.Package.id matched
+      then
+        match%bind makeScope pkg.Package.id with
+        | None -> return scope
+        | Some dep -> return (Scope.add ~direct:true ~dep scope)
+      else
+        return scope
+    in
+    Run.List.foldLeft
+      ~f:collect
+      ~init:scope
+      (dependencies @ [true, Solution.getExn id sandbox.solution])
+  in
+
   let%bind env =
     let scope =
       if includeCurrentEnv
       then exposeUserEnv scope
       else scope
     in
-    Scope.env ~includeBuildEnv scope
+    Scope.env ~includeBuildEnv ~buildIsInProgress scope
   in
   let env =
     if includeNpmBin
@@ -1067,40 +993,53 @@ let env ~buildIsInProgress ~includeCurrentEnv ~includeBuildEnv ~includeNpmBin sa
   return env
 
 let buildEnv sandbox id =
+  Logs.debug (fun m -> m "buildEnv %a" PackageId.pp id);
+  let depspec = DepSpec.(dependencies self) in
+  let env =
+    makeEnv
+      ~buildIsInProgress:true
+      ~includeCurrentEnv:false
+      ~includeBuildEnv:true
+      ~includeNpmBin:false
+      ~depspec
+      ~envspec:depspec
+      sandbox
+      id
+  in
+  Logs.debug (fun m -> m "buildEnv %a: done" PackageId.pp id);
   env
-    ~buildIsInProgress:true
-    ~includeCurrentEnv:false
-    ~includeBuildEnv:true
-    ~includeNpmBin:false
-    sandbox
-    id
-    ExecSpec.(
-      dependencies id
-    )
 
 let commandEnv sandbox id =
+  Logs.debug (fun m -> m "commandEnv %a" PackageId.pp id);
+  let env =
+    makeEnv
+      ~buildIsInProgress:false
+      ~includeCurrentEnv:true
+      ~includeBuildEnv:true
+      ~includeNpmBin:true
+      ~depspec:DepSpec.(dependencies self)
+      ~envspec:DepSpec.(dependencies self + devDependencies self)
+      sandbox
+      id
+  in
+  Logs.debug (fun m -> m "commandEnv %a: done" PackageId.pp id);
   env
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:true
-    ~includeNpmBin:true
-    sandbox
-    id
-    ExecSpec.(
-      dependencies id + devDependencies id
-    )
 
 let execEnv sandbox id =
+  Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
+  let env =
+    makeEnv
+      ~buildIsInProgress:false
+      ~includeCurrentEnv:true
+      ~includeBuildEnv:false
+      ~includeNpmBin:true
+      ~depspec:DepSpec.(dependencies self)
+      ~envspec:DepSpec.(package self + dependencies self + devDependencies self)
+      sandbox
+      id
+  in
+  Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
   env
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:false
-    ~includeNpmBin:true
-    sandbox
-    id
-    ExecSpec.(
-      package id + dependencies id + devDependencies id
-    )
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in

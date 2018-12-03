@@ -17,9 +17,9 @@ module type GRAPH = sig
   val find : (id -> node -> bool) -> t -> (id * node) option
   val dependencies : ?traverse:traverse -> node -> t -> node list
   val allDependenciesBFS :
-    ?traverseThis:traverse
-    -> ?traverse:traverse
-    -> node
+    ?traverse:traverse
+    -> ?dependencies:id list
+    -> id
     -> t
     -> (bool * node) list
 
@@ -94,7 +94,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
     let f id = getExn id graph in
     List.map ~f dependencies
 
-  let allDependenciesBFS ?(traverseThis=Node.traverse) ?(traverse=Node.traverse) node graph =
+  let allDependenciesBFS ?(traverse=Node.traverse) ?dependencies id graph =
 
     let queue  = Queue.create () in
     let enqueue direct dependencies =
@@ -117,10 +117,14 @@ module Make (Node : GRAPH_NODE) : GRAPH
     in
 
     let _, dependencies =
-      let node =
-        Node.Id.Map.find (Node.id node) graph.nodes
+      let dependencies =
+        match dependencies with
+        | None ->
+          let node = Node.Id.Map.find id graph.nodes in
+          Node.traverse node
+        | Some dependencies -> dependencies
       in
-      enqueue true (traverseThis node);
+      enqueue true dependencies;
       process (Node.Id.Set.empty, [])
     in
 

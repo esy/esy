@@ -1585,7 +1585,7 @@ let exportDependencies (copts : CommonOptions.t) () =
   RunAsync.List.mapAndWait
     ~concurrency:8
     ~f:exportBuild
-    (Solution.allDependenciesBFS (Solution.root solution) solution)
+    (Solution.allDependenciesBFS (Solution.root solution).id solution)
 
 let importBuild (copts : CommonOptions.t) fromPath buildPaths () =
   let open RunAsync.Syntax in
@@ -1644,7 +1644,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
   RunAsync.List.mapAndWait
     ~concurrency:16
     ~f:importBuild
-    (Solution.allDependenciesBFS (Solution.root solution) solution)
+    (Solution.allDependenciesBFS (Solution.root solution).id solution)
 
 let show (copts : CommonOptions.t) _asJson req () =
   let open EsyInstall in

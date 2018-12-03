@@ -44,8 +44,7 @@ module Task : sig
     buildType : BuildManifest.BuildType.t;
     sourceType : BuildManifest.SourceType.t;
     sourcePath : Scope.SandboxPath.t;
-    buildScope : Scope.t;
-    exportedScope : Scope.t;
+    scope : Scope.t;
     platform : System.Platform.t;
     manifest : BuildManifest.t;
   }
