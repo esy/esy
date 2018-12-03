@@ -56,6 +56,16 @@ let pkgRefTerm =
     & info [] ~doc
   )
 
+let depspecConv =
+  let open Cmdliner in
+  let open Result.Syntax in
+  let parse v =
+    let lexbuf = Lexing.from_string v in
+    return (DepSpecParser.start DepSpecLexer.read lexbuf)
+  in
+  let pp = Plan.DepSpec.pp in
+  Arg.conv ~docv:"DEPSPEC" (parse, pp)
+
 let runAsyncToCmdlinerRetResult res =
   `Ok (Lwt_main.run res)
 
@@ -474,6 +484,11 @@ module SandboxInfo = struct
     | Some solution -> RunAsync.return solution
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
+  let installation info =
+    match info.installation with
+    | Some installation -> RunAsync.return installation
+    | None -> RunAsync.errorf "no installation found, run 'esy install'"
+
   let sandbox info =
     match info.sandbox with
     | Some sandbox -> RunAsync.return sandbox
@@ -879,13 +894,14 @@ let status copts _asJson () =
       let%lwt solution = protectRunAsync (SandboxInfo.solution info) in
       let%lwt installation = protectRunAsync (SandboxInfo.installation info) in
       let%lwt built = protectRunAsync (
-        let%bind plan = SandboxInfo.plan info in
+        let%bind sandbox = SandboxInfo.sandbox info in
+        let%bind _root, plan = SandboxInfo.plan info in
         let checkTask built task =
           if built
           then
             match task.Plan.Task.sourceType with
             | Immutable
-            | ImmutableWithTransientDependencies -> Plan.isBuilt ~cfg task
+            | ImmutableWithTransientDependencies -> Plan.isBuilt sandbox task
             | Transient -> return built
           else
             return built
@@ -896,13 +912,11 @@ let status copts _asJson () =
           (Plan.allTasks plan)
       ) in
       let%lwt rootBuildPath = protectRunAsync (
-        let%bind plan = SandboxInfo.plan info in
-        let root = Plan.rootTask plan in
+        let%bind root, _plan = SandboxInfo.plan info in
         return (Some (Plan.Task.buildPath cfg root))
       ) in
       let%lwt rootInstallPath = protectRunAsync (
-        let%bind plan = SandboxInfo.plan info in
-        let root = Plan.rootTask plan in
+        let%bind root, _plan = SandboxInfo.plan info in
         return (Some (Plan.Task.installPath cfg root))
       ) in
       return {
@@ -1038,16 +1052,16 @@ let buildDependencies (copts : CommonOptions.t) all () =
     plan
     root.Plan.Task.pkg.id
 
-let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
+let makeEnvCommand header computeEnv copts asJson packagePath () =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
+  let%bind sandbox = SandboxInfo.sandbox info in
 
   let f (task : Plan.Task.t) =
-    let%bind env = computeEnv copts info task in
+    let%bind env = computeEnv sandbox task in
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let header = header task in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
@@ -1056,6 +1070,7 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
+        let header = header task in
         Environment.renderToShellSource
           ~header
           env
@@ -1065,20 +1080,54 @@ let makeEnvCommand ~computeEnv ~header copts asJson packagePath () =
   in
   withTask info packagePath f
 
+let envBy copts asJson includeBuildEnv includeCurrentEnv depspec envspec packagePath () =
+  let header (task : Plan.Task.t) =
+    Format.asprintf
+      "# Environment for %s@%a"
+      task.name Version.pp task.version
+  in
+  let computeEnv sandbox task =
+    let open RunAsync.Syntax in
+    let depspec =
+      match depspec with
+      | Some depspec -> depspec
+      | None -> Plan.DepSpec.(dependencies self)
+    in
+    let envspec =
+      match envspec with
+      | Some envspec -> envspec
+      | None -> depspec
+    in
+    let%bind env = RunAsync.ofRun (
+      Plan.makeEnv
+        ~buildIsInProgress:false
+        ~includeBuildEnv
+        ~includeCurrentEnv
+        ~includeNpmBin:false
+        ~depspec
+        ~envspec
+        sandbox
+        task.Plan.Task.pkg.id
+      )
+    in
+    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
+    return env
+  in
+  makeEnvCommand header computeEnv copts asJson packagePath ()
+
 let buildEnv =
   let header (task : Plan.Task.t) =
     Format.asprintf
       "# Build environment for %s@%a"
       task.name Version.pp task.version
   in
-  let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
+  let computeEnv sandbox task =
     let open RunAsync.Syntax in
-    let%bind sandbox = SandboxInfo.sandbox info in
     let%bind env = RunAsync.ofRun (Env.buildEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
+    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
     return env
   in
-  makeEnvCommand ~computeEnv ~header
+  makeEnvCommand header computeEnv
 
 let commandEnv =
   let open RunAsync.Syntax in
@@ -1087,13 +1136,12 @@ let commandEnv =
       "# Command environment for %s@%a"
       task.name Version.pp task.version
   in
-  let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
-    let%bind sandbox = SandboxInfo.sandbox info in
+  let computeEnv sandbox task =
     let%bind env = RunAsync.ofRun (Env.commandEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
+    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
     return (Environment.current @ env)
   in
-  makeEnvCommand ~computeEnv ~header
+  makeEnvCommand header computeEnv
 
 let sandboxEnv =
   let open RunAsync.Syntax in
@@ -1102,13 +1150,12 @@ let sandboxEnv =
       "# Sandbox environment for %s@%a"
       task.name Version.pp task.version
   in
-  let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
-    let%bind sandbox = SandboxInfo.sandbox info in
+  let computeEnv sandbox task =
     let%bind env = RunAsync.ofRun (Env.execEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
+    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
     return (Environment.current @ env)
   in
-  makeEnvCommand ~computeEnv ~header
+  makeEnvCommand header computeEnv
 
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
@@ -1933,6 +1980,30 @@ let makeCommands ~sandbox () =
       Term.(
         const devShell
         $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"env-by"
+      ~doc:"Produce environment by specification"
+      Term.(
+        const envBy
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
+        $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
+        $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["depspec"] ~doc:"What to add to the env"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["envspec"] ~doc:"What to add to the env"
+          )
+        $ pkgRefTerm
         $ Cli.setupLogTerm
       );
 

@@ -29,3 +29,10 @@
             opam-state
             )
 )
+
+(ocamllex (modules DepSpecLexer))
+
+(menhir
+  (flags "--explain")
+  (modules DepSpecParser)
+  )
