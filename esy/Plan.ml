@@ -8,6 +8,51 @@ module Version = EsyInstall.Version
 
 module ExecSpec = EsyInstall.DepSpec.Make(PackageId)
 
+module DepSpec = struct
+
+  module Id = struct
+    type t =
+      | Self
+      | Root
+      (* | PackageById of PackageId.t *)
+      (* | PackageByLink of Path.t *)
+      [@@deriving ord]
+
+    let pp fmt = function
+      | Self -> Fmt.unit "self" fmt ()
+      | Root -> Fmt.unit "root" fmt ()
+      (* | PackageById id -> PackageId.pp fmt id *)
+      (* | PackageByLink path -> Fmt.pf fmt "link:%a" Path.pp path *)
+  end
+
+  include EsyInstall.DepSpec.Make(Id)
+
+  let root = Id.Root
+  let self = Id.Self
+  (* let id id = package (PackageById id) *)
+  (* let link path = package (PackageByLink path) *)
+
+  let eval solution self depspec =
+    let idToPackageId id =
+      match id with
+      | Id.Root -> (Solution.root solution).id
+      | Id.Self -> self
+    in
+    let rec eval' expr =
+      match expr with
+      | Package id -> PackageId.Set.singleton (idToPackageId id)
+      | Dependencies id ->
+        let pkg = Solution.getExn (idToPackageId id) solution in
+        pkg.dependencies
+      | DevDependencies id ->
+        let pkg = Solution.getExn (idToPackageId id) solution in
+        pkg.devDependencies
+      | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
+    in
+    eval' depspec
+
+end
+
 module Sandbox = struct
   type t = {
     cfg : Config.t;
@@ -331,7 +376,7 @@ let make'
   ~solution
   ~installation
   ~manifests
-  () =
+  depspec =
   let open Run.Syntax in
 
   let tasks = ref PackageId.Map.empty in
@@ -342,35 +387,36 @@ let make'
     | None -> return (pkg::seen)
   in
 
-  let rec visit seen pkg =
-    let id = pkg.Package.id in
-    match PackageId.Map.find_opt id !tasks with
+  let rec visit seen (pkg : Package.t) =
+    match PackageId.Map.find_opt pkg.id !tasks with
     | Some None -> return None
     | Some (Some build) ->
       let%bind _ : Package.t list = updateSeen seen pkg in
       return (Some build)
     | None ->
-      begin match PackageId.Map.find_opt id manifests with
+      begin match PackageId.Map.find_opt pkg.id manifests with
       | Some manifest ->
         let%bind seen = updateSeen seen pkg in
         Run.contextf (
-          let%bind build = visit' seen id pkg manifest in
+          let%bind build = visit' seen pkg manifest in
           return (Some build)
-        ) "processing %a" PackageId.pp id
+        ) "processing %a" PackageId.pp pkg.id
       | None -> return None
       end
 
-  and visit' seen pkgId pkg build =
-    let location = Installation.findExn pkgId installation in
+  and visit' seen pkg build =
+    let location = Installation.findExn pkg.id installation in
 
     let%bind dependencies =
-      let dependencies = Solution.allDependenciesBFS pkg solution in
-      let f (direct, pkg) =
-        let%bind build = visit seen pkg in
-        return (direct, build)
+      let traverseThis pkg =
+        PackageId.Set.elements (DepSpec.eval solution pkg.Package.id depspec)
       in
-      let%bind dependencies = Result.List.map ~f dependencies in
-      return (List.rev dependencies)
+      let dependencies = Solution.allDependenciesBFS ~traverseThis pkg solution in
+      let f dependencies (direct, pkg) =
+        let%bind build = visit seen pkg in
+        return ((direct, build)::dependencies)
+      in
+      Result.List.foldLeft ~f ~init:[] dependencies
     in
 
     Logs.debug (fun m -> m "plan %a" Package.pp pkg);
@@ -407,9 +453,9 @@ let make'
       else sourceType
     in
 
-    let name = PackageId.name pkgId in
-    let version = PackageId.version pkgId in
-    let id = buildId ~sandboxEnv ~id:pkgId ~dist ~build ~dependencies () in
+    let name = pkg.name in
+    let version = pkg.version in
+    let id = buildId ~sandboxEnv ~id:pkg.id ~dist ~build ~dependencies () in
     let sourcePath = Scope.SandboxPath.ofPath buildCfg location in
 
     let exportedScope, buildScope =
@@ -567,9 +613,11 @@ let make ?forceImmutable (sandbox : Sandbox.t) =
       ~solution:sandbox.solution
       ~installation:sandbox.installation
       ~manifests:sandbox.manifests
-      ()
+      DepSpec.(dependencies self)
   in
+
   let root = Solution.root sandbox.solution in
+
   let%bind () = visit root.id in
   let%bind () =
     Run.List.mapAndWait
@@ -947,7 +995,7 @@ let scopeOfSpec ~buildIsInProgress (sandbox : Sandbox.t) id spec =
       ~solution:sandbox.solution
       ~installation:sandbox.installation
       ~manifests:sandbox.manifests
-      ()
+      DepSpec.(dependencies self)
   in
 
   let%bind init =

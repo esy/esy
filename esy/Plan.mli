@@ -1,3 +1,18 @@
+module DepSpec : sig
+  type t
+  type id
+
+  val package : id -> t
+  val dependencies : id -> t
+  val devDependencies : id -> t
+  val root : id
+  val self : id
+  val (+) : t -> t -> t
+
+  val compare : t -> t -> int
+  val pp : t Fmt.t
+end
+
 module Sandbox : sig
   type t = {
     cfg : Config.t;
