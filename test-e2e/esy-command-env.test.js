@@ -3,15 +3,92 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const {createTestSandbox, promiseExec, skipSuiteOnWindows} = require('./test/helpers');
-const fixture = require('./common/fixture.js');
+const helpers = require('./test/helpers');
+const {packageJson, dir} = helpers;
 
-skipSuiteOnWindows('#301');
+helpers.skipSuiteOnWindows('#301');
+
+function makeFixture(p) {
+  return [
+    packageJson({
+      name: 'simple-project',
+      version: '1.0.0',
+      dependencies: {
+        dep: 'path:./dep',
+      },
+      devDependencies: {
+        devDep: 'path:./devDep',
+      },
+      esy: {
+        buildEnv: {
+          root__build: 'root__build__value',
+        },
+        exportedEnv: {
+          root__local: {val: 'root__local__value'},
+          root__global: {val: 'root__global__value', scope: 'global'},
+        },
+      },
+    }),
+    dir(
+      'dep',
+      packageJson({
+        name: 'dep',
+        version: '1.0.0',
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          exportedEnv: {
+            dep__local: {val: 'dep__local__value'},
+            dep__global: {val: 'dep__global__value', scope: 'global'},
+          },
+        },
+        dependencies: {
+          depOfDep: 'path:../depOfDep',
+        },
+      }),
+
+      helpers.dummyExecutable('dep'),
+    ),
+    dir(
+      'depOfDep',
+      packageJson({
+        name: 'depOfDep',
+        version: '1.0.0',
+        esy: {
+          exportedEnv: {
+            depOfDep__local: {val: 'depOfDep__local__value'},
+            depOfDep__global: {val: 'depOfDep__global__value', scope: 'global'},
+          },
+        },
+      }),
+    ),
+    dir(
+      'devDep',
+      packageJson({
+        name: 'devDep',
+        version: '1.0.0',
+        esy: {
+          install: [
+            'cp #{self.root / self.name}.js #{self.bin / self.name}.js',
+            helpers.buildCommand(p, '#{self.bin / self.name}.js'),
+          ],
+          exportedEnv: {
+            devDep__local: {val: 'devDep__local__value'},
+            devDep__global: {val: 'devDep__global__value', scope: 'global'},
+          },
+        },
+      }),
+      helpers.dummyExecutable('devDep'),
+    ),
+  ];
+}
 
 describe('esy command-env', () => {
   it('generates env as a bash source', async () => {
-    const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('install');
     await p.esy('build');
 
@@ -20,21 +97,21 @@ describe('esy command-env', () => {
     await fs.writeFile(path.join(p.projectPath, 'command-env'), env);
 
     await expect(
-      promiseExec('. ./command-env && dep.cmd', {
+      helpers.promiseExec('. ./command-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./command-env && devDep.cmd', {
+      helpers.promiseExec('. ./command-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
   });
 
   it('generates env as JSON', async () => {
-    const p = await createTestSandbox();
-    await p.fixture(...fixture.makeSimpleProject(p));
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...makeFixture(p));
     await p.esy('install');
     await p.esy('build');
 
