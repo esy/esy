@@ -189,7 +189,17 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let%bind bindings = RunAsync.ofRun (Plan.execEnv sandbox root) in
+    let%bind bindings = RunAsync.ofRun (
+      Plan.makeEnv
+        ~buildIsInProgress:false
+        ~includeCurrentEnv:true
+        ~includeBuildEnv:false
+        ~includeNpmBin:true
+        ~depspec:Plan.DepSpec.(dependencies self)
+        ~envspec:Plan.DepSpec.(package self + dependencies self + devDependencies self)
+        sandbox
+        root
+    ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 

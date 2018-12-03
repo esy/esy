@@ -388,6 +388,59 @@ module CommonOptions = struct
 
 end
 
+module Env = struct
+
+  let buildEnv sandbox id =
+    Logs.debug (fun m -> m "buildEnv %a" PackageId.pp id);
+    let depspec = Plan.DepSpec.(dependencies self) in
+    let env =
+      Plan.makeEnv
+        ~buildIsInProgress:true
+        ~includeCurrentEnv:false
+        ~includeBuildEnv:true
+        ~includeNpmBin:false
+        ~depspec
+        ~envspec:depspec
+        sandbox
+        id
+    in
+    Logs.debug (fun m -> m "buildEnv %a: done" PackageId.pp id);
+    env
+
+  let commandEnv sandbox id =
+    Logs.debug (fun m -> m "commandEnv %a" PackageId.pp id);
+    let env =
+      Plan.makeEnv
+        ~buildIsInProgress:false
+        ~includeCurrentEnv:true
+        ~includeBuildEnv:true
+        ~includeNpmBin:true
+        ~depspec:Plan.DepSpec.(dependencies self)
+        ~envspec:Plan.DepSpec.(dependencies self + devDependencies self)
+        sandbox
+        id
+    in
+    Logs.debug (fun m -> m "commandEnv %a: done" PackageId.pp id);
+    env
+
+  let execEnv sandbox id =
+    Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
+    let env =
+      Plan.makeEnv
+        ~buildIsInProgress:false
+        ~includeCurrentEnv:true
+        ~includeBuildEnv:false
+        ~includeNpmBin:true
+        ~depspec:Plan.DepSpec.(dependencies self)
+        ~envspec:Plan.DepSpec.(package self + dependencies self + devDependencies self)
+        sandbox
+        id
+    in
+    Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
+    env
+
+end
+
 module SandboxInfo = struct
 
   type t = {
@@ -473,7 +526,7 @@ module SandboxInfo = struct
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
               let header = "# Command environment" in
-              let%bind commandEnv = Plan.commandEnv sandbox root.Solution.Package.id in
+              let%bind commandEnv = Env.commandEnv sandbox root.Solution.Package.id in
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
               Environment.renderToShellSource ~header commandEnv
             ) in
@@ -1021,7 +1074,7 @@ let buildEnv =
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let open RunAsync.Syntax in
     let%bind sandbox = SandboxInfo.sandbox info in
-    let%bind env = RunAsync.ofRun (Plan.buildEnv sandbox task.Plan.Task.pkg.id) in
+    let%bind env = RunAsync.ofRun (Env.buildEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return env
   in
@@ -1036,7 +1089,7 @@ let commandEnv =
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let%bind sandbox = SandboxInfo.sandbox info in
-    let%bind env = RunAsync.ofRun (Plan.commandEnv sandbox task.Plan.Task.pkg.id) in
+    let%bind env = RunAsync.ofRun (Env.commandEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return (Environment.current @ env)
   in
@@ -1051,7 +1104,7 @@ let sandboxEnv =
   in
   let computeEnv (copts : CommonOptions.t) (info : SandboxInfo.t) task =
     let%bind sandbox = SandboxInfo.sandbox info in
-    let%bind env = RunAsync.ofRun (Plan.execEnv sandbox task.Plan.Task.pkg.id) in
+    let%bind env = RunAsync.ofRun (Env.execEnv sandbox task.Plan.Task.pkg.id) in
     let env = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg env in
     return (Environment.current @ env)
   in
@@ -1086,9 +1139,9 @@ let makeExecCommand
     RunAsync.ofRun (
       match env with
       | `CommandEnv ->
-        Plan.commandEnv sandbox root.Plan.Task.pkg.id
+        Env.commandEnv sandbox root.Plan.Task.pkg.id
       | `SandboxEnv ->
-        Plan.execEnv sandbox root.Plan.Task.pkg.id
+        Env.execEnv sandbox root.Plan.Task.pkg.id
     )
   in
 

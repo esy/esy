@@ -992,55 +992,6 @@ let makeEnv
   in
   return env
 
-let buildEnv sandbox id =
-  Logs.debug (fun m -> m "buildEnv %a" PackageId.pp id);
-  let depspec = DepSpec.(dependencies self) in
-  let env =
-    makeEnv
-      ~buildIsInProgress:true
-      ~includeCurrentEnv:false
-      ~includeBuildEnv:true
-      ~includeNpmBin:false
-      ~depspec
-      ~envspec:depspec
-      sandbox
-      id
-  in
-  Logs.debug (fun m -> m "buildEnv %a: done" PackageId.pp id);
-  env
-
-let commandEnv sandbox id =
-  Logs.debug (fun m -> m "commandEnv %a" PackageId.pp id);
-  let env =
-    makeEnv
-      ~buildIsInProgress:false
-      ~includeCurrentEnv:true
-      ~includeBuildEnv:true
-      ~includeNpmBin:true
-      ~depspec:DepSpec.(dependencies self)
-      ~envspec:DepSpec.(dependencies self + devDependencies self)
-      sandbox
-      id
-  in
-  Logs.debug (fun m -> m "commandEnv %a: done" PackageId.pp id);
-  env
-
-let execEnv sandbox id =
-  Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
-  let env =
-    makeEnv
-      ~buildIsInProgress:false
-      ~includeCurrentEnv:true
-      ~includeBuildEnv:false
-      ~includeNpmBin:true
-      ~depspec:DepSpec.(dependencies self)
-      ~envspec:DepSpec.(package self + dependencies self + devDependencies self)
-      sandbox
-      id
-  in
-  Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
-  env
-
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in
   let buildId = Path.basename buildPath in

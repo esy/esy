@@ -1,13 +1,26 @@
+(** An expression to specify a set of packages. *)
 module DepSpec : sig
-  type t
-  type id
 
-  val package : id -> t
-  val dependencies : id -> t
-  val devDependencies : id -> t
+  type id
+  (** Package id. *)
+
   val root : id
   val self : id
+
+  type t
+  (** Dependency expression, *)
+
+  val package : id -> t
+  (** [package id] refers to a package by its [id]. *)
+
+  val dependencies : id -> t
+  (** [dependencies id] refers all dependencies of the package with [id]. *)
+
+  val devDependencies : id -> t
+  (** [dependencies id] refers all devDependencies of the package with [id]. *)
+
   val (+) : t -> t -> t
+  (** [a + b] refers to all packages in [a] and in [b]. *)
 
   val compare : t -> t -> int
   val pp : t Fmt.t
@@ -117,18 +130,14 @@ val isBuilt :
   -> Task.t
   -> bool RunAsync.t
 
-val commandEnv :
-  Sandbox.t
-  -> EsyInstall.PackageId.t
-  -> Scope.SandboxEnvironment.Bindings.t Run.t
-
-val execEnv :
-  Sandbox.t
-  -> EsyInstall.PackageId.t
-  -> Scope.SandboxEnvironment.Bindings.t Run.t
-
-val buildEnv :
-  Sandbox.t
+val makeEnv :
+  buildIsInProgress:bool
+  -> includeCurrentEnv:bool
+  -> includeBuildEnv:bool
+  -> includeNpmBin:bool
+  -> depspec:DepSpec.t
+  -> envspec:DepSpec.t
+  -> Sandbox.t
   -> EsyInstall.PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
