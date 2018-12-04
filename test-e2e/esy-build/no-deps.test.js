@@ -95,10 +95,10 @@ describe(`'esy build': simple executable with no deps`, () => {
     );
 
     test(
-      'sandbox-env',
+      'exec-env',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const {stdout} = await p.esy('sandbox-env --json');
+        const {stdout} = await p.esy('exec-env --json');
         const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
         expect(
           envpath.includes(`${p.projectPath}/_esy/default/store/i/${id}/bin`),

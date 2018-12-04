@@ -1159,7 +1159,7 @@ let commandEnv copts asJson packagePath () =
     packagePath
     ()
 
-let sandboxEnv copts asJson packagePath () =
+let execEnv copts asJson packagePath () =
   let depspec = Plan.DepSpec.(dependencies self) in
   let envspec = Plan.DepSpec.(package self + dependencies self + devDependencies self) in
   makeEnvCommand
@@ -2051,10 +2051,10 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~header:`No
-      ~name:"sandbox-env"
-      ~doc:"Print sandbox environment to stdout"
+      ~name:"exec-env"
+      ~doc:"Print exec environment to stdout"
       Term.(
-        const sandboxEnv
+        const execEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ pkgRefTerm
