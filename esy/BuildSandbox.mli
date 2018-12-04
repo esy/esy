@@ -1,3 +1,20 @@
+type t = {
+  cfg : Config.t;
+  platform : System.Platform.t;
+  sandboxEnv : BuildManifest.Env.t;
+  solution : EsyInstall.Solution.t;
+  installation : EsyInstall.Installation.t;
+  manifests : BuildManifest.t EsyInstall.PackageId.Map.t;
+}
+
+val make :
+  ?platform:System.Platform.t
+  -> ?sandboxEnv:BuildManifest.Env.t
+  -> Config.t
+  -> EsyInstall.Solution.t
+  -> EsyInstall.Installation.t
+  -> (t * Fpath.set) RunAsync.t
+
 (** An expression to specify a set of packages. *)
 module DepSpec : sig
 
@@ -26,24 +43,16 @@ module DepSpec : sig
   val pp : t Fmt.t
 end
 
-module Sandbox : sig
-  type t = {
-    cfg : Config.t;
-    platform : System.Platform.t;
-    sandboxEnv : BuildManifest.Env.t;
-    solution : EsyInstall.Solution.t;
-    installation : EsyInstall.Installation.t;
-    manifests : BuildManifest.t EsyInstall.PackageId.Map.t;
-  }
-
-  val make :
-    ?platform:System.Platform.t
-    -> ?sandboxEnv:BuildManifest.Env.t
-    -> Config.t
-    -> EsyInstall.Solution.t
-    -> EsyInstall.Installation.t
-    -> (t * Fpath.set) RunAsync.t
-end
+val env :
+  ?envspec:DepSpec.t
+  -> buildIsInProgress:bool
+  -> includeCurrentEnv:bool
+  -> includeBuildEnv:bool
+  -> includeNpmBin:bool
+  -> t
+  -> EsyInstall.PackageId.t
+  -> DepSpec.t
+  -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 module Task : sig
   type t = {
@@ -75,25 +84,31 @@ module Task : sig
   val to_yojson : t Json.encoder
 end
 
-type t
-(** A collection of tasks. *)
+module Plan : sig
+  type t
+  (** A collection of tasks. *)
 
-val findTaskById : t -> EsyInstall.PackageId.t -> Task.t option
-val findTaskByName : t -> string -> Task.t option
-val findTaskByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
+  val get : t -> EsyInstall.PackageId.t -> Task.t option
+  val getByName : t -> string -> Task.t option
+  val getByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
 
-val allTasks : t -> Task.t list
+  val all : t -> Task.t list
+end
 
-val make : ?forceImmutable : bool -> Sandbox.t -> t Run.t
+val makePlan :
+  ?forceImmutable : bool
+  -> t
+  -> DepSpec.t
+  -> Plan.t Run.t
 
 val shell :
-  Sandbox.t
+  t
   -> EsyInstall.PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
 val exec :
-  Sandbox.t
+  t
   -> EsyInstall.PackageId.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
@@ -104,8 +119,8 @@ val build :
   -> ?quiet:bool
   -> ?buildOnly:bool
   -> ?logPath:Path.t
-  -> Sandbox.t
   -> t
+  -> Plan.t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
@@ -113,33 +128,22 @@ val build :
 val buildRoot :
   ?quiet:bool
   -> ?buildOnly:bool
-  -> Sandbox.t
   -> t
+  -> Plan.t
   -> unit RunAsync.t
 
 val buildDependencies :
   ?concurrency:int
   -> buildLinked:bool
-  -> Sandbox.t
   -> t
+  -> Plan.t
   -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 
 val isBuilt :
-  Sandbox.t
+  t
   -> Task.t
   -> bool RunAsync.t
-
-val makeEnv :
-  buildIsInProgress:bool
-  -> includeCurrentEnv:bool
-  -> includeBuildEnv:bool
-  -> includeNpmBin:bool
-  -> depspec:DepSpec.t
-  -> envspec:DepSpec.t
-  -> Sandbox.t
-  -> EsyInstall.PackageId.t
-  -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exportBuild :
   cfg:Config.t

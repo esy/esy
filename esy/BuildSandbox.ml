@@ -6,6 +6,97 @@ module Installation = EsyInstall.Installation
 module Source = EsyInstall.Source
 module Version = EsyInstall.Version
 
+type t = {
+  cfg : Config.t;
+  platform : System.Platform.t;
+  sandboxEnv : BuildManifest.Env.t;
+  solution : EsyInstall.Solution.t;
+  installation : EsyInstall.Installation.t;
+  manifests : BuildManifest.t PackageId.Map.t;
+}
+
+let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
+  let open RunAsync.Syntax in
+
+  Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
+
+  let readManifest (id, loc) =
+    Logs_lwt.debug (fun m ->
+      m "reading manifest: %a %a" PackageId.pp id
+      Installation.pp_location loc
+    );%lwt
+
+    let pkg = Solution.getExn id solution in
+    let isRoot = Package.compare (Solution.root solution) pkg = 0 in
+
+    RunAsync.contextf (
+      let%bind manifest, paths =
+        BuildManifest.ofInstallationLocation
+          ~cfg
+          pkg
+          loc
+      in
+      match manifest with
+      | Some manifest -> return (id, paths, Some manifest)
+      | None ->
+        if isRoot
+        then
+          let manifest =
+            BuildManifest.empty
+              ~name:(Some pkg.name)
+              ~version:(Some pkg.version)
+              ()
+          in
+          return (id, paths, Some manifest)
+        else
+          (* we don't want to track non-esy manifest, hence Path.Set.empty *)
+          return (id, Path.Set.empty, None)
+    ) "reading manifest %a" PackageId.pp id
+  in
+
+  let%bind items =
+    RunAsync.List.mapAndJoin
+      ~concurrency:100
+      ~f:readManifest
+      (Installation.entries installation)
+  in
+
+  let paths, manifests =
+    let f (paths, manifests) (id, manifestPaths, manifest) =
+      match manifest with
+      | None ->
+        let paths = Path.Set.union paths manifestPaths in
+        paths, manifests
+      | Some manifest ->
+        let paths = Path.Set.union paths manifestPaths in
+        let manifests = PackageId.Map.add id manifest manifests in
+        paths, manifests
+    in
+    List.fold_left ~f ~init:(Path.Set.empty, PackageId.Map.empty) items
+  in
+
+  Logs_lwt.debug (fun m -> m "reading manifests: done");%lwt
+
+  return (paths, manifests)
+
+let make
+  ?(platform=System.Platform.host)
+  ?(sandboxEnv=BuildManifest.Env.empty)
+  cfg
+  solution
+  installation =
+  let open RunAsync.Syntax in
+  let%bind paths, manifests = readManifests cfg solution installation in
+  return ({
+    cfg;
+    platform;
+    sandboxEnv;
+    solution;
+    installation;
+    manifests;
+  }, paths)
+
+
 module DepSpec = struct
 
   module Id = struct
@@ -43,99 +134,6 @@ module DepSpec = struct
       | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
     in
     eval' depspec
-
-end
-
-module Sandbox = struct
-  type t = {
-    cfg : Config.t;
-    platform : System.Platform.t;
-    sandboxEnv : BuildManifest.Env.t;
-    solution : EsyInstall.Solution.t;
-    installation : EsyInstall.Installation.t;
-    manifests : BuildManifest.t PackageId.Map.t;
-  }
-
-  let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
-    let open RunAsync.Syntax in
-
-    Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
-
-    let readManifest (id, loc) =
-      Logs_lwt.debug (fun m ->
-        m "reading manifest: %a %a" PackageId.pp id
-        Installation.pp_location loc
-      );%lwt
-
-      let pkg = Solution.getExn id solution in
-      let isRoot = Package.compare (Solution.root solution) pkg = 0 in
-
-      RunAsync.contextf (
-        let%bind manifest, paths =
-          BuildManifest.ofInstallationLocation
-            ~cfg
-            pkg
-            loc
-        in
-        match manifest with
-        | Some manifest -> return (id, paths, Some manifest)
-        | None ->
-          if isRoot
-          then
-            let manifest =
-              BuildManifest.empty
-                ~name:(Some pkg.name)
-                ~version:(Some pkg.version)
-                ()
-            in
-            return (id, paths, Some manifest)
-          else
-            (* we don't want to track non-esy manifest, hence Path.Set.empty *)
-            return (id, Path.Set.empty, None)
-      ) "reading manifest %a" PackageId.pp id
-    in
-
-    let%bind items =
-      RunAsync.List.mapAndJoin
-        ~concurrency:100
-        ~f:readManifest
-        (Installation.entries installation)
-    in
-
-    let paths, manifests =
-      let f (paths, manifests) (id, manifestPaths, manifest) =
-        match manifest with
-        | None ->
-          let paths = Path.Set.union paths manifestPaths in
-          paths, manifests
-        | Some manifest ->
-          let paths = Path.Set.union paths manifestPaths in
-          let manifests = PackageId.Map.add id manifest manifests in
-          paths, manifests
-      in
-      List.fold_left ~f ~init:(Path.Set.empty, PackageId.Map.empty) items
-    in
-
-    Logs_lwt.debug (fun m -> m "reading manifests: done");%lwt
-
-    return (paths, manifests)
-
-  let make
-    ?(platform=System.Platform.host)
-    ?(sandboxEnv=BuildManifest.Env.empty)
-    cfg
-    solution
-    installation =
-    let open RunAsync.Syntax in
-    let%bind paths, manifests = readManifests cfg solution installation in
-    return ({
-      cfg;
-      platform;
-      sandboxEnv;
-      solution;
-      installation;
-      manifests;
-    }, paths)
 
 end
 
@@ -208,8 +206,6 @@ module Task = struct
   let pp fmt task = PackageId.pp fmt task.pkg.id
 
 end
-
-type t = Task.t option PackageId.Map.t
 
 let renderEsyCommands ~env ~buildIsInProgress scope commands =
   let open Run.Syntax in
@@ -378,7 +374,7 @@ let makeScope
       return (Some res)
     | None ->
       let%bind res =
-        match PackageId.Map.find_opt id sandbox.Sandbox.manifests with
+        match PackageId.Map.find_opt id sandbox.manifests with
         | Some build ->
           let%bind seen = updateSeen seen id in
           Run.contextf (
@@ -497,7 +493,133 @@ let makeScope
 
   visit [] id
 
-let make'
+let env
+  ?envspec
+  ~buildIsInProgress
+  ~includeCurrentEnv
+  ~includeBuildEnv
+  ~includeNpmBin
+  sandbox
+  id
+  depspec
+  =
+  let open Run.Syntax in
+
+  let envspec = Option.orDefault ~default:depspec envspec in
+
+  let cache = Hashtbl.create 100 in
+  let makeScope id =
+    match%bind makeScope ~cache ~forceImmutable:false sandbox id depspec with
+    | None -> return None
+    | Some (scope, _build) -> return (Some scope)
+  in
+
+  let%bind scope =
+    match%bind makeScope id with
+    | None -> errorf "no build found for %a" PackageId.pp id
+    | Some scope -> return scope
+  in
+
+  let matched = DepSpec.eval sandbox.solution id envspec in
+  Logs.debug (fun m ->
+    m "envspec %a at %a matches %a"
+      DepSpec.pp
+      envspec
+      PackageId.pp
+      id
+      Fmt.(list ~sep:(unit ", ") PackageId.pp)
+      (PackageId.Set.elements matched)
+  );
+
+  let dependencies =
+    let dependencies = PackageId.Set.(elements (remove id matched)) in
+    Solution.allDependenciesBFS
+      ~dependencies
+      id
+      sandbox.solution
+  in
+
+  let%bind scope =
+    let collect scope (_direct, pkg) =
+      if PackageId.Set.mem pkg.Package.id matched
+      then
+        match%bind makeScope pkg.Package.id with
+        | None -> return scope
+        | Some dep -> return (Scope.add ~direct:true ~dep scope)
+      else
+        return scope
+    in
+    Run.List.foldLeft
+      ~f:collect
+      ~init:scope
+      (dependencies @ [true, Solution.getExn id sandbox.solution])
+  in
+
+  let%bind env =
+    let scope =
+      if includeCurrentEnv
+      then
+        scope
+        |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
+      else scope
+    in
+    Scope.env ~includeBuildEnv ~buildIsInProgress scope
+  in
+  let env =
+    if includeNpmBin
+    then
+      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
+      Scope.SandboxEnvironment.Bindings.prefixValue
+        "PATH"
+        (Scope.SandboxValue.v npmBin)
+      ::env
+    else env
+  in
+  return env
+
+module Plan = struct
+
+  type t = Task.t option PackageId.Map.t
+
+  let get tasks id =
+    match PackageId.Map.find_opt id tasks with
+    | None -> None
+    | Some None -> None
+    | Some Some task -> Some task
+
+  let findByPred tasks pred =
+    let f id =
+      let task = PackageId.Map.find id tasks in
+      pred task
+    in
+    match PackageId.Map.find_first_opt f tasks with
+    | None -> None
+    | Some (_id, task) -> task
+
+  let getByName (tasks : t) name =
+    findByPred
+      tasks
+      (function
+        | None -> false
+        | Some task -> String.compare task.Task.pkg.Solution.Package.name name >= 0)
+
+  let getByNameVersion (tasks : t) name version =
+    let compare = [%derive.ord: string * Version.t] in
+    findByPred
+      tasks
+      (function
+        | None -> false
+        | Some task -> compare (task.Task.pkg.name, task.Task.pkg.version) (name, version) >= 0)
+
+  let all tasks =
+    let f tasks = function
+      | _, Some task -> task::tasks
+      | _ , None -> tasks
+    in
+    List.fold_left ~f ~init:[] (PackageId.Map.bindings tasks)
+end
+
+let makePlan
   ?(forceImmutable=false)
   sandbox
   depspec =
@@ -565,7 +687,7 @@ let make'
         buildType = build.BuildManifest.buildType;
         sourceType = Scope.sourceType scope;
         sourcePath = Scope.sourcePath scope;
-        platform = sandbox.Sandbox.platform;
+        platform = sandbox.platform;
         scope;
         manifest = build;
       } in
@@ -604,53 +726,10 @@ let make'
 
   return tasks
 
-let make ?forceImmutable (sandbox : Sandbox.t) =
-  make'
-    ?forceImmutable
-    sandbox
-    DepSpec.(dependencies self)
-
-let findTaskById tasks id =
-  match PackageId.Map.find_opt id tasks with
-  | None -> None
-  | Some None -> None
-  | Some Some task -> Some task
-
-let findTaskByPred tasks pred =
-  let f id =
-    let task = PackageId.Map.find id tasks in
-    pred task
-  in
-  match PackageId.Map.find_first_opt f tasks with
-  | None -> None
-  | Some (_id, task) -> task
-
-let findTaskByName (tasks : t) name =
-  findTaskByPred
-    tasks
-    (function
-      | None -> false
-      | Some task -> String.compare task.Task.pkg.Solution.Package.name name >= 0)
-
-let findTaskByNameVersion (tasks : t) name version =
-  let compare = [%derive.ord: string * Version.t] in
-  findTaskByPred
-    tasks
-    (function
-      | None -> false
-      | Some task -> compare (task.Task.pkg.name, task.Task.pkg.version) (name, version) >= 0)
-
-let allTasks tasks =
-  let f tasks = function
-    | _, Some task -> task::tasks
-    | _ , None -> tasks
-  in
-  List.fold_left ~f ~init:[] (PackageId.Map.bindings tasks)
-
 let task sandbox id =
   let open RunAsync.Syntax in
-  let%bind tasks = RunAsync.ofRun (make sandbox) in
-  match findTaskById tasks id with
+  let%bind tasks = RunAsync.ofRun (makePlan sandbox DepSpec.(dependencies self)) in
+  match Plan.get tasks id with
   | None -> errorf "no build found for %a" PackageId.pp id
   | Some task -> return task
 
@@ -658,13 +737,13 @@ let shell sandbox id =
   let open RunAsync.Syntax in
   let%bind task = task sandbox id in
   let plan = Task.plan task in
-  EsyBuildPackageApi.buildShell ~cfg:sandbox.Sandbox.cfg plan
+  EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
 
 let exec sandbox id cmd =
   let open RunAsync.Syntax in
   let%bind task = task sandbox id in
   let plan = Task.plan task in
-  EsyBuildPackageApi.buildExec ~cfg:sandbox.Sandbox.cfg plan cmd
+  EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
 
 let findMaxModifyTime path =
   let open RunAsync.Syntax in
@@ -713,14 +792,14 @@ module Changes = struct
     | No -> Fmt.unit "no" fmt ()
 end
 
-let isBuilt sandbox task = Fs.exists (Task.installPath sandbox.Sandbox.cfg task)
+let isBuilt sandbox task = Fs.exists (Task.installPath sandbox.cfg task)
 
 let buildTask ?quiet ?buildOnly ?logPath sandbox task =
   Logs_lwt.debug (fun m -> m "build %a" Task.pp task);%lwt
   let plan = Task.plan task in
   let label = Fmt.strf "build %a" Task.pp task in
   Perf.measureLwt ~label (fun () ->
-    EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg:sandbox.Sandbox.cfg plan)
+    EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg:sandbox.cfg plan)
 
 let build ~force ?quiet ?buildOnly ?logPath sandbox tasks id =
   let open RunAsync.Syntax in
@@ -737,12 +816,12 @@ let build ~force ?quiet ?buildOnly ?logPath sandbox tasks id =
 
 let buildRoot ?quiet ?buildOnly sandbox tasks =
   let open RunAsync.Syntax in
-  let root = Solution.root sandbox.Sandbox.solution in
+  let root = Solution.root sandbox.solution in
   match PackageId.Map.find_opt root.id tasks with
   | Some (Some task) ->
     let%bind () = buildTask ?quiet ?buildOnly sandbox task in
     let%bind () =
-      let buildPath = Task.buildPath sandbox.Sandbox.cfg task in
+      let buildPath = Task.buildPath sandbox.cfg task in
       let buildPathLink = EsyInstall.SandboxSpec.buildPath sandbox.cfg.Config.spec in
       match System.Platform.host with
       | Windows -> return ()
@@ -789,7 +868,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
   in
 
   let queue = LwtTaskQueue.create ~concurrency () in
-  let root = Solution.root sandbox.Sandbox.solution in
+  let root = Solution.root sandbox.solution in
 
   let run ~quiet task () =
     let start = Unix.gettimeofday () in
@@ -907,90 +986,6 @@ let buildDependencies ?(concurrency=1) ~buildLinked sandbox tasks id =
   Perf.measureLwt
     ~label:"buildDependencies"
     (fun () -> buildDependencies' ~concurrency ~buildLinked sandbox tasks id)
-
-let exposeUserEnv scope =
-  scope
-  |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
-
-let makeEnv
-  ~buildIsInProgress
-  ~includeCurrentEnv
-  ~includeBuildEnv
-  ~includeNpmBin
-  ~depspec
-  ~envspec
-  sandbox
-  id
-  =
-  let open Run.Syntax in
-
-  let cache = Hashtbl.create 100 in
-  let makeScope id =
-    match%bind makeScope ~cache ~forceImmutable:false sandbox id depspec with
-    | None -> return None
-    | Some (scope, _build) -> return (Some scope)
-  in
-
-  let%bind scope =
-    match%bind makeScope id with
-    | None -> errorf "no build found for %a" PackageId.pp id
-    | Some scope -> return scope
-  in
-
-  let matched = DepSpec.eval sandbox.solution id envspec in
-  Logs.debug (fun m ->
-    m "envspec %a at %a matches %a"
-      DepSpec.pp
-      envspec
-      PackageId.pp
-      id
-      Fmt.(list ~sep:(unit ", ") PackageId.pp)
-      (PackageId.Set.elements matched)
-  );
-
-  let dependencies =
-    let dependencies = PackageId.Set.(elements (remove id matched)) in
-    Solution.allDependenciesBFS
-      ~dependencies
-      id
-      sandbox.solution
-  in
-
-  let%bind scope =
-    let collect scope (_direct, pkg) =
-      if PackageId.Set.mem pkg.Package.id matched
-      then
-        match%bind makeScope pkg.Package.id with
-        | None -> return scope
-        | Some dep -> return (Scope.add ~direct:true ~dep scope)
-      else
-        return scope
-    in
-    Run.List.foldLeft
-      ~f:collect
-      ~init:scope
-      (dependencies @ [true, Solution.getExn id sandbox.solution])
-  in
-
-  let%bind env =
-    let scope =
-      if includeCurrentEnv
-      then exposeUserEnv scope
-      else scope
-    in
-    Scope.env ~includeBuildEnv ~buildIsInProgress scope
-  in
-  let env =
-    if includeNpmBin
-    then
-      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.Sandbox.cfg.spec) in
-      Scope.SandboxEnvironment.Bindings.prefixValue
-        "PATH"
-        (Scope.SandboxValue.v npmBin)
-      ::env
-    else env
-  in
-  return env
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in

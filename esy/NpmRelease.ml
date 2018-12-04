@@ -115,7 +115,7 @@ let make
   ~ocamlopt
   ~outputPath
   ~concurrency
-  (sandbox : Plan.Sandbox.t) =
+  (sandbox : BuildSandbox.t) =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
@@ -127,9 +127,14 @@ let make
     * the release tarball as only globally stored artefacts can be relocated
     * between stores (b/c of a fixed path length).
     *)
-  let%bind plan = RunAsync.ofRun (Plan.make ~forceImmutable:true sandbox) in
+  let%bind plan = RunAsync.ofRun (
+    BuildSandbox.makePlan
+      ~forceImmutable:true
+      sandbox
+      BuildSandbox.DepSpec.(dependencies self)
+  ) in
   let root = (Solution.root sandbox.solution).id in
-  let tasks = Plan.allTasks plan in
+  let tasks = BuildSandbox.Plan.all plan in
 
   let shouldDeleteFromBinaryRelease =
     let patterns =
@@ -146,7 +151,7 @@ let make
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Building packages") in
     let%bind () =
-      Plan.buildDependencies
+      BuildSandbox.buildDependencies
         ~buildLinked:true
         ~concurrency
         sandbox
@@ -154,7 +159,7 @@ let make
         root
     in
     let%bind () =
-      Plan.build
+      BuildSandbox.build
         ~buildOnly:false
         ~quiet:true
         ~force:false
@@ -170,15 +175,15 @@ let make
   (* Export builds *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
-    let f (task : Plan.Task.t) =
+    let f (task : BuildSandbox.Task.t) =
       if shouldDeleteFromBinaryRelease task.id
       then
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = Plan.Task.installPath sandbox.cfg task in
+        let buildPath = BuildSandbox.Task.installPath sandbox.cfg task in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        Plan.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath
+        BuildSandbox.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath
     in
     RunAsync.List.mapAndWait
       ~concurrency:8
@@ -190,15 +195,15 @@ let make
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
     let%bind bindings = RunAsync.ofRun (
-      Plan.makeEnv
+      BuildSandbox.env
         ~buildIsInProgress:false
         ~includeCurrentEnv:true
         ~includeBuildEnv:false
         ~includeNpmBin:true
-        ~depspec:Plan.DepSpec.(dependencies self)
-        ~envspec:Plan.DepSpec.(package self + dependencies self + devDependencies self)
+        ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
         sandbox
         root
+        BuildSandbox.DepSpec.(dependencies self)
     ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
