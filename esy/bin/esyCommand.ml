@@ -430,13 +430,20 @@ module SandboxInfo = struct
     scripts : Scripts.t;
   }
 
+  let solution info =
+    match info.solution with
+    | Some solution -> RunAsync.return solution
+    | None -> RunAsync.errorf "no installation found, run 'esy install'"
+
   let plan info =
+    let open RunAsync.Syntax in
+    let%bind solution = solution info in
     match info.sandbox with
     | Some sandbox ->
       RunAsync.ofRun (
         let open Run.Syntax in
         let%bind plan = BuildSandbox.makePlan sandbox BuildSandbox.DepSpec.(dependencies self) in
-        let pkg = EsyInstall.Solution.root sandbox.BuildSandbox.solution in
+        let pkg = EsyInstall.Solution.root solution in
         let root =
           match BuildSandbox.Plan.get plan pkg.Solution.Package.id with
           | None -> failwith "missing build for the root package"
@@ -444,11 +451,6 @@ module SandboxInfo = struct
         in
         return (root, plan)
       )
-    | None -> RunAsync.errorf "no installation found, run 'esy install'"
-
-  let solution info =
-    match info.solution with
-    | Some solution -> RunAsync.return solution
     | None -> RunAsync.errorf "no installation found, run 'esy install'"
 
   let installation info =
@@ -500,10 +502,9 @@ module SandboxInfo = struct
             / "build"
             / "bin"
           ) in
-          match info.sandbox with
-          | None -> return ()
-          | Some sandbox ->
-            let root = Solution.root sandbox.solution in
+          match info.sandbox, info.solution with
+          | Some sandbox, Some solution ->
+            let root = Solution.root solution in
             let%bind () = Fs.createDir sandboxBin in
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
@@ -531,6 +532,7 @@ module SandboxInfo = struct
               ]
             else
               return ()
+          | _, _ -> return ()
         else
           return ()
       in
@@ -1056,7 +1058,7 @@ let makeEnvCommand
           task.BuildSandbox.Task.pkg.id
           depspec
       in
-      let env = Scope.SandboxEnvironment.Bindings.render sandbox.BuildSandbox.cfg.buildCfg env in
+      let env = Scope.SandboxEnvironment.Bindings.render copts.CommonOptions.cfg.buildCfg env in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
@@ -1771,6 +1773,7 @@ let show (copts : CommonOptions.t) _asJson req () =
 let release copts () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
   let%bind sandbox = SandboxInfo.sandbox info in
 
   let%bind outputPath =
@@ -1791,7 +1794,9 @@ let release copts () =
     ~ocamlopt
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
+    copts.CommonOptions.cfg
     sandbox
+    (Solution.root solution)
 
 let makeCommand
   ?(header=`Standard)

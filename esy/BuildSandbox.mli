@@ -1,11 +1,4 @@
-type t = {
-  cfg : Config.t;
-  platform : System.Platform.t;
-  sandboxEnv : BuildManifest.Env.t;
-  solution : EsyInstall.Solution.t;
-  installation : EsyInstall.Installation.t;
-  manifests : BuildManifest.t EsyInstall.PackageId.Map.t;
-}
+type t
 
 val make :
   ?platform:System.Platform.t

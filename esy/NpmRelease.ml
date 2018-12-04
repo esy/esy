@@ -34,7 +34,7 @@ module OfPackageJson = struct
   } [@@deriving (of_yojson { strict = false })]
 end
 
-let configure ~(cfg : Config.t) () =
+let configure (cfg : Config.t) () =
   let open RunAsync.Syntax in
   let docs = "https://esy.sh/docs/release.html" in
   match cfg.spec.manifest with
@@ -115,11 +115,13 @@ let make
   ~ocamlopt
   ~outputPath
   ~concurrency
-  (sandbox : BuildSandbox.t) =
+  (cfg : Config.t)
+  (sandbox : BuildSandbox.t)
+  root =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
-  let%bind releaseCfg = configure ~cfg:sandbox.cfg () in
+  let%bind releaseCfg = configure cfg () in
 
   (*
     * Construct a task tree with all tasks marked as immutable. This will make
@@ -133,7 +135,6 @@ let make
       sandbox
       BuildSandbox.DepSpec.(dependencies self)
   ) in
-  let root = (Solution.root sandbox.solution).id in
   let tasks = BuildSandbox.Plan.all plan in
 
   let shouldDeleteFromBinaryRelease =
@@ -156,7 +157,7 @@ let make
         ~concurrency
         sandbox
         plan
-        root
+        root.EsyInstall.Solution.Package.id
     in
     let%bind () =
       BuildSandbox.build
@@ -165,7 +166,7 @@ let make
         ~force:false
         sandbox
         plan
-        root
+        root.EsyInstall.Solution.Package.id
     in
     return ()
   in
@@ -181,9 +182,9 @@ let make
         let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
         return ()
       else
-        let buildPath = BuildSandbox.Task.installPath sandbox.cfg task in
+        let buildPath = BuildSandbox.Task.installPath cfg task in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        BuildSandbox.exportBuild ~cfg:sandbox.cfg ~outputPrefixPath buildPath
+        BuildSandbox.exportBuild ~cfg ~outputPrefixPath buildPath
     in
     RunAsync.List.mapAndWait
       ~concurrency:8
@@ -202,7 +203,7 @@ let make
         ~includeNpmBin:true
         ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
         sandbox
-        root
+        root.EsyInstall.Solution.Package.id
         BuildSandbox.DepSpec.(dependencies self)
     ) in
     let binPath = Path.(outputPath / "bin") in
@@ -210,7 +211,7 @@ let make
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let bindings = Scope.SandboxEnvironment.Bindings.render sandbox.cfg.buildCfg bindings in
+      let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath name =
@@ -263,9 +264,9 @@ let make
       (* Replace the storePath with a string of equal length containing only _ *)
       let (origPrefix, destPrefix) =
         let nextStorePrefix =
-          String.make (String.length (Path.show sandbox.cfg.buildCfg.storePath)) '_'
+          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
         in
-        (sandbox.cfg.buildCfg.storePath, Path.v nextStorePrefix)
+        (cfg.buildCfg.storePath, Path.v nextStorePrefix)
       in
       let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
       RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath
