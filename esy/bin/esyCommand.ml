@@ -6,55 +6,12 @@ module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
+module PkgSpec = EsyInstall.PkgSpec
 
-type pkgRef =
-  | PkgByName of string
-  | PkgByNameVersion of string * Version.t
-  | PkgById of PackageId.t
-
-let pp_pkgRef fmt pkgRef =
-  match pkgRef with
-  | PkgById id -> EsyInstall.PackageId.pp fmt id
-  | PkgByName name -> Fmt.string fmt name
-  | PkgByNameVersion (name, version) -> Fmt.pf fmt "%s@%a" name Version.pp version
-
-let pkgRefTerm =
+let pkgspecConv =
   let open Cmdliner in
-  let open Result.Syntax in
-  let parse v =
-    let split = Astring.String.cut ~sep:"@" in
-    let rec parsename v =
-      match split v with
-      | Some ("", v) ->
-        let name, rest = parsename v in
-        "@" ^ name, rest
-      | Some (name, rest) ->
-        name, Some rest
-      | None -> v, None
-    in
-    match parsename v with
-    | name, Some ""
-    | name, None -> return (PkgByName name)
-    | name, Some rest ->
-      begin match split rest with
-      | Some _ ->
-        let%bind id = PackageId.parse v in
-        return (PkgById id)
-      | None ->
-        let%bind version = Version.parse rest in
-        return (PkgByNameVersion (name, version))
-      end
-  in
-  let pkgIdConv =
-    let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (parse v) in
-    Arg.conv ~docv:"PATH" (parse, pp_pkgRef)
-  in
-  let doc = "Package identifier." in
-  Arg.(
-    value
-    & pos 0  (some pkgIdConv) None
-    & info [] ~doc
-  )
+  let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (PkgSpec.parse v) in
+  Arg.conv ~docv:"PATH" (parse, PkgSpec.pp)
 
 let depspecConv =
   let open Cmdliner in
@@ -802,22 +759,22 @@ let withTask info ref f =
   let open RunAsync.Syntax in
   let%bind root, plan = SandboxInfo.plan info in
   match ref with
-  | Some (PkgByName name as ref) ->
+  | PkgSpec.Root -> f root
+  | PkgSpec.ByName name as ref ->
     begin match BuildSandbox.Plan.getByName plan name with
     | Some task -> f task
-    | None -> errorf "no build found for package name %a" pp_pkgRef ref
+    | None -> errorf "no build found for package name %a" PkgSpec.pp ref
     end
-  | Some (PkgByNameVersion (name, version) as ref) ->
+  | PkgSpec.ByNameVersion (name, version) as ref ->
     begin match BuildSandbox.Plan.getByNameVersion plan name version with
     | Some task -> f task
-    | None -> errorf "no build found for %a" pp_pkgRef ref
+    | None -> errorf "no build found for %a" PkgSpec.pp ref
     end
-  | Some (PkgById id) ->
+  | PkgSpec.ById id ->
     begin match BuildSandbox.Plan.get plan id with
     | None -> errorf "no build found for %a" EsyInstall.PackageId.pp id
     | Some task -> f task
     end
-  | None -> f root
 
 module Status = struct
 
@@ -1096,27 +1053,18 @@ let makeEnvCommand
   in
   withTask info packagePath f
 
-let envBy copts asJson includeBuildEnv includeCurrentEnv depspec envspec packagePath () =
-  let depspec =
-    match depspec with
-    | Some depspec -> depspec
-    | None -> BuildSandbox.DepSpec.(dependencies self)
-  in
-  let envspec =
-    match envspec with
-    | Some envspec -> envspec
-    | None -> depspec
-  in
+let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin envspec pkgspec depspec () =
+  let envspec = Option.orDefault ~default:depspec envspec in
   makeEnvCommand
     ~buildIsInProgress:false
     ~includeBuildEnv
     ~includeCurrentEnv
-    ~includeNpmBin:false
+    ~includeNpmBin
     ~envspec
     depspec
     copts
     asJson
-    packagePath
+    pkgspec
     ()
 
 let buildEnv copts asJson packagePath () =
@@ -1217,6 +1165,31 @@ let makeExecCommand
   in
   withTask info packagePath f
 
+let execBy
+  copts
+  buildIsInProgress
+  includeBuildEnv
+  includeCurrentEnv
+  includeNpmBin
+  envspec
+  pkgspec
+  depspec
+  cmd
+  () =
+  makeExecCommand
+    ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
+    ~buildLinked:false
+    ~buildIsInProgress
+    ~includeCurrentEnv
+    ~includeBuildEnv
+    ~includeNpmBin
+    ?envspec
+    depspec
+    copts
+    pkgspec
+    cmd
+    ()
+
 let exec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind () = build ~buildOnly:false copts None () in
@@ -1230,7 +1203,7 @@ let exec (copts : CommonOptions.t) cmd () =
     ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
     BuildSandbox.DepSpec.(dependencies self)
     copts
-    None
+    PkgSpec.Root
     cmd
     ()
 
@@ -1264,7 +1237,7 @@ let devExec (copts : CommonOptions.t) cmd () =
     ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
     BuildSandbox.DepSpec.(dependencies self)
     copts
-    None
+    PkgSpec.Root
     cmd
     ()
 
@@ -1283,7 +1256,7 @@ let devShell copts () =
     ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
     BuildSandbox.DepSpec.(dependencies self)
     copts
-    None
+    PkgSpec.Root
     (Cmd.v shell)
     ()
 
@@ -1941,7 +1914,11 @@ let makeCommands ~sandbox () =
       Term.(
         const buildPlan
         $ commonOpts
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -1951,7 +1928,11 @@ let makeCommands ~sandbox () =
       Term.(
         const buildShell
         $ commonOpts
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -1961,7 +1942,11 @@ let makeCommands ~sandbox () =
       Term.(
         const buildPackage
         $ commonOpts
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -1985,17 +1970,55 @@ let makeCommands ~sandbox () =
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
         $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["depspec"] ~doc:"What to add to the env"
-          )
+        $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ Arg.(
             value
             & opt (some depspecConv) None
             & info ["envspec"] ~doc:"What to add to the env"
           )
-        $ pkgRefTerm
+        $ Arg.(
+            required
+            & pos 1 (some pkgspecConv) None
+            & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
+          )
+        $ Arg.(
+            required
+            & pos 0 (some depspecConv) None
+            & info [] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"exec-by"
+      ~doc:"Produce environment by specification"
+      Term.(
+        const execBy
+        $ commonOpts
+        $ Arg.(value & flag & info ["build-context"]  ~doc:"Execute command in build context")
+        $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
+        $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
+        $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["envspec"] ~doc:"What to add to the env"
+          )
+        $ Arg.(
+            required
+            & pos 0 (some pkgspecConv) None
+            & info [] ~doc:"Package to execute command at" ~docv:"PACKAGE"
+          )
+        $ Arg.(
+            required
+            & pos 1 (some depspecConv) None
+            & info [] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+          )
+        $ Cli.cmdTerm
+            ~doc:"Command to execute within the environment."
+            ~docv:"COMMAND"
+            (Cmdliner.Arg.pos_right 1)
         $ Cli.setupLogTerm
       );
 
@@ -2007,7 +2030,11 @@ let makeCommands ~sandbox () =
         const buildEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -2019,7 +2046,11 @@ let makeCommands ~sandbox () =
         const commandEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -2031,7 +2062,11 @@ let makeCommands ~sandbox () =
         const execEnv
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgRefTerm
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -2107,6 +2142,7 @@ let makeCommands ~sandbox () =
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
+            (Cmdliner.Arg.pos_all)
         $ Cli.setupLogTerm
       );
 

@@ -113,13 +113,12 @@ let checkoutConv =
   in
   Arg.conv ~docv:"VAL" (parse, print)
 
-
-let cmdTerm ~doc ~docv =
+let cmdTerm ~doc ~docv makeconv =
   let open Cmdliner in
   let commandTerm =
-    Arg.(non_empty & (pos_all string []) & (info [] ~doc ~docv))
+    Arg.(non_empty & (makeconv string []) & (info [] ~doc ~docv))
   in
-  let d command =
+  let parse command =
     match command with
     | [] ->
       `Error (false, "command cannot be empty")
@@ -127,7 +126,7 @@ let cmdTerm ~doc ~docv =
       let cmd = Cmd.(v tool |> addArgs args) in
       `Ok cmd
   in
-  Term.(ret (const d $ commandTerm))
+  Term.(ret (const parse $ commandTerm))
 
 let cmdOptionTerm ~doc ~docv =
   let open Cmdliner in
