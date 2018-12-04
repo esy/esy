@@ -1,6 +1,7 @@
 open Esy
 
 module SandboxSpec = EsyInstall.SandboxSpec
+module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
@@ -472,13 +473,28 @@ module SandboxInfo = struct
         in
 
         let%bind installation, filesUsed =
-          let path = EsyInstall.SandboxSpec.installationPath copts.spec in
-          let%bind info = FileInfo.ofPath path in
-          let filesUsed = info::filesUsed in
-          match%bind EsyInstall.Installation.ofPath path with
-          | Some installation ->
-            return (Some installation, filesUsed)
+          match solution with
           | None -> return (None, filesUsed)
+          | Some solution ->
+            let path = EsyInstall.SandboxSpec.installationPath copts.spec in
+            let%bind info = FileInfo.ofPath path in
+            let filesUsed = info::filesUsed in
+            begin match%bind Installation.ofPath path with
+            | Some installation ->
+              let isActual =
+                let nodes = Solution.nodes solution in
+                let checkPackageIsInInstallation isActual pkg =
+                  if not isActual
+                  then isActual
+                  else Installation.mem pkg.Solution.Package.id installation
+                in
+                List.fold_left ~f:checkPackageIsInInstallation ~init:true nodes
+              in
+              if isActual
+              then return (Some installation, filesUsed)
+              else return (None, filesUsed)
+            | None -> return (None, filesUsed)
+            end
         in
 
         let%bind scripts = Scripts.ofSandbox copts.spec in
