@@ -6,6 +6,7 @@ module type GRAPH = sig
 
   val empty : id -> t
   val add : node -> t -> t
+  val nodes : t -> node list
 
   val mem : id -> t -> bool
   val isRoot : node -> t -> bool
@@ -78,6 +79,10 @@ module Make (Node : GRAPH_NODE) : GRAPH
     Node.Id.compare (Node.id node) graph.root = 0
 
   let mem id graph = Node.Id.Map.mem id graph.nodes
+
+  let nodes graph =
+    let f (_, node) = node in
+    List.map ~f (Node.Id.Map.bindings graph.nodes)
 
   let dependencies ?(traverse=Node.traverse) node graph =
     let dependencies = traverse node in

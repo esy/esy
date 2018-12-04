@@ -158,3 +158,96 @@ module Encode = struct
     | None -> None
     | Some value -> Some (name, encode value)
 end
+
+module Print : sig
+  val pp :
+    ?ppListBox:(?indent:int -> t list Fmt.t -> t list Fmt.t)
+    -> ?ppAssocBox:(?indent:int -> (string * t) list Fmt.t -> (string * t) list Fmt.t)
+    -> t Fmt.t
+end = struct
+  let ppComma = Fmt.unit ",@ "
+
+  (* from yojson *)
+  let hex n =
+    Char.chr (
+      if n < 10 then n + 48
+      else n + 87
+    )
+
+  (* from yojson *)
+  let ppStringBody fmt s =
+    for i = 0 to String.length s - 1 do
+      match s.[i] with
+          '"' -> Format.pp_print_string fmt "\\\""
+        | '\\' -> Format.pp_print_string fmt "\\\\"
+        | '\b' -> Format.pp_print_string fmt "\\b"
+        | '\012' -> Format.pp_print_string fmt "\\f"
+        | '\n' -> Format.pp_print_string fmt "\\n"
+        | '\r' -> Format.pp_print_string fmt "\\r"
+        | '\t' -> Format.pp_print_string fmt "\\t"
+        | '\x00'..'\x1F'
+        | '\x7F' as c ->
+          Format.pp_print_string fmt "\\u00";
+          Format.pp_print_char fmt (hex (Char.code c lsr 4));
+          Format.pp_print_char fmt (hex (Char.code c land 0xf))
+        | c ->
+          Format.pp_print_char fmt c
+    done
+
+  let ppString =
+    Fmt.quote ppStringBody
+
+  let pp ?(ppListBox=Fmt.hvbox) ?(ppAssocBox=Fmt.hvbox) fmt json =
+    let rec pp fmt json =
+      Fmt.(vbox ppSyn) fmt json
+
+    and ppSyn fmt json =
+      match json with
+      | `Bool v -> Fmt.bool fmt v
+      | `Float v -> Fmt.float fmt v
+      | `Int v -> Fmt.int fmt v
+      | `Intlit v -> Fmt.string fmt v
+      | `String v -> ppString fmt v
+      | `Null -> Fmt.unit "null" fmt ()
+      | `Variant (tag, args) ->
+        begin match args with
+        | None -> ppSyn fmt (`List [`String tag])
+        | Some args -> ppSyn fmt (`List [`String tag; args])
+        end
+      | `Tuple items
+      | `List items ->
+        let pp fmt items =
+          Format.fprintf
+            fmt "[@;<0 0>%a@;<0 -2>]"
+            (Fmt.list ~sep:ppComma ppListItem) items;
+        in
+        ppListBox ~indent:2 pp fmt items
+      | `Assoc items ->
+        let pp fmt items =
+          Format.fprintf
+            fmt "{@;<0 0>%a@;<0 -2>}"
+            (Fmt.list ~sep:ppComma ppAssocItem) items
+        in
+        ppAssocBox ~indent:2 pp fmt items
+
+    and ppListItem fmt item =
+      Format.fprintf fmt "%a" pp item
+
+    and ppAssocItem fmt (k, v) =
+      match v with
+      | `List items ->
+        Format.fprintf
+          fmt "@[<hv 2>%a: [@,%a@;<0 -2>]@]"
+          ppString k (Fmt.list ~sep:ppComma ppListItem) items
+      | `Assoc items ->
+        Format.fprintf
+          fmt "@[<hv 2>%a: {@,%a@;<0 -2>}@]"
+          ppString  k (Fmt.list ~sep:ppComma ppAssocItem) items
+      | _ ->
+        Format.fprintf
+          fmt "@[<h 0>%a:@ %a@]"
+          ppString k pp v
+    in
+
+    pp fmt json
+end
