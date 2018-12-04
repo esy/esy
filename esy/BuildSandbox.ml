@@ -154,7 +154,7 @@ module Task = struct
     manifest : BuildManifest.t;
   }
 
-  let plan (t : t) =
+  let plan ?env (t : t) =
     let rootPath = Scope.rootPath t.scope in
     let buildPath = Scope.buildPath t.scope in
     let stagePath = Scope.stagePath t.scope in
@@ -166,6 +166,11 @@ module Task = struct
       | InSource, _
       | OutOfSource, _
       | Unsafe, _ -> false
+    in
+    let env =
+      match env with
+      | None -> t.env
+      | Some env -> env
     in
     {
       EsyBuildPackage.Plan.
@@ -182,7 +187,7 @@ module Task = struct
       stagePath = Scope.SandboxPath.toValue stagePath;
       installPath = Scope.SandboxPath.toValue installPath;
       jbuilderHackEnabled;
-      env = t.env;
+      env;
     }
 
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
@@ -493,90 +498,6 @@ let makeScope
 
   visit [] id
 
-let env
-  ?envspec
-  ~buildIsInProgress
-  ~includeCurrentEnv
-  ~includeBuildEnv
-  ~includeNpmBin
-  sandbox
-  id
-  depspec
-  =
-  let open Run.Syntax in
-
-  let envspec = Option.orDefault ~default:depspec envspec in
-
-  let cache = Hashtbl.create 100 in
-  let makeScope id =
-    match%bind makeScope ~cache ~forceImmutable:false sandbox id depspec with
-    | None -> return None
-    | Some (scope, _build) -> return (Some scope)
-  in
-
-  let%bind scope =
-    match%bind makeScope id with
-    | None -> errorf "no build found for %a" PackageId.pp id
-    | Some scope -> return scope
-  in
-
-  let matched = DepSpec.eval sandbox.solution id envspec in
-  Logs.debug (fun m ->
-    m "envspec %a at %a matches %a"
-      DepSpec.pp
-      envspec
-      PackageId.pp
-      id
-      Fmt.(list ~sep:(unit ", ") PackageId.pp)
-      (PackageId.Set.elements matched)
-  );
-
-  let dependencies =
-    let dependencies = PackageId.Set.(elements (remove id matched)) in
-    Solution.allDependenciesBFS
-      ~dependencies
-      id
-      sandbox.solution
-  in
-
-  let%bind scope =
-    let collect scope (_direct, pkg) =
-      if PackageId.Set.mem pkg.Package.id matched
-      then
-        match%bind makeScope pkg.Package.id with
-        | None -> return scope
-        | Some dep -> return (Scope.add ~direct:true ~dep scope)
-      else
-        return scope
-    in
-    Run.List.foldLeft
-      ~f:collect
-      ~init:scope
-      (dependencies @ [true, Solution.getExn id sandbox.solution])
-  in
-
-  let%bind env =
-    let scope =
-      if includeCurrentEnv
-      then
-        scope
-        |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
-      else scope
-    in
-    Scope.env ~includeBuildEnv ~buildIsInProgress scope
-  in
-  let env =
-    if includeNpmBin
-    then
-      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
-      Scope.SandboxEnvironment.Bindings.prefixValue
-        "PATH"
-        (Scope.SandboxValue.v npmBin)
-      ::env
-    else env
-  in
-  return env
-
 module Plan = struct
 
   type t = Task.t option PackageId.Map.t
@@ -726,24 +647,183 @@ let makePlan
 
   return tasks
 
-let task sandbox id =
+let task sandbox id depspec =
   let open RunAsync.Syntax in
-  let%bind tasks = RunAsync.ofRun (makePlan sandbox DepSpec.(dependencies self)) in
+  let%bind tasks = RunAsync.ofRun (makePlan sandbox depspec) in
   match Plan.get tasks id with
   | None -> errorf "no build found for %a" PackageId.pp id
   | Some task -> return task
 
 let shell sandbox id =
   let open RunAsync.Syntax in
-  let%bind task = task sandbox id in
+  let%bind task = task sandbox id DepSpec.(dependencies self) in
   let plan = Task.plan task in
   EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
 
-let exec sandbox id cmd =
+let makeEnv
+  ?cache
+  ~forceImmutable
+  ~buildIsInProgress
+  ~includeCurrentEnv
+  ~includeBuildEnv
+  ~includeNpmBin
+  sandbox
+  scope
+  depspec
+  envspec
+  =
+  let open Run.Syntax in
+  let id = (Scope.pkg scope).id in
+  let matched = DepSpec.eval sandbox.solution id envspec in
+  Logs.debug (fun m ->
+    m "envspec %a at %a matches %a"
+      DepSpec.pp
+      envspec
+      PackageId.pp
+      id
+      Fmt.(list ~sep:(unit ", ") PackageId.pp)
+      (PackageId.Set.elements matched)
+  );
+
+  let makeScope id =
+    match%bind makeScope ?cache ~forceImmutable sandbox id depspec with
+    | None -> return None
+    | Some (scope, _build) -> return (Some scope)
+  in
+
+  let dependencies =
+    let dependencies = PackageId.Set.(elements (remove id matched)) in
+    Solution.allDependenciesBFS
+      ~dependencies
+      id
+      sandbox.solution
+  in
+
+  let%bind scope =
+    let collect scope (_direct, pkg) =
+      if PackageId.Set.mem pkg.Package.id matched
+      then
+        match%bind makeScope pkg.Package.id with
+        | None -> return scope
+        | Some dep -> return (Scope.add ~direct:true ~dep scope)
+      else
+        return scope
+    in
+    Run.List.foldLeft
+      ~f:collect
+      ~init:scope
+      (dependencies @ [true, Solution.getExn id sandbox.solution])
+  in
+
+  let%bind env =
+    let scope =
+      if includeCurrentEnv
+      then
+        scope
+        |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
+      else scope
+    in
+    Scope.env ~includeBuildEnv ~buildIsInProgress scope
+  in
+  let env =
+    if includeNpmBin
+    then
+      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
+      Scope.SandboxEnvironment.Bindings.prefixValue
+        "PATH"
+        (Scope.SandboxValue.v npmBin)
+      ::env
+    else env
+  in
+  let env =
+    if includeCurrentEnv
+    then Scope.SandboxEnvironment.Bindings.current @ env
+    else env
+  in
+  return env
+
+let env
+  ?envspec
+  ?(forceImmutable=false)
+  ~buildIsInProgress
+  ~includeCurrentEnv
+  ~includeBuildEnv
+  ~includeNpmBin
+  sandbox
+  id
+  depspec
+  =
+  let open Run.Syntax in
+  let envspec = Option.orDefault ~default:depspec envspec in
+  let cache = Hashtbl.create 100 in
+
+  let%bind scope =
+    match%bind makeScope ~cache ~forceImmutable sandbox id depspec  with
+    | None -> errorf "no build found for %a" PackageId.pp id
+    | Some (scope, _) -> return scope
+  in
+
+  makeEnv
+    ~cache
+    ~forceImmutable
+    ~buildIsInProgress
+    ~includeCurrentEnv
+    ~includeBuildEnv
+    ~includeNpmBin
+    sandbox
+    scope
+    depspec
+    envspec
+
+let exec
+  ?envspec
+  ~buildIsInProgress
+  ~includeCurrentEnv
+  ~includeBuildEnv
+  ~includeNpmBin
+  sandbox
+  id
+  depspec
+  cmd =
   let open RunAsync.Syntax in
-  let%bind task = task sandbox id in
-  let plan = Task.plan task in
-  EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
+  let envspec = Option.orDefault ~default:depspec envspec in
+  let%bind task = task sandbox id depspec in
+  let%bind env = RunAsync.ofRun (
+    let open Run.Syntax in
+    let%bind env =
+      makeEnv
+        ~forceImmutable:false
+        ~buildIsInProgress
+        ~includeCurrentEnv
+        ~includeBuildEnv
+        ~includeNpmBin
+        sandbox
+        task.Task.scope
+        depspec
+        envspec
+    in
+    Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env)
+  ) in
+  if buildIsInProgress
+  then
+    let plan = Task.plan ~env task in
+    EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
+  else
+    let waitForProcess process =
+      let%lwt status = process#status in
+      return status
+    in
+    let env = Scope.SandboxEnvironment.render sandbox.cfg.buildCfg env in
+    (* TODO: make sure we resolve 'esy' to the current executable, needed nested
+     * invokations *)
+    ChildProcess.withProcess
+      ~env:(CustomEnv env)
+      ~resolveProgramInEnv:true
+      ~stderr:(`FD_copy Unix.stderr)
+      ~stdout:(`FD_copy Unix.stdout)
+      ~stdin:(`FD_copy Unix.stdin)
+      cmd
+      waitForProcess
 
 let findMaxModifyTime path =
   let open RunAsync.Syntax in

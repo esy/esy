@@ -4,7 +4,7 @@ exports[`Build with optDependencies builds w/ opt dependency installed snapshot 
 "# Build environment
 # package:            root@link:./package.json
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -61,7 +61,7 @@ exports[`Build with optDependencies builds w/ opt dependency installed snapshot 
 "# Build environment
 # package:            dep@path:dep
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -110,7 +110,7 @@ exports[`Build with optDependencies builds w/o opt dependency installed snapshot
 "# Build environment
 # package:            root@link:./package.json
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -159,7 +159,7 @@ exports[`Build with optDependencies builds w/o opt dependency installed snapshot
 "# Build environment
 # package:            dep@path:dep
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false

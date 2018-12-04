@@ -45,6 +45,7 @@ end
 
 val env :
   ?envspec:DepSpec.t
+  -> ?forceImmutable:bool
   -> buildIsInProgress:bool
   -> includeCurrentEnv:bool
   -> includeBuildEnv:bool
@@ -53,6 +54,18 @@ val env :
   -> EsyInstall.PackageId.t
   -> DepSpec.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
+
+val exec :
+  ?envspec:DepSpec.t
+  -> buildIsInProgress:bool
+  -> includeCurrentEnv:bool
+  -> includeBuildEnv:bool
+  -> includeNpmBin:bool
+  -> t
+  -> EsyInstall.PackageId.t
+  -> DepSpec.t
+  -> Cmd.t
+  -> Unix.process_status RunAsync.t
 
 module Task : sig
   type t = {
@@ -106,13 +119,6 @@ val shell :
   -> EsyInstall.PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
-
-val exec :
-  t
-  -> EsyInstall.PackageId.t
-  -> Cmd.t
-  -> Unix.process_status RunAsync.t
-(** [exec task cmd ()] executes [cmd] command in a [task]'s build environment. *)
 
 val build :
   force:bool

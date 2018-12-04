@@ -4,7 +4,7 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 "# Build environment
 # package:            dep@path:dep
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -45,7 +45,7 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 "# Build environment
 # package:            withDep@link:./package.json
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false

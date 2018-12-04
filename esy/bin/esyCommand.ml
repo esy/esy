@@ -416,22 +416,6 @@ module Env = struct
     Logs.debug (fun m -> m "commandEnv %a: done" PackageId.pp id);
     env
 
-  let execEnv sandbox id =
-    Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
-    let env =
-      BuildSandbox.env
-        ~buildIsInProgress:false
-        ~includeCurrentEnv:true
-        ~includeBuildEnv:false
-        ~includeNpmBin:true
-        ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
-        sandbox
-        id
-        BuildSandbox.DepSpec.(dependencies self)
-    in
-    Logs.debug (fun m -> m "execEnv %a" PackageId.pp id);
-    env
-
 end
 
 module SandboxInfo = struct
@@ -1011,8 +995,13 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
     | Some task ->
       let p =
         BuildSandbox.exec
+          ~buildIsInProgress:true
+          ~includeCurrentEnv:false
+          ~includeBuildEnv:true
+          ~includeNpmBin:false
           sandbox
           task.pkg.id
+          BuildSandbox.DepSpec.(dependencies self)
           cmd
       in
       match%bind p with
@@ -1037,12 +1026,12 @@ let buildDependencies (copts : CommonOptions.t) all () =
 
 let makeEnvCommand
   ?(name="Environment")
+  ?envspec
   ~buildIsInProgress
   ~includeBuildEnv
   ~includeCurrentEnv
   ~includeNpmBin
-  ~depspec
-  ~envspec
+  depspec
   copts
   asJson
   packagePath
@@ -1062,7 +1051,7 @@ let makeEnvCommand
           ~includeBuildEnv
           ~includeCurrentEnv
           ~includeNpmBin
-          ~envspec
+          ?envspec
           sandbox
           task.BuildSandbox.Task.pkg.id
           depspec
@@ -1089,7 +1078,7 @@ let makeEnvCommand
             name
             Solution.Package.pp task.pkg
             BuildSandbox.DepSpec.pp depspec
-            BuildSandbox.DepSpec.pp envspec
+            (Fmt.option BuildSandbox.DepSpec.pp) envspec
             buildIsInProgress
             includeBuildEnv
             includeCurrentEnv
@@ -1121,8 +1110,8 @@ let envBy copts asJson includeBuildEnv includeCurrentEnv depspec envspec package
     ~includeBuildEnv
     ~includeCurrentEnv
     ~includeNpmBin:false
-    ~depspec
     ~envspec
+    depspec
     copts
     asJson
     packagePath
@@ -1136,8 +1125,7 @@ let buildEnv copts asJson packagePath () =
     ~includeCurrentEnv:false
     ~includeBuildEnv:true
     ~includeNpmBin:false
-    ~depspec
-    ~envspec:depspec
+    depspec
     copts
     asJson
     packagePath
@@ -1152,8 +1140,8 @@ let commandEnv copts asJson packagePath () =
     ~includeCurrentEnv:true
     ~includeBuildEnv:true
     ~includeNpmBin:true
-    ~depspec
     ~envspec
+    depspec
     copts
     asJson
     packagePath
@@ -1168,90 +1156,79 @@ let execEnv copts asJson packagePath () =
     ~includeCurrentEnv:true
     ~includeBuildEnv:false
     ~includeNpmBin:true
-    ~depspec
     ~envspec
+    depspec
     copts
     asJson
     packagePath
     ()
 
 let makeExecCommand
-    ?(checkIfDependenciesAreBuilt=false)
+    ?envspec
+    ~checkIfDependenciesAreBuilt
     ~buildLinked
-    ~env
-    ~(copts : CommonOptions.t)
-    ~info
+    ~buildIsInProgress
+    ~includeCurrentEnv
+    ~includeBuildEnv
+    ~includeNpmBin
+    depspec
+    copts
+    packagePath
     cmd
     ()
   =
   let open RunAsync.Syntax in
-  let%bind sandbox = SandboxInfo.sandbox info in
-  let%bind root, plan = SandboxInfo.plan info in
-  let%bind () =
-    if checkIfDependenciesAreBuilt
-    then
-      BuildSandbox.buildDependencies
-        ~buildLinked
-        ~concurrency:EsyRuntime.concurrency
-        sandbox
-        plan
-        root.BuildSandbox.Task.pkg.id
-    else return ()
-  in
 
-  let%bind env =
+  let%bind info = SandboxInfo.make copts in
+  let%bind _root, plan = SandboxInfo.plan info in
+  let f task =
     let%bind sandbox = SandboxInfo.sandbox info in
-    RunAsync.ofRun (
-      match env with
-      | `CommandEnv ->
-        Env.commandEnv sandbox root.BuildSandbox.Task.pkg.id
-      | `SandboxEnv ->
-        Env.execEnv sandbox root.BuildSandbox.Task.pkg.id
-    )
-  in
 
-  let%bind env = RunAsync.ofStringError (
-    let open Result.Syntax in
-    let env =
-      Scope.SandboxEnvironment.Bindings.render
-      copts.cfg.buildCfg
-      env
+    let%bind () =
+      if checkIfDependenciesAreBuilt
+      then
+        BuildSandbox.buildDependencies
+          ~buildLinked
+          ~concurrency:EsyRuntime.concurrency
+          sandbox
+          plan
+          task.BuildSandbox.Task.pkg.id
+      else return ()
     in
-    let env = Environment.current @ env in
-    let%bind env = Environment.Bindings.eval env in
-    return (ChildProcess.CustomEnv env)
-  ) in
 
-  let cmd =
-    let tool, args = Cmd.getToolAndArgs cmd in
-    match tool with
-    | "esy" -> Cmd.(v (p EsyRuntime.currentExecutable) |> addArgs args)
-    | _ -> cmd
+    let%bind status =
+      BuildSandbox.exec
+        ?envspec
+        ~buildIsInProgress
+        ~includeCurrentEnv
+        ~includeBuildEnv
+        ~includeNpmBin
+        sandbox
+        task.BuildSandbox.Task.pkg.id
+        depspec
+        cmd
+    in
+    match status with
+    | Unix.WEXITED n
+    | Unix.WSTOPPED n
+    | Unix.WSIGNALED n -> exit n
   in
-
-  let%bind status =
-    ChildProcess.runToStatus
-      ~env
-      ~resolveProgramInEnv:true
-      ~stderr:(`FD_copy Unix.stderr)
-      ~stdout:(`FD_copy Unix.stdout)
-      ~stdin:(`FD_copy Unix.stdin)
-      cmd
-  in
-  match status with
-  | Unix.WEXITED n
-  | Unix.WSTOPPED n
-  | Unix.WSIGNALED n -> exit n
+  withTask info packagePath f
 
 let exec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
-  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind () = build ~buildOnly:false copts None () in
   makeExecCommand
-    ~buildLinked:true
-    ~env:`SandboxEnv
-    ~copts
-    ~info
+    ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
+    ~buildLinked:false
+    ~buildIsInProgress:false
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:false
+    ~includeNpmBin:true
+    ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
+    BuildSandbox.DepSpec.(dependencies self)
+    copts
+    None
     cmd
     ()
 
@@ -1288,31 +1265,45 @@ let devExec (copts : CommonOptions.t) cmd () =
     in
     match script with
     | None -> return cmd
-    | Some {command; _} ->
-      let%bind command = renderCommand command in
-      return (Cmd.addArgs args command)
+    | Some {command = cmd; _} ->
+      let%bind cmd = renderCommand cmd in
+      let cmd = Cmd.addArgs args cmd in
+      let cmd = Cmd.mapTool
+        (function "esy" -> Path.show EsyRuntime.currentExecutable | tool -> tool)
+        cmd
+      in
+      return cmd
   ) in
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~env:`CommandEnv
-    ~copts
-    ~info
+    ~buildIsInProgress:false
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:true
+    ~includeNpmBin:true
+    ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
+    BuildSandbox.DepSpec.(dependencies self)
+    copts
+    None
     cmd
     ()
 
 let devShell copts () =
-  let open RunAsync.Syntax in
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   makeExecCommand
-    ~env:`CommandEnv
+    ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~copts
-    ~info
+    ~buildIsInProgress:false
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:true
+    ~includeNpmBin:true
+    ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
+    BuildSandbox.DepSpec.(dependencies self)
+    copts
+    None
     (Cmd.v shell)
     ()
 

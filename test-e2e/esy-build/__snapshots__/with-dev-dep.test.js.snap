@@ -4,7 +4,7 @@ exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
 "# Build environment
 # package:            dep@path:dep
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -44,7 +44,7 @@ exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
 "# Build environment
 # package:            devDep@path:devDep
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
@@ -84,7 +84,7 @@ exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 "# Build environment
 # package:            withDevDep@link:./package.json
 # depspec:            deps(self)
-# envspec:            deps(self)
+# envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
 # includeCurrentEnv:  false
