@@ -400,23 +400,6 @@ end
 
 module Env = struct
 
-  let buildEnv sandbox id =
-    Logs.debug (fun m -> m "buildEnv %a" PackageId.pp id);
-    let depspec = Plan.DepSpec.(dependencies self) in
-    let env =
-      Plan.makeEnv
-        ~buildIsInProgress:true
-        ~includeCurrentEnv:false
-        ~includeBuildEnv:true
-        ~includeNpmBin:false
-        ~depspec
-        ~envspec:depspec
-        sandbox
-        id
-    in
-    Logs.debug (fun m -> m "buildEnv %a: done" PackageId.pp id);
-    env
-
   let commandEnv sandbox id =
     Logs.debug (fun m -> m "commandEnv %a" PackageId.pp id);
     let env =
@@ -1052,16 +1035,39 @@ let buildDependencies (copts : CommonOptions.t) all () =
     plan
     root.Plan.Task.pkg.id
 
-let makeEnvCommand header computeEnv copts asJson packagePath () =
+let makeEnvCommand
+  ?(name="Environment")
+  ~buildIsInProgress
+  ~includeBuildEnv
+  ~includeCurrentEnv
+  ~includeNpmBin
+  ~depspec
+  ~envspec
+  copts
+  asJson
+  packagePath
+  ()
+  =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
   let%bind sandbox = SandboxInfo.sandbox info in
 
   let f (task : Plan.Task.t) =
-    let%bind env = computeEnv sandbox task in
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
+      let%bind env =
+        Plan.makeEnv
+          ~buildIsInProgress
+          ~includeBuildEnv
+          ~includeCurrentEnv
+          ~includeNpmBin
+          ~depspec
+          ~envspec
+          sandbox
+          task.Plan.Task.pkg.id
+      in
+      let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
@@ -1070,92 +1076,104 @@ let makeEnvCommand header computeEnv copts asJson packagePath () =
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        let header = header task in
+        let header =
+          Format.asprintf {|# %s
+# package:            %a
+# depspec:            %a
+# envspec:            %a
+# buildIsInProgress:  %b
+# includeBuildEnv:    %b
+# includeCurrentEnv:  %b
+# includeNpmBin:      %b
+|}
+            name
+            Solution.Package.pp task.pkg
+            Plan.DepSpec.pp depspec
+            Plan.DepSpec.pp envspec
+            buildIsInProgress
+            includeBuildEnv
+            includeCurrentEnv
+            includeNpmBin
+        in
         Environment.renderToShellSource
           ~header
           env
-      ) in
+    )
+    in
     let%lwt () = Lwt_io.print source in
     return ()
   in
   withTask info packagePath f
 
 let envBy copts asJson includeBuildEnv includeCurrentEnv depspec envspec packagePath () =
-  let header (task : Plan.Task.t) =
-    Format.asprintf
-      "# Environment for %s@%a"
-      task.name Version.pp task.version
+  let depspec =
+    match depspec with
+    | Some depspec -> depspec
+    | None -> Plan.DepSpec.(dependencies self)
   in
-  let computeEnv sandbox task =
-    let open RunAsync.Syntax in
-    let depspec =
-      match depspec with
-      | Some depspec -> depspec
-      | None -> Plan.DepSpec.(dependencies self)
-    in
-    let envspec =
-      match envspec with
-      | Some envspec -> envspec
-      | None -> depspec
-    in
-    let%bind env = RunAsync.ofRun (
-      Plan.makeEnv
-        ~buildIsInProgress:false
-        ~includeBuildEnv
-        ~includeCurrentEnv
-        ~includeNpmBin:false
-        ~depspec
-        ~envspec
-        sandbox
-        task.Plan.Task.pkg.id
-      )
-    in
-    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
-    return env
+  let envspec =
+    match envspec with
+    | Some envspec -> envspec
+    | None -> depspec
   in
-  makeEnvCommand header computeEnv copts asJson packagePath ()
+  makeEnvCommand
+    ~buildIsInProgress:false
+    ~includeBuildEnv
+    ~includeCurrentEnv
+    ~includeNpmBin:false
+    ~depspec
+    ~envspec
+    copts
+    asJson
+    packagePath
+    ()
 
-let buildEnv =
-  let header (task : Plan.Task.t) =
-    Format.asprintf
-      "# Build environment for %s@%a"
-      task.name Version.pp task.version
-  in
-  let computeEnv sandbox task =
-    let open RunAsync.Syntax in
-    let%bind env = RunAsync.ofRun (Env.buildEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
-    return env
-  in
-  makeEnvCommand header computeEnv
+let buildEnv copts asJson packagePath () =
+  let depspec = Plan.DepSpec.(dependencies self) in
+  makeEnvCommand
+    ~name:"Build environment"
+    ~buildIsInProgress:true
+    ~includeCurrentEnv:false
+    ~includeBuildEnv:true
+    ~includeNpmBin:false
+    ~depspec
+    ~envspec:depspec
+    copts
+    asJson
+    packagePath
+    ()
 
-let commandEnv =
-  let open RunAsync.Syntax in
-  let header (task : Plan.Task.t) =
-    Format.asprintf
-      "# Command environment for %s@%a"
-      task.name Version.pp task.version
-  in
-  let computeEnv sandbox task =
-    let%bind env = RunAsync.ofRun (Env.commandEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
-    return (Environment.current @ env)
-  in
-  makeEnvCommand header computeEnv
+let commandEnv copts asJson packagePath () =
+  let depspec = Plan.DepSpec.(dependencies self) in
+  let envspec = Plan.DepSpec.(dependencies self + devDependencies self) in
+  makeEnvCommand
+    ~name:"Command environment"
+    ~buildIsInProgress:false
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:true
+    ~includeNpmBin:true
+    ~depspec
+    ~envspec
+    copts
+    asJson
+    packagePath
+    ()
 
-let sandboxEnv =
-  let open RunAsync.Syntax in
-  let header (task : Plan.Task.t) =
-    Format.asprintf
-      "# Sandbox environment for %s@%a"
-      task.name Version.pp task.version
-  in
-  let computeEnv sandbox task =
-    let%bind env = RunAsync.ofRun (Env.execEnv sandbox task.Plan.Task.pkg.id) in
-    let env = Scope.SandboxEnvironment.Bindings.render sandbox.Plan.Sandbox.cfg.buildCfg env in
-    return (Environment.current @ env)
-  in
-  makeEnvCommand header computeEnv
+let sandboxEnv copts asJson packagePath () =
+  let depspec = Plan.DepSpec.(dependencies self) in
+  let envspec = Plan.DepSpec.(package self + dependencies self + devDependencies self) in
+  makeEnvCommand
+    ~name:"Exec environment"
+    ~buildIsInProgress:false
+    ~includeCurrentEnv:true
+    ~includeBuildEnv:false
+    ~includeNpmBin:true
+    ~depspec
+    ~envspec
+    copts
+    asJson
+    packagePath
+    ()
 
 let makeExecCommand
     ?(checkIfDependenciesAreBuilt=false)
