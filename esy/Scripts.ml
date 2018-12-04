@@ -40,6 +40,26 @@ type script = Scripts.script = { command : EsyInstall.Package.Command.t; }
 let empty = Scripts.empty
 let find = Scripts.find
 
+let render sandbox scope script =
+  let open Run.Syntax in
+  match script.command with
+  | Parsed args ->
+    let%bind args =
+      Result.List.map
+        ~f:(BuildSandbox.renderExpression sandbox scope)
+        args
+    in
+    return (Cmd.ofListExn args)
+  | Unparsed line ->
+    let%bind string =
+      BuildSandbox.renderExpression
+        sandbox
+        scope
+        line
+    in
+    let%bind args = ShellSplit.split string in
+    return (Cmd.ofListExn args)
+
 let ofSandbox (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
   match spec.manifest with

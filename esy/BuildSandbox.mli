@@ -15,6 +15,8 @@ val make :
   -> EsyInstall.Installation.t
   -> (t * Fpath.set) RunAsync.t
 
+val renderExpression : t -> Scope.t -> string -> string Run.t
+
 (** An expression to specify a set of packages. *)
 module DepSpec : sig
 
@@ -87,12 +89,6 @@ module Task : sig
   val installPath : Config.t -> t -> Path.t
   val buildPath : Config.t -> t -> Path.t
   val sourcePath : Config.t -> t -> Path.t
-
-  val renderExpression :
-    cfg:Config.t
-    -> t
-    -> string
-    -> string Run.t
 
   val to_yojson : t Json.encoder
 end

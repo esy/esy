@@ -1235,38 +1235,16 @@ let exec (copts : CommonOptions.t) cmd () =
 let devExec (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  let%bind sandbox = SandboxInfo.sandbox info in
   let%bind root, _plan = SandboxInfo.plan info in
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
     let tool, args = Cmd.getToolAndArgs cmd in
-    let script =
-      Scripts.find
-        tool
-        info.scripts
-    in
-    let renderCommand (cmd : BuildManifest.Command.t) =
-      match cmd with
-      | Parsed args ->
-        let%bind args =
-          Result.List.map
-            ~f:(BuildSandbox.Task.renderExpression ~cfg:copts.cfg root)
-            args
-        in
-        return (Cmd.ofListExn args)
-      | Unparsed line ->
-        let%bind string =
-          BuildSandbox.Task.renderExpression
-            ~cfg:copts.cfg
-            root
-            line
-        in
-        let%bind args = ShellSplit.split string in
-        return (Cmd.ofListExn args)
-    in
+    let script = Scripts.find tool info.scripts in
     match script with
     | None -> return cmd
-    | Some {command = cmd; _} ->
-      let%bind cmd = renderCommand cmd in
+    | Some script ->
+      let%bind cmd = Scripts.render sandbox root.BuildSandbox.Task.scope script in
       let cmd = Cmd.addArgs args cmd in
       let cmd = Cmd.mapTool
         (function "esy" -> Path.show EsyRuntime.currentExecutable | tool -> tool)

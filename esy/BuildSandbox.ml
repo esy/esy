@@ -97,6 +97,13 @@ let make
   }, paths)
 
 
+let renderExpression sandbox scope expr =
+  let open Run.Syntax in
+  let%bind expr = Scope.renderCommandExpr ~buildIsInProgress:false scope expr in
+  let expr = Scope.SandboxValue.v expr in
+  let expr = Scope.SandboxValue.render sandbox.cfg.buildCfg expr in
+  return expr
+
 module DepSpec = struct
 
   module Id = struct
@@ -200,13 +207,6 @@ module Task = struct
   let installPath cfg t = toPathWith cfg t Scope.installPath
   let logPath cfg t = toPathWith cfg t Scope.logPath
   let buildInfoPath cfg t = toPathWith cfg t Scope.buildInfoPath
-
-  let renderExpression ~cfg task expr =
-    let open Run.Syntax in
-    let%bind expr = Scope.renderCommandExpr ~buildIsInProgress:false task.scope expr in
-    let expr = Scope.SandboxValue.v expr in
-    let expr = Scope.SandboxValue.render cfg.Config.buildCfg expr in
-    return expr
 
   let pp fmt task = PackageId.pp fmt task.pkg.id
 
