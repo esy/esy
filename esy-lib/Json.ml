@@ -167,8 +167,35 @@ module Print : sig
 end = struct
   let ppComma = Fmt.unit ",@ "
 
-  let quotedString fmt v =
-    Format.fprintf fmt "\"%a\"" Fmt.string v
+  (* from yojson *)
+  let hex n =
+    Char.chr (
+      if n < 10 then n + 48
+      else n + 87
+    )
+
+  (* from yojson *)
+  let ppStringBody fmt s =
+    for i = 0 to String.length s - 1 do
+      match s.[i] with
+          '"' -> Format.pp_print_string fmt "\\\""
+        | '\\' -> Format.pp_print_string fmt "\\\\"
+        | '\b' -> Format.pp_print_string fmt "\\b"
+        | '\012' -> Format.pp_print_string fmt "\\f"
+        | '\n' -> Format.pp_print_string fmt "\\n"
+        | '\r' -> Format.pp_print_string fmt "\\r"
+        | '\t' -> Format.pp_print_string fmt "\\t"
+        | '\x00'..'\x1F'
+        | '\x7F' as c ->
+          Format.pp_print_string fmt "\\u00";
+          Format.pp_print_char fmt (hex (Char.code c lsr 4));
+          Format.pp_print_char fmt (hex (Char.code c land 0xf))
+        | c ->
+          Format.pp_print_char fmt c
+    done
+
+  let ppString =
+    Fmt.quote ppStringBody
 
   let pp ?(ppListBox=Fmt.hvbox) ?(ppAssocBox=Fmt.hvbox) fmt json =
     let rec pp fmt json =
@@ -180,7 +207,7 @@ end = struct
       | `Float v -> Fmt.float fmt v
       | `Int v -> Fmt.int fmt v
       | `Intlit v -> Fmt.string fmt v
-      | `String v -> quotedString fmt v
+      | `String v -> ppString fmt v
       | `Null -> Fmt.unit "null" fmt ()
       | `Variant (tag, args) ->
         begin match args with
@@ -211,15 +238,15 @@ end = struct
       | `List items ->
         Format.fprintf
           fmt "@[<hv 2>%a: [@,%a@;<0 -2>]@]"
-          quotedString k (Fmt.list ~sep:ppComma ppListItem) items
+          ppString k (Fmt.list ~sep:ppComma ppListItem) items
       | `Assoc items ->
         Format.fprintf
           fmt "@[<hv 2>%a: {@,%a@;<0 -2>}@]"
-          quotedString k (Fmt.list ~sep:ppComma ppAssocItem) items
+          ppString  k (Fmt.list ~sep:ppComma ppAssocItem) items
       | _ ->
         Format.fprintf
           fmt "@[<h 0>%a:@ %a@]"
-          quotedString k pp v
+          ppString k pp v
     in
 
     pp fmt json
