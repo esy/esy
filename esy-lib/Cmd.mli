@@ -43,6 +43,8 @@ val getToolAndLine : t -> string * string array
 val getTool : t -> string
 val getArgs : t -> string list
 
+val mapTool : (string -> string) -> t -> t
+
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
 

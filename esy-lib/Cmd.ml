@@ -46,6 +46,9 @@ let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
 
+let mapTool f (tool, args) =
+  (f tool, args)
+
 let show (tool, args) =
   let tool = Filename.quote tool in
   let args = List.rev_map ~f:Filename.quote args in
