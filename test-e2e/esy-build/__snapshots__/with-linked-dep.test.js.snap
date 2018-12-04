@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Build with a linked dep out of source build macos || linux: build-env dep snapshot 1`] = `
-"# Build environment for dep@link:dep
+"# Build environment
+# package:            dep@link:dep
+# depspec:            deps(self)
+# envspec:            deps(self)
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0
@@ -34,7 +42,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`Build with a linked dep out of source build macos || linux: build-env snapshot 1`] = `
-"# Build environment for with-linked-dep-_build@link:./package.json
+"# Build environment
+# package:            with-linked-dep-_build@link:./package.json
+# depspec:            deps(self)
+# envspec:            deps(self)
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0
