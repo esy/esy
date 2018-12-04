@@ -56,6 +56,9 @@ let pkgRefTerm =
     & info [] ~doc
   )
 
+let runAsyncToCmdlinerRetResult res =
+  `Ok (Lwt_main.run res)
+
 let runAsyncToCmdlinerRet res =
   match Lwt_main.run res with
   | Ok v -> `Ok v
@@ -117,7 +120,7 @@ end
 
 let findSandboxPathStartingWith currentPath =
   let open RunAsync.Syntax in
-  let isSandbox path =
+  let isProject path =
     let%bind items = Fs.listDir path in
     let f name =
       match name with
@@ -129,7 +132,7 @@ let findSandboxPathStartingWith currentPath =
     return (List.exists ~f items)
   in
   let rec climb path =
-    if%bind isSandbox path
+    if%bind isProject path
     then return path
     else
       let parent = Path.parent path in
@@ -230,8 +233,19 @@ module CommonOptions = struct
       & info ["solve-cudf-command"] ~env ~doc
     )
 
-  let term sandboxPath =
-
+  let make
+    sandboxPath 
+    prefixPath
+    cachePath
+    cacheTarballsPath
+    opamRepository
+    esyOpamOverride
+    npmRegistry
+    solveTimeout
+    skipRepositoryUpdate
+    solveCudfCommand
+    =
+    let open RunAsync.Syntax in
     let sandboxPath =
       match sandboxPath with
       | Some sandboxPath ->
@@ -244,6 +258,56 @@ module CommonOptions = struct
         findSandboxPathStartingWith (Path.currentPath ())
     in
 
+    let%bind sandboxPath = sandboxPath in
+    let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
+
+    let%bind prefixPath = match prefixPath with
+      | Some prefixPath -> return (Some prefixPath)
+      | None ->
+        let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
+        return rc.EsyRc.prefixPath
+    in
+
+    let%bind esySolveCmd =
+      match solveCudfCommand with
+      | Some cmd -> return cmd
+      | None ->
+        let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
+        return Cmd.(v (p cmd))
+    in
+
+    let%bind installCfg =
+      EsyInstall.Config.make
+        ~esySolveCmd
+        ~skipRepositoryUpdate
+        ?cachePath
+        ?cacheTarballsPath
+        ?npmRegistry
+        ?opamRepository
+        ?esyOpamOverride
+        ?solveTimeout
+        ()
+    in
+
+    let%bind cfg =
+      RunAsync.ofRun (
+        Config.make
+          ~installCfg
+          ~spec
+          ~esyVersion:EsyRuntime.version
+          ~prefixPath
+          ()
+      )
+    in
+
+    let%bind installSandbox =
+      EsyInstall.Sandbox.make ~cfg:installCfg spec
+    in
+
+    return {cfg; installSandbox; spec;}
+
+  let termResult sandboxPath =
+
     let parse
       prefixPath
       cachePath
@@ -255,56 +319,57 @@ module CommonOptions = struct
       skipRepositoryUpdate
       solveCudfCommand
       =
-      let copts =
-        let open RunAsync.Syntax in
+      let copts = make
+        sandboxPath
+        prefixPath
+        cachePath
+        cacheTarballsPath
+        opamRepository
+        esyOpamOverride
+        npmRegistry
+        solveTimeout
+        skipRepositoryUpdate
+        solveCudfCommand
+      in
+      runAsyncToCmdlinerRetResult copts
+    in
+    Term.(ret (
+      const parse
+      $ prefixPath
+      $ cachePathArg
+      $ cacheTarballsPath
+      $ opamRepositoryArg
+      $ esyOpamOverrideArg
+      $ npmRegistryArg
+      $ solveTimeoutArg
+      $ skipRepositoryUpdateArg
+      $ solveCudfCommandArg
+    ))
 
-        let%bind sandboxPath = sandboxPath in
-        let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
+  let term sandboxPath =
 
-        let%bind prefixPath = match prefixPath with
-          | Some prefixPath -> return (Some prefixPath)
-          | None ->
-            let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
-            return rc.EsyRc.prefixPath
-        in
-
-        let%bind esySolveCmd =
-          match solveCudfCommand with
-          | Some cmd -> return cmd
-          | None ->
-            let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
-            return Cmd.(v (p cmd))
-        in
-
-        let%bind installCfg =
-          EsyInstall.Config.make
-            ~esySolveCmd
-            ~skipRepositoryUpdate
-            ?cachePath
-            ?cacheTarballsPath
-            ?npmRegistry
-            ?opamRepository
-            ?esyOpamOverride
-            ?solveTimeout
-            ()
-        in
-
-        let%bind cfg =
-          RunAsync.ofRun (
-            Config.make
-              ~installCfg
-              ~spec
-              ~esyVersion:EsyRuntime.version
-              ~prefixPath
-              ()
-          )
-        in
-
-        let%bind installSandbox =
-          EsyInstall.Sandbox.make ~cfg:installCfg spec
-        in
-
-        return {cfg; installSandbox; spec;}
+    let parse
+      prefixPath
+      cachePath
+      cacheTarballsPath
+      opamRepository
+      esyOpamOverride
+      npmRegistry
+      solveTimeout
+      skipRepositoryUpdate
+      solveCudfCommand
+      =
+      let copts = make
+        sandboxPath
+        prefixPath
+        cachePath
+        cacheTarballsPath
+        opamRepository
+        esyOpamOverride
+        npmRegistry
+        solveTimeout
+        skipRepositoryUpdate
+        solveCudfCommand
       in
       runAsyncToCmdlinerRet copts
     in
@@ -701,6 +766,92 @@ let withTask info ref f =
     | Some task -> f task
     end
   | None -> f (Plan.rootTask plan)
+
+module Status = struct
+
+  type t = {
+    isProject: bool;
+    isProjectSolved : bool;
+    isProjectFetched : bool;
+    isProjectReadyForDev : bool;
+    rootBuildPath : Path.t option;
+    rootInstallPath : Path.t option;
+  } [@@deriving to_yojson]
+
+  let notASandbox = {
+    isProject = false;
+    isProjectSolved = false;
+    isProjectFetched = false;
+    isProjectReadyForDev = false;
+    rootBuildPath = None;
+    rootInstallPath = None;
+  }
+end
+
+let status copts _asJson () =
+  let open RunAsync.Syntax in
+  let open Status in
+
+  let protectRunAsync v =
+    try%lwt v
+    with _ -> RunAsync.error "error"
+  in
+
+  let%lwt info = protectRunAsync (
+    let%bind copts = RunAsync.ofRun copts in
+    let cfg = copts.CommonOptions.cfg in
+    let%bind info = SandboxInfo.make copts in
+    return (cfg, info)
+  ) in
+
+  let%bind status =
+    match info with
+    | Error _ -> return Status.notASandbox
+    | Ok (cfg, info) ->
+      let%lwt solution = protectRunAsync (SandboxInfo.solution info) in
+      let%lwt installation = protectRunAsync (SandboxInfo.installation info) in
+      let%lwt built = protectRunAsync (
+        let%bind plan = SandboxInfo.plan info in
+        let checkTask built task =
+          if built
+          then
+            match task.Plan.Task.sourceType with
+            | Immutable
+            | ImmutableWithTransientDependencies -> Plan.isBuilt ~cfg task
+            | Transient -> return built
+          else
+            return built
+        in
+        RunAsync.List.foldLeft
+          ~f:checkTask
+          ~init:true
+          (Plan.allTasks plan)
+      ) in
+      let%lwt rootBuildPath = protectRunAsync (
+        let%bind plan = SandboxInfo.plan info in
+        let root = Plan.rootTask plan in
+        return (Some (Plan.Task.buildPath cfg root))
+      ) in
+      let%lwt rootInstallPath = protectRunAsync (
+        let%bind plan = SandboxInfo.plan info in
+        let root = Plan.rootTask plan in
+        return (Some (Plan.Task.installPath cfg root))
+      ) in
+      return {
+        isProject = true;
+        isProjectSolved = Result.isOk solution;
+        isProjectFetched = Result.isOk installation;
+        isProjectReadyForDev = Result.getOr false built;
+        rootBuildPath = Result.getOr None rootBuildPath;
+        rootInstallPath = Result.getOr None rootInstallPath;
+      }
+  in
+  Format.fprintf
+    Format.std_formatter
+    "%a@."
+    (Json.Print.pp ~ppListBox:Fmt.vbox ~ppAssocBox:Fmt.vbox)
+    (Status.to_yojson status);
+  return ()
 
 let buildPlan copts id () =
   let open RunAsync.Syntax in
@@ -1649,6 +1800,17 @@ let makeCommands ~sandbox () =
 
     [
     (* commands *)
+
+    makeCommand
+      ~header:`No
+      ~name:"status"
+      ~doc:"Print esy sandbox status"
+      Term.(
+        const status
+        $ CommonOptions.termResult sandbox
+        $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
+        $ Cli.setupLogTerm
+      );
 
     installCommand;
     buildCommand;
