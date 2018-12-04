@@ -42,6 +42,8 @@ module type S = sig
     val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
 
+    val current : t
+
     include S.COMPARABLE with type t := t
   end
 end
@@ -65,9 +67,6 @@ val renderToList :
   ?platform : System.Platform.t
   -> Bindings.t
   -> (string * string) list
-
-val current : Bindings.t
-(** A list of bindings for the current process's environment. *)
 
 val escapeDoubleQuote : string -> string
 val escapeSingleQuote : string -> string

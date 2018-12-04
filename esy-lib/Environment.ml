@@ -45,6 +45,8 @@ module type S = sig
     val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
 
+    val current : t
+
     include S.COMPARABLE with type t := t
   end
 end
@@ -166,6 +168,36 @@ end = struct
       in
       Result.List.foldLeft ~f ~init bindings
 
+    let current =
+      let parseEnv item =
+        let idx = String.index item '=' in
+        let name = String.sub item 0 idx in
+        let name =
+          match System.Platform.host with
+          | System.Platform.Windows -> String.uppercase_ascii name
+          | _ -> name
+        in
+        let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+        {Binding. name; value = ExpandedValue (V.v value); origin = None;}
+      in
+      (* Filter bash function which are being exported in env *)
+      let filterInvalidNames {Binding. name; _} =
+        let starting = "BASH_FUNC_" in
+        let ending = "%%" in
+        not (
+          (
+            String.length name > String.length starting
+            && Str.first_chars name (String.length starting) = starting
+            && Str.last_chars name (String.length ending) = ending
+          )
+          || String.contains name '.'
+        )
+      in
+      Unix.environment ()
+      |> Array.map parseEnv
+      |> Array.to_list
+      |> List.filter ~f:filterInvalidNames
+
   end
 end
 
@@ -245,33 +277,3 @@ let renderToList ?(platform=System.Platform.host) bindings =
     name, value
   in
   List.map ~f bindings
-
-let current =
-  let parseEnv item =
-    let idx = String.index item '=' in
-    let name = String.sub item 0 idx in
-    let name =
-      match System.Platform.host with
-      | System.Platform.Windows -> String.uppercase_ascii name
-      | _ -> name
-    in
-    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-    {Binding. name; value = ExpandedValue value; origin = None;}
-  in
-  (* Filter bash function which are being exported in env *)
-  let filterInvalidNames {Binding. name; _} =
-    let starting = "BASH_FUNC_" in
-    let ending = "%%" in
-    not (
-      (
-        String.length name > String.length starting
-        && Str.first_chars name (String.length starting) = starting
-        && Str.last_chars name (String.length ending) = ending
-      )
-      || String.contains name '.'
-    )
-  in
-  Unix.environment ()
-  |> Array.map parseEnv
-  |> Array.to_list
-  |> List.filter ~f:filterInvalidNames
