@@ -172,8 +172,8 @@ module Task = struct
     {
       EsyBuildPackage.Plan.
       id = Scope.id t.scope;
-      name = Scope.name t.scope;
-      version = EsyInstall.Version.show (Scope.version t.scope);
+      name = t.pkg.name;
+      version = EsyInstall.Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
       buildType = Scope.buildType t.scope;
       build = t.buildCommands;
