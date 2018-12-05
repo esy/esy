@@ -57,9 +57,9 @@ module Make (Id : ID) : DEPSPEC with type id = Id.t = struct
 
   let rec pp fmt spec =
     match spec with
-    | Package id -> Fmt.pf fmt "pkg(%a)" Id.pp id
-    | Dependencies id -> Fmt.pf fmt "deps(%a)" Id.pp id
-    | DevDependencies id -> Fmt.pf fmt "devDeps(%a)" Id.pp id
+    | Package id -> Fmt.pf fmt "%a" Id.pp id
+    | Dependencies id -> Fmt.pf fmt "dependencies(%a)" Id.pp id
+    | DevDependencies id -> Fmt.pf fmt "devDependencies(%a)" Id.pp id
     | Union (a, b) -> Fmt.pf fmt "%a+%a" pp a pp b
 end
 
