@@ -38,27 +38,29 @@ module DepSpec : sig
   val pp : t Fmt.t
 end
 
+module EnvSpec : sig
+  type t = {
+    depspec : DepSpec.t option;
+    buildIsInProgress : bool;
+    includeCurrentEnv : bool;
+    includeBuildEnv : bool;
+    includeNpmBin : bool;
+  }
+end
+
 val env :
-  ?envspec:DepSpec.t
-  -> ?forceImmutable:bool
-  -> buildIsInProgress:bool
-  -> includeCurrentEnv:bool
-  -> includeBuildEnv:bool
-  -> includeNpmBin:bool
+  ?forceImmutable:bool
+  -> EnvSpec.t
+  -> DepSpec.t
   -> t
   -> EsyInstall.PackageId.t
-  -> DepSpec.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exec :
-  ?envspec:DepSpec.t
-  -> buildIsInProgress:bool
-  -> includeCurrentEnv:bool
-  -> includeBuildEnv:bool
-  -> includeNpmBin:bool
+  EnvSpec.t
+  -> DepSpec.t
   -> t
   -> EsyInstall.PackageId.t
-  -> DepSpec.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
 

@@ -357,22 +357,42 @@ end
 
 module Env = struct
 
-  let commandEnv sandbox id =
-    Logs.debug (fun m -> m "commandEnv %a" PackageId.pp id);
-    let env =
-      BuildSandbox.env
-        ~buildIsInProgress:false
-        ~includeCurrentEnv:true
-        ~includeBuildEnv:true
-        ~includeNpmBin:true
-        ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
-        sandbox
-        id
-        BuildSandbox.DepSpec.(dependencies self)
-    in
-    Logs.debug (fun m -> m "commandEnv %a: done" PackageId.pp id);
-    env
+  module Exec = struct
+    let depspec = BuildSandbox.DepSpec.(dependencies self)
+    let envspec = BuildSandbox.{
+      EnvSpec.
+      buildIsInProgress = false;
+      includeCurrentEnv = true;
+      includeBuildEnv = false;
+      includeNpmBin = true;
+      depspec = Some DepSpec.(package self + dependencies self + devDependencies self);
+    }
+  end
 
+  module Command = struct
+    let depspec = BuildSandbox.DepSpec.(dependencies self)
+    let envspec = BuildSandbox.{
+      EnvSpec.
+      buildIsInProgress = false;
+      includeCurrentEnv = true;
+      includeBuildEnv = true;
+      includeNpmBin = true;
+      depspec = Some DepSpec.(dependencies self + devDependencies self);
+    }
+  end
+
+  module Build = struct
+
+    let depspec = BuildSandbox.DepSpec.(dependencies self)
+    let envspec = BuildSandbox.{
+      EnvSpec.
+      buildIsInProgress = true;
+      includeCurrentEnv = false;
+      includeBuildEnv = true;
+      includeNpmBin = false;
+      depspec = None;
+    }
+  end
 end
 
 module SandboxInfo = struct
@@ -466,7 +486,12 @@ module SandboxInfo = struct
             let%bind commandEnv = RunAsync.ofRun (
               let open Run.Syntax in
               let header = "# Command environment" in
-              let%bind commandEnv = Env.commandEnv sandbox root.Solution.Package.id in
+              let%bind commandEnv = BuildSandbox.env
+                Env.Command.envspec
+                Env.Command.depspec
+                sandbox
+                root.Solution.Package.id
+              in
               let commandEnv = Scope.SandboxEnvironment.Bindings.render copts.cfg.buildCfg commandEnv in
               Environment.renderToShellSource ~header commandEnv
             ) in
@@ -954,13 +979,10 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
     | Some task ->
       let p =
         BuildSandbox.exec
-          ~buildIsInProgress:true
-          ~includeCurrentEnv:false
-          ~includeBuildEnv:true
-          ~includeNpmBin:false
+          Env.Build.envspec
+          Env.Build.depspec
           sandbox
           task.pkg.id
-          BuildSandbox.DepSpec.(dependencies self)
           cmd
       in
       match%bind p with
@@ -985,11 +1007,7 @@ let buildDependencies (copts : CommonOptions.t) all () =
 
 let makeEnvCommand
   ?(name="Environment")
-  ?envspec
-  ~buildIsInProgress
-  ~includeBuildEnv
-  ~includeCurrentEnv
-  ~includeNpmBin
+  envspec
   depspec
   copts
   asJson
@@ -1004,17 +1022,7 @@ let makeEnvCommand
   let f (task : BuildSandbox.Task.t) =
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env =
-        BuildSandbox.env
-          ~buildIsInProgress
-          ~includeBuildEnv
-          ~includeCurrentEnv
-          ~includeNpmBin
-          ?envspec
-          sandbox
-          task.BuildSandbox.Task.pkg.id
-          depspec
-      in
+      let%bind env = BuildSandbox.env envspec depspec sandbox task.BuildSandbox.Task.pkg.id in
       let env = Scope.SandboxEnvironment.Bindings.render copts.CommonOptions.cfg.buildCfg env in
       if asJson
       then
@@ -1037,11 +1045,11 @@ let makeEnvCommand
             name
             Solution.Package.pp task.pkg
             BuildSandbox.DepSpec.pp depspec
-            (Fmt.option BuildSandbox.DepSpec.pp) envspec
-            buildIsInProgress
-            includeBuildEnv
-            includeCurrentEnv
-            includeNpmBin
+            (Fmt.option BuildSandbox.DepSpec.pp) envspec.BuildSandbox.EnvSpec.depspec
+            envspec.buildIsInProgress
+            envspec.includeBuildEnv
+            envspec.includeCurrentEnv
+            envspec.includeNpmBin
         in
         Environment.renderToShellSource
           ~header
@@ -1054,13 +1062,16 @@ let makeEnvCommand
   withTask info packagePath f
 
 let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin envspec pkgspec depspec () =
-  let envspec = Option.orDefault ~default:depspec envspec in
+  let envspec = {
+    BuildSandbox.EnvSpec.
+    buildIsInProgress = false;
+    includeBuildEnv;
+    includeCurrentEnv;
+    includeNpmBin;
+    depspec = envspec;
+  } in
   makeEnvCommand
-    ~buildIsInProgress:false
-    ~includeBuildEnv
-    ~includeCurrentEnv
-    ~includeNpmBin
-    ~envspec
+    envspec
     depspec
     copts
     asJson
@@ -1068,59 +1079,39 @@ let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin envspec p
     ()
 
 let buildEnv copts asJson packagePath () =
-  let depspec = BuildSandbox.DepSpec.(dependencies self) in
   makeEnvCommand
     ~name:"Build environment"
-    ~buildIsInProgress:true
-    ~includeCurrentEnv:false
-    ~includeBuildEnv:true
-    ~includeNpmBin:false
-    depspec
+    Env.Build.envspec
+    Env.Build.depspec
     copts
     asJson
     packagePath
     ()
 
 let commandEnv copts asJson packagePath () =
-  let depspec = BuildSandbox.DepSpec.(dependencies self) in
-  let envspec = BuildSandbox.DepSpec.(dependencies self + devDependencies self) in
   makeEnvCommand
     ~name:"Command environment"
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:true
-    ~includeNpmBin:true
-    ~envspec
-    depspec
+    Env.Command.envspec
+    Env.Command.depspec
     copts
     asJson
     packagePath
     ()
 
 let execEnv copts asJson packagePath () =
-  let depspec = BuildSandbox.DepSpec.(dependencies self) in
-  let envspec = BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self) in
   makeEnvCommand
     ~name:"Exec environment"
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:false
-    ~includeNpmBin:true
-    ~envspec
-    depspec
+    Env.Exec.envspec
+    Env.Exec.depspec
     copts
     asJson
     packagePath
     ()
 
 let makeExecCommand
-    ?envspec
     ~checkIfDependenciesAreBuilt
     ~buildLinked
-    ~buildIsInProgress
-    ~includeCurrentEnv
-    ~includeBuildEnv
-    ~includeNpmBin
+    envspec
     depspec
     copts
     packagePath
@@ -1148,14 +1139,10 @@ let makeExecCommand
 
     let%bind status =
       BuildSandbox.exec
-        ?envspec
-        ~buildIsInProgress
-        ~includeCurrentEnv
-        ~includeBuildEnv
-        ~includeNpmBin
+        envspec
+        depspec
         sandbox
         task.BuildSandbox.Task.pkg.id
-        depspec
         cmd
     in
     match status with
@@ -1176,14 +1163,18 @@ let execBy
   depspec
   cmd
   () =
+  let envspec = {
+    BuildSandbox.EnvSpec.
+    buildIsInProgress;
+    includeBuildEnv;
+    includeCurrentEnv;
+    includeNpmBin;
+    depspec = envspec;
+  } in
   makeExecCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
-    ~buildIsInProgress
-    ~includeCurrentEnv
-    ~includeBuildEnv
-    ~includeNpmBin
-    ?envspec
+    envspec
     depspec
     copts
     pkgspec
@@ -1196,12 +1187,8 @@ let exec (copts : CommonOptions.t) cmd () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:false
-    ~includeNpmBin:true
-    ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
-    BuildSandbox.DepSpec.(dependencies self)
+    Env.Exec.envspec
+    Env.Exec.depspec
     copts
     PkgSpec.Root
     cmd
@@ -1230,12 +1217,8 @@ let devExec (copts : CommonOptions.t) cmd () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:true
-    ~includeNpmBin:true
-    ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
-    BuildSandbox.DepSpec.(dependencies self)
+    Env.Command.envspec
+    Env.Command.depspec
     copts
     PkgSpec.Root
     cmd
@@ -1249,12 +1232,8 @@ let devShell copts () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~buildIsInProgress:false
-    ~includeCurrentEnv:true
-    ~includeBuildEnv:true
-    ~includeNpmBin:true
-    ~envspec:BuildSandbox.DepSpec.(dependencies self + devDependencies self)
-    BuildSandbox.DepSpec.(dependencies self)
+    Env.Command.envspec
+    Env.Command.depspec
     copts
     PkgSpec.Root
     (Cmd.v shell)

@@ -196,16 +196,20 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
+    let envspec = {
+      BuildSandbox.EnvSpec.
+      buildIsInProgress = false;
+      includeCurrentEnv = true;
+      includeBuildEnv = false;
+      includeNpmBin = true;
+      depspec = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
+    } in
     let%bind bindings = RunAsync.ofRun (
       BuildSandbox.env
-        ~buildIsInProgress:false
-        ~includeCurrentEnv:true
-        ~includeBuildEnv:false
-        ~includeNpmBin:true
-        ~envspec:BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self)
+        envspec
+        BuildSandbox.DepSpec.(dependencies self)
         sandbox
         root.EsyInstall.Solution.Package.id
-        BuildSandbox.DepSpec.(dependencies self)
     ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in

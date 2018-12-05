@@ -142,6 +142,16 @@ module DepSpec = struct
 
 end
 
+module EnvSpec = struct
+  type t = {
+    depspec : DepSpec.t option;
+    buildIsInProgress : bool;
+    includeCurrentEnv : bool;
+    includeBuildEnv : bool;
+    includeNpmBin : bool;
+  }
+end
+
 module Task = struct
   type t = {
     pkg : Package.t;
@@ -727,18 +737,14 @@ let makeEnv
   return (env, scope)
 
 let env
-  ?envspec
   ?(forceImmutable=false)
-  ~buildIsInProgress
-  ~includeCurrentEnv
-  ~includeBuildEnv
-  ~includeNpmBin
+  envspec
+  depspec
   sandbox
   id
-  depspec
   =
   let open Run.Syntax in
-  let envspec = Option.orDefault ~default:depspec envspec in
+  let envdepspec = Option.orDefault ~default:depspec envspec.EnvSpec.depspec in
   let cache = Hashtbl.create 100 in
 
   let%bind scope =
@@ -751,43 +757,39 @@ let env
     makeEnv
       ~cache
       ~forceImmutable
-      ~buildIsInProgress
-      ~includeCurrentEnv
-      ~includeBuildEnv
-      ~includeNpmBin
+      ~buildIsInProgress:envspec.buildIsInProgress
+      ~includeCurrentEnv:envspec.includeCurrentEnv
+      ~includeBuildEnv:envspec.includeBuildEnv
+      ~includeNpmBin:envspec.includeNpmBin
       sandbox
       scope
       depspec
-      envspec
+      envdepspec
   in
   return env
 
 let exec
-  ?envspec
-  ~buildIsInProgress
-  ~includeCurrentEnv
-  ~includeBuildEnv
-  ~includeNpmBin
+  envspec
+  depspec
   sandbox
   id
-  depspec
   cmd =
   let open RunAsync.Syntax in
-  let envspec = Option.orDefault ~default:depspec envspec in
+  let envdepspec = Option.orDefault ~default:depspec envspec.EnvSpec.depspec in
   let%bind task = task sandbox id depspec in
   let%bind env, scope = RunAsync.ofRun (
     let open Run.Syntax in
     let%bind env, scope =
       makeEnv
         ~forceImmutable:false
-        ~buildIsInProgress
-        ~includeCurrentEnv
-        ~includeBuildEnv
-        ~includeNpmBin
+        ~buildIsInProgress:envspec.buildIsInProgress
+        ~includeCurrentEnv:envspec.includeCurrentEnv
+        ~includeBuildEnv:envspec.includeBuildEnv
+        ~includeNpmBin:envspec.includeNpmBin
         sandbox
         task.Task.scope
         depspec
-        envspec
+        envdepspec
     in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
     return (env, scope)
@@ -797,7 +799,7 @@ let exec
     let open Run.Syntax in
 
     let expand v =
-      let%bind v = Scope.render ~env ~buildIsInProgress scope v in
+      let%bind v = Scope.render ~env ~buildIsInProgress:envspec.buildIsInProgress scope v in
       return (Scope.SandboxValue.render sandbox.cfg.buildCfg v)
     in
     let tool, args = Cmd.getToolAndArgs cmd in
@@ -806,7 +808,7 @@ let exec
     return (Cmd.ofToolAndArgs (tool, args))
   ) in
 
-  if buildIsInProgress
+  if envspec.buildIsInProgress
   then
     let plan = Task.plan ~env task in
     EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
