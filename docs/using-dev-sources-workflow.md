@@ -38,7 +38,7 @@ Other options are:
 
 - `user/repo#commitish` will fetch sources from a GitHub's user/repo repository.
 
-  The `commitish` can be a branch name, a tag name or a specific commit.
+  The `commitish` is mandatory and can be a branch name, a tag name or a specific commit.
 
   Examples:
 
@@ -69,8 +69,8 @@ Example:
   "@opam/lwt_ppx": "*"
 },
 "resolutions": {
-  "@opam/lwt": "ocsigen/lwt:lwt.opam",
-  "@opam/lwt_ppx": "ocsigen/lwt:lwt_ppx.opam"
+  "@opam/lwt": "ocsigen/lwt:lwt.opam#master",
+  "@opam/lwt_ppx": "ocsigen/lwt:lwt_ppx.opam#master"
 }
 ```
 
