@@ -724,7 +724,7 @@ let makeEnv
     then Scope.SandboxEnvironment.Bindings.current @ env
     else env
   in
-  return env
+  return (env, scope)
 
 let env
   ?envspec
@@ -747,17 +747,20 @@ let env
     | Some (scope, _) -> return scope
   in
 
-  makeEnv
-    ~cache
-    ~forceImmutable
-    ~buildIsInProgress
-    ~includeCurrentEnv
-    ~includeBuildEnv
-    ~includeNpmBin
-    sandbox
-    scope
-    depspec
-    envspec
+  let%bind env, _scope =
+    makeEnv
+      ~cache
+      ~forceImmutable
+      ~buildIsInProgress
+      ~includeCurrentEnv
+      ~includeBuildEnv
+      ~includeNpmBin
+      sandbox
+      scope
+      depspec
+      envspec
+  in
+  return env
 
 let exec
   ?envspec
@@ -772,9 +775,9 @@ let exec
   let open RunAsync.Syntax in
   let envspec = Option.orDefault ~default:depspec envspec in
   let%bind task = task sandbox id depspec in
-  let%bind env = RunAsync.ofRun (
+  let%bind env, scope = RunAsync.ofRun (
     let open Run.Syntax in
-    let%bind env =
+    let%bind env, scope =
       makeEnv
         ~forceImmutable:false
         ~buildIsInProgress
@@ -786,8 +789,23 @@ let exec
         depspec
         envspec
     in
-    Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env)
+    let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
+    return (env, scope)
   ) in
+
+  let%bind cmd = RunAsync.ofRun (
+    let open Run.Syntax in
+
+    let expand v =
+      let%bind v = Scope.render ~env ~buildIsInProgress scope v in
+      return (Scope.SandboxValue.render sandbox.cfg.buildCfg v)
+    in
+    let tool, args = Cmd.getToolAndArgs cmd in
+    let%bind tool = expand tool in
+    let%bind args = Result.List.map ~f:expand args in
+    return (Cmd.ofToolAndArgs (tool, args))
+  ) in
+
   if buildIsInProgress
   then
     let plan = Task.plan ~env task in
