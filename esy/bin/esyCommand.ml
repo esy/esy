@@ -367,7 +367,7 @@ module CommonOptions = struct
 
 end
 
-module Env = struct
+module Spec = struct
 
   let buildspec = BuildSandbox.{
     BuildSpec.
@@ -375,38 +375,32 @@ module Env = struct
     buildLinked = Some (BuildDev, DepSpec.(dependencies self));
   }
 
-  module Exec = struct
-    let envspec = BuildSandbox.{
-      EnvSpec.
-      buildIsInProgress = false;
-      includeCurrentEnv = true;
-      includeBuildEnv = false;
-      includeNpmBin = true;
-      depspec = Some DepSpec.(package self + dependencies self + devDependencies self);
-    }
-  end
+  let execenvspec = BuildSandbox.{
+    EnvSpec.
+    buildIsInProgress = false;
+    includeCurrentEnv = true;
+    includeBuildEnv = false;
+    includeNpmBin = true;
+    depspec = Some DepSpec.(package self + dependencies self + devDependencies self);
+  }
 
-  module Command = struct
-    let envspec = BuildSandbox.{
-      EnvSpec.
-      buildIsInProgress = false;
-      includeCurrentEnv = true;
-      includeBuildEnv = true;
-      includeNpmBin = true;
-      depspec = Some DepSpec.(dependencies self + devDependencies self);
-    }
-  end
+  let commandenvspec = BuildSandbox.{
+    EnvSpec.
+    buildIsInProgress = false;
+    includeCurrentEnv = true;
+    includeBuildEnv = true;
+    includeNpmBin = true;
+    depspec = Some DepSpec.(dependencies self + devDependencies self);
+  }
 
-  module Build = struct
-    let envspec = BuildSandbox.{
-      EnvSpec.
-      buildIsInProgress = true;
-      includeCurrentEnv = false;
-      includeBuildEnv = true;
-      includeNpmBin = false;
-      depspec = None;
-    }
-  end
+  let buildenvspec = BuildSandbox.{
+    EnvSpec.
+    buildIsInProgress = true;
+    includeCurrentEnv = false;
+    includeBuildEnv = true;
+    includeNpmBin = false;
+    depspec = None;
+  }
 end
 
 module SandboxInfo = struct
@@ -436,7 +430,7 @@ module SandboxInfo = struct
         let%bind plan =
           BuildSandbox.makePlan
             sandbox
-            Env.buildspec
+            Spec.buildspec
         in
         let pkg = EsyInstall.Solution.root solution in
         let root =
@@ -505,8 +499,8 @@ module SandboxInfo = struct
               let open Run.Syntax in
               let header = "# Command environment" in
               let%bind commandEnv = BuildSandbox.env
-                Env.Command.envspec
-                Env.buildspec
+                Spec.commandenvspec
+                Spec.buildspec
                 sandbox
                 root.Solution.Package.id
               in
@@ -907,9 +901,9 @@ let buildPlan copts mode pkgspec () =
   let%bind solution = SandboxInfo.solution info in
 
   let buildspec = {
-    Env.buildspec with
+    Spec.buildspec with
     buildLinked =
-      let defaultMode, depspec = Env.buildspec.buildAll in
+      let defaultMode, depspec = Spec.buildspec.buildAll in
       let mode = Option.orDefault ~default:defaultMode mode in
       Some (mode, depspec)
   } in
@@ -938,7 +932,7 @@ let buildShell (copts : CommonOptions.t) pkgspec () =
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         sandbox
-        Env.buildspec
+        Spec.buildspec
     ) in
     let%bind () =
       BuildSandbox.buildDependencies
@@ -950,7 +944,7 @@ let buildShell (copts : CommonOptions.t) pkgspec () =
     in
     let p =
       BuildSandbox.buildShell
-        Env.buildspec
+        Spec.buildspec
         sandbox
         pkg.id
     in
@@ -1000,9 +994,9 @@ let buildBy (copts : CommonOptions.t) release depspec pkg () =
     let depspec =
       match depspec with
       | Some depspec -> depspec
-      | None -> let _mode, depspec = Env.buildspec.buildAll in depspec
+      | None -> let _mode, depspec = Spec.buildspec.buildAll in depspec
     in
-    {Env.buildspec with buildLinked = Some (mode, depspec)}
+    {Spec.buildspec with buildLinked = Some (mode, depspec)}
   in
 
   let f (pkg : Solution.Package.t) =
@@ -1057,8 +1051,8 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
     | Some task ->
       let p =
         BuildSandbox.exec
-          Env.Build.envspec
-          Env.buildspec
+          Spec.buildenvspec
+          Spec.buildspec
           sandbox
           task.pkg.id
           cmd
@@ -1153,8 +1147,8 @@ let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec e
   let buildspec =
     match depspec with
     | Some depspec ->
-      {Env.buildspec with buildLinked = Some (BuildDev, depspec);}
-    | None -> Env.buildspec
+      {Spec.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | None -> Spec.buildspec
   in
   makeEnvCommand
     envspec
@@ -1167,8 +1161,8 @@ let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec e
 let buildEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Build environment"
-    Env.Build.envspec
-    Env.buildspec
+    Spec.buildenvspec
+    Spec.buildspec
     copts
     asJson
     packagePath
@@ -1177,8 +1171,8 @@ let buildEnv copts asJson packagePath () =
 let commandEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Command environment"
-    Env.Command.envspec
-    Env.buildspec
+    Spec.commandenvspec
+    Spec.buildspec
     copts
     asJson
     packagePath
@@ -1187,8 +1181,8 @@ let commandEnv copts asJson packagePath () =
 let execEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Exec environment"
-    Env.Exec.envspec
-    Env.buildspec
+    Spec.execenvspec
+    Spec.buildspec
     copts
     asJson
     packagePath
@@ -1265,8 +1259,8 @@ let execBy
   } in
   let buildspec =
     match depspec with
-    | Some depspec -> {Env.buildspec with buildLinked = Some (BuildDev, depspec);}
-    | None -> Env.buildspec
+    | Some depspec -> {Spec.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | None -> Spec.buildspec
   in
   makeExecCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
@@ -1284,8 +1278,8 @@ let exec (copts : CommonOptions.t) cmd () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
-    Env.Exec.envspec
-    Env.buildspec
+    Spec.execenvspec
+    Spec.buildspec
     copts
     PkgSpec.Root
     cmd
@@ -1301,14 +1295,14 @@ let runScript copts script args () =
 
     let peekArgs = function
       | ("esy"::"x"::args) ->
-        "x"::args, Env.Exec.envspec
+        "x"::args, Spec.execenvspec
       | ("esy"::"b"::args)
       | ("esy"::"build"::args) ->
-        "build"::args, Env.Build.envspec
+        "build"::args, Spec.buildenvspec
       | ("esy"::args) ->
-        args, Env.Command.envspec
+        args, Spec.commandenvspec
       | args ->
-        args, Env.Command.envspec
+        args, Spec.commandenvspec
     in
 
     match script.Scripts.command with
@@ -1324,7 +1318,7 @@ let runScript copts script args () =
     let open Run.Syntax in
 
     let id = root.BuildSandbox.Task.pkg.id in
-    let%bind env, scope = BuildSandbox.configure envspec Env.buildspec sandbox id in
+    let%bind env, scope = BuildSandbox.configure envspec Spec.buildspec sandbox id in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
 
     let expand v =
@@ -1362,8 +1356,8 @@ let devExec (copts : CommonOptions.t) cmd () =
     makeExecCommand
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
-      Env.Command.envspec
-      Env.buildspec
+      Spec.commandenvspec
+      Spec.buildspec
       copts
       PkgSpec.Root
       cmd
@@ -1377,8 +1371,8 @@ let devShell copts () =
   makeExecCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    Env.Command.envspec
-    Env.buildspec
+    Spec.commandenvspec
+    Spec.buildspec
     copts
     PkgSpec.Root
     (Cmd.v shell)
