@@ -916,7 +916,7 @@ let buildShell (copts : CommonOptions.t) packagePath () =
         task.BuildSandbox.Task.pkg.id
     in
     let p =
-      BuildSandbox.shell
+      BuildSandbox.buildShell
         sandbox
         task.BuildSandbox.Task.pkg.id
     in

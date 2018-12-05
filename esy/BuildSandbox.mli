@@ -105,7 +105,7 @@ val makePlan :
   -> DepSpec.t
   -> Plan.t Run.t
 
-val shell :
+val buildShell :
   t
   -> EsyInstall.PackageId.t
   -> Unix.process_status RunAsync.t

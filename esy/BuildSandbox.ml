@@ -648,7 +648,7 @@ let task sandbox id depspec =
   | None -> errorf "no build found for %a" PackageId.pp id
   | Some task -> return task
 
-let shell sandbox id =
+let buildShell sandbox id =
   let open RunAsync.Syntax in
   let%bind task = task sandbox id DepSpec.(dependencies self) in
   let plan = Task.plan task in
