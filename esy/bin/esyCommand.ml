@@ -369,36 +369,45 @@ end
 
 module Spec = struct
 
+  (* This defines how project is built. *)
   let buildspec = BuildSandbox.{
     BuildSpec.
-    buildAll = Build, DepSpec.(dependencies self);
+    (* build linked packages using "buildDev" command with dependencies in the env *)
     buildLinked = Some (BuildDev, DepSpec.(dependencies self));
+    (* build all other packages using "build" command with dependencies in the env *)
+    buildAll = Build, DepSpec.(dependencies self);
   }
 
+  (* This defines environment for "esy x CMD" invocation. *)
   let execenvspec = BuildSandbox.{
     EnvSpec.
     buildIsInProgress = false;
     includeCurrentEnv = true;
     includeBuildEnv = false;
     includeNpmBin = true;
+    (* Environment contains dependencies, devDependencies and package itself. *)
     depspec = Some DepSpec.(package self + dependencies self + devDependencies self);
   }
 
+  (* This defines environment for "esy CMD" invocation. *)
   let commandenvspec = BuildSandbox.{
     EnvSpec.
     buildIsInProgress = false;
     includeCurrentEnv = true;
     includeBuildEnv = true;
     includeNpmBin = true;
+    (* Environment contains dependencies and devDependencies. *)
     depspec = Some DepSpec.(dependencies self + devDependencies self);
   }
 
+  (* This defines environment for "esy build CMD" invocation. *)
   let buildenvspec = BuildSandbox.{
     EnvSpec.
     buildIsInProgress = true;
     includeCurrentEnv = false;
     includeBuildEnv = true;
     includeNpmBin = false;
+    (* This means that environment is the same as in buildspec. *)
     depspec = None;
   }
 end
