@@ -154,9 +154,11 @@ end
 
 module BuildSpec = struct
   type t = {
-    buildAll : mode * DepSpec.t;
-    buildLinked : (mode * DepSpec.t) option;
+    buildLinked : build option;
+    buildAll : build;
   }
+
+  and build = mode * DepSpec.t
 
   and mode =
     | Build

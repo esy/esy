@@ -38,21 +38,24 @@ module DepSpec : sig
   val pp : t Fmt.t
 end
 
-module EnvSpec : sig
-  type t = {
-    depspec : DepSpec.t option;
-    buildIsInProgress : bool;
-    includeCurrentEnv : bool;
-    includeBuildEnv : bool;
-    includeNpmBin : bool;
-  }
-end
-
+(** This describes how a project should be built. *)
 module BuildSpec : sig
+
   type t = {
-    buildAll : mode * DepSpec.t;
+
     buildLinked : (mode * DepSpec.t) option;
+    (** Optionally define if we need to treat linked packages in a specific way. *)
+
+    buildAll : mode * DepSpec.t;
+    (** Define how we treat all other packages. *)
   }
+
+  and build = mode * DepSpec.t
+  (**
+   * This is a pair of which build command to use ("build" or "buildDev") and
+   * a specification of what to bring into the build env.
+   *)
+
   and mode =
     | Build
     | BuildDev
@@ -62,6 +65,21 @@ module BuildSpec : sig
   val classify : t -> EsyInstall.Solution.Package.t -> mode * DepSpec.t
 end
 
+(** This describes how to construct environment for command invocations. *)
+module EnvSpec : sig
+  type t = {
+    depspec : DepSpec.t option;
+    (** Defines what packages we should bring into the command env. *)
+    buildIsInProgress : bool;
+    (** If we should init the build environment (enable sandboxing, do source relloc). *)
+    includeCurrentEnv : bool;
+    (** If we should include current environment. *)
+    includeBuildEnv : bool;
+    (** If we should include the package's build environment. *)
+    includeNpmBin : bool;
+    (** If we should include the project's npm bin in $PATH. *)
+  }
+end
 
 val configure :
   ?forceImmutable:bool
