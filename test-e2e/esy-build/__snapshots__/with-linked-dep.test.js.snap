@@ -3,7 +3,7 @@
 exports[`Build with a linked dep out of source build macos || linux: build-env dep snapshot 1`] = `
 "# Build environment
 # package:            dep@link:dep
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -44,7 +44,7 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 exports[`Build with a linked dep out of source build macos || linux: build-env snapshot 1`] = `
 "# Build environment
 # package:            with-linked-dep-_build@link:./package.json
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true

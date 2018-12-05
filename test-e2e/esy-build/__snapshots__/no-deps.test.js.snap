@@ -3,7 +3,7 @@
 exports[`'esy build': simple executable with no deps out of source build macos || linux: build-env snapshot 1`] = `
 "# Build environment
 # package:            no-deps@link:./package.json
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true

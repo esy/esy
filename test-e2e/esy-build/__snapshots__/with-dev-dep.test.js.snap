@@ -3,7 +3,7 @@
 exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
 "# Build environment
 # package:            dep@path:dep
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -43,7 +43,7 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
 "# Build environment
 # package:            devDep@path:devDep
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -83,7 +83,7 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 "# Build environment
 # package:            withDevDep@link:./package.json
-# depspec:            deps(self)
+# depspec:            dependencies(self)
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
