@@ -99,10 +99,8 @@ let make
 
 let renderExpression sandbox scope expr =
   let open Run.Syntax in
-  let%bind expr = Scope.renderCommandExpr ~buildIsInProgress:false scope expr in
-  let expr = Scope.SandboxValue.v expr in
-  let expr = Scope.SandboxValue.render sandbox.cfg.buildCfg expr in
-  return expr
+  let%bind expr = Scope.render ~buildIsInProgress:false scope expr in
+  return (Scope.SandboxValue.render sandbox.cfg.buildCfg expr)
 
 module DepSpec = struct
 
@@ -213,7 +211,8 @@ let renderEsyCommands ~env ~buildIsInProgress scope commands =
   in
 
   let renderArg v =
-    let%bind v = Scope.renderCommandExpr ~buildIsInProgress scope v in
+    let%bind v = Scope.render ~buildIsInProgress scope v in
+    let v = Scope.SandboxValue.show v in
     Run.ofStringError (EsyShellExpansion.render ~scope:envScope v)
   in
 

@@ -39,7 +39,13 @@ val pp : t Fmt.t
 
 val env : includeBuildEnv:bool -> buildIsInProgress:bool -> t -> SandboxEnvironment.Bindings.t Run.t
 
-val renderCommandExpr : ?environmentVariableName:string -> buildIsInProgress:bool -> t -> string -> string Run.t
+val render :
+  ?env:SandboxEnvironment.t
+  -> ?environmentVariableName:string
+  -> buildIsInProgress:bool
+  -> t
+  -> string
+  -> SandboxValue.t Run.t
 
 val toOpamEnv : buildIsInProgress:bool -> t -> OpamFilter.env
 

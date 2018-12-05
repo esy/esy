@@ -378,7 +378,14 @@ let exposeUserEnvWith makeBinding name scope =
   in
   {scope with finalEnv}
 
-let renderCommandExpr ?environmentVariableName ~buildIsInProgress scope expr =
+let renderEnv env name =
+  match SandboxEnvironment.find name env with
+  | Some v -> Result.return (EsyCommandExpression.string (SandboxValue.show v))
+  | None -> Result.return (EsyCommandExpression.string ("$" ^ name))
+
+let render ?env ?environmentVariableName ~buildIsInProgress scope expr =
+  let open Run.Syntax in
+  let envVar = Option.map ~f:(fun env -> renderEnv env) env in
   let pathSep =
     match scope.platform with
     | System.Platform.Unknown
@@ -407,7 +414,10 @@ let renderCommandExpr ?environmentVariableName ~buildIsInProgress scope expr =
     | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show scope.platform))
     | None, _ -> None
   in
-  Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon:envSep ~scope:lookup expr)
+  let%bind v = Run.ofStringError (
+    EsyCommandExpression.render ?envVar ~pathSep ~colon:envSep ~scope:lookup expr
+  ) in
+  return (SandboxValue.v v)
 
 let makeEnvBindings ~buildIsInProgress bindings scope =
   let open Run.Syntax in
@@ -419,10 +429,10 @@ let makeEnvBindings ~buildIsInProgress bindings scope =
   let f (name, value) =
     let%bind value =
       Run.contextf
-        (renderCommandExpr ~buildIsInProgress ~environmentVariableName:name scope value)
+        (render ~buildIsInProgress ~environmentVariableName:name scope value)
         "processing exportedEnv $%s" name
     in
-    return (SandboxEnvironment.Bindings.value ~origin name (SandboxValue.v value))
+    return (SandboxEnvironment.Bindings.value ~origin name value)
   in
   Result.List.map ~f bindings
 
