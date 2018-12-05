@@ -33,6 +33,7 @@ val addArg : string -> t -> t
 val addArgs : string list -> t -> t
 
 val getToolAndArgs : t -> string * string list
+val ofToolAndArgs : string * string list -> t
 
 (**
  * Get a tuple of a tool and a list of argv suitable to be passed into

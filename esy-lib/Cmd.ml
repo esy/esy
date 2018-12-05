@@ -34,6 +34,10 @@ let getToolAndArgs (tool, args) =
   let args = List.rev args in
   tool, args
 
+let ofToolAndArgs (tool, args) =
+  let args = List.rev args in
+  tool, args
+
 let getToolAndLine (tool, args) =
   let args = List.rev args in
   (* On Windows, we need the tool to be the empty string to use path resolution *)
