@@ -111,6 +111,20 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       )
   |} environmentString bin bin
 
+let envspec = {
+  BuildSandbox.EnvSpec.
+  buildIsInProgress = false;
+  includeCurrentEnv = true;
+  includeBuildEnv = false;
+  includeNpmBin = true;
+  depspec = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
+}
+let buildspec = {
+  BuildSandbox.BuildSpec.
+  buildAll = Build, BuildSandbox.DepSpec.(dependencies self);
+  buildLinked = Some (Build, BuildSandbox.DepSpec.(dependencies self));
+}
+
 let make
   ~ocamlopt
   ~outputPath
@@ -133,7 +147,7 @@ let make
     BuildSandbox.makePlan
       ~forceImmutable:true
       sandbox
-      BuildSandbox.DepSpec.(dependencies self)
+      buildspec
   ) in
   let tasks = BuildSandbox.Plan.all plan in
 
@@ -196,18 +210,10 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let envspec = {
-      BuildSandbox.EnvSpec.
-      buildIsInProgress = false;
-      includeCurrentEnv = true;
-      includeBuildEnv = false;
-      includeNpmBin = true;
-      depspec = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
-    } in
     let%bind bindings = RunAsync.ofRun (
       BuildSandbox.env
         envspec
-        BuildSandbox.DepSpec.(dependencies self)
+        buildspec
         sandbox
         root.EsyInstall.Solution.Package.id
     ) in

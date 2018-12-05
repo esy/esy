@@ -152,13 +152,35 @@ module EnvSpec = struct
   }
 end
 
+module BuildSpec = struct
+  type t = {
+    buildAll : mode * DepSpec.t;
+    buildLinked : (mode * DepSpec.t) option;
+  }
+
+  and mode =
+    | Build
+    | BuildDev
+
+  let pp_mode fmt = function
+    | Build -> Fmt.string fmt "build"
+    | BuildDev -> Fmt.string fmt "buildDev"
+
+  let classify spec pkg =
+    match pkg.Package.source, spec.buildLinked with
+    | Install _, _ -> spec.buildAll
+    | Link _, None -> spec.buildAll
+    | Link _, Some buildLinked -> buildLinked
+
+end
+
 module Task = struct
   type t = {
     pkg : Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
-    buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list option;
+    build : Scope.SandboxValue.t list list;
+    install : Scope.SandboxValue.t list list option;
   }
 
   let plan ?env (t : t) =
@@ -174,11 +196,7 @@ module Task = struct
       | OutOfSource, _
       | Unsafe, _ -> false
     in
-    let env =
-      match env with
-      | None -> t.env
-      | Some env -> env
-    in
+    let env = Option.orDefault ~default:t.env env in
     {
       EsyBuildPackage.Plan.
       id = Scope.id t.scope;
@@ -186,8 +204,8 @@ module Task = struct
       version = EsyInstall.Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
       buildType = Scope.buildType t.scope;
-      build = t.buildCommands;
-      install = t.installCommands;
+      build = t.build;
+      install = t.install;
       sourcePath = Scope.SandboxPath.toValue (Scope.sourcePath t.scope);
       rootPath = Scope.SandboxPath.toValue rootPath;
       buildPath = Scope.SandboxPath.toValue buildPath;
@@ -290,7 +308,7 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
-let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
+let buildId ~commands ~sandboxEnv ~id ~dist ~build ~dependencies () =
 
   let hash =
 
@@ -314,6 +332,12 @@ let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
       |> Yojson.Safe.to_string
     in
 
+    let commands =
+      commands
+      |> BuildManifest.commands_to_yojson
+      |> Yojson.Safe.to_string
+    in
+
     (* a special tag which is communicated by the installer and specifies
       * the version of distribution of vcs commit sha *)
     let dist =
@@ -328,7 +352,7 @@ let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
       |> Yojson.Safe.to_string
     in
 
-    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::dependencies)
+    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::commands::dependencies)
     |> Digest.string
     |> Digest.to_hex
     |> fun hash -> String.sub hash 0 8
@@ -352,9 +376,9 @@ let buildId ~sandboxEnv ~id ~dist ~build ~dependencies () =
 let makeScope
   ?cache
   ~forceImmutable
+  buildspec
   sandbox
   id
-  depspec
   =
   let open Run.Syntax in
 
@@ -395,6 +419,8 @@ let makeScope
   and visit' seen id build =
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
+
+    let mode, depspec = BuildSpec.classify buildspec pkg in
 
     let matched =
       DepSpec.eval sandbox.solution pkg.Package.id depspec
@@ -451,7 +477,26 @@ let makeScope
 
     let name = PackageId.name id in
     let version = PackageId.version id in
-    let id = buildId ~sandboxEnv:sandbox.sandboxEnv ~id:pkg.id ~dist ~build ~dependencies () in
+
+    let commands =
+      match mode, sourceType, build.BuildManifest.buildDev with
+      | BuildSpec.Build, _, _
+      | BuildSpec.BuildDev, (ImmutableWithTransientDependencies | Immutable), _
+      | BuildSpec.BuildDev, Transient, None -> build.BuildManifest.build
+      | BuildSpec.BuildDev, Transient, Some commands -> BuildManifest.EsyCommands commands
+    in
+
+    let id =
+      buildId
+        ~commands
+        ~sandboxEnv:sandbox.sandboxEnv
+        ~id:pkg.id
+        ~dist
+        ~build
+        ~dependencies
+        ()
+    in
+
     let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg.buildCfg location in
 
     let sandboxEnv =
@@ -544,13 +589,14 @@ end
 let makePlan
   ?(forceImmutable=false)
   sandbox
-  depspec =
+  buildspec
+  =
   let open Run.Syntax in
 
   let cache = Hashtbl.create 100 in
 
   let makeTask pkg =
-    match%bind makeScope ~cache ~forceImmutable sandbox pkg.id depspec with
+    match%bind makeScope ~cache ~forceImmutable buildspec sandbox pkg.id with
     | None -> return None
     | Some (scope, build) ->
 
@@ -564,27 +610,40 @@ let makePlan
       let opamEnv = Scope.toOpamEnv ~buildIsInProgress:true scope in
 
       let%bind buildCommands =
-        Run.context
-          begin match build.BuildManifest.buildCommands with
-          | EsyCommands commands ->
+
+        let mode, _depspec = BuildSpec.classify buildspec pkg in
+        match mode, Scope.sourceType scope, build.BuildManifest.buildDev with
+        | BuildSpec.Build, _, _
+        | BuildDev, (ImmutableWithTransientDependencies | Immutable), _
+        | BuildDev, Transient, None ->
+          Run.context
+            begin match build.BuildManifest.build with
+            | EsyCommands commands ->
+              let%bind commands = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
+              let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
+              let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
+              return (applySubstsCommands @ applyPatchesCommands @ commands)
+            | OpamCommands commands ->
+              let%bind commands = renderOpamCommands opamEnv commands in
+              let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
+              let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
+              return (applySubstsCommands @ applyPatchesCommands @ commands)
+            | NoCommands ->
+              return []
+            end
+            "processing esy.build"
+        | BuildSpec.BuildDev, Transient, Some commands ->
+          Run.context (
             let%bind commands = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
             let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
             let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
             return (applySubstsCommands @ applyPatchesCommands @ commands)
-          | OpamCommands commands ->
-            let%bind commands = renderOpamCommands opamEnv commands in
-            let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
-            let%bind applyPatchesCommands = renderOpamPatchesToCommands opamEnv build.patches in
-            return (applySubstsCommands @ applyPatchesCommands @ commands)
-          | NoCommands ->
-            return []
-          end
-          "processing esy.build"
+          ) "processing esy.buildDev"
       in
 
       let%bind installCommands =
         Run.context
-          begin match build.BuildManifest.installCommands with
+          begin match build.BuildManifest.install with
           | EsyCommands commands ->
             let%bind cmds = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
             return (Some cmds)
@@ -601,9 +660,8 @@ let makePlan
         Task.
         pkg;
         scope;
-
-        buildCommands;
-        installCommands;
+        build = buildCommands;
+        install = installCommands;
         env;
       } in
 
@@ -641,55 +699,57 @@ let makePlan
 
   return tasks
 
-let task sandbox id depspec =
+let task buildspec sandbox id =
   let open RunAsync.Syntax in
-  let%bind tasks = RunAsync.ofRun (makePlan sandbox depspec) in
+  let%bind tasks = RunAsync.ofRun (makePlan sandbox buildspec) in
   match Plan.get tasks id with
   | None -> errorf "no build found for %a" PackageId.pp id
   | Some task -> return task
 
-let buildShell sandbox id =
+let buildShell buildspec sandbox id =
   let open RunAsync.Syntax in
-  let%bind task = task sandbox id DepSpec.(dependencies self) in
+  let%bind task = task buildspec sandbox id in
   let plan = Task.plan task in
   EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
 
 let makeEnv
   ?cache
   ~forceImmutable
-  ~buildIsInProgress
-  ~includeCurrentEnv
-  ~includeBuildEnv
-  ~includeNpmBin
+  envspec
+  buildspec
   sandbox
   scope
-  depspec
-  envspec
   =
   let open Run.Syntax in
-  let id = (Scope.pkg scope).id in
-  let matched = DepSpec.eval sandbox.solution id envspec in
+  let pkg = Scope.pkg scope in
+  let envdepspec =
+    let _mode, depspec = BuildSpec.classify buildspec pkg in
+    Option.orDefault
+      ~default:depspec
+      envspec.EnvSpec.depspec
+  in
+  let matched = DepSpec.eval sandbox.solution pkg.id envdepspec in
   Logs.debug (fun m ->
     m "envspec %a at %a matches %a"
       DepSpec.pp
-      envspec
+      envdepspec
       PackageId.pp
-      id
+      pkg.id
       Fmt.(list ~sep:(unit ", ") PackageId.pp)
       (PackageId.Set.elements matched)
   );
 
   let makeScope id =
-    match%bind makeScope ?cache ~forceImmutable sandbox id depspec with
+    match%bind makeScope ?cache ~forceImmutable buildspec sandbox id with
     | None -> return None
     | Some (scope, _build) -> return (Some scope)
   in
 
   let dependencies =
-    let dependencies = PackageId.Set.(elements (remove id matched)) in
+    let dependencies = PackageId.Set.(elements (remove pkg.id matched)) in
     Solution.allDependenciesBFS
       ~dependencies
-      id
+      pkg.id
       sandbox.solution
   in
 
@@ -706,21 +766,24 @@ let makeEnv
     Run.List.foldLeft
       ~f:collect
       ~init:scope
-      (dependencies @ [true, Solution.getExn id sandbox.solution])
+      (dependencies @ [true, Solution.getExn pkg.id sandbox.solution])
   in
 
   let%bind env =
     let scope =
-      if includeCurrentEnv
+      if envspec.EnvSpec.includeCurrentEnv
       then
         scope
         |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
       else scope
     in
-    Scope.env ~includeBuildEnv ~buildIsInProgress scope
+    Scope.env
+      ~includeBuildEnv:envspec.includeBuildEnv
+      ~buildIsInProgress:envspec.buildIsInProgress
+      scope
   in
   let env =
-    if includeNpmBin
+    if envspec.includeNpmBin
     then
       let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
       Scope.SandboxEnvironment.Bindings.prefixValue
@@ -730,7 +793,7 @@ let makeEnv
     else env
   in
   let env =
-    if includeCurrentEnv
+    if envspec.includeCurrentEnv
     then Scope.SandboxEnvironment.Bindings.current @ env
     else env
   in
@@ -739,16 +802,15 @@ let makeEnv
 let configure
   ?(forceImmutable=false)
   envspec
-  depspec
+  buildspec
   sandbox
   id
   =
   let open Run.Syntax in
-  let envdepspec = Option.orDefault ~default:depspec envspec.EnvSpec.depspec in
   let cache = Hashtbl.create 100 in
 
   let%bind scope =
-    match%bind makeScope ~cache ~forceImmutable sandbox id depspec  with
+    match%bind makeScope ~cache ~forceImmutable buildspec sandbox id with
     | None -> errorf "no build found for %a" PackageId.pp id
     | Some (scope, _) -> return scope
   in
@@ -756,42 +818,33 @@ let configure
   makeEnv
     ~cache
     ~forceImmutable
-    ~buildIsInProgress:envspec.buildIsInProgress
-    ~includeCurrentEnv:envspec.includeCurrentEnv
-    ~includeBuildEnv:envspec.includeBuildEnv
-    ~includeNpmBin:envspec.includeNpmBin
+    envspec
+    buildspec
     sandbox
     scope
-    depspec
-    envdepspec
 
-let env ?forceImmutable envspec depspec sandbox id =
+let env ?forceImmutable envspec buildspec sandbox id =
   let open Run.Syntax in
-  let%map env, _scope = configure ?forceImmutable envspec depspec sandbox id in
+  let%map env, _scope = configure ?forceImmutable envspec buildspec sandbox id in
   env
 
 let exec
   envspec
-  depspec
+  buildspec
   sandbox
   id
   cmd =
   let open RunAsync.Syntax in
-  let envdepspec = Option.orDefault ~default:depspec envspec.EnvSpec.depspec in
-  let%bind task = task sandbox id depspec in
+  let%bind task = task buildspec sandbox id in
   let%bind env, scope = RunAsync.ofRun (
     let open Run.Syntax in
     let%bind env, scope =
       makeEnv
         ~forceImmutable:false
-        ~buildIsInProgress:envspec.buildIsInProgress
-        ~includeCurrentEnv:envspec.includeCurrentEnv
-        ~includeBuildEnv:envspec.includeBuildEnv
-        ~includeNpmBin:envspec.includeNpmBin
+        envspec
+        buildspec
         sandbox
         task.Task.scope
-        depspec
-        envdepspec
     in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
     return (env, scope)
@@ -801,7 +854,7 @@ let exec
     let open Run.Syntax in
 
     let expand v =
-      let%bind v = Scope.render ~env ~buildIsInProgress:envspec.buildIsInProgress scope v in
+      let%bind v = Scope.render ~env ~buildIsInProgress:envspec.EnvSpec.buildIsInProgress scope v in
       return (Scope.SandboxValue.render sandbox.cfg.buildCfg v)
     in
     let tool, args = Cmd.getToolAndArgs cmd in
@@ -810,7 +863,7 @@ let exec
     return (Cmd.ofToolAndArgs (tool, args))
   ) in
 
-  if envspec.buildIsInProgress
+  if envspec.EnvSpec.buildIsInProgress
   then
     let plan = Task.plan ~env task in
     EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd

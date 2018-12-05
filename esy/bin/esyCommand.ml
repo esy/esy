@@ -8,6 +8,18 @@ module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 module PkgSpec = EsyInstall.PkgSpec
 
+let planModeConv =
+  let open Cmdliner in
+  let parse v =
+    match v with
+    | "build" -> Ok BuildSandbox.BuildSpec.Build
+    | "buildDev" -> Ok BuildSandbox.BuildSpec.BuildDev
+    | unknown ->
+      let msg = "unknown build mode '" ^ unknown ^ "', only build or buildDev is allowed" in
+      Error (`Msg msg)
+  in
+  Arg.conv ~docv:"MODE" (parse, BuildSandbox.BuildSpec.pp_mode)
+
 let pkgspecConv =
   let open Cmdliner in
   let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (PkgSpec.parse v) in
@@ -357,8 +369,13 @@ end
 
 module Env = struct
 
+  let buildspec = BuildSandbox.{
+    BuildSpec.
+    buildAll = Build, DepSpec.(dependencies self);
+    buildLinked = Some (BuildDev, DepSpec.(dependencies self));
+  }
+
   module Exec = struct
-    let depspec = BuildSandbox.DepSpec.(dependencies self)
     let envspec = BuildSandbox.{
       EnvSpec.
       buildIsInProgress = false;
@@ -370,7 +387,6 @@ module Env = struct
   end
 
   module Command = struct
-    let depspec = BuildSandbox.DepSpec.(dependencies self)
     let envspec = BuildSandbox.{
       EnvSpec.
       buildIsInProgress = false;
@@ -382,8 +398,6 @@ module Env = struct
   end
 
   module Build = struct
-
-    let depspec = BuildSandbox.DepSpec.(dependencies self)
     let envspec = BuildSandbox.{
       EnvSpec.
       buildIsInProgress = true;
@@ -419,7 +433,11 @@ module SandboxInfo = struct
     | Some sandbox ->
       RunAsync.ofRun (
         let open Run.Syntax in
-        let%bind plan = BuildSandbox.makePlan sandbox BuildSandbox.DepSpec.(dependencies self) in
+        let%bind plan =
+          BuildSandbox.makePlan
+            sandbox
+            Env.buildspec
+        in
         let pkg = EsyInstall.Solution.root solution in
         let root =
           match BuildSandbox.Plan.get plan pkg.Solution.Package.id with
@@ -488,7 +506,7 @@ module SandboxInfo = struct
               let header = "# Command environment" in
               let%bind commandEnv = BuildSandbox.env
                 Env.Command.envspec
-                Env.Command.depspec
+                Env.buildspec
                 sandbox
                 root.Solution.Package.id
               in
@@ -780,26 +798,21 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let withTask info ref f =
+let withPackage solution pkgspec f =
   let open RunAsync.Syntax in
-  let%bind root, plan = SandboxInfo.plan info in
-  match ref with
-  | PkgSpec.Root -> f root
-  | PkgSpec.ByName name as ref ->
-    begin match BuildSandbox.Plan.getByName plan name with
+  let runWith v =
+    match v with
     | Some task -> f task
-    | None -> errorf "no build found for package name %a" PkgSpec.pp ref
-    end
-  | PkgSpec.ByNameVersion (name, version) as ref ->
-    begin match BuildSandbox.Plan.getByNameVersion plan name version with
-    | Some task -> f task
-    | None -> errorf "no build found for %a" PkgSpec.pp ref
-    end
+    | None -> errorf "no package found: %a" PkgSpec.pp pkgspec
+  in
+  match pkgspec with
+  | PkgSpec.Root -> f (Solution.root solution)
+  | PkgSpec.ByName name ->
+    runWith (Solution.findByName name solution)
+  | PkgSpec.ByNameVersion (name, version) ->
+    runWith (Solution.findByNameVersion name version solution)
   | PkgSpec.ById id ->
-    begin match BuildSandbox.Plan.get plan id with
-    | None -> errorf "no build found for %a" EsyInstall.PackageId.pp id
-    | Some task -> f task
-    end
+    runWith (Solution.get id solution)
 
 module Status = struct
 
@@ -886,39 +899,60 @@ let status copts _asJson () =
     (Status.to_yojson status);
   return ()
 
-let buildPlan copts id () =
+let buildPlan copts mode pkgspec () =
+  let open RunAsync.Syntax in
+
+
+  let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
+
+  let buildspec = {
+    Env.buildspec with
+    buildLinked =
+      let defaultMode, depspec = Env.buildspec.buildAll in
+      let mode = Option.orDefault ~default:defaultMode mode in
+      Some (mode, depspec)
+  } in
+
+  let f (pkg : Solution.Package.t) =
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind plan = RunAsync.ofRun (BuildSandbox.makePlan sandbox buildspec) in
+    match BuildSandbox.Plan.get plan pkg.id with
+    | Some task ->
+      let json = BuildSandbox.Task.to_yojson task in
+      let data = Yojson.Safe.pretty_to_string json in
+      print_endline data;
+      return ()
+    | None -> errorf "not build defined for %a" PkgSpec.pp pkgspec
+  in
+  withPackage solution pkgspec f
+
+let buildShell (copts : CommonOptions.t) pkgspec () =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
 
-  let f task =
-    let json = BuildSandbox.Task.to_yojson task in
-    let data = Yojson.Safe.pretty_to_string json in
-    print_endline data;
-    return ()
-  in
-  withTask info id f
-
-let buildShell (copts : CommonOptions.t) packagePath () =
-  let open RunAsync.Syntax in
-
-  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
-
-  let f task =
+  let f (pkg : Solution.Package.t) =
     let%bind sandbox = SandboxInfo.sandbox info in
-    let%bind _, plan = SandboxInfo.plan info in
+    let%bind plan = RunAsync.ofRun (
+      BuildSandbox.makePlan
+        sandbox
+        Env.buildspec
+    ) in
     let%bind () =
       BuildSandbox.buildDependencies
         ~buildLinked:true
         ~concurrency:EsyRuntime.concurrency
         sandbox
         plan
-        task.BuildSandbox.Task.pkg.id
+        pkg.id
     in
     let p =
       BuildSandbox.buildShell
+        Env.buildspec
         sandbox
-        task.BuildSandbox.Task.pkg.id
+        pkg.id
     in
     match%bind p with
     | Unix.WEXITED 0 -> return ()
@@ -926,13 +960,15 @@ let buildShell (copts : CommonOptions.t) packagePath () =
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  withTask info packagePath f
+  withPackage solution pkgspec f
 
-let buildPackage (copts : CommonOptions.t) packagePath () =
+let buildPackage (copts : CommonOptions.t) pkg () =
   let open RunAsync.Syntax in
-  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
 
-  let f task =
+  let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
+
+  let f (pkg : Solution.Package.t) =
     let%bind sandbox = SandboxInfo.sandbox info in
     let%bind _, plan = SandboxInfo.plan info in
     let%bind () =
@@ -941,15 +977,57 @@ let buildPackage (copts : CommonOptions.t) packagePath () =
         ~buildLinked:true
         sandbox
         plan
-        task.BuildSandbox.Task.pkg.id
+        pkg.id
     in
     BuildSandbox.build
       ~force:true
       sandbox
       plan
-      task.BuildSandbox.Task.pkg.id
+      pkg.id
   in
-  withTask info packagePath f
+  withPackage solution pkg f
+
+let buildBy (copts : CommonOptions.t) release depspec pkg () =
+  let open RunAsync.Syntax in
+  let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
+  let mode =
+    if release
+    then BuildSandbox.BuildSpec.Build
+    else BuildSandbox.BuildSpec.BuildDev
+  in
+  let buildspec =
+    let depspec =
+      match depspec with
+      | Some depspec -> depspec
+      | None -> let _mode, depspec = Env.buildspec.buildAll in depspec
+    in
+    {Env.buildspec with buildLinked = Some (mode, depspec)}
+  in
+
+  let f (pkg : Solution.Package.t) =
+    Logs_lwt.app (fun m -> m "mode: %a" BuildSandbox.BuildSpec.pp_mode mode);%lwt
+    let%bind sandbox = SandboxInfo.sandbox info in
+    let%bind plan = RunAsync.ofRun (
+      BuildSandbox.makePlan
+        sandbox
+        buildspec
+    ) in
+    let%bind () =
+      BuildSandbox.buildDependencies
+        ~concurrency:EsyRuntime.concurrency
+        ~buildLinked:true
+        sandbox
+        plan
+        pkg.id
+    in
+    BuildSandbox.build
+      ~force:true
+      sandbox
+      plan
+      pkg.id
+  in
+  withPackage solution pkg f
 
 let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
@@ -980,7 +1058,7 @@ let build ?(buildOnly=true) (copts : CommonOptions.t) cmd () =
       let p =
         BuildSandbox.exec
           Env.Build.envspec
-          Env.Build.depspec
+          Env.buildspec
           sandbox
           task.pkg.id
           cmd
@@ -1008,21 +1086,22 @@ let buildDependencies (copts : CommonOptions.t) all () =
 let makeEnvCommand
   ?(name="Environment")
   envspec
-  depspec
+  buildspec
   copts
   asJson
-  packagePath
+  pkg
   ()
   =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
+  let%bind solution = SandboxInfo.solution info in
   let%bind sandbox = SandboxInfo.sandbox info in
 
-  let f (task : BuildSandbox.Task.t) =
+  let f (pkg : Solution.Package.t) =
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = BuildSandbox.env envspec depspec sandbox task.BuildSandbox.Task.pkg.id in
+      let%bind env = BuildSandbox.env envspec buildspec sandbox pkg.id in
       let env = Scope.SandboxEnvironment.Bindings.render copts.CommonOptions.cfg.buildCfg env in
       if asJson
       then
@@ -1032,6 +1111,7 @@ let makeEnvCommand
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
+        let _mode, depspec = BuildSandbox.BuildSpec.classify buildspec pkg in
         let header =
           Format.asprintf {|# %s
 # package:            %a
@@ -1043,7 +1123,7 @@ let makeEnvCommand
 # includeNpmBin:      %b
 |}
             name
-            Solution.Package.pp task.pkg
+            Solution.Package.pp pkg
             BuildSandbox.DepSpec.pp depspec
             (Fmt.option BuildSandbox.DepSpec.pp) envspec.BuildSandbox.EnvSpec.depspec
             envspec.buildIsInProgress
@@ -1059,9 +1139,9 @@ let makeEnvCommand
     let%lwt () = Lwt_io.print source in
     return ()
   in
-  withTask info packagePath f
+  withPackage solution pkg f
 
-let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin envspec pkgspec depspec () =
+let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec envspec pkgspec () =
   let envspec = {
     BuildSandbox.EnvSpec.
     buildIsInProgress = false;
@@ -1070,9 +1150,15 @@ let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin envspec p
     includeNpmBin;
     depspec = envspec;
   } in
+  let buildspec =
+    match depspec with
+    | Some depspec ->
+      {Env.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | None -> Env.buildspec
+  in
   makeEnvCommand
     envspec
-    depspec
+    buildspec
     copts
     asJson
     pkgspec
@@ -1082,7 +1168,7 @@ let buildEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Build environment"
     Env.Build.envspec
-    Env.Build.depspec
+    Env.buildspec
     copts
     asJson
     packagePath
@@ -1092,7 +1178,7 @@ let commandEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Command environment"
     Env.Command.envspec
-    Env.Command.depspec
+    Env.buildspec
     copts
     asJson
     packagePath
@@ -1102,7 +1188,7 @@ let execEnv copts asJson packagePath () =
   makeEnvCommand
     ~name:"Exec environment"
     Env.Exec.envspec
-    Env.Exec.depspec
+    Env.buildspec
     copts
     asJson
     packagePath
@@ -1112,18 +1198,24 @@ let makeExecCommand
     ~checkIfDependenciesAreBuilt
     ~buildLinked
     envspec
-    depspec
+    buildspec
     copts
-    packagePath
+    pkg
     cmd
     ()
   =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
-  let%bind _root, plan = SandboxInfo.plan info in
-  let f task =
-    let%bind sandbox = SandboxInfo.sandbox info in
+  let%bind solution = SandboxInfo.solution info in
+  let%bind sandbox = SandboxInfo.sandbox info in
+
+  let f (pkg : Solution.Package.t) =
+    let%bind plan = RunAsync.ofRun (
+      BuildSandbox.makePlan
+        sandbox
+        buildspec
+    ) in
 
     let%bind () =
       if checkIfDependenciesAreBuilt
@@ -1133,16 +1225,16 @@ let makeExecCommand
           ~concurrency:EsyRuntime.concurrency
           sandbox
           plan
-          task.BuildSandbox.Task.pkg.id
+          pkg.id
       else return ()
     in
 
     let%bind status =
       BuildSandbox.exec
         envspec
-        depspec
+        buildspec
         sandbox
-        task.BuildSandbox.Task.pkg.id
+        pkg.id
         cmd
     in
     match status with
@@ -1150,7 +1242,7 @@ let makeExecCommand
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  withTask info packagePath f
+  withPackage solution pkg f
 
 let execBy
   copts
@@ -1158,9 +1250,9 @@ let execBy
   includeBuildEnv
   includeCurrentEnv
   includeNpmBin
+  depspec
   envspec
   pkgspec
-  depspec
   cmd
   () =
   let envspec = {
@@ -1171,11 +1263,16 @@ let execBy
     includeNpmBin;
     depspec = envspec;
   } in
+  let buildspec =
+    match depspec with
+    | Some depspec -> {Env.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | None -> Env.buildspec
+  in
   makeExecCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
     envspec
-    depspec
+    buildspec
     copts
     pkgspec
     cmd
@@ -1188,7 +1285,7 @@ let exec (copts : CommonOptions.t) cmd () =
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
     Env.Exec.envspec
-    Env.Exec.depspec
+    Env.buildspec
     copts
     PkgSpec.Root
     cmd
@@ -1200,18 +1297,18 @@ let runScript copts script args () =
   let%bind sandbox = SandboxInfo.sandbox info in
   let%bind root, _plan = SandboxInfo.plan info in
 
-  let scriptArgs, (envspec, depspec) =
+  let scriptArgs, envspec =
 
     let peekArgs = function
       | ("esy"::"x"::args) ->
-        "x"::args, Env.Exec.(envspec, depspec)
+        "x"::args, Env.Exec.envspec
       | ("esy"::"b"::args)
       | ("esy"::"build"::args) ->
-        "build"::args, Env.Build.(envspec, depspec)
+        "build"::args, Env.Build.envspec
       | ("esy"::args) ->
-        args, Env.Command.(envspec, depspec)
+        args, Env.Command.envspec
       | args ->
-        args, Env.Command.(envspec, depspec)
+        args, Env.Command.envspec
     in
 
     match script.Scripts.command with
@@ -1227,7 +1324,7 @@ let runScript copts script args () =
     let open Run.Syntax in
 
     let id = root.BuildSandbox.Task.pkg.id in
-    let%bind env, scope = BuildSandbox.configure envspec depspec sandbox id in
+    let%bind env, scope = BuildSandbox.configure envspec Env.buildspec sandbox id in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
 
     let expand v =
@@ -1266,7 +1363,7 @@ let devExec (copts : CommonOptions.t) cmd () =
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
       Env.Command.envspec
-      Env.Command.depspec
+      Env.buildspec
       copts
       PkgSpec.Root
       cmd
@@ -1281,7 +1378,7 @@ let devShell copts () =
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
     Env.Command.envspec
-    Env.Command.depspec
+    Env.buildspec
     copts
     PkgSpec.Root
     (Cmd.v shell)
@@ -1925,6 +2022,30 @@ let makeCommands ~sandbox () =
     buildCommand;
 
     makeCommand
+      ~name:"build-by"
+      ~doc:"Build by DEPSPEC"
+      Term.(
+        const buildBy
+        $ commonOpts
+        $ Arg.(
+            value
+            & flag
+            & info ["release"] ~doc:"If we should build linked packages in release mode"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["linked-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package to run build from" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies"
       Term.(
@@ -1941,6 +2062,11 @@ let makeCommands ~sandbox () =
       Term.(
         const buildPlan
         $ commonOpts
+        $ Arg.(
+            value
+            & opt (some planModeConv) None
+            & info ["mode"] ~doc:"How to build: build or buildDev" ~docv:"BUILD"
+          )
         $ Arg.(
             value
             & pos 0 pkgspecConv Root
@@ -2001,17 +2127,17 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
+            & info ["linked-depspec"] ~doc:"Build env for linked packages" ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
             & info ["envspec"] ~doc:"What to add to the env"
           )
         $ Arg.(
             required
-            & pos 1 (some pkgspecConv) None
+            & pos 0 (some pkgspecConv) None
             & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
-          )
-        $ Arg.(
-            required
-            & pos 0 (some depspecConv) None
-            & info [] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
         $ Cli.setupLogTerm
       );
@@ -2030,6 +2156,11 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
+            & info ["linked-depspec"] ~doc:"Build env for linked packages" ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
             & info ["envspec"] ~doc:"What to add to the env"
           )
         $ Arg.(
@@ -2037,15 +2168,10 @@ let makeCommands ~sandbox () =
             & pos 0 (some pkgspecConv) None
             & info [] ~doc:"Package to execute command at" ~docv:"PACKAGE"
           )
-        $ Arg.(
-            required
-            & pos 1 (some depspecConv) None
-            & info [] ~doc:"What to add to the env" ~docv:"DEPSPEC"
-          )
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 1)
+            (Cmdliner.Arg.pos_right 0)
         $ Cli.setupLogTerm
       );
 

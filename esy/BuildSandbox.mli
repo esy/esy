@@ -48,10 +48,25 @@ module EnvSpec : sig
   }
 end
 
+module BuildSpec : sig
+  type t = {
+    buildAll : mode * DepSpec.t;
+    buildLinked : (mode * DepSpec.t) option;
+  }
+  and mode =
+    | Build
+    | BuildDev
+
+  val pp_mode : mode Fmt.t
+
+  val classify : t -> EsyInstall.Solution.Package.t -> mode * DepSpec.t
+end
+
+
 val configure :
   ?forceImmutable:bool
   -> EnvSpec.t
-  -> DepSpec.t
+  -> BuildSpec.t
   -> t
   -> EsyInstall.PackageId.t
   -> (Scope.SandboxEnvironment.Bindings.t * Scope.t) Run.t
@@ -59,14 +74,14 @@ val configure :
 val env :
   ?forceImmutable:bool
   -> EnvSpec.t
-  -> DepSpec.t
+  -> BuildSpec.t
   -> t
   -> EsyInstall.PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exec :
   EnvSpec.t
-  -> DepSpec.t
+  -> BuildSpec.t
   -> t
   -> EsyInstall.PackageId.t
   -> Cmd.t
@@ -77,8 +92,8 @@ module Task : sig
     pkg : EsyInstall.Solution.Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
-    buildCommands : Scope.SandboxValue.t list list;
-    installCommands : Scope.SandboxValue.t list list option;
+    build : Scope.SandboxValue.t list list;
+    install : Scope.SandboxValue.t list list option;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -102,11 +117,12 @@ end
 val makePlan :
   ?forceImmutable : bool
   -> t
-  -> DepSpec.t
+  -> BuildSpec.t
   -> Plan.t Run.t
 
 val buildShell :
-  t
+  BuildSpec.t
+  -> t
   -> EsyInstall.PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
