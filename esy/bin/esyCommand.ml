@@ -825,7 +825,7 @@ let status copts _asJson () =
         let checkTask built task =
           if built
           then
-            match task.BuildSandbox.Task.sourceType with
+            match Scope.sourceType task.BuildSandbox.Task.scope with
             | Immutable
             | ImmutableWithTransientDependencies -> BuildSandbox.isBuilt sandbox task
             | Transient -> return built
@@ -1304,15 +1304,15 @@ let makeLsCommand ~computeTermNode ~includeTransitive (info: SandboxInfo.t) =
 
 let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let open RunAsync.Syntax in
-  let version = Chalk.grey ("@" ^ Version.show task.version) in
+  let version = Chalk.grey ("@" ^ Version.show (Scope.version task.scope)) in
   let status =
-    match task.sourceType, built with
+    match Scope.sourceType task.scope, built with
     | BuildManifest.SourceType.Immutable, true ->
       Chalk.green "[built]"
     | _, _ ->
       Chalk.blue "[build pending]"
   in
-  let line = Printf.sprintf "%s%s %s" task.name version status in
+  let line = Printf.sprintf "%s%s %s" (Scope.name task.scope) version status in
   return line
 
 let lsBuilds (copts : CommonOptions.t) includeTransitive () =
@@ -1688,7 +1688,7 @@ let importDependencies (copts : CommonOptions.t) fromPath () =
       if%bind BuildSandbox.isBuilt sandbox task
       then return ()
       else (
-        let id = task.BuildSandbox.Task.id in
+        let id = (Scope.id task.scope) in
         let pathDir = Path.(fromPath / id) in
         let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
         if%bind Fs.exists pathDir

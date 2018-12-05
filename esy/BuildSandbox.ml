@@ -146,19 +146,11 @@ end
 
 module Task = struct
   type t = {
-    id : string;
     pkg : Package.t;
-    name : string;
-    version : Version.t;
+    scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
     installCommands : Scope.SandboxValue.t list list option;
-    buildType : BuildManifest.BuildType.t;
-    sourceType : BuildManifest.SourceType.t;
-    sourcePath : Scope.SandboxPath.t;
-    scope : Scope.t;
-    platform : System.Platform.t;
-    manifest : BuildManifest.t;
   }
 
   let plan ?env (t : t) =
@@ -167,7 +159,7 @@ module Task = struct
     let stagePath = Scope.stagePath t.scope in
     let installPath = Scope.installPath t.scope in
     let jbuilderHackEnabled =
-      match t.buildType, t.sourceType with
+      match Scope.buildType t.scope, Scope.sourceType t.scope with
       | JbuilderLike, Transient -> true
       | JbuilderLike, _ -> false
       | InSource, _
@@ -181,14 +173,14 @@ module Task = struct
     in
     {
       EsyBuildPackage.Plan.
-      id = t.id;
-      name = t.name;
-      version = EsyInstall.Version.show t.version;
-      sourceType = t.sourceType;
-      buildType = t.buildType;
+      id = Scope.id t.scope;
+      name = Scope.name t.scope;
+      version = EsyInstall.Version.show (Scope.version t.scope);
+      sourceType = Scope.sourceType t.scope;
+      buildType = Scope.buildType t.scope;
       build = t.buildCommands;
       install = t.installCommands;
-      sourcePath = Scope.SandboxPath.toValue t.sourcePath;
+      sourcePath = Scope.SandboxPath.toValue (Scope.sourcePath t.scope);
       rootPath = Scope.SandboxPath.toValue rootPath;
       buildPath = Scope.SandboxPath.toValue buildPath;
       stagePath = Scope.SandboxPath.toValue stagePath;
@@ -564,7 +556,7 @@ let makePlan
 
       let%bind buildCommands =
         Run.context
-          begin match build.buildCommands with
+          begin match build.BuildManifest.buildCommands with
           | EsyCommands commands ->
             let%bind commands = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
             let%bind applySubstsCommands = renderOpamSubstsAsCommands opamEnv build.substs in
@@ -583,7 +575,7 @@ let makePlan
 
       let%bind installCommands =
         Run.context
-          begin match build.installCommands with
+          begin match build.BuildManifest.installCommands with
           | EsyCommands commands ->
             let%bind cmds = renderEsyCommands ~buildIsInProgress:true ~env scope commands in
             return (Some cmds)
@@ -598,19 +590,12 @@ let makePlan
 
       let task = {
         Task.
-        id = Scope.id scope;
         pkg;
-        name = pkg.name;
-        version = pkg.version;
+        scope;
+
         buildCommands;
         installCommands;
         env;
-        buildType = build.BuildManifest.buildType;
-        sourceType = Scope.sourceType scope;
-        sourcePath = Scope.sourcePath scope;
-        platform = sandbox.platform;
-        scope;
-        manifest = build;
       } in
 
       return (Some task)
@@ -968,7 +953,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
     let infoPath = Task.buildInfoPath sandbox.cfg task in
     let sourcePath = Task.sourcePath sandbox.cfg task in
     let%bind isBuilt = isBuilt sandbox task in
-    match task.Task.sourceType with
+    match Scope.sourceType task.scope with
     | SourceType.Transient ->
       let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
       begin match isBuilt, Changes.(changesInDependencies + changesInSources) with

@@ -64,19 +64,11 @@ val exec :
 
 module Task : sig
   type t = {
-    id : string;
     pkg : EsyInstall.Solution.Package.t;
-    name : string;
-    version : EsyInstall.Version.t;
+    scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
     buildCommands : Scope.SandboxValue.t list list;
     installCommands : Scope.SandboxValue.t list list option;
-    buildType : BuildManifest.BuildType.t;
-    sourceType : BuildManifest.SourceType.t;
-    sourcePath : Scope.SandboxPath.t;
-    scope : Scope.t;
-    platform : System.Platform.t;
-    manifest : BuildManifest.t;
   }
 
   val installPath : Config.t -> t -> Path.t

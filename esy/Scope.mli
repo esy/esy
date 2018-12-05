@@ -25,6 +25,7 @@ val id : t -> string
 val name : t -> string
 val version : t -> EsyInstall.Version.t
 val sourceType : t -> BuildManifest.SourceType.t
+val buildType : t -> BuildManifest.BuildType.t
 val storePath : t -> SandboxPath.t
 val rootPath : t -> SandboxPath.t
 val sourcePath : t -> SandboxPath.t

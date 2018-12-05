@@ -22,6 +22,7 @@ module PackageScope : sig
   val name : t -> string
   val version : t -> Version.t
   val sourceType : t -> BuildManifest.SourceType.t
+  val buildType : t -> BuildManifest.BuildType.t
 
   val storePath : t -> SandboxPath.t
   val rootPath : t -> SandboxPath.t
@@ -122,6 +123,7 @@ end = struct
     | None -> scope.version
 
   let sourceType scope = scope.sourceType
+  let buildType scope = scope.build.buildType
 
   let sourcePath scope =
     scope.sourcePath
@@ -352,6 +354,7 @@ let id scope = PackageScope.id scope.self
 let name scope = PackageScope.name scope.self
 let version scope = PackageScope.version scope.self
 let sourceType scope = PackageScope.sourceType scope.self
+let buildType scope = PackageScope.buildType scope.self
 
 let storePath scope = PackageScope.storePath scope.self
 let rootPath scope = PackageScope.rootPath scope.self

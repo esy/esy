@@ -177,9 +177,10 @@ let make
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let f (task : BuildSandbox.Task.t) =
-      if shouldDeleteFromBinaryRelease task.id
+      let id = Scope.id task.scope in
+      if shouldDeleteFromBinaryRelease id
       then
-        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" task.id) in
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" id) in
         return ()
       else
         let buildPath = BuildSandbox.Task.installPath cfg task in
