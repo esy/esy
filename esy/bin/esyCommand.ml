@@ -1194,35 +1194,83 @@ let exec (copts : CommonOptions.t) cmd () =
     cmd
     ()
 
-let devExec (copts : CommonOptions.t) cmd () =
+let runScript copts script args () =
   let open RunAsync.Syntax in
   let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
   let%bind sandbox = SandboxInfo.sandbox info in
   let%bind root, _plan = SandboxInfo.plan info in
+
+  let scriptArgs, (envspec, depspec) =
+
+    let peekArgs = function
+      | ("esy"::"x"::args) ->
+        "x"::args, Env.Exec.(envspec, depspec)
+      | ("esy"::"b"::args)
+      | ("esy"::"build"::args) ->
+        "build"::args, Env.Build.(envspec, depspec)
+      | ("esy"::args) ->
+        args, Env.Command.(envspec, depspec)
+      | args ->
+        args, Env.Command.(envspec, depspec)
+    in
+
+    match script.Scripts.command with
+    | BuildManifest.Command.Parsed args ->
+      let args, spec = peekArgs args in
+      BuildManifest.Command.Parsed args, spec
+    | BuildManifest.Command.Unparsed line ->
+      let args, spec = peekArgs (Astring.String.cuts ~sep:" " line) in
+      BuildManifest.Command.Unparsed (String.concat " " args), spec
+  in
+
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
-    let tool, args = Cmd.getToolAndArgs cmd in
-    let script = Scripts.find tool info.scripts in
-    match script with
-    | None -> return cmd
-    | Some script ->
-      let%bind cmd = Scripts.render sandbox root.BuildSandbox.Task.scope script in
-      let cmd = Cmd.addArgs args cmd in
-      let cmd = Cmd.mapTool
-        (function "esy" -> Path.show EsyRuntime.currentExecutable | tool -> tool)
-        cmd
-      in
-      return cmd
+
+    let id = root.BuildSandbox.Task.pkg.id in
+    let%bind env, scope = BuildSandbox.configure envspec depspec sandbox id in
+    let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
+
+    let expand v =
+      let%bind v = Scope.render ~env ~buildIsInProgress:envspec.buildIsInProgress scope v in
+      return (Scope.SandboxValue.render copts.CommonOptions.cfg.buildCfg v)
+    in
+
+    let%bind scriptArgs =
+      match scriptArgs with
+      | BuildManifest.Command.Parsed args -> Result.List.map ~f:expand args
+      | BuildManifest.Command.Unparsed line ->
+        let%bind line = expand line in
+        ShellSplit.split line
+    in
+
+    let%bind args = Result.List.map ~f:expand args in
+
+    return Cmd.(
+      v (p EsyRuntime.currentExecutable)
+      |> addArgs scriptArgs
+      |> addArgs args
+    )
   ) in
-  makeExecCommand
-    ~checkIfDependenciesAreBuilt:true
-    ~buildLinked:false
-    Env.Command.envspec
-    Env.Command.depspec
-    copts
-    PkgSpec.Root
-    cmd
-    ()
+
+  let tool, line = Cmd.getToolAndLine cmd in
+  Unix.execv tool line
+
+let devExec (copts : CommonOptions.t) cmd () =
+  let open RunAsync.Syntax in
+  let%bind (info : SandboxInfo.t) = SandboxInfo.make copts in
+  match Scripts.find (Cmd.getTool cmd) info.scripts with
+  | Some script ->
+    runScript copts script (Cmd.getArgs cmd) ()
+  | None ->
+    makeExecCommand
+      ~checkIfDependenciesAreBuilt:true
+      ~buildLinked:false
+      Env.Command.envspec
+      Env.Command.depspec
+      copts
+      PkgSpec.Root
+      cmd
+      ()
 
 let devShell copts () =
   let shell =

@@ -736,7 +736,7 @@ let makeEnv
   in
   return (env, scope)
 
-let env
+let configure
   ?(forceImmutable=false)
   envspec
   depspec
@@ -753,20 +753,22 @@ let env
     | Some (scope, _) -> return scope
   in
 
-  let%bind env, _scope =
-    makeEnv
-      ~cache
-      ~forceImmutable
-      ~buildIsInProgress:envspec.buildIsInProgress
-      ~includeCurrentEnv:envspec.includeCurrentEnv
-      ~includeBuildEnv:envspec.includeBuildEnv
-      ~includeNpmBin:envspec.includeNpmBin
-      sandbox
-      scope
-      depspec
-      envdepspec
-  in
-  return env
+  makeEnv
+    ~cache
+    ~forceImmutable
+    ~buildIsInProgress:envspec.buildIsInProgress
+    ~includeCurrentEnv:envspec.includeCurrentEnv
+    ~includeBuildEnv:envspec.includeBuildEnv
+    ~includeNpmBin:envspec.includeNpmBin
+    sandbox
+    scope
+    depspec
+    envdepspec
+
+let env ?forceImmutable envspec depspec sandbox id =
+  let open Run.Syntax in
+  let%map env, _scope = configure ?forceImmutable envspec depspec sandbox id in
+  env
 
 let exec
   envspec

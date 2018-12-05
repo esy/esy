@@ -48,6 +48,14 @@ module EnvSpec : sig
   }
 end
 
+val configure :
+  ?forceImmutable:bool
+  -> EnvSpec.t
+  -> DepSpec.t
+  -> t
+  -> EsyInstall.PackageId.t
+  -> (Scope.SandboxEnvironment.Bindings.t * Scope.t) Run.t
+
 val env :
   ?forceImmutable:bool
   -> EnvSpec.t
