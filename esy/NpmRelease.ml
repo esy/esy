@@ -177,7 +177,7 @@ let make
       BuildSandbox.build
         ~buildOnly:false
         ~quiet:true
-        ~force:false
+        ~force:true
         sandbox
         plan
         root.EsyInstall.Solution.Package.id
@@ -212,6 +212,7 @@ let make
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
     let%bind bindings = RunAsync.ofRun (
       BuildSandbox.env
+        ~forceImmutable:true
         envspec
         buildspec
         sandbox
