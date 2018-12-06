@@ -871,7 +871,7 @@ let runBuildDependencies
   =
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies-by \\@;%a%a@]"
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
       mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
       PackageId.pp pkg.Solution.Package.id
@@ -884,7 +884,7 @@ let runBuildDependencies
     plan
     pkg.id
 
-let buildDependenciesBy mainprg (copts : CommonOptions.t) release depspec pkgspec () =
+let buildDependencies mainprg (copts : CommonOptions.t) release all depspec pkgspec () =
   let open RunAsync.Syntax in
   let mode =
     if release
@@ -910,7 +910,7 @@ let buildDependenciesBy mainprg (copts : CommonOptions.t) release depspec pkgspe
     ) in
     runBuildDependencies
       ~mainprg
-      ~buildLinked:true
+      ~buildLinked:all
       sandbox
       plan
       pkg
@@ -927,7 +927,7 @@ let runBuild
   =
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-by \\@;%a%a@]"
+      m "running:@[<v>@;%s build-package \\@;%a%a@]"
       mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
       PackageId.pp pkg.Solution.Package.id
@@ -941,7 +941,7 @@ let runBuild
     plan
     pkg.id
 
-let buildBy mainprg (copts : CommonOptions.t) release depspec pkgspec () =
+let buildPackage mainprg (copts : CommonOptions.t) release depspec pkgspec () =
   let open RunAsync.Syntax in
 
   let%bind info = SandboxInfo.make copts in
@@ -1018,7 +1018,7 @@ let runExec
 
     let () =
       Logs.info (fun m ->
-        m "running:@[<v>@;%s exec-by \\@;%a%a%a \\@;-- %a@]"
+        m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
         mainprg
         TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
         TermPp.ppEnvSpec envspec
@@ -1042,7 +1042,7 @@ let runExec
   in
   withPackage solution pkgspec f
 
-let execBy
+let execCommand
   mainprg
   copts
   buildIsInProgress
@@ -1098,7 +1098,7 @@ let runPrintEnv
 
     let () =
       Logs.info (fun m ->
-        m "running:@[<v>@;%s env-by \\@;%a%a@]"
+        m "running:@[<v>@;%s print-env \\@;%a%a@]"
         mainprg
         TermPp.ppEnvSpec envspec
         PackageId.pp pkg.Solution.Package.id
@@ -1148,7 +1148,8 @@ let runPrintEnv
   in
   withPackage solution pkg f
 
-let envBy mainprg copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec envspec pkgspec () =
+let printEnv
+  mainprg copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec envspec pkgspec () =
   let envspec = {
     EnvSpec.
     buildIsInProgress = false;
@@ -1320,33 +1321,6 @@ let buildShell mainprg (copts : CommonOptions.t) pkgspec () =
   in
   withPackage solution pkgspec f
 
-let buildPackage mainprg (copts : CommonOptions.t) pkg () =
-  let open RunAsync.Syntax in
-
-  let%bind info = SandboxInfo.make copts in
-  let%bind solution = SandboxInfo.solution info in
-
-  let f (pkg : Solution.Package.t) =
-    let%bind sandbox = SandboxInfo.sandbox info in
-    let%bind _, plan = SandboxInfo.plan info in
-    let%bind () =
-      runBuildDependencies
-        ~mainprg
-        ~buildLinked:true
-        sandbox
-        plan
-        pkg
-    in
-    runBuild
-      ~mainprg
-      ~quiet:false
-      ~buildOnly:true
-      sandbox
-      plan
-      pkg
-  in
-  withPackage solution pkg f
-
 let build ?(buildOnly=true) mainprg (copts : CommonOptions.t) cmd () =
   let open RunAsync.Syntax in
   let%bind info = SandboxInfo.make copts in
@@ -1389,18 +1363,6 @@ let build ?(buildOnly=true) mainprg (copts : CommonOptions.t) cmd () =
       cmd
       ()
   end
-
-let buildDependencies mainprg (copts : CommonOptions.t) all () =
-  let open RunAsync.Syntax in
-  let%bind info = SandboxInfo.make copts in
-  let%bind sandbox = SandboxInfo.sandbox info in
-  let%bind root, plan = SandboxInfo.plan info in
-  runBuildDependencies
-    ~mainprg
-    ~buildLinked:all
-    sandbox
-    plan
-    root.BuildSandbox.Task.pkg
 
 let buildEnv mainprg copts asJson packagePath () =
   runPrintEnv
@@ -2183,35 +2145,10 @@ let makeCommands ~sandbox () =
     buildCommand;
 
     makeCommand
-      ~name:"build-by"
-      ~doc:"Build by DEPSPEC"
+      ~name:"build-package"
+      ~doc:"Build package"
       Term.(
-        const buildBy
-        $ main_name
-        $ commonOpts
-        $ Arg.(
-            value
-            & flag
-            & info ["release"] ~doc:"If we should build linked packages in release mode"
-          )
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["linked-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
-          )
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package to run build from" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"build-dependencies-by"
-      ~doc:"Build dependencies by DEPSPEC"
-      Term.(
-        const buildDependenciesBy
+        const buildPackage
         $ main_name
         $ commonOpts
         $ Arg.(
@@ -2239,7 +2176,26 @@ let makeCommands ~sandbox () =
         const buildDependencies
         $ main_name
         $ commonOpts
-        $ Arg.(value & flag & info ["all"]  ~doc:"Build all dependencies (including linked packages)")
+        $ Arg.(
+            value
+            & flag
+            & info ["release"] ~doc:"If we should build linked packages in release mode"
+          )
+        $ Arg.(
+            value
+            & flag
+            & info ["all"] ~doc:"Build linked dependencies too"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["linked-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package to run build from" ~docv:"PACKAGE"
+          )
         $ Cli.setupLogTerm
       );
 
@@ -2279,21 +2235,6 @@ let makeCommands ~sandbox () =
       );
 
     makeCommand
-      ~name:"build-package"
-      ~doc:"Build specified package"
-      Term.(
-        const buildPackage
-        $ main_name
-        $ commonOpts
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
       ~header:`No
       ~name:"shell"
       ~doc:"Enter esy sandbox shell"
@@ -2306,10 +2247,10 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~header:`No
-      ~name:"env-by"
+      ~name:"print-env"
       ~doc:"Produce environment by specification"
       Term.(
-        const envBy
+        const printEnv
         $ main_name
         $ commonOpts
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
@@ -2336,10 +2277,10 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~header:`No
-      ~name:"exec-by"
-      ~doc:"Produce environment by specification"
+      ~name:"exec-command"
+      ~doc:"Execute command"
       Term.(
-        const execBy
+        const execCommand
         $ main_name
         $ commonOpts
         $ Arg.(value & flag & info ["build-context"]  ~doc:"Execute command in build context")
