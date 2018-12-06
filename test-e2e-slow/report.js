@@ -8,8 +8,8 @@ const path = require('path');
 
 // JSON format
 // { 
-//   "win32": { <-- platform
-//      "0.4.3": { <-- esy build version
+//   "0.4.3": { <-- esy build version
+//      "win32": { <-- platform
 //         "package-name": {
 //             success: true/false,
 //             validationTime: ...
@@ -17,6 +17,46 @@ const path = require('path');
 //      }
 //   }
 // }
+
+let createMarkdownReport = (reportInfo) => {
+    let out = Object.keys(reportInfo).map((esyVersion) => {
+
+        let packagesPerPlatform = reportInfo[esyVersion];
+
+        let title = "# " + esyVersion;
+        let tableHeaders = "| __Package__ | __OSX__ | __Linux__ | __Windows |";
+        let separators = "|-----|-----|-----|-----|";
+
+        let windowsPackages = Object.keys(packagesPerPlatform["win32"]);
+        let linuxPackages = Object.keys(packagesPerPlatform["linux"]);
+        let osxPackages = Object.keys(packagesPerPlatform["darwin"]);
+
+        let allPackages = [].concat(windowsPackages, linuxPackages, osxPackages);
+
+        let getStatusStringForPlatform = (platform, package) => {
+            if (!reportInfo[platform]) {
+                return ":question:";
+            }
+
+            let packageStatus = reportInfo[platform][package];
+
+            return packageStatus && packageStatus.success ? ":heavy_check_mark:" : ":x";
+        };
+
+        let lines = allPackages.map((packageName) => {
+            let osxStatus = getStatusStringForPlatform("darwin", packageName);
+            let linuxStatus = getStatusStringForPlatform("linux", packageName);
+            let winStatus = getStatusStringForPlatform("win32", packageName);
+
+            return `| \`${packageName}\` | ${osxStatus} | ${linuxStatus} | ${winStatus} |`
+        })
+
+
+        return [ title, tableHeaders, separators ].concat(lines).join(os.EOL);
+    });
+
+    return out.join(os.EOL + os.EOL);
+};
 
 let writeReport = (packageInfo) => {
     const reportDirectory = path.join(__dirname, "..");
@@ -39,8 +79,8 @@ let writeReport = (packageInfo) => {
         return obj[key];
     };
 
-    let platformNode = getOrCreate(report, os.platform());
-    let esyVersionNode = getOrCreate(platformNode, esyVersion);
+    let platformNode = getOrCreate(report, esyVersion);
+    let esyVersionNode = getOrCreate(platformNode, os.platform());
 
     let newVersionNode = packageInfo.reduce((acc, curr) => {
         let dup = { ...acc };

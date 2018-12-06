@@ -43,7 +43,8 @@ const isWindows = os.platform() === 'win32';
 
 console.log('Running test suite: e2e (slow tests)');
 
-require('./build-top-100-opam.test.js');
+require('./build-top-100-opam.test.js').runTests(false);
+require('./build-top-100-opam.test.js').runTests(true);
 require('./install-npm.test.js');
 require('./esy.test.js');
 
