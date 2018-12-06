@@ -12,6 +12,13 @@ module Binding = struct
     | ExpandedValue of 'v
     | Prefix of 'v
     | Suffix of 'v
+
+  let pp ppValue fmt binding =
+    match binding.value with
+    | Value v -> Fmt.pf fmt "%s=%a" binding.name ppValue v
+    | ExpandedValue v -> Fmt.pf fmt "%s=%a" binding.name ppValue v
+    | Prefix v -> Fmt.pf fmt "%s=%a:%s" binding.name ppValue v binding.name
+    | Suffix v -> Fmt.pf fmt "%s=%s:%a" binding.name binding.name ppValue v
 end
 
 module type S = sig
@@ -35,6 +42,8 @@ module type S = sig
 
     type t =
       value Binding.t list
+
+    val pp : t Fmt.t
 
     val value : ?origin:string -> string -> value -> value Binding.t
     val prefixValue : ?origin:string -> string -> value -> value Binding.t
@@ -84,6 +93,9 @@ end = struct
     type t =
       V.t Binding.t list
       [@@deriving ord]
+
+    let pp =
+      Fmt.(vbox (list ~sep:(unit "@;") (Binding.pp V.pp)))
 
     let empty = []
     let value ?origin name value = {Binding. name; value = Value value; origin}

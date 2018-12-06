@@ -33,6 +33,8 @@ module type S = sig
     type t =
       value Binding.t list
 
+    val pp : t Fmt.t
+
     val value : ?origin:string -> string -> value -> value Binding.t
     val prefixValue : ?origin:string -> string -> value -> value Binding.t
     val suffixValue : ?origin:string -> string -> value -> value Binding.t
