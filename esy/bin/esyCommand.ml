@@ -2444,7 +2444,7 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~name:"build-package"
-      ~doc:"Build package"
+      ~doc:"Build a specified package"
       ~docs:lowLevelSection
       Term.(
         const buildPackage
@@ -2452,7 +2452,8 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & flag
-            & info ["release"] ~doc:"If we should build linked packages in release mode"
+            & info ["release"]
+              ~doc:{|Force to use "esy.build" commands (by default "esy.buildDev" commands are used)|}
           )
         $ Arg.(
             value
@@ -2462,14 +2463,14 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package to run build from" ~docv:"PACKAGE"
+            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
       );
 
     makeCommand
       ~name:"build-dependencies"
-      ~doc:"Build dependencies"
+      ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
       Term.(
         const buildDependencies
@@ -2477,30 +2478,76 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & flag
-            & info ["release"] ~doc:"If we should build linked packages in release mode"
+            & info ["release"]
+              ~doc:{|Force to "esy.build" commands (by default "esy.buildDev" commands are used)|}
           )
         $ Arg.(
             value
             & flag
-            & info ["all"] ~doc:"Build linked dependencies too"
+            & info ["all"] ~doc:"Build all dependencies (including linked packages)"
           )
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+            & info ["linked-depspec"]
+              ~doc:"Define DEPSPEC expression for linked packages' build environments"
+              ~docv:"DEPSPEC"
           )
         $ Arg.(
             value
             & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package to run build from" ~docv:"PACKAGE"
+            & info [] ~doc:"Package to build dependencies for" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
       );
 
     makeCommand
       ~header:`No
+      ~name:"exec-command"
+      ~doc:"Execute command in a given environment"
+      ~docs:lowLevelSection
+      Term.(
+        const execCommand
+        $ commonOpts
+        $ Arg.(
+            value
+            & flag
+            & info ["build-context"]
+              ~doc:"Initialize package's build context before executing the command"
+          )
+        $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
+        $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
+        $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["linked-depspec"]
+              ~doc:"Define DEPSPEC expression for linked packages' build environments"
+              ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            value
+            & opt (some depspecConv) None
+            & info ["envspec"]
+              ~doc:"Define DEPSPEC expression the command execution environment"
+              ~docv:"DEPSPEC"
+          )
+        $ Arg.(
+            required
+            & pos 0 (some pkgspecConv) None
+            & info [] ~doc:"Package in which environment execute the command" ~docv:"PACKAGE"
+          )
+        $ Cli.cmdTerm
+            ~doc:"Command to execute within the environment."
+            ~docv:"COMMAND"
+            (Cmdliner.Arg.pos_right 0)
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
       ~name:"print-env"
-      ~doc:"Produce environment by specification"
+      ~doc:"Print a configured environment on stdout"
       ~docs:lowLevelSection
       Term.(
         const printEnv
@@ -2512,52 +2559,22 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"] ~doc:"Build env for linked packages" ~docv:"DEPSPEC"
+            & info ["linked-depspec"]
+              ~doc:"Define DEPSPEC expression for linked packages' build environments"
+              ~docv:"DEPSPEC"
           )
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["envspec"] ~doc:"What to add to the env"
+            & info ["envspec"]
+              ~doc:"Define DEPSPEC expression the command execution environment"
+              ~docv:"DEPSPEC"
           )
         $ Arg.(
             required
             & pos 0 (some pkgspecConv) None
             & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
-      ~name:"exec-command"
-      ~doc:"Execute command"
-      ~docs:lowLevelSection
-      Term.(
-        const execCommand
-        $ commonOpts
-        $ Arg.(value & flag & info ["build-context"]  ~doc:"Execute command in build context")
-        $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
-        $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
-        $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["linked-depspec"] ~doc:"Build env for linked packages" ~docv:"DEPSPEC"
-          )
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["envspec"] ~doc:"What to add to the env"
-          )
-        $ Arg.(
-            required
-            & pos 0 (some pkgspecConv) None
-            & info [] ~doc:"Package to execute command at" ~docv:"PACKAGE"
-          )
-        $ Cli.cmdTerm
-            ~doc:"Command to execute within the environment."
-            ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 0)
         $ Cli.setupLogTerm
       );
 
