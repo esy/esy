@@ -128,6 +128,8 @@ module Plan : sig
   type t
   (** A collection of tasks. *)
 
+  val buildspec : t -> BuildSpec.t
+
   val get : t -> EsyInstall.PackageId.t -> Task.t option
   val getByName : t -> string -> Task.t option
   val getByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option

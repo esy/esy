@@ -551,44 +551,49 @@ let makeScope
 
 module Plan = struct
 
-  type t = Task.t option PackageId.Map.t
+  type t = {
+    buildspec : BuildSpec.t;
+    tasks : Task.t option PackageId.Map.t;
+  }
 
-  let get tasks id =
-    match PackageId.Map.find_opt id tasks with
+  let buildspec plan = plan.buildspec
+
+  let get plan id =
+    match PackageId.Map.find_opt id plan.tasks with
     | None -> None
     | Some None -> None
     | Some Some task -> Some task
 
-  let findByPred tasks pred =
+  let findByPred plan pred =
     let f id =
-      let task = PackageId.Map.find id tasks in
+      let task = PackageId.Map.find id plan.tasks in
       pred task
     in
-    match PackageId.Map.find_first_opt f tasks with
+    match PackageId.Map.find_first_opt f plan.tasks with
     | None -> None
     | Some (_id, task) -> task
 
-  let getByName (tasks : t) name =
+  let getByName plan name =
     findByPred
-      tasks
+      plan
       (function
         | None -> false
         | Some task -> String.compare task.Task.pkg.Solution.Package.name name >= 0)
 
-  let getByNameVersion (tasks : t) name version =
+  let getByNameVersion (plan : t) name version =
     let compare = [%derive.ord: string * Version.t] in
     findByPred
-      tasks
+      plan
       (function
         | None -> false
         | Some task -> compare (task.Task.pkg.name, task.Task.pkg.version) (name, version) >= 0)
 
-  let all tasks =
+  let all plan =
     let f tasks = function
       | _, Some task -> task::tasks
       | _ , None -> tasks
     in
-    List.fold_left ~f ~init:[] (PackageId.Map.bindings tasks)
+    List.fold_left ~f ~init:[] (PackageId.Map.bindings plan.tasks)
 end
 
 let makePlan
@@ -702,7 +707,7 @@ let makePlan
     visit PackageId.Map.empty [root.id]
   in
 
-  return tasks
+  return {Plan. tasks; buildspec;}
 
 let task buildspec sandbox id =
   let open RunAsync.Syntax in
@@ -945,24 +950,23 @@ let buildTask ?quiet ?buildOnly ?logPath sandbox task =
   Perf.measureLwt ~label (fun () ->
     EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg:sandbox.cfg plan)
 
-let build ~force ?quiet ?buildOnly ?logPath sandbox tasks id =
+let build ~force ?quiet ?buildOnly ?logPath sandbox plan id =
   let open RunAsync.Syntax in
-  match PackageId.Map.find_opt id tasks with
-  | Some (Some task) ->
+  match Plan.get plan id with
+  | Some task ->
     if not force
     then
       if%bind isBuilt sandbox task
       then return ()
       else buildTask ?quiet ?buildOnly ?logPath sandbox task
     else buildTask ?quiet ?buildOnly ?logPath sandbox task
-  | Some None
   | None -> RunAsync.return ()
 
-let buildRoot ?quiet ?buildOnly sandbox tasks =
+let buildRoot ?quiet ?buildOnly sandbox plan =
   let open RunAsync.Syntax in
   let root = Solution.root sandbox.solution in
-  match PackageId.Map.find_opt root.id tasks with
-  | Some (Some task) ->
+  match Plan.get plan root.id with
+  | Some task ->
     let%bind () = buildTask ?quiet ?buildOnly sandbox task in
     let%bind () =
       let buildPath = Task.buildPath sandbox.cfg task in
@@ -972,10 +976,9 @@ let buildRoot ?quiet ?buildOnly sandbox tasks =
       | _ -> Fs.symlink ~force:true ~src:buildPath buildPathLink
     in
     return ()
-  | Some None
   | None -> RunAsync.return ()
 
-let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
+let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
 
@@ -1090,7 +1093,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
     match Hashtbl.find_opt tasksInProcess id with
     | None ->
       let running =
-        match PackageId.Map.find id tasks with
+        match Plan.get plan id with
         | Some task ->
           let%bind changes = processDependencies pkg in
           begin match buildLinked, task.Task.pkg.source with
@@ -1101,7 +1104,6 @@ let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
               "building %a" PackageId.pp id
           end
         | None -> RunAsync.return Changes.No
-        | exception Not_found -> RunAsync.return Changes.No
       in
       Hashtbl.replace tasksInProcess id running;
       running
@@ -1126,10 +1128,10 @@ let buildDependencies' ~concurrency ~buildLinked sandbox tasks id =
     let%bind _: Changes.t = processDependencies pkg in
     return ()
 
-let buildDependencies ?(concurrency=1) ~buildLinked sandbox tasks id =
+let buildDependencies ?(concurrency=1) ~buildLinked sandbox plan id =
   Perf.measureLwt
     ~label:"buildDependencies"
-    (fun () -> buildDependencies' ~concurrency ~buildLinked sandbox tasks id)
+    (fun () -> buildDependencies' ~concurrency ~buildLinked sandbox plan id)
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in
