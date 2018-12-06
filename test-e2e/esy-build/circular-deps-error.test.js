@@ -50,13 +50,14 @@ describe(`'esy build' command: circular dependency error`, () => {
     const p = await helpers.createTestSandbox();
     await p.fixture(...makeFixture(p));
     await p.esy('install');
-    expect(p.esy('build')).rejects.toMatchObject({
+    await expect(p.esy('build')).rejects.toMatchObject({
       stderr: outdent`
         info esy build ${helpers.esyVersion}
         error: found circular dependency on: dep@path:dep
           processing depOfDep@path:depOfDep
           processing dep@path:dep
           processing hasCircularDeps@link:./package.json
+          creating task for hasCircularDeps@link:./package.json
         esy: exiting due to errors above
 
       `,

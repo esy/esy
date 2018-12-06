@@ -690,7 +690,7 @@ let makePlan
           let%bind task =
             Run.contextf
               (makeTask pkg)
-              "processing %a" Package.pp pkg
+              "creating task for %a" Package.pp pkg
           in
           let tasks = PackageId.Map.add id task tasks in
           let ids =

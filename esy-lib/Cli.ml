@@ -220,3 +220,11 @@ let setupLogTerm =
     const setupLog
     $ Fmt_cli.style_renderer ~docs:Cmdliner.Manpage.s_common_options ()
     $ Logs_cli.level ~docs:Cmdliner.Manpage.s_common_options ~env:(Arg.env_var "ESY__LOG") ())
+
+let runAsyncToCmdlinerRet res =
+  match Lwt_main.run res with
+  | Ok v -> `Ok v
+  | Error error ->
+    Lwt_main.run (ProgressReporter.clearStatus ());
+    Format.fprintf Format.err_formatter "@[%a@]@." Run.ppError error;
+    `Error (false, "exiting due to errors above")
