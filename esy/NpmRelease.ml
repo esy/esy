@@ -117,12 +117,12 @@ let envspec = {
   includeCurrentEnv = true;
   includeBuildEnv = false;
   includeNpmBin = true;
-  depspec = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
+  augmentDeps = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
   BuildSandbox.BuildSpec.
-  buildAll = Build, BuildSandbox.DepSpec.(dependencies self);
-  buildLinked = Some (Build, BuildSandbox.DepSpec.(dependencies self));
+  buildAll = {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
+  buildLinked = Some {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
 }
 
 let make

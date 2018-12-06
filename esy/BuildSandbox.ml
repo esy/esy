@@ -144,7 +144,7 @@ end
 
 module EnvSpec = struct
   type t = {
-    depspec : DepSpec.t option;
+    augmentDeps : DepSpec.t option;
     buildIsInProgress : bool;
     includeCurrentEnv : bool;
     includeBuildEnv : bool;
@@ -158,7 +158,10 @@ module BuildSpec = struct
     buildAll : build;
   }
 
-  and build = mode * DepSpec.t
+  and build = {
+    mode : mode;
+    deps : DepSpec.t;
+  }
 
   and mode =
     | Build
@@ -422,15 +425,15 @@ let makeScope
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let mode, depspec = BuildSpec.classify buildspec pkg in
+    let {BuildSpec. mode; deps} = BuildSpec.classify buildspec pkg in
 
     let matched =
-      DepSpec.eval sandbox.solution pkg.Package.id depspec
+      DepSpec.eval sandbox.solution pkg.Package.id deps
     in
     Logs.debug (fun m ->
       m "depspec %a at %a matches %a"
         DepSpec.pp
-        depspec
+        deps
         PackageId.pp
         pkg.Package.id
         Fmt.(list ~sep:(unit ", ") PackageId.pp)
@@ -613,7 +616,7 @@ let makePlan
 
       let%bind buildCommands =
 
-        let mode, _depspec = BuildSpec.classify buildspec pkg in
+        let {BuildSpec. mode; deps = _;} = BuildSpec.classify buildspec pkg in
         match mode, Scope.sourceType scope, build.BuildManifest.buildDev with
         | BuildSpec.Build, _, _
         | BuildDev, (ImmutableWithTransientDependencies | Immutable), _
@@ -725,10 +728,10 @@ let makeEnv
   let open Run.Syntax in
   let pkg = Scope.pkg scope in
   let envdepspec =
-    let _mode, depspec = BuildSpec.classify buildspec pkg in
+    let {BuildSpec. deps; mode = _;} = BuildSpec.classify buildspec pkg in
     Option.orDefault
-      ~default:depspec
-      envspec.EnvSpec.depspec
+      ~default:deps
+      envspec.EnvSpec.augmentDeps
   in
   let matched = DepSpec.eval sandbox.solution pkg.id envdepspec in
   Logs.debug (fun m ->

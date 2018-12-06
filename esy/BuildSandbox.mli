@@ -43,14 +43,17 @@ module BuildSpec : sig
 
   type t = {
 
-    buildLinked : (mode * DepSpec.t) option;
+    buildLinked : build option;
     (** Optionally define if we need to treat linked packages in a specific way. *)
 
-    buildAll : mode * DepSpec.t;
+    buildAll : build;
     (** Define how we treat all other packages. *)
   }
 
-  and build = mode * DepSpec.t
+  and build = {
+    mode : mode;
+    deps : DepSpec.t;
+  }
   (**
    * This is a pair of which build command to use ("build" or "buildDev") and
    * a specification of what to bring into the build env.
@@ -62,13 +65,13 @@ module BuildSpec : sig
 
   val pp_mode : mode Fmt.t
 
-  val classify : t -> EsyInstall.Solution.Package.t -> mode * DepSpec.t
+  val classify : t -> EsyInstall.Solution.Package.t -> build
 end
 
 (** This describes how to construct environment for command invocations. *)
 module EnvSpec : sig
   type t = {
-    depspec : DepSpec.t option;
+    augmentDeps : DepSpec.t option;
     (** Defines what packages we should bring into the command env. *)
     buildIsInProgress : bool;
     (** If we should init the build environment (enable sandboxing, do source relloc). *)

@@ -1,5 +1,7 @@
 open Esy
 
+module BuildSpec = BuildSandbox.BuildSpec
+module EnvSpec = BuildSandbox.EnvSpec
 module SandboxSpec = EsyInstall.SandboxSpec
 module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
@@ -12,13 +14,13 @@ let planModeConv =
   let open Cmdliner in
   let parse v =
     match v with
-    | "build" -> Ok BuildSandbox.BuildSpec.Build
-    | "buildDev" -> Ok BuildSandbox.BuildSpec.BuildDev
+    | "build" -> Ok BuildSpec.Build
+    | "buildDev" -> Ok BuildSpec.BuildDev
     | unknown ->
       let msg = "unknown build mode '" ^ unknown ^ "', only build or buildDev is allowed" in
       Error (`Msg msg)
   in
-  Arg.conv ~docv:"MODE" (parse, BuildSandbox.BuildSpec.pp_mode)
+  Arg.conv ~docv:"MODE" (parse, BuildSpec.pp_mode)
 
 let pkgspecConv =
   let open Cmdliner in
@@ -373,9 +375,9 @@ module Spec = struct
   let buildspec = BuildSandbox.{
     BuildSpec.
     (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildLinked = Some (BuildDev, DepSpec.(dependencies self));
+    buildLinked = Some {mode = BuildDev; deps = DepSpec.(dependencies self)};
     (* build all other packages using "build" command with dependencies in the env *)
-    buildAll = Build, DepSpec.(dependencies self);
+    buildAll = {mode = Build; deps = DepSpec.(dependencies self)};
   }
 
   (* This defines environment for "esy x CMD" invocation. *)
@@ -386,7 +388,7 @@ module Spec = struct
     includeBuildEnv = false;
     includeNpmBin = true;
     (* Environment contains dependencies, devDependencies and package itself. *)
-    depspec = Some DepSpec.(package self + dependencies self + devDependencies self);
+    augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
   }
 
   (* This defines environment for "esy CMD" invocation. *)
@@ -397,7 +399,7 @@ module Spec = struct
     includeBuildEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies and devDependencies. *)
-    depspec = Some DepSpec.(dependencies self + devDependencies self);
+    augmentDeps = Some DepSpec.(dependencies self + devDependencies self);
   }
 
   (* This defines environment for "esy build CMD" invocation. *)
@@ -408,7 +410,7 @@ module Spec = struct
     includeBuildEnv = true;
     includeNpmBin = false;
     (* This means that environment is the same as in buildspec. *)
-    depspec = None;
+    augmentDeps = None;
   }
 end
 
@@ -912,9 +914,9 @@ let buildPlan copts mode pkgspec () =
   let buildspec = {
     Spec.buildspec with
     buildLinked =
-      let defaultMode, depspec = Spec.buildspec.buildAll in
+      let {BuildSpec. mode = defaultMode; deps} = Spec.buildspec.buildAll in
       let mode = Option.orDefault ~default:defaultMode mode in
-      Some (mode, depspec)
+      Some {mode; deps}
   } in
 
   let f (pkg : Solution.Package.t) =
@@ -996,20 +998,20 @@ let buildBy (copts : CommonOptions.t) release depspec pkg () =
   let%bind solution = SandboxInfo.solution info in
   let mode =
     if release
-    then BuildSandbox.BuildSpec.Build
-    else BuildSandbox.BuildSpec.BuildDev
+    then BuildSpec.Build
+    else BuildSpec.BuildDev
   in
   let buildspec =
-    let depspec =
+    let deps =
       match depspec with
       | Some depspec -> depspec
-      | None -> let _mode, depspec = Spec.buildspec.buildAll in depspec
+      | None -> let {BuildSpec. deps; mode = _} = Spec.buildspec.buildAll in deps
     in
-    {Spec.buildspec with buildLinked = Some (mode, depspec)}
+    {Spec.buildspec with buildLinked = Some {mode; deps}}
   in
 
   let f (pkg : Solution.Package.t) =
-    Logs_lwt.app (fun m -> m "mode: %a" BuildSandbox.BuildSpec.pp_mode mode);%lwt
+    Logs_lwt.app (fun m -> m "mode: %a" BuildSpec.pp_mode mode);%lwt
     let%bind sandbox = SandboxInfo.sandbox info in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -1114,7 +1116,7 @@ let makeEnvCommand
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        let _mode, depspec = BuildSandbox.BuildSpec.classify buildspec pkg in
+        let {BuildSpec.mode = _; deps} = BuildSpec.classify buildspec pkg in
         let header =
           Format.asprintf {|# %s
 # package:            %a
@@ -1127,8 +1129,9 @@ let makeEnvCommand
 |}
             name
             Solution.Package.pp pkg
-            BuildSandbox.DepSpec.pp depspec
-            (Fmt.option BuildSandbox.DepSpec.pp) envspec.BuildSandbox.EnvSpec.depspec
+            BuildSandbox.DepSpec.pp deps
+            (Fmt.option BuildSandbox.DepSpec.pp)
+            envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress
             envspec.includeBuildEnv
             envspec.includeCurrentEnv
@@ -1146,17 +1149,17 @@ let makeEnvCommand
 
 let envBy copts asJson includeBuildEnv includeCurrentEnv includeNpmBin depspec envspec pkgspec () =
   let envspec = {
-    BuildSandbox.EnvSpec.
+    EnvSpec.
     buildIsInProgress = false;
     includeBuildEnv;
     includeCurrentEnv;
     includeNpmBin;
-    depspec = envspec;
+    augmentDeps = envspec;
   } in
   let buildspec =
     match depspec with
-    | Some depspec ->
-      {Spec.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | Some deps ->
+      {Spec.buildspec with buildLinked = Some {mode = BuildDev; deps;};}
     | None -> Spec.buildspec
   in
   makeEnvCommand
@@ -1259,16 +1262,16 @@ let execBy
   cmd
   () =
   let envspec = {
-    BuildSandbox.EnvSpec.
+    EnvSpec.
     buildIsInProgress;
     includeBuildEnv;
     includeCurrentEnv;
     includeNpmBin;
-    depspec = envspec;
+    augmentDeps = envspec;
   } in
   let buildspec =
     match depspec with
-    | Some depspec -> {Spec.buildspec with buildLinked = Some (BuildDev, depspec);}
+    | Some deps -> {Spec.buildspec with buildLinked = Some {mode = BuildDev; deps};}
     | None -> Spec.buildspec
   in
   makeExecCommand
