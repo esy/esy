@@ -218,5 +218,5 @@ let setupLogTerm =
   let open Cmdliner in
   Term.(
     const setupLog
-    $ Fmt_cli.style_renderer ()
-    $ Logs_cli.level ~env:(Arg.env_var "ESY__LOG") ())
+    $ Fmt_cli.style_renderer ~docs:Cmdliner.Manpage.s_common_options ()
+    $ Logs_cli.level ~docs:Cmdliner.Manpage.s_common_options ~env:(Arg.env_var "ESY__LOG") ())

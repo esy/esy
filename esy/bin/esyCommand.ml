@@ -175,7 +175,7 @@ module CommonOptions = struct
     installSandbox : EsyInstall.Sandbox.t;
   }
 
-  let docs = Manpage.s_common_options
+  let commonOptionsSection = Manpage.s_common_options
 
   let prefixPath =
     let doc = "Specifies esy prefix path." in
@@ -183,7 +183,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.pathConv) None
-      & info ["prefix-path"] ~env ~docs ~doc
+      & info ["prefix-path"] ~env ~docs:commonOptionsSection ~doc
     )
 
   let opamRepositoryArg =
@@ -193,7 +193,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.checkoutConv) None
-      & (info ["opam-repository"] ~env ~doc ~docv)
+      & (info ["opam-repository"] ~env ~doc ~docv ~docs:commonOptionsSection)
     )
 
   let esyOpamOverrideArg =
@@ -203,7 +203,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.checkoutConv) None
-      & info ["opam-override-repository"] ~env ~doc ~docv
+      & info ["opam-override-repository"] ~env ~doc ~docv ~docs:commonOptionsSection
     )
 
   let cacheTarballsPath =
@@ -211,7 +211,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.pathConv) None
-      & info ["cache-tarballs-path"] ~doc
+      & info ["cache-tarballs-path"] ~doc ~docs:commonOptionsSection
     )
 
   let npmRegistryArg =
@@ -220,7 +220,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some string) None
-      & info ["npm-registry"] ~env ~doc
+      & info ["npm-registry"] ~env ~doc ~docs:commonOptionsSection
     )
 
   let solveTimeoutArg =
@@ -228,7 +228,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some float) None
-      & info ["solve-timeout"] ~doc
+      & info ["solve-timeout"] ~doc ~docs:commonOptionsSection
     )
 
   let skipRepositoryUpdateArg =
@@ -236,7 +236,7 @@ module CommonOptions = struct
     Arg.(
       value
       & flag
-      & info ["skip-repository-update"] ~doc
+      & info ["skip-repository-update"] ~doc ~docs:commonOptionsSection
     )
 
   let cachePathArg =
@@ -245,7 +245,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.pathConv) None
-      & info ["cache-path"] ~env ~doc
+      & info ["cache-path"] ~env ~doc ~docs:commonOptionsSection
     )
 
   let solveCudfCommandArg =
@@ -254,7 +254,7 @@ module CommonOptions = struct
     Arg.(
       value
       & opt (some Cli.cmdConv) None
-      & info ["solve-cudf-command"] ~env ~doc
+      & info ["solve-cudf-command"] ~env ~doc ~docs:commonOptionsSection
     )
 
   let make
@@ -2017,6 +2017,12 @@ let release mainprg copts () =
     sandbox
     (Solution.root solution)
 
+let commonSection = "COMMON COMMANDS"
+let aliasesSection = "ALIASES"
+let introspectionSection = "INTROSPECTION COMMANDS"
+let lowLevelSection = "LOW LEVEL PLUMBING COMMANDS"
+let otherSection = "OTHER COMMANDS"
+
 let makeCommand
   ?(header=`Standard)
   ?(sdocs=Cmdliner.Manpage.s_common_options)
@@ -2058,7 +2064,14 @@ let makeAlias command alias =
   let term, info = command in
   let name = Cmdliner.Term.name info in
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
-  term, Cmdliner.Term.info alias ~version:EsyRuntime.version ~doc
+  let info =
+    Cmdliner.Term.info
+      alias
+      ~version:EsyRuntime.version
+      ~doc
+      ~docs:aliasesSection
+  in
+  term, info
 
 let makeCommands ~sandbox () =
   let open Cmdliner in
@@ -2085,6 +2098,7 @@ let makeCommands ~sandbox () =
       ~header:`No
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
+      ~docs:commonSection
       Term.(const run $ main_name $ commonOpts $ cmdTerm $ Cli.setupLogTerm)
   in
 
@@ -2105,6 +2119,7 @@ let makeCommands ~sandbox () =
         ~header:`No
         ~name:"build"
         ~doc:"Build the entire sandbox"
+        ~docs:commonSection
         Term.(
           const run
           $ main_name
@@ -2120,6 +2135,7 @@ let makeCommands ~sandbox () =
       makeCommand
         ~name:"install"
         ~doc:"Solve & fetch dependencies"
+        ~docs:commonSection
         Term.(
           const solveAndFetch
           $ commonOpts
@@ -2128,12 +2144,233 @@ let makeCommands ~sandbox () =
     in
 
     [
-    (* commands *)
+
+    (* COMMON COMMANDS *)
+
+    installCommand;
+    buildCommand;
+
+    makeCommand
+      ~name:"build-shell"
+      ~doc:"Enter the build shell"
+      ~docs:commonSection
+      Term.(
+        const buildShell
+        $ main_name
+        $ commonOpts
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"shell"
+      ~doc:"Enter esy sandbox shell"
+      ~docs:commonSection
+      Term.(
+        const devShell
+        $ main_name
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"x"
+      ~doc:"Execute command as if the package is installed"
+      ~docs:commonSection
+      Term.(
+        const exec
+        $ main_name
+        $ commonOpts
+        $ Cli.cmdTerm
+            ~doc:"Command to execute within the sandbox environment."
+            ~docv:"COMMAND"
+            (Cmdliner.Arg.pos_all)
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"add"
+      ~doc:"Add a new dependency"
+      ~docs:commonSection
+      Term.(
+        const add
+        $ commonOpts
+        $ Arg.(
+            non_empty
+            & pos_all string []
+            & info [] ~docv:"PACKAGE" ~doc:"Package to install"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"show"
+      ~doc:"Display information about available packages"
+      ~docs:commonSection
+      ~header:`No
+      Term.(
+        const show
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
+        $ Arg.(
+            required
+            & pos 0 (some string) None
+            & info [] ~docv:"PACKAGE" ~doc:"Package to display information about"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"help"
+      ~doc:"Show this message and exit"
+      ~docs:commonSection
+      Term.(ret (
+        const (fun () -> `Help (`Auto, None))
+        $ const ()
+      ));
+
+    makeCommand
+      ~name:"version"
+      ~doc:"Print esy version and exit"
+      ~docs:commonSection
+      Term.(
+        const (fun () -> print_endline EsyRuntime.version; RunAsync.return())
+        $ const ()
+      );
+
+    (* ALIASES *)
+
+    makeAlias buildCommand "b";
+    makeAlias installCommand "i";
+
+    (* OTHER COMMANDS *)
+
+    makeCommand
+      ~name:"release"
+      ~doc:"Produce npm package with prebuilt artifacts"
+      ~docs:otherSection
+      Term.(
+        const release
+        $ main_name
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"export-build"
+      ~doc:"Export build from the store"
+      ~docs:otherSection
+      Term.(
+        const exportBuild
+        $ commonOpts
+        $ Arg.(
+            required
+            & pos 0  (some resolvedPathTerm) None
+            & info [] ~doc:"Path with builds."
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"import-build"
+      ~doc:"Import build into the store"
+      ~docs:otherSection
+      Term.(
+        const importBuild
+        $ commonOpts
+        $ Arg.(
+            value
+            & opt (some resolvedPathTerm) None
+            & info ["from"; "f"] ~docv:"FROM"
+          )
+        $ Arg.(
+            value
+            & pos_all resolvedPathTerm []
+            & info [] ~docv:"BUILD"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"export-dependencies"
+      ~doc:"Export sandbox dependendencies as prebuilt artifacts"
+      ~docs:otherSection
+      Term.(
+        const exportDependencies
+        $ commonOpts
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"import-dependencies"
+      ~doc:"Import sandbox dependencies"
+      ~docs:otherSection
+      Term.(
+        const importDependencies
+        $ commonOpts
+        $ Arg.(
+            value
+            & pos 0  (some resolvedPathTerm) None
+            & info [] ~doc:"Path with builds."
+          )
+        $ Cli.setupLogTerm
+      );
+
+    (* INTROSPECTION COMMANDS *)
+
+    makeCommand
+      ~name:"ls-builds"
+      ~doc:"Output a tree of packages in the sandbox along with their status"
+      ~docs:introspectionSection
+      Term.(
+        const lsBuilds
+        $ commonOpts
+        $ Arg.(
+            value
+            & flag
+            & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"ls-libs"
+      ~doc:"Output a tree of packages along with the set of libraries made available by each package dependency."
+      ~docs:introspectionSection
+      Term.(
+        const lsLibs
+        $ commonOpts
+        $ Arg.(
+            value
+            & flag
+            & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~name:"ls-modules"
+      ~doc:"Output a tree of packages along with the set of libraries and modules made available by each package dependency."
+      ~docs:introspectionSection
+      Term.(
+        const lsModules
+        $ commonOpts
+        $ Arg.(
+            value
+            & (pos_all string [])
+            & info [] ~docv:"LIB" ~doc:"Output modules only for specified lib(s)")
+        $ Cli.setupLogTerm
+      );
 
     makeCommand
       ~header:`No
       ~name:"status"
       ~doc:"Print esy sandbox status"
+      ~docs:introspectionSection
       Term.(
         const status
         $ CommonOptions.termResult sandbox
@@ -2141,12 +2378,87 @@ let makeCommands ~sandbox () =
         $ Cli.setupLogTerm
       );
 
-    installCommand;
-    buildCommand;
+    makeCommand
+      ~header:`No
+      ~name:"build-plan"
+      ~doc:"Print build plan to stdout"
+      ~docs:introspectionSection
+      Term.(
+        const buildPlan
+        $ commonOpts
+        $ Arg.(
+            value
+            & opt (some planModeConv) None
+            & info ["mode"] ~doc:"How to build: build or buildDev" ~docv:"BUILD"
+          )
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"build-env"
+      ~doc:"Print build environment to stdout"
+      ~docs:introspectionSection
+      Term.(
+        const buildEnv
+        $ main_name
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"command-env"
+      ~doc:"Print command environment to stdout"
+      ~docs:introspectionSection
+      Term.(
+        const commandEnv
+        $ main_name
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    makeCommand
+      ~header:`No
+      ~name:"exec-env"
+      ~doc:"Print exec environment to stdout"
+      ~docs:introspectionSection
+      Term.(
+        const execEnv
+        $ main_name
+        $ commonOpts
+        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
+        $ Arg.(
+            value
+            & pos 0 pkgspecConv Root
+            & info [] ~doc:"Package" ~docv:"PACKAGE"
+          )
+        $ Cli.setupLogTerm
+      );
+
+    (* LOW LEVEL PLUMBING COMMANDS *)
 
     makeCommand
       ~name:"build-package"
       ~doc:"Build package"
+      ~docs:lowLevelSection
       Term.(
         const buildPackage
         $ main_name
@@ -2172,6 +2484,7 @@ let makeCommands ~sandbox () =
     makeCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies"
+      ~docs:lowLevelSection
       Term.(
         const buildDependencies
         $ main_name
@@ -2201,54 +2514,9 @@ let makeCommands ~sandbox () =
 
     makeCommand
       ~header:`No
-      ~name:"build-plan"
-      ~doc:"Print build plan to stdout"
-      Term.(
-        const buildPlan
-        $ commonOpts
-        $ Arg.(
-            value
-            & opt (some planModeConv) None
-            & info ["mode"] ~doc:"How to build: build or buildDev" ~docv:"BUILD"
-          )
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"build-shell"
-      ~doc:"Enter the build shell"
-      Term.(
-        const buildShell
-        $ main_name
-        $ commonOpts
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
-      ~name:"shell"
-      ~doc:"Enter esy sandbox shell"
-      Term.(
-        const devShell
-        $ main_name
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
       ~name:"print-env"
       ~doc:"Produce environment by specification"
+      ~docs:lowLevelSection
       Term.(
         const printEnv
         $ main_name
@@ -2279,6 +2547,7 @@ let makeCommands ~sandbox () =
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command"
+      ~docs:lowLevelSection
       Term.(
         const execCommand
         $ main_name
@@ -2310,183 +2579,9 @@ let makeCommands ~sandbox () =
       );
 
     makeCommand
-      ~header:`No
-      ~name:"build-env"
-      ~doc:"Print build environment to stdout"
-      Term.(
-        const buildEnv
-        $ main_name
-        $ commonOpts
-        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
-      ~name:"command-env"
-      ~doc:"Print command environment to stdout"
-      Term.(
-        const commandEnv
-        $ main_name
-        $ commonOpts
-        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
-      ~name:"exec-env"
-      ~doc:"Print exec environment to stdout"
-      Term.(
-        const execEnv
-        $ main_name
-        $ commonOpts
-        $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 pkgspecConv Root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"ls-builds"
-      ~doc:"Output a tree of packages in the sandbox along with their status"
-      Term.(
-        const lsBuilds
-        $ commonOpts
-        $ Arg.(
-            value
-            & flag
-            & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"ls-libs"
-      ~doc:"Output a tree of packages along with the set of libraries made available by each package dependency."
-      Term.(
-        const lsLibs
-        $ commonOpts
-        $ Arg.(
-            value
-            & flag
-            & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"ls-modules"
-      ~doc:"Output a tree of packages along with the set of libraries and modules made available by each package dependency."
-      Term.(
-        const lsModules
-        $ commonOpts
-        $ Arg.(
-            value
-            & (pos_all string [])
-            & info [] ~docv:"LIB" ~doc:"Output modules only for specified lib(s)")
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"export-dependencies"
-      ~doc:"Export sandbox dependendencies as prebuilt artifacts"
-      Term.(
-        const exportDependencies
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"import-dependencies"
-      ~doc:"Import sandbox dependencies"
-      Term.(
-        const importDependencies
-        $ commonOpts
-        $ Arg.(
-            value
-            & pos 0  (some resolvedPathTerm) None
-            & info [] ~doc:"Path with builds."
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~header:`No
-      ~name:"x"
-      ~doc:"Execute command as if the package is installed"
-      Term.(
-        const exec
-        $ main_name
-        $ commonOpts
-        $ Cli.cmdTerm
-            ~doc:"Command to execute within the sandbox environment."
-            ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_all)
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"export-build"
-      ~doc:"Export build from the store"
-      Term.(
-        const exportBuild
-        $ commonOpts
-        $ Arg.(
-            required
-            & pos 0  (some resolvedPathTerm) None
-            & info [] ~doc:"Path with builds."
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"import-build"
-      ~doc:"Import build into the store"
-      Term.(
-        const importBuild
-        $ commonOpts
-        $ Arg.(
-            value
-            & opt (some resolvedPathTerm) None
-            & info ["from"; "f"] ~docv:"FROM"
-          )
-        $ Arg.(
-            value
-            & pos_all resolvedPathTerm []
-            & info [] ~docv:"BUILD"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"add"
-      ~doc:"Add a new dependency"
-      Term.(
-        const add
-        $ commonOpts
-        $ Arg.(
-            non_empty
-            & pos_all string []
-            & info [] ~docv:"PACKAGE" ~doc:"Package to install"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
+      ~docs:lowLevelSection
       Term.(
         const solve
         $ commonOpts
@@ -2496,57 +2591,13 @@ let makeCommands ~sandbox () =
     makeCommand
       ~name:"fetch"
       ~doc:"Fetch dependencies using the stored solution"
+      ~docs:lowLevelSection
       Term.(
         const fetch
         $ commonOpts
         $ Cli.setupLogTerm
       );
 
-    makeCommand
-      ~name:"release"
-      ~doc:"Produce npm package with prebuilt artifacts"
-      Term.(
-        const release
-        $ main_name
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"show"
-      ~doc:"Display information about available packages"
-      ~header:`No
-      Term.(
-        const show
-        $ commonOpts
-        $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
-        $ Arg.(
-            required
-            & pos 0 (some string) None
-            & info [] ~docv:"PACKAGE" ~doc:"Package to display information about"
-          )
-        $ Cli.setupLogTerm
-      );
-
-    makeCommand
-      ~name:"help"
-      ~doc:"Show this message and exit"
-      Term.(ret (
-        const (fun () -> `Help (`Auto, None))
-        $ const ()
-      ));
-
-    makeCommand
-      ~name:"version"
-      ~doc:"Print esy version and exit"
-      Term.(
-        const (fun () -> print_endline EsyRuntime.version; RunAsync.return())
-        $ const ()
-      );
-
-    (* aliases *)
-    makeAlias buildCommand "b";
-    makeAlias installCommand "i";
   ] in
 
   defaultCommand, commands
