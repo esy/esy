@@ -17,12 +17,28 @@ const PackageGraph = require('./PackageGraph.js');
 const NpmRegistryMock = require('./NpmRegistryMock.js');
 const OpamRegistryMock = require('./OpamRegistryMock.js');
 const outdent = require('outdent');
+const pkgJson = require('../../package.json');
 
 const isWindows = process.platform === 'win32';
+const isLinux = process.platform === 'linux';
+const isMacos = process.platform === 'darwin';
+
+const getWindowsSystemDirectory = () => {
+  return path
+    .join(process.env['windir'], 'System32')
+    .split('\\')
+    .join('/');
+};
 
 const ESY = isWindows
   ? require.resolve('../../bin/esy.cmd')
   : require.resolve('../../bin/esy');
+
+var regexpRe = /[|\\{}()[\]^$+*?.]/g;
+
+function escapeForRegexp(str) {
+  return str.replace(regexpRe, '\\$&');
+}
 
 function dummyExecutable(name: string) {
   return FixtureUtils.file(
@@ -44,7 +60,7 @@ export type TestSandbox = {
 
   fixture: (...fixture: Fixture) => Promise<void>,
 
-  run: (args: string) => Promise<{stderr: string, stdout: string}>,
+  run: (args: string, env?: Object) => Promise<{stderr: string, stdout: string}>,
 
   cd: (where: string) => void,
 
@@ -58,6 +74,7 @@ export type TestSandbox = {
   ) => Promise<void>,
   npm: (args: string) => Promise<{stderr: string, stdout: string}>,
 
+  normalizePathsForSnapshot: (string, replacements?: {[s: string]: string}) => string,
   runJavaScriptInNodeAndReturnJson: string => Promise<Object>,
 
   defineNpmPackage: (
@@ -122,10 +139,13 @@ function getStorePathForPrefix(prefix) {
   }
 }
 
+const CREATED_SANDBOXES = [];
+
 async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   // use /tmp on unix b/c sometimes it's too long to host the esy store
   const tmp = isWindows ? os.tmpdir() : '/tmp';
   const rootPath = await fs.realpath(await fs.mkdtemp(path.join(tmp, 'XXXX')));
+  CREATED_SANDBOXES.push(rootPath);
   const projectPath = path.join(rootPath, 'project');
   const binPath = path.join(rootPath, 'bin');
   const npmPrefixPath = path.join(rootPath, 'npm');
@@ -135,7 +155,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
   await fs.symlink(ESY, path.join(binPath, exe('esy')));
-  await fs.copyFile(process.execPath, path.join(binPath, exe('node')));
+  await fs.symlink(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
@@ -151,28 +171,35 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     return JSON.parse(p.stdout);
   }
 
-  function esy(args, options) {
-    options = options || {};
-    let env = {
-      ...process.env,
-      PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
-    };
-    if (options.env != null) {
-      env = {...env, ...options.env};
-    }
-    if (!options.noEsyPrefix) {
-      env = {
-        ...env,
-        ESY__PREFIX: esyPrefixPath,
-        ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
-        ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
-        ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
-        NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+  async function esy(args, options) {
+    const p = Promise.resolve().then(() => {
+      options = options || {};
+      let env = {
+        ...process.env,
+        PATH: `${binPath}${path.delimiter}${process.env.PATH || ''}`,
       };
-    }
+      if (options.env != null) {
+        env = {...env, ...options.env};
+      }
+      if (!options.noEsyPrefix) {
+        env = {
+          ...env,
+          ESY__PREFIX: esyPrefixPath,
+          ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
+          ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
+          ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
+          NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+        };
+      }
 
-    const execCommand = args != null ? `${ESY} ${args}` : ESY;
-    return promiseExec(execCommand, {cwd, env});
+      const execCommand = args != null ? `${ESY} ${args}` : ESY;
+      return promiseExec(execCommand, {cwd, env});
+    });
+    return p.catch(err => {
+      err.stdout = normalizeEOL(err.stdout);
+      err.stderr = normalizeEOL(err.stderr);
+      throw err;
+    });
   }
 
   function npm(args: string) {
@@ -182,8 +209,11 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     });
   }
 
-  function run(line: string) {
-    return promiseExec(line, {cwd});
+  function run(line: string, env) {
+    if (env == null) {
+      env = process.env;
+    }
+    return promiseExec(line, {cwd, env});
   }
 
   async function printEsy(cmd, options) {
@@ -209,6 +239,24 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   const esyStorePath = getStorePathForPrefix(esyPrefixPath);
 
+  const projectPathRe = new RegExp(escapeForRegexp(projectPath), 'g');
+  const esyPrefixPathRe = new RegExp(escapeForRegexp(esyPrefixPath), 'g');
+  const esyStorePathRe = new RegExp(escapeForRegexp(esyStorePath), 'g');
+
+  function normalizePathsForSnapshot(data, replacements) {
+    data = data
+      .replace(projectPathRe, '%projectPath%')
+      .replace(esyStorePathRe, '%esyStorePath%')
+      .replace(esyPrefixPathRe, '%esyPrefixPath%');
+    for (let to in replacements) {
+      data = data.replace(
+        new RegExp(escapeForRegexp(replacements[to]), 'g'),
+        '%' + to + '%',
+      );
+    }
+    return data;
+  }
+
   return {
     cd,
     rootPath,
@@ -222,6 +270,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     printEsy,
     npm,
     npmRegistry,
+    normalizePathsForSnapshot,
     fixture: async (...fixture) => {
       await FixtureUtils.initialize(projectPath, fixture);
     },
@@ -237,6 +286,14 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
   };
 }
+
+afterAll(function() {
+  if (process.env.TEST_ESY_DEBUG != undefined) {
+    for (const p of CREATED_SANDBOXES) {
+      fs.removeSync(p);
+    }
+  }
+});
 
 function skipSuiteOnWindows(blockingIssues?: string) {
   if (process.platform === 'win32') {
@@ -266,7 +323,58 @@ function buildCommandInOpam(input: string) {
   return `[${node} ${genWrapper} ${JSON.stringify(input)}]`;
 }
 
+function normalizeEOL(string: string) {
+  return string.replace(/(\r\n)|\r/g, '\n');
+}
+
+function createDefineTest(params) {
+  function deftest(name: string, fn: (done: () => void) => ?Promise<mixed>) {
+    if (params.disabled) {
+      return test.skip(name, fn);
+    } else if (params.focused) {
+      return test.only(name, fn);
+    } else {
+      return test(name, fn);
+    }
+  }
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'only', {
+    get() {
+      return createDefineTest({...params, focused: true});
+    },
+  });
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'skip', {
+    get() {
+      return createDefineTest({...params, disabled: true});
+    },
+  });
+  // $FlowFixMe
+  Object.defineProperty(deftest, 'disable', {
+    get() {
+      return createDefineTest({...params, disabled: true});
+    },
+  });
+  deftest.disableIf = function(cond) {
+    if (cond) {
+      return createDefineTest({...params, disabled: true});
+    } else {
+      return createDefineTest({...params, disabled: false});
+    }
+  };
+  deftest.enableIf = function(cond) {
+    if (cond) {
+      return createDefineTest({...params, disabled: false});
+    } else {
+      return createDefineTest({...params, disabled: true});
+    }
+  };
+  return deftest;
+}
+
 module.exports = {
+  test: createDefineTest({disabled: false, focused: false}),
+  normalizeEOL,
   promiseExec,
   file: FixtureUtils.file,
   symlink: FixtureUtils.symlink,
@@ -286,8 +394,13 @@ module.exports = {
   readFile: fs.readFile,
   execFile: exec.execFile,
   createTestSandbox,
-  isWindows,
+  getWindowsSystemDirectory,
   dummyExecutable,
   buildCommand,
   buildCommandInOpam,
+  esyVersion: pkgJson.version,
+
+  isWindows,
+  isLinux,
+  isMacos,
 };

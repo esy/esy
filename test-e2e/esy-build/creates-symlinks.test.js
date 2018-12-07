@@ -1,10 +1,9 @@
 // @flow
 
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos} = helpers;
 
-helpers.skipSuiteOnWindows();
-
-it('Correctly handles symlinks within the installation', async () => {
+async function createTestSandbox() {
   const p = await helpers.createTestSandbox();
 
   await p.fixture(
@@ -45,29 +44,36 @@ it('Correctly handles symlinks within the installation', async () => {
       helpers.dummyExecutable('dep'),
     ),
   );
+  return p;
+}
 
-  await p.esy('install');
-  await p.esy('build');
+test.disableIf(isWindows)(
+  'Correctly handles symlinks within the installation',
+  async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
 
-  const expecting = expect.stringMatching('__dep__');
+    const expecting = expect.stringMatching('__dep__');
 
-  {
-    const {stdout} = await p.esy('dep.cmd');
-    expect(stdout.trim()).toEqual('__dep__');
-  }
+    {
+      const {stdout} = await p.esy('dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-  {
-    const {stdout} = await p.esy('b dep.cmd');
-    expect(stdout.trim()).toEqual('__dep__');
-  }
+    {
+      const {stdout} = await p.esy('b dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-  {
-    const {stdout} = await p.esy('x dep.cmd');
-    expect(stdout.trim()).toEqual('__dep__');
-  }
+    {
+      const {stdout} = await p.esy('x dep.cmd');
+      expect(stdout.trim()).toEqual('__dep__');
+    }
 
-  {
-    let {stdout} = await p.esy('x creates-symlinks.cmd');
-    expect(stdout.trim()).toEqual('__creates-symlinks__');
-  }
-});
+    {
+      let {stdout} = await p.esy('x creates-symlinks.cmd');
+      expect(stdout.trim()).toEqual('__creates-symlinks__');
+    }
+  },
+);

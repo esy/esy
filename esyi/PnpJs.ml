@@ -235,7 +235,7 @@ let render
       ~basePath
       packageInformation
   in
-  Format.asprintf {|
+  Format.asprintf {|#!/usr/bin/env node
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
 

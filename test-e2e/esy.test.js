@@ -1,6 +1,6 @@
 // @flow
 
-const helpers = require('../test/helpers');
+const helpers = require('./test/helpers');
 const {file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows('Needs esyi to work');

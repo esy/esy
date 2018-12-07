@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`'esy build': simple executable with no deps out of source build macos || linux: build-env snapshot 1`] = `
+"# Build environment for no-deps@link:./package.json
+
+#
+# no-deps@1.0.0
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
+export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
+export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
+export cur__stublibs=\\"%projectPath%/_esy/default/store/i/%id%/stublibs\\"
+export cur__doc=\\"%projectPath%/_esy/default/store/i/%id%/doc\\"
+export cur__man=\\"%projectPath%/_esy/default/store/i/%id%/man\\"
+export cur__lib=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
+export cur__sbin=\\"%projectPath%/_esy/default/store/i/%id%/sbin\\"
+export cur__bin=\\"%projectPath%/_esy/default/store/i/%id%/bin\\"
+export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
+export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
+export cur__original_root=\\"%projectPath%\\"
+export cur__root=\\"%projectPath%\\"
+export cur__dev=\\"true\\"
+export cur__version=\\"1.0.0\\"
+export cur__name=\\"no-deps\\"
+export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
+
+#
+# Built-in
+#
+export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
+export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
+`;

@@ -2,6 +2,7 @@
 
 const path = require('path');
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos, isLinux} = helpers;
 
 function makeFixture(p, buildDep) {
   return [
@@ -14,7 +15,7 @@ function makeFixture(p, buildDep) {
   ];
 }
 
-describe('Build simple executable with no deps', () => {
+describe(`'esy build': simple executable with no deps`, () => {
   async function checkIsInEnv(p) {
     const {stdout} = await p.esy('x no-deps.cmd');
     expect(stdout.trim()).toEqual('__no-deps__');
@@ -47,6 +48,8 @@ describe('Build simple executable with no deps', () => {
     test(
       'build-env',
       withProject(async function(p) {
+        let winsysDir =
+          process.platform === 'win32' ? [helpers.getWindowsSystemDirectory()] : [];
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env --json');
         const env = JSON.parse(stdout);
@@ -66,13 +69,28 @@ describe('Build simple executable with no deps', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-          PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
-            path.delimiter,
-          ),
+          PATH: [
+            ``,
+            `/usr/local/bin`,
+            `/usr/bin`,
+            `/bin`,
+            `/usr/sbin`,
+            `/sbin`,
+            ...winsysDir,
+          ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
           DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
         });
+      }),
+    );
+
+    test.enableIf(isMacos || isLinux)(
+      'macos || linux: build-env snapshot',
+      withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
+        const {stdout} = await p.esy('build-env');
+        expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
       }),
     );
 

@@ -46,3 +46,10 @@ module Encode : sig
   val field : string -> 'a encoder -> 'a -> field
   val fieldOpt : string -> 'a encoder -> 'a option -> field
 end
+
+module Print : sig
+  val pp :
+    ?ppListBox:(?indent:int -> t list Fmt.t -> t list Fmt.t)
+    -> ?ppAssocBox:(?indent:int -> (string * t) list Fmt.t -> (string * t) list Fmt.t)
+    -> t Fmt.t
+end

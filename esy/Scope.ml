@@ -223,12 +223,19 @@ end = struct
     in
 
     let p v = SandboxValue.show (SandboxPath.toValue v) in
+    let dev =
+      match scope.sourceType with
+      | Transient -> "true"
+      | Immutable
+      | ImmutableWithTransientDependencies -> "false"
+    in
 
     (* add builtins *)
     let env =
       [
         "cur__name", (name scope);
         "cur__version", (Version.showSimple (version scope));
+        "cur__dev", dev;
         "cur__root", (p (rootPath scope));
         "cur__original_root", (p (sourcePath scope));
         "cur__target_dir", (p (buildPath scope));
@@ -301,7 +308,10 @@ let make
     finalEnv = (
       let defaultPath =
           match platform with
-          | Windows -> "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin"
+          | Windows -> 
+              let windir = Sys.getenv("WINDIR") ^ "/System32" in
+              let windir = Path.normalizePathSlashes windir in
+              "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ^ windir
           | _ -> "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
       in
       SandboxEnvironment.[

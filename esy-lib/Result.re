@@ -19,10 +19,24 @@ let map = (~f) =>
   | Ok(v) => Ok(f(v))
   | Error(err) => Error(err);
 
+let isOk =
+  fun
+  | Ok(_) => true
+  | Error(_) => false;
+
+let isError =
+  fun
+  | Ok(_) => false
+  | Error(_) => true;
+
+let getOr = onError =>
+  fun
+  | Ok(v) => v
+  | Error(_) => onError;
+
 module List = {
   let map =
-      (~f: 'a => result('b, 'err), xs: list('a))
-      : result(list('b), 'err) => {
+      (~f: 'a => result('b, 'err), xs: list('a)): result(list('b), 'err) => {
     let f = (prev, x) =>
       switch (prev) {
       | Ok(xs) =>

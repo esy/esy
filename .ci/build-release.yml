@@ -16,13 +16,19 @@ jobs:
         vmImage: ubuntu-16.04
 
     variables:
-        ESYCI__CACHE_BUILD: /home/vsts/.esy/3_____________________________________________________________________/i/
-        ESYCI__CACHE_INSTALL: /home/vsts/.esy/source/i
+        STAGING_DIRECTORY: /home/vsts/STAGING
+        STAGING_DIRECTORY_UNIX: /home/vsts/STAGING
+        ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
+        # ESY__NPM_ROOT: /opt/hostedtoolcache/node/8.14.0/x64/lib/node_modules/esy
 
     steps:
       - script: sudo apt-get update
       - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
+      - template: use-node.yml
+      - template: restore-build-cache.yml
       - template: build-nix.yml
+      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
@@ -38,12 +44,18 @@ jobs:
       demands: node.js
 
     variables:
-        ESYCI__CACHE_BUILD: /Users/vsts/.esy/3____________________________________________________________________/i/
-        ESYCI__CACHE_INSTALL: /Users/vsts/.esy/source/i
+        STAGING_DIRECTORY: /Users/vsts/STAGING
+        STAGING_DIRECTORY_UNIX: /Users/vsts/STAGING
+        ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
+        # ESY__NPM_ROOT: /usr/local/lib/node_modules/esy
 
     steps:
       - script: brew install gmp
+      - template: use-node.yml
+      - template: restore-build-cache.yml
       - template: build-nix.yml
+      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
@@ -60,15 +72,19 @@ jobs:
       demands: npm
 
     variables:
-        ESYCI__CACHE_BUILD: C:\Users\VssAdministrator\.esy\3_\i
-        ESYCI__CACHE_INSTALL: C:\Users\VssAdministrator\.esy\source\i
-        # TODO: REMOVE THIS PRIOR TO MERGING
+        STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
+        STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
+        ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
+        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
         ESY_SLOWTEST: true
 
     steps:
-      # - template: restore-build-cache.yml
+      - template: use-node.yml
+      - template: restore-build-cache.yml
       - template: build-windows.yml
       - template: publish-windows-opam-report.yml
+      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Windows'

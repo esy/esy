@@ -2,6 +2,7 @@
 
 const path = require('path');
 const helpers = require('../test/helpers');
+const {test, isWindows, isMacos, isLinux} = helpers;
 
 function makeFixture(p, buildDep) {
   return [
@@ -29,6 +30,9 @@ function makeFixture(p, buildDep) {
 }
 
 describe('Build with dep', () => {
+  let winsysDir =
+    process.platform === 'win32' ? [helpers.getWindowsSystemDirectory()] : [];
+
   async function checkDepIsInEnv(p) {
     {
       const {stdout} = await p.esy('dep.cmd');
@@ -102,11 +106,22 @@ describe('Build with dep', () => {
             `/bin`,
             `/usr/sbin`,
             `/sbin`,
+            ...winsysDir,
           ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
           DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
         });
+      }),
+    );
+
+    test.enableIf(isMacos || isLinux)(
+      'macos || linux: build-env snapshot',
+      withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan')).stdout).id;
+        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const {stdout} = await p.esy('build-env');
+        expect(p.normalizePathsForSnapshot(stdout, {id, depid})).toMatchSnapshot();
       }),
     );
 
@@ -132,13 +147,28 @@ describe('Build with dep', () => {
           cur__etc: `${p.esyStorePath}/s/${depId}/etc`,
           cur__doc: `${p.esyStorePath}/s/${depId}/doc`,
           cur__bin: `${p.esyStorePath}/s/${depId}/bin`,
-          PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
-            path.delimiter,
-          ),
+          PATH: [
+            ``,
+            `/usr/local/bin`,
+            `/usr/bin`,
+            `/bin`,
+            `/usr/sbin`,
+            `/sbin`,
+            ...winsysDir,
+          ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${depId}/lib`,
           DUNE_BUILD_DIR: `${p.esyStorePath}/b/${depId}`,
         });
+      }),
+    );
+
+    test.enableIf(isMacos || isLinux)(
+      'macos || linux: build-env dep snapshot',
+      withProject(async function(p) {
+        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const {stdout} = await p.esy('build-env dep');
+        expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
       }),
     );
 
