@@ -138,7 +138,7 @@ test('Monorepo workflow using low level commands', async function() {
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --linked-depspec "${depspec}" root -- ${pkg}.cmd`,
+        `exec-command --include-current-env --linked-depspec "${depspec}" root -- ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
@@ -150,7 +150,9 @@ test('Monorepo workflow using low level commands', async function() {
     await p.esy('build-dependencies --all --release');
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
-      const {stdout} = await p.esy(`exec-command --release root -- ${pkg}.cmd`);
+      const {stdout} = await p.esy(
+        `exec-command --release --include-current-env root -- ${pkg}.cmd`,
+      );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
   }
