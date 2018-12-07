@@ -1,9 +1,4 @@
 steps:
-  - task: NodeTool@0
-    displayName: 'Use Node 8.x'
-    inputs:
-      versionSpec: 8.x
-
   - script: 'npm install -g esy@0.4.3 --unsafe-perm'
     displayName: 'npm install -g esy'
 
