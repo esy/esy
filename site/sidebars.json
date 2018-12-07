@@ -12,7 +12,8 @@
       "environment",
       "commands",
       "low-level-commands",
-      "esy-configuration"
+      "esy-configuration",
+      "node-compatibility"
     ],
     "Community": [
       "community"

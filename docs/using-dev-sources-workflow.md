@@ -17,7 +17,7 @@ in [`resolutions`][cfg-resolutions] field alongside the depedency declaration:
   "reason": "*"
 },
 "resolutions": {
-  "reason": "facebook/reason"
+  "reason": "facebook/reason#abcdef"
 }
 ```
 
@@ -36,20 +36,17 @@ repository.
 
 Other options are:
 
-- `user/repo#commitish` will fetch sources from a GitHub's user/repo repository.
+- `user/repo#<commit>` will fetch sources from a GitHub's user/repo repository.
 
-  The `commitish` is mandatory and can be a branch name, a tag name or a specific commit.
+  The `<commit>` is mandatory and should point to a specific commit (this will
+  be lifted in the future).
 
   Examples:
 
-  - `facebook/reason#JsonSupport`
-  - `facebook/reason#3.0.3`
   - `facebook/reason#7ada18f`
 
-- `git://example.com/repo.git#commitish` will fetch sources from a specified git
+- `git://example.com/repo.git#<commit>` will fetch sources from a specified git
   repository.
-
-  The `commitish` is the same as with github sources explained above.
 
 ## With opam packages
 
@@ -69,8 +66,7 @@ Example:
   "@opam/lwt_ppx": "*"
 },
 "resolutions": {
-  "@opam/lwt": "ocsigen/lwt:lwt.opam#master",
-  "@opam/lwt_ppx": "ocsigen/lwt:lwt_ppx.opam#master"
+  "@opam/lwt": "ocsigen/lwt:lwt.opam#abc342",
 }
 ```
 

@@ -27,23 +27,19 @@ point where all artifacts are built consists of the following steps:
   Ensures all packages mentioned in `esy.lock` is in the [Global
   Installation Cache](#global-installation-cache).
 
-- **Install Dependencies**
-
-  Populates the sandbox's `node_modules` directory.
-
 - **Crawl Package Graph**
 
-  Crawls the sandbox's `node_modules` directory and constructs the `Package.t`
-  graph.
+  Crawls the sandbox's lockfile and linked packages and read them into
+  `BuildManifest.t`.
 
 - **Produce Task Graph**
 
-  Folds over the `Package.t` graph and produces the `Task.t` graph.
+  Folds over the `BuildManifest.t` and produces the `Plan.Task.t` structures.
 
 - **Build Task Graph**
 
-  Executes `Task.t` graph which uses `esy-build-package` to build each `Task.t`.
-
+  For each `Plan.Task.t` exeute build commands in the corresponding environment
+  using `esy-build-package` command.
 
 ### Solve Dependencies
 
@@ -90,24 +86,12 @@ How it works:
 Modules of interest:
 
 - `esyi/Fetch`
-- `esyi/FetchStorage`
 - `esyi/Solution`
-
-### Install Dependencies
-
-This step consumes a [solution](concepts.md#solution) produced by the 
-[Solve Dependencies](#solve-dependencies) step and populates with sandbox's
-`node_modules` directory by unpacking `*.tgz` from the [Global Installation
-Caches](#global-installation-cache).
-
-Modules of interest:
-
-- `esyi/Fetch`
 
 ### Crawl Package Graph
 
-This step crawls the sandbox's `node_modules` directory to construct the
-`Package.t` graph.
+This step crawls the sandbox's lockfile and linked packages and read them into
+`BuildManifest.t`.
 
 This graph has package metadata at nodes and edges are instances of dependency
 relations between packages. The dependency relation is defined by the following
@@ -123,24 +107,24 @@ fields in a package's manifest:
 
 Modules of interest:
 
-- `esy/Package`
-- `esy/Sandbox`
+- `esy/Plan`
+- `esy/BuildManifest`
 
 ### Produce Task Graph
 
-This step consumes a `Package.t` graph and produces a `Task.t` graph.
+This step consumes a `BuildManifest.t` structures and produces a `Plan.Task.t`
+structures.
 
-The resulted graph is topologically isomorphic to the original `Package.t` graph
-but contains much more information about the build process for each of the
-packages in a sandbox:
+The resulted graph is topologically isomorphic to the original
+`Solution.Package.t` graph but contains much more information about the build
+process for each of the packages in a sandbox:
 
 - A list of ready to execute commands
 - An environment which is needed to execute build commands
 
 Modules of interest:
 
-- `esy/Package`
-- `esy/Task`
+- `esy/Plan`
 
 ### Build Task Graph
 
@@ -165,7 +149,7 @@ There are multiple levels of caches used by esy.
 
 ### Global Installation Cache
 
-This cache stores source tarballs of concrete package versions.
+This cache stores sources of concrete package versions.
 
 #### Location & Structure
 
@@ -173,17 +157,11 @@ The default location for the cache is `~/.esy/esyi/tarballs` and can be
 indirectly controlled by the `--cache-path` option of `esyi` executable.
 
 ```bash
-% tree ~/.esy/esyi/tarballs
-├── @esy-ocaml
-│   ├── esy-installer__0.0.0.tgz
-│   └── substs__0.0.1.tgz
-├── @opam
-│   ├── base-bytes__opam:base__1cf5b511.tgz
+% tree ~/.esy/source/i
+├── esy-installer__0.0.0.tgz
+└── substs__0.0.1.tgz
 ...
 ```
-
-Tarballs are stored in a state which allows them to be extracted directly
-inside the `node_modules` directory of a project's sandbox.
 
 #### Cache Key
 
@@ -260,7 +238,7 @@ The cache key used for the cache consists of:
 
 Local Build Store follows exactly the same layout and cache key as the Global
 Build Store but it is local to a sandbox and located at
-`<sandboxPath>/node_modules/.cache/_esy/store` path.
+`<sandboxPath>/_esy/deafult/store` path.
 
 It is used to store artifacts of packages which don't have a stable build
 identity (unreleased software which changes often and doesn't warrant sroting
@@ -269,8 +247,8 @@ its artifacts in a Global Build Store).
 ### Local Sandbox Cache
 
 Local Sandbox Cache stores a computed package and build task graph. It is
-located at `<sandboxPath>/node_modules/.cache/_esy/sandbox-<hash>` where
-`<hash>` part is a hash of:
+located at `<sandboxPath>/_esy/default/cache/sandbox-<hash>` where `<hash>` part
+is a hash of:
 
 - Store Path
 - Sandbox Path

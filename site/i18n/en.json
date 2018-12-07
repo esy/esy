@@ -44,6 +44,9 @@
       "multiple-sandboxes": {
         "title": "Multiple Project Sandboxes"
       },
+      "node-compatibility": {
+        "title": "Node/npm Compatibility"
+      },
       "offline": {
         "title": "Offline Builds"
       },
