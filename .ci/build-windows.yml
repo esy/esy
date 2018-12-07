@@ -1,39 +1,15 @@
 steps:
-  - task: NodeTool@0
-    displayName: 'Use Node 8.x'
-
-    inputs:
-      versionSpec: 8.x
-
   - script: 'npm install -g esy@0.4.3'
     displayName: 'npm install -g esy@0.4.3'
 
   - script: 'esy install'
     displayName: 'esy install'
 
-  # - task: PublishBuildArtifacts@1
-  #   displayName: 'Cache: Upload source tarballs'
-  #   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  #   inputs:
-  #       pathToPublish: '$(ESYCI__CACHE_INSTALL)'
-  #       artifactName: 'cache-$(Agent.OS)-source-tarballs'
-  #       parallel: true
-  #       parallelCount: 8
-
   - script: 'esy build'
     displayName: 'esy build'
 
   - script: 'esy bootstrap'
     displayName: 'esy bootstrap'
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Cache: Upload install folder'
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-    inputs:
-        pathToPublish: '$(ESYCI__CACHE_BUILD)'
-        artifactName: 'cache-$(Agent.OS)-install'
-        parallel: true
-        parallelCount: 8
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
