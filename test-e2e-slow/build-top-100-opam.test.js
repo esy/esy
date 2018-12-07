@@ -14,240 +14,260 @@ const path = require('path');
 const rmSync = require('rimraf').sync;
 const isCi = require('is-ci');
 
+const windowsCasesExpectedToPass = [
+  'dune',
+  'menhir',
+  'cmdliner',
+  'angstrom',
+  'bos',
+  'bigstringaf',
+  'utop',
+  'dose3',
+  'lwt_ppx',
+  'ppx_deriving_yojson',
+  'configurator',
+  'merlin-extend',
+  'ppx_optional',
+  'ppx_base',
+  'jane-street-headers',
+  'merlin',
+  'ocamlfind',
+  'splittable_random',
+  'jbuilder',
+  'cppo',
+  'result',
+  'ocamlbuild',
+  'topkg',
+  'ocaml-migrate-parsetree',
+  'camlp5',
+  'ppx_tools_versioned',
+  'yojson',
+  'biniou',
+  'ounit',
+  're',
+  'camomile',
+  'zed',
+  'lambda-term',
+  'cudf',
+];
 
-// For the top-100 tests, we have two modes for 'isExploratory':
-// 
-// false: This is intended to ensure there are no regressions. The test will fail if a package fails.
-// true: When exploratory is true, we will run any test in the corpus - this can help us find new packages that should be 'whitelisted' for Windows.
-let runTests = (isExploratory) => {
-    const windowsWhiteListedCases = [
-      {name: 'dune', toolchains: [ocamlVersion]},
-      {name: 'menhir', toolchains: [ocamlVersion]},
-      {name: 'cmdliner', toolchains: [ocamlVersion]},
-      {name: 'angstrom', toolchains: [ocamlVersion]},
-      {name: 'bos', toolchains: [ocamlVersion]},
-      {name: 'bigstringaf', toolchains: [ocamlVersion]},
-      {name: 'utop', toolchains: [ocamlVersion]},
-      {name: 'dose3', toolchains: [ocamlVersion]},
-      {name: 'lwt_ppx', toolchains: [ocamlVersion]},
-      {name: 'ppx_deriving_yojson', toolchains: [ocamlVersion]},
-      {name: 'configurator', toolchains: [ocamlVersion]},
-      {name: 'merlin-extend', toolchains: [ocamlVersion]},
-      {name: 'ppx_optional', toolchains: [ocamlVersion]},
-      {name: 'ppx_base', toolchains: [ocamlVersion]},
-      {name: 'jane-street-headers', toolchains: [ocamlVersion]},
-      {name: 'merlin', toolchains: [ocamlVersion]},
-      {name: 'ocamlfind', toolchains: [ocamlVersion]},
-      {name: 'splittable_random', toolchains: [ocamlVersion]},
-      {name: 'jbuilder', toolchains: [ocamlVersion]},
-      {name: 'cppo', toolchains: [ocamlVersion]},
-      {name: 'result', toolchains: [ocamlVersion]},
-      {name: 'ocamlbuild', toolchains: [ocamlVersion]},
-      {name: 'topkg', toolchains: [ocamlVersion]},
-      {name: 'ocaml-migrate-parsetree', toolchains: [ocamlVersion]},
-      {name: 'camlp5', toolchains: [ocamlVersion]},
-      {name: 'ppx_tools_versioned', toolchains: [ocamlVersion]},
-      {name: 'yojson', toolchains: [ocamlVersion]},
-      {name: 'biniou', toolchains: [ocamlVersion]},
-      {name: 'ounit', toolchains: [ocamlVersion]},
-      {name: 're', toolchains: [ocamlVersion]},
-      {name: 'camomile', toolchains: [ocamlVersion]},
-      {name: 'zed', toolchains: [ocamlVersion]},
-      {name: 'lambda-term', toolchains: [ocamlVersion]},
-      {name: 'cudf', toolchains: [ocamlVersion]},
-    ];
+const allCases = [
+  {name: 'dune', toolchains: [ocamlVersion]},
+  {name: 'menhir', toolchains: [ocamlVersion]},
+  {name: 'cmdliner', toolchains: [ocamlVersion]},
+  {name: 'angstrom', toolchains: [ocamlVersion]},
+  {name: 'bos', toolchains: [ocamlVersion]},
+  {name: 'bigstringaf', toolchains: [ocamlVersion]},
+  {name: 'utop', toolchains: [ocamlVersion]},
+  {name: 'dose3', toolchains: [ocamlVersion]},
+  {name: 'lwt_ppx', toolchains: [ocamlVersion]},
+  {name: 'ppx_deriving_yojson', toolchains: [ocamlVersion]},
+  {name: 'configurator', toolchains: [ocamlVersion]},
+  {name: 'merlin-extend', toolchains: [ocamlVersion]},
+  {name: 'ppx_optional', toolchains: [ocamlVersion]},
+  {name: 'ppx_base', toolchains: [ocamlVersion]},
+  {name: 'jane-street-headers', toolchains: [ocamlVersion]},
+  {name: 'merlin', toolchains: [ocamlVersion]},
+  {name: 'ocamlfind', toolchains: [ocamlVersion]},
+  {name: 'splittable_random', toolchains: [ocamlVersion]},
+  {name: 'jbuilder', toolchains: [ocamlVersion]},
+  {name: 'cppo', toolchains: [ocamlVersion]},
+  {name: 'result', toolchains: [ocamlVersion]},
+  {name: 'ocamlbuild', toolchains: [ocamlVersion]},
+  {name: 'topkg', toolchains: [ocamlVersion]},
+  {name: 'ocaml-migrate-parsetree', toolchains: [ocamlVersion]},
+  {name: 'camlp5', toolchains: [ocamlVersion]},
+  {name: 'ppx_tools_versioned', toolchains: [ocamlVersion]},
+  {name: 'yojson', toolchains: [ocamlVersion]},
+  {name: 'biniou', toolchains: [ocamlVersion]},
+  {name: 'ounit', toolchains: [ocamlVersion]},
+  {name: 're', toolchains: [ocamlVersion]},
+  {name: 'camomile', toolchains: [ocamlVersion]},
+  {name: 'zed', toolchains: [ocamlVersion]},
+  {name: 'lambda-term', toolchains: [ocamlVersion]},
+  {name: 'cudf', toolchains: [ocamlVersion]},
+  // Blocked by esy/esy#505
+  {name: 'coq', toolchains: [ocamlVersion]},
+  {name: 'easy-format', toolchains: [ocamlVersion]},
+  {name: 'lwt', toolchains: [ocamlVersion]},
+  {name: 'sexplib', toolchains: [ocamlVersion]},
+  {name: 'ppx_type_conv', toolchains: [ocamlVersion]},
+  {name: 'ppx_driver', toolchains: [ocamlVersion]},
+  {name: 'ppx_core', toolchains: [ocamlVersion]},
+  {name: 'camlp4', toolchains: [ocamlVersion]},
+  {name: 'ppx_sexp_conv', toolchains: [ocamlVersion]},
+  {name: 'ppx_optcomp', toolchains: [ocamlVersion]},
+  {name: 'ppx_tools', toolchains: [ocamlVersion]},
+  {name: 'stdio', toolchains: [ocamlVersion]},
+  {name: 'base', toolchains: [ocamlVersion]},
+  {name: 'ppx_ast', toolchains: [ocamlVersion]},
+  {name: 'ocaml-compiler-libs', toolchains: [ocamlVersion]},
+  {name: 'ppx_metaquot', toolchains: [ocamlVersion]},
+  {name: 'ppx_traverse_builtins', toolchains: [ocamlVersion]},
+  {name: 'ppx_deriving', toolchains: [ocamlVersion]},
+  {name: 'ppx_fields_conv', toolchains: [ocamlVersion]},
+  {name: 'fieldslib', toolchains: [ocamlVersion]},
+  {name: 'ppx_compare', toolchains: [ocamlVersion]},
+  {name: 'react', toolchains: [ocamlVersion]},
+  {name: 'cppo_ocamlbuild', toolchains: [ocamlVersion]},
+  {name: 'ppx_enumerate', toolchains: [ocamlVersion]},
+  {name: 'xmlm', toolchains: [ocamlVersion]},
+  {name: 'bin_prot', toolchains: [ocamlVersion]},
+  {name: 'conf-libcurl', toolchains: [ocamlVersion]},
+  {name: 'core_kernel', toolchains: [ocamlVersion]},
+  {name: 'zarith', toolchains: [ocamlVersion]},
+  {name: 'ppx_hash', toolchains: [ocamlVersion]},
+  {name: 'core', toolchains: [ocamlVersion]},
+  {name: 'ppx_variants_conv', toolchains: [ocamlVersion]},
+  {name: 'ppx_custom_printf', toolchains: [ocamlVersion]},
+  {name: 'octavius', toolchains: [ocamlVersion]},
+  {name: 'variantslib', toolchains: [ocamlVersion]},
+  {name: 'ppx_bin_prot', toolchains: [ocamlVersion]},
+  {name: 'ppx_js_style', toolchains: [ocamlVersion]},
+  {name: 'uchar', toolchains: [ocamlVersion]},
+  {name: 'ppx_expect', toolchains: [ocamlVersion]},
+  {name: 'ppx_here', toolchains: [ocamlVersion]},
+  {name: 'ppx_assert', toolchains: [ocamlVersion]},
+  {name: 'ppx_typerep_conv', toolchains: [ocamlVersion]},
+  {name: 'ppx_sexp_value', toolchains: [ocamlVersion]},
+  {name: 'ppx_sexp_message', toolchains: [ocamlVersion]},
+  {name: 'typerep', toolchains: [ocamlVersion]},
+  {name: 'ppx_inline_test', toolchains: [ocamlVersion]},
+  {name: 'lwt_react', toolchains: [ocamlVersion]},
+  {name: 'ppx_let', toolchains: [ocamlVersion]},
+  {name: 'ppx_fail', toolchains: [ocamlVersion]},
+  {name: 'ppx_bench', toolchains: [ocamlVersion]},
+  {name: 'ppx_pipebang', toolchains: [ocamlVersion]},
+  {name: 'ppx_derivers', toolchains: [ocamlVersion]},
+  {name: 'base64', toolchains: [ocamlVersion]},
+  {name: 'ppx_traverse', toolchains: [ocamlVersion]},
+  {name: 'ppx_jane', toolchains: [ocamlVersion]},
+  {name: 'uutf', toolchains: [ocamlVersion]},
+  {name: 'ocp-build', toolchains: [ocamlVersion]},
+  {name: 'oasis', toolchains: [ocamlVersion]},
+  {name: 'uri', toolchains: [ocamlVersion]},
+  {name: 'cryptokit', toolchains: [ocamlVersion]},
+  {name: 'stringext', toolchains: [ocamlVersion]},
+  {name: 'spawn', toolchains: [ocamlVersion]},
+  {name: 'ocamlmod', toolchains: [ocamlVersion]},
+  {name: 'ocamlify', toolchains: [ocamlVersion]},
+  {name: 'ipaddr', toolchains: [ocamlVersion]},
+  {name: 'depext', toolchains: [ocamlVersion]},
+  {name: 'fmt', toolchains: [ocamlVersion]},
+  {name: 'cohttp', toolchains: [ocamlVersion]},
+  {name: 'num', toolchains: [ocamlVersion]},
+  {name: 'cstruct', toolchains: [ocamlVersion]},
+  {name: 'logs', toolchains: [ocamlVersion]},
+  {name: 'ctypes', toolchains: [ocamlVersion]},
+  {name: 'astring', toolchains: [ocamlVersion]},
+  {name: 'bisect_ppx', toolchains: [ocamlVersion]},
+  {name: 'jsonm', toolchains: [ocamlVersion]},
+  {name: 'async_unix', toolchains: [ocamlVersion]},
+  {name: 'async_extra', toolchains: [ocamlVersion]},
+  {name: 'async', toolchains: [ocamlVersion]},
+  {name: 'ssl', toolchains: [ocamlVersion]},
+  {name: 'tls', toolchains: [ocamlVersion]},
+];
 
-    const allCases = [
-      ...windowsWhiteListedCases,
-      // Blocked by esy/esy#505
-      {name: 'coq', toolchains: [ocamlVersion]},
-      {name: 'easy-format', toolchains: [ocamlVersion]},
-      {name: 'lwt', toolchains: [ocamlVersion]},
-      {name: 'sexplib', toolchains: [ocamlVersion]},
-      {name: 'ppx_type_conv', toolchains: [ocamlVersion]},
-      {name: 'ppx_driver', toolchains: [ocamlVersion]},
-      {name: 'ppx_core', toolchains: [ocamlVersion]},
-      {name: 'camlp4', toolchains: [ocamlVersion]},
-      {name: 'ppx_sexp_conv', toolchains: [ocamlVersion]},
-      {name: 'ppx_optcomp', toolchains: [ocamlVersion]},
-      {name: 'ppx_tools', toolchains: [ocamlVersion]},
-      {name: 'stdio', toolchains: [ocamlVersion]},
-      {name: 'base', toolchains: [ocamlVersion]},
-      {name: 'ppx_ast', toolchains: [ocamlVersion]},
-      {name: 'ocaml-compiler-libs', toolchains: [ocamlVersion]},
-      {name: 'ppx_metaquot', toolchains: [ocamlVersion]},
-      {name: 'ppx_traverse_builtins', toolchains: [ocamlVersion]},
-      {name: 'ppx_deriving', toolchains: [ocamlVersion]},
-      {name: 'ppx_fields_conv', toolchains: [ocamlVersion]},
-      {name: 'fieldslib', toolchains: [ocamlVersion]},
-      {name: 'ppx_compare', toolchains: [ocamlVersion]},
-      {name: 'react', toolchains: [ocamlVersion]},
-      {name: 'cppo_ocamlbuild', toolchains: [ocamlVersion]},
-      {name: 'ppx_enumerate', toolchains: [ocamlVersion]},
-      {name: 'xmlm', toolchains: [ocamlVersion]},
-      {name: 'bin_prot', toolchains: [ocamlVersion]},
-      {name: 'conf-libcurl', toolchains: [ocamlVersion]},
-      {name: 'core_kernel', toolchains: [ocamlVersion]},
-      {name: 'zarith', toolchains: [ocamlVersion]},
-      {name: 'ppx_hash', toolchains: [ocamlVersion]},
-      {name: 'core', toolchains: [ocamlVersion]},
-      {name: 'ppx_variants_conv', toolchains: [ocamlVersion]},
-      {name: 'ppx_custom_printf', toolchains: [ocamlVersion]},
-      {name: 'octavius', toolchains: [ocamlVersion]},
-      {name: 'variantslib', toolchains: [ocamlVersion]},
-      {name: 'ppx_bin_prot', toolchains: [ocamlVersion]},
-      {name: 'ppx_js_style', toolchains: [ocamlVersion]},
-      {name: 'uchar', toolchains: [ocamlVersion]},
-      {name: 'ppx_expect', toolchains: [ocamlVersion]},
-      {name: 'ppx_here', toolchains: [ocamlVersion]},
-      {name: 'ppx_assert', toolchains: [ocamlVersion]},
-      {name: 'ppx_typerep_conv', toolchains: [ocamlVersion]},
-      {name: 'ppx_sexp_value', toolchains: [ocamlVersion]},
-      {name: 'ppx_sexp_message', toolchains: [ocamlVersion]},
-      {name: 'typerep', toolchains: [ocamlVersion]},
-      {name: 'ppx_inline_test', toolchains: [ocamlVersion]},
-      {name: 'lwt_react', toolchains: [ocamlVersion]},
-      {name: 'ppx_let', toolchains: [ocamlVersion]},
-      {name: 'ppx_fail', toolchains: [ocamlVersion]},
-      {name: 'ppx_bench', toolchains: [ocamlVersion]},
-      {name: 'ppx_pipebang', toolchains: [ocamlVersion]},
-      {name: 'ppx_derivers', toolchains: [ocamlVersion]},
-      {name: 'base64', toolchains: [ocamlVersion]},
-      {name: 'ppx_traverse', toolchains: [ocamlVersion]},
-      {name: 'ppx_jane', toolchains: [ocamlVersion]},
-      {name: 'uutf', toolchains: [ocamlVersion]},
-      {name: 'ocp-build', toolchains: [ocamlVersion]},
-      {name: 'oasis', toolchains: [ocamlVersion]},
-      {name: 'uri', toolchains: [ocamlVersion]},
-      {name: 'cryptokit', toolchains: [ocamlVersion]},
-      {name: 'stringext', toolchains: [ocamlVersion]},
-      {name: 'spawn', toolchains: [ocamlVersion]},
-      {name: 'ocamlmod', toolchains: [ocamlVersion]},
-      {name: 'ocamlify', toolchains: [ocamlVersion]},
-      {name: 'ipaddr', toolchains: [ocamlVersion]},
-      {name: 'depext', toolchains: [ocamlVersion]},
-      {name: 'fmt', toolchains: [ocamlVersion]},
-      {name: 'cohttp', toolchains: [ocamlVersion]},
-      {name: 'num', toolchains: [ocamlVersion]},
-      {name: 'cstruct', toolchains: [ocamlVersion]},
-      {name: 'logs', toolchains: [ocamlVersion]},
-      {name: 'ctypes', toolchains: [ocamlVersion]},
-      {name: 'astring', toolchains: [ocamlVersion]},
-      {name: 'bisect_ppx', toolchains: [ocamlVersion]},
-      {name: 'jsonm', toolchains: [ocamlVersion]},
-      {name: 'async_unix', toolchains: [ocamlVersion]},
-      {name: 'async_extra', toolchains: [ocamlVersion]},
-      {name: 'async', toolchains: [ocamlVersion]},
-      {name: 'ssl', toolchains: [ocamlVersion]},
-      {name: 'tls', toolchains: [ocamlVersion]},
-    ];
+let reposUpdated = false;
 
-    let reposUpdated = false;
+function shuffle(array) {
+  array = array.slice(0);
+  let counter = array.length;
 
-    function shuffle(array) {
-      array = array.slice(0);
-      let counter = array.length;
+  while (counter > 0) {
+    let index = Math.floor(Math.random() * counter);
 
-      while (counter > 0) {
-        let index = Math.floor(Math.random() * counter);
+    counter--;
 
-        counter--;
+    let temp = array[counter];
+    array[counter] = array[index];
+    array[index] = temp;
+  }
 
-        let temp = array[counter];
-        array[counter] = array[index];
-        array[index] = temp;
-      }
+  return array;
+}
 
-      return array;
+function selectCases(array) {
+  return shuffle(allCases);
+}
+
+const startTime = new Date();
+const runtimeLimit = 60 * 60 * 1000;
+
+setup();
+
+let anyTestsFailed = false;
+let packageResult = [];
+
+for (let c of selectCases(cases)) {
+  for (let toolchain of c.toolchains) {
+    const nowTime = new Date();
+    if (isCi && nowTime - startTime > runtimeLimit) {
+      console.log(`*** Exiting earlier ***`);
+      break;
     }
 
-    function selectCases(array) {
-      // In 'exploratory' mode, we pick from any of the tests
-      if (isExploratory) {
-         return shuffle(allCases);
-      } else {
-          return os.platform() == 'win32' ? shuffle(windowsWhiteListedCases) : shuffle(allCases);
-      }
+    console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
+
+    const sandbox = createSandbox();
+    console.log(`*** sandbox.path: ${sandbox.path}`);
+
+    const packageJson = {
+      name: `test-${c.name}`,
+      version: '0.0.0',
+      esy: {build: ['true']},
+      dependencies: {
+        ['@opam/' + c.name]: '*',
+      },
+      resolutions: {
+        // Workaround until new version of angstrom is released
+        '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
+      },
+      devDependencies: {
+        ocaml: toolchain,
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(sandbox.path, 'package.json'),
+      JSON.stringify(packageJson, null, 2),
+    );
+
+    let install = [`install`];
+    if (reposUpdated) {
+      install = ['install', '--skip-repository-update'];
+    } else {
+      reposUpdated = true;
     }
 
-    const startTime = new Date();
-    const runtimeLimit = 60 * 60 * 1000;
-
-    setup();
-
-    let anyTestsFailed = false;
-    let packageResult = [];
-
-    for (let c of selectCases(cases)) {
-      for (let toolchain of c.toolchains) {
-        const nowTime = new Date();
-        if (isCi && nowTime - startTime > runtimeLimit) {
-          console.log(`*** Exiting earlier ***`);
-          break;
-        }
-
-        console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
-
-        const sandbox = createSandbox();
-        console.log(`*** sandbox.path: ${sandbox.path}`);
-
-        const packageJson = {
-          name: `test-${c.name}`,
-          version: '0.0.0',
-          esy: {build: ['true']},
-          dependencies: {
-            ['@opam/' + c.name]: '*',
-          },
-          resolutions: {
-            // Workaround until new version of angstrom is released
-            '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
-          },
-          devDependencies: {
-            ocaml: toolchain,
-          },
-        };
-
-        fs.writeFileSync(
-          path.join(sandbox.path, 'package.json'),
-          JSON.stringify(packageJson, null, 2),
-        );
-
-        let install = [`install`];
-        if (reposUpdated) {
-          install = ['install', '--skip-repository-update'];
+    let failed = false;
+    try {
+        sandbox.esy(...install);
+        sandbox.esy('build');
+    } catch (ex) {
+        console.error(ex);
+        failed = true;
+        if (process.platform === "win32" && windowsCasesExpectedToPass.indexOf(c.name) === -1) {
+            console.warn(`Test case ${c.name} failed, but this is expected on Windows`);
         } else {
-          reposUpdated = true;
-        }
-
-        let failed = false;
-        try {
-            sandbox.esy(...install);
-            sandbox.esy('build');
-        } catch (ex) {
-            console.error(ex);
-            failed = true;
             anyTestsFailed = true;
         }
-
-        packageResult.push({
-            ...c,
-            validationTime: Date.now(),
-            success: !failed,
-        });
-
-        rmSync(path.join(esyPrefixPath, '3', 'b'));
-        sandbox.dispose();
-      }
     }
 
-    writeReport(packageResult);
+    packageResult.push({
+        ...c,
+        validationTime: Date.now(),
+        success: !failed,
+    });
 
-    if (anyTestsFailed && !isExploratory) {
-        exit(1);
-    }
+    rmSync(path.join(esyPrefixPath, '3', 'b'));
+    sandbox.dispose();
+  }
+}
 
-};
+writeReport(packageResult);
 
-module.exports = {
-   runTests,
-};
+if (anyTestsFailed && !isExploratory) {
+    exit(1);
+}

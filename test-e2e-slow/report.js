@@ -9,46 +9,31 @@ const path = require('path');
 // JSON format
 // { 
 //   "0.4.3": { <-- esy build version
-//      "win32": { <-- platform
 //         "package-name": {
 //             success: true/false,
 //             validationTime: ...
 //         },
 //      }
-//   }
 // }
 
 let createMarkdownReport = (reportInfo) => {
     let out = Object.keys(reportInfo).map((esyVersion) => {
-
-        let packagesPerPlatform = reportInfo[esyVersion];
+        let packages = reportInfo[esyVersion];
 
         let title = "# " + esyVersion;
-        let tableHeaders = "| __Package__ | __OSX__ | __Linux__ | __Windows |";
-        let separators = "|-----|-----|-----|-----|";
+        let tableHeaders = "| __Package__ | | __Windows Compatibility__ |";
+        let separators = "|-----|-----|";
 
-        let windowsPackages = Object.keys(packagesPerPlatform["win32"]);
-        let linuxPackages = Object.keys(packagesPerPlatform["linux"]);
-        let osxPackages = Object.keys(packagesPerPlatform["darwin"]);
-
-        let allPackages = [].concat(windowsPackages, linuxPackages, osxPackages);
-
-        let getStatusStringForPlatform = (platform, package) => {
-            if (!reportInfo[platform]) {
-                return ":question:";
-            }
-
-            let packageStatus = reportInfo[platform][package];
+        let getStatusString = (package) => {
+            let packageStatus = packages[package];
 
             return packageStatus && packageStatus.success ? ":heavy_check_mark:" : ":x";
         };
 
-        let lines = allPackages.map((packageName) => {
-            let osxStatus = getStatusStringForPlatform("darwin", packageName);
-            let linuxStatus = getStatusStringForPlatform("linux", packageName);
-            let winStatus = getStatusStringForPlatform("win32", packageName);
+        let lines = Object.keys(packages).map((packageName) => {
+            let winStatus = getStatusString(packageName);
 
-            return `| \`${packageName}\` | ${osxStatus} | ${linuxStatus} | ${winStatus} |`
+            return `| \`${packageName}\` | ${winStatus} |`
         })
 
 
@@ -59,17 +44,24 @@ let createMarkdownReport = (reportInfo) => {
 };
 
 let writeReport = (packageInfo) => {
-    const reportDirectory = path.join(__dirname, "..");
+    const rootDirectory = path.join(__dirname, "..");
+    const reportDirectory = path.join(rootDirectory, "_report");
 
-    const esyVersion = JSON.parse(fs.readFileSync(path.join(reportDirectory, "package.json"))).version;
+    if (!fs.existsSync(reportDirectory)) {
+        fs.mkdirSync(reportDirectory);
+    }
+
+    const esyVersion = JSON.parse(fs.readFileSync(path.join(rootDirectory, "package.json"))).version;
 
     // Is there an existing report available?
     // If so, we need to merge the results
-    const reportFile = path.join(reportDirectory, "opam-support.json");
+    // TODO: Set this up to the artifact path correctly
+    const reportJsonFile = path.join(reportDirectory, "windows-opam-support.json");
+    const reportMarkdownFile = path.join(reportDirectory, "windows-opam-support.md");
 
     let report = {};
-    if (fs.existsSync(reportFile)) {
-        report = JSON.parse(fs.readFileSync(reportFile));
+    if (fs.existsSync(reportJsonFile)) {
+        report = JSON.parse(fs.readFileSync(reportJsonFile));
     }
 
     let getOrCreate = (obj, key) => {
@@ -79,8 +71,7 @@ let writeReport = (packageInfo) => {
         return obj[key];
     };
 
-    let platformNode = getOrCreate(report, esyVersion);
-    let esyVersionNode = getOrCreate(platformNode, os.platform());
+    let esyVersionNode = getOrCreate(report, esyVersion);
 
     let newVersionNode = packageInfo.reduce((acc, curr) => {
         let dup = { ...acc };
@@ -90,11 +81,17 @@ let writeReport = (packageInfo) => {
         return dup;
     }, esyVersionNode);
 
-    platformNode[esyVersion] = newVersionNode;
+    report[esyVersion] = newVersionNode;
 
-    fs.writeFileSync(reportFile, JSON.stringify(report));
+    fs.writeFileSync(reportJsonFile, JSON.stringify(report));
+
+    let markdownVersion = createMarkdownReport(report);
+    fs.writeFileSync(reportMarkdownFile, markdownVersion);
 };
 
 module.exports = {
-    writeReport;
+    writeReport
 }
+
+let test = [{name: "p1", success: false, validationTime: 0}];
+writeReport(test);
