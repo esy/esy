@@ -1,5 +1,70 @@
 # CHANGELOG
 
+## 0.4.4 @ next
+
+- `esy CMD` invocation no longer builds linked packages.
+
+  Linked packages are considered to be packages in development and thus it is
+  useful to be able to run commands with `esy CMD` without failing on possibly
+  invalid linked packages builds.
+
+- Add low-level commands:
+
+  - `esy build-package`
+
+  - `esy build-dependencies`
+
+  - `esy exec-command`
+
+  - `esy print-env`
+
+  Those commands accept DEPSPEC configuration language which allows to customize
+  how project environment is constructed.
+
+  All other esy commands which implement the main workflow are implemented in terms of those
+  commands. A new configuration
+
+  See "Low Level Commands" reference documentation page for more info.
+
+- Add `esy status` command
+
+  This command prints the status of the esy project if it finds one:
+
+  ```
+  {
+    isProject: bool,
+    isProjectSolved: bool,
+    isProjectFetched: bool,
+    isProjectReadyForDev: bool,
+    rootBuildPath: option(Path.t),
+    rootInstallPath: option(Path.t)
+  }
+  ```
+
+- Include system32 directory for native windows utilities in build environment
+
+  This provides more compatibility with build processes designed to work in Win32
+  environments.
+
+  Thanks @bryphe!
+
+- `esy.lock` dir is marked as `linguist-generated=true` in `.gitattributes` file.
+
+  This makes it not appear by default in GitHub diff.
+
+  Thanks @reccanti!
+
+- Generated `pnp.js` runtime is now executable as per specification.
+
+- Fixes handling of `--cache-tarballs-path` to make sure we cached tarballs even
+  if lockfile is already generated and packages are fetched into a source cache.
+
+- Build environment now includes `$cur__dev` which is set to `true` for linked
+  packages and `false` otherwise.
+
+- esy now warns if multiple same named npm executables are installed
+  simultaneously overwriting each other.
+
 ## 0.4.3 @ next
 
 - Restore fetching opam packages from opam cache (#671).
