@@ -160,51 +160,87 @@ const runtimeLimit = 60 * 60 * 1000;
 
 setup();
 
-for (let c of selectCases(cases)) {
-  for (let toolchain of c.toolchains) {
-    const nowTime = new Date();
-    if (isCi && nowTime - startTime > runtimeLimit) {
-      console.log(`*** Exiting earlier ***`);
-      break;
+let testBytecodeCompilation = async (sandbox, packageName) => {
+    
+    // Get library path:
+    let libraryPath = (await sandbox.esy(`build ocamlfind query ${c.name}`)).stdout.toString().trim();
+    let cmaPath = path.join(libraryPath, packageName + '.cma');
+
+    let testFileContents = `
+    print_endline "Hello, world!"
+    `;
+
+    let testFilePath = path.join(sandbox.path, 'test.ml');
+    fs.writeFileSync(testFilePath, testFileContents, 'utf8');
+
+    let outputFilePath = path.join(sandox.path, "test.bc.out");
+
+    // Compile a bytecode file, with the library
+    await sandbox.esy(`build ocamlc ${cmaPath} ${testFilePath} -o ${outputFilePath}`);
+
+    // Run the file, and validate output
+    let output = (await sandbox.esy(`build ocamlrun ${outputFilePath}`)).stdout.toString().trim();
+
+    if (output.indexOf("Hello, world!") === -1) {
+        throw ("Bytecode compilation failed - received output: " + output);
     }
+};
 
-    console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
+let runTests = async () => {
+    for (let c of selectCases(cases)) {
+      for (let toolchain of c.toolchains) {
+        const nowTime = new Date();
+        if (isCi && nowTime - startTime > runtimeLimit) {
+          console.log(`*** Exiting earlier ***`);
+          break;
+        }
 
-    const sandbox = createSandbox();
-    console.log(`*** sandbox.path: ${sandbox.path}`);
+        console.log(`*** building ${c.name} with ocaml@${toolchain} ***`);
 
-    const packageJson = {
-      name: `test-${c.name}`,
-      version: '0.0.0',
-      esy: {build: ['true']},
-      dependencies: {
-        ['@opam/' + c.name]: '*',
-      },
-      resolutions: {
-        // Workaround until new version of angstrom is released
-        '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
-      },
-      devDependencies: {
-        ocaml: toolchain,
-      },
-    };
+        const sandbox = createSandbox();
+        console.log(`*** sandbox.path: ${sandbox.path}`);
 
-    fs.writeFileSync(
-      path.join(sandbox.path, 'package.json'),
-      JSON.stringify(packageJson, null, 2),
-    );
+        const packageJson = {
+          name: `test-${c.name}`,
+          version: '0.0.0',
+          esy: {build: ['true']},
+          dependencies: {
+            ['@opam/' + c.name]: '*',
+            ['@opam/ocamlfind']: '*',
+          },
+          resolutions: {
+            // Workaround until new version of angstrom is released
+            '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
+          },
+          devDependencies: {
+            ocaml: toolchain,
+          },
+        };
 
-    let install = [`install`];
-    if (reposUpdated) {
-      install = ['install', '--skip-repository-update'];
-    } else {
-      reposUpdated = true;
+
+
+        fs.writeFileSync(
+          path.join(sandbox.path, 'package.json'),
+          JSON.stringify(packageJson, null, 2),
+        );
+
+        let install = [`install`];
+        if (reposUpdated) {
+          install = ['install', '--skip-repository-update'];
+        } else {
+          reposUpdated = true;
+        }
+
+        
+        await sandbox.esy(...install);
+        await sandbox.esy('build');
+
+        await testBytecodeCompilation(sandbox, c.name);
+
+        rmSync(path.join(esyPrefixPath, '3', 'b'));
+        sandbox.dispose();
+      }
     }
+};
 
-    sandbox.esy(...install);
-    sandbox.esy('build');
-
-    rmSync(path.join(esyPrefixPath, '3', 'b'));
-    sandbox.dispose();
-  }
-}
+runTests();
