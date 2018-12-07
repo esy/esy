@@ -46,10 +46,12 @@ end = struct
     let open RunAsync.Syntax in
     let cachePath = P.cachePath projcfg in
     let f ic =
-      let%lwt v, files = (Lwt_io.read_value ic : (P.t * FileInfo.t list) Lwt.t) in
-      if%bind checkStaleness files
-      then return None
-      else return (Some v)
+      try%lwt
+        let%lwt v, files = (Lwt_io.read_value ic : (P.t * FileInfo.t list) Lwt.t) in
+        if%bind checkStaleness files
+        then return None
+        else return (Some v)
+      with Failure _ -> return None
     in
     try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.show cachePath) f
     with | Unix.Unix_error _ -> return None
