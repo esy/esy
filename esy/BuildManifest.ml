@@ -73,8 +73,9 @@ type t = {
   name : string option;
   version : Version.t option;
   buildType : BuildType.t;
-  buildCommands : commands;
-  installCommands : commands;
+  build : commands;
+  buildDev : CommandList.t option;
+  install : commands;
   patches : patch list;
   substs : Path.t list;
   exportedEnv : ExportedEnv.t;
@@ -85,8 +86,9 @@ let empty ~name ~version () = {
   name;
   version;
   buildType = BuildType.OutOfSource;
-  buildCommands = EsyCommands [];
-  installCommands = NoCommands;
+  build = EsyCommands [];
+  buildDev = None;
+  install = NoCommands;
   patches = [];
   substs = [];
   exportedEnv = ExportedEnv.empty;
@@ -117,7 +119,7 @@ let applyOverride (manifest : t) (override : Override.build) =
     | None -> manifest
     | Some commands -> {
         manifest with
-        buildCommands = EsyCommands commands;
+        build = EsyCommands commands;
       }
   in
 
@@ -126,7 +128,7 @@ let applyOverride (manifest : t) (override : Override.build) =
     | None -> manifest
     | Some commands -> {
         manifest with
-        installCommands = EsyCommands commands;
+        install = EsyCommands commands;
       }
   in
 
@@ -171,6 +173,7 @@ module EsyBuild = struct
 
   and packageJsonEsy = {
     build: (CommandList.t [@default CommandList.empty]);
+    buildDev: (CommandList.t option [@default None]);
     install: (CommandList.t [@default CommandList.empty]);
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
@@ -190,8 +193,9 @@ module EsyBuild = struct
         buildType = m.buildsInSource;
         exportedEnv = m.exportedEnv;
         buildEnv = m.buildEnv;
-        buildCommands = EsyCommands (m.build);
-        installCommands = EsyCommands (m.install);
+        build = EsyCommands (m.build);
+        buildDev = m.buildDev;
+        install = EsyCommands (m.install);
         patches = [];
         substs = [];
       } in
@@ -224,8 +228,8 @@ let parseOpam data =
 module OpamBuild = struct
 
   let buildOfOpam ~name ~version (opam : OpamFile.OPAM.t) =
-    let buildCommands = OpamCommands (OpamFile.OPAM.build opam) in
-    let installCommands = OpamCommands (OpamFile.OPAM.install opam) in
+    let build = OpamCommands (OpamFile.OPAM.build opam) in
+    let install = OpamCommands (OpamFile.OPAM.install opam) in
 
     let patches =
       let patches = OpamFile.OPAM.patches opam in
@@ -254,8 +258,9 @@ module OpamBuild = struct
       buildType = BuildType.InSource;
       exportedEnv = ExportedEnv.empty;
       buildEnv = Env.empty;
-      buildCommands;
-      installCommands;
+      build;
+      buildDev = None;
+      install;
       patches;
       substs;
     }
@@ -350,8 +355,9 @@ let ofPath ?manifest (path : Path.t) =
           buildType = BuildType.Unsafe;
           exportedEnv = ExportedEnv.empty;
           buildEnv = Env.empty;
-          buildCommands = OpamCommands [];
-          installCommands = OpamCommands [];
+          build = OpamCommands [];
+          buildDev = None;
+          install = OpamCommands [];
           patches = [];
           substs = [];
         }, paths)

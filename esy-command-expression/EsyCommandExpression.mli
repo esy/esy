@@ -57,7 +57,8 @@ type scope = string option * string -> Value.t option
 
 (** Render command expression into a string given the [scope]. *)
 val render :
-  ?pathSep:string
+  ?envVar:(string -> (Value.t, string) result)
+  -> ?pathSep:string
   -> ?colon:string
   -> scope:scope
   -> string

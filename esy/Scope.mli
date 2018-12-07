@@ -12,7 +12,7 @@ val make :
   -> version:EsyInstall.Version.t
   -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
-  -> buildIsInProgress:bool
+  -> EsyInstall.Solution.Package.t
   -> BuildManifest.t
   -> t
 (** An initial scope for the package. *)
@@ -20,6 +20,12 @@ val make :
 val add : direct:bool -> dep:t -> t -> t
 (** Add new pkg *)
 
+val pkg : t -> EsyInstall.Solution.Package.t
+val id : t -> string
+val name : t -> string
+val version : t -> EsyInstall.Version.t
+val sourceType : t -> BuildManifest.SourceType.t
+val buildType : t -> BuildManifest.BuildType.t
 val storePath : t -> SandboxPath.t
 val rootPath : t -> SandboxPath.t
 val sourcePath : t -> SandboxPath.t
@@ -29,10 +35,18 @@ val stagePath : t -> SandboxPath.t
 val installPath : t -> SandboxPath.t
 val logPath : t -> SandboxPath.t
 
-val env : includeBuildEnv:bool -> t -> SandboxEnvironment.Bindings.t Run.t
+val pp : t Fmt.t
 
-val renderCommandExpr : ?environmentVariableName:string -> t -> string -> string Run.t
+val env : includeBuildEnv:bool -> buildIsInProgress:bool -> t -> SandboxEnvironment.Bindings.t Run.t
 
-val toOpamEnv : ocamlVersion:string option -> t -> OpamFilter.env
+val render :
+  ?env:SandboxEnvironment.t
+  -> ?environmentVariableName:string
+  -> buildIsInProgress:bool
+  -> t
+  -> string
+  -> SandboxValue.t Run.t
+
+val toOpamEnv : buildIsInProgress:bool -> t -> OpamFilter.env
 
 val exposeUserEnvWith : (string -> SandboxValue.t -> SandboxValue.t Environment.Binding.t) -> string -> t -> t

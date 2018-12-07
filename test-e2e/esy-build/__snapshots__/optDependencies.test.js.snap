@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 1`] = `
-"# Build environment for root@link:./package.json
+"# Build environment
+# package:            root@link:./package.json
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # optDep@1.0.0
@@ -50,7 +58,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 2`] = `
-"# Build environment for dep@path:dep
+"# Build environment
+# package:            dep@path:dep
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # optDep@1.0.0
@@ -91,7 +107,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 1`] = `
-"# Build environment for root@link:./package.json
+"# Build environment
+# package:            root@link:./package.json
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0
@@ -132,7 +156,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 2`] = `
-"# Build environment for dep@path:dep
+"# Build environment
+# package:            dep@path:dep
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0

@@ -6,3 +6,4 @@ type t = private {
 include S.COMPARABLE with type t := t
 
 val ofPath : Path.t -> t RunAsync.t
+val ofPathSet : Fpath.set -> t list RunAsync.t

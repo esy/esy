@@ -80,6 +80,7 @@ module Syntax : sig
 
   module Let_syntax : sig
     val bind : f:('a -> 'b t) -> 'a t -> 'b t
+    val map : f:('a -> 'b) -> 'a t -> 'b t
   end
 end
 

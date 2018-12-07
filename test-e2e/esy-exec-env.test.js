@@ -8,25 +8,25 @@ const fixture = require('./common/fixture.js');
 
 skipSuiteOnWindows('#301');
 
-describe('esy sandbox-env', () => {
+describe('esy exec-env', () => {
   it('generates env as a bash source', async () => {
     const p = await createTestSandbox();
     await p.fixture(...fixture.makeSimpleProject(p));
     await p.esy('install');
     await p.esy('build');
 
-    const env = (await p.esy('sandbox-env')).stdout;
+    const env = (await p.esy('exec-env')).stdout;
 
-    await fs.writeFile(path.join(p.projectPath, 'sandbox-env'), env);
+    await fs.writeFile(path.join(p.projectPath, 'exec-env'), env);
 
     await expect(
-      promiseExec('. ./sandbox-env && dep.cmd', {
+      promiseExec('. ./exec-env && dep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__dep__\n', stderr: ''});
 
     await expect(
-      promiseExec('. ./sandbox-env && devDep.cmd', {
+      promiseExec('. ./exec-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
     ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
@@ -38,7 +38,7 @@ describe('esy sandbox-env', () => {
     await p.esy('install');
     await p.esy('build');
 
-    const env = JSON.parse((await p.esy('sandbox-env --json')).stdout);
+    const env = JSON.parse((await p.esy('exec-env --json')).stdout);
 
     expect(env.PATH).toBeTruthy();
     expect(env.OCAMLPATH).toBeTruthy();

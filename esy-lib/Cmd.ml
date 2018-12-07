@@ -34,6 +34,10 @@ let getToolAndArgs (tool, args) =
   let args = List.rev args in
   tool, args
 
+let ofToolAndArgs (tool, args) =
+  let args = List.rev args in
+  tool, args
+
 let getToolAndLine (tool, args) =
   let args = List.rev args in
   (* On Windows, we need the tool to be the empty string to use path resolution *)
@@ -45,6 +49,9 @@ let getToolAndLine (tool, args) =
 let getTool (tool, _args) = tool
 
 let getArgs (_tool, args) = List.rev args
+
+let mapTool f (tool, args) =
+  (f tool, args)
 
 let show (tool, args) =
   let tool = Filename.quote tool in

@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
-"# Build environment for dep@path:dep
+"# Build environment
+# package:            dep@path:dep
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0
@@ -33,7 +41,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
-"# Build environment for devDep@path:devDep
+"# Build environment
+# package:            devDep@path:devDep
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # devDep@1.0.0
@@ -65,7 +81,15 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
 
 exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
-"# Build environment for withDevDep@link:./package.json
+"# Build environment
+# package:            withDevDep@link:./package.json
+# depspec:            dependencies(self)
+# envspec:            
+# buildIsInProgress:  true
+# includeBuildEnv:    true
+# includeCurrentEnv:  false
+# includeNpmBin:      false
+
 
 #
 # dep@1.0.0
