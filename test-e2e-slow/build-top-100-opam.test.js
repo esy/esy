@@ -161,7 +161,6 @@ const runtimeLimit = 60 * 60 * 1000;
 setup();
 
 let testBytecodeCompilation = async (sandbox, packageName) => {
-    
     // Get library path:
     let libraryPath = (await sandbox.esy(`build ocamlfind query ${c.name}`)).stdout.toString().trim();
     let cmaPath = path.join(libraryPath, packageName + '.cma');
@@ -173,7 +172,7 @@ let testBytecodeCompilation = async (sandbox, packageName) => {
     let testFilePath = path.join(sandbox.path, 'test.ml');
     fs.writeFileSync(testFilePath, testFileContents, 'utf8');
 
-    let outputFilePath = path.join(sandox.path, "test.bc.out");
+    let outputFilePath = path.join(sandox.path, 'test.bc.out');
 
     // Compile a bytecode file, with the library
     await sandbox.esy(`build ocamlc ${cmaPath} ${testFilePath} -o ${outputFilePath}`);
@@ -181,8 +180,8 @@ let testBytecodeCompilation = async (sandbox, packageName) => {
     // Run the file, and validate output
     let output = (await sandbox.esy(`build ocamlrun ${outputFilePath}`)).stdout.toString().trim();
 
-    if (output.indexOf("Hello, world!") === -1) {
-        throw ("Bytecode compilation failed - received output: " + output);
+    if (output.indexOf('Hello, world!') === -1) {
+        throw ('Bytecode compilation failed - received output: ' + output);
     }
 };
 
@@ -217,8 +216,6 @@ let runTests = async () => {
           },
         };
 
-
-
         fs.writeFileSync(
           path.join(sandbox.path, 'package.json'),
           JSON.stringify(packageJson, null, 2),
@@ -230,7 +227,6 @@ let runTests = async () => {
         } else {
           reposUpdated = true;
         }
-
         
         await sandbox.esy(...install);
         await sandbox.esy('build');
