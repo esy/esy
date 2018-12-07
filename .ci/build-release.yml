@@ -62,6 +62,8 @@ jobs:
     variables:
         ESYCI__CACHE_BUILD: C:\Users\VssAdministrator\.esy\3_\i
         ESYCI__CACHE_INSTALL: C:\Users\VssAdministrator\.esy\source\i
+        # TODO: REMOVE THIS PRIOR TO MERGING
+        ESY_SLOWTEST: true
 
     steps:
       # - template: restore-build-cache.yml
