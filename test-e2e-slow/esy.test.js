@@ -14,5 +14,4 @@ sandbox.rm('./esy.lock.json');
 sandbox.esy('install');
 sandbox.esy('build');
 sandbox.esy('x', 'which', 'esy');
-sandbox.esy('x', 'esy', '--version');
 sandbox.dispose();
