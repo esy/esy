@@ -7,4 +7,7 @@ type t = {
   buildenvspec : BuildSandbox.EnvSpec.t;
 }
 
+val defaultDepspecForAll : BuildSandbox.DepSpec.t
+val defaultDepspecForLinked : BuildSandbox.DepSpec.t
+
 val default : t

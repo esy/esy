@@ -414,6 +414,7 @@ let runExec
 
 let execCommand
   (proj : _ Project.project)
+  release
   buildIsInProgress
   includeBuildEnv
   includeCurrentEnv
@@ -431,10 +432,19 @@ let execCommand
     includeNpmBin;
     augmentDeps = envspec;
   } in
+  let mode =
+    if release
+    then BuildSpec.Build
+    else BuildSpec.BuildDev
+  in
   let buildspec =
     match depspec with
-    | Some deps -> {Workflow.default.buildspec with buildLinked = Some {mode = BuildDev; deps};}
-    | None -> Workflow.default.buildspec
+    | Some deps -> {Workflow.default.buildspec with buildLinked = Some {mode; deps};}
+    | None ->
+      {
+        Workflow.default.buildspec
+        with buildLinked = Some {mode; deps = Workflow.defaultDepspecForLinked};
+      }
   in
   runExec
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
@@ -1885,6 +1895,12 @@ let makeCommands ~sandbox () =
       Term.(
         const execCommand
         $ Project.WithoutWorkflow.term sandbox
+        $ Arg.(
+            value
+            & flag
+            & info ["release"]
+              ~doc:{|Force to "esy.build" commands (by default "esy.buildDev" commands are used)|}
+          )
         $ Arg.(
             value
             & flag

@@ -8,14 +8,17 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
+let defaultDepspecForAll = DepSpec.(dependencies self)
+let defaultDepspecForLinked = DepSpec.(dependencies self)
+
 let default =
   (* This defines how project is built. *)
   let buildspec = BuildSandbox.{
     BuildSpec.
     (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildLinked = Some {mode = BuildDev; deps = DepSpec.(dependencies self)};
+    buildLinked = Some {mode = BuildDev; deps = defaultDepspecForLinked};
     (* build all other packages using "build" command with dependencies in the env *)
-    buildAll = {mode = Build; deps = DepSpec.(dependencies self)};
+    buildAll = {mode = Build; deps = defaultDepspecForAll};
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)
