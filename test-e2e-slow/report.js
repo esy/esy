@@ -91,7 +91,4 @@ let writeReport = (packageInfo) => {
 
 module.exports = {
     writeReport
-}
-
-let test = [{name: "p1", success: false, validationTime: 0}];
-writeReport(test);
+};

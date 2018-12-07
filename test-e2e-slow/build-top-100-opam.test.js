@@ -51,7 +51,7 @@ const windowsCasesExpectedToPass = [
   'cudf',
 ];
 
-const allCases = [
+const cases = [
   {name: 'dune', toolchains: [ocamlVersion]},
   {name: 'menhir', toolchains: [ocamlVersion]},
   {name: 'cmdliner', toolchains: [ocamlVersion]},
