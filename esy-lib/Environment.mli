@@ -33,6 +33,8 @@ module type S = sig
     type t =
       value Binding.t list
 
+    val pp : t Fmt.t
+
     val value : ?origin:string -> string -> value -> value Binding.t
     val prefixValue : ?origin:string -> string -> value -> value Binding.t
     val suffixValue : ?origin:string -> string -> value -> value Binding.t
@@ -41,6 +43,8 @@ module type S = sig
     val render : ctx -> t -> string Binding.t list
     val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
+
+    val current : t
 
     include S.COMPARABLE with type t := t
   end
@@ -65,9 +69,6 @@ val renderToList :
   ?platform : System.Platform.t
   -> Bindings.t
   -> (string * string) list
-
-val current : Bindings.t
-(** A list of bindings for the current process's environment. *)
 
 val escapeDoubleQuote : string -> string
 val escapeSingleQuote : string -> string

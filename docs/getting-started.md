@@ -3,7 +3,7 @@ id: getting-started
 title: Getting started
 ---
 
-Esy provides a single command called `esy`.
+esy provides a single command called `esy`.
 
 The typical workflow is to `cd` into a directory that contains a `package.json`
 file, and then perform operations on that project.
@@ -46,14 +46,8 @@ esy
 
 ## Run compiled executables
 
-Test the compiled executables inside the project's environment:
-
-```shell
-esy ./_build/default/bin/Hello.exe
-```
-
-Alternatively you can use `esy x <anycommand>` invocation which constructs an
-environment where the root project is installed:
+Use `esy x COMMAND` invocation to run project's built executable as if they are
+installed:
 
 ```shell
 esy x Hello.exe
@@ -76,14 +70,14 @@ example build & run tests with:
 esy make test
 ```
 
-You can run any command inside the project environment by just prefixing it with
-`esy`:
+You can run any `COMMAND` inside the project development environment by just
+prefixing it with `esy`:
 
 ```shell
-esy <anycommand>
+esy COMMAND
 ```
 
-To shell into the project's sandbox:
+To shell into the project's development environment:
 
 ```shell
 esy shell

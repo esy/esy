@@ -41,3 +41,20 @@ include Graph.Make(struct
   let id pkg = pkg.id
   module Id = PackageId
 end)
+
+let findByName name solution =
+  let open Option.Syntax in
+  let f _id pkg =
+    String.compare pkg.Package.name name >= 0
+  in
+  let%map _id, pkg = find f solution in
+  pkg
+
+let findByNameVersion name version solution =
+  let open Option.Syntax in
+  let compare = [%derive.ord: string * Version.t] in
+  let f _id pkg =
+    compare (pkg.Package.name, pkg.Package.version) (name, version) >= 0
+  in
+  let%map _id, pkg = find f solution in
+  pkg

@@ -12,6 +12,13 @@ module Binding = struct
     | ExpandedValue of 'v
     | Prefix of 'v
     | Suffix of 'v
+
+  let pp ppValue fmt binding =
+    match binding.value with
+    | Value v -> Fmt.pf fmt "%s=%a" binding.name ppValue v
+    | ExpandedValue v -> Fmt.pf fmt "%s=%a" binding.name ppValue v
+    | Prefix v -> Fmt.pf fmt "%s=%a:%s" binding.name ppValue v binding.name
+    | Suffix v -> Fmt.pf fmt "%s=%s:%a" binding.name binding.name ppValue v
 end
 
 module type S = sig
@@ -36,6 +43,8 @@ module type S = sig
     type t =
       value Binding.t list
 
+    val pp : t Fmt.t
+
     val value : ?origin:string -> string -> value -> value Binding.t
     val prefixValue : ?origin:string -> string -> value -> value Binding.t
     val suffixValue : ?origin:string -> string -> value -> value Binding.t
@@ -44,6 +53,8 @@ module type S = sig
     val render : ctx -> t -> string Binding.t list
     val eval : ?platform : System.Platform.t -> ?init : env -> t -> (env, string) result
     val map : f:(string -> string) -> t -> t
+
+    val current : t
 
     include S.COMPARABLE with type t := t
   end
@@ -82,6 +93,9 @@ end = struct
     type t =
       V.t Binding.t list
       [@@deriving ord]
+
+    let pp =
+      Fmt.(vbox (list ~sep:(unit "@;") (Binding.pp V.pp)))
 
     let empty = []
     let value ?origin name value = {Binding. name; value = Value value; origin}
@@ -166,6 +180,36 @@ end = struct
       in
       Result.List.foldLeft ~f ~init bindings
 
+    let current =
+      let parseEnv item =
+        let idx = String.index item '=' in
+        let name = String.sub item 0 idx in
+        let name =
+          match System.Platform.host with
+          | System.Platform.Windows -> String.uppercase_ascii name
+          | _ -> name
+        in
+        let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+        {Binding. name; value = ExpandedValue (V.v value); origin = None;}
+      in
+      (* Filter bash function which are being exported in env *)
+      let filterInvalidNames {Binding. name; _} =
+        let starting = "BASH_FUNC_" in
+        let ending = "%%" in
+        not (
+          (
+            String.length name > String.length starting
+            && Str.first_chars name (String.length starting) = starting
+            && Str.last_chars name (String.length ending) = ending
+          )
+          || String.contains name '.'
+        )
+      in
+      Unix.environment ()
+      |> Array.map parseEnv
+      |> Array.to_list
+      |> List.filter ~f:filterInvalidNames
+
   end
 end
 
@@ -245,33 +289,3 @@ let renderToList ?(platform=System.Platform.host) bindings =
     name, value
   in
   List.map ~f bindings
-
-let current =
-  let parseEnv item =
-    let idx = String.index item '=' in
-    let name = String.sub item 0 idx in
-    let name =
-      match System.Platform.host with
-      | System.Platform.Windows -> String.uppercase_ascii name
-      | _ -> name
-    in
-    let value = String.sub item (idx + 1) (String.length item - idx - 1) in
-    {Binding. name; value = ExpandedValue value; origin = None;}
-  in
-  (* Filter bash function which are being exported in env *)
-  let filterInvalidNames {Binding. name; _} =
-    let starting = "BASH_FUNC_" in
-    let ending = "%%" in
-    not (
-      (
-        String.length name > String.length starting
-        && Str.first_chars name (String.length starting) = starting
-        && Str.last_chars name (String.length ending) = ending
-      )
-      || String.contains name '.'
-    )
-  in
-  Unix.environment ()
-  |> Array.map parseEnv
-  |> Array.to_list
-  |> List.filter ~f:filterInvalidNames

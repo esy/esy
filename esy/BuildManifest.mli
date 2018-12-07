@@ -17,12 +17,15 @@ type commands =
   | EsyCommands of CommandList.t
   | NoCommands
 
+val commands_to_yojson : commands Json.encoder
+
 type t = {
   name : string option;
   version : Version.t option;
   buildType : BuildType.t;
-  buildCommands : commands;
-  installCommands : commands;
+  build : commands;
+  buildDev : CommandList.t option;
+  install : commands;
   patches : (Path.t * OpamTypes.filter option) list;
   substs : Path.t list;
   exportedEnv : ExportedEnv.t;

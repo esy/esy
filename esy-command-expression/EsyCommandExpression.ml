@@ -55,7 +55,7 @@ let formatName = function
   | Some namespace, name -> namespace ^ "." ^ name
   | None, name -> name
 
-let eval ~pathSep ~colon ~scope string =
+let eval ~envVar ~pathSep ~colon ~scope string =
   let open Result.Syntax in
   let%bind expr = parse string in
 
@@ -84,7 +84,7 @@ let eval ~pathSep ~colon ~scope string =
     | E.Bool b -> return (V.Bool b)
     | E.PathSep -> return (V.String pathSep)
     | E.Colon -> return (V.String colon)
-    | E.EnvVar name -> return (V.String ("$" ^ name))
+    | E.EnvVar name -> envVar name
     | E.Var name -> lookupValue name
     | E.Condition (cond, t, e) ->
       if%bind evalToBool cond
@@ -120,9 +120,17 @@ let eval ~pathSep ~colon ~scope string =
   in
   eval expr
 
-let render ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
+let preserveEnvVar name =
+  Result.return (V.String ("$" ^ name))
+
+let render ?envVar ?(pathSep="/") ?(colon=":") ~(scope : scope) (string : string) =
   let open Result.Syntax in
-  match%bind eval ~pathSep ~colon ~scope string with
+  let envVar =
+    match envVar with
+    | None -> preserveEnvVar
+    | Some f -> f
+  in
+  match%bind eval ~envVar ~pathSep ~colon ~scope string with
   | V.String v -> return v
   | V.Bool true -> return "true"
   | V.Bool false -> return "false"
