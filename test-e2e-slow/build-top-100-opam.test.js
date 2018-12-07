@@ -7,18 +7,54 @@ const {
   ocamlVersion,
   esyPrefixPath,
 } = require('./setup.js');
+const { writeReport } = require("./report.js");
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const rmSync = require('rimraf').sync;
 const isCi = require('is-ci');
 
+const windowsCasesExpectedToPass = [
+  'dune',
+  'menhir',
+  'cmdliner',
+  'angstrom',
+  'bos',
+  'bigstringaf',
+  'utop',
+  'dose3',
+  'lwt_ppx',
+  'ppx_deriving_yojson',
+  'configurator',
+  'merlin-extend',
+  'ppx_optional',
+  'ppx_base',
+  'jane-street-headers',
+  'merlin',
+  'ocamlfind',
+  'splittable_random',
+  'jbuilder',
+  'cppo',
+  'result',
+  'ocamlbuild',
+  'topkg',
+  'ocaml-migrate-parsetree',
+  'camlp5',
+  'ppx_tools_versioned',
+  'yojson',
+  'biniou',
+  'ounit',
+  're',
+  'camomile',
+  'zed',
+  'lambda-term',
+  'cudf',
+];
+
 const cases = [
   {name: 'dune', toolchains: [ocamlVersion]},
   {name: 'menhir', toolchains: [ocamlVersion]},
   {name: 'cmdliner', toolchains: [ocamlVersion]},
-  // Blocked by esy/esy#505
-  // {name: 'coq', toolchains: [ocamlVersion]},
   {name: 'angstrom', toolchains: [ocamlVersion]},
   {name: 'bos', toolchains: [ocamlVersion]},
   {name: 'bigstringaf', toolchains: [ocamlVersion]},
@@ -44,6 +80,14 @@ const cases = [
   {name: 'ppx_tools_versioned', toolchains: [ocamlVersion]},
   {name: 'yojson', toolchains: [ocamlVersion]},
   {name: 'biniou', toolchains: [ocamlVersion]},
+  {name: 'ounit', toolchains: [ocamlVersion]},
+  {name: 're', toolchains: [ocamlVersion]},
+  {name: 'camomile', toolchains: [ocamlVersion]},
+  {name: 'zed', toolchains: [ocamlVersion]},
+  {name: 'lambda-term', toolchains: [ocamlVersion]},
+  {name: 'cudf', toolchains: [ocamlVersion]},
+  // Blocked by esy/esy#505
+  {name: 'coq', toolchains: [ocamlVersion]},
   {name: 'easy-format', toolchains: [ocamlVersion]},
   {name: 'lwt', toolchains: [ocamlVersion]},
   {name: 'sexplib', toolchains: [ocamlVersion]},
@@ -54,7 +98,6 @@ const cases = [
   {name: 'ppx_sexp_conv', toolchains: [ocamlVersion]},
   {name: 'ppx_optcomp', toolchains: [ocamlVersion]},
   {name: 'ppx_tools', toolchains: [ocamlVersion]},
-  {name: 'ounit', toolchains: [ocamlVersion]},
   {name: 'stdio', toolchains: [ocamlVersion]},
   {name: 'base', toolchains: [ocamlVersion]},
   {name: 'ppx_ast', toolchains: [ocamlVersion]},
@@ -64,9 +107,7 @@ const cases = [
   {name: 'ppx_deriving', toolchains: [ocamlVersion]},
   {name: 'ppx_fields_conv', toolchains: [ocamlVersion]},
   {name: 'fieldslib', toolchains: [ocamlVersion]},
-  {name: 're', toolchains: [ocamlVersion]},
   {name: 'ppx_compare', toolchains: [ocamlVersion]},
-  {name: 'camomile', toolchains: [ocamlVersion]},
   {name: 'react', toolchains: [ocamlVersion]},
   {name: 'cppo_ocamlbuild', toolchains: [ocamlVersion]},
   {name: 'ppx_enumerate', toolchains: [ocamlVersion]},
@@ -74,8 +115,6 @@ const cases = [
   {name: 'bin_prot', toolchains: [ocamlVersion]},
   {name: 'conf-libcurl', toolchains: [ocamlVersion]},
   {name: 'core_kernel', toolchains: [ocamlVersion]},
-  {name: 'zed', toolchains: [ocamlVersion]},
-  {name: 'lambda-term', toolchains: [ocamlVersion]},
   {name: 'zarith', toolchains: [ocamlVersion]},
   {name: 'ppx_hash', toolchains: [ocamlVersion]},
   {name: 'core', toolchains: [ocamlVersion]},
@@ -126,7 +165,6 @@ const cases = [
   {name: 'async_unix', toolchains: [ocamlVersion]},
   {name: 'async_extra', toolchains: [ocamlVersion]},
   {name: 'async', toolchains: [ocamlVersion]},
-  {name: 'cudf', toolchains: [ocamlVersion]},
   {name: 'ssl', toolchains: [ocamlVersion]},
   {name: 'tls', toolchains: [ocamlVersion]},
 ];
@@ -151,14 +189,16 @@ function shuffle(array) {
 }
 
 function selectCases(array) {
-  // Start with a subset on windows...
-  return os.platform() == 'win32' ? shuffle(array.slice(0, 10)) : shuffle(array);
+  return shuffle(allCases);
 }
 
 const startTime = new Date();
 const runtimeLimit = 60 * 60 * 1000;
 
 setup();
+
+let anyTestsFailed = false;
+let packageResult = [];
 
 for (let c of selectCases(cases)) {
   for (let toolchain of c.toolchains) {
@@ -201,10 +241,33 @@ for (let c of selectCases(cases)) {
       reposUpdated = true;
     }
 
-    sandbox.esy(...install);
-    sandbox.esy('build');
+    let failed = false;
+    try {
+        sandbox.esy(...install);
+        sandbox.esy('build');
+    } catch (ex) {
+        console.error(ex);
+        failed = true;
+        if (process.platform === "win32" && windowsCasesExpectedToPass.indexOf(c.name) === -1) {
+            console.warn(`Test case ${c.name} failed, but this is expected on Windows`);
+        } else {
+            anyTestsFailed = true;
+        }
+    }
+
+    packageResult.push({
+        ...c,
+        validationTime: Date.now(),
+        success: !failed,
+    });
 
     rmSync(path.join(esyPrefixPath, '3', 'b'));
     sandbox.dispose();
   }
+}
+
+writeReport(packageResult);
+
+if (anyTestsFailed && !isExploratory) {
+    exit(1);
 }

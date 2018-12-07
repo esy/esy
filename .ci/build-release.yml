@@ -77,11 +77,13 @@ jobs:
         ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
         ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
+        ESY_SLOWTEST: true
 
     steps:
       - template: use-node.yml
       - template: restore-build-cache.yml
       - template: build-windows.yml
+      - template: publish-windows-opam-report.yml
       - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1

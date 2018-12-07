@@ -1,0 +1,10 @@
+steps:
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Windows OPAM compatibility report'
+    condition: and(succeeded(), eq(variables['ESY_SLOWTEST'], 'true'))
+    inputs:
+        pathToPublish: '$(Build.SourcesDirectory)/_report'
+        artifactName: '$(Agent.OS)-opam-report'
+        parallel: true
+        parallelCount: 8
+
