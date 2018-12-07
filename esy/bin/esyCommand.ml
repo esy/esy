@@ -29,7 +29,11 @@ let depspecConv =
   let open Result.Syntax in
   let parse v =
     let lexbuf = Lexing.from_string v in
-    return (DepSpecParser.start DepSpecLexer.read lexbuf)
+    try return (DepSpecParser.start DepSpecLexer.read lexbuf) with
+    | DepSpecLexer.Error msg ->
+      let msg = Printf.sprintf "error parsing DEPSPEC: %s" msg in
+      error (`Msg msg)
+    | DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
   in
   let pp = BuildSandbox.DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
