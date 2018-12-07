@@ -66,6 +66,7 @@ jobs:
     steps:
       # - template: restore-build-cache.yml
       - template: build-windows.yml
+      - template: publish-windows-opam-report.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Artifact: Windows'
