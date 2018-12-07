@@ -162,7 +162,7 @@ setup();
 
 let testBytecodeCompilation = async (sandbox, packageName) => {
     // Get library path:
-    let libraryPath = (await sandbox.esy(`build ocamlfind query ${c.name}`)).stdout.toString().trim();
+    let libraryPath = (await sandbox.esy(`build ocamlfind query ${packageName}`)).stdout.toString().trim();
     let cmaPath = path.join(libraryPath, packageName + '.cma');
 
     let testFileContents = `
