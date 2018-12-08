@@ -23,7 +23,7 @@ describe('Build - not enough deps', () => {
 
     await p.esy('build').catch(e => {
       expect(e.stderr).toEqual(
-        expect.stringMatching("error: no installation found, run 'esy install'"),
+        expect.stringMatching('error: project is missing a lock, run `esy install`'),
       );
     });
   });

@@ -38,8 +38,14 @@
       "linking-workflow": {
         "title": "Linking Packages in Development"
       },
+      "low-level-commands": {
+        "title": "Low Level Commands"
+      },
       "multiple-sandboxes": {
         "title": "Multiple Project Sandboxes"
+      },
+      "node-compatibility": {
+        "title": "Node/npm Compatibility"
       },
       "offline": {
         "title": "Offline Builds"

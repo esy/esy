@@ -13,6 +13,17 @@ install`](#esy-install) and [`esy build`](#esy-build).
 The default command combines `esy install` and `esy build` and runs them in
 consecutively.
 
+This makes it possible for the default esy project workflow be just:
+
+```bash
+% git clone https://github.com/USER/PROJECT && cd PROJECT
+% esy
+```
+
+The commands above will clone project sources and make all dependencies
+including compiler toolchain and dev dependencies like IDE plugins be installed
+& built.
+
 ### `esy install`
 
 Install dependencies declared in `package.json`:
@@ -21,13 +32,10 @@ Install dependencies declared in `package.json`:
 % esy install
 ```
 
-If the solution lock `esy.lock` (an analogue of `yarn.lock`) exists then it will
-be used to resolve dependencies' version constraints to concrete versions,
-otherwise constraints resolution will be performed and saved to a fresh
-`esy.lock`.
-
-This command is based on `yarn` and accepts the same command line arguments and
-options.
+If the solution lock `esy.lock` (an analogue of `yarn.lock` lockfile) exists
+then it will be used to resolve dependencies' version constraints to concrete
+versions, otherwise constraints resolution will be performed and saved to a
+fresh `esy.lock`.
 
 ### `esy build`
 
@@ -42,15 +50,34 @@ Example:
 % esy build
 ```
 
+You can also use `esy b` shortcurt instead of `esy build`:
+
+```bash
+% esy b
+```
+
 ## Run commands in the specified environment
 
 These commands allow to execute arbitrary commands in esy's managed
 environments. For more info about environment types see [corresponding
 docs][environment.md].
 
-### `esy build <anycommand>`
+### `esy COMMAND`
 
-Run command `<anycommand>` in the build environment.
+Run command `COMMAND` in the command environment.
+
+Example:
+
+```bash
+% esy vim ./bin/hello.re
+```
+
+As command environment contains development time dependencies (like
+`@opam/merlin`) `vim` program will have access to those.
+
+### `esy build COMMAND`
+
+Run command `COMMAND` in the build environment.
 
 For example, we can see which `ocamlfind` libraries are available:
 
@@ -62,66 +89,66 @@ Another example usage would be to execute a build process for some specific
 build target:
 
 ```bash
-% esy build bin/hello.exe
+% esy build dune build bin/hello.exe
 ```
 
 This is useful when you want to perform a build just for a subset of build
 outputs.
 
-### `esy build-shell [<path/to/package>]`
+You can also use `esy b` shortcurt instead of `esy build`:
 
-Initialize shell with build environment.
+```bash
+% esy b dune build bin/hello.exe
+```
+
+### `esy x COMMAND`
+
+Execute command `COMMAND` in the test environment.
 
 Example:
 
 ```bash
-% esy build-shell
-```
-
-If `<path/to/package>` argument is passed then the build shell is initialied for
-the specified package:
-
-```
-% esy build-shell ./node_modules/@opam/lwt
-```
-
-This command is useful for debugging failing builds.
-
-### `esy <anycommand>`
-
-Run command `<anycommand>` in command environment.
-
-Example:
-
-```bash
-% esy vim ./bin/hello.re
-```
-
-As command environment contains development time dependencies (like
-`@opam/merlin`) `vim` program will have access to those.
-
-### `esy shell`
-
-Initialize shell with command environment.
-
-Example:
-
-```bash
-% esy shell
-```
-
-### `esy x <anycommand>`
-
-Execute command `<anycommand>` in test environment.
-
-Example:
-
-```
 % esy x hello
 ```
 
 This invocation puts root project's executables in `$PATH` thus it's useful to
 test the project as it was installed.
+
+### `esy shell`
+
+Initialize shell with the project's command environment.
+
+Example:
+
+```bash
+% esy shell
+% vim
+```
+
+The commands above are the equivalent of running `esy vim`.
+
+### `esy build-shell`
+
+Initialize shell with the project's build environment.
+
+Example:
+
+```bash
+% esy build-shell
+% dune build bin/hello.exe
+```
+
+The commands above are the equivalent of running `esy build dune build
+bin/hello.exe`.
+
+The command accept a position argument which allows to shell into a specific
+package's build environment, referring to the package by its name:
+
+```bash
+% esy build-shell @opam/lwt
+```
+
+This command is useful for debugging failing builds.
 
 ## Sandbox introspection
 

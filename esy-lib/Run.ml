@@ -44,6 +44,10 @@ let bind ~f v = match v with
   | Ok v -> f v
   | Error err -> Error err
 
+let map ~f v = match v with
+  | Ok v -> Ok (f v)
+  | Error err -> Error err
+
 let withContextOfLog ?(header="Log output:") content v =
   match v with
   | Ok v -> Ok v
@@ -97,6 +101,7 @@ module Syntax = struct
   let errorf = errorf
   module Let_syntax = struct
     let bind = bind
+    let map = map
   end
 end
 

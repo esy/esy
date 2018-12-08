@@ -12,6 +12,7 @@ Because esy needs more information about the project, it extends `package.json`
 with the following fields:
 
 - [`esy.build`](#esybuild)
+- [`esy.buildDev`](#esybuilddev)
 - [`esy.install`](#esyinstall)
 - [`esy.buildsInSource`](#esybuildsinsource)
 - [`esy.exportedEnv`](#esyexportedenv)
@@ -26,27 +27,46 @@ specify how to build and install built artifacts.
 
 ### `esy.build`
 
-Describe how your project's default targets should be built by specifying
-a list of commands with `esy.build` config key.
+Describe how your package's default targets should be built when package is
+being used as a dependency.
 
-For example, for a [dune](https://dune.readthedocs.io/) based project you'd want to call `dune build`
+For example, for a [dune](https://dune.readthedocs.io/) based package you'd want to call `dune build`
 command.
 
 ```
 {
   "esy": {
     "build": [
-      "dune build",
+      "dune build -p #{self.name}",
+    ]
+  }
+}
+```
+[esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
+declare build commands.
+
+### `esy.buildDev`
+
+Describe how your package's default targets should be built when package is
+being developed.
+
+For example, for a [dune](https://dune.readthedocs.io/) based package you'd want to call `dune build`
+command.
+
+```
+{
+  "esy": {
+    "buildDev": [
+      "dune build --root . --only-packages #{self.name}",
     ]
   }
 }
 ```
 
-Commands specified in `esy.build` are always executed for the root's project
-when user calls `esy build` command.
-
 [esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
 declare build commands.
+
+If no `esy.buildDev` is defined then `esy.build` is used instead.
 
 ### `esy.install` (optional)
 

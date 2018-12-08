@@ -1,12 +1,10 @@
 val make :
-  sandboxEnv:BuildManifest.Env.item StringMap.t
-  -> solution:EsyInstall.Solution.t
-  -> installation:EsyInstall.Installation.t
-  -> ocamlopt:Path.t
+  ocamlopt:Path.t
   -> outputPath:Path.t
   -> concurrency:int
-  -> cfg:Config.t
-  -> unit
+  -> Config.t
+  -> BuildSandbox.t
+  -> EsyInstall.Solution.Package.t
   -> unit RunAsync.t
 (**
  * Produce an npm release for the [sandbox].

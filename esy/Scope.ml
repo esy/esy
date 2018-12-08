@@ -1,3 +1,5 @@
+module Id = EsyInstall.PackageId
+module Package = EsyInstall.Solution.Package
 module SandboxPath = EsyBuildPackage.Config.Path
 module SandboxValue = EsyBuildPackage.Config.Value
 module SandboxEnvironment = EsyBuildPackage.Config.Environment
@@ -11,7 +13,6 @@ module PackageScope : sig
     id:string
     -> name:string
     -> version:Version.t
-    -> buildIsInProgress:bool
     -> sourceType : BuildManifest.SourceType.t
     -> sourcePath : SandboxPath.t
     -> BuildManifest.t
@@ -21,8 +22,8 @@ module PackageScope : sig
   val name : t -> string
   val version : t -> Version.t
   val sourceType : t -> BuildManifest.SourceType.t
+  val buildType : t -> BuildManifest.BuildType.t
 
-  val buildIsInProgress : t -> bool
   val storePath : t -> SandboxPath.t
   val rootPath : t -> SandboxPath.t
   val sourcePath : t -> SandboxPath.t
@@ -32,11 +33,11 @@ module PackageScope : sig
   val installPath : t -> SandboxPath.t
   val logPath : t -> SandboxPath.t
 
-  val buildEnv : t -> (string * string) list
+  val buildEnv : buildIsInProgress:bool -> t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
   val exportedEnvGlobal : t -> (string * string) list
 
-  val var : t -> string -> EsyCommandExpression.Value.t option
+  val var : buildIsInProgress:bool -> t -> string -> EsyCommandExpression.Value.t option
 
 end = struct
   type t = {
@@ -46,7 +47,6 @@ end = struct
     sourcePath : SandboxPath.t;
     sourceType : BuildManifest.SourceType.t;
     build : BuildManifest.t;
-    buildIsInProgress : bool;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
   }
@@ -55,7 +55,6 @@ end = struct
     ~id
     ~name
     ~version
-    ~buildIsInProgress
     ~sourceType
     ~sourcePath
     (build : BuildManifest.t) =
@@ -109,7 +108,6 @@ end = struct
       build;
       exportedEnvLocal;
       exportedEnvGlobal;
-      buildIsInProgress
     }
 
   let id scope = scope.id
@@ -125,7 +123,7 @@ end = struct
     | None -> scope.version
 
   let sourceType scope = scope.sourceType
-  let buildIsInProgress scope = scope.buildIsInProgress
+  let buildType scope = scope.build.buildType
 
   let sourcePath scope =
     scope.sourcePath
@@ -183,12 +181,12 @@ end = struct
   let exportedEnvLocal scope = scope.exportedEnvLocal
   let exportedEnvGlobal scope = scope.exportedEnvGlobal
 
-  let var scope id =
+  let var ~buildIsInProgress scope id =
     let b v = Some (EsyCommandExpression.bool v) in
     let s v = Some (EsyCommandExpression.string v) in
     let p v = Some (EsyCommandExpression.string (SandboxValue.show (SandboxPath.toValue v))) in
     let installPath =
-      if scope.buildIsInProgress
+      if buildIsInProgress
       then stagePath scope
       else installPath scope
     in
@@ -215,9 +213,9 @@ end = struct
       | Transient -> true)
     | _ -> None
 
-  let buildEnv scope =
+  let buildEnv ~buildIsInProgress scope =
     let installPath =
-      if scope.buildIsInProgress
+      if buildIsInProgress
       then stagePath scope
       else installPath scope
     in
@@ -271,6 +269,10 @@ end
 
 type t = {
   platform : System.Platform.t;
+  pkg : Package.t;
+
+  children : bool Id.Map.t;
+
   self : PackageScope.t;
   dependencies : t list;
   directDependencies : t StringMap.t;
@@ -287,7 +289,7 @@ let make
   ~version
   ~sourceType
   ~sourcePath
-  ~buildIsInProgress
+  pkg
   build =
   let self =
     PackageScope.make
@@ -296,19 +298,20 @@ let make
       ~version
       ~sourceType
       ~sourcePath
-      ~buildIsInProgress
       build
   in
   {
     platform;
     sandboxEnv;
+    children = Id.Map.empty;
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
+    pkg;
     finalEnv = (
       let defaultPath =
           match platform with
-          | Windows -> 
+          | Windows ->
               let windir = Sys.getenv("WINDIR") ^ "/System32" in
               let windir = Path.normalizePathSlashes windir in
               "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ^ windir
@@ -322,14 +325,36 @@ let make
   }
 
 let add ~direct ~dep scope =
-  let name = PackageScope.name dep.self in
-  let directDependencies =
-    if direct
-    then StringMap.add name dep scope.directDependencies
-    else scope.directDependencies
-  in
-  let dependencies = dep::scope.dependencies in
-  {scope with directDependencies; dependencies;}
+  match direct, Id.Map.find_opt dep.pkg.id scope.children with
+  | direct, None ->
+    let directDependencies =
+      if direct
+      then
+        let name = PackageScope.name dep.self in
+        StringMap.add name dep scope.directDependencies
+      else scope.directDependencies
+    in
+    let dependencies = dep::scope.dependencies in
+    let children = Id.Map.add dep.pkg.id direct scope.children in
+    {scope with directDependencies; dependencies; children}
+  | true, Some false ->
+    let directDependencies =
+      let name = PackageScope.name dep.self in
+      StringMap.add name dep scope.directDependencies
+    in
+    let children = Id.Map.add dep.pkg.id direct scope.children in
+    {scope with directDependencies; children}
+  | true, Some true
+  | false, Some false
+  | false, Some true -> scope
+
+
+let pkg scope = scope.pkg
+let id scope = PackageScope.id scope.self
+let name scope = PackageScope.name scope.self
+let version scope = PackageScope.version scope.self
+let sourceType scope = PackageScope.sourceType scope.self
+let buildType scope = PackageScope.buildType scope.self
 
 let storePath scope = PackageScope.storePath scope.self
 let rootPath scope = PackageScope.rootPath scope.self
@@ -339,6 +364,9 @@ let buildInfoPath scope = PackageScope.buildInfoPath scope.self
 let stagePath scope = PackageScope.stagePath scope.self
 let installPath scope = PackageScope.installPath scope.self
 let logPath scope = PackageScope.logPath scope.self
+
+let pp fmt scope =
+  Fmt.pf fmt "Scope %s" (PackageScope.id scope.self)
 
 let exposeUserEnvWith makeBinding name scope =
   let finalEnv =
@@ -350,7 +378,14 @@ let exposeUserEnvWith makeBinding name scope =
   in
   {scope with finalEnv}
 
-let renderCommandExpr ?environmentVariableName scope expr =
+let renderEnv env name =
+  match SandboxEnvironment.find name env with
+  | Some v -> Result.return (EsyCommandExpression.string (SandboxValue.show v))
+  | None -> Result.return (EsyCommandExpression.string ("$" ^ name))
+
+let render ?env ?environmentVariableName ~buildIsInProgress scope expr =
+  let open Run.Syntax in
+  let envVar = Option.map ~f:(fun env -> renderEnv env) env in
   let pathSep =
     match scope.platform with
     | System.Platform.Unknown
@@ -365,23 +400,26 @@ let renderCommandExpr ?environmentVariableName scope expr =
   in
   let lookup (namespace, name) =
     match namespace, name with
-    | Some "self", name -> PackageScope.var scope.self name
+    | Some "self", name -> PackageScope.var ~buildIsInProgress scope.self name
     | Some namespace, name ->
       if namespace = PackageScope.name scope.self
-      then PackageScope.var scope.self name
+      then PackageScope.var ~buildIsInProgress scope.self name
       else
         begin match StringMap.find_opt namespace scope.directDependencies, name with
         | Some _, "installed" -> Some (EsyCommandExpression.bool true)
-        | Some scope, name -> PackageScope.var scope.self name
+        | Some scope, name -> PackageScope.var ~buildIsInProgress:false scope.self name
         | None, "installed" -> Some (EsyCommandExpression.bool false)
         | None, _ -> None
         end
     | None, "os" -> Some (EsyCommandExpression.string (System.Platform.show scope.platform))
     | None, _ -> None
   in
-  Run.ofStringError (EsyCommandExpression.render ~pathSep ~colon:envSep ~scope:lookup expr)
+  let%bind v = Run.ofStringError (
+    EsyCommandExpression.render ?envVar ~pathSep ~colon:envSep ~scope:lookup expr
+  ) in
+  return (SandboxValue.v v)
 
-let makeEnvBindings bindings scope =
+let makeEnvBindings ~buildIsInProgress bindings scope =
   let open Run.Syntax in
   let origin =
     let name = PackageScope.name scope.self in
@@ -391,32 +429,32 @@ let makeEnvBindings bindings scope =
   let f (name, value) =
     let%bind value =
       Run.contextf
-        (renderCommandExpr ~environmentVariableName:name scope value)
+        (render ~buildIsInProgress ~environmentVariableName:name scope value)
         "processing exportedEnv $%s" name
     in
-    return (SandboxEnvironment.Bindings.value ~origin name (SandboxValue.v value))
+    return (SandboxEnvironment.Bindings.value ~origin name value)
   in
   Result.List.map ~f bindings
 
-let buildEnv scope =
+let buildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnv scope.self in
-  let%bind env = makeEnvBindings bindings scope in
+  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.self in
+  let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
 let exportedEnvGlobal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvGlobal scope.self in
-  let%bind env = makeEnvBindings bindings scope in
+  let%bind env = makeEnvBindings ~buildIsInProgress:false bindings scope in
   return env
 
 let exportedEnvLocal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvLocal scope.self in
-  let%bind env = makeEnvBindings bindings scope in
+  let%bind env = makeEnvBindings ~buildIsInProgress:false bindings scope in
   return env
 
-let env ~includeBuildEnv scope =
+let env ~includeBuildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
 
   let%bind dependenciesEnv =
@@ -435,7 +473,7 @@ let env ~includeBuildEnv scope =
   in
 
   let%bind buildEnv =
-    buildEnv scope
+    buildEnv ~buildIsInProgress scope
   in
 
   return (List.rev (
@@ -445,9 +483,31 @@ let env ~includeBuildEnv scope =
     @ scope.sandboxEnv
   ))
 
-let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
+let toOCamlVersion version =
+  let version = Version.showSimple version in
+  match String.split_on_char '.' version with
+  | major::minor::patch::[] ->
+    let patch =
+      let v = try int_of_string patch with _ -> 0 in
+      if v < 1000 then v else v / 1000
+    in
+    major ^ ".0" ^ minor ^ "." ^ (string_of_int patch)
+  | _ -> version
+
+let ocamlVersion scope =
+  let open Option.Syntax in
+  let f dep =
+    match PackageScope.name dep.self with
+    | "ocaml" -> true
+    | _ -> false
+  in
+  let%bind ocaml = List.find_opt ~f scope.dependencies in
+  return (toOCamlVersion (PackageScope.version ocaml.self))
+
+let toOpamEnv ~buildIsInProgress (scope : t) (name : OpamVariable.Full.t) =
   let open OpamVariable in
 
+  let ocamlVersion = ocamlVersion scope in
   let opamArch = System.Arch.(show host) in
 
   let opamOs =
@@ -472,10 +532,10 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
     | _ -> name
   in
 
-  let opamPackageScope ?namespace (scope : PackageScope.t) name =
+  let opamPackageScope ?namespace ~buildIsInProgress (scope : PackageScope.t) name =
     let opamname = opamname scope in
     let installPath =
-      if PackageScope.buildIsInProgress scope
+      if buildIsInProgress
       then PackageScope.stagePath scope
       else PackageScope.installPath scope
     in
@@ -516,7 +576,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
   in
 
   let installPath =
-    if PackageScope.buildIsInProgress scope.self
+    if buildIsInProgress
     then PackageScope.stagePath scope.self
     else PackageScope.installPath scope.self
   in
@@ -549,7 +609,7 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
 
   | Full.Self, "enable" -> Some (bool true)
   | Full.Self, "installed" -> Some (bool true)
-  | Full.Self, name -> opamPackageScope scope.self name
+  | Full.Self, name -> opamPackageScope ~buildIsInProgress scope.self name
 
   | Full.Package namespace, name ->
     let namespace =
@@ -568,10 +628,10 @@ let toOpamEnv ~ocamlVersion (scope : t) (name : OpamVariable.Full.t) =
       end
     | name ->
       if namespace = PackageScope.name scope.self
-      then opamPackageScope ~namespace scope.self name
+      then opamPackageScope ~buildIsInProgress ~namespace scope.self name
       else
         begin match StringMap.find_opt namespace scope.directDependencies with
-        | Some scope -> opamPackageScope ~namespace scope.self name
+        | Some scope -> opamPackageScope ~buildIsInProgress:false ~namespace scope.self name
         | None -> None
         end
     end

@@ -2,6 +2,7 @@
 
 const path = require('path');
 const outdent = require('outdent');
+const os = require('os');
 
 const {skipSuiteOnWindows} = require('../test/helpers');
 
@@ -18,9 +19,17 @@ const fixture = [
       cmd2: "esy bash -c 'echo 'cmd2_result''",
       cmd3: [['bash', '-c', "echo 'cmd_array_result'"]],
       cmd4: "#{self.target_dir / 'script'}",
+      cmd5: "#{$cur__target_dir / 'script'}",
       exec_cmd1: 'esy x script',
-      exec_cmd2: [['esy', 'x', 'script']],
+      exec_cmd2: 'esy x echo #{self.name}',
+      exec_cmd3: [['esy', 'x', 'script']],
+      exec_cmd4: [['esy', 'x', 'echo', '#{self.name}']],
       build_cmd: "esy b bash -c 'echo 'build_cmd_result''",
+      build_cmd2: 'esy b echo #{self.name}',
+      build_cmd3: [['esy', 'b', 'echo', '#{self.name}']],
+      build_cmd4: "esy build bash -c 'echo 'build_cmd_result''",
+      build_cmd5: 'esy build echo #{self.name}',
+      build_cmd6: [['esy', 'build', 'echo', '#{self.name}']],
     },
     esy: {
       build: [
@@ -46,16 +55,19 @@ it('Common - scripts', async () => {
   await p.esy('build');
 
   await expect(p.esy('cmd1')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd1_result\n'}),
+    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
   );
   await expect(p.esy('cmd2')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd2_result\n'}),
+    expect.objectContaining({stdout: 'cmd2_result' + os.EOL}),
   );
   await expect(p.esy('cmd3')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd_array_result\n'}),
+    expect.objectContaining({stdout: 'cmd_array_result' + os.EOL}),
   );
   await expect(p.esy('cmd4')).resolves.toEqual(
-    expect.objectContaining({stdout: 'script_exec_result\n'}),
+    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+  );
+  await expect(p.esy('cmd5')).resolves.toEqual(
+    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
   );
 
   await expect(p.esy('b cmd1')).rejects.toThrow();
@@ -65,10 +77,31 @@ it('Common - scripts', async () => {
     expect.objectContaining({stdout: 'script_exec_result\n'}),
   );
   await expect(p.esy('exec_cmd2')).resolves.toEqual(
-    expect.objectContaining({stdout: 'script_exec_result\n'}),
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+  );
+  await expect(p.esy('exec_cmd3')).resolves.toEqual(
+    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+  );
+  await expect(p.esy('exec_cmd4')).resolves.toEqual(
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
   );
 
   await expect(p.esy('build_cmd')).resolves.toEqual(
-    expect.objectContaining({stdout: 'build_cmd_result\n'}),
+    expect.objectContaining({stdout: 'build_cmd_result' + os.EOL}),
+  );
+  await expect(p.esy('build_cmd2')).resolves.toEqual(
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+  );
+  await expect(p.esy('build_cmd3')).resolves.toEqual(
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+  );
+  await expect(p.esy('build_cmd4')).resolves.toEqual(
+    expect.objectContaining({stdout: 'build_cmd_result' + os.EOL}),
+  );
+  await expect(p.esy('build_cmd5')).resolves.toEqual(
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+  );
+  await expect(p.esy('build_cmd6')).resolves.toEqual(
+    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
   );
 });

@@ -240,11 +240,11 @@ describe('devDep workflow', () => {
     },
   );
 
-  test('sandbox-env', async function() {
+  test('exec-env', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-    const {stdout} = await p.esy('sandbox-env --json');
+    const {stdout} = await p.esy('exec-env --json');
     const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
     expect(
       envpath.includes(`${p.projectPath}/_esy/default/store/i/${id}/bin`),
