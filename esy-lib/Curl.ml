@@ -66,6 +66,8 @@ let getOrNotFound ?accept url =
   let cmd = Cmd.(
     v "curl"
     % "--silent"
+    % "--connect-timeout"
+    % "60"
     % "--fail"
     % "--location" % url
   ) in
@@ -98,6 +100,8 @@ let head url =
     v "curl"
     % "--head"
     % "--silent"
+    % "--connect-timeout"
+    % "60"
     % "--fail"
     % "--location" % url
   ) in
@@ -113,12 +117,15 @@ let get ?accept url =
 
 let download ~output  url =
   let open RunAsync.Syntax in
+  let output = EsyBash.normalizePathForCygwin (Path.show output) in
   let cmd = Cmd.(
     v "curl"
     % "--silent"
+    % "--connect-timeout"
+    % "60"
     % "--fail"
     % "--location" % url
-    % "--output" % p output
+    % "--output" % output
   ) in
   match%bind runCurl cmd with
   | Success _ -> RunAsync.return ()
