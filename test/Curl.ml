@@ -47,3 +47,17 @@ let%test "curl gives error when failing to download" =
         Fs.withTempDir f
     in
     TestLwt.runLwtTest test
+
+let%test "curl gives error when failing to download from localhost" =
+    let test () =
+        let f tempPath =
+            let output = Path.(tempPath / "output.txt") in
+            let url = "http://localhost:5251/b/-/b-0-4-5-1.tgz" in
+            let%lwt result = EsyLib.Curl.download ~output url in
+            match result with
+            | Error _ -> Lwt.return true
+            | _ -> Lwt.return false
+        in
+        Fs.withTempDir f
+    in
+    TestLwt.runLwtTest test
