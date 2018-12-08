@@ -27,7 +27,7 @@ jobs:
       - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
       - template: use-node.yml
       - template: restore-build-cache.yml
-      - template: build-nix.yml
+      - template: build.yml
       - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
@@ -54,7 +54,7 @@ jobs:
       - script: brew install gmp
       - template: use-node.yml
       - template: restore-build-cache.yml
-      - template: build-nix.yml
+      - template: build.yml
       - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
@@ -81,7 +81,7 @@ jobs:
     steps:
       - template: use-node.yml
       - template: restore-build-cache.yml
-      - template: build-windows.yml
+      - template: build.yml
       - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
