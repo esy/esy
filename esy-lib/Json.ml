@@ -164,6 +164,8 @@ module Print : sig
     ?ppListBox:(?indent:int -> t list Fmt.t -> t list Fmt.t)
     -> ?ppAssocBox:(?indent:int -> (string * t) list Fmt.t -> (string * t) list Fmt.t)
     -> t Fmt.t
+
+  val ppRegular : t Fmt.t
 end = struct
   let ppComma = Fmt.unit ",@ "
 
@@ -250,4 +252,6 @@ end = struct
     in
 
     pp fmt json
+
+  let ppRegular = pp ~ppListBox:Fmt.vbox ~ppAssocBox:Fmt.vbox
 end

@@ -112,17 +112,17 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   |} environmentString bin bin
 
 let envspec = {
-  BuildSandbox.EnvSpec.
+  EnvSpec.
   buildIsInProgress = false;
   includeCurrentEnv = true;
   includeBuildEnv = false;
   includeNpmBin = true;
-  augmentDeps = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
+  augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
-  BuildSandbox.BuildSpec.
-  buildAll = {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
-  buildLinked = Some {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
+  BuildSpec.
+  buildAll = {mode = Build; deps = DepSpec.(dependencies self);};
+  buildLinked = Some {mode = Build; deps = DepSpec.(dependencies self);};
 }
 
 let make
@@ -192,9 +192,9 @@ let make
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let f (task : BuildSandbox.Task.t) =
       let id = Scope.id task.scope in
-      if shouldDeleteFromBinaryRelease id
+      if shouldDeleteFromBinaryRelease (BuildId.show id)
       then
-        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %s" id) in
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %a" BuildId.pp id) in
         return ()
       else
         let buildPath = BuildSandbox.Task.installPath cfg task in

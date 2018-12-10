@@ -10,7 +10,7 @@ module PackageScope : sig
   type t
 
   val make :
-    id:string
+    id:BuildId.t
     -> name:string
     -> version:Version.t
     -> sourceType : BuildManifest.SourceType.t
@@ -18,7 +18,7 @@ module PackageScope : sig
     -> BuildManifest.t
     -> t
 
-  val id : t -> string
+  val id : t -> BuildId.t
   val name : t -> string
   val version : t -> Version.t
   val sourceType : t -> BuildManifest.SourceType.t
@@ -33,7 +33,7 @@ module PackageScope : sig
   val installPath : t -> SandboxPath.t
   val logPath : t -> SandboxPath.t
 
-  val buildEnv : buildIsInProgress:bool -> t -> (string * string) list
+  val buildEnv : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
   val exportedEnvGlobal : t -> (string * string) list
 
@@ -41,7 +41,7 @@ module PackageScope : sig
 
 end = struct
   type t = {
-    id : string;
+    id : BuildId.t;
     name : string;
     version : Version.t;
     sourcePath : SandboxPath.t;
@@ -135,11 +135,11 @@ end = struct
 
   let buildPath scope =
     let storePath = storePath scope in
-    SandboxPath.(storePath / Store.buildTree / scope.id)
+    SandboxPath.(storePath / Store.buildTree / BuildId.show scope.id)
 
   let buildInfoPath scope =
     let storePath = storePath scope in
-    let name = scope.id ^ ".info" in
+    let name = BuildId.show scope.id ^ ".info" in
     SandboxPath.(storePath / Store.buildTree / name)
 
   let stagePath scope =
@@ -147,17 +147,17 @@ end = struct
     match scope.build.buildType, scope.sourceType with
     | OutOfSource, Transient
     | OutOfSource, ImmutableWithTransientDependencies ->
-      SandboxPath.(storePath / Store.installTree / scope.id)
+      SandboxPath.(storePath / Store.installTree / BuildId.show scope.id)
     | _ ->
-      SandboxPath.(storePath / Store.stageTree / scope.id)
+      SandboxPath.(storePath / Store.stageTree / BuildId.show scope.id)
 
   let installPath scope =
     let storePath = storePath scope in
-    SandboxPath.(storePath / Store.installTree / scope.id)
+    SandboxPath.(storePath / Store.installTree / BuildId.show scope.id)
 
   let logPath scope =
     let storePath = storePath scope in
-    let basename = scope.id ^ ".log" in
+    let basename = BuildId.show scope.id ^ ".log" in
     SandboxPath.(storePath / Store.buildTree / basename)
 
   let rootPath scope =
@@ -191,7 +191,7 @@ end = struct
       else installPath scope
     in
     match id with
-    | "id" -> s scope.id
+    | "id" -> s (BuildId.show scope.id)
     | "name" -> s (name scope)
     | "version" -> s (Version.showSimple (version scope))
     | "root" -> p (rootPath scope)
@@ -213,7 +213,7 @@ end = struct
       | Transient -> true)
     | _ -> None
 
-  let buildEnv ~buildIsInProgress scope =
+  let buildEnv ~buildIsInProgress mode scope =
     let installPath =
       if buildIsInProgress
       then stagePath scope
@@ -222,10 +222,11 @@ end = struct
 
     let p v = SandboxValue.show (SandboxPath.toValue v) in
     let dev =
-      match scope.sourceType with
-      | Transient -> "true"
-      | Immutable
-      | ImmutableWithTransientDependencies -> "false"
+      match mode, scope.sourceType with
+      | BuildSpec.BuildDev, Transient -> "true"
+      | BuildSpec.Build, Transient -> "false"
+      | _, Immutable
+      | _, ImmutableWithTransientDependencies -> "false"
     in
 
     (* add builtins *)
@@ -270,6 +271,7 @@ end
 type t = {
   platform : System.Platform.t;
   pkg : Package.t;
+  mode : BuildSpec.mode;
 
   children : bool Id.Map.t;
 
@@ -287,6 +289,7 @@ let make
   ~id
   ~name
   ~version
+  ~mode
   ~sourceType
   ~sourcePath
   pkg
@@ -307,6 +310,7 @@ let make
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
+    mode;
     pkg;
     finalEnv = (
       let defaultPath =
@@ -366,7 +370,7 @@ let installPath scope = PackageScope.installPath scope.self
 let logPath scope = PackageScope.logPath scope.self
 
 let pp fmt scope =
-  Fmt.pf fmt "Scope %s" (PackageScope.id scope.self)
+  Fmt.pf fmt "Scope %a" BuildId.pp (PackageScope.id scope.self)
 
 let exposeUserEnvWith makeBinding name scope =
   let finalEnv =
@@ -438,7 +442,7 @@ let makeEnvBindings ~buildIsInProgress bindings scope =
 
 let buildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.self in
+  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.mode scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
@@ -552,7 +556,7 @@ let toOpamEnv ~buildIsInProgress (scope : t) (name : OpamVariable.Full.t) =
     | _, "hash" -> Some (string "")
     | _, "name" -> Some (string opamname)
     | _, "version" -> Some (string (Version.showSimple (PackageScope.version scope)))
-    | _, "build-id" -> Some (string (PackageScope.id scope))
+    | _, "build-id" -> Some (string (BuildId.show (PackageScope.id scope)))
     | _, "dev" -> Some (bool (
       match PackageScope.sourceType scope with
       | Immutable | ImmutableWithTransientDependencies -> false

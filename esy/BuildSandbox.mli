@@ -1,88 +1,13 @@
 type t
 
 val make :
-  ?platform:System.Platform.t
-  -> ?sandboxEnv:BuildManifest.Env.t
+  ?sandboxEnv:BuildManifest.Env.t
   -> Config.t
   -> EsyInstall.Solution.t
   -> EsyInstall.Installation.t
   -> (t * Fpath.set) RunAsync.t
 
 val renderExpression : t -> Scope.t -> string -> string Run.t
-
-(** An expression to specify a set of packages. *)
-module DepSpec : sig
-
-  type id
-  (** Package id. *)
-
-  val root : id
-  val self : id
-
-  type t
-  (** Dependency expression, *)
-
-  val package : id -> t
-  (** [package id] refers to a package by its [id]. *)
-
-  val dependencies : id -> t
-  (** [dependencies id] refers all dependencies of the package with [id]. *)
-
-  val devDependencies : id -> t
-  (** [dependencies id] refers all devDependencies of the package with [id]. *)
-
-  val (+) : t -> t -> t
-  (** [a + b] refers to all packages in [a] and in [b]. *)
-
-  val compare : t -> t -> int
-  val pp : t Fmt.t
-end
-
-(** This describes how a project should be built. *)
-module BuildSpec : sig
-
-  type t = {
-
-    buildLinked : build option;
-    (** Optionally define if we need to treat linked packages in a specific way. *)
-
-    buildAll : build;
-    (** Define how we treat all other packages. *)
-  }
-
-  and build = {
-    mode : mode;
-    deps : DepSpec.t;
-  }
-  (**
-   * This is a pair of which build command to use ("build" or "buildDev") and
-   * a specification of what to bring into the build env.
-   *)
-
-  and mode =
-    | Build
-    | BuildDev
-
-  val pp_mode : mode Fmt.t
-
-  val classify : t -> EsyInstall.Solution.Package.t -> build
-end
-
-(** This describes how to construct environment for command invocations. *)
-module EnvSpec : sig
-  type t = {
-    augmentDeps : DepSpec.t option;
-    (** Defines what packages we should bring into the command env. *)
-    buildIsInProgress : bool;
-    (** If we should init the build environment (enable sandboxing, do source relloc). *)
-    includeCurrentEnv : bool;
-    (** If we should include current environment. *)
-    includeBuildEnv : bool;
-    (** If we should include the package's build environment. *)
-    includeNpmBin : bool;
-    (** If we should include the project's npm bin in $PATH. *)
-  }
-end
 
 val configure :
   ?forceImmutable:bool
@@ -110,6 +35,7 @@ val exec :
 
 module Task : sig
   type t = {
+    idrepr : BuildId.Repr.t;
     pkg : EsyInstall.Solution.Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;

@@ -13,6 +13,7 @@ module Platform : sig
   val host : t
   (** Platform we are currently running on *)
 
+  include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t
 end
@@ -23,6 +24,7 @@ module Arch : sig
   val host : t
   (** Arch we are currently running on *)
 
+  include S.JSONABLE with type t := t
   include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t
 

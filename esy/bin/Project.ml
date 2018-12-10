@@ -164,7 +164,6 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
         let%bind sandboxEnv = SandboxEnv.ofSandbox projcfg.spec in
         let%bind sandbox, filesUsedForPlan =
           BuildSandbox.make
-            ~platform:System.Platform.host
             ~sandboxEnv
             projcfg.cfg
             solution

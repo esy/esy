@@ -8,6 +8,7 @@ module Version = EsyInstall.Version
 
 type t = {
   cfg : Config.t;
+  arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : BuildManifest.Env.t;
   solution : EsyInstall.Solution.t;
@@ -80,7 +81,6 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   return (paths, manifests)
 
 let make
-  ?(platform=System.Platform.host)
   ?(sandboxEnv=BuildManifest.Env.empty)
   cfg
   solution
@@ -89,7 +89,8 @@ let make
   let%bind paths, manifests = readManifests cfg solution installation in
   return ({
     cfg;
-    platform;
+    platform = System.Platform.host;
+    arch = System.Arch.host;
     sandboxEnv;
     solution;
     installation;
@@ -102,85 +103,9 @@ let renderExpression sandbox scope expr =
   let%bind expr = Scope.render ~buildIsInProgress:false scope expr in
   return (Scope.SandboxValue.render sandbox.cfg.buildCfg expr)
 
-module DepSpec = struct
-
-  module Id = struct
-    type t =
-      | Self
-      | Root
-      [@@deriving ord]
-
-    let pp fmt = function
-      | Self -> Fmt.unit "self" fmt ()
-      | Root -> Fmt.unit "root" fmt ()
-  end
-
-  include EsyInstall.DepSpec.Make(Id)
-
-  let root = Id.Root
-  let self = Id.Self
-
-  let resolve solution self id =
-    match id with
-    | Id.Root -> (Solution.root solution).id
-    | Id.Self -> self
-
-  let eval solution self depspec =
-    let resolve id = resolve solution self id in
-    let rec eval' expr =
-      match expr with
-      | Package id -> PackageId.Set.singleton (resolve id)
-      | Dependencies id ->
-        let pkg = Solution.getExn (resolve id) solution in
-        pkg.dependencies
-      | DevDependencies id ->
-        let pkg = Solution.getExn (resolve id) solution in
-        pkg.devDependencies
-      | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
-    in
-    eval' depspec
-
-end
-
-module EnvSpec = struct
-  type t = {
-    augmentDeps : DepSpec.t option;
-    buildIsInProgress : bool;
-    includeCurrentEnv : bool;
-    includeBuildEnv : bool;
-    includeNpmBin : bool;
-  }
-end
-
-module BuildSpec = struct
-  type t = {
-    buildLinked : build option;
-    buildAll : build;
-  }
-
-  and build = {
-    mode : mode;
-    deps : DepSpec.t;
-  }
-
-  and mode =
-    | Build
-    | BuildDev
-
-  let pp_mode fmt = function
-    | Build -> Fmt.string fmt "build"
-    | BuildDev -> Fmt.string fmt "buildDev"
-
-  let classify spec pkg =
-    match pkg.Package.source, spec.buildLinked with
-    | Install _, _ -> spec.buildAll
-    | Link _, None -> spec.buildAll
-    | Link _, Some buildLinked -> buildLinked
-
-end
-
 module Task = struct
   type t = {
+    idrepr : BuildId.Repr.t;
     pkg : Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
@@ -204,7 +129,7 @@ module Task = struct
     let env = Option.orDefault ~default:t.env env in
     {
       EsyBuildPackage.Plan.
-      id = Scope.id t.scope;
+      id = BuildId.show (Scope.id t.scope);
       name = t.pkg.name;
       version = EsyInstall.Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
@@ -313,71 +238,6 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
-let buildId ~commands ~sandboxEnv ~id ~dist ~build ~dependencies () =
-
-  let hash =
-
-    (* include ids of dependencies *)
-    let dependencies =
-      let f = function
-        | true, dep -> Some ("dep:" ^ Scope.id dep)
-        | false, _ -> None
-      in
-      dependencies
-      |> List.map ~f
-      |> List.filterNone
-      |> List.sort ~cmp:String.compare
-    in
-
-    (* include parts of the current package metadata which contribute to the
-      * build commands/environment *)
-    let self =
-      build
-      |> BuildManifest.to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    let commands =
-      commands
-      |> BuildManifest.commands_to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    (* a special tag which is communicated by the installer and specifies
-      * the version of distribution of vcs commit sha *)
-    let dist =
-      match dist with
-      | Some dist -> EsyInstall.Dist.show dist
-      | None -> "-"
-    in
-
-    let sandboxEnv =
-      sandboxEnv
-      |> BuildManifest.Env.to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::commands::dependencies)
-    |> Digest.string
-    |> Digest.to_hex
-    |> fun hash -> String.sub hash 0 8
-  in
-
-  let name = PackageId.name id in
-  let version = PackageId.version id in
-
-  match version with
-  | Version.Npm _
-  | Version.Opam _ ->
-    Printf.sprintf "%s-%s-%s"
-      (Path.safeSeg name)
-      (Path.safePath (Version.show version))
-      hash
-  | Version.Source _ ->
-    Printf.sprintf "%s-%s"
-      (Path.safeSeg name)
-      hash
-
 let makeScope
   ?cache
   ~forceImmutable
@@ -413,8 +273,8 @@ let makeScope
         | Some build ->
           let%bind seen = updateSeen seen id in
           Run.contextf (
-            let%bind scope = visit' seen id build in
-            return (Some (scope, build))
+            let%bind scope, idrepr = visit' seen id build in
+            return (Some (scope, build, idrepr))
           ) "processing %a" PackageId.pp id
         | None -> return None
       in
@@ -447,7 +307,7 @@ let makeScope
       in
       let collect dependencies (direct, pkg) =
         match%bind visit seen pkg.Package.id with
-        | Some (scope, _build) ->
+        | Some (scope, _build, _idrepr) ->
           return ((direct, scope)::dependencies)
         | None -> return dependencies
       in
@@ -457,22 +317,21 @@ let makeScope
         (Solution.allDependenciesBFS ~dependencies id sandbox.solution)
     in
 
-    let dist, sourceType =
+    let sourceType =
       match pkg.source with
-      | Install info ->
+      | Install _ ->
         let hasTransientDeps =
           let f (_direct, scope) = Scope.sourceType scope = SourceType.Transient in
           List.exists ~f dependencies
         in
-        let dist, _ = info.source in
         let sourceType =
           if hasTransientDeps
           then SourceType.ImmutableWithTransientDependencies
           else SourceType.Immutable
         in
-        Some dist, sourceType
+        sourceType
       | Link _ ->
-        None, SourceType.Transient
+        SourceType.Transient
     in
     let sourceType =
       if forceImmutable
@@ -483,21 +342,24 @@ let makeScope
     let name = PackageId.name id in
     let version = PackageId.version id in
 
-    let commands =
-      match mode, sourceType, build.BuildManifest.buildDev with
-      | BuildSpec.Build, _, _
-      | BuildSpec.BuildDev, (ImmutableWithTransientDependencies | Immutable), _
-      | BuildSpec.BuildDev, Transient, None -> build.BuildManifest.build
-      | BuildSpec.BuildDev, Transient, Some commands -> BuildManifest.EsyCommands commands
-    in
-
-    let id =
-      buildId
-        ~commands
+    let id, idrepr =
+      let dependencies =
+        let f = function
+          | true, dep -> Some (Scope.id dep)
+          | false, _ -> None
+        in
+        dependencies
+        |> List.map ~f
+        |> List.filterNone
+      in
+      BuildId.make
         ~sandboxEnv:sandbox.sandboxEnv
-        ~id:pkg.id
-        ~dist
+        ~packageId:pkg.id
+        ~platform:sandbox.platform
+        ~arch:sandbox.arch
         ~build
+        ~sourceType
+        ~mode
         ~dependencies
         ()
     in
@@ -520,6 +382,7 @@ let makeScope
         ~version
         ~sourceType
         ~sourcePath
+        ~mode
         pkg
         build
     in
@@ -527,7 +390,7 @@ let makeScope
     let _, scope =
       let f (seen, scope) (direct, dep) =
         let id = Scope.id dep in
-        if StringSet.mem id seen
+        if BuildId.Set.mem id seen
         then seen, scope
         else
           let pkg = Scope.pkg dep in
@@ -535,16 +398,16 @@ let makeScope
           | true, false -> seen, scope
           | true, true
           | false, _ ->
-            StringSet.add id seen,
+            BuildId.Set.add id seen,
             Scope.add ~direct ~dep scope
       in
       List.fold_left
         ~f
-        ~init:(StringSet.empty, scope)
+        ~init:(BuildId.Set.empty, scope)
         (dependencies @ [true, scope])
     in
 
-    return scope
+    return (scope, idrepr)
   in
 
   visit [] id
@@ -608,7 +471,7 @@ let makePlan
   let makeTask pkg =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox pkg.id with
     | None -> return None
-    | Some (scope, build) ->
+    | Some (scope, build, idrepr) ->
 
       let%bind env =
         let%bind bindings = Scope.env ~buildIsInProgress:true ~includeBuildEnv:true scope in
@@ -668,6 +531,7 @@ let makePlan
 
       let task = {
         Task.
+        idrepr;
         pkg;
         scope;
         build = buildCommands;
@@ -752,7 +616,7 @@ let makeEnv
   let makeScope id =
     match%bind makeScope ?cache ~forceImmutable buildspec sandbox id with
     | None -> return None
-    | Some (scope, _build) -> return (Some scope)
+    | Some (scope, _build, _idrepr) -> return (Some scope)
   in
 
   let dependencies =
@@ -822,7 +686,7 @@ let configure
   let%bind scope =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox id with
     | None -> errorf "no build found for %a" PackageId.pp id
-    | Some (scope, _) -> return scope
+    | Some (scope, _, _) -> return scope
   in
 
   makeEnv
@@ -924,7 +788,10 @@ let findMaxModifyTime path =
     )
   in
   let label = Printf.sprintf "computing mtime for %s" (Path.show path) in
-  Perf.measureLwt ~label (fun () -> Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path)
+  Perf.measureLwt ~label (fun () ->
+    let%bind path, mtime = Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path in
+    return (path, BuildInfo.ModTime.v mtime)
+  )
 
 module Changes = struct
   type t =
@@ -1005,9 +872,14 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
       Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
       return (Changes.Yes, mtime)
     | Some prevmtime ->
-      if mtime > prevmtime
+      if not (BuildInfo.ModTime.equal mtime prevmtime)
       then (
-        Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
+        Logs_lwt.debug (fun m ->
+          m "path changed: %a %a (prev %a)"
+          Path.pp mpath
+          BuildInfo.ModTime.pp mtime
+          BuildInfo.ModTime.pp prevmtime
+        );%lwt
         return (Changes.Yes, mtime)
       )
       else
@@ -1050,6 +922,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = Some mtime;
         } in
@@ -1068,6 +941,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = None;
         } in
@@ -1080,6 +954,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = None;
         } in

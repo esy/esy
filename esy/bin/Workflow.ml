@@ -1,5 +1,4 @@
 open Esy
-open Esy.BuildSandbox
 
 type t = {
   buildspec : BuildSpec.t;
@@ -13,7 +12,7 @@ let defaultDepspecForLinked = DepSpec.(dependencies self)
 
 let default =
   (* This defines how project is built. *)
-  let buildspec = BuildSandbox.{
+  let buildspec = {
     BuildSpec.
     (* build linked packages using "buildDev" command with dependencies in the env *)
     buildLinked = Some {mode = BuildDev; deps = defaultDepspecForLinked};
@@ -22,7 +21,7 @@ let default =
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)
-  let execenvspec = BuildSandbox.{
+  let execenvspec = {
     EnvSpec.
     buildIsInProgress = false;
     includeCurrentEnv = true;
@@ -33,7 +32,7 @@ let default =
   } in
 
   (* This defines environment for "esy CMD" invocation. *)
-  let commandenvspec = BuildSandbox.{
+  let commandenvspec = {
     EnvSpec.
     buildIsInProgress = false;
     includeCurrentEnv = true;
@@ -44,7 +43,7 @@ let default =
   } in
 
   (* This defines environment for "esy build CMD" invocation. *)
-  let buildenvspec = BuildSandbox.{
+  let buildenvspec = {
     EnvSpec.
     buildIsInProgress = true;
     includeCurrentEnv = false;

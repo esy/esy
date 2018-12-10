@@ -4,9 +4,17 @@
 
  */
 
+module ModTime: {
+  type t;
+  let v: float => t;
+  let equal: (t, t) => bool;
+  let pp: Fmt.t(t);
+};
+
 type t = {
+  idInfo: BuildId.Repr.t,
   timeSpent: float,
-  sourceModTime: option(float),
+  sourceModTime: option(ModTime.t),
 };
 
 let of_yojson: EsyLib.Json.decoder(t);

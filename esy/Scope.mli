@@ -7,9 +7,10 @@ type t
 val make :
   platform:System.Platform.t
   -> sandboxEnv:SandboxEnvironment.Bindings.t
-  -> id:string
+  -> id:BuildId.t
   -> name:string
   -> version:EsyInstall.Version.t
+  -> mode:BuildSpec.mode
   -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
   -> EsyInstall.Solution.Package.t
@@ -21,7 +22,7 @@ val add : direct:bool -> dep:t -> t -> t
 (** Add new pkg *)
 
 val pkg : t -> EsyInstall.Solution.Package.t
-val id : t -> string
+val id : t -> BuildId.t
 val name : t -> string
 val version : t -> EsyInstall.Version.t
 val sourceType : t -> BuildManifest.SourceType.t
