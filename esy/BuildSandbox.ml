@@ -111,6 +111,7 @@ module Task = struct
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
+    dependencies : PackageId.t list;
   }
 
   let plan ?env (t : t) =
@@ -273,8 +274,8 @@ let makeScope
         | Some build ->
           let%bind seen = updateSeen seen id in
           Run.contextf (
-            let%bind scope, idrepr = visit' seen id build in
-            return (Some (scope, build, idrepr))
+            let%bind scope, idrepr, directDependencies = visit' seen id build in
+            return (Some (scope, build, idrepr, directDependencies))
           ) "processing %a" PackageId.pp id
         | None -> return None
       in
@@ -285,7 +286,7 @@ let makeScope
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let {BuildSpec. mode; deps} = BuildSpec.classify buildspec pkg in
+    let {BuildSpec. mode; deps} = BuildSpec.classify buildspec sandbox.solution pkg in
 
     let matched =
       DepSpec.eval sandbox.solution pkg.Package.id deps
@@ -300,21 +301,28 @@ let makeScope
         (PackageId.Set.elements matched)
     );
 
+    let directDependencies =
+      (* remove self here so we don't call into itself *)
+      PackageId.Set.(elements (remove pkg.Package.id matched))
+    in
+
     let%bind dependencies =
-      let dependencies =
-        (* remove self here so we don't call into itself *)
-        PackageId.Set.(elements (remove pkg.Package.id matched))
-      in
       let collect dependencies (direct, pkg) =
         match%bind visit seen pkg.Package.id with
-        | Some (scope, _build, _idrepr) ->
+        | Some (scope, _build, _idrepr, _directDependencies) ->
           return ((direct, scope)::dependencies)
         | None -> return dependencies
+      in
+      let lineage =
+        Solution.allDependenciesBFS
+          ~dependencies:directDependencies
+          id
+          sandbox.solution
       in
       Result.List.foldLeft
         ~f:collect
         ~init:[]
-        (Solution.allDependenciesBFS ~dependencies id sandbox.solution)
+        (lineage)
     in
 
     let sourceType =
@@ -407,7 +415,7 @@ let makeScope
         (dependencies @ [true, scope])
     in
 
-    return (scope, idrepr)
+    return (scope, idrepr, directDependencies)
   in
 
   visit [] id
@@ -471,7 +479,7 @@ let makePlan
   let makeTask pkg =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox pkg.id with
     | None -> return None
-    | Some (scope, build, idrepr) ->
+    | Some (scope, build, idrepr, dependencies) ->
 
       let%bind env =
         let%bind bindings = Scope.env ~buildIsInProgress:true ~includeBuildEnv:true scope in
@@ -484,7 +492,7 @@ let makePlan
 
       let%bind buildCommands =
 
-        let {BuildSpec. mode; deps = _;} = BuildSpec.classify buildspec pkg in
+        let {BuildSpec. mode; deps = _;} = BuildSpec.classify buildspec sandbox.solution pkg in
         match mode, Scope.sourceType scope, build.BuildManifest.buildDev with
         | BuildSpec.Build, _, _
         | BuildDev, (ImmutableWithTransientDependencies | Immutable), _
@@ -537,6 +545,7 @@ let makePlan
         build = buildCommands;
         install = installCommands;
         env;
+        dependencies;
       } in
 
       return (Some task)
@@ -597,7 +606,7 @@ let makeEnv
   let open Run.Syntax in
   let pkg = Scope.pkg scope in
   let envdepspec =
-    let {BuildSpec. deps; mode = _;} = BuildSpec.classify buildspec pkg in
+    let {BuildSpec. deps; mode = _;} = BuildSpec.classify buildspec sandbox.solution pkg in
     Option.orDefault
       ~default:deps
       envspec.EnvSpec.augmentDeps
@@ -616,7 +625,7 @@ let makeEnv
   let makeScope id =
     match%bind makeScope ?cache ~forceImmutable buildspec sandbox id with
     | None -> return None
-    | Some (scope, _build, _idrepr) -> return (Some scope)
+    | Some (scope, _build, _idrepr, _dependencies) -> return (Some scope)
   in
 
   let dependencies =
@@ -686,7 +695,7 @@ let configure
   let%bind scope =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox id with
     | None -> errorf "no build found for %a" PackageId.pp id
-    | Some (scope, _, _) -> return scope
+    | Some (scope, _, _, _) -> return scope
   in
 
   makeEnv
@@ -817,7 +826,7 @@ let buildTask ?quiet ?buildOnly ?logPath sandbox task =
   Perf.measureLwt ~label (fun () ->
     EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg:sandbox.cfg plan)
 
-let build ~force ?quiet ?buildOnly ?logPath sandbox plan id =
+let buildOnly ~force ?quiet ?buildOnly ?logPath sandbox plan id =
   let open RunAsync.Syntax in
   match Plan.get plan id with
   | Some task ->
@@ -845,7 +854,7 @@ let buildRoot ?quiet ?buildOnly sandbox plan =
     return ()
   | None -> RunAsync.return ()
 
-let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
+let build' ~concurrency ~buildLinked sandbox plan ids =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
 
@@ -887,7 +896,6 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
   in
 
   let queue = LwtTaskQueue.create ~concurrency () in
-  let root = Solution.root sandbox.solution in
 
   let run ~quiet task () =
     let start = Unix.gettimeofday () in
@@ -970,7 +978,11 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
       let running =
         match Plan.get plan id with
         | Some task ->
-          let%bind changes = processDependencies pkg in
+          let dependencies =
+            List.map ~f:(fun id -> Solution.getExn id sandbox.solution)
+            task.dependencies
+          in
+          let%bind changes = processMany dependencies in
           begin match buildLinked, task.Task.pkg.source with
           | false, Link _ -> return changes
           | _, _ ->
@@ -983,30 +995,29 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
       Hashtbl.replace tasksInProcess id running;
       running
     | Some running -> running
-  and processDependencies pkg =
-    let dependencies =
-      let traverse =
-        if Package.compare root pkg = 0
-        then Solution.traverseWithDevDependencies
-        else Solution.traverse
-      in
-      Solution.dependencies ~traverse pkg sandbox.solution
-    in
+  and processMany dependencies =
     let%bind changes = RunAsync.List.mapAndJoin ~f:process dependencies in
     let changes = List.fold_left ~f:Changes.(+) ~init:Changes.No changes in
     return changes
   in
 
-  match Solution.get id sandbox.solution with
-  | None -> RunAsync.errorf "no such package %a" PackageId.pp id
-  | Some pkg ->
-    let%bind _: Changes.t = processDependencies pkg in
-    return ()
+  let%bind pkgs = RunAsync.ofRun (
+    let open Run.Syntax in
+    let f id =
+      match Solution.get id sandbox.solution with
+      | None -> Run.errorf "no such package %a" PackageId.pp id
+      | Some pkg -> return pkg
+    in
+    Result.List.map ~f ids
+  ) in
 
-let buildDependencies ?(concurrency=1) ~buildLinked sandbox plan id =
+  let%bind _ : Changes.t = processMany pkgs in
+  return ()
+
+let build ?(concurrency=1) ~buildLinked sandbox plan ids =
   Perf.measureLwt
-    ~label:"buildDependencies"
-    (fun () -> buildDependencies' ~concurrency ~buildLinked sandbox plan id)
+    ~label:"build"
+    (fun () -> build' ~concurrency ~buildLinked sandbox plan ids)
 
 let exportBuild ~cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in

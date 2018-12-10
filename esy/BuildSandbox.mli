@@ -41,6 +41,7 @@ module Task : sig
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
+    dependencies : EsyInstall.PackageId.t list;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -76,7 +77,7 @@ val buildShell :
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
-val build :
+val buildOnly :
   force:bool
   -> ?quiet:bool
   -> ?buildOnly:bool
@@ -87,19 +88,20 @@ val build :
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
 
+val build :
+  ?concurrency:int
+  -> buildLinked:bool
+  -> t
+  -> Plan.t
+  -> EsyInstall.PackageId.t list
+  -> unit RunAsync.t
+
+
 val buildRoot :
   ?quiet:bool
   -> ?buildOnly:bool
   -> t
   -> Plan.t
-  -> unit RunAsync.t
-
-val buildDependencies :
-  ?concurrency:int
-  -> buildLinked:bool
-  -> t
-  -> Plan.t
-  -> EsyInstall.PackageId.t
   -> unit RunAsync.t
 
 val isBuilt :

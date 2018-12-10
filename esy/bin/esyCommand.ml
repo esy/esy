@@ -90,7 +90,7 @@ module TermPp = struct
     | BuildSpec.BuildDev -> Fmt.pf fmt ""
 
   let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.buildLinked with
+    match buildspec.BuildSpec.buildLink with
     | None -> Fmt.string fmt ""
     | Some {mode; deps} ->
       Fmt.pf fmt
@@ -265,25 +265,38 @@ let withPackage proj solution (pkgspec : PkgArg.t) f =
 
 let runBuildDependencies
   ~buildLinked
-  projcfg
-  sandbox
+  ~buildDevDependencies
+  (proj : _ Project.fetched Project.solved Project.project)
   plan
   pkg
   =
+  let open RunAsync.Syntax in
+  let%bind fetched = Project.fetched proj in
   let () =
     Logs.info (fun m ->
       m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
-      projcfg.ProjectConfig.mainprg
+      proj.projcfg.ProjectConfig.mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
       PackageId.pp pkg.Solution.Package.id
     )
   in
-  BuildSandbox.buildDependencies
-    ~concurrency:EsyRuntime.concurrency
-    ~buildLinked
-    sandbox
-    plan
-    pkg.id
+  match BuildSandbox.Plan.get plan pkg.id with
+  | None -> RunAsync.return ()
+  | Some task ->
+    let dependencies = task.dependencies in
+    let dependencies =
+      if buildDevDependencies
+      then
+        dependencies
+        @ PackageId.Set.elements pkg.devDependencies
+      else dependencies
+    in
+    BuildSandbox.build
+      ~concurrency:EsyRuntime.concurrency
+      ~buildLinked
+      fetched.Project.sandbox
+      plan
+      dependencies
 
 let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkgspec () =
   let open RunAsync.Syntax in
@@ -299,9 +312,9 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkg
       let deps =
         match depspec with
         | Some depspec -> depspec
-        | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.buildAll in deps
+        | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.build in deps
       in
-      {Workflow.default.buildspec with buildLinked = Some {mode; deps}}
+      {Workflow.default.buildspec with buildLink = Some {mode; deps}}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -310,8 +323,8 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkg
     ) in
     runBuildDependencies
       ~buildLinked:all
-      proj.projcfg
-      fetched.Project.sandbox
+      ~buildDevDependencies:false
+      proj
       plan
       pkg
   in
@@ -333,7 +346,7 @@ let runBuild
       PackageId.pp pkg.Solution.Package.id
     )
   in
-  BuildSandbox.build
+  BuildSandbox.buildOnly
     ~force:true
     ~quiet
     ~buildOnly
@@ -357,9 +370,9 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
     let deps =
       match depspec with
       | Some depspec -> depspec
-      | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.buildAll in deps
+      | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.build in deps
     in
-    {Workflow.default.buildspec with buildLinked = Some {mode; deps}}
+    {Workflow.default.buildspec with buildLink = Some {mode; deps}}
   in
 
   let f (pkg : Solution.Package.t) =
@@ -406,8 +419,8 @@ let runExec
       then
         runBuildDependencies
           ~buildLinked
-          proj.projcfg
-          fetched.Project.sandbox
+          ~buildDevDependencies:false
+          proj
           plan
           pkg
       else return ()
@@ -466,15 +479,15 @@ let execCommand
   in
   let buildspec =
     match depspec with
-    | Some deps -> {Workflow.default.buildspec with buildLinked = Some {mode; deps};}
+    | Some deps -> {Workflow.default.buildspec with buildLink = Some {mode; deps};}
     | None ->
       {
         Workflow.default.buildspec
-        with buildLinked = Some {mode; deps = Workflow.defaultDepspecForLinked};
+        with buildLink = Some {mode; deps = Workflow.defaultDepspecForLink};
       }
   in
   runExec
-    ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
+    ~checkIfDependenciesAreBuilt:false
     ~buildLinked:false
     proj
     envspec
@@ -520,7 +533,9 @@ let runPrintEnv
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        let {BuildSpec.mode = _; deps} = BuildSpec.classify buildspec pkg in
+        let {BuildSpec.mode = _; deps} =
+          BuildSpec.classify buildspec solved.Project.solution pkg
+        in
         let header =
           Format.asprintf {|# %s
 # package:            %a
@@ -573,7 +588,7 @@ let printEnv
   let buildspec =
     match depspec with
     | Some deps ->
-      {Workflow.default.buildspec with buildLinked = Some {mode = BuildDev; deps;};}
+      {Workflow.default.buildspec with buildLink = Some {mode = BuildDev; deps;};}
     | None -> Workflow.default.buildspec
   in
   runPrintEnv
@@ -706,8 +721,8 @@ let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
     let%bind () =
       runBuildDependencies
         ~buildLinked:true
-        proj.projcfg
-        fetched.Project.sandbox
+        ~buildDevDependencies:false
+        proj
         configured.Project.WithWorkflow.plan
         pkg
     in
@@ -736,8 +751,8 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
     let%bind () =
       runBuildDependencies
         ~buildLinked:true
-        proj.projcfg
-        fetched.Project.sandbox
+        ~buildDevDependencies:true
+        proj
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in
@@ -752,8 +767,8 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
     let%bind () =
       runBuildDependencies
         ~buildLinked:true
-        proj.projcfg
-        fetched.Project.sandbox
+        ~buildDevDependencies:true
+        proj
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in

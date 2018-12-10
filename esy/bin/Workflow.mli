@@ -7,7 +7,8 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
-val defaultDepspecForAll : DepSpec.t
-val defaultDepspecForLinked : DepSpec.t
+val defaultDepspec : DepSpec.t
+val defaultDepspecForLink : DepSpec.t
+val defaultDepspecForRoot : DepSpec.t
 
 val default : t

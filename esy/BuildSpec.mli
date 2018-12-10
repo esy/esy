@@ -1,12 +1,22 @@
 (** This describes how a project should be built. *)
 
 type t = {
+  build : build;
+  (** Define how we build packages. *)
 
-  buildLinked : build option;
-  (** Optionally define if we need to treat linked packages in a specific way. *)
+  buildLink : build option;
+  (**
+   * Optionally define if we need to treat linked packages in a specific way.
+   *
+   * (this overrides buildLink and build)
+   *)
 
-  buildAll : build;
-  (** Define how we treat all other packages. *)
+  buildRoot : build option;
+  (**
+   * Optionally define if we need to treat the root packag in a specific way.
+   *
+   * (this overrides buildLink and build)
+   *)
 }
 
 and build = {
@@ -27,4 +37,4 @@ val show_mode : mode -> string
 val mode_to_yojson : mode Json.encoder
 val mode_of_yojson : mode Json.decoder
 
-val classify : t -> EsyInstall.Solution.Package.t -> build
+val classify : t -> EsyInstall.Solution.t -> EsyInstall.Solution.Package.t -> build
