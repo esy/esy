@@ -64,7 +64,7 @@ let toUNC = (p) => {
   "\\\\?\\" ++ t
 };
 
-print_endline ("HELLO WORLD: " ++ toUNC("C:/test"));
+print_endline ("toUNC test: " ++ toUNC("C:/test"));
 
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
