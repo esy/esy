@@ -127,7 +127,7 @@ module Task = struct
     let env = Option.orDefault ~default:t.env env in
     {
       EsyBuildPackage.Plan.
-      id = Scope.id t.scope;
+      id = BuildId.show (Scope.id t.scope);
       name = t.pkg.name;
       version = EsyInstall.Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
@@ -236,87 +236,6 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
-let buildId ~sandboxEnv ~id ~dist ~build ~sourceType ~mode ~dependencies () =
-
-  let commands =
-    match mode, sourceType, build.BuildManifest.buildDev with
-    | BuildSpec.Build, _, _
-    | BuildSpec.BuildDev, (BuildManifest.SourceType.ImmutableWithTransientDependencies | Immutable), _
-    | BuildSpec.BuildDev, Transient, None ->
-      build.BuildManifest.build
-    | BuildSpec.BuildDev, BuildManifest.SourceType.Transient, Some commands ->
-      BuildManifest.EsyCommands commands
-  in
-
-  let hash =
-
-    (* include ids of dependencies *)
-    let dependencies =
-      let f = function
-        | true, dep -> Some ("dep:" ^ Scope.id dep)
-        | false, _ -> None
-      in
-      dependencies
-      |> List.map ~f
-      |> List.filterNone
-      |> List.sort ~cmp:String.compare
-    in
-
-    (* include parts of the current package metadata which contribute to the
-      * build commands/environment *)
-    let self =
-      build
-      |> BuildManifest.to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    let commands =
-      commands
-      |> BuildManifest.commands_to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    (* a special tag which is communicated by the installer and specifies
-      * the version of distribution of vcs commit sha *)
-    let dist =
-      match dist with
-      | Some dist -> EsyInstall.Dist.show dist
-      | None -> "-"
-    in
-
-    let sandboxEnv =
-      sandboxEnv
-      |> BuildManifest.Env.to_yojson
-      |> Yojson.Safe.to_string
-    in
-
-    String.concat "__" (
-      (PackageId.show id)
-      ::sandboxEnv
-      ::dist
-      ::self
-      ::(BuildSpec.show_mode mode)
-      ::commands::dependencies)
-    |> Digest.string
-    |> Digest.to_hex
-    |> fun hash -> String.sub hash 0 8
-  in
-
-  let name = PackageId.name id in
-  let version = PackageId.version id in
-
-  match version with
-  | Version.Npm _
-  | Version.Opam _ ->
-    Printf.sprintf "%s-%s-%s"
-      (Path.safeSeg name)
-      (Path.safePath (Version.show version))
-      hash
-  | Version.Source _ ->
-    Printf.sprintf "%s-%s"
-      (Path.safeSeg name)
-      hash
-
 let makeScope
   ?cache
   ~forceImmutable
@@ -423,7 +342,16 @@ let makeScope
     let version = PackageId.version id in
 
     let id =
-      buildId
+      let dependencies =
+        let f = function
+          | true, dep -> Some (Scope.id dep)
+          | false, _ -> None
+        in
+        dependencies
+        |> List.map ~f
+        |> List.filterNone
+      in
+      BuildId.make
         ~sandboxEnv:sandbox.sandboxEnv
         ~id:pkg.id
         ~dist
@@ -460,7 +388,7 @@ let makeScope
     let _, scope =
       let f (seen, scope) (direct, dep) =
         let id = Scope.id dep in
-        if StringSet.mem id seen
+        if BuildId.Set.mem id seen
         then seen, scope
         else
           let pkg = Scope.pkg dep in
@@ -468,12 +396,12 @@ let makeScope
           | true, false -> seen, scope
           | true, true
           | false, _ ->
-            StringSet.add id seen,
+            BuildId.Set.add id seen,
             Scope.add ~direct ~dep scope
       in
       List.fold_left
         ~f
-        ~init:(StringSet.empty, scope)
+        ~init:(BuildId.Set.empty, scope)
         (dependencies @ [true, scope])
     in
 

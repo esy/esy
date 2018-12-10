@@ -1314,15 +1314,15 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
       then return ()
       else (
         let id = (Scope.id task.scope) in
-        let pathDir = Path.(fromPath / id) in
-        let pathTgz = Path.(fromPath / (id ^ ".tar.gz")) in
+        let pathDir = Path.(fromPath / BuildId.show id) in
+        let pathTgz = Path.(fromPath / (BuildId.show id ^ ".tar.gz")) in
         if%bind Fs.exists pathDir
         then BuildSandbox.importBuild ~cfg:proj.projcfg.cfg pathDir
         else if%bind Fs.exists pathTgz
         then BuildSandbox.importBuild ~cfg:proj.projcfg.cfg pathTgz
         else
           let%lwt () =
-            Logs_lwt.warn(fun m -> m "no prebuilt artifact found for %s" id)
+            Logs_lwt.warn (fun m -> m "no prebuilt artifact found for %a" BuildId.pp id)
           in return ()
       )
     | None -> return ()
