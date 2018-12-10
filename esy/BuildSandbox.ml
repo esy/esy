@@ -788,7 +788,10 @@ let findMaxModifyTime path =
     )
   in
   let label = Printf.sprintf "computing mtime for %s" (Path.show path) in
-  Perf.measureLwt ~label (fun () -> Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path)
+  Perf.measureLwt ~label (fun () ->
+    let%bind path, mtime = Fs.fold ~skipTraverse ~f ~init:(path, 0.0) path in
+    return (path, BuildInfo.ModTime.v mtime)
+  )
 
 module Changes = struct
   type t =
@@ -869,9 +872,14 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
       Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
       return (Changes.Yes, mtime)
     | Some prevmtime ->
-      if mtime > prevmtime
+      if not (BuildInfo.ModTime.equal mtime prevmtime)
       then (
-        Logs_lwt.debug (fun m -> m "path changed: %a %f" Path.pp mpath mtime);%lwt
+        Logs_lwt.debug (fun m ->
+          m "path changed: %a %a (prev %a)"
+          Path.pp mpath
+          BuildInfo.ModTime.pp mtime
+          BuildInfo.ModTime.pp prevmtime
+        );%lwt
         return (Changes.Yes, mtime)
       )
       else
