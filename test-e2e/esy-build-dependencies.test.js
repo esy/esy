@@ -79,17 +79,6 @@ describe(`'esy build-dependencies' command`, () => {
     });
   });
 
-  it(`builds devDependencies`, async () => {
-    const p = await createTestSandbox();
-    await p.esy('install');
-    await p.esy('build-dependencies');
-    const env = await getCommandEnv(p);
-    await expect(p.run('devDep.cmd', env)).resolves.toEqual({
-      stdout: '__devDep__' + os.EOL,
-      stderr: '',
-    });
-  });
-
   it(`doesn't build linked dependencies`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');

@@ -154,7 +154,12 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
       let checkPackageIsInInstallation isActual pkg =
         if not isActual
         then isActual
-        else Installation.mem pkg.Solution.Package.id installation
+        else (
+          let check = Installation.mem pkg.Solution.Package.id installation in
+          if not check
+          then Logs.debug (fun m -> m "missing from installation %a" Solution.Package.pp pkg);
+          check
+        )
       in
       List.fold_left ~f:checkPackageIsInInstallation ~init:true nodes
     in

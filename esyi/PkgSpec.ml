@@ -15,25 +15,25 @@ let parse =
   function
   | "root" -> return Root
   | v ->
-  let split = Astring.String.cut ~sep:"@" in
-  let rec parsename v =
-    match split v with
-    | Some ("", v) ->
-      let name, rest = parsename v in
-      "@" ^ name, rest
-    | Some (name, rest) ->
-      name, Some rest
-    | None -> v, None
-  in
-  match parsename v with
-  | name, Some ""
-  | name, None -> return (ByName name)
-  | name, Some rest ->
-    begin match split rest with
-    | Some _ ->
-      let%bind id = PackageId.parse v in
-      return (ById id)
-    | None ->
-      let%bind version = Version.parse rest in
-      return (ByNameVersion (name, version))
-    end
+    let split = Astring.String.cut ~sep:"@" in
+    let rec parsename v =
+      match split v with
+      | Some ("", v) ->
+        let name, rest = parsename v in
+        "@" ^ name, rest
+      | Some (name, rest) ->
+        name, Some rest
+      | None -> v, None
+    in
+    match parsename v with
+    | name, Some ""
+    | name, None -> return (ByName name)
+    | name, Some rest ->
+      begin match split rest with
+      | Some _ ->
+        let%bind id = PackageId.parse v in
+        return (ById id)
+      | None ->
+        let%bind version = Version.parse rest in
+        return (ByNameVersion (name, version))
+      end

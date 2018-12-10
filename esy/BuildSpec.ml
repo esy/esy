@@ -1,8 +1,9 @@
 module Package = EsyInstall.Solution.Package
 
 type t = {
-  buildLinked : build option;
-  buildAll : build;
+  build : build;
+  buildLink : build option;
+  buildRoot : build option;
 }
 
 and build = {
@@ -31,8 +32,22 @@ let mode_of_yojson = function
   | `String "buildDev" -> Ok BuildDev
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
-let classify spec pkg =
-  match pkg.Package.source, spec.buildLinked with
-  | Install _, _ -> spec.buildAll
-  | Link _, None -> spec.buildAll
-  | Link _, Some buildLinked -> buildLinked
+let classify spec solution pkg =
+  let root = EsyInstall.Solution.root solution in
+  let isRoot = Package.compare root pkg = 0 in
+  let kind =
+    if isRoot
+    then `Root
+    else match pkg.Package.source with
+    | Link _ -> `Link
+    | Install _ -> `All
+  in
+  match kind, spec.buildRoot, spec.buildLink with
+  | `All,     _,              _               -> spec.build
+
+  | `Link,    _,              None            -> spec.build
+  | `Link,    _,              Some buildLink  -> buildLink
+
+  | `Root,    Some buildRoot, _               -> buildRoot
+  | `Root,    None,           Some buildLink  -> buildLink
+  | `Root,    None,           None            -> spec.build

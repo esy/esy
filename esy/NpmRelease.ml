@@ -121,8 +121,9 @@ let envspec = {
 }
 let buildspec = {
   BuildSpec.
-  buildAll = {mode = Build; deps = DepSpec.(dependencies self);};
-  buildLinked = Some {mode = Build; deps = DepSpec.(dependencies self);};
+  build = {mode = Build; deps = DepSpec.(dependencies self);};
+  buildLink = Some {mode = Build; deps = DepSpec.(dependencies self);};
+  buildRoot = Some {mode = Build; deps = DepSpec.(dependencies self);};
 }
 
 let make
@@ -165,24 +166,12 @@ let make
   (* Make sure all packages are built *)
   let%bind () =
     let%lwt () = Logs_lwt.app (fun m -> m "Building packages") in
-    let%bind () =
-      BuildSandbox.buildDependencies
-        ~buildLinked:true
-        ~concurrency
-        sandbox
-        plan
-        root.EsyInstall.Solution.Package.id
-    in
-    let%bind () =
-      BuildSandbox.build
-        ~buildOnly:false
-        ~quiet:true
-        ~force:true
-        sandbox
-        plan
-        root.EsyInstall.Solution.Package.id
-    in
-    return ()
+    BuildSandbox.build
+      ~buildLinked:true
+      ~concurrency
+      sandbox
+      plan
+      [root.EsyInstall.Solution.Package.id]
   in
 
   let%bind () = Fs.createDir outputPath in
