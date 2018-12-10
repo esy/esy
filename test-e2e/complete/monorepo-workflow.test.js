@@ -16,7 +16,7 @@
 //
 
 const helpers = require('../test/helpers.js');
-const {packageJson, dir, dummyExecutable} = helpers;
+const {test, isWindows, packageJson, dir, dummyExecutable} = helpers;
 
 async function createTestSandbox() {
   const p = await helpers.createTestSandbox();
@@ -160,23 +160,29 @@ describe('Monorepo workflow using low level commands', function() {
     }
   });
 
-  test('running command in monorepo package env (referring to a package by name)', async function() {
-    // run commands in a specified package environment.
-    const p = await createTestSandbox();
-    const {stdout} = await p.esy(
-      `exec-command --link-depspec "${depspec}" pkga -- echo '#{self.name}'`,
-    );
+  test.disableIf(isWindows)(
+    'running command in monorepo package env (referring to a package by name)',
+    async function() {
+      // run commands in a specified package environment.
+      const p = await createTestSandbox();
+      const {stdout} = await p.esy(
+        `exec-command --link-depspec "${depspec}" pkga -- echo '#{self.name}'`,
+      );
 
-    expect(stdout.trim()).toBe('pkga');
-  });
+      expect(stdout.trim()).toBe('pkga');
+    },
+  );
 
-  test('running command in monorepo package env (referring to a package by path)', async function() {
-    // we can also refer to linked package by its manifest path
-    const p = await createTestSandbox();
-    const {stdout} = await p.esy(
-      `exec-command --link-depspec "${depspec}" ./pkgb/package.json -- echo '#{self.name}'`,
-    );
+  test.disableIf(isWindows)(
+    'running command in monorepo package env (referring to a package by path)',
+    async function() {
+      // we can also refer to linked package by its manifest path
+      const p = await createTestSandbox();
+      const {stdout} = await p.esy(
+        `exec-command --link-depspec "${depspec}" ./pkgb/package.json -- echo '#{self.name}'`,
+      );
 
-    expect(stdout.trim()).toBe('pkgb');
-  });
+      expect(stdout.trim()).toBe('pkgb');
+    },
+  );
 });
