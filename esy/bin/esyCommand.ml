@@ -96,7 +96,7 @@ module TermPp = struct
       Fmt.pf fmt
         "%a%a"
         ppMode mode
-        (ppOption "--linked-depspec" DepSpec.pp) (Some deps)
+        (ppOption "--link-depspec" DepSpec.pp) (Some deps)
 end
 
 let resolvePackage ~pkgName (proj : Project.WithWorkflow.t) =
@@ -1886,7 +1886,7 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+            & info ["link-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
         $ Arg.(
             value
@@ -1917,7 +1917,7 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"]
+            & info ["link-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
@@ -1955,7 +1955,7 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"]
+            & info ["link-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
@@ -1993,7 +1993,7 @@ let makeCommands ~sandbox () =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["linked-depspec"]
+            & info ["link-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
