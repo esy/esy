@@ -37,6 +37,8 @@ let getExt: (~multi: bool=?, t) => ext;
 
 let dirSep: string;
 
+let toUNC: string => string;
+
 let showNormalized: t => string;
 let showPretty: t => string;
 let ppPretty: Fmt.t(t);

@@ -50,6 +50,22 @@ let currentPath = () =>
     failwith("Unable to determine current working dir: " ++ msg)
   };
 
+let replace = (s, c, r) => {
+    String.map((curr) => {
+        switch (curr == c) {
+        | true => r    
+        | false => curr
+        };
+    }, s);
+};
+
+let toUNC = (p) => {
+  let t = replace(p, '/', '\\');
+  "\\\\?\\" ++ t
+};
+
+print_endline ("HELLO WORLD: " ++ toUNC("C:/test"));
+
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
 let basename = Fpath.basename;

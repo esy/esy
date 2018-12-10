@@ -22,13 +22,14 @@ let run
   let runProcess buildJsonFilename =
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
+      print_endline ("EsyBuildPackage::runProcess");
       return Cmd.(
         esyBuildPackageCmd
         % action
-        % "--store-path" % p cfg.buildCfg.storePath
-        % "--local-store-path" % p cfg.buildCfg.localStorePath
-        % "--project-path" % p cfg.buildCfg.projectPath
-        % "--build-path" % p cfg.buildCfg.buildPath
+        % "--store-path" % EsyLib.Path.toUNC (p cfg.buildCfg.storePath)
+        % "--local-store-path" % EsyLib.Path.toUNC (p cfg.buildCfg.localStorePath)
+        % "--project-path" % EsyLib.Path.toUNC (p cfg.buildCfg.projectPath)
+        % "--build-path" % EsyLib.Path.toUNC (p cfg.buildCfg.buildPath)
         % "--plan" % p buildJsonFilename
         |> addArgs args
       )
