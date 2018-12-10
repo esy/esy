@@ -8,6 +8,8 @@ let rebase ~base p = normalizeAndRemoveEmptySeg (base // p)
 
 let render path = normalizePathSlashes (show path)
 
+let (/) path seg = normalizeAndRemoveEmptySeg (path / seg)
+
 let show = render
 let showPretty path = Path.(normalizePathSlashes (showPretty path))
 

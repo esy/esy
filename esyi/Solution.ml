@@ -42,6 +42,20 @@ include Graph.Make(struct
   module Id = PackageId
 end)
 
+let findByPath p solution =
+  let open Option.Syntax in
+  let f _id pkg =
+    match pkg.Package.source with
+    | Link {path; manifest = None;} ->
+      DistPath.compare path p >= 0
+    | Link {path; manifest = Some filename;} ->
+      let path = DistPath.(path / ManifestSpec.show filename) in
+      DistPath.compare path p >= 0
+    | _ -> false
+  in
+  let%map _id, pkg = find f solution in
+  pkg
+
 let findByName name solution =
   let open Option.Syntax in
   let f _id pkg =

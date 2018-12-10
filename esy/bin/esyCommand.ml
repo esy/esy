@@ -8,6 +8,31 @@ module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 module PkgSpec = EsyInstall.PkgSpec
 
+module PkgArg = struct
+  type t =
+    | ByPkgSpec of PkgSpec.t
+    | ByPath of Path.t
+
+  let pp fmt = function
+    | ByPkgSpec spec -> PkgSpec.pp fmt spec
+    | ByPath path -> Path.pp fmt path
+
+  let parse v =
+    let open Result.Syntax in
+    if Sys.file_exists v && not (Sys.is_directory v)
+    then return (ByPath (Path.v v))
+    else
+      let%map pkgspec = PkgSpec.parse v in
+      ByPkgSpec pkgspec
+
+  let root = ByPkgSpec Root
+
+  let conv =
+    let open Cmdliner in
+    let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (parse v) in
+    Arg.conv ~docv:"PACKAGE" (parse, pp)
+end
+
 let splitBy line ch =
   match String.index line ch with
   | idx ->
@@ -16,11 +41,6 @@ let splitBy line ch =
     let val_ = String.(trim (sub line pos (length line - pos))) in
     Some (key, val_)
   | exception Not_found -> None
-
-let pkgspecConv =
-  let open Cmdliner in
-  let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (PkgSpec.parse v) in
-  Arg.conv ~docv:"PATH" (parse, PkgSpec.pp)
 
 let depspecConv =
   let open Cmdliner in
@@ -222,21 +242,26 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let withPackage solution pkgspec f =
+let withPackage proj solution (pkgspec : PkgArg.t) f =
   let open RunAsync.Syntax in
   let runWith v =
     match v with
     | Some task -> f task
-    | None -> errorf "no package found: %a" PkgSpec.pp pkgspec
+    | None -> errorf "no package found: %a" PkgArg.pp pkgspec
   in
   match pkgspec with
-  | PkgSpec.Root -> f (Solution.root solution)
-  | PkgSpec.ByName name ->
+  | ByPkgSpec Root -> f (Solution.root solution)
+  | ByPkgSpec ByName name ->
     runWith (Solution.findByName name solution)
-  | PkgSpec.ByNameVersion (name, version) ->
+  | ByPkgSpec ByNameVersion (name, version) ->
     runWith (Solution.findByNameVersion name version solution)
-  | PkgSpec.ById id ->
+  | ByPkgSpec ById id ->
     runWith (Solution.get id solution)
+  | ByPath path ->
+    let root = proj.Project.projcfg.installSandbox.spec.path in
+    let path = Path.(EsyRuntime.currentWorkingDir // path) in
+    let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
+    runWith (Solution.findByPath path solution)
 
 let runBuildDependencies
   ~buildLinked
@@ -290,7 +315,7 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkg
       plan
       pkg
   in
-  withPackage solved.Project.solution pkgspec f
+  withPackage proj solved.Project.solution pkgspec f
 
 let runBuild
   ~quiet
@@ -351,7 +376,7 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
       plan
       pkg
   in
-  withPackage solved.Project.solution pkgspec f
+  withPackage proj solved.Project.solution pkgspec f
 
 let runExec
     ~checkIfDependenciesAreBuilt
@@ -359,7 +384,7 @@ let runExec
     (proj : _ Project.project)
     envspec
     buildspec
-    pkgspec
+    (pkgspec : PkgArg.t)
     cmd
     ()
   =
@@ -412,7 +437,7 @@ let runExec
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  withPackage solved.Project.solution pkgspec f
+  withPackage proj solved.Project.solution pkgspec f
 
 let execCommand
   (proj : _ Project.project)
@@ -524,7 +549,7 @@ let runPrintEnv
     let%lwt () = Lwt_io.print source in
     return ()
   in
-  withPackage solved.Project.solution pkg f
+  withPackage proj solved.Project.solution pkg f
 
 let printEnv
   (proj : _ Project.project)
@@ -666,9 +691,9 @@ let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
       let data = Yojson.Safe.pretty_to_string json in
       print_endline data;
       return ()
-    | None -> errorf "not build defined for %a" PkgSpec.pp pkgspec
+    | None -> errorf "not build defined for %a" PkgArg.pp pkgspec
   in
-  withPackage solved.Project.solution pkgspec f
+  withPackage proj solved.Project.solution pkgspec f
 
 let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
   let open RunAsync.Syntax in
@@ -698,7 +723,7 @@ let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  withPackage solved.Project.solution pkgspec f
+  withPackage proj solved.Project.solution pkgspec f
 
 let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
@@ -738,7 +763,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
-      Root
+      PkgArg.root
       cmd
       ()
   end
@@ -789,7 +814,7 @@ let exec (proj : Project.WithWorkflow.t) cmd () =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    PkgSpec.Root
+    PkgArg.root
     cmd
     ()
 
@@ -872,7 +897,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
-      PkgSpec.Root
+      PkgArg.root
       cmd
       ()
 
@@ -889,7 +914,7 @@ let devShell (proj : Project.WithWorkflow.t) () =
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
-    PkgSpec.Root
+    PkgArg.root
     (Cmd.v shell)
     ()
 
@@ -1546,7 +1571,7 @@ let makeCommands ~sandbox () =
         $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1771,7 +1796,7 @@ let makeCommands ~sandbox () =
         $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1788,7 +1813,7 @@ let makeCommands ~sandbox () =
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1805,7 +1830,7 @@ let makeCommands ~sandbox () =
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1822,7 +1847,7 @@ let makeCommands ~sandbox () =
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1850,7 +1875,7 @@ let makeCommands ~sandbox () =
           )
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1883,7 +1908,7 @@ let makeCommands ~sandbox () =
           )
         $ Arg.(
             value
-            & pos 0 pkgspecConv Root
+            & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package to build dependencies for" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm
@@ -1928,7 +1953,7 @@ let makeCommands ~sandbox () =
           )
         $ Arg.(
             required
-            & pos 0 (some pkgspecConv) None
+            & pos 0 (some PkgArg.conv) None
             & info [] ~doc:"Package in which environment execute the command" ~docv:"PACKAGE"
           )
         $ Cli.cmdTerm
@@ -1966,7 +1991,7 @@ let makeCommands ~sandbox () =
           )
         $ Arg.(
             required
-            & pos 0 (some pkgspecConv) None
+            & pos 0 (some PkgArg.conv) None
             & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
           )
         $ Cli.setupLogTerm

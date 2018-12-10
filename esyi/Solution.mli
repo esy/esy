@@ -29,6 +29,7 @@ include Graph.GRAPH
     type node = Package.t
     and type id = PackageId.t
 
+val findByPath : DistPath.t -> t -> Package.t option
 val findByName : string -> t -> Package.t option
 val findByNameVersion : string -> Version.t -> t -> Package.t option
 
