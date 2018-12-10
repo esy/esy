@@ -18,6 +18,17 @@ module Platform = struct
 
   let pp fmt v = Fmt.string fmt (show v)
 
+  let to_yojson v = `String (show v)
+  let of_yojson = function
+    | `String "darwin" -> Ok Darwin
+    | `String "linux" -> Ok Linux
+    | `String "cygwin" -> Ok Cygwin
+    | `String "unix" -> Ok Unix
+    | `String "windows" -> Ok Windows
+    | `String "unknown" -> Ok Unknown
+    | `String v -> Result.errorf "unknown platform: %s" v
+    | _json -> Result.error "System.Platform.t: expected string"
+
   let host =
     let uname () =
       let ic = Unix.open_process_in "uname" in
@@ -57,6 +68,19 @@ module Arch = struct
     | Unknown -> "unknown"
 
   let pp fmt v = Fmt.string fmt (show v)
+
+  let to_yojson v = `String (show v)
+
+  let of_yojson = function
+    | `String "x86_32" -> Ok X86_32
+    | `String "x86_64" -> Ok X86_64
+    | `String "ppc32" -> Ok Ppc32
+    | `String "ppc64" -> Ok Ppc64
+    | `String "arm32" -> Ok Arm32
+    | `String "arm64" -> Ok Arm64
+    | `String "unknown" -> Ok Unknown
+    | `String v -> Result.errorf "unknown architecture: %s" v
+    | _json -> Result.error "System.Arch.t: expected string"
 
   let host =
     let uname () =

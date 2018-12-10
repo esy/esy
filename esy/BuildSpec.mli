@@ -24,5 +24,7 @@ and mode =
 
 val pp_mode : mode Fmt.t
 val show_mode : mode -> string
+val mode_to_yojson : mode Json.encoder
+val mode_of_yojson : mode Json.decoder
 
 val classify : t -> EsyInstall.Solution.Package.t -> build

@@ -4,12 +4,16 @@
 
 [@deriving yojson]
 type t = {
+  idInfo: BuildId.Repr.t,
   timeSpent: float,
   sourceModTime: option(float),
 };
 
-let toFile = (path: Path.t, info: t) =>
-  Fs.writeJsonFile(~json=to_yojson(info), path);
+let toFile = (path: Path.t, info: t) => {
+  let json = to_yojson(info);
+  let data = Format.asprintf("%a", Json.Print.ppRegular, json);
+  Fs.writeFile(~data, path);
+};
 
 let ofFile = (path: EsyLib.Path.t) => {
   open RunAsync.Syntax;

@@ -32,13 +32,13 @@ type t = {
   buildEnv : Env.t;
 }
 
-include S.PRINTABLE with type t := t
 val empty : name:string option -> version:Version.t option -> unit -> t
-
-val to_yojson : t Json.encoder
 
 val ofInstallationLocation :
   cfg:Config.t
   -> EsyInstall.Solution.Package.t
   -> EsyInstall.Installation.location
   -> (t option * Fpath.set) RunAsync.t
+
+include S.PRINTABLE with type t := t
+val to_yojson : t Json.encoder

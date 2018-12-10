@@ -8,6 +8,7 @@ module Version = EsyInstall.Version
 
 type t = {
   cfg : Config.t;
+  arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : BuildManifest.Env.t;
   solution : EsyInstall.Solution.t;
@@ -80,7 +81,6 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   return (paths, manifests)
 
 let make
-  ?(platform=System.Platform.host)
   ?(sandboxEnv=BuildManifest.Env.empty)
   cfg
   solution
@@ -89,7 +89,8 @@ let make
   let%bind paths, manifests = readManifests cfg solution installation in
   return ({
     cfg;
-    platform;
+    platform = System.Platform.host;
+    arch = System.Arch.host;
     sandboxEnv;
     solution;
     installation;
@@ -104,6 +105,7 @@ let renderExpression sandbox scope expr =
 
 module Task = struct
   type t = {
+    idrepr : BuildId.Repr.t;
     pkg : Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
@@ -271,8 +273,8 @@ let makeScope
         | Some build ->
           let%bind seen = updateSeen seen id in
           Run.contextf (
-            let%bind scope = visit' seen id build in
-            return (Some (scope, build))
+            let%bind scope, idrepr = visit' seen id build in
+            return (Some (scope, build, idrepr))
           ) "processing %a" PackageId.pp id
         | None -> return None
       in
@@ -305,7 +307,7 @@ let makeScope
       in
       let collect dependencies (direct, pkg) =
         match%bind visit seen pkg.Package.id with
-        | Some (scope, _build) ->
+        | Some (scope, _build, _idrepr) ->
           return ((direct, scope)::dependencies)
         | None -> return dependencies
       in
@@ -315,22 +317,21 @@ let makeScope
         (Solution.allDependenciesBFS ~dependencies id sandbox.solution)
     in
 
-    let dist, sourceType =
+    let sourceType =
       match pkg.source with
-      | Install info ->
+      | Install _ ->
         let hasTransientDeps =
           let f (_direct, scope) = Scope.sourceType scope = SourceType.Transient in
           List.exists ~f dependencies
         in
-        let dist, _ = info.source in
         let sourceType =
           if hasTransientDeps
           then SourceType.ImmutableWithTransientDependencies
           else SourceType.Immutable
         in
-        Some dist, sourceType
+        sourceType
       | Link _ ->
-        None, SourceType.Transient
+        SourceType.Transient
     in
     let sourceType =
       if forceImmutable
@@ -341,7 +342,7 @@ let makeScope
     let name = PackageId.name id in
     let version = PackageId.version id in
 
-    let id =
+    let id, idrepr =
       let dependencies =
         let f = function
           | true, dep -> Some (Scope.id dep)
@@ -353,8 +354,9 @@ let makeScope
       in
       BuildId.make
         ~sandboxEnv:sandbox.sandboxEnv
-        ~id:pkg.id
-        ~dist
+        ~packageId:pkg.id
+        ~platform:sandbox.platform
+        ~arch:sandbox.arch
         ~build
         ~sourceType
         ~mode
@@ -405,7 +407,7 @@ let makeScope
         (dependencies @ [true, scope])
     in
 
-    return scope
+    return (scope, idrepr)
   in
 
   visit [] id
@@ -469,7 +471,7 @@ let makePlan
   let makeTask pkg =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox pkg.id with
     | None -> return None
-    | Some (scope, build) ->
+    | Some (scope, build, idrepr) ->
 
       let%bind env =
         let%bind bindings = Scope.env ~buildIsInProgress:true ~includeBuildEnv:true scope in
@@ -529,6 +531,7 @@ let makePlan
 
       let task = {
         Task.
+        idrepr;
         pkg;
         scope;
         build = buildCommands;
@@ -613,7 +616,7 @@ let makeEnv
   let makeScope id =
     match%bind makeScope ?cache ~forceImmutable buildspec sandbox id with
     | None -> return None
-    | Some (scope, _build) -> return (Some scope)
+    | Some (scope, _build, _idrepr) -> return (Some scope)
   in
 
   let dependencies =
@@ -683,7 +686,7 @@ let configure
   let%bind scope =
     match%bind makeScope ~cache ~forceImmutable buildspec sandbox id with
     | None -> errorf "no build found for %a" PackageId.pp id
-    | Some (scope, _) -> return scope
+    | Some (scope, _, _) -> return scope
   in
 
   makeEnv
@@ -911,6 +914,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = Some mtime;
         } in
@@ -929,6 +933,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = None;
         } in
@@ -941,6 +946,7 @@ let buildDependencies' ~concurrency ~buildLinked sandbox plan id =
         let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
         let%bind () = BuildInfo.toFile infoPath {
           BuildInfo.
+          idInfo = task.idrepr;
           timeSpent;
           sourceModTime = None;
         } in

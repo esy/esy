@@ -2,6 +2,9 @@ type t = BuildManifest.Env.t
 
 let empty = BuildManifest.Env.empty
 
+let to_yojson = BuildManifest.Env.to_yojson
+let of_yojson = BuildManifest.Env.of_yojson
+
 module OfPackageJson = struct
   type esy = {
     sandboxEnv : BuildManifest.Env.t [@default BuildManifest.Env.empty];

@@ -22,6 +22,15 @@ let show_mode = function
   | Build -> "build"
   | BuildDev -> "buildDev"
 
+let mode_to_yojson = function
+  | Build -> `String "build"
+  | BuildDev -> `String "buildDev"
+
+let mode_of_yojson = function
+  | `String "build" -> Ok Build
+  | `String "buildDev" -> Ok BuildDev
+  | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
+
 let classify spec pkg =
   match pkg.Package.source, spec.buildLinked with
   | Install _, _ -> spec.buildAll

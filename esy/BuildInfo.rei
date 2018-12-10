@@ -5,6 +5,7 @@
  */
 
 type t = {
+  idInfo: BuildId.Repr.t,
   timeSpent: float,
   sourceModTime: option(float),
 };
