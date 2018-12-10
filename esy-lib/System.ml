@@ -95,6 +95,7 @@ module Arch = struct
       match String.trim (String.lowercase_ascii uname) with
       (* Return values for Windows PROCESSOR_ARCHITECTURE environment variable *)
       | "x86" -> X86_32
+      | "x86_64" -> X86_64
       | "amd64" -> X86_64
       (* Return values for uname on other platforms *)
       | "ppc32" -> Ppc32
