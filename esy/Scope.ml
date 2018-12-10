@@ -33,7 +33,7 @@ module PackageScope : sig
   val installPath : t -> SandboxPath.t
   val logPath : t -> SandboxPath.t
 
-  val buildEnv : buildIsInProgress:bool -> t -> (string * string) list
+  val buildEnv : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
   val exportedEnvGlobal : t -> (string * string) list
 
@@ -213,7 +213,7 @@ end = struct
       | Transient -> true)
     | _ -> None
 
-  let buildEnv ~buildIsInProgress scope =
+  let buildEnv ~buildIsInProgress mode scope =
     let installPath =
       if buildIsInProgress
       then stagePath scope
@@ -222,10 +222,11 @@ end = struct
 
     let p v = SandboxValue.show (SandboxPath.toValue v) in
     let dev =
-      match scope.sourceType with
-      | Transient -> "true"
-      | Immutable
-      | ImmutableWithTransientDependencies -> "false"
+      match mode, scope.sourceType with
+      | BuildSpec.BuildDev, Transient -> "true"
+      | BuildSpec.Build, Transient -> "false"
+      | _, Immutable
+      | _, ImmutableWithTransientDependencies -> "false"
     in
 
     (* add builtins *)
@@ -270,6 +271,7 @@ end
 type t = {
   platform : System.Platform.t;
   pkg : Package.t;
+  mode : BuildSpec.mode;
 
   children : bool Id.Map.t;
 
@@ -287,6 +289,7 @@ let make
   ~id
   ~name
   ~version
+  ~mode
   ~sourceType
   ~sourcePath
   pkg
@@ -307,6 +310,7 @@ let make
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
+    mode;
     pkg;
     finalEnv = (
       let defaultPath =
@@ -438,7 +442,7 @@ let makeEnvBindings ~buildIsInProgress bindings scope =
 
 let buildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.self in
+  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.mode scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 

@@ -102,83 +102,6 @@ let renderExpression sandbox scope expr =
   let%bind expr = Scope.render ~buildIsInProgress:false scope expr in
   return (Scope.SandboxValue.render sandbox.cfg.buildCfg expr)
 
-module DepSpec = struct
-
-  module Id = struct
-    type t =
-      | Self
-      | Root
-      [@@deriving ord]
-
-    let pp fmt = function
-      | Self -> Fmt.unit "self" fmt ()
-      | Root -> Fmt.unit "root" fmt ()
-  end
-
-  include EsyInstall.DepSpec.Make(Id)
-
-  let root = Id.Root
-  let self = Id.Self
-
-  let resolve solution self id =
-    match id with
-    | Id.Root -> (Solution.root solution).id
-    | Id.Self -> self
-
-  let eval solution self depspec =
-    let resolve id = resolve solution self id in
-    let rec eval' expr =
-      match expr with
-      | Package id -> PackageId.Set.singleton (resolve id)
-      | Dependencies id ->
-        let pkg = Solution.getExn (resolve id) solution in
-        pkg.dependencies
-      | DevDependencies id ->
-        let pkg = Solution.getExn (resolve id) solution in
-        pkg.devDependencies
-      | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
-    in
-    eval' depspec
-
-end
-
-module EnvSpec = struct
-  type t = {
-    augmentDeps : DepSpec.t option;
-    buildIsInProgress : bool;
-    includeCurrentEnv : bool;
-    includeBuildEnv : bool;
-    includeNpmBin : bool;
-  }
-end
-
-module BuildSpec = struct
-  type t = {
-    buildLinked : build option;
-    buildAll : build;
-  }
-
-  and build = {
-    mode : mode;
-    deps : DepSpec.t;
-  }
-
-  and mode =
-    | Build
-    | BuildDev
-
-  let pp_mode fmt = function
-    | Build -> Fmt.string fmt "build"
-    | BuildDev -> Fmt.string fmt "buildDev"
-
-  let classify spec pkg =
-    match pkg.Package.source, spec.buildLinked with
-    | Install _, _ -> spec.buildAll
-    | Link _, None -> spec.buildAll
-    | Link _, Some buildLinked -> buildLinked
-
-end
-
 module Task = struct
   type t = {
     pkg : Package.t;
@@ -313,7 +236,17 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
-let buildId ~commands ~sandboxEnv ~id ~dist ~build ~dependencies () =
+let buildId ~sandboxEnv ~id ~dist ~build ~sourceType ~mode ~dependencies () =
+
+  let commands =
+    match mode, sourceType, build.BuildManifest.buildDev with
+    | BuildSpec.Build, _, _
+    | BuildSpec.BuildDev, (BuildManifest.SourceType.ImmutableWithTransientDependencies | Immutable), _
+    | BuildSpec.BuildDev, Transient, None ->
+      build.BuildManifest.build
+    | BuildSpec.BuildDev, BuildManifest.SourceType.Transient, Some commands ->
+      BuildManifest.EsyCommands commands
+  in
 
   let hash =
 
@@ -357,7 +290,13 @@ let buildId ~commands ~sandboxEnv ~id ~dist ~build ~dependencies () =
       |> Yojson.Safe.to_string
     in
 
-    String.concat "__" ((PackageId.show id)::sandboxEnv::dist::self::commands::dependencies)
+    String.concat "__" (
+      (PackageId.show id)
+      ::sandboxEnv
+      ::dist
+      ::self
+      ::(BuildSpec.show_mode mode)
+      ::commands::dependencies)
     |> Digest.string
     |> Digest.to_hex
     |> fun hash -> String.sub hash 0 8
@@ -483,21 +422,14 @@ let makeScope
     let name = PackageId.name id in
     let version = PackageId.version id in
 
-    let commands =
-      match mode, sourceType, build.BuildManifest.buildDev with
-      | BuildSpec.Build, _, _
-      | BuildSpec.BuildDev, (ImmutableWithTransientDependencies | Immutable), _
-      | BuildSpec.BuildDev, Transient, None -> build.BuildManifest.build
-      | BuildSpec.BuildDev, Transient, Some commands -> BuildManifest.EsyCommands commands
-    in
-
     let id =
       buildId
-        ~commands
         ~sandboxEnv:sandbox.sandboxEnv
         ~id:pkg.id
         ~dist
         ~build
+        ~sourceType
+        ~mode
         ~dependencies
         ()
     in
@@ -520,6 +452,7 @@ let makeScope
         ~version
         ~sourceType
         ~sourcePath
+        ~mode
         pkg
         build
     in

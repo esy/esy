@@ -10,6 +10,7 @@ val make :
   -> id:string
   -> name:string
   -> version:EsyInstall.Version.t
+  -> mode:BuildSpec.mode
   -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
   -> EsyInstall.Solution.Package.t

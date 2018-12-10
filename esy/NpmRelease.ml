@@ -112,17 +112,17 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
   |} environmentString bin bin
 
 let envspec = {
-  BuildSandbox.EnvSpec.
+  EnvSpec.
   buildIsInProgress = false;
   includeCurrentEnv = true;
   includeBuildEnv = false;
   includeNpmBin = true;
-  augmentDeps = Some BuildSandbox.DepSpec.(package self + dependencies self + devDependencies self);
+  augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
-  BuildSandbox.BuildSpec.
-  buildAll = {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
-  buildLinked = Some {mode = Build; deps = BuildSandbox.DepSpec.(dependencies self);};
+  BuildSpec.
+  buildAll = {mode = Build; deps = DepSpec.(dependencies self);};
+  buildLinked = Some {mode = Build; deps = DepSpec.(dependencies self);};
 }
 
 let make

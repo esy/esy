@@ -1,7 +1,5 @@
 open Esy
 
-module BuildSpec = BuildSandbox.BuildSpec
-module EnvSpec = BuildSandbox.EnvSpec
 module SandboxSpec = EsyInstall.SandboxSpec
 module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
@@ -35,7 +33,7 @@ let depspecConv =
       error (`Msg msg)
     | DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
   in
-  let pp = BuildSandbox.DepSpec.pp in
+  let pp = DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
 module TermPp = struct
@@ -60,7 +58,7 @@ module TermPp = struct
     } = envspec in
     Fmt.pf fmt
       "%a%a%a%a%a"
-      (ppOption "--envspec" (Fmt.quote ~mark:"'" BuildSandbox.DepSpec.pp)) augmentDeps
+      (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
       (ppFlag "--build-context") buildIsInProgress
       (ppFlag "--include-current-env") includeCurrentEnv
       (ppFlag "--include-npm-bin") includeNpmBin
@@ -78,7 +76,7 @@ module TermPp = struct
       Fmt.pf fmt
         "%a%a"
         ppMode mode
-        (ppOption "--linked-depspec" BuildSandbox.DepSpec.pp) (Some deps)
+        (ppOption "--linked-depspec" DepSpec.pp) (Some deps)
 end
 
 let resolvePackage ~pkgName (proj : Project.WithWorkflow.t) =
@@ -510,8 +508,8 @@ let runPrintEnv
 |}
             name
             Solution.Package.pp pkg
-            BuildSandbox.DepSpec.pp deps
-            (Fmt.option BuildSandbox.DepSpec.pp)
+            DepSpec.pp deps
+            (Fmt.option DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress
             envspec.includeBuildEnv

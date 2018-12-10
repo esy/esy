@@ -11,7 +11,7 @@
 %}
 
 %start start
-%type <BuildSandbox.DepSpec.t> start
+%type <DepSpec.t> start
 
 %%
 
@@ -26,30 +26,30 @@ expr:
 id:
   id = ID; {
     match id with
-    | "root" -> BuildSandbox.DepSpec.root
-    | "self" -> BuildSandbox.DepSpec.self
+    | "root" -> DepSpec.root
+    | "self" -> DepSpec.self
     | _ -> $syntaxerror
   }
 
 package:
   id = ID; {
     match id with
-    | "root" -> BuildSandbox.DepSpec.(package root)
-    | "self" -> BuildSandbox.DepSpec.(package self)
+    | "root" -> DepSpec.(package root)
+    | "self" -> DepSpec.(package self)
     | _ -> $syntaxerror
   }
 
 select:
   select = ID; LPAREN; id = id; RPAREN {
     match select with
-    | "dependencies" -> BuildSandbox.DepSpec.dependencies id
-    | "devDependencies" -> BuildSandbox.DepSpec.devDependencies id
+    | "dependencies" -> DepSpec.dependencies id
+    | "devDependencies" -> DepSpec.devDependencies id
     | _ -> $syntaxerror
   }
 
 union:
   a = expr; PLUS; b = expr {
-    BuildSandbox.DepSpec.(a + b)
+    DepSpec.(a + b)
   }
 
 %%
