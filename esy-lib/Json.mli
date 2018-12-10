@@ -52,4 +52,6 @@ module Print : sig
     ?ppListBox:(?indent:int -> t list Fmt.t -> t list Fmt.t)
     -> ?ppAssocBox:(?indent:int -> (string * t) list Fmt.t -> (string * t) list Fmt.t)
     -> t Fmt.t
+
+  val ppRegular : t Fmt.t
 end

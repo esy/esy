@@ -649,7 +649,7 @@ let status
     Format.fprintf
       Format.std_formatter
       "%a@."
-      (Json.Print.pp ~ppListBox:Fmt.vbox ~ppAssocBox:Fmt.vbox)
+      Json.Print.ppRegular
       (Status.to_yojson status);
   return ()
 
