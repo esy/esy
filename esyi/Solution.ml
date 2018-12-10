@@ -47,6 +47,7 @@ let findByPath p solution =
   let f _id pkg =
     match pkg.Package.source with
     | Link {path; manifest = None;} ->
+      let path = DistPath.(path / "package.json") in
       DistPath.compare path p >= 0
     | Link {path; manifest = Some filename;} ->
       let path = DistPath.(path / ManifestSpec.show filename) in

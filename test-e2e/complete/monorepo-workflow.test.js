@@ -132,7 +132,7 @@ describe('Monorepo workflow using low level commands', function() {
     );
   });
 
-  test.only('that the build is ok with custom DEPSPEC config', async function() {
+  test('that the build is ok with custom DEPSPEC config', async function() {
     // now try to build with a custom DEPSPEC
     const p = await createTestSandbox();
 

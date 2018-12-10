@@ -134,7 +134,7 @@ describe('complete flow for opam sandboxes', () => {
     expect(stdout.trim()).toEqual('__hello__');
   });
 
-  it('multiple <pkg>.opam files', async () => {
+  it.skip('multiple <pkg>.opam files', async () => {
     const fixture = [
       // this define "false" as build command to make sure esy doesn't execute
       // it
@@ -167,7 +167,7 @@ describe('complete flow for opam sandboxes', () => {
     await p.esy('build');
   });
 
-  it.only('ocaml constraints should be translated to npm versions (root)', async () => {
+  it('ocaml constraints should be translated to npm versions (root)', async () => {
     const p = await createTestSandbox();
 
     await p.fixture(
@@ -216,7 +216,7 @@ describe('complete flow for opam sandboxes', () => {
     });
   });
 
-  it.only('ocaml constraints should be translated to npm versions (dep)', async () => {
+  it('ocaml constraints should be translated to npm versions (dep)', async () => {
     const p = await createTestSandbox();
 
     await p.fixture(
