@@ -79,17 +79,17 @@ let%test_module "parsing" = (module struct
     parse ~tryAsOpam:true "no-source:";
     [%expect {| (Source (Dist NoSource)) |}]
 
-  let%expect_test "user/repo#commit" =
-    parse "user/repo#commit";
+  let%expect_test "user/repo#abc123" =
+    parse "user/repo#abc123";
     [%expect {|
       (Source
-       (Dist (Github (user user) (repo repo) (commit commit) (manifest ())))) |}]
+       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |}]
 
-  let%expect_test "user/repo#commit" =
-    parse ~tryAsOpam:true "user/repo#commit";
+  let%expect_test "user/repo#abc123" =
+    parse ~tryAsOpam:true "user/repo#abc123";
     [%expect {|
       (Source
-       (Dist (Github (user user) (repo repo) (commit commit) (manifest ())))) |}]
+       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |}]
 
   let%expect_test "./some/path" =
     parse "./some/path";
@@ -125,7 +125,7 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "some" =
     parse "some";
-    [%expect {| Error parsing 'some': : not a path |}]
+    [%expect {| ERROR: parsing "some": : not a path |}]
 
   let%expect_test "some" =
     parse ~tryAsOpam:true "some";

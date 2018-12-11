@@ -96,8 +96,11 @@ module Parse = struct
     withPrefix "link:" (link ~requirePathSep:false) <|> dist
 
   let parserRelaxed =
-    let%map dist = Dist.parserRelaxed in
-    Dist dist
+    let distRelaxed =
+      let%map dist = Dist.parserRelaxed in
+      Dist dist
+    in
+    parser <|> distRelaxed
 end
 
 let parser = Parse.parser
@@ -117,7 +120,7 @@ let of_yojson json =
 let relaxed_of_yojson json =
   match json with
   | `String string ->
-    let parse = Parse.(parse (parser <|> parserRelaxed)) in
+    let parse = Parse.(parse parserRelaxed) in
     parse string
   | _ -> Error "expected string"
 
@@ -136,44 +139,44 @@ let%test_module "parsing" = (module struct
   let parse =
     Parse.Test.parse ~sexp_of:sexp_of_t parse
 
-  let%expect_test "github:user/repo#commit" =
-    parse "github:user/repo#commit";
-    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
+  let%expect_test "github:user/repo#abc123" =
+    parse "github:user/repo#abc123";
+    [%expect {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}]
 
-  let%expect_test "github:user/repo:lwt.opam#commit" =
-    parse "github:user/repo:lwt.opam#commit";
+  let%expect_test "github:user/repo:lwt.opam#abc123" =
+    parse "github:user/repo:lwt.opam#abc123";
     [%expect {|
       (Dist
-       (Github (user user) (repo repo) (commit commit)
+       (Github (user user) (repo repo) (commit abc123)
         (manifest ((Opam lwt.opam))))) |}]
 
-  let%expect_test "gh:user/repo#commit" =
-    parse "gh:user/repo#commit";
-    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
+  let%expect_test "gh:user/repo#abc123" =
+    parse "gh:user/repo#abc123";
+    [%expect {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}]
 
-  let%expect_test "gh:user/repo:lwt.opam#commit" =
-    parse "gh:user/repo:lwt.opam#commit";
+  let%expect_test "gh:user/repo:lwt.opam#abc123" =
+    parse "gh:user/repo:lwt.opam#abc123";
     [%expect {|
       (Dist
-       (Github (user user) (repo repo) (commit commit)
+       (Github (user user) (repo repo) (commit abc123)
         (manifest ((Opam lwt.opam))))) |}]
 
-  let%expect_test "git:http://example.com/repo#commit" =
-    parse "git:http://example.com/repo#commit";
-    [%expect {| (Dist (Git (remote http://example.com/repo) (commit commit) (manifest ()))) |}]
+  let%expect_test "git:http://example.com/repo#abc123" =
+    parse "git:http://example.com/repo#abc123";
+    [%expect {| (Dist (Git (remote http://example.com/repo) (commit abc123) (manifest ()))) |}]
 
-  let%expect_test "git:http://example.com/repo:lwt.opam#commit" =
-    parse "git:http://example.com/repo:lwt.opam#commit";
+  let%expect_test "git:http://example.com/repo:lwt.opam#abc123" =
+    parse "git:http://example.com/repo:lwt.opam#abc123";
     [%expect {|
       (Dist
-       (Git (remote http://example.com/repo) (commit commit)
+       (Git (remote http://example.com/repo) (commit abc123)
         (manifest ((Opam lwt.opam))))) |}]
 
-  let%expect_test "git:git://example.com/repo:lwt.opam#commit" =
-    parse "git:git://example.com/repo:lwt.opam#commit";
+  let%expect_test "git:git://example.com/repo:lwt.opam#abc123" =
+    parse "git:git://example.com/repo:lwt.opam#abc123";
     [%expect {|
       (Dist
-       (Git (remote git://example.com/repo) (commit commit)
+       (Git (remote git://example.com/repo) (commit abc123)
         (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "archive:http://example.com#abc123" =
@@ -219,15 +222,15 @@ let%test_module "parsing" = (module struct
   let parseRelaxed =
     Parse.Test.parse ~sexp_of:sexp_of_t parseRelaxed
 
-  let%expect_test "user/repo#commit" =
-    parseRelaxed "user/repo#commit";
-    [%expect {| (Dist (Github (user user) (repo repo) (commit commit) (manifest ()))) |}]
+  let%expect_test "user/repo#abc123" =
+    parseRelaxed "user/repo#abc123";
+    [%expect {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}]
 
-  let%expect_test "user/repo:lwt.opam#commit" =
-    parseRelaxed "user/repo:lwt.opam#commit";
+  let%expect_test "user/repo:lwt.opam#abc123" =
+    parseRelaxed "user/repo:lwt.opam#abc123";
     [%expect {|
       (Dist
-       (Github (user user) (repo repo) (commit commit)
+       (Github (user user) (repo repo) (commit abc123)
         (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "http://example.com#abc123" =
@@ -255,6 +258,6 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "some" =
     parseRelaxed "some";
-    [%expect {| Error parsing 'some': : not a path |}]
+    [%expect {| ERROR: parsing "some": : not a path |}]
 
 end)
