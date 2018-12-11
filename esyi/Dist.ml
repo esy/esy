@@ -59,52 +59,81 @@ let pp fmt src =
 let ppPretty fmt src =
   Fmt.pf fmt "%s" (showPretty src)
 
-module Map = Map.Make(struct
-  type nonrec t = t
-  let compare = compare
-end)
-
-module Set = Set.Make(struct
-  type nonrec t = t
-  let compare = compare
-end)
-
 module Parse = struct
   include Parse
 
   let manifestFilenameBeforeSharp =
     till (fun c -> c <> '#') ManifestSpec.Filename.parser
 
-  let withPrefix prefix p =
-    string prefix *> p
+  let commitsha =
+    let err = fail "missing or incorrect <commit>" in
+    let%bind () = ignore (char '#') <|> err in
+    let%bind () = commit in
+    let%bind sha = hex <|> err in
+    if String.length sha < 6
+    then err
+    else return sha
 
-  let github =
-    let user = take_while1 (fun c -> c <> '/') <?> "user" in
-    let repo = take_while1 (fun c -> c <> '#' && c <> ':') <?> "repo" in
-    let commit = (char '#' *> take_while1 (fun _ -> true)) <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
-    let make user repo manifest commit =
-      Github { user; repo; commit; manifest; }
-    in
-    make <$> (user <* char '/') <*> repo <*> manifest <*> commit
+  let gitOrGithubManifest =
+    match%bind peek_char with
+    | Some ':' ->
+      let%bind () = advance 1 in
+      let%map manifest =
+        manifestFilenameBeforeSharp
+        <|> fail "missing or incorrect <manifest>"
+      in
+      Some manifest
+    | _ -> return None
 
-  let git =
-    let proto = take_while1 (fun c -> c <> ':') in
-    let remote = take_while1 (fun c -> c <> '#' && c <> ':') in
-    let commit = char '#' *> take_while1 (fun c -> c <> '&') <|> fail "missing commit" in
-    let manifest = maybe (char ':' *> manifestFilenameBeforeSharp) in
-    let make proto remote manifest commit =
-      Git { remote = proto ^ ":" ^ remote; commit; manifest; }
+  let github = (
+    let%bind user =
+      take_while1 (fun c -> c <> '/')
+      <* char '/'
+      <|> fail "missing or incorrect <author>/<repo>"
     in
-    make <$> proto <* char ':' <*> remote <*> manifest <*> commit
+    let%bind repo =
+      take_while1 (fun c -> c <> '#' && c <> ':')
+      <|> fail "missing or incorrect <author>/<repo>"
+    in
+    let%bind manifest = gitOrGithubManifest in
+    let%bind commit = commitsha in
+    return (Github { user; repo; commit; manifest; })
+  ) <?> "<author>/<repo>(:<manifest>)?#<commit>"
 
-  let archive =
-    let proto = string "http://" <|> string "https://" in
-    let host = take_while1 (fun c -> c <> '#') in
-    let make proto host checksum =
-      Archive { url = proto ^ host; checksum; }
+  let git = (
+    let%bind proto =
+      take_while1 (fun c -> c <> ':')
+      <* char ':'
+      <|> fail "missing on incorrect <remote>"
     in
-    (lift3 make) proto (host <* char '#') Checksum.parser
+    let%bind remote =
+      take_while1 (fun c -> c <> '#' && c <> ':')
+      <|> fail "missing on incorrect <remote>"
+    in
+    let%bind manifest = gitOrGithubManifest in
+    let%bind commit = commitsha in
+    return (Git { remote = proto ^ ":" ^ remote; commit; manifest; })
+  ) <?> "<remote>(:<manifest>)?#<commit>"
+
+  let archive = (
+    let%bind proto =
+      take_while1 (fun c -> c <> ':')
+      <* string "://"
+      <|> fail "missing on incorrect <remote>"
+    in
+    let%bind () = commit in
+    let%bind proto =
+      match proto with
+      | "http" | "https" -> return proto
+      | _ -> fail "incorrect protocol: expected http: or https:"
+    in
+    let%bind host = take_while1 (fun c -> c <> '#') in
+    let%bind checksum =
+      char '#' *> Checksum.parser
+      <|> fail "missing or incorrect <checksum>"
+    in
+    return (Archive { url = proto ^ "://" ^ host; checksum; })
+  ) <?> "https?://<host>/<path>#<checksum>"
 
   let pathLike ~requirePathSep make =
     let make path =
@@ -137,22 +166,298 @@ module Parse = struct
     in
     pathLike make
 
-  let noSource =
-    let%bind () = ignore (string "no-source:") in
-    return NoSource
+  let proto =
+    (string "git:" >>= const `Git)
+    <|> (string "github:" >>= const `GitHub)
+    <|> (string "gh:" >>= const `GitHub)
+    <|> (string "archive:" >>= const `Archive)
+    <|> (string "path:" >>= const `Path)
+    <|> (string "no-source:" >>= const `NoSource)
 
   let parser =
-    withPrefix "git:" git
-    <|> withPrefix "github:" github
-    <|> withPrefix "gh:" github
-    <|> withPrefix "archive:" archive
-    <|> withPrefix "path:" (path ~requirePathSep:false)
-    <|> noSource
+    let%bind proto = proto in
+    let%bind () = commit in
+    match proto with
+    | `Git -> git
+    | `GitHub -> github
+    | `Archive -> archive
+    | `Path -> path ~requirePathSep:false
+    | `NoSource -> return NoSource
 
   let parserRelaxed =
-    archive
+    parser
+    <|> archive
     <|> github
     <|> (path ~requirePathSep:true)
+
+  let%test_module "Parse tests" = (module struct
+
+    let test = Test.parse ~sexp_of:sexp_of_t (parse parser)
+    let testRelaxed = Test.parse ~sexp_of:sexp_of_t (parse parserRelaxed)
+
+    (* Testing parser: errors *)
+
+    let%expect_test "github:user/repo#ref" =
+      test "github:user/repo#ref";
+      [%expect {|
+      ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user/repo#" =
+      test "github:user/repo#";
+      [%expect {|
+      ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user/repo:#abc123" =
+      test "github:user/repo:#abc123";
+      [%expect {|
+      ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
+      |}]
+
+    let%expect_test "github:user/repo" =
+      test "github:user/repo";
+      [%expect {|
+      ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user" =
+      test "github:user";
+      [%expect {|
+      ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:/repo" =
+      test "github:/repo";
+      [%expect {|
+      ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:user/" =
+      test "github:user/";
+      [%expect {|
+      ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:/" =
+      test "github:/";
+      [%expect {|
+      ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:" =
+      test "github:";
+      [%expect {|
+      ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "git:https://example.com#ref" =
+      test "git:https://example.com#ref";
+      [%expect {|
+      ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:https://example.com#" =
+      test "git:https://example.com#";
+      [%expect {|
+      ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:https://example.com" =
+      test "git:https://example.com";
+      [%expect {|
+      ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:" =
+      test "git:";
+      [%expect {|
+      ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
+      |}]
+
+    let%expect_test "archive:https://example.com#gibberish" =
+      test "archive:https://example.com#gibberish";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com#md5:gibberish" =
+      test "archive:https://example.com#md5:gibberish";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com#" =
+      test "archive:https://example.com#";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com" =
+      test "archive:https://example.com";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:ftp://example.com" =
+      test "archive:ftp://example.com";
+      [%expect {|
+      ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
+      |}]
+
+    (* Testing parserRelaxed: errors *)
+
+    let%expect_test "github:user/repo#ref" =
+      testRelaxed "github:user/repo#ref";
+      [%expect {|
+      ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user/repo#" =
+      testRelaxed "github:user/repo#";
+      [%expect {|
+      ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user/repo:#abc123" =
+      testRelaxed "github:user/repo:#abc123";
+      [%expect {|
+      ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
+      |}]
+
+    let%expect_test "github:user/repo" =
+      testRelaxed "github:user/repo";
+      [%expect {|
+      ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "github:user" =
+      testRelaxed "github:user";
+      [%expect {|
+      ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:/repo" =
+      testRelaxed "github:/repo";
+      [%expect {|
+      ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:user/" =
+      testRelaxed "github:user/";
+      [%expect {|
+      ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:/" =
+      testRelaxed "github:/";
+      [%expect {|
+      ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "github:" =
+      testRelaxed "github:";
+      [%expect {|
+      ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
+      |}]
+
+    let%expect_test "git:https://example.com#ref" =
+      testRelaxed "git:https://example.com#ref";
+      [%expect {|
+      ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:https://example.com#" =
+      testRelaxed "git:https://example.com#";
+      [%expect {|
+      ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:https://example.com" =
+      testRelaxed "git:https://example.com";
+      [%expect {|
+      ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "git:" =
+      testRelaxed "git:";
+      [%expect {|
+      ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
+      |}]
+
+    let%expect_test "archive:https://example.com#gibberish" =
+      testRelaxed "archive:https://example.com#gibberish";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com#md5:gibberish" =
+      testRelaxed "archive:https://example.com#md5:gibberish";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com#" =
+      testRelaxed "archive:https://example.com#";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:https://example.com" =
+      testRelaxed "archive:https://example.com";
+      [%expect {|
+      ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "archive:ftp://example.com" =
+      testRelaxed "archive:ftp://example.com";
+      [%expect {|
+      ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
+      |}]
+
+    let%expect_test "https://example.com#gibberish" =
+      testRelaxed "https://example.com#gibberish";
+      [%expect {|
+      ERROR: parsing "https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "https://example.com#md5:gibberish" =
+      testRelaxed "https://example.com#md5:gibberish";
+      [%expect {|
+      ERROR: parsing "https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "https://example.com#" =
+      testRelaxed "https://example.com#";
+      [%expect {|
+      ERROR: parsing "https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "https://example.com" =
+      testRelaxed "https://example.com";
+      [%expect {|
+      ERROR: parsing "https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
+      |}]
+
+    let%expect_test "ftp://example.com" =
+      testRelaxed "ftp://example.com";
+      [%expect {|
+      ERROR: parsing "ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
+      |}]
+
+    let%expect_test "user/repo#ref" =
+      testRelaxed "user/repo#ref";
+      [%expect {|
+      ERROR: parsing "user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+    let%expect_test "user/repo#" =
+      testRelaxed "user/repo#";
+      [%expect {|
+      ERROR: parsing "user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+      |}]
+
+  end)
 end
 
 let parser = Parse.parser
@@ -172,6 +477,16 @@ let of_yojson json =
 let relaxed_of_yojson json =
   match json with
   | `String string ->
-    let parse = Parse.(parse (parser <|> parserRelaxed)) in
+    let parse = Parse.(parse parserRelaxed) in
     parse string
   | _ -> Error "expected string"
+
+module Map = Map.Make(struct
+  type nonrec t = t
+  let compare = compare
+end)
+
+module Set = Set.Make(struct
+  type nonrec t = t
+  let compare = compare
+end)

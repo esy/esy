@@ -120,50 +120,63 @@ let ofGithub
 let ofPath ?manifest (path : Path.t) =
   let open RunAsync.Syntax in
 
-  let rec tryFilename tried filenames =
+  let readManifest (kind, filename) manifestPath =
+    let suggestedPackageName =
+      suggestPackageName
+        ~fallback:(Path.(path |> normalize |> remEmptySeg |> basename))
+        (kind, filename)
+    in
+
+    if%bind Fs.exists manifestPath
+    then
+      let%bind data = Fs.readFile manifestPath in
+      match kind with
+      | ManifestSpec.Filename.Esy ->
+        begin match Json.parseStringWith PackageOverride.of_yojson data with
+        | Ok override -> return (Some (Override override))
+        | Error err ->
+          Logs_lwt.debug (fun m ->
+            m "not an override %a: %a" Path.pp path Run.ppError err
+            );%lwt
+          return (Some (Manifest {data; filename; kind; suggestedPackageName;}))
+        end
+      | ManifestSpec.Filename.Opam ->
+        return (Some (Manifest {data; filename; kind; suggestedPackageName;}))
+    else
+      return None
+  in
+
+  let rec tryManifests tried filenames =
     match filenames with
     | [] -> return (tried, EmptyManifest)
     | (kind, filename)::rest ->
-
-      let suggestedPackageName =
-        suggestPackageName
-          ~fallback:(Path.(path |> normalize |> remEmptySeg |> basename))
-          (kind, filename)
-      in
-
-      let path = Path.(path / filename) in
-      let tried = Path.Set.add path tried in
-      if%bind Fs.exists path
-      then
-        let%bind data = Fs.readFile path in
-        match kind with
-        | ManifestSpec.Filename.Esy ->
-          begin match Json.parseStringWith PackageOverride.of_yojson data with
-          | Ok override -> return (tried, Override override)
-          | Error err ->
-            Logs_lwt.debug (fun m ->
-              m "not an override %a: %a" Path.pp path Run.ppError err
-              );%lwt
-            return (tried, Manifest {data; filename; kind; suggestedPackageName;})
-          end
-        | ManifestSpec.Filename.Opam ->
-          return (tried, Manifest {data; filename; kind; suggestedPackageName;})
-      else
-        tryFilename tried rest
+      let manifestPath = Path.(path / filename) in
+      let tried = Path.Set.add manifestPath tried in
+      begin match%bind readManifest (kind, filename) manifestPath with
+      | None -> tryManifests tried rest
+      | Some state -> return (tried, state)
+      end
   in
-  let%bind filenames =
-    match manifest with
-    | Some manifest ->
-      ManifestSpec.findManifestsAtPath path manifest
-    | None ->
-      return [
-        ManifestSpec.Filename.Esy, "esy.json";
-        ManifestSpec.Filename.Esy, "package.json";
-        ManifestSpec.Filename.Opam, "opam";
-        ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
-      ]
-  in
-  tryFilename Path.Set.empty filenames
+
+  match manifest with
+  | Some manifest ->
+    let%bind tried, state =
+      let%bind filenames = ManifestSpec.findManifestsAtPath path manifest in
+      tryManifests Path.Set.empty filenames
+    in
+    begin match state with
+    | EmptyManifest ->
+      errorf "unable to read manifests from %a" ManifestSpec.pp manifest
+    | state ->
+      return (tried, state)
+    end
+  | None ->
+    tryManifests Path.Set.empty [
+      ManifestSpec.Filename.Esy, "esy.json";
+      ManifestSpec.Filename.Esy, "package.json";
+      ManifestSpec.Filename.Opam, "opam";
+      ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
+    ]
 
 let resolve
   ?(overrides=Package.Overrides.empty)
@@ -176,8 +189,13 @@ let resolve
     Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist);%lwt
     match dist with
     | LocalPath {path; manifest} ->
-      let%bind tried, pkg = ofPath ?manifest (DistPath.toPath sandbox.SandboxSpec.path path) in
-      return (pkg, tried)
+      let realpath = DistPath.toPath sandbox.SandboxSpec.path path in
+      begin match%bind Fs.exists realpath with
+      | false -> errorf "%a doesn't exist" DistPath.pp path
+      | true ->
+        let%bind tried, pkg = ofPath ?manifest realpath in
+        return (pkg, tried)
+      end
     | Git {remote; commit; manifest;} ->
       let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
