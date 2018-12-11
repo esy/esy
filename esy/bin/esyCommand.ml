@@ -889,15 +889,27 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
 
     let%bind args = Result.List.map ~f:expand args in
 
-    return Cmd.(
+    let cmd = Cmd.(
       v (p EsyRuntime.currentExecutable)
       |> addArgs scriptArgs
       |> addArgs args
-    )
+    ) in
+    return cmd
   ) in
 
-  let tool, line = Cmd.getToolAndLine cmd in
-  Unix.execv tool line
+  let%bind status =
+    ChildProcess.runToStatus
+      ~resolveProgramInEnv:true
+      ~stderr:(`FD_copy Unix.stderr)
+      ~stdout:(`FD_copy Unix.stdout)
+      ~stdin:(`FD_copy Unix.stdin)
+      cmd
+  in
+
+  match status with
+  | Unix.WEXITED n
+  | Unix.WSTOPPED n
+  | Unix.WSIGNALED n -> exit n
 
 let devExec (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
