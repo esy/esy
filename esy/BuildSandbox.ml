@@ -248,8 +248,6 @@ let makeScope
   =
   let open Run.Syntax in
 
-  Logs.debug (fun m -> m "makeScope %a" PackageId.pp id);
-
   let updateSeen seen id =
     match List.find_opt ~f:(fun p -> PackageId.compare p id = 0) seen with
     | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.pp id
@@ -291,15 +289,6 @@ let makeScope
     let matched =
       DepSpec.eval sandbox.solution pkg.Package.id deps
     in
-    Logs.debug (fun m ->
-      m "depspec %a at %a matches %a"
-        DepSpec.pp
-        deps
-        PackageId.pp
-        pkg.Package.id
-        Fmt.(list ~sep:(unit ", ") PackageId.pp)
-        (PackageId.Set.elements matched)
-    );
 
     let directDependencies =
       (* remove self here so we don't call into itself *)

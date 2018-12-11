@@ -62,18 +62,14 @@ describe('Build with optDependencies', () => {
       {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(
-          p.normalizePathsForSnapshot(stdout, {id, depid, optdepid}),
-        ).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id, depid})).toMatchSnapshot();
       }
 
       {
         const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout, {id, optdepid})).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
     });
   });

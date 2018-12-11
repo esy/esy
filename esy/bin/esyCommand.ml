@@ -242,26 +242,33 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let withPackage proj solution (pkgspec : PkgArg.t) f =
+let withPackage proj solution (pkgArg : PkgArg.t) f =
   let open RunAsync.Syntax in
-  let runWith v =
-    match v with
-    | Some task -> f task
-    | None -> errorf "no package found: %a" PkgArg.pp pkgspec
+  let runWith pkg =
+    match pkg with
+    | Some pkg ->
+      Logs_lwt.debug (fun m ->
+        m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Solution.Package.pp pkg
+      );%lwt
+      f pkg
+    | None -> errorf "no package found: %a" PkgArg.pp pkgArg
   in
-  match pkgspec with
-  | ByPkgSpec Root -> f (Solution.root solution)
-  | ByPkgSpec ByName name ->
-    runWith (Solution.findByName name solution)
-  | ByPkgSpec ByNameVersion (name, version) ->
-    runWith (Solution.findByNameVersion name version solution)
-  | ByPkgSpec ById id ->
-    runWith (Solution.get id solution)
-  | ByPath path ->
-    let root = proj.Project.projcfg.installSandbox.spec.path in
-    let path = Path.(EsyRuntime.currentWorkingDir // path) in
-    let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
-    runWith (Solution.findByPath path solution)
+  let pkg =
+    match pkgArg with
+    | ByPkgSpec Root -> Some (Solution.root solution)
+    | ByPkgSpec ByName name ->
+      Solution.findByName name solution
+    | ByPkgSpec ByNameVersion (name, version) ->
+      Solution.findByNameVersion name version solution
+    | ByPkgSpec ById id ->
+      Solution.get id solution
+    | ByPath path ->
+      let root = proj.Project.projcfg.installSandbox.spec.path in
+      let path = Path.(EsyRuntime.currentWorkingDir // path) in
+      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
+      Solution.findByPath path solution
+  in
+  runWith pkg
 
 let runBuildDependencies
   ~buildLinked

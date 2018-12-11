@@ -174,7 +174,7 @@ describe(`'esy build-env' command`, () => {
 
     await p.esy('install');
 
-    const env = JSON.parse((await p.esy('build-env --json dep@1.0.0')).stdout);
+    const env = JSON.parse((await p.esy('build-env --json dep@path:dep')).stdout);
     expect(env.cur__name).toBe('dep');
   });
 });
