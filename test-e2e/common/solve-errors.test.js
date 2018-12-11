@@ -392,34 +392,6 @@ describe('"esy solve" errors', function() {
       `,
     );
   });
-
-  it('reports errors about missing link: packages (path does not exist)', async () => {
-    const p = await helpers.createTestSandbox();
-
-    await p.fixture(
-      packageJson({
-        name: 'root',
-        esy: {},
-        dependencies: {
-          missing: '*',
-        },
-        resolutions: {
-          missing: 'link:./missing',
-        },
-      }),
-    );
-
-    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
-    expect(err.stderr.trim()).toEqual(
-      outdent`
-      info install ${version}
-      error: no manifest found at link:missing
-        reading package metadata from link:missing
-        resolving metadata missing@link:missing
-      esy: exiting due to errors above
-      `,
-    );
-  });
 });
 
 describe('"resolutions" misconfiguration errors', function() {
@@ -475,6 +447,61 @@ describe('"resolutions" misconfiguration errors', function() {
       error: parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
         reading package metadata from link:./package.json
         loading root package metadata
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('link to a non-existent path', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          pkg: '*',
+        },
+        resolutions: {
+          pkg: 'link:./somepath/pkg',
+        },
+      }),
+    );
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      info install ${version}
+      error: somepath/pkg doesn't exist
+        reading package metadata from link:somepath/pkg
+        resolving metadata pkg@link:somepath/pkg
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('link to a non-existent manifest', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          pkg: '*',
+        },
+        resolutions: {
+          pkg: 'link:./somepath/some.json',
+        },
+      }),
+      dir('somepath', packageJson({name: 'some'})),
+    );
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      info install ${version}
+      error: unable to read manifests from some.json
+        reading package metadata from link:somepath/some.json
+        resolving metadata pkg@link:somepath/some.json
       esy: exiting due to errors above
       `,
     );
