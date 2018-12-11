@@ -79,6 +79,8 @@ jobs:
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
     steps:
+      - script: powershell SetLongPathRegistry.ps1
+        displayName: SetLongPathRegistry.ps1
       - template: use-node.yml
       - template: restore-build-cache.yml
       - template: build.yml
