@@ -50,18 +50,32 @@ let currentPath = () =>
     failwith("Unable to determine current working dir: " ++ msg)
   };
 
+exception PathUncConversionException(string);
+
 let replace = (s, c, r) => {
-    String.map((curr) => {
-        switch (curr == c) {
-        | true => r    
-        | false => curr
+    String.mapi((idx, curr) => {
+        if (idx == 0) {
+           Char.lowercase_ascii(curr); 
+        } else if (idx == 1) {
+            '$'
+        } else {
+            switch (curr == c) {
+            | true => r    
+            | false => curr
+            };
         };
     }, s);
 };
 
 let toUNC = (p) => {
+  let colon = String.get(p, 1);
+
+  if (colon != ':') {
+    raise(PathUncConversionException("UNC conversion: path must be absolute"));
+  }
+
   let t = replace(p, '/', '\\');
-  "\\\\?\\" ++ t
+  "\\\\?\\UNC\\localhost\\" ++ t
 };
 
 print_endline ("toUNC test: " ++ toUNC("C:/test"));
