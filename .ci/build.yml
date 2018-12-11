@@ -14,9 +14,8 @@ steps:
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
-  # TEMPORARILY REMOVE TO UNBLOCK SLOWTESTS
-  # - script: 'esy test:e2e'
-  #   displayName: 'esy test:e2e'
+  - script: 'esy test:e2e'
+    displayName: 'esy test:e2e'
 
   - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
