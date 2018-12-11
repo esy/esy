@@ -185,7 +185,7 @@ for (let c of selectCases(cases)) {
         '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
       },
       devDependencies: {
-        ocaml: toolchain,
+        ocaml: "esy-ocaml/ocaml#5045cde",
       },
     };
 
