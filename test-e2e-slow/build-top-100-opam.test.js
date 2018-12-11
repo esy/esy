@@ -183,10 +183,9 @@ for (let c of selectCases(cases)) {
       resolutions: {
         // Workaround until new version of angstrom is released
         '@opam/angstrom': 'github:esy-ocaml/angstrom#5a06a0',
-        'ocaml': "github:esy-ocaml/ocaml#5045cde",
       },
       devDependencies: {
-        ocaml: "*",
+        ocaml: toolchain,
       },
     };
 
