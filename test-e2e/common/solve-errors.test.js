@@ -421,3 +421,62 @@ describe('"esy solve" errors', function() {
     );
   });
 });
+
+describe('"resolutions" misconfiguration errors', function() {
+  it('plain resolution', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          pkg: '*',
+        },
+        resolutions: {
+          pkg: 'github:author/pkg',
+        },
+      }),
+    );
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+        reading package metadata from link:./package.json
+        loading root package metadata
+      esy: exiting due to errors above
+      `,
+    );
+  });
+
+  it('resolution w/ override', async function() {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          pkg: '*',
+        },
+        resolutions: {
+          pkg: {
+            source: 'author/pkg#ref',
+            override: {
+              build: ['true'],
+            },
+          },
+        },
+      }),
+    );
+    const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
+    expect(err.stderr.trim()).toEqual(
+      outdent`
+      error: parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+        reading package metadata from link:./package.json
+        loading root package metadata
+      esy: exiting due to errors above
+      `,
+    );
+  });
+});
