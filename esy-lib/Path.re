@@ -78,7 +78,7 @@ let toUNC = (p) => {
   "\\\\?\\UNC\\localhost\\" ++ t
 };
 
-print_endline ("toUNC test: " ++ toUNC("C:/test"));
+/* print_endline ("toUNC test: " ++ toUNC("C:/test")); */
 
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
