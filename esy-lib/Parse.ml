@@ -8,6 +8,8 @@ end
 let ignore p =
   p >>| (fun _ -> ())
 
+let const v = (fun _ -> return v)
+
 let maybe p = option None (p >>| fun v -> Some v)
 
 let till c p =
@@ -28,7 +30,11 @@ let hex =
   ) <?> "hex"
 
 let parse p input =
-  parse_string (p <* end_of_input) input
+  match parse_string (p <* end_of_input) input with
+  | Ok v -> Ok v
+  | Error msg ->
+    let msg = Printf.sprintf {|parsing "%s": %s|} input msg in
+    Error msg
 
 module Test = struct
 
@@ -47,7 +53,7 @@ module Test = struct
   let parse ~sexp_of parse input =
     match parse input with
     | Error err ->
-      Format.printf "Error parsing '%s': %s@." input err
+      Format.printf "ERROR: %s@." err
     | Ok v ->
       let sexp = sexp_of v in
       Format.printf "%a@." Sexplib0.Sexp.pp_hum sexp
