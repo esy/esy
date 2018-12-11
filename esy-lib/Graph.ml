@@ -14,7 +14,7 @@ module type GRAPH = sig
   val root : t -> node
   val get : id -> t -> node option
   val getExn : id -> t -> node
-  val find : (id -> node -> bool) -> t -> (id * node) option
+  val findBy : (id -> node -> bool) -> t -> (id * node) option
   val dependencies : ?traverse:traverse -> node -> t -> node list
   val allDependenciesBFS :
     ?traverse:traverse
@@ -130,12 +130,10 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
     List.rev dependencies
 
-  let find f graph =
-    let f id =
-      let node = Node.Id.Map.find id graph.nodes in
-      f id node
-    in
-    Node.Id.Map.find_first_opt f graph.nodes
+  let findBy f graph =
+    let f (id, node) = f id node in
+    let bindings = Node.Id.Map.bindings graph.nodes in
+    List.find_opt ~f bindings
 
   let fold ~f ~init graph =
     let f _id node v =
