@@ -5,7 +5,7 @@
  * project.
  *)
 
-open EsyInstall
+open EsyI
 open Esy
 
 type t = {

@@ -1,4 +1,4 @@
-open EsyInstall
+open EsyI
 
 module Repr : sig
   type t

@@ -3,8 +3,8 @@ type t
 val make :
   ?sandboxEnv:BuildManifest.Env.t
   -> Config.t
-  -> EsyInstall.Solution.t
-  -> EsyInstall.Installation.t
+  -> EsyI.Solution.t
+  -> EsyI.Installation.t
   -> (t * Fpath.set) RunAsync.t
 
 val renderExpression : t -> Scope.t -> string -> string Run.t
@@ -14,7 +14,7 @@ val configure :
   -> EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> EsyI.PackageId.t
   -> (Scope.SandboxEnvironment.Bindings.t * Scope.t) Run.t
 
 val env :
@@ -22,26 +22,26 @@ val env :
   -> EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> EsyI.PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exec :
   EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> EsyI.PackageId.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
 
 module Task : sig
   type t = {
     idrepr : BuildId.Repr.t;
-    pkg : EsyInstall.Solution.Package.t;
+    pkg : EsyI.Solution.Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
-    dependencies : EsyInstall.PackageId.t list;
+    dependencies : EsyI.PackageId.t list;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -57,9 +57,9 @@ module Plan : sig
 
   val buildspec : t -> BuildSpec.t
 
-  val get : t -> EsyInstall.PackageId.t -> Task.t option
+  val get : t -> EsyI.PackageId.t -> Task.t option
   val getByName : t -> string -> Task.t option
-  val getByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
+  val getByNameVersion : t -> string -> EsyI.Version.t -> Task.t option
 
   val all : t -> Task.t list
 end
@@ -73,7 +73,7 @@ val makePlan :
 val buildShell :
   BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> EsyI.PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
@@ -84,7 +84,7 @@ val buildOnly :
   -> ?logPath:Path.t
   -> t
   -> Plan.t
-  -> EsyInstall.PackageId.t
+  -> EsyI.PackageId.t
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
 
@@ -93,7 +93,7 @@ val build :
   -> buildLinked:bool
   -> t
   -> Plan.t
-  -> EsyInstall.PackageId.t list
+  -> EsyI.PackageId.t list
   -> unit RunAsync.t
 
 

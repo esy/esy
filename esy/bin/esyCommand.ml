@@ -1,12 +1,12 @@
 open Esy
 
-module SandboxSpec = EsyInstall.SandboxSpec
-module Installation = EsyInstall.Installation
-module Solution = EsyInstall.Solution
-module SolutionLock = EsyInstall.SolutionLock
-module Version = EsyInstall.Version
-module PackageId = EsyInstall.PackageId
-module PkgSpec = EsyInstall.PkgSpec
+module SandboxSpec = EsyI.SandboxSpec
+module Installation = EsyI.Installation
+module Solution = EsyI.Solution
+module SolutionLock = EsyI.SolutionLock
+module Version = EsyI.Version
+module PackageId = EsyI.PackageId
+module PkgSpec = EsyI.PkgSpec
 
 module PkgArg = struct
   type t =
@@ -265,7 +265,7 @@ let withPackage proj solution (pkgArg : PkgArg.t) f =
     | ByPath path ->
       let root = proj.Project.projcfg.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
-      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
+      let path = EsyI.DistPath.ofPath (Path.tryRelativize ~root path) in
       Solution.findByPath path solution
   in
   runWith pkg
@@ -1150,7 +1150,7 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
   makeLsCommand ~computeTermNode ~includeTransitive:false proj
 
 let getSandboxSolution installSandbox =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let%bind solution = Solver.solve installSandbox in
   let lockPath = SandboxSpec.solutionLockPath installSandbox.Sandbox.spec in
@@ -1174,13 +1174,13 @@ let getSandboxSolution installSandbox =
   return solution
 
 let solve {ProjectConfig. installSandbox; _} () =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution installSandbox in
   return ()
 
 let fetch {ProjectConfig. installSandbox = sandbox; _} () =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
   match%bind SolutionLock.ofPath ~sandbox lockPath with
@@ -1188,7 +1188,7 @@ let fetch {ProjectConfig. installSandbox = sandbox; _} () =
   | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch ({ProjectConfig. installSandbox = sandbox; _} as projcfg) () =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
   match%bind SolutionLock.ofPath ~sandbox lockPath with
@@ -1202,7 +1202,7 @@ let solveAndFetch ({ProjectConfig. installSandbox = sandbox; _} as projcfg) () =
     return ()
 
 let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let opamError =
     "add dependencies manually when working with opam sandboxes"
@@ -1296,7 +1296,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
       let%bind () =
         let%bind installSandbox =
-          EsyInstall.Sandbox.make
+          EsyI.Sandbox.make
             ~cfg:installSandbox.cfg
             installSandbox.spec
         in
@@ -1399,7 +1399,7 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
     (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
 
 let show (projcfg : ProjectConfig.t) _asJson req () =
-  let open EsyInstall in
+  let open EsyI in
   let open RunAsync.Syntax in
   let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
   let%bind resolver = Resolver.make ~cfg:projcfg.cfg.installCfg ~sandbox:projcfg.spec () in

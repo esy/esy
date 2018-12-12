@@ -28,8 +28,8 @@ let findSandboxPathStartingWith currentPath =
 type t = {
   mainprg : string;
   cfg : Config.t;
-  spec : EsyInstall.SandboxSpec.t;
-  installSandbox : EsyInstall.Sandbox.t;
+  spec : EsyI.SandboxSpec.t;
+  installSandbox : EsyI.Sandbox.t;
 }
 
 let commonOptionsSection = Manpage.s_common_options
@@ -141,12 +141,12 @@ let make
   in
 
   let%bind sandboxPath = sandboxPath in
-  let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
+  let%bind spec = EsyI.SandboxSpec.ofPath sandboxPath in
 
   let%bind prefixPath = match prefixPath with
     | Some prefixPath -> return (Some prefixPath)
     | None ->
-      let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
+      let%bind rc = EsyRc.ofPath spec.EsyI.SandboxSpec.path in
       return rc.EsyRc.prefixPath
   in
 
@@ -159,7 +159,7 @@ let make
   in
 
   let%bind installCfg =
-    EsyInstall.Config.make
+    EsyI.Config.make
       ~esySolveCmd
       ~skipRepositoryUpdate
       ?cachePath
@@ -183,7 +183,7 @@ let make
   in
 
   let%bind installSandbox =
-    EsyInstall.Sandbox.make ~cfg:installCfg spec
+    EsyI.Sandbox.make ~cfg:installCfg spec
   in
 
   return {mainprg; cfg; installSandbox; spec;}

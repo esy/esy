@@ -1,10 +1,10 @@
 type t
 
 type script = {
-  command : EsyInstall.Package.Command.t;
+  command : EsyI.Package.Command.t;
 }
 
 val empty : t
 val find : string -> t -> script option
 
-val ofSandbox : EsyInstall.SandboxSpec.t -> t RunAsync.t
+val ofSandbox : EsyI.SandboxSpec.t -> t RunAsync.t

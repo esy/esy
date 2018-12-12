@@ -19,6 +19,6 @@
             astring
             ppx_deriving_yojson.runtime
             Esy
-            EsyInstall
+            EsyI
             )
   )

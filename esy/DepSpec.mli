@@ -1,4 +1,4 @@
-open EsyInstall
+open EsyI
 
 type id
 (** Package id. *)

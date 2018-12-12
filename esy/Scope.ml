@@ -1,9 +1,9 @@
-module Id = EsyInstall.PackageId
-module Package = EsyInstall.Solution.Package
+module Id = EsyI.PackageId
+module Package = EsyI.Solution.Package
 module SandboxPath = EsyBuildPackage.Config.Path
 module SandboxValue = EsyBuildPackage.Config.Value
 module SandboxEnvironment = EsyBuildPackage.Config.Environment
-module Version = EsyInstall.Version
+module Version = EsyI.Version
 
 (** Scope exported by a package. *)
 module PackageScope : sig

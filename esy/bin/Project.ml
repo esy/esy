@@ -1,5 +1,5 @@
 open Esy
-open EsyInstall
+open EsyI
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
   let hash = [
@@ -11,7 +11,7 @@ let makeCachePath prefix (projcfg : ProjectConfig.t) =
     |> Digest.string
     |> Digest.to_hex
   in
-  Path.(EsyInstall.SandboxSpec.cachePath projcfg.spec / (prefix ^ "-" ^ hash))
+  Path.(EsyI.SandboxSpec.cachePath projcfg.spec / (prefix ^ "-" ^ hash))
 
 module type PROJECT = sig
   type t
@@ -132,7 +132,7 @@ let makeProject makeSolved projcfg =
 
 let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let open RunAsync.Syntax in
-  let path = EsyInstall.SandboxSpec.solutionLockPath projcfg.spec in
+  let path = EsyI.SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
   match%bind SolutionLock.ofPath ~sandbox:projcfg.installSandbox path with
@@ -143,7 +143,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
 
 let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
   let open RunAsync.Syntax in
-  let path = EsyInstall.SandboxSpec.installationPath projcfg.spec in
+  let path = EsyI.SandboxSpec.installationPath projcfg.spec in
   let%bind info = FileInfo.ofPath path in
   files := info::!files;
   match%bind Installation.ofPath path with
@@ -225,7 +225,7 @@ module WithWorkflow = struct
           sandbox
           workflow.buildspec
       in
-      let pkg = EsyInstall.Solution.root solution in
+      let pkg = EsyI.Solution.root solution in
       let root =
         match BuildSandbox.Plan.get plan pkg.Solution.Package.id with
         | None -> failwith "missing build for the root package"

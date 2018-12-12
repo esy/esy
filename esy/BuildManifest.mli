@@ -5,12 +5,12 @@
 module BuildType : module type of EsyLib.BuildType
 module SourceType : module type of EsyLib.SourceType
 
-module Source : module type of EsyInstall.Source
-module Version : module type of EsyInstall.Version
-module Command : module type of EsyInstall.Package.Command
-module CommandList : module type of EsyInstall.Package.CommandList
-module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
-module Env : module type of EsyInstall.Package.Env
+module Source : module type of EsyI.Source
+module Version : module type of EsyI.Version
+module Command : module type of EsyI.Package.Command
+module CommandList : module type of EsyI.Package.CommandList
+module ExportedEnv : module type of EsyI.Package.ExportedEnv
+module Env : module type of EsyI.Package.Env
 
 type commands =
   | OpamCommands of OpamTypes.command list
@@ -36,8 +36,8 @@ val empty : name:string option -> version:Version.t option -> unit -> t
 
 val ofInstallationLocation :
   cfg:Config.t
-  -> EsyInstall.Solution.Package.t
-  -> EsyInstall.Installation.location
+  -> EsyI.Solution.Package.t
+  -> EsyI.Installation.location
   -> (t option * Fpath.set) RunAsync.t
 
 include S.PRINTABLE with type t := t

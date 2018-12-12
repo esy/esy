@@ -3,23 +3,23 @@ module BuildType = struct
   include EsyLib.BuildType.AsInPackageJson
 end
 
-module Solution = EsyInstall.Solution
-module SandboxSpec = EsyInstall.SandboxSpec
-module ManifestSpec = EsyInstall.ManifestSpec
-module Package = EsyInstall.Package
-module Version = EsyInstall.Version
-module Dist = EsyInstall.Dist
-module Source = EsyInstall.Source
+module Solution = EsyI.Solution
+module SandboxSpec = EsyI.SandboxSpec
+module ManifestSpec = EsyI.ManifestSpec
+module Package = EsyI.Package
+module Version = EsyI.Version
+module Dist = EsyI.Dist
+module Source = EsyI.Source
 module SourceType = EsyLib.SourceType
 module Command = Package.Command
 module CommandList = Package.CommandList
 module ExportedEnv = Package.ExportedEnv
 module Env = Package.Env
-module DistResolver = EsyInstall.DistResolver
-module Override = EsyInstall.Package.Override
-module Overrides = EsyInstall.Package.Overrides
-module Installation = EsyInstall.Installation
-module OpamResolution = EsyInstall.OpamResolution
+module DistResolver = EsyI.DistResolver
+module Override = EsyI.Package.Override
+module Overrides = EsyI.Package.Overrides
+module Installation = EsyI.Installation
+module OpamResolution = EsyI.OpamResolution
 
 let ensurehasOpamScope name =
   match Astring.String.cut ~sep:"@opam/" name with

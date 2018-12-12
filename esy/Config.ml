@@ -1,10 +1,10 @@
 module Store = EsyLib.Store
-module SandboxSpec = EsyInstall.SandboxSpec
+module SandboxSpec = EsyI.SandboxSpec
 
 type t = {
   esyVersion : string;
-  spec : EsyInstall.SandboxSpec.t;
-  installCfg : EsyInstall.Config.t;
+  spec : EsyI.SandboxSpec.t;
+  installCfg : EsyI.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
 }
 
@@ -33,8 +33,8 @@ let make
       EsyBuildPackage.Config.make
         ~storePath
         ~projectPath:spec.SandboxSpec.path
-        ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
-        ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
+        ~localStorePath:(EsyI.SandboxSpec.storePath spec)
+        ~buildPath:(EsyI.SandboxSpec.buildPath spec)
         ()
     in
 

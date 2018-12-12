@@ -5,7 +5,7 @@
  *)
 
 open Esy
-open EsyInstall
+open EsyI
 
 type 'solved project = {
   projcfg : ProjectConfig.t;

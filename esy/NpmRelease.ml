@@ -1,6 +1,6 @@
 module StringSet = Set.Make(String)
-module Solution = EsyInstall.Solution
-module Package = EsyInstall.Solution.Package
+module Solution = EsyI.Solution
+module Package = EsyI.Solution.Package
 
 let esyInstallReleaseJs =
   let req = "../../../../bin/esyInstallRelease.js" in
@@ -38,10 +38,10 @@ let configure (cfg : Config.t) () =
   let open RunAsync.Syntax in
   let docs = "https://esy.sh/docs/release.html" in
   match cfg.spec.manifest with
-  | EsyInstall.ManifestSpec.ManyOpam
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _) ->
+  | EsyI.ManifestSpec.ManyOpam
+  | EsyI.ManifestSpec.One (EsyI.ManifestSpec.Filename.Opam, _) ->
     errorf "could not create releases without package.json, see %s for details" docs
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
+  | EsyI.ManifestSpec.One (EsyI.ManifestSpec.Filename.Esy, filename) ->
     let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
     let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
     match pkgJson.OfPackageJson.esy.release with
@@ -171,7 +171,7 @@ let make
       ~concurrency
       sandbox
       plan
-      [root.EsyInstall.Solution.Package.id]
+      [root.EsyI.Solution.Package.id]
   in
 
   let%bind () = Fs.createDir outputPath in
@@ -205,7 +205,7 @@ let make
         envspec
         buildspec
         sandbox
-        root.EsyInstall.Solution.Package.id
+        root.EsyI.Solution.Package.id
     ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in

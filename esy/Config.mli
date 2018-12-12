@@ -2,17 +2,17 @@
 
 type t = {
   esyVersion : string;
-  spec : EsyInstall.SandboxSpec.t;
-  installCfg : EsyInstall.Config.t;
+  spec : EsyI.SandboxSpec.t;
+  installCfg : EsyI.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
 }
 
 val defaultPrefixPath : Path.t
 
 val make :
-  installCfg:EsyInstall.Config.t
+  installCfg:EsyI.Config.t
   -> esyVersion:string
   -> prefixPath:Fpath.t option
-  -> spec:EsyInstall.SandboxSpec.t
+  -> spec:EsyI.SandboxSpec.t
   -> unit
   -> t Run.t

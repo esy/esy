@@ -1,5 +1,5 @@
-module Solution = EsyInstall.Solution
-module PackageId = EsyInstall.PackageId
+module Solution = EsyI.Solution
+module PackageId = EsyI.PackageId
 
 module Id = struct
   type t =
@@ -12,7 +12,7 @@ module Id = struct
     | Root -> Fmt.unit "root" fmt ()
 end
 
-include EsyInstall.DepSpec.Make(Id)
+include EsyI.DepSpec.Make(Id)
 
 let root = Id.Root
 let self = Id.Self

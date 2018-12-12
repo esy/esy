@@ -1,18 +1,18 @@
-module Solution = EsyInstall.Solution
-module PackageId = EsyInstall.PackageId
-module Overrides = EsyInstall.Package.Overrides
-module Package = EsyInstall.Solution.Package
-module Installation = EsyInstall.Installation
-module Source = EsyInstall.Source
-module Version = EsyInstall.Version
+module Solution = EsyI.Solution
+module PackageId = EsyI.PackageId
+module Overrides = EsyI.Package.Overrides
+module Package = EsyI.Solution.Package
+module Installation = EsyI.Installation
+module Source = EsyI.Source
+module Version = EsyI.Version
 
 type t = {
   cfg : Config.t;
   arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : BuildManifest.Env.t;
-  solution : EsyInstall.Solution.t;
-  installation : EsyInstall.Installation.t;
+  solution : EsyI.Solution.t;
+  installation : EsyI.Installation.t;
   manifests : BuildManifest.t PackageId.Map.t;
 }
 
@@ -132,7 +132,7 @@ module Task = struct
       EsyBuildPackage.Plan.
       id = BuildId.show (Scope.id t.scope);
       name = t.pkg.name;
-      version = EsyInstall.Version.show t.pkg.version;
+      version = EsyI.Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
       buildType = Scope.buildType t.scope;
       build = t.build;
@@ -657,7 +657,7 @@ let makeEnv
   let env =
     if envspec.includeNpmBin
     then
-      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
+      let npmBin = Path.show (EsyI.SandboxSpec.binPath sandbox.cfg.spec) in
       Scope.SandboxEnvironment.Bindings.prefixValue
         "PATH"
         (Scope.SandboxValue.v npmBin)
@@ -835,7 +835,7 @@ let buildRoot ?quiet ?buildOnly sandbox plan =
     let%bind () = buildTask ?quiet ?buildOnly sandbox task in
     let%bind () =
       let buildPath = Task.buildPath sandbox.cfg task in
-      let buildPathLink = EsyInstall.SandboxSpec.buildPath sandbox.cfg.Config.spec in
+      let buildPathLink = EsyI.SandboxSpec.buildPath sandbox.cfg.Config.spec in
       match System.Platform.host with
       | Windows -> return ()
       | _ -> Fs.symlink ~force:true ~src:buildPath buildPathLink
