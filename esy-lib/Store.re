@@ -13,7 +13,7 @@ let maxStorePaddingLength = {
    * This is restricted by POSIX, Linux enforces this but macOS is more
    * forgiving.
    */
-  let maxShebangLength = Sys.win32 ? 96 : 127;
+  let maxShebangLength = Sys.win32 ? 68 : 127;
   /*
    * We reserve that amount of chars from padding so ocamlrun can be placed in
    * shebang lines
