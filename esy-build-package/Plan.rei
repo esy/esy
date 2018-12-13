@@ -14,6 +14,7 @@ type t = {
   stagePath: Config.Value.t,
   installPath: Config.Value.t,
   env: EsyLib.Environment.Make(Config.Value).t,
+  files: list((string, string)),
   jbuilderHackEnabled: bool,
   depspec: string,
 };

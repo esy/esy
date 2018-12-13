@@ -4,6 +4,13 @@ module SandboxPath: (module type of EsyBuildPackage.Config.Path);
 module SandboxValue: (module type of EsyBuildPackage.Config.Value);
 module SandboxEnvironment: (module type of EsyBuildPackage.Config.Environment);
 
+module Findlib: {
+  type t;
+
+  let name: (~prefix: SandboxPath.t, t) => string;
+  let content: t => string;
+};
+
 type t;
 
 /** An initial scope for the package. */
@@ -70,3 +77,5 @@ let exposeUserEnvWith:
     t
   ) =>
   t;
+
+let toFindlibConfig: t => list(Findlib.t);
