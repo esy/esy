@@ -392,6 +392,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
 
 let filterPathSegments = (p: list(string)) => {
    print_endline ("-- Original path length: " ++ string_of_int(List.length(p)));
+   print_endline ("-- Original path: " ++ String.concat("|", p));
 
    let fl: string => bool = (p) => {
        let items = switch (Sys.readdir(p)) {
