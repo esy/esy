@@ -27,7 +27,7 @@ let run
   let runProcess buildJsonFilename =
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
-      print_endline ("EsyBuildPackage::runProcess - " ^ action);
+      print_endline ("EsyBuildPackage::runProcess2 - " ^ action);
       logArgs ();
       return Cmd.(
         esyBuildPackageCmd

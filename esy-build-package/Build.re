@@ -399,7 +399,7 @@ let filterPathSegments = (p: list(string)) => {
    };
 
    let ret = List.filter(fl, p);
-   print_endline ("-- New path length: " ++ string_of_int(List.length(p)));
+   print_endline ("-- New path length: " ++ string_of_int(List.length(ret)));
    ret;
 };
 
