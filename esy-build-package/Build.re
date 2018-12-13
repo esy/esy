@@ -390,7 +390,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 };
 
-let runCommand = (build, cmd) => {
+let getEnvAndPath = (build) => {
   let env =
     switch (Bos.OS.Env.var("TERM")) {
     | Some(term) => Astring.String.Map.add("TERM", term, build.env)
@@ -402,6 +402,11 @@ let runCommand = (build, cmd) => {
     | None => []
     };
 
+  (env, path);
+};
+
+let runCommand = (build, cmd) => {
+  let (env, path) = getEnvAndPath(build);
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
@@ -416,16 +421,7 @@ let runCommand = (build, cmd) => {
 };
 
 let runCommandInteractive = (build, cmd) => {
-  let env =
-    switch (Bos.OS.Env.var("TERM")) {
-    | Some(term) => Astring.String.Map.add("TERM", term, build.env)
-    | None => build.env
-    };
-  let path =
-    switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
-    | None => []
-    };
+  let (env, path) = getEnvAndPath(build);
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
