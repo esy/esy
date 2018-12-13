@@ -150,8 +150,7 @@ describe(`'esy build-env' command`, () => {
     expect(env.SHELL).toBeTruthy();
     expect(env.PATH).toBeTruthy();
     expect(env.OCAMLPATH).toBeTruthy();
-    expect(env.OCAMLFIND_LDCONF).toBeTruthy();
-    expect(env.OCAMLFIND_DESTDIR).toBeTruthy();
+    expect(env.OCAMLFIND_CONF).toBeTruthy();
     expect(env.MAN_PATH).toBeTruthy();
     expect(env.CAML_LD_LIBRARY_PATH).toBeTruthy();
 
@@ -206,9 +205,7 @@ describe(`'esy build-env' command`, () => {
     expect(env.cur__bin).toBeTruthy();
     expect(env.SHELL).toBeTruthy();
     expect(env.PATH).toBeTruthy();
-    expect(env.OCAMLPATH).toBeTruthy();
-    expect(env.OCAMLFIND_LDCONF).toBeTruthy();
-    expect(env.OCAMLFIND_DESTDIR).toBeTruthy();
+    expect(env.OCAMLFIND_CONF).toBeTruthy();
     expect(env.MAN_PATH).toBeTruthy();
     expect(env.CAML_LD_LIBRARY_PATH).toBeTruthy();
 
