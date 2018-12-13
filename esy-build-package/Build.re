@@ -395,6 +395,13 @@ let filterPathSegments = (p: list(string)) => {
    print_endline ("-- Original path: " ++ String.concat("|", p));
 
    let fl: string => bool = (p) => {
+
+       /* Allow paths like /usr/bin, /bin, etc */
+       if (String.length(p) > 0 && p.[0] == '/') {
+          true 
+       } else {
+
+
        let items = switch (Sys.readdir(p)) {
        | v => v
        | exception Sys_error(s) => 
@@ -402,10 +409,12 @@ let filterPathSegments = (p: list(string)) => {
            [||]
        };
         Array.length(items) > 0 
+       };
    };
 
    let ret = List.filter(fl, p);
    print_endline ("-- New path length: " ++ string_of_int(List.length(ret)));
+   print_endline ("-- New path: " ++ String.concat("|", ret));
    ret;
 };
 
