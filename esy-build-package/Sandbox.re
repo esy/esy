@@ -63,14 +63,7 @@ module Darwin = {
 
 let convertEnvToJsonString = env => {
   let json = {
-    let f = (k, v, items) => {
-        switch (String.equal(String.lowercase_ascii(k), "path")) {
-        | false => ();
-        | true =>
-            print_endline("Sandbox::convertEnvToJsonString - PATH:" ++ v);
-        };
-        [(k, `String(v)), ...items]
-    };
+    let f = (k, v, items) => [(k, `String(v)), ...items];
     let items = Astring.String.Map.fold(f, env, []);
     `Assoc(items);
   };
