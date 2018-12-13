@@ -9,7 +9,7 @@ val make :
   -> t RunAsync.t
 
 val setOCamlVersion : Version.t -> t -> unit
-val setResolutions : Package.Resolutions.t -> t -> unit
+val setResolutions : PackageConfig.Resolutions.t -> t -> unit
 val getUnusedResolutions : t -> string list
 
 
@@ -22,7 +22,7 @@ val resolve :
   -> name:string
   -> ?spec:VersionSpec.t
   -> t
-  -> Package.Resolution.t list RunAsync.t
+  -> PackageConfig.Resolution.t list RunAsync.t
 
 (**
  * Fetch the package metadata given the resolution.
@@ -31,7 +31,7 @@ val resolve :
  * (missing checksums, invalid dependencies format and etc.)
  *)
 val package :
-  resolution:Package.Resolution.t
+  resolution:PackageConfig.Resolution.t
   -> t
   -> (Package.t, string) result RunAsync.t
 

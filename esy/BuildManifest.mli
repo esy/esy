@@ -7,10 +7,10 @@ module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyI.Source
 module Version : module type of EsyI.Version
-module Command : module type of EsyI.Package.Command
-module CommandList : module type of EsyI.Package.CommandList
-module ExportedEnv : module type of EsyI.Package.ExportedEnv
-module Env : module type of EsyI.Package.Env
+module Command : module type of EsyI.PackageConfig.Command
+module CommandList : module type of EsyI.PackageConfig.CommandList
+module ExportedEnv : module type of EsyI.PackageConfig.ExportedEnv
+module Env : module type of EsyI.PackageConfig.Env
 
 type commands =
   | OpamCommands of OpamTypes.command list

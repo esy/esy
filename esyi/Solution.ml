@@ -1,4 +1,134 @@
-module P = Package
+module Override = struct
+  type t =
+    | OfJson of {json : Json.t;}
+    | OfDist of {dist : Dist.t; json : Json.t;}
+    | OfOpamOverride of {
+        digest : Digestv.part;
+        path : Path.t;
+        json : Json.t;
+      }
+
+  module BuildType = struct
+    include EsyLib.BuildType
+    include EsyLib.BuildType.AsInPackageJson
+  end
+
+  type build = {
+    buildType : BuildType.t option [@default None] [@key "buildsInSource"];
+    build : PackageConfig.CommandList.t option [@default None];
+    install : PackageConfig.CommandList.t option [@default None];
+    exportedEnv: PackageConfig.ExportedEnv.t option [@default None];
+    exportedEnvOverride: PackageConfig.ExportedEnvOverride.t option [@default None];
+    buildEnv: PackageConfig.Env.t option [@default None];
+    buildEnvOverride: PackageConfig.EnvOverride.t option [@default None];
+  } [@@deriving of_yojson { strict = false }]
+
+  type install = {
+    dependencies : PackageConfig.NpmFormulaOverride.t option [@default None];
+    devDependencies : PackageConfig.NpmFormulaOverride.t option [@default None];
+    resolutions : PackageConfig.Resolution.resolution StringMap.t option [@default None];
+  } [@@deriving of_yojson { strict = false }]
+
+  let digest' = function
+    | OfJson {json;} -> Digestv.json json
+    | OfDist {dist; json = _;} -> Digestv.string (Dist.show dist)
+    | OfOpamOverride info -> info.digest
+
+  let digest v = Digestv.(add (digest' v) empty)
+
+  let pp fmt = function
+    | OfJson _ -> Fmt.unit "<inline override>" fmt ()
+    | OfDist {dist; json = _;} -> Fmt.pf fmt "override:%a" Dist.pp dist
+    | OfOpamOverride info -> Fmt.pf fmt "opam-override:%a" Path.pp info.path
+
+  let json override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson info -> return info.json
+    | OfDist info -> return info.json
+    | OfOpamOverride info -> return info.json
+
+  let build override =
+    let open RunAsync.Syntax in
+    let%bind json = json override in
+    let%bind override = RunAsync.ofStringError (build_of_yojson json) in
+    return (Some override)
+
+  let install override =
+    let open RunAsync.Syntax in
+    let%bind json = json override in
+    let%bind override = RunAsync.ofStringError (install_of_yojson json) in
+    return (Some override)
+
+  let ofJson json = OfJson {json;}
+  let ofDist json dist = OfDist {json; dist;}
+
+  let files cfg sandbox override =
+    let open RunAsync.Syntax in
+
+    match override with
+    | OfJson _ -> return []
+    | OfDist info ->
+      let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox info.dist in
+      File.ofDir Path.(path / "files")
+    | OfOpamOverride info ->
+      File.ofDir Path.(info.path / "files")
+
+end
+
+module Overrides = struct
+  type t = Override.t list
+
+  let empty = []
+
+  let isEmpty = function
+    | [] -> true
+    | _ -> false
+
+  let digest overrides =
+    let f digest v = Digestv.(add (Override.digest' v) digest) in
+    List.fold_left ~init:Digestv.empty ~f overrides
+
+  let add override overrides =
+    override::overrides
+
+  let addMany newOverrides overrides =
+    newOverrides @ overrides
+
+  let merge newOverrides overrides =
+    newOverrides @ overrides
+
+  let fold' ~f ~init overrides =
+    RunAsync.List.foldLeft ~f ~init (List.rev overrides)
+
+  let foldWithBuildOverrides ~f ~init overrides =
+    let open RunAsync.Syntax in
+    let f v override =
+      Logs_lwt.debug (fun m -> m "build override: %a" Override.pp override);%lwt
+      match%bind Override.build override with
+      | Some override -> return (f v override)
+      | None -> return v
+    in
+    fold' ~f ~init overrides
+
+  let foldWithInstallOverrides ~f ~init overrides =
+    let open RunAsync.Syntax in
+    let f v override =
+      Logs_lwt.debug (fun m -> m "install override: %a" Override.pp override);%lwt
+      match%bind Override.install override with
+      | Some override -> return (f v override)
+      | None -> return v
+    in
+    fold' ~f ~init overrides
+
+  let files cfg sandbox overrides =
+    let open RunAsync.Syntax in
+    let f files override =
+      let%bind filesOfOverride = Override.files cfg sandbox override in
+      return (filesOfOverride @ files)
+    in
+    fold' ~f ~init:[] overrides
+end
 
 module Package = struct
 
@@ -6,8 +136,8 @@ module Package = struct
     id : PackageId.t;
     name: string;
     version: Version.t;
-    source: Package.source;
-    overrides: Package.Overrides.t;
+    source: PackageSource.t;
+    overrides: Overrides.t;
     dependencies : PackageId.Set.t;
     devDependencies : PackageId.Set.t;
   }

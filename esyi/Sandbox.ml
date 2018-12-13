@@ -3,7 +3,7 @@ type t = {
   spec : SandboxSpec.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
-  resolutions : Package.Resolutions.t;
+  resolutions : PackageConfig.Resolutions.t;
   ocamlReq : Req.t option;
   resolver : Resolver.t;
 }
@@ -75,20 +75,20 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         originalName = None;
-        source = Package.Link {
+        source = PackageSource.Link {
           path = DistPath.v ".";
           manifest = None;
         };
-        overrides = Package.Overrides.empty;
+        overrides = Solution.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
-        peerDependencies = Package.NpmFormula.empty;
+        peerDependencies = PackageConfig.NpmFormula.empty;
         optDependencies = StringSet.empty;
-        resolutions = Package.Resolutions.empty;
+        resolutions = PackageConfig.Resolutions.empty;
         kind = Esy;
       };
       resolver;
-      resolutions = Package.Resolutions.empty;
+      resolutions = PackageConfig.Resolutions.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       ocamlReq = Some ocamlReqAny;
     }
@@ -117,16 +117,16 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       originalName = None;
-      source = Package.Link {
+      source = PackageSource.Link {
         path = DistPath.v ".";
         manifest = None;
       };
-      overrides = Package.Overrides.empty;
+      overrides = Solution.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
-      peerDependencies = Package.NpmFormula.empty;
+      peerDependencies = PackageConfig.NpmFormula.empty;
       optDependencies = StringSet.empty;
-      resolutions = Package.Resolutions.empty;
+      resolutions = PackageConfig.Resolutions.empty;
       kind = Package.Esy;
     } in
 
@@ -138,7 +138,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       cfg;
       spec;
       root;
-      resolutions = Package.Resolutions.empty;
+      resolutions = PackageConfig.Resolutions.empty;
       resolver;
       dependencies;
       ocamlReq = Some ocamlReqAny;
@@ -150,7 +150,7 @@ let ofSource ~cfg ~spec source =
   let%bind resolution =
     let version = Version.Source source in
     return {
-      Package.Resolution.
+      PackageConfig.Resolution.
       name = "root";
       resolution = Version version;
     }
@@ -178,8 +178,8 @@ let ofSource ~cfg ~spec source =
         let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
         deps, None
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
-        let deps = Package.NpmFormula.override deps devDeps in
-        let ocamlReq = Package.NpmFormula.find ~name:"ocaml" deps in
+        let deps = PackageConfig.NpmFormula.override deps devDeps in
+        let ocamlReq = PackageConfig.NpmFormula.find ~name:"ocaml" deps in
         Package.Dependencies.NpmFormula deps, ocamlReq
       | Package.Dependencies.NpmFormula _, _
       | Package.Dependencies.OpamFormula _, _  ->

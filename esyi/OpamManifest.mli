@@ -7,7 +7,7 @@ type t = {
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Package.Override.t option;
+  override : Solution.Override.t option;
   opamRepositoryPath : Path.t option;
 }
 

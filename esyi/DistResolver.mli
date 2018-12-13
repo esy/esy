@@ -6,7 +6,7 @@
 
 type resolution = {
 
-  overrides : Package.Overrides.t;
+  overrides : Solution.Overrides.t;
   (** A set of overrides. *)
 
   dist : Dist.t;
@@ -27,7 +27,7 @@ and manifest = {
 }
 
 val resolve :
-  ?overrides:Package.Overrides.t
+  ?overrides:Solution.Overrides.t
   -> cfg:Config.t
   -> sandbox:SandboxSpec.t
   -> Dist.t

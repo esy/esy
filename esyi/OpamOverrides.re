@@ -1,4 +1,7 @@
-type t = OpamPackage.Name.Map.t(record)
+type t = {
+  commit: string,
+  records: OpamPackage.Name.Map.t(record),
+}
 and record = {
   default: option(Path.t),
   version: OpamPackage.Version.Map.t(Path.t),
@@ -20,24 +23,24 @@ let parseOverridePattern = pattern =>
 
 let init = (~cfg, ()): RunAsync.t(t) => {
   open RunAsync.Syntax;
-  let%bind repoPath =
+  let%bind (repoPath, commit) =
     switch (cfg.Config.esyOpamOverride) {
-    | Config.Local(path) => return(path)
+    | Config.Local(path) => return((path, "abcdef"))
     | Config.Remote(remote, local) =>
       let update = () => {
         let%lwt () =
           Logs_lwt.app(m => m("checking %s for updates...", remote));
-        let%bind () =
+        let%bind commit =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,
             ~dst=local,
             remote,
           );
-        return(local);
+        return((local, commit));
       };
       if (cfg.Config.skipRepositoryUpdate) {
         if%bind (Fs.exists(local)) {
-          return(local);
+          return((local, "abcdef"));
         } else {
           update();
         };
@@ -75,28 +78,28 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
   };
 
-  return(overrides);
+  return({records: overrides, commit});
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
   RunAsync.Syntax.(
-    switch (OpamPackage.Name.Map.find_opt(name, overrides)) {
+    switch (OpamPackage.Name.Map.find_opt(name, overrides.records)) {
     | Some(override) =>
       let byVersion =
         OpamPackage.Version.Map.find_opt(version, override.version);
       switch (byVersion, override.default) {
       | (Some(path), _)
       | (None, Some(path)) =>
-        let name = OpamPackage.Name.to_string(name);
-        let version = OpamPackage.Version.to_string(version);
         let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
-        let override =
-          Package.Override.ofOpamOverride(
-            ~name,
-            ~version,
-            json,
-            Path.(path / "files"),
+        let digest =
+          Digestv.string(
+            OpamPackage.Name.to_string(name)
+            ++ "$$"
+            ++ OpamPackage.Version.to_string(version)
+            ++ "$$"
+            ++ overrides.commit,
           );
+        let override = Solution.Override.OfOpamOverride({digest, json, path});
         return(Some(override));
       | (None, None) => return(None)
       };

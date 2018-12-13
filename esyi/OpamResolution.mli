@@ -3,8 +3,8 @@
 type t
 
 val make :
-  OpamPackage.Name.t 
-  -> OpamPackage.Version.t 
+  OpamPackage.Name.t
+  -> OpamPackage.Version.t
   -> Path.t
   -> t
 
@@ -14,16 +14,10 @@ val path : t -> Path.t
 
 val files : t -> File.t list RunAsync.t
 val opam : t -> OpamFile.OPAM.t RunAsync.t
-val digest : t -> Digest.t RunAsync.t
+val digest : t -> Digestv.t RunAsync.t
 
-module Lock : sig
-  type t
-
-  include S.JSONABLE with type t := t
-end
-
-val toLock : sandbox:SandboxSpec.t -> t -> Lock.t RunAsync.t
-val ofLock : sandbox:SandboxSpec.t -> Lock.t -> t RunAsync.t
+val toLock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
+val ofLock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
 
 include S.JSONABLE with type t := t
 

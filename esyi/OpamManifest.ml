@@ -41,7 +41,7 @@ type t = {
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Package.Override.t option;
+  override : Solution.Override.t option;
   opamRepositoryPath : Path.t option;
 }
 
@@ -266,17 +266,17 @@ let toPackage ?source ~name ~version manifest =
     let source =
       match source with
       | None ->
-        Package.Install {source = sourceFromOpam; opam;}
+        PackageSource.Install {source = sourceFromOpam; opam;}
       | Some (Source.Link {path; manifest;}) ->
-        Package.Link {path; manifest;}
+        PackageSource.Link {path; manifest;}
       | Some (Source.Dist source) ->
-        Package.Install {source = source, []; opam;}
+        PackageSource.Install {source = source, []; opam;}
     in
 
     let overrides =
       match manifest.override with
-      | None -> Package.Overrides.empty
-      | Some override -> Package.Overrides.(add override empty);
+      | None -> Solution.Overrides.empty
+      | Some override -> Solution.Overrides.(add override empty)
     in
 
     return (Ok {
@@ -291,6 +291,6 @@ let toPackage ?source ~name ~version manifest =
       dependencies;
       devDependencies;
       optDependencies;
-      peerDependencies = Package.NpmFormula.empty;
-      resolutions = Package.Resolutions.empty;
+      peerDependencies = PackageConfig.NpmFormula.empty;
+      resolutions = PackageConfig.Resolutions.empty;
     })

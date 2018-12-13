@@ -8,7 +8,7 @@ let make name version digest =
   let digest =
     match digest with
     | Some digest ->
-      let digest = Digest.to_hex digest in
+      let digest = Digestv.toHex digest in
       let digest = String.sub digest 0 8 in
       Some digest
     | None -> None
@@ -45,6 +45,8 @@ let show {name; version; digest;} =
   | None -> name ^ "@" ^ Version.show version
 
 let pp fmt id = Fmt.pf fmt "%s" (show id)
+
+let ppNoHash fmt id = Fmt.pf fmt "%s" (id.name ^ "@" ^ Version.show id.version)
 
 let to_yojson id =
   `String (show id)

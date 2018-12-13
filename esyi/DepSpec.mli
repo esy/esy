@@ -38,20 +38,3 @@ module type ID = sig
 end
 
 module Make (Id : ID) : DEPSPEC with type id = Id.t
-
-(** Syntax resolves into a graph structure *)
-module Spec : sig
-
-  type t =
-    | Root of {
-        packages : package list;
-        constraints : Package.NpmFormula.t;
-      }
-  and package =
-    | Package of {
-        source : Source.t;
-        constraints : Package.NpmFormula.t;
-        packages : package list;
-      }
-
-end

@@ -13,7 +13,7 @@ type t = private {
   cfg: Config.t;
   resolver: Resolver.t;
   universe: Universe.t;
-  resolutions : Package.Resolutions.t;
+  resolutions : PackageConfig.Resolutions.t;
 }
 
 (**
@@ -25,7 +25,7 @@ type t = private {
 val make :
   cfg:Config.t
   -> resolver:Resolver.t
-  -> resolutions:Package.Resolutions.t
+  -> resolutions:PackageConfig.Resolutions.t
   -> unit
   -> t RunAsync.t
 

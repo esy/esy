@@ -1,6 +1,5 @@
 module Solution = EsyI.Solution
 module PackageId = EsyI.PackageId
-module Overrides = EsyI.Package.Overrides
 module Package = EsyI.Solution.Package
 module Installation = EsyI.Installation
 module Source = EsyI.Source
@@ -250,7 +249,7 @@ let makeScope
 
   let updateSeen seen id =
     match List.find_opt ~f:(fun p -> PackageId.compare p id = 0) seen with
-    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.pp id
+    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.ppNoHash id
     | None -> return (id::seen)
   in
 
@@ -274,7 +273,7 @@ let makeScope
           Run.contextf (
             let%bind scope, idrepr, directDependencies = visit' seen id build in
             return (Some (scope, build, idrepr, directDependencies))
-          ) "processing %a" PackageId.pp id
+          ) "processing %a" PackageId.ppNoHash id
         | None -> return None
       in
       Hashtbl.replace cache id res;
@@ -977,7 +976,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
           | _, _ ->
             RunAsync.contextf
               (runIfNeeded changes task)
-              "building %a" PackageId.pp id
+              "building %a" PackageId.ppNoHash id
           end
         | None -> RunAsync.return Changes.No
       in

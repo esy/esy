@@ -46,14 +46,7 @@ let digest res =
   let checksums = opamChecksum::checksums in
   let parts = List.map ~f:Checksum.show checksums in
   let parts = List.sort ~cmp:String.compare parts in
-  return (Digest.string (String.concat "--" parts))
-
-module Lock = struct
-  type nonrec t = t
-
-  let of_yojson = of_yojson
-  let to_yojson = to_yojson
-end
+  return (Digestv.(empty |> add (string (String.concat "--" parts))))
 
 let toLock ~sandbox opam =
   let open RunAsync.Syntax in

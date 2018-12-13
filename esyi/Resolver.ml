@@ -1,5 +1,5 @@
-module Resolutions = Package.Resolutions
-module Resolution = Package.Resolution
+module Resolutions = PackageConfig.Resolutions
+module Resolution = PackageConfig.Resolution
 
 module PackageCache = Memoize.Make(struct
   type key = (string * Resolution.resolution)
@@ -61,7 +61,7 @@ type t = {
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
   mutable ocamlVersion : Version.t option;
-  mutable resolutions : Package.Resolutions.t;
+  mutable resolutions : Resolutions.t;
   resolutionCache : ResolutionCache.t;
   resolutionUsage : (Resolution.t, bool) Hashtbl.t;
 
@@ -77,16 +77,16 @@ let emptyLink ~name ~path ~manifest () =
     version = Version.Source (Source.Link {path; manifest;});
     originalVersion = None;
     originalName = None;
-    source = Package.Link {
+    source = PackageSource.Link {
       path;
       manifest = None;
     };
-    overrides = Package.Overrides.empty;
+    overrides = Solution.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = Package.NpmFormula.empty;
+    peerDependencies = PackageConfig.NpmFormula.empty;
     optDependencies = StringSet.empty;
-    resolutions = Package.Resolutions.empty;
+    resolutions = Resolutions.empty;
     kind = Esy;
   }
 
@@ -97,16 +97,16 @@ let emptyInstall ~name ~source () =
     version = Version.Source (Dist source);
     originalVersion = None;
     originalName = None;
-    source = Package.Install {
+    source = PackageSource.Install {
       source = source, [];
       opam = None;
     };
-    overrides = Package.Overrides.empty;
+    overrides = Solution.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = Package.NpmFormula.empty;
+    peerDependencies = PackageConfig.NpmFormula.empty;
     optDependencies = StringSet.empty;
-    resolutions = Package.Resolutions.empty;
+    resolutions = Resolutions.empty;
     kind = Esy;
   }
 
@@ -119,7 +119,7 @@ let make ~cfg ~sandbox () =
     opamRegistry = OpamRegistry.make ~cfg ();
     npmRegistry = NpmRegistry.make ~url:cfg.Config.npmRegistry ();
     ocamlVersion = None;
-    resolutions = Package.Resolutions.empty;
+    resolutions = Resolutions.empty;
     resolutionCache = ResolutionCache.make ();
     resolutionUsage = Hashtbl.create 10;
     npmDistTags = Hashtbl.create 500;
@@ -132,7 +132,6 @@ let setOCamlVersion ocamlVersion resolver =
 
 let setResolutions resolutions resolver =
   resolver.resolutions <- resolutions
-  
 
 let getUnusedResolutions resolver =
   let nameIfUnused usage (resolution:Resolution.t) =
@@ -141,7 +140,6 @@ let getUnusedResolutions resolver =
     | _         -> Some resolution.name
   in
   List.filter_map ~f:(nameIfUnused resolver.resolutionUsage) (Resolutions.entries resolver.resolutions)
-
 
 (* This function increments the resolution usage count of that resolution *)
 let markResolutionAsUsed resolver resolution =
@@ -270,7 +268,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
       | Some manifest ->
         readPackage ~name ~source:resolvedSource manifest
       | None ->
-        if not (Package.Overrides.isEmpty overrides)
+        if not (Solution.Overrides.isEmpty overrides)
         then
           match source with
           | Source.Link {path; manifest;} ->
@@ -296,9 +294,9 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
   RunAsync.contextf pkg
     "reading package metadata from %a" Source.ppPretty source
 
-let applyOverride pkg (override : Package.Override.install) =
+let applyOverride pkg (override : Solution.Override.install) =
   let {
-    Package.Override.
+    Solution.Override.
     dependencies;
     devDependencies;
     resolutions;
@@ -426,7 +424,7 @@ let package ~(resolution : Resolution.t) resolver =
 
     | Version.Source source ->
       packageOfSource
-        ~overrides:Package.Overrides.empty
+        ~overrides:Solution.Overrides.empty
         ~name:resolution.name
         source
         resolver
@@ -437,8 +435,8 @@ let package ~(resolution : Resolution.t) resolver =
       match resolution.resolution with
       | Version version -> ofVersion version
       | SourceOverride {source; override} ->
-        let override = Package.Override.ofJson override in
-        let overrides = Package.Overrides.(add override empty) in
+        let override = Solution.Override.ofJson override in
+        let overrides = Solution.Overrides.(add override empty) in
         packageOfSource
           ~name:resolution.name
           ~overrides
@@ -448,9 +446,7 @@ let package ~(resolution : Resolution.t) resolver =
     match pkg with
     | Ok pkg ->
       let%bind pkg =
-        Package.Overrides.foldWithInstallOverrides
-          ~cfg:resolver.cfg
-          ~sandbox:resolver.sandbox
+        Solution.Overrides.foldWithInstallOverrides
           ~f:applyOverride
           ~init:pkg
           pkg.overrides

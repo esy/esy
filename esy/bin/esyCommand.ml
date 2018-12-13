@@ -1411,7 +1411,7 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
   match req.spec with
   | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
   | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
-    let f (res : Package.Resolution.t) = match res.resolution with
+    let f (res : PackageConfig.Resolution.t) = match res.resolution with
     | Version v -> `String (Version.showSimple v)
     | _ -> failwith "unreachable"
     in
@@ -1425,7 +1425,7 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
     | resolution::_ ->
       let%bind pkg = RunAsync.contextf (
           Resolver.package ~resolution resolver
-        ) "resolving metadata %a" Package.Resolution.pp resolution
+        ) "resolving metadata %a" PackageConfig.Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
       Package.to_yojson pkg

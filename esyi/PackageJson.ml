@@ -1,6 +1,8 @@
+module NpmFormula = PackageConfig.NpmFormula
+
 module EsyPackageJson = struct
   type t = {
-    _dependenciesForNewEsyInstaller : Package.NpmFormula.t option [@default None];
+    _dependenciesForNewEsyInstaller : NpmFormula.t option [@default None];
   } [@@deriving of_yojson { strict = false }]
 end
 
@@ -8,8 +10,8 @@ module Manifest = struct
   type t = {
     name : string option [@default None];
     version : SemverVersion.Version.t option [@default None];
-    dependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
-    peerDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    dependencies : NpmFormula.t [@default NpmFormula.empty];
+    peerDependencies : NpmFormula.t [@default NpmFormula.empty];
     optDependencies : Json.t StringMap.t [@default StringMap.empty];
     esy : EsyPackageJson.t option [@default None];
     dist : dist option [@default None]
@@ -24,13 +26,13 @@ end
 
 module ResolutionsOfManifest = struct
   type t = {
-    resolutions : (Package.Resolutions.t [@default Package.Resolutions.empty]);
+    resolutions : (PackageConfig.Resolutions.t [@default PackageConfig.Resolutions.empty]);
   } [@@deriving of_yojson { strict = false }]
 end
 
 module DevDependenciesOfManifest = struct
   type t = {
-    devDependencies : Package.NpmFormula.t [@default Package.NpmFormula.empty];
+    devDependencies : NpmFormula.t [@default NpmFormula.empty];
   } [@@deriving of_yojson { strict = false }]
 end
 
@@ -93,7 +95,7 @@ let packageOfJson
 
   let%bind devDependencies =
     match parseDevDependencies with
-    | false -> return Package.NpmFormula.empty
+    | false -> return NpmFormula.empty
     | true ->
       let%bind {DevDependenciesOfManifest. devDependencies} =
         Json.parseJsonWith DevDependenciesOfManifest.of_yojson json
@@ -104,7 +106,7 @@ let packageOfJson
 
   let%bind resolutions =
     match parseResolutions with
-    | false -> return Package.Resolutions.empty
+    | false -> return PackageConfig.Resolutions.empty
     | true ->
       let%bind {ResolutionsOfManifest. resolutions} =
         Json.parseJsonWith ResolutionsOfManifest.of_yojson json
@@ -115,9 +117,9 @@ let packageOfJson
   let source =
     match source with
     | Source.Link {path; manifest;} ->
-      Package.Link {path; manifest;}
+      PackageSource.Link {path; manifest;}
     | Source.Dist dist ->
-      Package.Install {source = dist, []; opam = None;}
+      PackageSource.Install {source = dist, []; opam = None;}
   in
 
   return {
@@ -126,7 +128,7 @@ let packageOfJson
     version;
     originalVersion;
     originalName = pkgJson.name;
-    overrides = Package.Overrides.empty;
+    overrides = Solution.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula dependencies;
     devDependencies = Package.Dependencies.NpmFormula devDependencies;
     peerDependencies = pkgJson.peerDependencies;

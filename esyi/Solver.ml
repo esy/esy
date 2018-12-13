@@ -1,6 +1,6 @@
 module Dependencies = Package.Dependencies
-module Resolutions = Package.Resolutions
-module Resolution = Package.Resolution
+module Resolutions = PackageConfig.Resolutions
+module Resolution = PackageConfig.Resolution
 
 module Strategy = struct
   let trendy = "-count[staleness,solution]"
@@ -230,7 +230,7 @@ let rec findResolutionForRequest resolver req = function
     then Some res
     else findResolutionForRequest resolver req rest
 
-let solutionPkgOfPkg
+let lockPackage
   resolver
   (id : PackageId.t)
   (pkg : Package.t)
@@ -238,6 +238,22 @@ let solutionPkgOfPkg
   (allDependenciesMap : PackageId.t Version.Map.t StringMap.t)
   =
   let open RunAsync.Syntax in
+
+  let {
+    Package.
+    name;
+    version;
+    originalVersion = _;
+    originalName = _;
+    source;
+    overrides;
+    dependencies;
+    devDependencies;
+    peerDependencies;
+    optDependencies;
+    resolutions = _;
+    kind = _;
+  } = pkg in
 
   let idsOfDependencies dependencies =
     dependencies
@@ -259,7 +275,7 @@ let solutionPkgOfPkg
         | None -> None
         end
     in
-    pkg.optDependencies
+    optDependencies
     |> StringSet.elements
     |> List.map ~f
     |> List.filterNone
@@ -281,30 +297,30 @@ let solutionPkgOfPkg
       | Some (_version, id) -> Some id
       | None -> None
     in
-    pkg.peerDependencies
+    peerDependencies
     |> List.map ~f
     |> List.filterNone
     |> PackageId.Set.of_list
   in
 
   let dependencies =
-    let dependencies = idsOfDependencies pkg.dependencies in
+    let dependencies = idsOfDependencies dependencies in
     dependencies
     |> PackageId.Set.union optDependencies
     |> PackageId.Set.union peerDependencies
   in
   let devDependencies =
-    let devDependencies = idsOfDependencies pkg.devDependencies in
+    let devDependencies = idsOfDependencies devDependencies in
     PackageId.Set.diff devDependencies dependencies
   in
-
+  (** TODO(andreypop): handle opam override translation *)
   return {
     Solution.Package.
     id;
-    name = pkg.name;
-    version = pkg.version;
-    source = pkg.source;
-    overrides = pkg.overrides;
+    name = name;
+    version = version;
+    source = source;
+    overrides = overrides;
     dependencies;
     devDependencies;
   }
@@ -436,14 +452,14 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     version = Version.parseExn "0.0.0";
     originalVersion = None;
     originalName = root.originalName;
-    source = Package.Link {
+    source = PackageSource.Link {
       path = DistPath.v ".";
       manifest = None;
     };
-    overrides = Package.Overrides.empty;
+    overrides = Solution.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
-    peerDependencies = Package.NpmFormula.empty;
+    peerDependencies = PackageConfig.NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -721,7 +737,7 @@ let solve (sandbox : Sandbox.t) =
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = Package.NpmFormula.override reqs [ocamlReq] in
+          let reqs = PackageConfig.NpmFormula.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =
@@ -781,7 +797,7 @@ let solve (sandbox : Sandbox.t) =
     let%bind packageById, idByPackage =
       let rec aux (packageById, idByPackage as acc) = function
         | pkg::rest ->
-          let%bind id = Package.computeId ~sandbox:sandbox.Sandbox.spec ~cfg:solver.cfg pkg in
+          let%bind id = Package.computeId pkg in
           begin match PackageId.Map.find_opt id packageById with
           | Some _ -> aux acc rest
           | None ->
@@ -854,7 +870,7 @@ let solve (sandbox : Sandbox.t) =
         PackageId.Map.find id dependenciesById
       in
       let%bind root =
-        solutionPkgOfPkg
+        lockPackage
           sandbox.resolver
           id
           sandbox.root
@@ -871,7 +887,7 @@ let solve (sandbox : Sandbox.t) =
       let f solution (id, dependencies) =
         let pkg = PackageId.Map.find id packageById in
         let%bind pkg =
-          solutionPkgOfPkg
+          lockPackage
             sandbox.resolver
             id
             pkg

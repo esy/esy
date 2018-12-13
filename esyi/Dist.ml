@@ -1,5 +1,10 @@
 open Sexplib0.Sexp_conv
 
+type local = {
+  path : DistPath.t;
+  manifest : ManifestSpec.t option;
+} [@@deriving ord, sexp_of]
+
 type t =
   | Archive of {
       url : string;
@@ -16,10 +21,7 @@ type t =
       commit : string;
       manifest : ManifestSpec.Filename.t option;
     }
-  | LocalPath of {
-      path : DistPath.t;
-      manifest : ManifestSpec.t option;
-    }
+  | LocalPath of local
   | NoSource
   [@@deriving ord, sexp_of]
 
@@ -135,7 +137,7 @@ module Parse = struct
     return (Archive { url = proto ^ "://" ^ host; checksum; })
   ) <?> "https?://<host>/<path>#<checksum>"
 
-  let pathLike ~requirePathSep make =
+  let local ~requirePathSep =
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
@@ -146,7 +148,7 @@ module Parse = struct
         | Error _ ->
           path, None
       in
-      make (DistPath.ofPath path) manifest
+      {path = DistPath.ofPath path; manifest}
     in
 
     let path =
@@ -160,11 +162,9 @@ module Parse = struct
     then return (make path)
     else fail "not a path"
 
-  let path =
-    let make path manifest =
-      LocalPath { path; manifest; }
-    in
-    pathLike make
+  let path ~requirePathSep =
+    let%map local = local ~requirePathSep in
+    LocalPath local
 
   let proto =
     (string "git:" >>= const `Git)
@@ -480,6 +480,18 @@ let relaxed_of_yojson json =
     let parse = Parse.(parse parserRelaxed) in
     parse string
   | _ -> Error "expected string"
+
+let local_of_yojson json =
+  match json with
+  | `String string ->
+    let parse = Parse.(parse (local ~requirePathSep:false)) in
+    parse string
+  | _ -> Error "expected string"
+
+let local_to_yojson local =
+  match local.manifest with
+  | None -> `String (DistPath.show local.path)
+  | Some m -> `String (DistPath.(show (local.path / ManifestSpec.show m)))
 
 module Map = Map.Make(struct
   type nonrec t = t

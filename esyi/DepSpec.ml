@@ -62,19 +62,3 @@ module Make (Id : ID) : DEPSPEC with type id = Id.t = struct
     | DevDependencies id -> Fmt.pf fmt "devDependencies(%a)" Id.pp id
     | Union (a, b) -> Fmt.pf fmt "%a+%a" pp a pp b
 end
-
-module Spec = struct
-
-  type t =
-    | Root of {
-        packages : package list;
-        constraints : Package.NpmFormula.t;
-      }
-  and package =
-    | Package of {
-        source : Source.t;
-        constraints : Package.NpmFormula.t;
-        packages : package list;
-      }
-
-end

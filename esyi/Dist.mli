@@ -14,11 +14,16 @@ type t =
       commit : string;
       manifest : ManifestSpec.Filename.t option;
     }
-  | LocalPath of {
-      path : DistPath.t;
-      manifest : ManifestSpec.t option;
-    }
+  | LocalPath of local
   | NoSource
+
+and local = {
+  path : DistPath.t;
+  manifest : ManifestSpec.t option;
+}
+
+val local_of_yojson : local Json.decoder
+val local_to_yojson : local Json.encoder
 
 include S.PRINTABLE with type t := t
 include S.JSONABLE with type t := t

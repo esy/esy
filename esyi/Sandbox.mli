@@ -18,7 +18,7 @@ type t = {
   dependencies : Package.Dependencies.t;
 
   (** A set of resolutions. *)
-  resolutions : Package.Resolutions.t;
+  resolutions : PackageConfig.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
   ocamlReq : Req.t option;

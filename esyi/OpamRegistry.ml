@@ -44,7 +44,7 @@ let make ~cfg () =
       | Config.Remote (remote, local) ->
         let update () =
           Logs_lwt.app (fun m -> m "checking %s for updates..." remote);%lwt
-          let%bind () = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
+          let%bind _ : string = Git.ShallowClone.update ~branch:"master" ~dst:local remote in
           return local
         in
 

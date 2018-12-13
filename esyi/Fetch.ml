@@ -1,4 +1,3 @@
-module Overrides = Package.Overrides
 module String = Astring.String
 
 module NpmPackageJson : sig
@@ -377,9 +376,9 @@ end = struct
     in
 
     let%bind filesOfOverride =
-      Package.Overrides.files
-        ~cfg:sandbox.Sandbox.cfg
-        ~sandbox:sandbox.Sandbox.spec
+      Solution.Overrides.files
+        sandbox.Sandbox.cfg
+        sandbox.Sandbox.spec
         pkg.Solution.Package.overrides
     in
 

@@ -7,17 +7,18 @@ module Solution = EsyI.Solution
 module SandboxSpec = EsyI.SandboxSpec
 module ManifestSpec = EsyI.ManifestSpec
 module Package = EsyI.Package
+module PackageConfig = EsyI.PackageConfig
 module Version = EsyI.Version
 module Dist = EsyI.Dist
 module Source = EsyI.Source
 module SourceType = EsyLib.SourceType
-module Command = Package.Command
-module CommandList = Package.CommandList
-module ExportedEnv = Package.ExportedEnv
-module Env = Package.Env
+module Command = PackageConfig.Command
+module CommandList = PackageConfig.CommandList
+module ExportedEnv = PackageConfig.ExportedEnv
+module Env = PackageConfig.Env
 module DistResolver = EsyI.DistResolver
-module Override = EsyI.Package.Override
-module Overrides = EsyI.Package.Overrides
+module Override = EsyI.Solution.Override
+module Overrides = EsyI.Solution.Overrides
 module Installation = EsyI.Installation
 module OpamResolution = EsyI.OpamResolution
 
@@ -399,8 +400,6 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
         let manifest = empty ~name:None ~version:None () in
         let%bind manifest =
           Overrides.foldWithBuildOverrides
-            ~cfg:cfg.Config.installCfg
-            ~sandbox:cfg.spec
             ~f:applyOverride
             ~init:manifest
             overrides
@@ -409,8 +408,6 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     | Some manifest ->
       let%bind manifest =
         Overrides.foldWithBuildOverrides
-          ~cfg:cfg.Config.installCfg
-          ~sandbox:cfg.spec
           ~f:applyOverride
           ~init:manifest
           overrides
@@ -425,8 +422,6 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     let manifest = OpamBuild.buildOfOpam ~name ~version opamfile in
     let%bind manifest =
       Overrides.foldWithBuildOverrides
-        ~cfg:cfg.Config.installCfg
-        ~sandbox:cfg.spec
         ~f:applyOverride
         ~init:manifest
         pkg.overrides
@@ -441,8 +436,6 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
       | Some manifest ->
         let%bind manifest =
           Overrides.foldWithBuildOverrides
-            ~cfg:cfg.Config.installCfg
-            ~sandbox:cfg.spec
             ~f:applyOverride
             ~init:manifest
             pkg.overrides
@@ -455,8 +448,6 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
           let manifest = empty ~name:None ~version:None () in
           let%bind manifest =
             Overrides.foldWithBuildOverrides
-              ~cfg:cfg.Config.installCfg
-              ~sandbox:cfg.spec
               ~f:applyOverride
               ~init:manifest
               pkg.overrides
