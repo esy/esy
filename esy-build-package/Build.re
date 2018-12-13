@@ -390,6 +390,34 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 };
 
+let filterPathSegments = (p: list(string)) => {
+   print_endline ("-- Original path length: " ++ string_of_int(List.length(p)));
+
+   let fl: string => bool = (p) => {
+        let items = Sys.readdir(p);
+        Array.length(items) > 0 
+   };
+
+   let ret = List.filter(fl, p);
+   print_endline ("-- New path length: " ++ string_of_int(List.length(p)));
+   ret;
+};
+
+let updatePath = (env) => {
+   switch (Astring.String.Map.find("PATH", env)) {
+   | Some(path) => {
+       print_endline ("-- Previous path length: " ++ string_of_int(String.length(path)) ++ " characters.");
+       let separator = System.Environment.sep().[0];
+       let updatedPath = String.split_on_char(separator, path)
+        |> filterPathSegments
+        |> String.concat(System.Environment.sep());
+       print_endline ("-- Updated path length: " ++ string_of_int(String.length(updatedPath)) ++ " characters.");
+       Astring.String.Map.add("PATH", updatedPath, env)
+   }
+    | None =>  env
+   }
+};
+
 let runCommand = (build, cmd) => {
   let env =
     switch (Bos.OS.Env.var("TERM")) {
@@ -401,6 +429,8 @@ let runCommand = (build, cmd) => {
     | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
     | None => []
     };
+
+  let env = updatePath(env);
 
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
@@ -426,6 +456,9 @@ let runCommandInteractive = (build, cmd) => {
     | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
     | None => []
     };
+
+  let env = updatePath(env);
+
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
