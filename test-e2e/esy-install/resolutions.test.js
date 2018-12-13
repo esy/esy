@@ -342,10 +342,15 @@ describe(`Installing with resolutions`, () => {
 
     const result = await p.esy(`install`);
 
-    expect(result.stderr.includes('warn resolution "unused" is unused (defined in package.json)')).toBe(true);
-    expect(result.stderr.includes('warn resolution "dep" is unused (defined in package.json)')).toBe(false);
-
-  })
+    expect(
+      result.stderr.includes(
+        'warn resolution "unused" is unused (defined in package.json)',
+      ),
+    ).toBe(true);
+    expect(
+      result.stderr.includes('warn resolution "dep" is unused (defined in package.json)'),
+    ).toBe(false);
+  });
 
   test(`should display a warning in case of unused resolutions during add`, async () => {
     const p = await helpers.createTestSandbox();
@@ -366,11 +371,15 @@ describe(`Installing with resolutions`, () => {
 
     const result = await p.esy(`add dep`);
 
-    expect(result.stderr.includes('warn resolution "unused" is unused (defined in package.json)')).toBe(true);
-    expect(result.stderr.includes('warn resolution "dep" is unused (defined in package.json)')).toBe(false);
-
-  })
-
+    expect(
+      result.stderr.includes(
+        'warn resolution "unused" is unused (defined in package.json)',
+      ),
+    ).toBe(true);
+    expect(
+      result.stderr.includes('warn resolution "dep" is unused (defined in package.json)'),
+    ).toBe(false);
+  });
 
   test(`resolutions overrides could inject linked packages to non local packages`, async () => {
     const p = await helpers.createTestSandbox();
