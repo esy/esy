@@ -5,6 +5,12 @@ val part_of_yojson : part Json.decoder
 
 type t
 
+include S.COMPARABLE with type t := t
+
+val ofFile : Path.t -> t RunAsync.t
+val ofString : string -> t
+val ofJson : Json.t -> t
+
 val empty : t
 
 val string : string -> part

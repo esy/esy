@@ -57,7 +57,7 @@ val compare : t -> t -> int
 
 val to_yojson : t Json.encoder
 
-val computeId : t -> PackageId.t RunAsync.t
+val computeId : Config.t -> SandboxSpec.t -> t -> PackageId.t RunAsync.t
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

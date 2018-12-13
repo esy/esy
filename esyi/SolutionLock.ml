@@ -3,15 +3,14 @@ type source = PackageSource.t
 type override =
   | OfJson of {json : Json.t}
   | OfPath of Dist.local
-  | OfOpamOverride of {path : DistPath.t; digest : Digestv.part;}
+  | OfOpamOverride of {path : DistPath.t;}
 
 let override_to_yojson override =
   match override with
   | OfJson {json;} -> json
   | OfPath local -> Dist.local_to_yojson local
-  | OfOpamOverride { path; digest } -> `Assoc [
-      "path", DistPath.to_yojson path;
-      "digest", Digestv.part_to_yojson digest;
+  | OfOpamOverride { path; } -> `Assoc [
+      "opamoverride", DistPath.to_yojson path;
     ]
 
 let override_of_yojson json =
@@ -20,10 +19,9 @@ let override_of_yojson json =
   | `String _ ->
     let%map local = Dist.local_of_yojson json in
     OfPath local
-  | `Assoc ["path", path; "digest", digest] ->
+  | `Assoc ["opamoverride", path;] ->
     let%bind path = DistPath.of_yojson path in
-    let%bind digest = Digestv.part_of_yojson digest in
-    return (OfOpamOverride {path; digest;})
+    return (OfOpamOverride {path;})
   | `Assoc _ ->
     return (OfJson {json;})
   | _ -> error "expected a string or an object"
@@ -114,22 +112,24 @@ let writeOverride sandbox override =
   match override with
   | Solution.Override.OfJson {json;} -> return (OfJson {json;})
   | Solution.Override.OfOpamOverride info ->
+    let%bind digest = Solution.Override.digest sandbox.cfg sandbox.spec override in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec
       / "overrides"
-      / Digestv.toHex (Solution.Override.digest override)
+      / Digestv.toHex digest
     ) in
     let%bind () = Fs.copyPath ~src:info.path ~dst:lockPath in
     let path = DistPath.ofPath (Path.tryRelativize ~root:sandbox.spec.path lockPath) in
-    return (OfOpamOverride {path; digest = info.digest;})
+    return (OfOpamOverride {path;})
   | Solution.Override.OfDist {dist = Dist.LocalPath local; json = _;} ->
     return (OfPath local)
   | Solution.Override.OfDist {dist; json = _;} ->
     let%bind distPath = DistStorage.fetchIntoCache ~cfg:sandbox.cfg ~sandbox:sandbox.spec dist in
+    let%bind digest = Solution.Override.digest sandbox.cfg sandbox.spec override in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec
       / "overrides"
-      / Digestv.toHex (Solution.Override.digest override)
+      / Digestv.toHex digest
     ) in
     let%bind () = Fs.copyPath ~src:distPath ~dst:lockPath in
     let manifest = Dist.manifest dist in
@@ -140,10 +140,10 @@ let readOverride sandbox override =
   let open RunAsync.Syntax in
   match override with
   | OfJson {json;} -> return (Solution.Override.OfJson {json;})
-  | OfOpamOverride {path; digest;} ->
+  | OfOpamOverride {path;} ->
     let path = DistPath.toPath sandbox.Sandbox.spec.path DistPath.(path / "package.json") in
     let%bind json = Fs.readJsonFile path in
-    return (Solution.Override.OfOpamOverride {json; path; digest;})
+    return (Solution.Override.OfOpamOverride {json; path;})
   | OfPath local ->
     let filename =
       match local.manifest with
@@ -252,21 +252,10 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
     Format.asprintf "%a" ppDependencies deps
   in
 
-  let hashDependencies ~dependencies digest =
-    Digest.string (digest ^ "__" ^ showDependencies dependencies)
-  in
-  let hashResolutions ~resolutions digest =
-    Digest.string (digest ^ "__" ^ PackageConfig.Resolutions.digest resolutions)
-  in
-
   let digest =
-    Digest.string ""
-    |> hashResolutions
-      ~resolutions:sandbox.resolutions
-    |> hashDependencies
-      ~dependencies:sandbox.root.dependencies
-    |> hashDependencies
-      ~dependencies:sandbox.root.devDependencies
+    PackageConfig.Resolutions.digest sandbox.root.resolutions
+    |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
+    |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
   in
 
   let%bind digest =
@@ -285,11 +274,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
         | Error _ ->
           errorf "unable to read package: %a" PackageConfig.Resolution.pp resolution
         | Ok pkg ->
-          return (
-            digest
-            |> hashDependencies
-              ~dependencies:pkg.Package.dependencies
-          )
+          return Digestv.(add (string (showDependencies pkg.Package.dependencies)) digest)
         end
     in
     RunAsync.List.foldLeft
@@ -298,7 +283,7 @@ let computeSandboxChecksum (sandbox : Sandbox.t) =
       (PackageConfig.Resolutions.entries sandbox.resolutions)
   in
 
-  return (Digest.to_hex digest)
+  return (Digestv.toHex digest)
 
 let solutionOfLock sandbox root node =
   let open RunAsync.Syntax in

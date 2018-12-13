@@ -7,12 +7,11 @@ module Override : sig
     | OfJson of {json : Json.t;}
     | OfDist of {dist : Dist.t; json : Json.t;}
     | OfOpamOverride of {
-        digest : Digestv.part;
         path : Path.t;
         json : Json.t;
       }
 
-  val digest : t -> Digestv.t
+  val digest : Config.t -> SandboxSpec.t -> t -> Digestv.t RunAsync.t
 
   type build = {
     buildType : BuildType.t option;
@@ -40,7 +39,7 @@ module Overrides : sig
   val empty : t
   val isEmpty : t -> bool
 
-  val digest : t -> Digestv.t
+  val digest : Config.t -> SandboxSpec.t -> t -> Digestv.t RunAsync.t
 
   val add : Override.t -> t -> t
   (* [add override overrides] adds single [override] on top of [overrides]. *)

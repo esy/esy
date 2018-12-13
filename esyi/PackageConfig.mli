@@ -27,7 +27,7 @@ module Resolutions : sig
   val to_yojson : t Json.encoder
   val of_yojson : t Json.decoder
 
-  val digest : t -> string
+  val digest : t -> Digestv.t
 end
 
 module Command : sig

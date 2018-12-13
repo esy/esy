@@ -3,8 +3,9 @@ type t = {
   root : Path.t;
 }
 
-let checksum file =
-  Checksum.computeOfFile ~kind:Checksum.Sha256 Path.(file.root / file.name)
+let digest file =
+  let path = Path.(file.root / file.name) in
+  Digestv.ofFile path
 
 let ofDir root =
   let open RunAsync.Syntax in

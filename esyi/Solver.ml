@@ -797,7 +797,7 @@ let solve (sandbox : Sandbox.t) =
     let%bind packageById, idByPackage =
       let rec aux (packageById, idByPackage as acc) = function
         | pkg::rest ->
-          let%bind id = Package.computeId pkg in
+          let%bind id = Package.computeId sandbox.Sandbox.cfg sandbox.spec pkg in
           begin match PackageId.Map.find_opt id packageById with
           | Some _ -> aux acc rest
           | None ->

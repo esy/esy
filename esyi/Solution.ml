@@ -3,7 +3,6 @@ module Override = struct
     | OfJson of {json : Json.t;}
     | OfDist of {dist : Dist.t; json : Json.t;}
     | OfOpamOverride of {
-        digest : Digestv.part;
         path : Path.t;
         json : Json.t;
       }
@@ -28,13 +27,6 @@ module Override = struct
     devDependencies : PackageConfig.NpmFormulaOverride.t option [@default None];
     resolutions : PackageConfig.Resolution.resolution StringMap.t option [@default None];
   } [@@deriving of_yojson { strict = false }]
-
-  let digest' = function
-    | OfJson {json;} -> Digestv.json json
-    | OfDist {dist; json = _;} -> Digestv.string (Dist.show dist)
-    | OfOpamOverride info -> info.digest
-
-  let digest v = Digestv.(add (digest' v) empty)
 
   let pp fmt = function
     | OfJson _ -> Fmt.unit "<inline override>" fmt ()
@@ -74,6 +66,19 @@ module Override = struct
     | OfOpamOverride info ->
       File.ofDir Path.(info.path / "files")
 
+  let digest cfg sandbox override =
+    let open RunAsync.Syntax in
+    match override with
+    | OfJson {json;} -> return (Digestv.ofJson json)
+    | OfDist {dist; json = _;} -> return (Digestv.ofString (Dist.show dist))
+    | OfOpamOverride info ->
+      let%bind files = files cfg sandbox override in
+      let%bind digests = RunAsync.List.mapAndJoin ~f:File.digest files in
+      let digest = Digestv.ofJson info.json in
+      let digests = digest::digests in
+      let digests = List.sort ~cmp:Digestv.compare digests in
+      return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
+
 end
 
 module Overrides = struct
@@ -85,9 +90,10 @@ module Overrides = struct
     | [] -> true
     | _ -> false
 
-  let digest overrides =
-    let f digest v = Digestv.(add (Override.digest' v) digest) in
-    List.fold_left ~init:Digestv.empty ~f overrides
+  let digest cfg sandbox overrides =
+    let open RunAsync.Syntax in
+    let%bind digests = RunAsync.List.mapAndJoin ~f:(Override.digest cfg sandbox) overrides in
+    return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
 
   let add override overrides =
     override::overrides

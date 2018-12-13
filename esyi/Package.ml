@@ -131,17 +131,17 @@ and kind =
   | Esy
   | Npm
 
-let computeId pkg =
+let computeId cfg spec pkg =
   let open RunAsync.Syntax in
   match pkg.source with
   | Link _ ->
     return (PackageId.make pkg.name pkg.version None)
   | Install { source = _; opam = None; } ->
-    let digest = Solution.Overrides.digest pkg.overrides in
+    let%bind digest = Solution.Overrides.digest cfg spec pkg.overrides in
     return (PackageId.make pkg.name pkg.version (Some digest))
   | Install { source = _; opam = Some opam; } ->
     let%bind opamDigest = OpamResolution.digest opam in
-    let overridesDigest = Solution.Overrides.digest pkg.overrides in
+    let%bind overridesDigest = Solution.Overrides.digest cfg spec pkg.overrides in
     let digest = Digestv.(opamDigest + overridesDigest) in
     return (PackageId.make pkg.name pkg.version (Some digest))
 

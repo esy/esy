@@ -1,7 +1,4 @@
-type t = {
-  commit: string,
-  records: OpamPackage.Name.Map.t(record),
-}
+type t = {records: OpamPackage.Name.Map.t(record)}
 and record = {
   default: option(Path.t),
   version: OpamPackage.Version.Map.t(Path.t),
@@ -23,24 +20,24 @@ let parseOverridePattern = pattern =>
 
 let init = (~cfg, ()): RunAsync.t(t) => {
   open RunAsync.Syntax;
-  let%bind (repoPath, commit) =
+  let%bind repoPath =
     switch (cfg.Config.esyOpamOverride) {
-    | Config.Local(path) => return((path, "abcdef"))
+    | Config.Local(path) => return(path)
     | Config.Remote(remote, local) =>
       let update = () => {
         let%lwt () =
           Logs_lwt.app(m => m("checking %s for updates...", remote));
-        let%bind commit =
+        let%bind () =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,
             ~dst=local,
             remote,
           );
-        return((local, commit));
+        return(local);
       };
       if (cfg.Config.skipRepositoryUpdate) {
         if%bind (Fs.exists(local)) {
-          return((local, "abcdef"));
+          return(local);
         } else {
           update();
         };
@@ -78,7 +75,7 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     List.fold_left(~f, ~init=OpamPackage.Name.Map.empty, names);
   };
 
-  return({records: overrides, commit});
+  return({records: overrides});
 };
 
 let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
@@ -91,15 +88,7 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
       | (Some(path), _)
       | (None, Some(path)) =>
         let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
-        let digest =
-          Digestv.string(
-            OpamPackage.Name.to_string(name)
-            ++ "$$"
-            ++ OpamPackage.Version.to_string(version)
-            ++ "$$"
-            ++ overrides.commit,
-          );
-        let override = Solution.Override.OfOpamOverride({digest, json, path});
+        let override = Solution.Override.OfOpamOverride({json, path});
         return(Some(override));
       | (None, None) => return(None)
       };

@@ -91,12 +91,6 @@ let lsRemote ?ref ~remote () =
     then return None
     else return (Some commit)
 
-let lsRemoteOrFail ?ref ~remote () =
-  let open RunAsync.Syntax in
-  match%bind lsRemote ?ref ~remote () with
-  | None -> errorf "unable to get commit info from %s" remote
-  | Some commit -> return commit
-
 let isCommitLikeRe = Str.regexp "^[0-9abcdef]+$"
 let isCommitLike v =
   let len = String.length v in
@@ -117,11 +111,11 @@ module ShallowClone = struct
       let open RunAsync.Syntax in
       if%bind Fs.exists dst then
 
-        let%bind remoteCommit = lsRemoteOrFail ~ref:branch ~remote:source () in
+        let%bind remoteCommit = lsRemote ~ref:branch ~remote:source () in
         let%bind localCommit = getLocalCommit () in
 
-        if Some remoteCommit = localCommit
-        then return remoteCommit
+        if remoteCommit = localCommit
+        then return ()
         else (
           let branchSpec = branch ^ ":" ^ branch in
           let pulling = pull
@@ -133,7 +127,7 @@ module ShallowClone = struct
             ()
           in
           match%lwt pulling with
-          | Ok (_) -> return remoteCommit
+          | Ok (_) -> return ()
           | Error _ when retry ->
             let%bind () = Fs.rmPath dst in
             aux ~retry:false ()
@@ -142,10 +136,8 @@ module ShallowClone = struct
       else
         let%bind () = Fs.createDir (Path.parent dst) in
         let%bind () = clone ~branch ~depth:1 ~remote:source ~dst () in
-        match%bind getLocalCommit () with
-        | Some commit -> return commit
-        | None -> errorf "unable to read commit info at %s" source
+        return ()
     in
-    
+
     aux ()
 end

@@ -34,15 +34,18 @@ module Resolution = struct
     | _ -> Error "expected string or object"
 
   let digest {name; resolution} =
-    let resolution = Yojson.Safe.to_string (resolution_to_yojson resolution) in
-    name ^ resolution |> Digest.string |> Digest.to_hex
+    Digestv.(
+      empty
+      |> add (string name)
+      |> add (json (resolution_to_yojson resolution))
+    )
 
   let show ({name; resolution;} as r) =
     let resolution =
       match resolution with
       | Version version -> Version.show version
       | SourceOverride { source; override = _; } ->
-        Source.show source ^ "@" ^ digest r
+        Source.show source ^ "@" ^ (Digestv.toHex (digest r))
     in
     name ^ "@" ^ resolution
 
@@ -64,8 +67,8 @@ module Resolutions = struct
   let entries = StringMap.values
 
   let digest resolutions =
-    let f _ resolution hash = Digest.string (hash ^ Resolution.digest resolution) in
-    StringMap.fold f resolutions ""
+    let f _ resolution digest = Digestv.(digest + Resolution.digest resolution) in
+    StringMap.fold f resolutions Digestv.empty
 
   let to_yojson v =
     let items =

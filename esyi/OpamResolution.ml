@@ -41,12 +41,11 @@ let files res = File.ofDir Path.(res.path / "files")
 let digest res =
   let open RunAsync.Syntax in
   let%bind files = files res in
-  let%bind checksums = RunAsync.List.mapAndJoin ~f:File.checksum files in
-  let%bind opamChecksum = Checksum.computeOfFile Path.(res.path / "opam") in
-  let checksums = opamChecksum::checksums in
-  let parts = List.map ~f:Checksum.show checksums in
-  let parts = List.sort ~cmp:String.compare parts in
-  return (Digestv.(empty |> add (string (String.concat "--" parts))))
+  let%bind digests = RunAsync.List.mapAndJoin ~f:File.digest files in
+  let%bind digest = Digestv.ofFile Path.(res.path / "opam") in
+  let digests = digest::digests in
+  let digests = List.sort ~cmp:Digestv.compare digests in
+  return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
 
 let toLock ~sandbox opam =
   let open RunAsync.Syntax in
