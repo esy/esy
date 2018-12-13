@@ -163,6 +163,17 @@ module Task = {
         Scope.depspec(t.scope),
       );
 
+    let files = {
+      let f = config => {
+        let name = Scope.Findlib.name(~prefix=buildPath, config);
+        let content = Scope.Findlib.content(config);
+        (name, content);
+      };
+
+      let configs = Scope.toFindlibConfig(t.scope);
+      List.map(~f, configs);
+    };
+
     {
       EsyBuildPackage.Plan.id: BuildId.show(Scope.id(t.scope)),
       name: t.pkg.name,
@@ -179,6 +190,7 @@ module Task = {
       jbuilderHackEnabled,
       env,
       depspec,
+      files,
     };
   };
 
