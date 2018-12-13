@@ -43,8 +43,10 @@ val lsRemote :
   -> unit
   -> commit option RunAsync.t
 
+val lsRemoteOrFail : ?ref:remote -> remote:remote -> unit -> remote RunAsync.t
+
 val isCommitLike : string -> bool
 
 module ShallowClone : sig
-  val update : branch:remote -> dst:Fpath.t -> remote -> unit RunAsync.t
+  val update : branch:remote -> dst:Fpath.t -> remote -> commit RunAsync.t
 end

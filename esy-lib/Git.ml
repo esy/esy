@@ -91,6 +91,12 @@ let lsRemote ?ref ~remote () =
     then return None
     else return (Some commit)
 
+let lsRemoteOrFail ?ref ~remote () =
+  let open RunAsync.Syntax in
+  match%bind lsRemote ?ref ~remote () with
+  | None -> errorf "unable to get commit info from %s" remote
+  | Some commit -> return commit
+
 let isCommitLikeRe = Str.regexp "^[0-9abcdef]+$"
 let isCommitLike v =
   let len = String.length v in
@@ -101,17 +107,21 @@ let isCommitLike v =
 module ShallowClone = struct
 
   let update ~branch ~dst source =
+
+    let getLocalCommit () =
+      let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
+      lsRemote ~remote ()
+    in
+
     let rec aux ?(retry=true) () =
       let open RunAsync.Syntax in
       if%bind Fs.exists dst then
 
-        let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
-        and localCommit =
-          let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
-          lsRemote ~remote () in
+        let%bind remoteCommit = lsRemoteOrFail ~ref:branch ~remote:source () in
+        let%bind localCommit = getLocalCommit () in
 
-        if remoteCommit = localCommit
-        then return ()
+        if Some remoteCommit = localCommit
+        then return remoteCommit
         else (
           let branchSpec = branch ^ ":" ^ branch in
           let pulling = pull
@@ -123,7 +133,7 @@ module ShallowClone = struct
             ()
           in
           match%lwt pulling with
-          | Ok (_) -> return ()
+          | Ok (_) -> return remoteCommit
           | Error _ when retry ->
             let%bind () = Fs.rmPath dst in
             aux ~retry:false ()
@@ -131,7 +141,11 @@ module ShallowClone = struct
         )
       else
         let%bind () = Fs.createDir (Path.parent dst) in
-        let%bind _ = clone ~branch ~depth:1 ~remote:source ~dst () in
-        return ();
-    in aux ()
+        let%bind () = clone ~branch ~depth:1 ~remote:source ~dst () in
+        match%bind getLocalCommit () with
+        | Some commit -> return commit
+        | None -> errorf "unable to read commit info at %s" source
+    in
+    
+    aux ()
 end
