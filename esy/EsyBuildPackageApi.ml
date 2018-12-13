@@ -19,16 +19,9 @@ let run
   | `Exec -> "exec"
   in
 
-  let logArgs () =
-      let f s = print_endline (" - " ^ s) in
-      List.iter ~f args
-  in
-
   let runProcess buildJsonFilename =
     let%bind command = RunAsync.ofRun (
       let open Run.Syntax in
-      print_endline ("EsyBuildPackage::runProcess2 - " ^ action);
-      logArgs ();
       return Cmd.(
         esyBuildPackageCmd
         % action
