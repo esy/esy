@@ -394,7 +394,12 @@ let filterPathSegments = (p: list(string)) => {
    print_endline ("-- Original path length: " ++ string_of_int(List.length(p)));
 
    let fl: string => bool = (p) => {
-        let items = Sys.readdir(p);
+       let items = switch (Sys.readdir(p)) {
+       | v => v
+       | exception Sys_error(s) => 
+          print_endline ("ERROR (" ++ p ++ "): " ++ s);
+           [||]
+       };
         Array.length(items) > 0 
    };
 
