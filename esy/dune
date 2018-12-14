@@ -4,7 +4,8 @@
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
-            EsyI
+            EsySolve
+            EsyInstall
             EsyCommandExpression
             EsyShellExpansion
             EsyYarnLockfile

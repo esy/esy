@@ -6,7 +6,7 @@ end
 module Solution = EsyInstall.Solution
 module SandboxSpec = EsyInstall.SandboxSpec
 module ManifestSpec = EsyInstall.ManifestSpec
-module Package = EsyI.Package
+module Package = EsySolve.Package
 module PackageConfig = EsyInstall.PackageConfig
 module Version = EsyInstall.Version
 module Dist = EsyInstall.Dist
@@ -20,7 +20,7 @@ module DistResolver = EsyInstall.DistResolver
 module Override = EsyInstall.Solution.Override
 module Overrides = EsyInstall.Solution.Overrides
 module Installation = EsyInstall.Installation
-module OpamResolution = EsyI.OpamResolution
+module OpamResolution = EsySolve.OpamResolution
 
 let ensurehasOpamScope name =
   match Astring.String.cut ~sep:"@opam/" name with

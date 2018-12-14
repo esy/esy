@@ -4,7 +4,7 @@ module SandboxSpec = EsyInstall.SandboxSpec
 type t = {
   esyVersion : string;
   spec : EsyInstall.SandboxSpec.t;
-  installCfg : EsyI.Config.t;
+  installCfg : EsySolve.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
 }
 

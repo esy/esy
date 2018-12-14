@@ -1,5 +1,5 @@
 (library
-  (name EsyI)
+  (name EsySolve)
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries

@@ -5,7 +5,7 @@ type t = {
   mainprg : string;
   cfg : Config.t;
   spec : EsyInstall.SandboxSpec.t;
-  installSandbox : EsyI.Sandbox.t;
+  installSandbox : EsySolve.Sandbox.t;
   sandbox : EsyInstall.Sandbox.t;
 }
 
@@ -160,7 +160,7 @@ let make
   in
 
   let%bind installCfg =
-    EsyI.Config.make
+    EsySolve.Config.make
       ~esySolveCmd
       ~skipRepositoryUpdate
       ?cachePath
@@ -184,7 +184,7 @@ let make
   in
 
   let%bind installSandbox =
-    EsyI.Sandbox.make ~cfg:installCfg spec
+    EsySolve.Sandbox.make ~cfg:installCfg spec
   in
 
   return {
@@ -210,8 +210,8 @@ let computeSolutionChecksum projcfg =
       let ppDisj fmt disj =
         match disj with
         | [] -> Fmt.unit "true" fmt ()
-        | [dep] -> EsyI.Package.Dep.pp fmt dep
-        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") EsyI.Package.Dep.pp) deps
+        | [dep] -> EsySolve.Package.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") EsySolve.Package.Dep.pp) deps
       in
       Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
     in
@@ -239,11 +239,11 @@ let computeSolutionChecksum projcfg =
     in
 
     match deps with
-    | EsyI.Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
-    | EsyI.Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+    | EsySolve.Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | EsySolve.Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
   in
 
-  let showDependencies (deps : EsyI.Package.Dependencies.t) =
+  let showDependencies (deps : EsySolve.Package.Dependencies.t) =
     Format.asprintf "%a" ppDependencies deps
   in
 
@@ -265,11 +265,11 @@ let computeSolutionChecksum projcfg =
       match resolution with
       | None -> return digest
       | Some resolution ->
-        begin match%bind EsyI.Resolver.package ~resolution sandbox.resolver with
+        begin match%bind EsySolve.Resolver.package ~resolution sandbox.resolver with
         | Error _ ->
           errorf "unable to read package: %a" EsyInstall.PackageConfig.Resolution.pp resolution
         | Ok pkg ->
-          return Digestv.(add (string (showDependencies pkg.EsyI.Package.dependencies)) digest)
+          return Digestv.(add (string (showDependencies pkg.EsySolve.Package.dependencies)) digest)
         end
     in
     RunAsync.List.foldLeft

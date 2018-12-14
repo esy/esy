@@ -6,7 +6,7 @@ module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
-module PkgSpec = EsyI.PkgSpec
+module PkgSpec = EsySolve.PkgSpec
 
 module PkgArg = struct
   type t =
@@ -1150,7 +1150,7 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
   makeLsCommand ~computeTermNode ~includeTransitive:false proj
 
 let getSandboxSolution (projcfg : ProjectConfig.t) =
-  let open EsyI in
+  let open EsySolve in
   let open RunAsync.Syntax in
   let%bind solution = Solver.solve projcfg.installSandbox in
   let lockPath = SandboxSpec.solutionLockPath projcfg.installSandbox.Sandbox.spec in
@@ -1202,7 +1202,7 @@ let solveAndFetch (projcfg : ProjectConfig.t) () =
     return ()
 
 let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () =
-  let open EsyI in
+  let open EsySolve in
   let open RunAsync.Syntax in
   let opamError =
     "add dependencies manually when working with opam sandboxes"
@@ -1296,7 +1296,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
       let%bind () =
         let%bind installSandbox =
-          EsyI.Sandbox.make
+          EsySolve.Sandbox.make
             ~cfg:installSandbox.cfg
             installSandbox.spec
         in
@@ -1401,7 +1401,7 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
     (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
 
 let show (projcfg : ProjectConfig.t) _asJson req () =
-  let open EsyI in
+  let open EsySolve in
   let open RunAsync.Syntax in
   let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
   let%bind resolver = Resolver.make ~cfg:projcfg.cfg.installCfg ~sandbox:projcfg.spec () in

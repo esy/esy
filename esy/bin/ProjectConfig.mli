@@ -12,7 +12,7 @@ type t = {
   mainprg : string;
   cfg : Config.t;
   spec : SandboxSpec.t;
-  installSandbox : EsyI.Sandbox.t;
+  installSandbox : EsySolve.Sandbox.t;
   sandbox : EsyInstall.Sandbox.t;
 }
 
