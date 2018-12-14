@@ -1,5 +1,6 @@
 // @flow
 
+const outdent = require('outdent');
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
@@ -68,6 +69,15 @@ describe(`'esy CMD' invocation`, () => {
     await expect(p.esy('devDep.cmd')).resolves.toEqual({
       stdout: '__devDep__' + os.EOL,
       stderr: '',
+    });
+  });
+
+  it(`fails if project is not installed`, async () => {
+    const p = await createTestSandbox();
+    await expect(p.esy('dep.cmd')).rejects.toMatchObject({
+      message: expect.stringMatching(
+        'error: project is missing a lock, run `esy install`',
+      ),
     });
   });
 

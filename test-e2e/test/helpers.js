@@ -400,6 +400,7 @@ module.exports = {
   buildCommandInOpam,
   esyVersion: pkgJson.version,
 
+  ESY,
   isWindows,
   isLinux,
   isMacos,

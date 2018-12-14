@@ -1429,17 +1429,20 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
 
 let default (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
-  match%lwt Project.fetched proj with
-  | Ok _ ->
+  let%lwt fetched = Project.fetched proj in
+  match fetched, cmd with
+  | Ok _, _ ->
     begin match cmd with
     | Some cmd -> devExec proj cmd ()
     | None -> build proj None ()
     end
-  | Error _ ->
+  | Error _, None ->
     Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
     let%bind () = solveAndFetch proj.projcfg () in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
     build proj None ()
+  | Error _ as err, Some _ ->
+    Lwt.return err
 
 let release (proj : Project.WithWorkflow.t) () =
   let open RunAsync.Syntax in
