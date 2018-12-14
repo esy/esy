@@ -42,8 +42,6 @@ let supportsLongPaths = () => {
     }
 };
 
-print_endline ("LONG PATHS SUPPORTED: " ++ string_of_bool(supportsLongPaths()));
-
 let homePath = () =>
   Fpath.v(
     switch (Sys.getenv_opt("HOME"), System.Platform.host) {
