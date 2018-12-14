@@ -7,30 +7,58 @@ let esyInstallReleaseJs =
   | Ok path -> path
   | Error (`Msg msg) -> failwith msg
 
+type filterPackages =
+  | NoFilter
+  | ExcludeById of string list
+  | IncludeByPkgSpec of PkgSpec.t list
+
 type config = {
   name : string;
   version : string;
   license : Json.t option;
   description : string option;
-  releasedBinaries : string list;
-  deleteFromBinaryRelease : string list;
+  bin : string StringMap.t;
+  filterPackages : filterPackages;
 }
 
 module OfPackageJson = struct
+  type bin =
+    | ByList of string list
+    | ByName of string
+    | ByNameMany of string StringMap.t
+
+  let bin_of_yojson json =
+    let open Result.Syntax in
+    match json with
+    | `String name -> return (ByName name)
+    | `List _ ->
+      let%bind names = Json.Decode.(list string) json in
+      return (ByList names)
+    | `Assoc _ ->
+      let%bind names = Json.Decode.(stringMap string) json in
+      return (ByNameMany names)
+
+    | _ -> error {|"esy.release.bin": expected a string, array or an object|}
+
   type t = {
     name : string [@default "project"];
     version : string [@default "0.0.0"];
     license : Json.t option [@default None];
     description : string option [@default None];
     esy : esy [@default {release = None}]
-  }
+  } [@@deriving (of_yojson { strict = false })]
+
   and esy = {
     release : release option [@default None];
   }
+
   and release = {
-    releasedBinaries: string list;
-    deleteFromBinaryRelease: (string list [@default []]);
-  } [@@deriving (of_yojson { strict = false })]
+    includePackages : PkgSpec.t list option [@default None];
+    releasedBinaries: string list option [@default None];
+    bin : bin option [@default None];
+    deleteFromBinaryRelease: string list option [@default None];
+  }
+
 end
 
 let configure (cfg : Config.t) () =
@@ -46,13 +74,36 @@ let configure (cfg : Config.t) () =
     match pkgJson.OfPackageJson.esy.release with
     | None -> errorf "no release config found in package.json, see %s for details" docs
     | Some releaseCfg ->
+      let%bind filterPackages =
+        match releaseCfg.includePackages, releaseCfg.deleteFromBinaryRelease with
+        | None, None -> return NoFilter
+        | Some f, None -> return (IncludeByPkgSpec f)
+        | None, Some f -> return (ExcludeById f)
+        | Some _, Some _ ->
+          errorf {|both "esy.release.deleteFromBinaryRelease" and "esy.release.includePackages" are specified, which is not allowed|}
+      in
+      let%bind bin =
+        match releaseCfg.bin, releaseCfg.releasedBinaries with
+        | None, None ->
+          errorf {|missing "esy.release.bin" configuration|}
+        | None, Some names
+        | Some (OfPackageJson.ByList names), None ->
+          let f bin name = StringMap.add name name bin in
+          return (List.fold_left ~f ~init:StringMap.empty names)
+        | Some (OfPackageJson.ByName name), None ->
+          return (StringMap.add name name StringMap.empty)
+        | Some (OfPackageJson.ByNameMany bin), None ->
+          return bin
+        | Some _, Some _ ->
+          errorf {|both "esy.release.bin" and "esy.release.releasedBinaries" are specified, which is not allowed|}
+      in
       return {
         name = pkgJson.name;
         version = pkgJson.version;
         license = pkgJson.license;
         description = pkgJson.description;
-        releasedBinaries = releaseCfg.OfPackageJson.releasedBinaries;
-        deleteFromBinaryRelease = releaseCfg.OfPackageJson.deleteFromBinaryRelease;
+        bin;
+        filterPackages;
       }
 
 let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
@@ -152,14 +203,22 @@ let make
   let tasks = BuildSandbox.Plan.all plan in
 
   let shouldDeleteFromBinaryRelease =
-    let patterns =
-      let f pattern = pattern |> Re.Glob.glob |> Re.compile in
-      List.map ~f releaseCfg.deleteFromBinaryRelease
-    in
-    let filterOut id =
-      List.exists ~f:(fun pattern -> Re.execp pattern id) patterns
-    in
-    filterOut
+    match releaseCfg.filterPackages with
+    | NoFilter -> fun _ _ -> false
+    | IncludeByPkgSpec specs -> fun pkgid _buildid ->
+      let f spec = PkgSpec.matches root.Package.id spec pkgid in
+      let included = List.exists ~f specs in
+      not included
+    | ExcludeById patterns ->
+      let patterns =
+        let f pattern = pattern |> Re.Glob.glob |> Re.compile in
+        List.map ~f patterns
+      in
+      let filterOut _pkgid buildid =
+        let buildid = BuildId.show buildid in
+        List.exists ~f:(fun pattern -> Re.execp pattern buildid) patterns
+      in
+      filterOut
   in
 
   (* Make sure all packages are built *)
@@ -180,9 +239,9 @@ let make
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let f (task : BuildSandbox.Task.t) =
       let id = Scope.id task.scope in
-      if shouldDeleteFromBinaryRelease (BuildId.show id)
+      if shouldDeleteFromBinaryRelease task.pkg.id id
       then
-        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %a" BuildId.pp id) in
+        let%lwt () = Logs_lwt.app (fun m -> m "Skipping %a" PackageId.ppNoHash task.pkg.id) in
         return ()
       else
         let buildPath = BuildSandbox.Task.installPath cfg task in
@@ -214,7 +273,7 @@ let make
       let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
-      let generateBinaryWrapper stagePath name =
+      let generateBinaryWrapper stagePath (publicName, innerName) =
         let resolveBinInEnv ~env prg =
           let path =
             let v = match StringMap.find_opt "PATH" env with
@@ -224,15 +283,15 @@ let make
             String.split_on_char (System.Environment.sep ()).[0] v
           in RunAsync.ofRun (Run.ofBosError (Cmd.resolveCmd path prg))
         in
-        let%bind namePath = resolveBinInEnv ~env name in
+        let%bind namePath = resolveBinInEnv ~env innerName in
         (* Create the .ml file that we will later compile and write it to disk *)
         let data = makeBinWrapper ~environment:bindings ~bin:(EsyLib.Path.normalizePathSlashes namePath) in
-        let mlPath = Path.(stagePath / (name ^ ".ml")) in
+        let mlPath = Path.(stagePath / (innerName ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
         let compile = Cmd.(
           v (EsyLib.Path.normalizePathSlashes (p ocamlopt))
-          % "-o" % EsyLib.Path.normalizePathSlashes (p Path.(binPath / name))
+          % "-o" % EsyLib.Path.normalizePathSlashes (p Path.(binPath / publicName))
           % "unix.cmxa" % "str.cmxa"
           % EsyLib.Path.normalizePathSlashes (p mlPath)
         ) in
@@ -258,7 +317,7 @@ let make
         Fs.withTempDir (fun stagePath ->
           RunAsync.List.mapAndWait
             ~f:(generateBinaryWrapper stagePath)
-            releaseCfg.releasedBinaries
+            (StringMap.bindings releaseCfg.bin)
         )
       in
       (* Replace the storePath with a string of equal length containing only _ *)
@@ -282,8 +341,8 @@ let make
             "postinstall", `String "node ./esyInstallRelease.js"
           ];
           "bin", `Assoc (
-            let f name = name, `String ("bin/" ^ name) in
-            List.map ~f releaseCfg.releasedBinaries
+            let f (publicName, _innerName) = publicName, `String ("bin/" ^ publicName) in
+            List.map ~f (StringMap.bindings releaseCfg.bin)
           )
         ]
         in

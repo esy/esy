@@ -6,5 +6,9 @@ type t =
   | ByNameVersion of (string * Version.t)
   | ById of PackageId.t
 
+val matches : PackageId.t -> t -> PackageId.t -> bool
+
 val pp : t Fmt.t
 val parse : string -> (t, string) result
+
+val of_yojson : t Json.decoder
