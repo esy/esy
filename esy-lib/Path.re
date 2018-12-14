@@ -30,10 +30,10 @@ let remPrefix = Fpath.rem_prefix;
 external checkLongPathRegistryKey: unit => bool = "caml_win32_check_long_path_regkey";
 
 let supportsLongPaths = () => {
-    switch (Sys.win32) {
-    | false => true
-    | true => checkLongPathRegistryKey();
-    }
+  switch (Sys.win32) {
+  | false => true
+  | true => checkLongPathRegistryKey();
+  }
 };
 
 let homePath = () =>
