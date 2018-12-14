@@ -3,10 +3,6 @@
 type t = {
   installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
-  sourceArchivePath: option(Path.t),
-  sourceFetchPath: Path.t,
-  sourceStagePath: Path.t,
-  sourceInstallPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,

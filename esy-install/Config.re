@@ -1,27 +1,11 @@
 type t = {
-  esySolveCmd: Cmd.t,
   sourceArchivePath: option(Path.t),
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
-  npmRegistry: string,
-  solveTimeout: float,
-  skipRepositoryUpdate: bool,
 };
 
-let esyOpamOverrideVersion = "6";
-
-let make =
-    (
-      ~npmRegistry=?,
-      ~cachePath=?,
-      ~cacheTarballsPath=?,
-      ~cacheSourcesPath=?,
-      ~solveTimeout=60.0,
-      ~esySolveCmd,
-      ~skipRepositoryUpdate,
-      (),
-    ) => {
+let make = (~cachePath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
   open RunAsync.Syntax;
   let%bind cachePath =
     RunAsync.ofRun(
@@ -59,17 +43,10 @@ let make =
   let sourceInstallPath = Path.(sourcePath / "i");
   let%bind () = Fs.createDir(sourceInstallPath);
 
-  let npmRegistry =
-    Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
-
   return({
-    esySolveCmd,
     sourceArchivePath,
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
-    npmRegistry,
-    skipRepositoryUpdate,
-    solveTimeout,
   });
 };

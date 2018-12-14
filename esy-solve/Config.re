@@ -1,10 +1,6 @@
 type t = {
   installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
-  sourceArchivePath: option(Path.t),
-  sourceFetchPath: Path.t,
-  sourceStagePath: Path.t,
-  sourceInstallPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
@@ -95,23 +91,15 @@ let make =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
   let installCfg = {
-    EsyInstall.Config.esySolveCmd,
-    sourceArchivePath,
+    EsyInstall.Config.sourceArchivePath,
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
-    npmRegistry,
-    skipRepositoryUpdate,
-    solveTimeout,
   };
 
   return({
     installCfg,
     esySolveCmd,
-    sourceArchivePath,
-    sourceFetchPath,
-    sourceStagePath,
-    sourceInstallPath,
     opamRepository,
     esyOpamOverride,
     npmRegistry,
