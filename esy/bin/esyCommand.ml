@@ -1182,7 +1182,7 @@ let makeCommand
 
   cmd, info
 
-let makeAlias command alias =
+let makeAlias ?(docs=aliasesSection) command alias =
   let term, info = command in
   let name = Cmdliner.Term.name info in
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
@@ -1191,7 +1191,7 @@ let makeAlias command alias =
       alias
       ~version:EsyRuntime.version
       ~doc
-      ~docs:aliasesSection
+      ~docs
   in
   term, info
 
@@ -1257,6 +1257,18 @@ let makeCommands ~sandbox () =
           $ commonOpts
           $ Cli.setupLogTerm
         )
+    in
+
+    let npmReleaseCommand =
+      makeCommand
+        ~name:"npm-release"
+        ~doc:"Produce npm package with prebuilt artifacts"
+        ~docs:otherSection
+        Term.(
+          const NpmReleaseCommand.run
+          $ Project.WithWorkflow.term sandbox
+          $ Cli.setupLogTerm
+        );
     in
 
     [
@@ -1364,15 +1376,8 @@ let makeCommands ~sandbox () =
 
     (* OTHER COMMANDS *)
 
-    makeCommand
-      ~name:"release"
-      ~doc:"Produce npm package with prebuilt artifacts"
-      ~docs:otherSection
-      Term.(
-        const NpmReleaseCommand.run
-        $ Project.WithWorkflow.term sandbox
-        $ Cli.setupLogTerm
-      );
+    npmReleaseCommand;
+    makeAlias ~docs:otherSection npmReleaseCommand "release";
 
     makeCommand
       ~name:"export-build"
