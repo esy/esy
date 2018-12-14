@@ -4,7 +4,7 @@ val make :
   -> concurrency:int
   -> Config.t
   -> BuildSandbox.t
-  -> EsyI.Solution.Package.t
+  -> EsyInstall.Solution.Package.t
   -> unit RunAsync.t
 (**
  * Produce an npm release for the [sandbox].

@@ -7,7 +7,7 @@ type t = {
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : Solution.Override.t option;
+  override : EsyInstall.Solution.Override.t option;
   opamRepositoryPath : Path.t option;
 }
 
@@ -37,9 +37,9 @@ val ofPath :
 (** Load opam manifest of path. *)
 
 val toPackage :
-  ?source:Source.t
+  ?source:EsyInstall.Source.t
   -> name : string
-  -> version : Version.t
+  -> version : EsyInstall.Version.t
   -> t
   -> (Package.t, string) result RunAsync.t
 (** Convert opam manifest to a package. *)

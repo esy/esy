@@ -1,4 +1,4 @@
-open PackageConfig
+open EsyInstall.PackageConfig
 module String = Astring.String
 
 [@@@ocaml.warning "-32"]
@@ -19,24 +19,24 @@ module Dep = struct
   } [@@deriving ord]
 
   and req =
-    | Npm of SemverVersion.Constraint.t
+    | Npm of EsyInstall.SemverVersion.Constraint.t
     | NpmDistTag of string
-    | Opam of OpamPackageVersion.Constraint.t
-    | Source of SourceSpec.t
+    | Opam of EsyInstall.OpamPackageVersion.Constraint.t
+    | Source of EsyInstall.SourceSpec.t
 
   let pp fmt {name; req;} =
     let ppReq fmt = function
-      | Npm c -> SemverVersion.Constraint.pp fmt c
+      | Npm c -> EsyInstall.SemverVersion.Constraint.pp fmt c
       | NpmDistTag tag -> Fmt.string fmt tag
-      | Opam c -> OpamPackageVersion.Constraint.pp fmt c
-      | Source src -> SourceSpec.pp fmt src
+      | Opam c -> EsyInstall.OpamPackageVersion.Constraint.pp fmt c
+      | Source src -> EsyInstall.SourceSpec.pp fmt src
     in
     Fmt.pf fmt "%s@%a" name ppReq req
 
 end
 
-let yojson_of_reqs (deps : Req.t list) =
-  let f (x : Req.t) = `List [`Assoc [x.name, (VersionSpec.to_yojson x.spec)]] in
+let yojson_of_reqs (deps : EsyInstall.Req.t list) =
+  let f (x : EsyInstall.Req.t) = `List [`Assoc [x.name, (EsyInstall.VersionSpec.to_yojson x.spec)]] in
   `List (List.map ~f deps)
 
 module Dependencies = struct
@@ -54,18 +54,18 @@ module Dependencies = struct
           let f reqs (dep : Dep.t) =
             let spec =
               match dep.req with
-              | Dep.Npm _ -> VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-              | Dep.NpmDistTag tag -> VersionSpec.NpmDistTag tag
-              | Dep.Opam _ -> VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
-              | Dep.Source srcSpec -> VersionSpec.Source srcSpec
+              | Dep.Npm _ -> EsyInstall.VersionSpec.Npm [[EsyInstall.SemverVersion.Constraint.ANY]]
+              | Dep.NpmDistTag tag -> EsyInstall.VersionSpec.NpmDistTag tag
+              | Dep.Opam _ -> EsyInstall.VersionSpec.Opam [[EsyInstall.OpamPackageVersion.Constraint.ANY]]
+              | Dep.Source srcSpec -> EsyInstall.VersionSpec.Source srcSpec
             in
-            Req.Set.add (Req.make ~name:dep.name ~spec) reqs
+            EsyInstall.Req.Set.add (EsyInstall.Req.make ~name:dep.name ~spec) reqs
           in
           List.fold_left ~f ~init:reqs deps
         in
-        List.fold_left ~f ~init:Req.Set.empty reqs
+        List.fold_left ~f ~init:EsyInstall.Req.Set.empty reqs
       in
-      Req.Set.elements reqs
+      EsyInstall.Req.Set.elements reqs
 
   let pp fmt deps =
     match deps with
@@ -84,7 +84,7 @@ module Dependencies = struct
 
   let filterDependenciesByName ~name deps =
     let findInNpmFormula reqs =
-      let f req = req.Req.name = name in
+      let f req = req.EsyInstall.Req.name = name in
       List.filter ~f reqs
     in
     let findInOpamFormula cnf =
@@ -102,10 +102,10 @@ module Dependencies = struct
     | NpmFormula deps -> yojson_of_reqs deps
     | OpamFormula deps ->
       let ppReq fmt = function
-        | Dep.Npm c -> SemverVersion.Constraint.pp fmt c
+        | Dep.Npm c -> EsyInstall.SemverVersion.Constraint.pp fmt c
         | Dep.NpmDistTag tag -> Fmt.string fmt tag
-        | Dep.Opam c -> OpamPackageVersion.Constraint.pp fmt c
-        | Dep.Source src -> SourceSpec.pp fmt src
+        | Dep.Opam c -> EsyInstall.OpamPackageVersion.Constraint.pp fmt c
+        | Dep.Source src -> EsyInstall.SourceSpec.pp fmt src
       in
         let jsonOfItem {Dep. name; req;} = `Assoc [name, `String (Format.asprintf "%a" ppReq req)] in
         let f disj = `List (List.map ~f:jsonOfItem disj) in
@@ -114,16 +114,16 @@ end
 
 type t = {
   name : string;
-  version : Version.t;
-  originalVersion : Version.t option;
+  version : EsyInstall.Version.t;
+  originalVersion : EsyInstall.Version.t option;
   originalName : string option;
-  source : PackageSource.t;
-  overrides : Solution.Overrides.t;
+  source : EsyInstall.PackageSource.t;
+  overrides : EsyInstall.Solution.Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : EsyInstall.PackageConfig.Resolutions.t;
   kind : kind;
 }
 
@@ -131,33 +131,19 @@ and kind =
   | Esy
   | Npm
 
-let computeId cfg spec pkg =
-  let open RunAsync.Syntax in
-  match pkg.source with
-  | Link _ ->
-    return (PackageId.make pkg.name pkg.version None)
-  | Install { source = _; opam = None; } ->
-    let%bind digest = Solution.Overrides.digest cfg spec pkg.overrides in
-    return (PackageId.make pkg.name pkg.version (Some digest))
-  | Install { source = _; opam = Some opam; } ->
-    let%bind opamDigest = OpamResolution.digest opam in
-    let%bind overridesDigest = Solution.Overrides.digest cfg spec pkg.overrides in
-    let digest = Digestv.(opamDigest + overridesDigest) in
-    return (PackageId.make pkg.name pkg.version (Some digest))
-
 let pp fmt pkg =
-  Fmt.pf fmt "%s@%a" pkg.name Version.pp pkg.version
+  Fmt.pf fmt "%s@%a" pkg.name EsyInstall.Version.pp pkg.version
 
 let compare pkga pkgb =
   let name = String.compare pkga.name pkgb.name in
   if name = 0
-  then Version.compare pkga.version pkgb.version
+  then EsyInstall.Version.compare pkga.version pkgb.version
   else name
 
 let to_yojson pkg =
   `Assoc [
     "name", `String pkg.name;
-    "version", `String (Version.showSimple pkg.version);
+    "version", `String (EsyInstall.Version.showSimple pkg.version);
     "dependencies", Dependencies.to_yojson pkg.dependencies;
     "devDependencies", Dependencies.to_yojson pkg.devDependencies;
     "peerDependencies", yojson_of_reqs pkg.peerDependencies;

@@ -4,7 +4,7 @@ type t = {
   (** Configuration. *)
   cfg : Config.t;
 
-  spec : SandboxSpec.t;
+  spec : EsyInstall.SandboxSpec.t;
 
   (** Root package. *)
   root : Package.t;
@@ -18,13 +18,13 @@ type t = {
   dependencies : Package.Dependencies.t;
 
   (** A set of resolutions. *)
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : EsyInstall.PackageConfig.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : Req.t option;
+  ocamlReq : EsyInstall.Req.t option;
 
   (** Resolver associated with a sandbox. *)
   resolver : Resolver.t;
 }
 
-val make : cfg:Config.t -> SandboxSpec.t -> t RunAsync.t
+val make : cfg:Config.t -> EsyInstall.SandboxSpec.t -> t RunAsync.t

@@ -5,13 +5,13 @@ module Scripts = struct
     [@@deriving ord]
 
   and script = {
-    command : EsyI.PackageConfig.Command.t;
+    command : EsyInstall.PackageConfig.Command.t;
   }
   [@@deriving ord]
 
   let of_yojson =
     let script (json: Json.t) =
-      match EsyI.PackageConfig.CommandList.of_yojson json with
+      match EsyInstall.PackageConfig.CommandList.of_yojson json with
       | Ok command ->
         begin match command with
         | [] -> Error "empty command"
@@ -35,20 +35,20 @@ module OfPackageJson = struct
 end
 
 type t = Scripts.t
-type script = Scripts.script = { command : EsyI.PackageConfig.Command.t; }
+type script = Scripts.script = { command : EsyInstall.PackageConfig.Command.t; }
 
 let empty = Scripts.empty
 let find = Scripts.find
 
-let ofSandbox (spec : EsyI.SandboxSpec.t) =
+let ofSandbox (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
   match spec.manifest with
 
-  | EsyI.ManifestSpec.One (EsyI.ManifestSpec.Filename.Esy, filename) ->
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
     let%bind json = Fs.readJsonFile Path.(spec.path / filename) in
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith OfPackageJson.of_yojson json) in
     return pkgJson.OfPackageJson.scripts
 
-  | EsyI.ManifestSpec.One (EsyI.ManifestSpec.Filename.Opam, _)
-  | EsyI.ManifestSpec.ManyOpam ->
+  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _)
+  | EsyInstall.ManifestSpec.ManyOpam ->
     return Scripts.empty

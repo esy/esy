@@ -1,6 +1,6 @@
 (** This represents a ref to a package from opam repository. *)
 
-type t
+type t = EsyInstall.PackageSource.opam
 
 val make :
   OpamPackage.Name.t
@@ -9,15 +9,12 @@ val make :
   -> t
 
 val name : t -> string
-val version : t -> Version.t
+val version : t -> EsyInstall.Version.t
 val path : t -> Path.t
 
-val files : t -> File.t list RunAsync.t
+val files : t -> EsyInstall.File.t list RunAsync.t
 val opam : t -> OpamFile.OPAM.t RunAsync.t
 val digest : t -> Digestv.t RunAsync.t
-
-val toLock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
-val ofLock : sandbox:SandboxSpec.t -> t -> t RunAsync.t
 
 include S.JSONABLE with type t := t
 

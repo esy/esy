@@ -11,8 +11,6 @@ module Override : sig
         json : Json.t;
       }
 
-  val digest : Config.t -> SandboxSpec.t -> t -> Digestv.t RunAsync.t
-
   type build = {
     buildType : BuildType.t option;
     build : PackageConfig.CommandList.t option;
@@ -31,6 +29,8 @@ module Override : sig
 
   val ofJson : Json.t -> t
   val ofDist : Json.t -> Dist.t -> t
+
+  val files : Config.t -> SandboxSpec.t -> t -> File.t list RunAsync.t
 end
 
 module Overrides : sig
@@ -38,8 +38,6 @@ module Overrides : sig
 
   val empty : t
   val isEmpty : t -> bool
-
-  val digest : Config.t -> SandboxSpec.t -> t -> Digestv.t RunAsync.t
 
   val add : Override.t -> t -> t
   (* [add override overrides] adds single [override] on top of [overrides]. *)

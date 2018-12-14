@@ -3,23 +3,23 @@ module BuildType = struct
   include EsyLib.BuildType.AsInPackageJson
 end
 
-module Solution = EsyI.Solution
-module SandboxSpec = EsyI.SandboxSpec
-module ManifestSpec = EsyI.ManifestSpec
+module Solution = EsyInstall.Solution
+module SandboxSpec = EsyInstall.SandboxSpec
+module ManifestSpec = EsyInstall.ManifestSpec
 module Package = EsyI.Package
-module PackageConfig = EsyI.PackageConfig
-module Version = EsyI.Version
-module Dist = EsyI.Dist
-module Source = EsyI.Source
+module PackageConfig = EsyInstall.PackageConfig
+module Version = EsyInstall.Version
+module Dist = EsyInstall.Dist
+module Source = EsyInstall.Source
 module SourceType = EsyLib.SourceType
 module Command = PackageConfig.Command
 module CommandList = PackageConfig.CommandList
 module ExportedEnv = PackageConfig.ExportedEnv
 module Env = PackageConfig.Env
-module DistResolver = EsyI.DistResolver
-module Override = EsyI.Solution.Override
-module Overrides = EsyI.Solution.Overrides
-module Installation = EsyI.Installation
+module DistResolver = EsyInstall.DistResolver
+module Override = EsyInstall.Solution.Override
+module Overrides = EsyInstall.Solution.Overrides
+module Installation = EsyInstall.Installation
 module OpamResolution = EsyI.OpamResolution
 
 let ensurehasOpamScope name =
@@ -376,7 +376,7 @@ let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.l
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       DistResolver.resolve
-        ~cfg:cfg.Config.installCfg
+        ~cfg:cfg.Config.installCfg.installCfg
         ~sandbox:cfg.spec
         dist
     in

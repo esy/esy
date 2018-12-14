@@ -5,15 +5,18 @@
  * project.
  *)
 
-open EsyI
+open EsyInstall
 open Esy
 
 type t = {
   mainprg : string;
   cfg : Config.t;
   spec : SandboxSpec.t;
-  installSandbox : Sandbox.t;
+  installSandbox : EsyI.Sandbox.t;
+  sandbox : EsyInstall.Sandbox.t;
 }
+
+val computeSolutionChecksum : t -> string RunAsync.t
 
 val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
 

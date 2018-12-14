@@ -1,6 +1,6 @@
-module PackageId = EsyI.PackageId
-module Dist = EsyI.Dist
-module Version = EsyI.Version
+module PackageId = EsyInstall.PackageId
+module Dist = EsyInstall.Dist
+module Version = EsyInstall.Version
 
 module Repr = struct
 
@@ -15,13 +15,13 @@ module Repr = struct
   } [@@deriving yojson]
 
   type commands =
-    | EsyCommands of EsyI.PackageConfig.CommandList.t
+    | EsyCommands of EsyInstall.PackageConfig.CommandList.t
     | OpamCommands of opamcommands
     | NoCommands
 
   let commands_to_yojson = function
     | NoCommands -> `Null
-    | EsyCommands commands -> EsyI.PackageConfig.CommandList.to_yojson commands
+    | EsyCommands commands -> EsyInstall.PackageConfig.CommandList.to_yojson commands
     | OpamCommands commands -> opamcommands_to_yojson commands
 
   let commands_of_yojson =
@@ -29,7 +29,7 @@ module Repr = struct
     function
     | `Null -> return NoCommands
     | `List _ as json ->
-      let%map commands = EsyI.PackageConfig.CommandList.of_yojson json in
+      let%map commands = EsyInstall.PackageConfig.CommandList.of_yojson json in
       EsyCommands commands
     | `Assoc _ as json ->
       let%map commands = opamcommands_of_yojson json in
@@ -42,7 +42,7 @@ module Repr = struct
   } [@@deriving yojson]
 
   type t = {
-    packageId : PackageId.t;
+    packageId : EsyInstall.PackageId.t;
     build : build;
     platform : System.Platform.t;
     arch : System.Arch.t;
@@ -59,8 +59,8 @@ module Repr = struct
     installCommands : commands;
     patches : patch list;
     substs : Path.t list;
-    exportedEnv : EsyI.PackageConfig.ExportedEnv.t;
-    buildEnv : EsyI.PackageConfig.Env.t;
+    exportedEnv : EsyInstall.PackageConfig.ExportedEnv.t;
+    buildEnv : EsyInstall.PackageConfig.Env.t;
   }
 
   let convFilter filter =

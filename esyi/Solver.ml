@@ -1,6 +1,49 @@
 module Dependencies = Package.Dependencies
-module Resolutions = PackageConfig.Resolutions
-module Resolution = PackageConfig.Resolution
+module Resolutions = EsyInstall.PackageConfig.Resolutions
+module Resolution = EsyInstall.PackageConfig.Resolution
+
+let computeOverrideDigest sandbox override =
+  let open RunAsync.Syntax in
+  match override with
+  | EsyInstall.Solution.Override.OfJson {json;} -> return (Digestv.ofJson json)
+  | OfDist {dist; json = _;} -> return (Digestv.ofString (EsyInstall.Dist.show dist))
+  | OfOpamOverride info ->
+    let%bind files =
+      EsyInstall.Solution.Override.files
+        sandbox.Sandbox.cfg.installCfg
+        sandbox.spec override
+    in
+    let%bind digests = RunAsync.List.mapAndJoin ~f:EsyInstall.File.digest files in
+    let digest = Digestv.ofJson info.json in
+    let digests = digest::digests in
+    let digests = List.sort ~cmp:Digestv.compare digests in
+    return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
+
+let computeOverridesDigest sandbox overrides =
+  let open RunAsync.Syntax in
+  let%bind digests = RunAsync.List.mapAndJoin ~f:(computeOverrideDigest sandbox) overrides in
+  return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
+
+let lock sandbox (pkg : Package.t) =
+  let open RunAsync.Syntax in
+  match pkg.source with
+  | Install { source = _; opam = Some opam; } ->
+    let%bind id =
+      let%bind opamDigest = OpamResolution.digest opam in
+      let%bind overridesDigest = computeOverridesDigest sandbox pkg.overrides in
+      let digest = Digestv.(opamDigest + overridesDigest) in
+      return (EsyInstall.PackageId.make pkg.name pkg.version (Some digest))
+    in
+    return (id, pkg)
+  | Install { source = _; opam = None; } ->
+    let%bind id =
+      let%bind digest = computeOverridesDigest sandbox pkg.overrides in
+      return (EsyInstall.PackageId.make pkg.name pkg.version (Some digest))
+    in
+    return (id, pkg)
+  | Link _ ->
+    let id = EsyInstall.PackageId.make pkg.name pkg.version None in
+    return (id, pkg)
 
 module Strategy = struct
   let trendy = "-count[staleness,solution]"
@@ -219,7 +262,7 @@ let rec findResolutionForRequest resolver req = function
     let version =
       match res.Resolution.resolution with
       | Version version -> version
-      | SourceOverride {source;_} -> Version.Source source
+      | SourceOverride {source;_} -> EsyInstall.Version.Source source
     in
     if
       Resolver.versionMatchesReq
@@ -232,10 +275,10 @@ let rec findResolutionForRequest resolver req = function
 
 let lockPackage
   resolver
-  (id : PackageId.t)
+  (id : EsyInstall.PackageId.t)
   (pkg : Package.t)
-  (dependenciesMap : PackageId.t StringMap.t)
-  (allDependenciesMap : PackageId.t Version.Map.t StringMap.t)
+  (dependenciesMap : EsyInstall.PackageId.t StringMap.t)
+  (allDependenciesMap : EsyInstall.PackageId.t EsyInstall.Version.Map.t StringMap.t)
   =
   let open RunAsync.Syntax in
 
@@ -258,9 +301,9 @@ let lockPackage
   let idsOfDependencies dependencies =
     dependencies
     |> Dependencies.toApproximateRequests
-    |> List.map ~f:(fun req -> StringMap.find req.Req.name dependenciesMap)
+    |> List.map ~f:(fun req -> StringMap.find req.EsyInstall.Req.name dependenciesMap)
     |> List.filterNone
-    |> PackageId.Set.of_list
+    |> EsyInstall.PackageId.Set.of_list
   in
 
   let optDependencies =
@@ -270,7 +313,7 @@ let lockPackage
       | None ->
         begin match StringMap.find name allDependenciesMap with
         | Some versions ->
-          let _version, id = Version.Map.find_first (fun _ -> true) versions in
+          let _version, id = EsyInstall.Version.Map.find_first (fun _ -> true) versions in
           Some id
         | None -> None
         end
@@ -279,19 +322,19 @@ let lockPackage
     |> StringSet.elements
     |> List.map ~f
     |> List.filterNone
-    |> PackageId.Set.of_list
+    |> EsyInstall.PackageId.Set.of_list
   in
 
   let peerDependencies =
     let f req =
       let versions =
-        match StringMap.find req.Req.name allDependenciesMap with
+        match StringMap.find req.EsyInstall.Req.name allDependenciesMap with
         | Some versions -> versions
-        | None -> Version.Map.empty
+        | None -> EsyInstall.Version.Map.empty
       in
-      let versions = List.rev (Version.Map.bindings versions) in
+      let versions = List.rev (EsyInstall.Version.Map.bindings versions) in
       let f (version, _id) =
-        Resolver.versionMatchesReq resolver req req.Req.name version
+        Resolver.versionMatchesReq resolver req req.EsyInstall.Req.name version
       in
       match List.find_opt ~f versions with
       | Some (_version, id) -> Some id
@@ -300,22 +343,29 @@ let lockPackage
     peerDependencies
     |> List.map ~f
     |> List.filterNone
-    |> PackageId.Set.of_list
+    |> EsyInstall.PackageId.Set.of_list
   in
 
   let dependencies =
     let dependencies = idsOfDependencies dependencies in
     dependencies
-    |> PackageId.Set.union optDependencies
-    |> PackageId.Set.union peerDependencies
+    |> EsyInstall.PackageId.Set.union optDependencies
+    |> EsyInstall.PackageId.Set.union peerDependencies
   in
   let devDependencies =
     let devDependencies = idsOfDependencies devDependencies in
-    PackageId.Set.diff devDependencies dependencies
+    EsyInstall.PackageId.Set.diff devDependencies dependencies
   in
-  (** TODO(andreypop): handle opam override translation *)
+  let source =
+    match source with
+    | EsyInstall.PackageSource.Link link -> EsyInstall.PackageSource.Link link
+    | Install {source; opam = None;} ->
+      EsyInstall.PackageSource.Install {source;opam = None;}
+    | Install {source; opam = Some opam;} ->
+      EsyInstall.PackageSource.Install {source; opam = Some opam;}
+  in
   return {
-    Solution.Package.
+    EsyInstall.Solution.Package.
     id;
     name = name;
     version = version;
@@ -355,20 +405,20 @@ let add ~(dependencies : Dependencies.t) solver =
   and addDependencies (dependencies : Dependencies.t) =
     match dependencies with
     | Dependencies.NpmFormula reqs ->
-      let f (req : Req.t) = addDependency req in
+      let f (req : EsyInstall.Req.t) = addDependency req in
       RunAsync.List.mapAndWait ~f reqs
 
     | Dependencies.OpamFormula _ ->
-      let f (req : Req.t) = addDependency req in
+      let f (req : EsyInstall.Req.t) = addDependency req in
       let reqs = Dependencies.toApproximateRequests dependencies in
       RunAsync.List.mapAndWait ~f reqs
 
-  and addDependency (req : Req.t) =
+  and addDependency (req : EsyInstall.Req.t) =
     report "%s" req.name;%lwt
     let%bind resolutions =
       RunAsync.contextf (
         Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.resolver
-      ) "resolving %a" Req.pp req
+      ) "resolving %a" EsyInstall.Req.pp req
     in
 
     let%bind packages =
@@ -449,17 +499,17 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
   let dummyRoot = {
     Package.
     name = root.Package.name;
-    version = Version.parseExn "0.0.0";
+    version = EsyInstall.Version.parseExn "0.0.0";
     originalVersion = None;
     originalName = root.originalName;
-    source = PackageSource.Link {
-      path = DistPath.v ".";
+    source = EsyInstall.PackageSource.Link {
+      path = EsyInstall.DistPath.v ".";
       manifest = None;
     };
-    overrides = Solution.Overrides.empty;
+    overrides = EsyInstall.Solution.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
-    peerDependencies = PackageConfig.NpmFormula.empty;
+    peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -584,7 +634,7 @@ let solveDependenciesNaively
   in
 
   let resolveOfOutside req =
-    report "%a" Req.pp req;%lwt
+    report "%a" EsyInstall.Req.pp req;%lwt
     let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.resolver in
     match findResolutionForRequest solver.resolver req resolutions with
     | Some resolution ->
@@ -596,7 +646,7 @@ let solveDependenciesNaively
     | None -> return None
   in
 
-  let resolve trace (req : Req.t) =
+  let resolve trace (req : EsyInstall.Req.t) =
     let%bind pkg =
       match resolveOfInstalled req with
       | None -> begin match%bind resolveOfOutside req with
@@ -614,7 +664,7 @@ let solveDependenciesNaively
 
   let sealDependencies, addDependencies =
     let solved = Hashtbl.create 100 in
-    let key pkg = pkg.Package.name ^ "." ^ (Version.show pkg.Package.version) in
+    let key pkg = pkg.Package.name ^ "." ^ (EsyInstall.Version.show pkg.Package.version) in
     let sealDependencies () =
       let f _key (pkg, dependencies) map = Package.Map.add pkg dependencies map in
       Hashtbl.fold f solved Package.Map.empty
@@ -635,7 +685,7 @@ let solveDependenciesNaively
          * TODO: refactor solution * construction so we don't need to do that *)
         let reqs = Dependencies.toApproximateRequests dependencies in
         let reqs =
-          let f req = Hashtbl.mem installed req.Req.name in
+          let f req = Hashtbl.mem installed req.EsyInstall.Req.name in
           List.filter ~f reqs
         in
         reqs
@@ -646,7 +696,7 @@ let solveDependenciesNaively
         let%bind pkg =
           RunAsync.contextf
             (resolve trace req)
-            "resolving request %a" Req.pp req
+            "resolving request %a" EsyInstall.Req.pp req
         in
         addToInstalled pkg;
         return pkg
@@ -686,7 +736,7 @@ let solveDependenciesNaively
   finish ();%lwt
   return (sealDependencies ())
 
-let solveOCamlReq (req : Req.t) resolver =
+let solveOCamlReq (req : EsyInstall.Req.t) resolver =
   let open RunAsync.Syntax in
 
   let make resolution =
@@ -697,20 +747,20 @@ let solveOCamlReq (req : Req.t) resolver =
   in
 
   match req.spec with
-  | VersionSpec.Npm _
-  | VersionSpec.NpmDistTag _ ->
+  | EsyInstall.VersionSpec.Npm _
+  | EsyInstall.VersionSpec.NpmDistTag _ ->
     let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec resolver in
     begin match findResolutionForRequest resolver req resolutions with
     | Some resolution -> make resolution
     | None ->
-      Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
+      Logs_lwt.warn (fun m -> m "no version found for %a" EsyInstall.Req.pp req);%lwt
       return (None, None)
     end
-  | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
-  | VersionSpec.Source _ ->
+  | EsyInstall.VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"
+  | EsyInstall.VersionSpec.Source _ ->
     begin match%bind Resolver.resolve ~name:req.name ~spec:req.spec resolver with
     | [resolution] -> make resolution
-    | _ -> errorf "multiple resolutions for %a, expected one" Req.pp req
+    | _ -> errorf "multiple resolutions for %a, expected one" EsyInstall.Req.pp req
     end
 
 let solve (sandbox : Sandbox.t) =
@@ -729,22 +779,22 @@ let solve (sandbox : Sandbox.t) =
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
           (solveOCamlReq ocamlReq sandbox.resolver)
-          "resolving %a" Req.pp ocamlReq
+          "resolving %a" EsyInstall.Req.pp ocamlReq
       in
 
       let dependencies =
         match ocamlVersion, sandbox.dependencies with
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
-          let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
-          let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = PackageConfig.NpmFormula.override reqs [ocamlReq] in
+          let ocamlSpec = EsyInstall.VersionSpec.ofVersion ocamlVersion in
+          let ocamlReq = EsyInstall.Req.make ~name:"ocaml" ~spec:ocamlSpec in
+          let reqs = EsyInstall.PackageConfig.NpmFormula.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =
             match ocamlVersion with
-            | Version.Npm v -> Package.Dep.Npm (SemverVersion.Constraint.EQ v);
-            | Version.Source src -> Package.Dep.Source (SourceSpec.ofSource src)
-            | Version.Opam v -> Package.Dep.Opam (OpamPackageVersion.Constraint.EQ v)
+            | EsyInstall.Version.Npm v -> Package.Dep.Npm (EsyInstall.SemverVersion.Constraint.EQ v);
+            | EsyInstall.Version.Source src -> Package.Dep.Source (EsyInstall.SourceSpec.ofSource src)
+            | EsyInstall.Version.Opam v -> Package.Dep.Opam (EsyInstall.OpamPackageVersion.Constraint.EQ v)
           in
           let ocamlDep = {Package.Dep. name = "ocaml"; req;} in
           Package.Dependencies.OpamFormula (deps @ [[ocamlDep]])
@@ -797,8 +847,8 @@ let solve (sandbox : Sandbox.t) =
     let%bind packageById, idByPackage =
       let rec aux (packageById, idByPackage as acc) = function
         | pkg::rest ->
-          let%bind id = Package.computeId sandbox.Sandbox.cfg sandbox.spec pkg in
-          begin match PackageId.Map.find_opt id packageById with
+          let%bind id, pkg = lock sandbox pkg in
+          begin match EsyInstall.PackageId.Map.find_opt id packageById with
           | Some _ -> aux acc rest
           | None ->
             let deps =
@@ -807,7 +857,7 @@ let solve (sandbox : Sandbox.t) =
               | None -> Exn.failf "no dependencies solved found for %a" Package.pp pkg
             in
             let acc =
-              let packageById = PackageId.Map.add id pkg packageById in
+              let packageById = EsyInstall.PackageId.Map.add id pkg packageById in
               let idByPackage = Package.Map.add pkg id idByPackage in
               (packageById, idByPackage)
             in
@@ -816,7 +866,7 @@ let solve (sandbox : Sandbox.t) =
         | [] -> return (packageById, idByPackage)
       in
 
-      let packageById = PackageId.Map.empty in
+      let packageById = EsyInstall.PackageId.Map.empty in
       let idByPackage = Package.Map.empty in
 
       aux (packageById, idByPackage) [sandbox.root]
@@ -836,9 +886,9 @@ let solve (sandbox : Sandbox.t) =
           in
           List.fold_left ~f ~init:StringMap.empty dependencies
         in
-        PackageId.Map.add id dependencies map
+        EsyInstall.PackageId.Map.add id dependencies map
       in
-      Package.Map.fold f idByPackage PackageId.Map.empty
+      Package.Map.fold f idByPackage EsyInstall.PackageId.Map.empty
     in
 
     return (packageById, idByPackage, dependencies)
@@ -853,21 +903,21 @@ let solve (sandbox : Sandbox.t) =
           | None, None -> None
           | Some vs, None -> Some vs
           | None, Some id ->
-            let version = PackageId.version id in
-            Some (Version.Map.add version id Version.Map.empty)
+            let version = EsyInstall.PackageId.version id in
+            Some (EsyInstall.Version.Map.add version id EsyInstall.Version.Map.empty)
           | Some vs, Some id ->
-            let version = PackageId.version id in
-            Some (Version.Map.add version id vs)
+            let version = EsyInstall.PackageId.version id in
+            Some (EsyInstall.Version.Map.add version id vs)
         in
         StringMap.merge f map deps
       in
-      PackageId.Map.fold f dependenciesById StringMap.empty
+      EsyInstall.PackageId.Map.fold f dependenciesById StringMap.empty
     in
 
     let%bind solution =
       let id = Package.Map.find sandbox.root idByPackage in
       let dependenciesByName =
-        PackageId.Map.find id dependenciesById
+        EsyInstall.PackageId.Map.find id dependenciesById
       in
       let%bind root =
         lockPackage
@@ -878,14 +928,14 @@ let solve (sandbox : Sandbox.t) =
           allDependenciesByName
       in
       return (
-        Solution.empty root.Solution.Package.id
-        |> Solution.add root
+        EsyInstall.Solution.empty root.EsyInstall.Solution.Package.id
+        |> EsyInstall.Solution.add root
       )
     in
 
     let%bind solution =
       let f solution (id, dependencies) =
-        let pkg = PackageId.Map.find id packageById in
+        let pkg = EsyInstall.PackageId.Map.find id packageById in
         let%bind pkg =
           lockPackage
             sandbox.resolver
@@ -894,10 +944,10 @@ let solve (sandbox : Sandbox.t) =
             dependencies
             allDependenciesByName
         in
-        return (Solution.add pkg solution)
+        return (EsyInstall.Solution.add pkg solution)
       in
       dependenciesById
-      |> PackageId.Map.bindings
+      |> EsyInstall.PackageId.Map.bindings
       |> RunAsync.List.foldLeft ~f ~init:solution
     in
     return solution

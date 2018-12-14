@@ -4,12 +4,12 @@ type t
 (** Make new resolver *)
 val make :
   cfg:Config.t
-  -> sandbox:SandboxSpec.t
+  -> sandbox:EsyInstall.SandboxSpec.t
   -> unit
   -> t RunAsync.t
 
-val setOCamlVersion : Version.t -> t -> unit
-val setResolutions : PackageConfig.Resolutions.t -> t -> unit
+val setOCamlVersion : EsyInstall.Version.t -> t -> unit
+val setResolutions : EsyInstall.PackageConfig.Resolutions.t -> t -> unit
 val getUnusedResolutions : t -> string list
 
 
@@ -20,9 +20,9 @@ val getUnusedResolutions : t -> string list
 val resolve :
   ?fullMetadata:bool
   -> name:string
-  -> ?spec:VersionSpec.t
+  -> ?spec:EsyInstall.VersionSpec.t
   -> t
-  -> PackageConfig.Resolution.t list RunAsync.t
+  -> EsyInstall.PackageConfig.Resolution.t list RunAsync.t
 
 (**
  * Fetch the package metadata given the resolution.
@@ -31,9 +31,9 @@ val resolve :
  * (missing checksums, invalid dependencies format and etc.)
  *)
 val package :
-  resolution:PackageConfig.Resolution.t
+  resolution:EsyInstall.PackageConfig.Resolution.t
   -> t
   -> (Package.t, string) result RunAsync.t
 
-val versionMatchesReq : t -> Req.t -> string -> Version.t -> bool
-val versionMatchesDep : t -> Package.Dep.t -> string -> Version.t -> bool
+val versionMatchesReq : t -> EsyInstall.Req.t -> string -> EsyInstall.Version.t -> bool
+val versionMatchesDep : t -> Package.Dep.t -> string -> EsyInstall.Version.t -> bool

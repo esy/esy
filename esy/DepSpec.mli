@@ -1,5 +1,3 @@
-open EsyI
-
 type id
 (** Package id. *)
 
@@ -21,7 +19,7 @@ val devDependencies : id -> t
 val (+) : t -> t -> t
 (** [a + b] refers to all packages in [a] and in [b]. *)
 
-val eval : Solution.t -> PackageId.t -> t -> PackageId.Set.t
+val eval : EsyInstall.Solution.t -> EsyInstall.PackageId.t -> t -> EsyInstall.PackageId.Set.t
 (** Eval depspec given the [Solution.t] and the current package [PackageId.t]. *)
 
 val compare : t -> t -> int

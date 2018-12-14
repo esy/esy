@@ -1,6 +1,14 @@
 open Esy
 open Cmdliner
 
+type t = {
+  mainprg : string;
+  cfg : Config.t;
+  spec : EsyInstall.SandboxSpec.t;
+  installSandbox : EsyI.Sandbox.t;
+  sandbox : EsyInstall.Sandbox.t;
+}
+
 let findSandboxPathStartingWith currentPath =
   let open RunAsync.Syntax in
   let isProject path =
@@ -24,13 +32,6 @@ let findSandboxPathStartingWith currentPath =
       else errorf "No sandbox found (from %a and up)" Path.ppPretty currentPath
   in
   climb currentPath
-
-type t = {
-  mainprg : string;
-  cfg : Config.t;
-  spec : EsyI.SandboxSpec.t;
-  installSandbox : EsyI.Sandbox.t;
-}
 
 let commonOptionsSection = Manpage.s_common_options
 
@@ -141,12 +142,12 @@ let make
   in
 
   let%bind sandboxPath = sandboxPath in
-  let%bind spec = EsyI.SandboxSpec.ofPath sandboxPath in
+  let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
 
   let%bind prefixPath = match prefixPath with
     | Some prefixPath -> return (Some prefixPath)
     | None ->
-      let%bind rc = EsyRc.ofPath spec.EsyI.SandboxSpec.path in
+      let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
       return rc.EsyRc.prefixPath
   in
 
@@ -186,7 +187,98 @@ let make
     EsyI.Sandbox.make ~cfg:installCfg spec
   in
 
-  return {mainprg; cfg; installSandbox; spec;}
+  return {
+    mainprg;
+    cfg;
+    installSandbox;
+    sandbox = {
+      EsyInstall.Sandbox.
+      cfg = installSandbox.cfg.installCfg;
+      spec;
+    };
+    spec;
+  }
+
+let computeSolutionChecksum projcfg =
+  let open RunAsync.Syntax in
+
+  let sandbox = projcfg.installSandbox in
+
+  let ppDependencies fmt deps =
+
+    let ppOpamDependencies fmt deps =
+      let ppDisj fmt disj =
+        match disj with
+        | [] -> Fmt.unit "true" fmt ()
+        | [dep] -> EsyI.Package.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") EsyI.Package.Dep.pp) deps
+      in
+      Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
+    in
+
+    let ppNpmDependencies fmt deps =
+      let ppDnf ppConstr fmt f =
+        let ppConj = Fmt.(list ~sep:(unit " && ") ppConstr) in
+        Fmt.(list ~sep:(unit " || ") ppConj) fmt f
+      in
+      let ppVersionSpec fmt spec =
+        match spec with
+        | EsyInstall.VersionSpec.Npm f ->
+          ppDnf EsyInstall.SemverVersion.Constraint.pp fmt f
+        | EsyInstall.VersionSpec.NpmDistTag tag ->
+          Fmt.string fmt tag
+        | EsyInstall.VersionSpec.Opam f ->
+          ppDnf EsyInstall.OpamPackageVersion.Constraint.pp fmt f
+        | EsyInstall.VersionSpec.Source src ->
+          Fmt.pf fmt "%a" EsyInstall.SourceSpec.pp src
+      in
+      let ppReq fmt req =
+        Fmt.fmt "%s@%a" fmt req.EsyInstall.Req.name ppVersionSpec req.spec
+      in
+      Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
+    in
+
+    match deps with
+    | EsyI.Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | EsyI.Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+  in
+
+  let showDependencies (deps : EsyI.Package.Dependencies.t) =
+    Format.asprintf "%a" ppDependencies deps
+  in
+
+  let digest =
+    EsyInstall.PackageConfig.Resolutions.digest sandbox.root.resolutions
+    |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
+    |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
+  in
+
+  let%bind digest =
+    let f digest resolution =
+      let resolution =
+        match resolution.EsyInstall.PackageConfig.Resolution.resolution with
+        | SourceOverride {source = EsyInstall.Source.Link _; override = _;} -> Some resolution
+        | SourceOverride _ -> None
+        | Version (EsyInstall.Version.Source (EsyInstall.Source.Link _)) -> Some resolution
+        | Version _ -> None
+      in
+      match resolution with
+      | None -> return digest
+      | Some resolution ->
+        begin match%bind EsyI.Resolver.package ~resolution sandbox.resolver with
+        | Error _ ->
+          errorf "unable to read package: %a" EsyInstall.PackageConfig.Resolution.pp resolution
+        | Ok pkg ->
+          return Digestv.(add (string (showDependencies pkg.EsyI.Package.dependencies)) digest)
+        end
+    in
+    RunAsync.List.foldLeft
+      ~f
+      ~init:digest
+      (EsyInstall.PackageConfig.Resolutions.entries sandbox.resolutions)
+  in
+
+  return (Digestv.toHex digest)
 
 let promiseTerm sandboxPath =
   let parse

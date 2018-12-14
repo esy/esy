@@ -1,5 +1,5 @@
-module Solution = EsyI.Solution
-module PackageId = EsyI.PackageId
+module Solution = EsyInstall.Solution
+module PackageId = EsyInstall.PackageId
 
 module Id = struct
   type t =

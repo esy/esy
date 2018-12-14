@@ -8,7 +8,7 @@ val make : cfg:Config.t -> unit -> t
 (** Configure a new opam registry instance. *)
 
 val versions :
-  ?ocamlVersion : OpamPackageVersion.Version.t
+  ?ocamlVersion : EsyInstall.OpamPackageVersion.Version.t
   -> name : OpamPackage.Name.t
   -> t
   -> OpamResolution.t list RunAsync.t

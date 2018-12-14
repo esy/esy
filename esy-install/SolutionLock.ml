@@ -1,5 +1,3 @@
-type source = PackageSource.t
-
 type override =
   | OfJson of {json : Json.t}
   | OfPath of Dist.local
@@ -28,40 +26,6 @@ let override_of_yojson json =
 
 type overrides = override list [@@deriving yojson]
 
-let source_to_yojson source =
-  let open Json.Encode in
-  match source with
-  | PackageSource.Link { path; manifest } ->
-    assoc [
-      field "type" string "link";
-      field "path" DistPath.to_yojson path;
-      fieldOpt "manifest" ManifestSpec.to_yojson manifest;
-    ]
-  | Install { source = source, mirrors; opam } ->
-    assoc [
-      field "type" string "install";
-      field "source" (Json.Encode.list Dist.to_yojson) (source::mirrors);
-      fieldOpt "opam" OpamResolution.to_yojson opam;
-    ]
-
-let source_of_yojson json =
-  let open Result.Syntax in
-  let open Json.Decode in
-  match%bind fieldWith ~name:"type" string json with
-  | "install" ->
-    let%bind source =
-      match%bind fieldWith ~name:"source" (list Dist.of_yojson) json with
-      | source::mirrors -> return (source, mirrors)
-      | _ -> errorf "invalid source configuration"
-    in
-    let%bind opam = fieldOptWith ~name:"opam" OpamResolution.of_yojson json in
-    Ok (PackageSource.Install {source; opam;})
-  | "link" ->
-    let%bind path = fieldWith ~name:"path" DistPath.of_yojson json in
-    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
-    Ok (PackageSource.Link {path; manifest;})
-  | typ -> errorf "unknown source type: %s" typ
-
 type t = {
   (* This is checksum of all dependencies/resolutios, used as a checksum. *)
   checksum : string;
@@ -75,7 +39,7 @@ and node = {
   id: PackageId.t;
   name: string;
   version: Version.t;
-  source: source;
+  source: PackageSource.t;
   overrides: overrides;
   dependencies : PackageId.Set.t;
   devDependencies : PackageId.Set.t;
@@ -107,16 +71,21 @@ module PackageOverride = struct
     ) "reading package override %a" Path.pp path
 end
 
-let writeOverride sandbox override =
+let writeOverride sandbox pkg override =
   let open RunAsync.Syntax in
   match override with
   | Solution.Override.OfJson {json;} -> return (OfJson {json;})
   | Solution.Override.OfOpamOverride info ->
-    let%bind digest = Solution.Override.digest sandbox.cfg sandbox.spec override in
+    let id =
+      Format.asprintf "%s-%a-opam-override"
+        (Path.safeSeg pkg.Solution.Package.name)
+        Version.pp
+        pkg.version
+    in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec
       / "overrides"
-      / Digestv.toHex digest
+      / id
     ) in
     let%bind () = Fs.copyPath ~src:info.path ~dst:lockPath in
     let path = DistPath.ofPath (Path.tryRelativize ~root:sandbox.spec.path lockPath) in
@@ -125,7 +94,7 @@ let writeOverride sandbox override =
     return (OfPath local)
   | Solution.Override.OfDist {dist; json = _;} ->
     let%bind distPath = DistStorage.fetchIntoCache ~cfg:sandbox.cfg ~sandbox:sandbox.spec dist in
-    let%bind digest = Solution.Override.digest sandbox.cfg sandbox.spec override in
+    let digest = Digestv.ofString (Dist.show dist) in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec
       / "overrides"
@@ -157,11 +126,33 @@ let readOverride sandbox override =
     let%bind json = PackageOverride.ofPath path in
     return (Solution.Override.OfDist {dist; json;})
 
-let writeOverrides sandbox overrides =
-  RunAsync.List.mapAndJoin ~f:(writeOverride sandbox) overrides
+let writeOverrides sandbox pkg overrides =
+  RunAsync.List.mapAndJoin ~f:(writeOverride sandbox pkg) overrides
 
 let readOverrides sandbox overrides =
   RunAsync.List.mapAndJoin ~f:(readOverride sandbox) overrides
+
+let writeOpam sandbox (opam : PackageSource.opam) =
+  let open RunAsync.Syntax in
+  let sandboxPath = sandbox.Sandbox.spec.path in
+  let opampath = Path.(sandboxPath // opam.path) in
+  let dst =
+    let name = OpamPackage.Name.to_string opam.name in
+    let version = OpamPackage.Version.to_string opam.version in
+    Path.(SandboxSpec.solutionLockPath sandbox.spec / "opam" / (name ^ "." ^ version))
+  in
+  if Path.isPrefix sandboxPath opampath
+  then return opam
+  else (
+    let%bind () = Fs.copyPath ~src:opam.path ~dst in
+    return {opam with path = Path.tryRelativize ~root:sandboxPath dst;}
+  )
+
+let readOpam sandbox (opam : PackageSource.opam) =
+  let open RunAsync.Syntax in
+  let sandboxPath = sandbox.Sandbox.spec.path in
+  let opampath = Path.(sandboxPath // opam.path) in
+  return {opam with path = opampath;}
 
 let writePackage sandbox (pkg : Solution.Package.t) =
   let open RunAsync.Syntax in
@@ -170,10 +161,10 @@ let writePackage sandbox (pkg : Solution.Package.t) =
     | Link { path; manifest } -> return (PackageSource.Link {path; manifest;})
     | Install {source; opam = None;} -> return (PackageSource.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
-      let%bind opam = OpamResolution.toLock ~sandbox:sandbox.Sandbox.spec opam in
+      let%bind opam = writeOpam sandbox opam in
       return (PackageSource.Install {source; opam = Some opam;});
   in
-  let%bind overrides = writeOverrides sandbox pkg.overrides in
+  let%bind overrides = writeOverrides sandbox pkg pkg.overrides in
   return {
     id = pkg.id;
     name = pkg.name;
@@ -191,7 +182,7 @@ let readPackage sandbox (node : node) =
     | Link { path; manifest } -> return (PackageSource.Link {path;manifest;})
     | Install {source; opam = None;} -> return (PackageSource.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
-      let%bind opam = OpamResolution.ofLock ~sandbox:sandbox.Sandbox.spec opam in
+      let%bind opam = readOpam sandbox opam in
       return (PackageSource.Install {source; opam = Some opam;});
   in
   let%bind overrides = readOverrides sandbox node.overrides in
@@ -205,85 +196,6 @@ let readPackage sandbox (node : node) =
     dependencies = node.dependencies;
     devDependencies = node.devDependencies;
   }
-
-let computeSandboxChecksum (sandbox : Sandbox.t) =
-  let open RunAsync.Syntax in
-
-  let ppDependencies fmt deps =
-
-    let ppOpamDependencies fmt deps =
-      let ppDisj fmt disj =
-        match disj with
-        | [] -> Fmt.unit "true" fmt ()
-        | [dep] -> Package.Dep.pp fmt dep
-        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") Package.Dep.pp) deps
-      in
-      Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
-    in
-
-    let ppNpmDependencies fmt deps =
-      let ppDnf ppConstr fmt f =
-        let ppConj = Fmt.(list ~sep:(unit " && ") ppConstr) in
-        Fmt.(list ~sep:(unit " || ") ppConj) fmt f
-      in
-      let ppVersionSpec fmt spec =
-        match spec with
-        | VersionSpec.Npm f ->
-          ppDnf SemverVersion.Constraint.pp fmt f
-        | VersionSpec.NpmDistTag tag ->
-          Fmt.string fmt tag
-        | VersionSpec.Opam f ->
-          ppDnf OpamPackageVersion.Constraint.pp fmt f
-        | VersionSpec.Source src ->
-          Fmt.pf fmt "%a" SourceSpec.pp src
-      in
-      let ppReq fmt req =
-        Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
-      in
-      Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
-    in
-
-    match deps with
-    | Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
-    | Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
-  in
-
-  let showDependencies (deps : Package.Dependencies.t) =
-    Format.asprintf "%a" ppDependencies deps
-  in
-
-  let digest =
-    PackageConfig.Resolutions.digest sandbox.root.resolutions
-    |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
-    |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
-  in
-
-  let%bind digest =
-    let f digest resolution =
-      let resolution =
-        match resolution.PackageConfig.Resolution.resolution with
-        | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
-        | SourceOverride _ -> None
-        | Version (Version.Source (Source.Link _)) -> Some resolution
-        | Version _ -> None
-      in
-      match resolution with
-      | None -> return digest
-      | Some resolution ->
-        begin match%bind Resolver.package ~resolution sandbox.resolver with
-        | Error _ ->
-          errorf "unable to read package: %a" PackageConfig.Resolution.pp resolution
-        | Ok pkg ->
-          return Digestv.(add (string (showDependencies pkg.Package.dependencies)) digest)
-        end
-    in
-    RunAsync.List.foldLeft
-      ~f
-      ~init:digest
-      (PackageConfig.Resolutions.entries sandbox.resolutions)
-  in
-
-  return (Digestv.toHex digest)
 
 let solutionOfLock sandbox root node =
   let open RunAsync.Syntax in
@@ -310,7 +222,7 @@ let lockOfSolution sandbox (solution : Solution.t) =
   in
   return (Solution.root solution, node)
 
-let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
+let ofPath ~checksum ~(sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
   RunAsync.contextf (
     Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path);%lwt
@@ -322,7 +234,6 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
       in
       match lock with
       | Ok lock ->
-        let%bind checksum = computeSandboxChecksum sandbox in
         if String.compare lock.checksum checksum = 0
         then
           let%bind solution = solutionOfLock sandbox lock.root lock.node in
@@ -341,12 +252,11 @@ let ofPath ~(sandbox : Sandbox.t) (path : Path.t) =
       return None
   ) "reading lock %a" Path.pp path
 
-let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
+let toPath ~checksum ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
-  let%bind checksum = computeSandboxChecksum sandbox in
   let lock = {checksum; node; root = root.Solution.Package.id;} in
   let%bind () = Fs.createDir path in
   let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
@@ -354,12 +264,11 @@ let toPath ~sandbox ~(solution : Solution.t) (path : Path.t) =
   let%bind () = Fs.writeFile ~data:gitIgnoreContents Path.(path / ".gitignore") in
   return ()
 
-let unsafeUpdateChecksum ~sandbox path =
+let unsafeUpdateChecksum ~checksum path =
   let open RunAsync.Syntax in
   let%bind lock =
     let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
     RunAsync.ofRun (Json.parseJsonWith of_yojson json)
   in
-  let%bind checksum = computeSandboxChecksum sandbox in
   let lock = {lock with checksum;} in
   Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)

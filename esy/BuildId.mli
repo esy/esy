@@ -1,4 +1,3 @@
-open EsyI
 
 module Repr : sig
   type t
@@ -8,7 +7,7 @@ end
 type t
 
 val make :
-  packageId:PackageId.t
+  packageId:EsyInstall.PackageId.t
   -> build:BuildManifest.t
   -> sourceType:SourceType.t
   -> mode:BuildSpec.mode

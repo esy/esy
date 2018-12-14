@@ -66,19 +66,6 @@ module Override = struct
     | OfOpamOverride info ->
       File.ofDir Path.(info.path / "files")
 
-  let digest cfg sandbox override =
-    let open RunAsync.Syntax in
-    match override with
-    | OfJson {json;} -> return (Digestv.ofJson json)
-    | OfDist {dist; json = _;} -> return (Digestv.ofString (Dist.show dist))
-    | OfOpamOverride info ->
-      let%bind files = files cfg sandbox override in
-      let%bind digests = RunAsync.List.mapAndJoin ~f:File.digest files in
-      let digest = Digestv.ofJson info.json in
-      let digests = digest::digests in
-      let digests = List.sort ~cmp:Digestv.compare digests in
-      return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
-
 end
 
 module Overrides = struct
@@ -89,11 +76,6 @@ module Overrides = struct
   let isEmpty = function
     | [] -> true
     | _ -> false
-
-  let digest cfg sandbox overrides =
-    let open RunAsync.Syntax in
-    let%bind digests = RunAsync.List.mapAndJoin ~f:(Override.digest cfg sandbox) overrides in
-    return (List.fold_left ~init:Digestv.empty ~f:Digestv.combine digests)
 
   let add override overrides =
     override::overrides

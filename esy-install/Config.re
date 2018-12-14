@@ -1,36 +1,18 @@
 type t = {
-  installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
   sourceArchivePath: option(Path.t),
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
   opamArchivesIndexPath: Path.t,
-  esyOpamOverride: checkout,
-  opamRepository: checkout,
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
-}
-and checkout =
-  | Local(Path.t)
-  | Remote(string, Path.t)
-and checkoutCfg = [
-  | `Local(Path.t)
-  | `Remote(string)
-  | `RemoteLocal(string, Path.t)
-];
+};
 
 let resolvedPrefix = "esyi5-";
 
 let esyOpamOverrideVersion = "6";
-
-let configureCheckout = (~defaultRemote, ~defaultLocal) =>
-  fun
-  | Some(`RemoteLocal(remote, local)) => Remote(remote, local)
-  | Some(`Remote(remote)) => Remote(remote, defaultLocal)
-  | Some(`Local(local)) => Local(local)
-  | None => Remote(defaultRemote, defaultLocal);
 
 let make =
     (
@@ -38,8 +20,6 @@ let make =
       ~cachePath=?,
       ~cacheTarballsPath=?,
       ~cacheSourcesPath=?,
-      ~opamRepository=?,
-      ~esyOpamOverride=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
       ~skipRepositoryUpdate,
@@ -84,43 +64,16 @@ let make =
 
   let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
 
-  let opamRepository = {
-    let defaultRemote = "https://github.com/ocaml/opam-repository";
-    let defaultLocal = Path.(cachePath / "opam-repository");
-    configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
-  };
-
-  let esyOpamOverride = {
-    let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
-    let defaultLocal = Path.(cachePath / "esy-opam-override");
-    configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
-  };
-
   let npmRegistry =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
-  let installCfg = {
-    EsyInstall.Config.esySolveCmd,
-    sourceArchivePath,
-    sourceFetchPath,
-    sourceStagePath,
-    sourceInstallPath,
-    opamArchivesIndexPath,
-    npmRegistry,
-    skipRepositoryUpdate,
-    solveTimeout,
-  };
-
   return({
-    installCfg,
     esySolveCmd,
     sourceArchivePath,
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
     opamArchivesIndexPath,
-    opamRepository,
-    esyOpamOverride,
     npmRegistry,
     skipRepositoryUpdate,
     solveTimeout,

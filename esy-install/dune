@@ -1,10 +1,9 @@
 (library
-  (name EsyI)
+  (name EsyInstall)
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
-            EsyInstall
             angstrom
             str
             cudf

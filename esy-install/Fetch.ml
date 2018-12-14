@@ -372,7 +372,7 @@ end = struct
       match pkg.source with
       | Link _
       | Install { opam = None; _ } -> return []
-      | Install { opam = Some opam; _ } -> OpamResolution.files opam
+      | Install { opam = Some opam; _ } -> PackageSource.opamfiles opam
     in
 
     let%bind filesOfOverride =

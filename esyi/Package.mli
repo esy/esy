@@ -1,4 +1,4 @@
-open PackageConfig
+open EsyInstall.PackageConfig
 
 type 'a disj = 'a list
 type 'a conj = 'a list
@@ -10,10 +10,10 @@ module Dep : sig
   }
 
   and req =
-    | Npm of SemverVersion.Constraint.t
+    | Npm of EsyInstall.SemverVersion.Constraint.t
     | NpmDistTag of string
-    | Opam of OpamPackageVersion.Constraint.t
-    | Source of SourceSpec.t
+    | Opam of EsyInstall.OpamPackageVersion.Constraint.t
+    | Source of EsyInstall.SourceSpec.t
 
   val pp : t Fmt.t
 end
@@ -26,23 +26,23 @@ module Dependencies : sig
   include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t
 
-  val toApproximateRequests : t -> Req.t list
+  val toApproximateRequests : t -> EsyInstall.Req.t list
 
   val filterDependenciesByName : name:string -> t -> t
 end
 
 type t = {
   name : string;
-  version : Version.t;
-  originalVersion : Version.t option;
+  version : EsyInstall.Version.t;
+  originalVersion : EsyInstall.Version.t option;
   originalName : string option;
-  source : PackageSource.t;
-  overrides : Solution.Overrides.t;
+  source : EsyInstall.PackageSource.t;
+  overrides : EsyInstall.Solution.Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : EsyInstall.PackageConfig.Resolutions.t;
   kind : kind;
 }
 
@@ -56,8 +56,6 @@ val pp : t Fmt.t
 val compare : t -> t -> int
 
 val to_yojson : t Json.encoder
-
-val computeId : Config.t -> SandboxSpec.t -> t -> PackageId.t RunAsync.t
 
 module Map : Map.S with type key := t
 module Set : Set.S with type elt := t

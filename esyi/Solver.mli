@@ -13,7 +13,7 @@ type t = private {
   cfg: Config.t;
   resolver: Resolver.t;
   universe: Universe.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : EsyInstall.PackageConfig.Resolutions.t;
 }
 
 (**
@@ -25,7 +25,7 @@ type t = private {
 val make :
   cfg:Config.t
   -> resolver:Resolver.t
-  -> resolutions:PackageConfig.Resolutions.t
+  -> resolutions:EsyInstall.PackageConfig.Resolutions.t
   -> unit
   -> t RunAsync.t
 
@@ -38,4 +38,4 @@ val add :
 (**
  * Solve dependencies for the root
  *)
-val solve : Sandbox.t -> Solution.t RunAsync.t
+val solve : Sandbox.t -> EsyInstall.Solution.t RunAsync.t

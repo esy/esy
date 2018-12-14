@@ -1,8 +1,8 @@
 type t
 
 type versions = {
-  versions : SemverVersion.Version.t list;
-  distTags : SemverVersion.Version.t StringMap.t;
+  versions : EsyInstall.SemverVersion.Version.t list;
+  distTags : EsyInstall.SemverVersion.Version.t StringMap.t;
 }
 
 val make :
@@ -20,7 +20,7 @@ val versions :
 
 val package :
   name:string
-  -> version:SemverVersion.Version.t
+  -> version:EsyInstall.SemverVersion.Version.t
   -> t
   -> unit
   -> Package.t RunAsync.t

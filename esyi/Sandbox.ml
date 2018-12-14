@@ -1,16 +1,16 @@
 type t = {
   cfg : Config.t;
-  spec : SandboxSpec.t;
+  spec : EsyInstall.SandboxSpec.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
-  resolutions : PackageConfig.Resolutions.t;
-  ocamlReq : Req.t option;
+  resolutions : EsyInstall.PackageConfig.Resolutions.t;
+  ocamlReq : EsyInstall.Req.t option;
   resolver : Resolver.t;
 }
 
 let ocamlReqAny =
-  let spec = VersionSpec.Npm SemverVersion.Formula.any in
-  Req.make ~name:"ocaml" ~spec
+  let spec = EsyInstall.VersionSpec.Npm EsyInstall.SemverVersion.Formula.any in
+  EsyInstall.Req.make ~name:"ocaml" ~spec
 
 let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
   let open RunAsync.Syntax in
@@ -58,11 +58,11 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
     |> List.filterNone
   in
 
-  let source = Source.Link {
-    path = DistPath.v ".";
+  let source = EsyInstall.Source.Link {
+    path = EsyInstall.DistPath.v ".";
     manifest = None;
   } in
-  let version = Version.Source source in
+  let version = EsyInstall.Version.Source source in
 
   match opams with
   | [] ->
@@ -75,20 +75,20 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         version;
         originalVersion = None;
         originalName = None;
-        source = PackageSource.Link {
-          path = DistPath.v ".";
+        source = EsyInstall.PackageSource.Link {
+          path = EsyInstall.DistPath.v ".";
           manifest = None;
         };
-        overrides = Solution.Overrides.empty;
+        overrides = EsyInstall.Solution.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
-        peerDependencies = PackageConfig.NpmFormula.empty;
+        peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
         optDependencies = StringSet.empty;
-        resolutions = PackageConfig.Resolutions.empty;
+        resolutions = EsyInstall.PackageConfig.Resolutions.empty;
         kind = Esy;
       };
       resolver;
-      resolutions = PackageConfig.Resolutions.empty;
+      resolutions = EsyInstall.PackageConfig.Resolutions.empty;
       dependencies = Package.Dependencies.NpmFormula [];
       ocamlReq = Some ocamlReqAny;
     }
@@ -117,16 +117,16 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       version;
       originalVersion = None;
       originalName = None;
-      source = PackageSource.Link {
-        path = DistPath.v ".";
+      source = EsyInstall.PackageSource.Link {
+        path = EsyInstall.DistPath.v ".";
         manifest = None;
       };
-      overrides = Solution.Overrides.empty;
+      overrides = EsyInstall.Solution.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
-      peerDependencies = PackageConfig.NpmFormula.empty;
+      peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
       optDependencies = StringSet.empty;
-      resolutions = PackageConfig.Resolutions.empty;
+      resolutions = EsyInstall.PackageConfig.Resolutions.empty;
       kind = Package.Esy;
     } in
 
@@ -138,7 +138,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
       cfg;
       spec;
       root;
-      resolutions = PackageConfig.Resolutions.empty;
+      resolutions = EsyInstall.PackageConfig.Resolutions.empty;
       resolver;
       dependencies;
       ocamlReq = Some ocamlReqAny;
@@ -148,9 +148,9 @@ let ofSource ~cfg ~spec source =
   let open RunAsync.Syntax in
 
   let%bind resolution =
-    let version = Version.Source source in
+    let version = EsyInstall.Version.Source source in
     return {
-      PackageConfig.Resolution.
+      EsyInstall.PackageConfig.Resolution.
       name = "root";
       resolution = Version version;
     }
@@ -167,7 +167,7 @@ let ofSource ~cfg ~spec source =
       let name =
         match root.Package.originalName with
         | Some name -> name
-        | None -> SandboxSpec.projectName spec
+        | None -> EsyInstall.SandboxSpec.projectName spec
       in
       {root with name;}
     in
@@ -178,8 +178,8 @@ let ofSource ~cfg ~spec source =
         let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
         deps, None
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
-        let deps = PackageConfig.NpmFormula.override deps devDeps in
-        let ocamlReq = PackageConfig.NpmFormula.find ~name:"ocaml" deps in
+        let deps = EsyInstall.PackageConfig.NpmFormula.override deps devDeps in
+        let ocamlReq = EsyInstall.PackageConfig.NpmFormula.find ~name:"ocaml" deps in
         Package.Dependencies.NpmFormula deps, ocamlReq
       | Package.Dependencies.NpmFormula _, _
       | Package.Dependencies.OpamFormula _, _  ->
@@ -199,20 +199,20 @@ let ofSource ~cfg ~spec source =
     }
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
-let make ~cfg (spec : SandboxSpec.t) =
+let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
 
   RunAsync.contextf (
     match spec.manifest with
-    | ManifestSpec.One (Esy, fname)
-    | ManifestSpec.One (Opam, fname) ->
+    | EsyInstall.ManifestSpec.One (Esy, fname)
+    | EsyInstall.ManifestSpec.One (Opam, fname) ->
       let source = "link:" ^ fname in
-      begin match Source.parse source with
+      begin match EsyInstall.Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
       end
-    | ManifestSpec.ManyOpam ->
-      let%bind paths = ManifestSpec.findManifestsAtPath spec.path spec.manifest in
+    | EsyInstall.ManifestSpec.ManyOpam ->
+      let%bind paths = EsyInstall.ManifestSpec.findManifestsAtPath spec.path spec.manifest in
       let paths = List.map ~f:(fun (_, filename) -> Path.(spec.path / filename)) paths in
       ofMultiplOpamFiles ~cfg ~spec spec.path paths
   ) "loading root package metadata"

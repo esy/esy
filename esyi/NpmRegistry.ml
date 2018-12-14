@@ -1,13 +1,13 @@
 module Packument = struct
   type t = {
     versions : Json.t StringMap.t;
-    distTags : SemverVersion.Version.t StringMap.t [@key "dist-tags"];
+    distTags : EsyInstall.SemverVersion.Version.t StringMap.t [@key "dist-tags"];
   } [@@deriving of_yojson { strict = false }]
 end
 
 type versions = {
-  versions : SemverVersion.Version.t list;
-  distTags : SemverVersion.Version.t StringMap.t;
+  versions : EsyInstall.SemverVersion.Version.t list;
+  distTags : EsyInstall.SemverVersion.Version.t StringMap.t;
 }
 
 module VersionsCache = Memoize.Make(struct
@@ -16,7 +16,7 @@ module VersionsCache = Memoize.Make(struct
 end)
 
 module PackageCache = Memoize.Make(struct
-  type key = string * SemverVersion.Version.t
+  type key = string * EsyInstall.SemverVersion.Version.t
   type value = Package.t RunAsync.t
 end)
 
@@ -76,9 +76,9 @@ let versions ?(fullMetadata=false) ~name registry () =
       let%bind versions = RunAsync.ofStringError (
         let f (version, packageJson) =
           let open Result.Syntax in
-          let%bind version = SemverVersion.Version.parse version in
+          let%bind version = EsyInstall.SemverVersion.Version.parse version in
           PackageCache.ensureComputed registry.pkgCache (name, version) begin fun () ->
-            let version = Version.Npm version in
+            let version = EsyInstall.Version.Npm version in
             RunAsync.ofRun (PackageJson.packageOfJson ~name ~version packageJson)
           end;
           return version
@@ -97,5 +97,5 @@ let package ~name ~version registry () =
   let open RunAsync.Syntax in
   let%bind _: versions option = versions ~fullMetadata:true ~name registry () in
   match PackageCache.get registry.pkgCache (name, version) with
-  | None -> errorf "no package found on npm %s@%a" name SemverVersion.Version.pp version
+  | None -> errorf "no package found on npm %s@%a" name EsyInstall.SemverVersion.Version.pp version
   | Some pkg -> pkg

@@ -1,11 +1,11 @@
 open Esy
 
-module SandboxSpec = EsyI.SandboxSpec
-module Installation = EsyI.Installation
-module Solution = EsyI.Solution
-module SolutionLock = EsyI.SolutionLock
-module Version = EsyI.Version
-module PackageId = EsyI.PackageId
+module SandboxSpec = EsyInstall.SandboxSpec
+module Installation = EsyInstall.Installation
+module Solution = EsyInstall.Solution
+module SolutionLock = EsyInstall.SolutionLock
+module Version = EsyInstall.Version
+module PackageId = EsyInstall.PackageId
 module PkgSpec = EsyI.PkgSpec
 
 module PkgArg = struct
@@ -265,7 +265,7 @@ let withPackage proj solution (pkgArg : PkgArg.t) f =
     | ByPath path ->
       let root = proj.Project.projcfg.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
-      let path = EsyI.DistPath.ofPath (Path.tryRelativize ~root path) in
+      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
       Solution.findByPath path solution
   in
   runWith pkg
@@ -1149,15 +1149,16 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
   in
   makeLsCommand ~computeTermNode ~includeTransitive:false proj
 
-let getSandboxSolution installSandbox =
+let getSandboxSolution (projcfg : ProjectConfig.t) =
   let open EsyI in
   let open RunAsync.Syntax in
-  let%bind solution = Solver.solve installSandbox in
-  let lockPath = SandboxSpec.solutionLockPath installSandbox.Sandbox.spec in
+  let%bind solution = Solver.solve projcfg.installSandbox in
+  let lockPath = SandboxSpec.solutionLockPath projcfg.installSandbox.Sandbox.spec in
   let%bind () =
-    SolutionLock.toPath ~sandbox:installSandbox ~solution lockPath
+    let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+    EsyInstall.SolutionLock.toPath ~checksum ~sandbox:projcfg.sandbox ~solution lockPath
   in
-  let unused = Resolver.getUnusedResolutions installSandbox.resolver in
+  let unused = Resolver.getUnusedResolutions projcfg.installSandbox.resolver in
   let%lwt () =
     let log resolution =
       Logs_lwt.warn (
@@ -1165,35 +1166,34 @@ let getSandboxSolution installSandbox =
           m "resolution %a is unused (defined in %a)"
           Fmt.(quote string)
           resolution
-          ManifestSpec.pp
-          installSandbox.spec.manifest
+          EsyInstall.ManifestSpec.pp
+          projcfg.installSandbox.spec.manifest
       )
     in
     Lwt_list.iter_s log unused
   in
   return solution
 
-let solve {ProjectConfig. installSandbox; _} () =
-  let open EsyI in
+let solve projcfg () =
   let open RunAsync.Syntax in
-  let%bind _ : Solution.t = getSandboxSolution installSandbox in
+  let%bind _ : Solution.t = getSandboxSolution projcfg in
   return ()
 
-let fetch {ProjectConfig. installSandbox = sandbox; _} () =
-  let open EsyI in
+let fetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
-  match%bind SolutionLock.ofPath ~sandbox lockPath with
-  | Some solution -> Fetch.fetch sandbox solution
+  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
+  | Some solution -> EsyInstall.Fetch.fetch projcfg.sandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
-let solveAndFetch ({ProjectConfig. installSandbox = sandbox; _} as projcfg) () =
-  let open EsyI in
+let solveAndFetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
-  match%bind SolutionLock.ofPath ~sandbox lockPath with
+  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
   | Some solution ->
-    if%bind Fetch.isInstalled ~sandbox solution
+    if%bind EsyInstall.Fetch.isInstalled ~sandbox:projcfg.sandbox solution
     then return ()
     else fetch projcfg ()
   | None ->
@@ -1209,7 +1209,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
   in
 
   let%bind reqs = RunAsync.ofStringError (
-    Result.List.map ~f:Req.parse reqs
+    Result.List.map ~f:EsyInstall.Req.parse reqs
   ) in
 
   let%bind installSandbox =
@@ -1227,7 +1227,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
   let projcfg = {projcfg with installSandbox} in
 
-  let%bind solution = getSandboxSolution installSandbox in
+  let%bind solution = getSandboxSolution projcfg in
   let%bind () = fetch projcfg () in
 
   let%bind addedDependencies, configPath =
@@ -1238,14 +1238,14 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
       Solution.fold ~f ~init:StringMap.empty solution
     in
     let addedDependencies =
-      let f {Req. name; _} =
+      let f {EsyInstall.Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
             match record.Solution.Package.version with
             | Version.Npm version ->
-              SemverVersion.Formula.DNF.show
-                (SemverVersion.caretRangeOfVersion version)
+              EsyInstall.SemverVersion.Formula.DNF.show
+                (EsyInstall.SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
@@ -1259,7 +1259,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
     let%bind path =
       let spec = projcfg.installSandbox.Sandbox.spec in
       match spec.manifest with
-      | ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
+      | EsyInstall.ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
       | One (Opam, _) -> error opamError
       | ManyOpam -> error opamError
       in
@@ -1300,10 +1300,12 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
             ~cfg:installSandbox.cfg
             installSandbox.spec
         in
+        let projcfg = {projcfg with installSandbox} in
+        let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
         (* we can only do this because we keep invariant that the constraint we
          * save in manifest covers the installed version *)
-        SolutionLock.unsafeUpdateChecksum
-          ~sandbox:installSandbox
+        EsyInstall.SolutionLock.unsafeUpdateChecksum
+          ~checksum
           (SandboxSpec.solutionLockPath installSandbox.spec)
       in
       return ()
@@ -1401,17 +1403,17 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
 let show (projcfg : ProjectConfig.t) _asJson req () =
   let open EsyI in
   let open RunAsync.Syntax in
-  let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
+  let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
   let%bind resolver = Resolver.make ~cfg:projcfg.cfg.installCfg ~sandbox:projcfg.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver
-    ) "resolving %a" Req.pp req
+    ) "resolving %a" EsyInstall.Req.pp req
   in
   match req.spec with
-  | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-  | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
-    let f (res : PackageConfig.Resolution.t) = match res.resolution with
+  | EsyInstall.VersionSpec.Npm [[EsyInstall.SemverVersion.Constraint.ANY]]
+  | EsyInstall.VersionSpec.Opam [[EsyInstall.OpamPackageVersion.Constraint.ANY]] ->
+    let f (res : EsyInstall.PackageConfig.Resolution.t) = match res.resolution with
     | Version v -> `String (Version.showSimple v)
     | _ -> failwith "unreachable"
     in
@@ -1421,11 +1423,11 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
     return ()
   | _ ->
     match resolutions with
-    | [] -> errorf "No package found for %a" Req.pp req
+    | [] -> errorf "No package found for %a" EsyInstall.Req.pp req
     | resolution::_ ->
       let%bind pkg = RunAsync.contextf (
           Resolver.package ~resolution resolver
-        ) "resolving metadata %a" PackageConfig.Resolution.pp resolution
+        ) "resolving metadata %a" EsyInstall.PackageConfig.Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
       Package.to_yojson pkg

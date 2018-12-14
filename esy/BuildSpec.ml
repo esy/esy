@@ -1,4 +1,4 @@
-module Package = EsyI.Solution.Package
+module Package = EsyInstall.Solution.Package
 
 type t = {
   build : build;
@@ -33,7 +33,7 @@ let mode_of_yojson = function
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
 let classify spec solution pkg =
-  let root = EsyI.Solution.root solution in
+  let root = EsyInstall.Solution.root solution in
   let isRoot = Package.compare root pkg = 0 in
   let kind =
     if isRoot
