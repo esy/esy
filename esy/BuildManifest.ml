@@ -18,7 +18,7 @@ module ExportedEnv = PackageConfig.ExportedEnv
 module Env = PackageConfig.Env
 module DistResolver = EsyInstall.DistResolver
 module Override = EsyInstall.Override
-module Overrides = EsyInstall.Solution.Overrides
+module Overrides = EsyInstall.Overrides
 module Installation = EsyInstall.Installation
 module OpamResolution = EsySolve.OpamResolution
 

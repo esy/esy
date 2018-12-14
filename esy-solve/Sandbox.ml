@@ -79,7 +79,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
           path = EsyInstall.DistPath.v ".";
           manifest = None;
         };
-        overrides = EsyInstall.Solution.Overrides.empty;
+        overrides = EsyInstall.Overrides.empty;
         dependencies;
         devDependencies = dependencies;
         peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
@@ -121,7 +121,7 @@ let ofMultiplOpamFiles ~cfg ~spec _projectPath (paths : Path.t list) =
         path = EsyInstall.DistPath.v ".";
         manifest = None;
       };
-      overrides = EsyInstall.Solution.Overrides.empty;
+      overrides = EsyInstall.Overrides.empty;
       dependencies = Package.Dependencies.OpamFormula dependencies;
       devDependencies = Package.Dependencies.OpamFormula devDependencies;
       peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;

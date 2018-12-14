@@ -118,7 +118,7 @@ type t = {
   originalVersion : EsyInstall.Version.t option;
   originalName : string option;
   source : EsyInstall.PackageSource.t;
-  overrides : EsyInstall.Solution.Overrides.t;
+  overrides : EsyInstall.Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;

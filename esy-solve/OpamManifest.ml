@@ -275,8 +275,8 @@ let toPackage ?source ~name ~version manifest =
 
     let overrides =
       match manifest.override with
-      | None -> EsyInstall.Solution.Overrides.empty
-      | Some override -> EsyInstall.Solution.Overrides.(add override empty)
+      | None -> EsyInstall.Overrides.empty
+      | Some override -> EsyInstall.Overrides.(add override empty)
     in
 
     return (Ok {

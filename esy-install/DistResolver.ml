@@ -23,7 +23,7 @@ module PackageOverride = struct
 end
 
 type resolution = {
-  overrides : Solution.Overrides.t;
+  overrides : Overrides.t;
   dist : Dist.t;
   manifest : manifest option;
   paths : Path.Set.t;
@@ -179,7 +179,7 @@ let ofPath ?manifest (path : Path.t) =
     ]
 
 let resolve
-  ?(overrides=Solution.Overrides.empty)
+  ?(overrides=Overrides.empty)
   ~cfg
   ~sandbox
   (dist : Dist.t) =
@@ -241,7 +241,7 @@ let resolve
       let override = Override.ofDist json dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
-      let overrides = Solution.Overrides.add override overrides in
+      let overrides = Overrides.add override overrides in
       let paths = Path.Set.union paths newPaths in
       loop' ~overrides ~paths nextDist
   in

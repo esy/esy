@@ -376,7 +376,7 @@ end = struct
     in
 
     let%bind filesOfOverride =
-      Solution.Overrides.files
+      Overrides.files
         sandbox.Sandbox.cfg
         sandbox.Sandbox.spec
         pkg.Solution.Package.overrides

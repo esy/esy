@@ -81,7 +81,7 @@ let emptyLink ~name ~path ~manifest () =
       path;
       manifest = None;
     };
-    overrides = EsyInstall.Solution.Overrides.empty;
+    overrides = EsyInstall.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
@@ -101,7 +101,7 @@ let emptyInstall ~name ~source () =
       source = source, [];
       opam = None;
     };
-    overrides = EsyInstall.Solution.Overrides.empty;
+    overrides = EsyInstall.Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
     peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
@@ -269,7 +269,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
       | Some manifest ->
         readPackage ~name ~source:resolvedSource manifest
       | None ->
-        if not (EsyInstall.Solution.Overrides.isEmpty overrides)
+        if not (EsyInstall.Overrides.isEmpty overrides)
         then
           match source with
           | EsyInstall.Source.Link {path; manifest;} ->
@@ -425,7 +425,7 @@ let package ~(resolution : Resolution.t) resolver =
 
     | EsyInstall.Version.Source source ->
       packageOfSource
-        ~overrides:EsyInstall.Solution.Overrides.empty
+        ~overrides:EsyInstall.Overrides.empty
         ~name:resolution.name
         source
         resolver
@@ -437,7 +437,7 @@ let package ~(resolution : Resolution.t) resolver =
       | Version version -> ofVersion version
       | SourceOverride {source; override} ->
         let override = EsyInstall.Override.ofJson override in
-        let overrides = EsyInstall.Solution.Overrides.(add override empty) in
+        let overrides = EsyInstall.Overrides.(add override empty) in
         packageOfSource
           ~name:resolution.name
           ~overrides
@@ -447,7 +447,7 @@ let package ~(resolution : Resolution.t) resolver =
     match pkg with
     | Ok pkg ->
       let%bind pkg =
-        EsyInstall.Solution.Overrides.foldWithInstallOverrides
+        EsyInstall.Overrides.foldWithInstallOverrides
           ~f:applyOverride
           ~init:pkg
           pkg.overrides

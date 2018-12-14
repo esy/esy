@@ -506,7 +506,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
       path = EsyInstall.DistPath.v ".";
       manifest = None;
     };
-    overrides = EsyInstall.Solution.Overrides.empty;
+    overrides = EsyInstall.Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
     peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
