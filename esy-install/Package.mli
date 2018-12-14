@@ -8,6 +8,8 @@ type t = {
   devDependencies : PackageId.Set.t;
 }
 
+val opam : t -> (string * Version.t * OpamFile.OPAM.t) option RunAsync.t
+
 include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t
 

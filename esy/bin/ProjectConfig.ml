@@ -4,6 +4,8 @@ open Cmdliner
 type t = {
   mainprg : string;
   cfg : Config.t;
+  installCfg : EsyInstall.Config.t;
+  solveCfg : EsySolve.Config.t;
   spec : EsyInstall.SandboxSpec.t;
   installSandbox : EsySolve.Sandbox.t;
   sandbox : EsyInstall.Sandbox.t;
@@ -159,7 +161,7 @@ let make
       return Cmd.(v (p cmd))
   in
 
-  let%bind installCfg =
+  let%bind solveCfg =
     EsySolve.Config.make
       ~esySolveCmd
       ~skipRepositoryUpdate
@@ -171,6 +173,8 @@ let make
       ?solveTimeout
       ()
   in
+
+  let installCfg = solveCfg.EsySolve.Config.installCfg in
 
   let%bind cfg =
     RunAsync.ofRun (
@@ -184,12 +188,14 @@ let make
   in
 
   let%bind installSandbox =
-    EsySolve.Sandbox.make ~cfg:installCfg spec
+    EsySolve.Sandbox.make ~cfg:solveCfg spec
   in
 
   return {
     mainprg;
     cfg;
+    solveCfg;
+    installCfg;
     installSandbox;
     sandbox = {
       EsyInstall.Sandbox.

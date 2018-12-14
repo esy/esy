@@ -1405,7 +1405,7 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
   let open EsySolve in
   let open RunAsync.Syntax in
   let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
-  let%bind resolver = Resolver.make ~cfg:projcfg.cfg.installCfg ~sandbox:projcfg.spec () in
+  let%bind resolver = Resolver.make ~cfg:projcfg.solveCfg ~sandbox:projcfg.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver
