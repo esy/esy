@@ -1427,6 +1427,20 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
       |> print_endline;
       return ()
 
+let default (proj : Project.WithWorkflow.t) cmd () =
+  let open RunAsync.Syntax in
+  match%lwt Project.fetched proj with
+  | Ok _ ->
+    begin match cmd with
+    | Some cmd -> devExec proj cmd ()
+    | None -> build proj None ()
+    end
+  | Error _ ->
+    Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
+    let%bind () = solveAndFetch proj.projcfg () in
+    let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
+    build proj None ()
+
 let release (proj : Project.WithWorkflow.t) () =
   let open RunAsync.Syntax in
 
@@ -1517,20 +1531,6 @@ let makeCommands ~sandbox () =
   let commonOpts = ProjectConfig.term sandbox in
 
   let defaultCommand =
-    let run (proj : Project.WithWorkflow.t) cmd () =
-      let open RunAsync.Syntax in
-      match%lwt Project.fetched proj with
-      | Ok _ ->
-        begin match cmd with
-        | Some cmd -> devExec proj cmd ()
-        | None -> build proj None ()
-        end
-      | Error _ ->
-        Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
-        let%bind () = solveAndFetch proj.projcfg () in
-        let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-        build proj None ()
-    in
     let cmdTerm =
       Cli.cmdOptionTerm
         ~doc:"Command to execute within the sandbox environment."
@@ -1542,7 +1542,7 @@ let makeCommands ~sandbox () =
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
       Term.(
-        const run
+        const default
         $ Project.WithWorkflow.term sandbox
         $ cmdTerm
         $ Cli.setupLogTerm
