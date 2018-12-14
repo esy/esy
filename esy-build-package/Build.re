@@ -403,10 +403,7 @@ let filterPathSegments = (paths: list(string)) => {
        !Fs.isEmpty(Fpath.v(path))
     }
   };
-  print_endline (" --- BEFORE PRUNING: " ++ string_of_int(List.length(paths)));
-  let ret = List.filter(f, paths);
-  print_endline (" --- AFTER PRUNING: " ++  string_of_int(List.length(ret)));
-  ret;
+  List.filter(f, paths);
 };
 
 let getEnvAndPath = (build) => {
