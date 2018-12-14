@@ -33,6 +33,17 @@ let isAbs = Fpath.is_abs;
 let isPrefix = Fpath.is_prefix;
 let remPrefix = Fpath.rem_prefix;
 
+external checkLongPathRegistryKey: unit => bool = "caml_win32_check_long_path_regkey";
+
+let supportsLongPaths = () => {
+    switch (Sys.win32) {
+    | false => true
+    | true => checkLongPathRegistryKey();
+    }
+};
+
+print_endline ("LONG PATHS SUPPORTED: " ++ string_of_bool(supportsLongPaths()));
+
 let homePath = () =>
   Fpath.v(
     switch (Sys.getenv_opt("HOME"), System.Platform.host) {

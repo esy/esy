@@ -22,6 +22,7 @@
             astring
             EsyShellExpansion
             )
+  (c_names win32_path)
   (preprocess (
                pps
                lwt_ppx
