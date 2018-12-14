@@ -369,7 +369,7 @@ let ofPath ?manifest (path : Path.t) =
       "reading package metadata from %a"
       Path.ppPretty path
 
-let ofInstallationLocation ~cfg (pkg : Solution.Package.t) (loc : Installation.location) =
+let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
   | Link { path; manifest; } ->

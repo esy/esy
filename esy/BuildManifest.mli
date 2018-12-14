@@ -36,7 +36,7 @@ val empty : name:string option -> version:Version.t option -> unit -> t
 
 val ofInstallationLocation :
   cfg:Config.t
-  -> EsyInstall.Solution.Package.t
+  -> EsyInstall.Package.t
   -> EsyInstall.Installation.location
   -> (t option * Fpath.set) RunAsync.t
 

@@ -2,28 +2,6 @@
  * This module represents a solution.
  *)
 
-(**
- * This is minimal info needed to fetch and build a package.
- *)
-module Package : sig
-
-  type t = {
-    id: PackageId.t;
-    name: string;
-    version: Version.t;
-    source: PackageSource.t;
-    overrides: Overrides.t;
-    dependencies : PackageId.Set.t;
-    devDependencies : PackageId.Set.t;
-  }
-
-  include S.COMPARABLE with type t := t
-  include S.PRINTABLE with type t := t
-
-  module Map : Map.S with type key := t
-  module Set : Set.S with type elt := t
-end
-
 include Graph.GRAPH
   with
     type node = Package.t

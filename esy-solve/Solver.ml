@@ -365,7 +365,7 @@ let lockPackage
       EsyInstall.PackageSource.Install {source; opam = Some opam;}
   in
   return {
-    EsyInstall.Solution.Package.
+    EsyInstall.Package.
     id;
     name = name;
     version = version;
@@ -928,7 +928,7 @@ let solve (sandbox : Sandbox.t) =
           allDependenciesByName
       in
       return (
-        EsyInstall.Solution.empty root.EsyInstall.Solution.Package.id
+        EsyInstall.Solution.empty root.EsyInstall.Package.id
         |> EsyInstall.Solution.add root
       )
     in

@@ -84,7 +84,7 @@ module PackageInformation = struct
         in
         let packageDependencies =
           let dependencies =
-            if PackageId.compare package.Solution.Package.id rootId = 0
+            if PackageId.compare package.Package.id rootId = 0
             then
               Solution.dependencies
                 ~traverse:Solution.traverseWithDevDependencies
@@ -96,7 +96,7 @@ module PackageInformation = struct
                 solution
           in
           let f map pkg =
-            let id = pkg.Solution.Package.id in
+            let id = pkg.Package.id in
             let name = PackageId.name id in
             let version = Version.show (PackageId.version id) in
             StringMap.add name version map

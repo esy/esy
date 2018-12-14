@@ -78,7 +78,7 @@ let writeOverride sandbox pkg override =
   | Override.OfOpamOverride info ->
     let id =
       Format.asprintf "%s-%a-opam-override"
-        (Path.safeSeg pkg.Solution.Package.name)
+        (Path.safeSeg pkg.Package.name)
         Version.pp
         pkg.version
     in
@@ -154,7 +154,7 @@ let readOpam sandbox (opam : PackageSource.opam) =
   let opampath = Path.(sandboxPath // opam.path) in
   return {opam with path = opampath;}
 
-let writePackage sandbox (pkg : Solution.Package.t) =
+let writePackage sandbox (pkg : Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
     match pkg.source with
@@ -187,7 +187,7 @@ let readPackage sandbox (node : node) =
   in
   let%bind overrides = readOverrides sandbox node.overrides in
   return {
-    Solution.Package.
+    Package.
     id = node.id;
     name = node.name;
     version = node.version;
@@ -214,7 +214,7 @@ let lockOfSolution sandbox (solution : Solution.t) =
       let%bind node = writePackage sandbox pkg in
       return (
         PackageId.Map.add
-          pkg.Solution.Package.id
+          pkg.Package.id
           node
           nodes)
     in
@@ -257,7 +257,7 @@ let toPath ~checksum ~sandbox ~(solution : Solution.t) (path : Path.t) =
   Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
-  let lock = {checksum; node; root = root.Solution.Package.id;} in
+  let lock = {checksum; node; root = root.Package.id;} in
   let%bind () = Fs.createDir path in
   let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
   let%bind () = Fs.writeFile ~data:gitAttributesContents Path.(path / ".gitattributes") in

@@ -1,6 +1,6 @@
 module Solution = EsyInstall.Solution
 module PackageId = EsyInstall.PackageId
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 module Installation = EsyInstall.Installation
 module Source = EsyInstall.Source
 module Version = EsyInstall.Version
@@ -437,7 +437,7 @@ module Plan = struct
       plan
       (function
         | None -> false
-        | Some task -> String.compare task.Task.pkg.Solution.Package.name name >= 0)
+        | Some task -> String.compare task.Task.pkg.Package.name name >= 0)
 
   let getByNameVersion (plan : t) name version =
     let compare = [%derive.ord: string * Version.t] in
@@ -960,7 +960,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
   let tasksInProcess = Hashtbl.create 100 in
 
   let rec process pkg =
-    let id = pkg.Solution.Package.id in
+    let id = pkg.Package.id in
     match Hashtbl.find_opt tasksInProcess id with
     | None ->
       let running =

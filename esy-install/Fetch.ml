@@ -104,12 +104,12 @@ module PackagePaths = struct
 
   let key pkg =
     let suffix =
-      match pkg.Solution.Package.version with
+      match pkg.Package.version with
       | Version.Npm v -> SemverVersion.Version.show v
       | Version.Opam v -> "opam-" ^ OpamPackageVersion.Version.show v
       | Version.Source source -> Digest.(to_hex (string (Source.show source)))
     in
-    Path.safeSeg pkg.Solution.Package.name ^ "--" ^ Path.safeSeg suffix
+    Path.safeSeg pkg.Package.name ^ "--" ^ Path.safeSeg suffix
 
   let stagePath sandbox pkg =
     (* We are getting EACCESS error on Windows if we try to rename directory
@@ -126,7 +126,7 @@ module PackagePaths = struct
     | _ -> Path.(sandbox.Sandbox.cfg.sourceStagePath / key pkg)
 
   let cachedTarballPath sandbox pkg =
-    match sandbox.Sandbox.cfg.sourceArchivePath, pkg.Solution.Package.source with
+    match sandbox.Sandbox.cfg.sourceArchivePath, pkg.Package.source with
     | None, _ ->
       None
     | Some _, Link _ ->
@@ -137,7 +137,7 @@ module PackagePaths = struct
       Some Path.(sourceArchivePath // v id |> addExt "tgz")
 
   let installPath sandbox pkg =
-    match pkg.Solution.Package.source with
+    match pkg.Package.source with
     | Link { path; manifest = _; } ->
       DistPath.toPath sandbox.Sandbox.spec.path path
     | Install _ ->
@@ -168,17 +168,17 @@ module FetchPackage : sig
   type fetch
 
   type installation = {
-    pkg : Solution.Package.t;
+    pkg : Package.t;
     pkgJson : NpmPackageJson.t option;
     path : Path.t;
   }
 
-  val fetch : Sandbox.t -> Solution.Package.t -> fetch RunAsync.t
+  val fetch : Sandbox.t -> Package.t -> fetch RunAsync.t
   val install : (Path.t -> unit RunAsync.t) -> Sandbox.t -> fetch -> installation RunAsync.t
 
 end = struct
 
-  type fetch = Solution.Package.t * kind
+  type fetch = Package.t * kind
 
   and kind =
     | Fetched of DistStorage.fetchedDist
@@ -186,7 +186,7 @@ end = struct
     | Linked of Path.t
 
   type installation = {
-    pkg : Solution.Package.t;
+    pkg : Package.t;
     pkgJson : NpmPackageJson.t option;
     path : Path.t;
   }
@@ -218,7 +218,7 @@ end = struct
               Run.ppError err
           in
           m "unable to fetch %a:@[<v 2>@\n%a@]"
-            Solution.Package.pp pkg
+            Package.pp pkg
             Fmt.(list ~sep:(unit "@\n") ppErr) errs
         );%lwt
         error "installation error"
@@ -231,7 +231,7 @@ end = struct
     let open RunAsync.Syntax in
 
     RunAsync.contextf (
-      match pkg.Solution.Package.source with
+      match pkg.Package.source with
       | Link {path; _} ->
         let path = DistPath.toPath sandbox.Sandbox.spec.path path in
         return (pkg, Linked path)
@@ -263,7 +263,7 @@ end = struct
             let dists = main::mirrors in
             let%bind dist = fetch' sandbox pkg dists in
             return (pkg, Fetched dist)
-    ) "fetching %a" Solution.Package.pp pkg
+    ) "fetching %a" Package.pp pkg
 
   module Lifecycle = struct
 
@@ -271,7 +271,7 @@ end = struct
       let%lwt () = Logs_lwt.app
         (fun m ->
           m "%a: running %a lifecycle"
-          Solution.Package.pp pkg
+          Package.pp pkg
           Fmt.(styled `Bold string) lifecycleName
         )
       in
@@ -379,7 +379,7 @@ end = struct
       Overrides.files
         sandbox.Sandbox.cfg
         sandbox.Sandbox.spec
-        pkg.Solution.Package.overrides
+        pkg.Package.overrides
     in
 
     RunAsync.List.mapAndWait
@@ -400,7 +400,7 @@ end = struct
     let%bind () =
       RunAsync.contextf
         (DistStorage.unpack fetched stagePath)
-        "unpacking %a" Solution.Package.pp pkg
+        "unpacking %a" Package.pp pkg
     in
 
     let%bind () = copyFiles sandbox pkg stagePath in
@@ -431,7 +431,7 @@ end = struct
         return {pkg; path; pkgJson;}
       | Fetched fetched ->
         install' onBeforeLifecycle sandbox pkg fetched
-    ) "installing %a" Solution.Package.pp pkg
+    ) "installing %a" Package.pp pkg
 end
 
 module LinkBin = struct
@@ -513,16 +513,16 @@ let collectPackagesOfSolution solution =
     let root = Solution.root solution in
 
     let rec collect (seen, topo) pkg =
-      if Solution.Package.Set.mem pkg seen
+      if Package.Set.mem pkg seen
       then seen, topo
       else
-        let seen = Solution.Package.Set.add pkg seen in
+        let seen = Package.Set.add pkg seen in
         let seen, topo = collectDependencies (seen, topo) pkg in
         let topo = pkg::topo in
         seen, topo
 
     and collectDependencies (seen, topo) pkg =
-      let isRoot = Solution.Package.compare root pkg = 0 in
+      let isRoot = Package.compare root pkg = 0 in
       let dependencies =
         let traverse =
           if isRoot
@@ -534,7 +534,7 @@ let collectPackagesOfSolution solution =
       List.fold_left ~f:collect ~init:(seen, topo) dependencies
     in
 
-    let _, topo = collectDependencies (Solution.Package.Set.empty, []) root in
+    let _, topo = collectDependencies (Package.Set.empty, []) root in
     (List.rev topo), root
   in
 
@@ -587,7 +587,7 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
     let rec checkSourcePaths = function
       | [] -> return true
       | pkg::pkgs ->
-        begin match Installation.find pkg.Solution.Package.id installation with
+        begin match Installation.find pkg.Package.id installation with
         | None -> return false
         | Some path ->
           if%bind Fs.exists path
@@ -622,7 +622,7 @@ let fetchPackages sandbox solution =
   let report, finish = Cli.createProgressReporter ~name:"fetching" () in
   let%bind items =
     let f pkg =
-      report "%a" Solution.Package.pp pkg;%lwt
+      report "%a" Package.pp pkg;%lwt
       let%bind fetch = FetchPackage.fetch sandbox pkg in
       return (pkg, fetch)
     in
@@ -632,9 +632,9 @@ let fetchPackages sandbox solution =
   in
   let fetched =
     let f map (pkg, fetch) =
-      Solution.Package.Map.add pkg fetch map
+      Package.Map.add pkg fetch map
     in
-    List.fold_left ~f ~init:Solution.Package.Map.empty items
+    List.fold_left ~f ~init:Package.Map.empty items
   in
   return fetched
 
@@ -651,14 +651,14 @@ let fetch sandbox solution =
   let%bind installation =
     let installation =
       let f installation pkg =
-        let id = pkg.Solution.Package.id in
+        let id = pkg.Package.id in
         let path = PackagePaths.installPath sandbox pkg in
         Installation.add id path installation
       in
       let init =
         Installation.empty
         |> Installation.add
-            root.Solution.Package.id
+            root.Package.id
             sandbox.spec.path;
       in
       List.fold_left ~f ~init pkgs
@@ -685,7 +685,7 @@ let fetch sandbox solution =
       let open RunAsync.Syntax in
       let f () =
 
-        let id = pkg.Solution.Package.id in
+        let id = pkg.Package.id in
 
         let onBeforeLifecycle path =
           (*
@@ -725,7 +725,7 @@ let fetch sandbox solution =
           return ()
         in
 
-        let fetched = Solution.Package.Map.find pkg fetched in
+        let fetched = Package.Map.find pkg fetched in
         FetchPackage.install onBeforeLifecycle sandbox fetched
       in
       LwtTaskQueue.submit queue f
@@ -737,11 +737,11 @@ let fetch sandbox solution =
           ~f:(visit seen)
           (Solution.dependencies pkg solution)
       in
-      report "%a" PackageId.pp pkg.Solution.Package.id;%lwt
+      report "%a" PackageId.pp pkg.Package.id;%lwt
       install pkg (List.filterNone dependencies)
 
     and visit seen pkg =
-      let id = pkg.Solution.Package.id in
+      let id = pkg.Package.id in
       if not (PackageId.Set.mem id seen)
       then
         let seen = PackageId.Set.add id seen in
@@ -774,7 +774,7 @@ let fetch sandbox solution =
               Logs.warn
                 (fun m ->
                   m "executable '%s' is installed by several packages: @[<h>%a@]@;"
-                  name Fmt.(list ~sep:(unit ", ") Solution.Package.pp) pkgs);
+                  name Fmt.(list ~sep:(unit ", ") Package.pp) pkgs);
               StringMap.add name pkgs seen
           in
           return (List.fold_left ~f ~init:seen bins)
@@ -798,7 +798,7 @@ let fetch sandbox solution =
     let data = PnpJs.render
       ~basePath:(Path.parent (SandboxSpec.pnpJsPath sandbox.spec))
       ~rootPath:sandbox.spec.path
-      ~rootId:( (Solution.root solution).Solution.Package.id)
+      ~rootId:( (Solution.root solution).Package.id)
       ~solution
       ~installation
       ()

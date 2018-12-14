@@ -6,6 +6,7 @@ module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
+module Package = EsyInstall.Package
 module PkgSpec = EsySolve.PkgSpec
 
 module PkgArg = struct
@@ -248,7 +249,7 @@ let withPackage proj solution (pkgArg : PkgArg.t) f =
     match pkg with
     | Some pkg ->
       Logs_lwt.debug (fun m ->
-        m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Solution.Package.pp pkg
+        m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Package.pp pkg
       );%lwt
       f pkg
     | None -> errorf "no package found: %a" PkgArg.pp pkgArg
@@ -284,7 +285,7 @@ let runBuildDependencies
       m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
-      PackageId.pp pkg.Solution.Package.id
+      PackageId.pp pkg.Package.id
     )
   in
   match BuildSandbox.Plan.get plan pkg.id with
@@ -314,7 +315,7 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all devDependen
     then BuildSpec.Build
     else BuildSpec.BuildDev
   in
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let buildspec =
       let deps =
         match depspec with
@@ -350,7 +351,7 @@ let runBuild
       m "running:@[<v>@;%s build-package \\@;%a%a@]"
       projcfg.ProjectConfig.mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
-      PackageId.pp pkg.Solution.Package.id
+      PackageId.pp pkg.Package.id
     )
   in
   BuildSandbox.buildOnly
@@ -382,7 +383,7 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
     {Workflow.default.buildspec with buildLink = Some {mode; deps}}
   in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         fetched.Project.sandbox
@@ -414,7 +415,7 @@ let runExec
   let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
 
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -440,7 +441,7 @@ let runExec
         proj.projcfg.ProjectConfig.mainprg
         TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
         TermPp.ppEnvSpec envspec
-        PackageId.pp pkg.Solution.Package.id
+        PackageId.pp pkg.Package.id
         Cmd.pp cmd
       )
     in
@@ -519,14 +520,14 @@ let runPrintEnv
   let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
 
     let () =
       Logs.info (fun m ->
         m "running:@[<v>@;%s print-env \\@;%a%a@]"
         proj.projcfg.ProjectConfig.mainprg
         TermPp.ppEnvSpec envspec
-        PackageId.pp pkg.Solution.Package.id
+        PackageId.pp pkg.Package.id
       )
     in
 
@@ -556,7 +557,7 @@ let runPrintEnv
 # includeNpmBin:      %b
 |}
             name
-            Solution.Package.pp pkg
+            Package.pp pkg
             DepSpec.pp deps
             (Fmt.option DepSpec.pp)
             envspec.EnvSpec.augmentDeps
@@ -708,7 +709,7 @@ let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
   let%bind solved = Project.solved proj in
   let%bind configured = Project.configured proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.id with
     | Some task ->
       let json = BuildSandbox.Task.to_yojson task in
@@ -726,7 +727,7 @@ let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let%bind () =
       runBuildDependencies
         ~buildLinked:true
@@ -968,7 +969,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (proj: Project.WithWorkflo
   let root = Solution.root solved.Project.solution in
 
   let rec draw pkg =
-    let id = pkg.Solution.Package.id in
+    let id = pkg.Package.id in
     if PackageId.Set.mem id !seen then
       return None
     else (
@@ -1232,7 +1233,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
   let%bind addedDependencies, configPath =
     let records =
-      let f (record : Solution.Package.t) _ map =
+      let f (record : EsyInstall.Package.t) _ map =
         StringMap.add record.name record map
       in
       Solution.fold ~f ~init:StringMap.empty solution
@@ -1242,14 +1243,14 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
         match StringMap.find name records with
         | Some record ->
           let constr =
-            match record.Solution.Package.version with
+            match record.EsyInstall.Package.version with
             | Version.Npm version ->
               EsyInstall.SemverVersion.Formula.DNF.show
                 (EsyInstall.SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
-              Version.show record.Solution.Package.version
+              Version.show record.EsyInstall.Package.version
           in
           name, `String constr
         | None -> assert false
@@ -1321,7 +1322,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) () =
   let%bind configured = Project.configured proj in
 
   let exportBuild (_, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Solution.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
@@ -1375,7 +1376,7 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
   in
 
   let importBuild (_direct, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Solution.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
     | Some task ->
       if%bind BuildSandbox.isBuilt fetched.Project.sandbox task
       then return ()

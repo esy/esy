@@ -1,6 +1,6 @@
 module StringSet = Set.Make(String)
 module Solution = EsyInstall.Solution
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 
 let esyInstallReleaseJs =
   let req = "../../../../bin/esyInstallRelease.js" in
@@ -171,7 +171,7 @@ let make
       ~concurrency
       sandbox
       plan
-      [root.EsyInstall.Solution.Package.id]
+      [root.Package.id]
   in
 
   let%bind () = Fs.createDir outputPath in
@@ -205,7 +205,7 @@ let make
         envspec
         buildspec
         sandbox
-        root.EsyInstall.Solution.Package.id
+        root.Package.id
     ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
