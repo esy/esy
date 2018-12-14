@@ -1,4 +1,5 @@
 module EsyBash = EsyLib.EsyBash;
+module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
 module System = EsyLib.System;
@@ -390,16 +391,45 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 };
 
+let filterPathSegments = (paths: list(string)) => {
+  let f = (path) => {
+    if (String.length(path) < 1) {
+       false
+    /* On Windows, we let Cygwin resolve paths like `/usr/bin`. 
+     * These would fail the empty check, but we still want to include them */
+    } else if (path.[0] == '/' && Sys.win32) {
+       true
+    } else {
+       !Fs.isEmpty(Fpath.v(path))
+    }
+  };
+  print_endline (" --- BEFORE PRUNING: " ++ string_of_int(List.length(paths)));
+  let ret = List.filter(f, paths);
+  print_endline (" --- AFTER PRUNING: " ++  string_of_int(List.length(ret)));
+  ret;
+};
+
 let getEnvAndPath = (build) => {
+  let path =
+    switch (Astring.String.Map.find("PATH", build.env)) {
+    | Some(path) => 
+        String.split_on_char(System.Environment.sep().[0], path)
+        |> filterPathSegments
+    | None => []
+    };
+
   let env =
     switch (Bos.OS.Env.var("TERM")) {
     | Some(term) => Astring.String.Map.add("TERM", term, build.env)
     | None => build.env
     };
-  let path =
-    switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
-    | None => []
+
+  let env = 
+    switch (path) {
+    | [] => env    
+    | v => 
+        let updatedPath = String.concat(System.Environment.sep(), v);
+        Astring.String.Map.add("PATH", updatedPath, env);
     };
 
   (env, path);
