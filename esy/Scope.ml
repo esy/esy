@@ -1,5 +1,5 @@
 module Id = EsyInstall.PackageId
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 module SandboxPath = EsyBuildPackage.Config.Path
 module SandboxValue = EsyBuildPackage.Config.Value
 module SandboxEnvironment = EsyBuildPackage.Config.Environment

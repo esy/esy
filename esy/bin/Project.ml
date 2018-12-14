@@ -11,7 +11,7 @@ let makeCachePath prefix (projcfg : ProjectConfig.t) =
     |> Digest.string
     |> Digest.to_hex
   in
-  Path.(EsyInstall.SandboxSpec.cachePath projcfg.spec / (prefix ^ "-" ^ hash))
+  Path.(SandboxSpec.cachePath projcfg.spec / (prefix ^ "-" ^ hash))
 
 module type PROJECT = sig
   type t
@@ -132,10 +132,11 @@ let makeProject makeSolved projcfg =
 
 let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let open RunAsync.Syntax in
-  let path = EsyInstall.SandboxSpec.solutionLockPath projcfg.spec in
+  let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
-  match%bind SolutionLock.ofPath ~sandbox:projcfg.installSandbox path with
+  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in
     return {solution; fetched;}
@@ -155,9 +156,9 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
         if not isActual
         then isActual
         else (
-          let check = Installation.mem pkg.Solution.Package.id installation in
+          let check = Installation.mem pkg.Package.id installation in
           if not check
-          then Logs.debug (fun m -> m "missing from installation %a" Solution.Package.pp pkg);
+          then Logs.debug (fun m -> m "missing from installation %a" Package.pp pkg);
           check
         )
       in
@@ -227,7 +228,7 @@ module WithWorkflow = struct
       in
       let pkg = EsyInstall.Solution.root solution in
       let root =
-        match BuildSandbox.Plan.get plan pkg.Solution.Package.id with
+        match BuildSandbox.Plan.get plan pkg.Package.id with
         | None -> failwith "missing build for the root package"
         | Some task -> task
       in
@@ -273,7 +274,7 @@ module WithWorkflow = struct
           configured.workflow.commandenvspec
           configured.workflow.buildspec
           fetched.sandbox
-          root.Solution.Package.id
+          root.Package.id
         in
         let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
         Environment.renderToShellSource ~header commandEnv

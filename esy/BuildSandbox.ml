@@ -1,7 +1,6 @@
 module Solution = EsyInstall.Solution
 module PackageId = EsyInstall.PackageId
-module Overrides = EsyInstall.Package.Overrides
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 module Installation = EsyInstall.Installation
 module Source = EsyInstall.Source
 module Version = EsyInstall.Version
@@ -250,7 +249,7 @@ let makeScope
 
   let updateSeen seen id =
     match List.find_opt ~f:(fun p -> PackageId.compare p id = 0) seen with
-    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.pp id
+    | Some _ -> errorf "@[<h>found circular dependency on: %a@]" PackageId.ppNoHash id
     | None -> return (id::seen)
   in
 
@@ -274,7 +273,7 @@ let makeScope
           Run.contextf (
             let%bind scope, idrepr, directDependencies = visit' seen id build in
             return (Some (scope, build, idrepr, directDependencies))
-          ) "processing %a" PackageId.pp id
+          ) "processing %a" PackageId.ppNoHash id
         | None -> return None
       in
       Hashtbl.replace cache id res;
@@ -438,7 +437,7 @@ module Plan = struct
       plan
       (function
         | None -> false
-        | Some task -> String.compare task.Task.pkg.Solution.Package.name name >= 0)
+        | Some task -> String.compare task.Task.pkg.Package.name name >= 0)
 
   let getByNameVersion (plan : t) name version =
     let compare = [%derive.ord: string * Version.t] in
@@ -961,7 +960,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
   let tasksInProcess = Hashtbl.create 100 in
 
   let rec process pkg =
-    let id = pkg.Solution.Package.id in
+    let id = pkg.Package.id in
     match Hashtbl.find_opt tasksInProcess id with
     | None ->
       let running =
@@ -977,7 +976,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
           | _, _ ->
             RunAsync.contextf
               (runIfNeeded changes task)
-              "building %a" PackageId.pp id
+              "building %a" PackageId.ppNoHash id
           end
         | None -> RunAsync.return Changes.No
       in

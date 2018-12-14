@@ -35,7 +35,6 @@ val checkout :
   -> unit
   -> unit RunAsync.t
 
-
 (** Resolve [ref] of the [remote] *)
 val lsRemote :
   ?ref:ref

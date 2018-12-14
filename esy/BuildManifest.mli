@@ -7,10 +7,10 @@ module SourceType : module type of EsyLib.SourceType
 
 module Source : module type of EsyInstall.Source
 module Version : module type of EsyInstall.Version
-module Command : module type of EsyInstall.Package.Command
-module CommandList : module type of EsyInstall.Package.CommandList
-module ExportedEnv : module type of EsyInstall.Package.ExportedEnv
-module Env : module type of EsyInstall.Package.Env
+module Command : module type of EsyInstall.PackageConfig.Command
+module CommandList : module type of EsyInstall.PackageConfig.CommandList
+module ExportedEnv : module type of EsyInstall.PackageConfig.ExportedEnv
+module Env : module type of EsyInstall.PackageConfig.Env
 
 type commands =
   | OpamCommands of OpamTypes.command list
@@ -36,7 +36,7 @@ val empty : name:string option -> version:Version.t option -> unit -> t
 
 val ofInstallationLocation :
   cfg:Config.t
-  -> EsyInstall.Solution.Package.t
+  -> EsyInstall.Package.t
   -> EsyInstall.Installation.location
   -> (t option * Fpath.set) RunAsync.t
 
