@@ -78,14 +78,14 @@ let writeOverride sandbox pkg override =
   | Override.OfOpamOverride info ->
     let id =
       Format.asprintf "%s-%a-opam-override"
-        (Path.safeSeg pkg.Package.name)
+        pkg.Package.name
         Version.pp
         pkg.version
     in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec
       / "overrides"
-      / id
+      / Path.safeSeg id
     ) in
     let%bind () = Fs.copyPath ~src:info.path ~dst:lockPath in
     let path = DistPath.ofPath (Path.tryRelativize ~root:sandbox.spec.path lockPath) in
