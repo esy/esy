@@ -473,7 +473,6 @@ describe('"resolutions" misconfiguration errors', function() {
       info install ${version}
       error: somepath/pkg doesn't exist
         reading package metadata from link:somepath/pkg
-        resolving metadata pkg@link:somepath/pkg
       esy: exiting due to errors above
       `,
     );
@@ -501,7 +500,6 @@ describe('"resolutions" misconfiguration errors', function() {
       info install ${version}
       error: unable to read manifests from some.json
         reading package metadata from link:somepath/some.json
-        resolving metadata pkg@link:somepath/some.json
       esy: exiting due to errors above
       `,
     );
