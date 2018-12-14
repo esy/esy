@@ -10,8 +10,6 @@ type t = {
   skipRepositoryUpdate: bool,
 };
 
-let resolvedPrefix = "esyi5-";
-
 let esyOpamOverrideVersion = "6";
 
 let make =

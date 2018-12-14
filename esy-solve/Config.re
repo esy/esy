@@ -21,8 +21,6 @@ and checkoutCfg = [
   | `RemoteLocal(string, Path.t)
 ];
 
-let resolvedPrefix = "esyi5-";
-
 let esyOpamOverrideVersion = "6";
 
 let configureCheckout = (~defaultRemote, ~defaultLocal) =>
