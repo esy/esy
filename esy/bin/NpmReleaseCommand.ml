@@ -310,3 +310,49 @@ let make
 
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
+
+let run (proj : Project.WithWorkflow.t) () =
+  let open RunAsync.Syntax in
+
+  let%bind solved = Project.solved proj in
+  let%bind fetched = Project.fetched proj in
+  let%bind configured = Project.configured proj in
+
+  let%bind outputPath =
+    let outputDir = "_release" in
+    let outputPath = Path.(proj.projcfg.cfg.buildCfg.projectPath / outputDir) in
+    let%bind () = Fs.rmPath outputPath in
+    return outputPath
+  in
+
+  let%bind () =
+
+    let%bind () =
+      Project.buildDependencies
+        ~buildLinked:true
+        ~buildDevDependencies:true
+        proj
+        configured.Project.WithWorkflow.plan
+        configured.Project.WithWorkflow.root.pkg
+    in
+    Project.buildPackage
+      ~quiet:true
+      ~buildOnly:false
+      proj.projcfg
+      fetched.Project.sandbox
+      configured.Project.WithWorkflow.plan
+      configured.Project.WithWorkflow.root.pkg
+  in
+
+  let%bind ocamlopt =
+    let%bind p = Project.WithWorkflow.ocaml proj in
+    return Path.(p / "bin" / "ocamlopt")
+  in
+
+  make
+    ~ocamlopt
+    ~outputPath
+    ~concurrency:EsyRuntime.concurrency
+    proj.projcfg.ProjectConfig.cfg
+    fetched.Project.sandbox
+    (Solution.root solved.Project.solution)
