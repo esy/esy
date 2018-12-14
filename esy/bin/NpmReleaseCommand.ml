@@ -1,6 +1,5 @@
-module StringSet = Set.Make(String)
-module Solution = EsyInstall.Solution
-module Package = EsyInstall.Package
+open EsyInstall
+open Esy
 
 let esyInstallReleaseJs =
   let req = "../../../../bin/esyInstallRelease.js" in

@@ -1473,7 +1473,7 @@ let release (proj : Project.WithWorkflow.t) () =
     return Path.(p / "bin" / "ocamlopt")
   in
 
-  NpmRelease.make
+  NpmReleaseCommand.make
     ~ocamlopt
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
