@@ -236,6 +236,26 @@ let make
 
   (* Export builds *)
   let%bind () =
+
+    let%lwt () =
+      match releaseCfg.filterPackages with
+      | IncludeByPkgSpec specs ->
+        let f unused spec =
+          let f task = PkgSpec.matches root.id spec task.BuildSandbox.Task.pkg.id in
+          match List.exists ~f tasks with
+          | true -> unused
+          | false -> spec::unused
+        in
+        begin match List.fold_left ~f ~init:[] specs with
+        | [] -> Lwt.return ()
+        | unused -> Logs_lwt.warn (fun m ->
+            m {|found unused package specs in "esy.release.includePackages": %a|}
+            (Fmt.(list ~sep:(unit ", ") PkgSpec.pp)) unused
+          )
+        end
+      | _ -> Lwt.return ()
+    in
+
     let%lwt () = Logs_lwt.app (fun m -> m "Exporting built packages") in
     let f (task : BuildSandbox.Task.t) =
       let id = Scope.id task.scope in
