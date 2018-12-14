@@ -401,6 +401,7 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
 let runExec
     ~checkIfDependenciesAreBuilt
     ~buildLinked
+    ~buildDevDependencies
     (proj : _ Project.project)
     envspec
     buildspec
@@ -426,7 +427,7 @@ let runExec
       then
         runBuildDependencies
           ~buildLinked
-          ~buildDevDependencies:false
+          ~buildDevDependencies
           proj
           plan
           pkg
@@ -495,6 +496,7 @@ let execCommand
   in
   runExec
     ~checkIfDependenciesAreBuilt:false
+    ~buildDevDependencies:false
     ~buildLinked:false
     proj
     envspec
@@ -782,6 +784,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
     runExec
       ~checkIfDependenciesAreBuilt:false
       ~buildLinked:false
+      ~buildDevDependencies:false
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
@@ -833,6 +836,7 @@ let exec (proj : Project.WithWorkflow.t) cmd () =
   runExec
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
+    ~buildDevDependencies:false
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
@@ -928,6 +932,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
     runExec
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
+      ~buildDevDependencies:true
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
@@ -945,6 +950,7 @@ let devShell (proj : Project.WithWorkflow.t) () =
   runExec
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
+    ~buildDevDependencies:true
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec

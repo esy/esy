@@ -80,7 +80,7 @@ describe(`'esy CMD' invocation`, () => {
   it(`can execute commands defined in sandbox devDependencies, devDependencies will be built`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
-    await p.esy('dep.cmd');
+    await p.esy('devDep.cmd');
   });
 
   it('inherits the outside environment', async () => {
