@@ -89,13 +89,34 @@ describe(`'esy build-dependencies' command`, () => {
     });
   });
 
-  it(`builds linked dependencies if --all passed`, async () => {
+  it(`doesn't build devDependencies`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build-dependencies');
+    const env = await getCommandEnv(p);
+    await expect(p.run('devDep.cmd', env)).rejects.toMatchObject({
+      code: 127,
+    });
+  });
+
+  it(`builds linked dependencies if --all is passed`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build-dependencies --all');
     const env = await getCommandEnv(p);
     await expect(p.run('linkedDep.cmd', env)).resolves.toEqual({
       stdout: '__linkedDep__' + os.EOL,
+      stderr: '',
+    });
+  });
+
+  it(`builds devDependencies if --devDependencies is passed`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build-dependencies --devDependencies');
+    const env = await getCommandEnv(p);
+    await expect(p.run('devDep.cmd', env)).resolves.toEqual({
+      stdout: '__devDep__' + os.EOL,
       stderr: '',
     });
   });

@@ -305,7 +305,7 @@ let runBuildDependencies
       plan
       dependencies
 
-let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkgspec () =
+let buildDependencies (proj : Project.WithoutWorkflow.t) release all devDependencies depspec pkgspec () =
   let open RunAsync.Syntax in
   let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
@@ -330,7 +330,7 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkg
     ) in
     runBuildDependencies
       ~buildLinked:all
-      ~buildDevDependencies:false
+      ~buildDevDependencies:devDependencies
       proj
       plan
       pkg
@@ -1941,6 +1941,11 @@ let makeCommands ~sandbox () =
             value
             & flag
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
+          )
+        $ Arg.(
+            value
+            & flag
+            & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
         $ Arg.(
             value
