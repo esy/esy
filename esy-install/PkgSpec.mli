@@ -3,8 +3,8 @@
 type t =
   | Root
   | ByName of string
-  | ByNameVersion of (string * EsyInstall.Version.t)
-  | ById of EsyInstall.PackageId.t
+  | ByNameVersion of (string * Version.t)
+  | ById of PackageId.t
 
 val pp : t Fmt.t
 val parse : string -> (t, string) result

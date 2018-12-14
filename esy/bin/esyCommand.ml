@@ -7,7 +7,7 @@ module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
 module Package = EsyInstall.Package
-module PkgSpec = EsySolve.PkgSpec
+module PkgSpec = EsyInstall.PkgSpec
 
 module PkgArg = struct
   type t =

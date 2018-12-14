@@ -1,14 +1,14 @@
 type t =
   | Root
   | ByName of string
-  | ByNameVersion of (string * EsyInstall.Version.t)
-  | ById of EsyInstall.PackageId.t
+  | ByNameVersion of (string * Version.t)
+  | ById of PackageId.t
 
 let pp fmt = function
   | Root -> Fmt.unit "root" fmt ()
   | ByName name -> Fmt.string fmt name
-  | ByNameVersion (name, version) -> Fmt.pf fmt "%s@%a" name EsyInstall.Version.pp version
-  | ById id -> EsyInstall.PackageId.pp fmt id
+  | ByNameVersion (name, version) -> Fmt.pf fmt "%s@%a" name Version.pp version
+  | ById id -> PackageId.pp fmt id
 
 let parse =
   let open Result.Syntax in
@@ -31,9 +31,9 @@ let parse =
     | name, Some rest ->
       begin match split rest with
       | Some _ ->
-        let%bind id = EsyInstall.PackageId.parse v in
+        let%bind id = PackageId.parse v in
         return (ById id)
       | None ->
-        let%bind version = EsyInstall.Version.parse rest in
+        let%bind version = Version.parse rest in
         return (ByNameVersion (name, version))
       end

@@ -12,7 +12,7 @@ module Id = struct
     | Root -> Fmt.unit "root" fmt ()
 end
 
-include EsySolve.DepSpec.Make(Id)
+include EsyInstall.DepSpec.Make(Id)
 
 let root = Id.Root
 let self = Id.Self
