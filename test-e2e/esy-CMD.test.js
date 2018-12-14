@@ -1,6 +1,5 @@
 // @flow
 
-const outdent = require('outdent');
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
