@@ -2,37 +2,6 @@
  * This module represents a solution.
  *)
 
-module Override : sig
-  type t =
-    | OfJson of {json : Json.t;}
-    | OfDist of {dist : Dist.t; json : Json.t;}
-    | OfOpamOverride of {
-        path : Path.t;
-        json : Json.t;
-      }
-
-  type build = {
-    buildType : BuildType.t option;
-    build : PackageConfig.CommandList.t option;
-    install : PackageConfig.CommandList.t option;
-    exportedEnv: PackageConfig.ExportedEnv.t option;
-    exportedEnvOverride: PackageConfig.ExportedEnvOverride.t option;
-    buildEnv: PackageConfig.Env.t option;
-    buildEnvOverride: PackageConfig.EnvOverride.t option;
-  }
-
-  type install = {
-    dependencies : PackageConfig.NpmFormulaOverride.t option;
-    devDependencies : PackageConfig.NpmFormulaOverride.t option;
-    resolutions : PackageConfig.Resolution.resolution StringMap.t option [@default None];
-  }
-
-  val ofJson : Json.t -> t
-  val ofDist : Json.t -> Dist.t -> t
-
-  val files : Config.t -> SandboxSpec.t -> t -> File.t list RunAsync.t
-end
-
 module Overrides : sig
   type t = Override.t list
 

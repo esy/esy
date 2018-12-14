@@ -5,11 +5,11 @@ module Resolution = EsyInstall.PackageConfig.Resolution
 let computeOverrideDigest sandbox override =
   let open RunAsync.Syntax in
   match override with
-  | EsyInstall.Solution.Override.OfJson {json;} -> return (Digestv.ofJson json)
+  | EsyInstall.Override.OfJson {json;} -> return (Digestv.ofJson json)
   | OfDist {dist; json = _;} -> return (Digestv.ofString (EsyInstall.Dist.show dist))
   | OfOpamOverride info ->
     let%bind files =
-      EsyInstall.Solution.Override.files
+      EsyInstall.Override.files
         sandbox.Sandbox.cfg.installCfg
         sandbox.spec override
     in

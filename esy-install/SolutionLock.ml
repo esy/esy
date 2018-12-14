@@ -74,8 +74,8 @@ end
 let writeOverride sandbox pkg override =
   let open RunAsync.Syntax in
   match override with
-  | Solution.Override.OfJson {json;} -> return (OfJson {json;})
-  | Solution.Override.OfOpamOverride info ->
+  | Override.OfJson {json;} -> return (OfJson {json;})
+  | Override.OfOpamOverride info ->
     let id =
       Format.asprintf "%s-%a-opam-override"
         (Path.safeSeg pkg.Solution.Package.name)
@@ -90,9 +90,9 @@ let writeOverride sandbox pkg override =
     let%bind () = Fs.copyPath ~src:info.path ~dst:lockPath in
     let path = DistPath.ofPath (Path.tryRelativize ~root:sandbox.spec.path lockPath) in
     return (OfOpamOverride {path;})
-  | Solution.Override.OfDist {dist = Dist.LocalPath local; json = _;} ->
+  | Override.OfDist {dist = Dist.LocalPath local; json = _;} ->
     return (OfPath local)
-  | Solution.Override.OfDist {dist; json = _;} ->
+  | Override.OfDist {dist; json = _;} ->
     let%bind distPath = DistStorage.fetchIntoCache ~cfg:sandbox.cfg ~sandbox:sandbox.spec dist in
     let digest = Digestv.ofString (Dist.show dist) in
     let lockPath = Path.(
@@ -108,11 +108,11 @@ let writeOverride sandbox pkg override =
 let readOverride sandbox override =
   let open RunAsync.Syntax in
   match override with
-  | OfJson {json;} -> return (Solution.Override.OfJson {json;})
+  | OfJson {json;} -> return (Override.OfJson {json;})
   | OfOpamOverride {path;} ->
     let path = DistPath.toPath sandbox.Sandbox.spec.path DistPath.(path / "package.json") in
     let%bind json = Fs.readJsonFile path in
-    return (Solution.Override.OfOpamOverride {json; path;})
+    return (Override.OfOpamOverride {json; path;})
   | OfPath local ->
     let filename =
       match local.manifest with
@@ -124,7 +124,7 @@ let readOverride sandbox override =
     let dist = Dist.LocalPath local in
     let path = DistPath.toPath sandbox.Sandbox.spec.path DistPath.(local.path / filename) in
     let%bind json = PackageOverride.ofPath path in
-    return (Solution.Override.OfDist {dist; json;})
+    return (Override.OfDist {dist; json;})
 
 let writeOverrides sandbox pkg overrides =
   RunAsync.List.mapAndJoin ~f:(writeOverride sandbox pkg) overrides

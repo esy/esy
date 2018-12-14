@@ -295,9 +295,9 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
   RunAsync.contextf pkg
     "reading package metadata from %a" EsyInstall.Source.ppPretty source
 
-let applyOverride pkg (override : EsyInstall.Solution.Override.install) =
+let applyOverride pkg (override : EsyInstall.Override.install) =
   let {
-    EsyInstall.Solution.Override.
+    EsyInstall.Override.
     dependencies;
     devDependencies;
     resolutions;
@@ -436,7 +436,7 @@ let package ~(resolution : Resolution.t) resolver =
       match resolution.resolution with
       | Version version -> ofVersion version
       | SourceOverride {source; override} ->
-        let override = EsyInstall.Solution.Override.ofJson override in
+        let override = EsyInstall.Override.ofJson override in
         let overrides = EsyInstall.Solution.Overrides.(add override empty) in
         packageOfSource
           ~name:resolution.name

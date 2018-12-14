@@ -7,7 +7,7 @@ type t = {
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : EsyInstall.Solution.Override.t option;
+  override : EsyInstall.Override.t option;
   opamRepositoryPath : Path.t option;
 }
 

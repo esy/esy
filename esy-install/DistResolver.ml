@@ -238,7 +238,7 @@ let resolve
         paths = Path.Set.union paths newPaths;
       }
     | Override {dist = nextDist; override = json;}, newPaths ->
-      let override = Solution.Override.ofDist json dist in
+      let override = Override.ofDist json dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
       Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
       let overrides = Solution.Overrides.add override overrides in
