@@ -4,7 +4,6 @@ type t = {
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
-  opamArchivesIndexPath: Path.t,
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
@@ -60,8 +59,6 @@ let make =
   let sourceInstallPath = Path.(sourcePath / "i");
   let%bind () = Fs.createDir(sourceInstallPath);
 
-  let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
-
   let npmRegistry =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
@@ -71,7 +68,6 @@ let make =
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
-    opamArchivesIndexPath,
     npmRegistry,
     skipRepositoryUpdate,
     solveTimeout,

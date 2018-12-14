@@ -5,7 +5,6 @@ type t = {
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
-  opamArchivesIndexPath: Path.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
   npmRegistry: string,
@@ -80,8 +79,6 @@ let make =
   let sourceInstallPath = Path.(sourcePath / "i");
   let%bind () = Fs.createDir(sourceInstallPath);
 
-  let opamArchivesIndexPath = Path.(cachePath / "opam-urls.txt");
-
   let opamRepository = {
     let defaultRemote = "https://github.com/ocaml/opam-repository";
     let defaultLocal = Path.(cachePath / "opam-repository");
@@ -103,7 +100,6 @@ let make =
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
-    opamArchivesIndexPath,
     npmRegistry,
     skipRepositoryUpdate,
     solveTimeout,
@@ -116,7 +112,6 @@ let make =
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
-    opamArchivesIndexPath,
     opamRepository,
     esyOpamOverride,
     npmRegistry,

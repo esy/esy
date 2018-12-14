@@ -6,7 +6,6 @@ type t = {
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
-  opamArchivesIndexPath: Path.t,
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
