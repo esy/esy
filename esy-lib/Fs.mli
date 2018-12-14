@@ -18,6 +18,9 @@ val exists : Path.t -> bool RunAsync.t
 (** Check if the path exists and is a directory *)
 val isDir : Path.t -> bool RunAsync.t
 
+(** Check if directory is empty **)
+val isEmpty: Path.t -> bool
+
 val unlink : Path.t -> unit RunAsync.t
 
 (** readlink *)

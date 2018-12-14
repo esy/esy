@@ -34,6 +34,11 @@ let readJsonFile (path : Path.t) =
   with Yojson.Json_error msg ->
     errorf "error reading JSON file: %a@\n%s" Path.pp path msg
 
+let isEmpty p =
+    match Sys.readdir (Path.show p) with
+    | v -> (Array.length v) == 0
+    | exception Sys_error(_) -> true
+
 let writeJsonFile ~json path =
   let data = Yojson.Safe.pretty_to_string json in
   writeFile ~data path
