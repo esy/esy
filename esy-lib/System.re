@@ -118,6 +118,14 @@ module Arch = {
   };
 };
 
+external checkLongPathRegistryKey: unit => bool = "caml_win32_check_long_path_regkey";
+
+let supportsLongPaths = () =>
+  switch (Sys.win32) {
+  | false => true
+  | true => checkLongPathRegistryKey()
+  };
+
 module Environment = {
   let sep = (~platform=Platform.host, ~name=?, ()) =>
     switch (name, platform) {
