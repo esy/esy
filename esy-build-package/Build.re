@@ -1,6 +1,8 @@
 module EsyBash = EsyLib.EsyBash;
+module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
+module Result = EsyLib.Result;
 module System = EsyLib.System;
 open Run;
 
@@ -390,18 +392,51 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   };
 };
 
-let runCommand = (build, cmd) => {
+let filterPathSegments = (paths: list(string)) => {
+  let f = path =>
+    if (String.length(path) < 1) {
+      false;
+    } else if (path.[0] == '/' && Sys.win32) {
+      true;
+          /* On Windows, we let Cygwin resolve paths like `/usr/bin`.
+           * These would fail the empty check, but we still want to include them */
+    } else {
+      switch (empty(Path.v(path))) {
+      | Ok(empty) => !empty
+      | Error(_) => false /* skip dirs which we can't check */
+      };
+    };
+  List.filter(f, paths);
+};
+
+let getEnvAndPath = build => {
+  let path =
+    switch (Astring.String.Map.find("PATH", build.env)) {
+    | Some(path) =>
+      String.split_on_char(System.Environment.sep().[0], path)
+      |> filterPathSegments
+    | None => []
+    };
+
   let env =
     switch (Bos.OS.Env.var("TERM")) {
     | Some(term) => Astring.String.Map.add("TERM", term, build.env)
     | None => build.env
     };
-  let path =
-    switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
-    | None => []
+
+  let env =
+    switch (path) {
+    | [] => env
+    | v =>
+      let updatedPath = String.concat(System.Environment.sep(), v);
+      Astring.String.Map.add("PATH", updatedPath, env);
     };
 
+  (env, path);
+};
+
+let runCommand = (build, cmd) => {
+  let (env, path) = getEnvAndPath(build);
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
@@ -416,16 +451,7 @@ let runCommand = (build, cmd) => {
 };
 
 let runCommandInteractive = (build, cmd) => {
-  let env =
-    switch (Bos.OS.Env.var("TERM")) {
-    | Some(term) => Astring.String.Map.add("TERM", term, build.env)
-    | None => build.env
-    };
-  let path =
-    switch (Astring.String.Map.find("PATH", env)) {
-    | Some(path) => String.split_on_char(System.Environment.sep().[0], path)
-    | None => []
-    };
+  let (env, path) = getEnvAndPath(build);
   let%bind ((), (_runInfo, runStatus)) = {
     let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
     let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
