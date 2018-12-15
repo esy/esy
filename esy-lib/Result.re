@@ -34,6 +34,24 @@ let getOr = onError =>
   | Ok(v) => v
   | Error(_) => onError;
 
+module Syntax = {
+  let return = return;
+  let error = error;
+  let errorf = errorf;
+
+  module Let_syntax = {
+    let map = map;
+    let bind = (~f, v) =>
+      switch (v) {
+      | Ok(v) => f(v)
+      | Error(e) => Error(e)
+      };
+    module Open_on_rhs = {
+      let return = v => Ok(v);
+    };
+  };
+};
+
 module List = {
   let map =
       (~f: 'a => result('b, 'err), xs: list('a)): result(list('b), 'err) => {
@@ -57,22 +75,15 @@ module List = {
       };
     fold(Ok(init), xs);
   };
-};
-
-module Syntax = {
-  let return = return;
-  let error = error;
-  let errorf = errorf;
-
-  module Let_syntax = {
-    let map = map;
-    let bind = (~f, v) =>
-      switch (v) {
-      | Ok(v) => f(v)
-      | Error(e) => Error(e)
+  let filter = (~f, xs) => {
+    open Syntax;
+    let f = (xs, x) =>
+      if%bind (f(x)) {
+        return([x, ...xs]);
+      } else {
+        return(xs);
       };
-    module Open_on_rhs = {
-      let return = v => Ok(v);
-    };
+    let%bind xs = foldLeft(~f, ~init=[], xs);
+    return(List.rev(xs));
   };
 };

@@ -41,6 +41,9 @@ let (/): (EsyLib.Path.t, string) => EsyLib.Path.t;
 /** Check if path exists. */
 let exists: EsyLib.Path.t => t(bool, _);
 
+/** Check if directory is empty */
+let empty: EsyLib.Path.t => t(bool, _);
+
 /** Remove path, if it's a dir then remove it recursively. */
 let rm: EsyLib.Path.t => t(unit, _);
 

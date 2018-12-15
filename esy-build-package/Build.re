@@ -2,6 +2,7 @@ module EsyBash = EsyLib.EsyBash;
 module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
 module Option = EsyLib.Option;
+module Result = EsyLib.Result;
 module System = EsyLib.System;
 open Run;
 
@@ -392,26 +393,28 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
 };
 
 let filterPathSegments = (paths: list(string)) => {
-  let f = (path) => {
+  let f = path =>
     if (String.length(path) < 1) {
-       false
-    /* On Windows, we let Cygwin resolve paths like `/usr/bin`. 
-     * These would fail the empty check, but we still want to include them */
+      false;
     } else if (path.[0] == '/' && Sys.win32) {
-       true
+      true;
+          /* On Windows, we let Cygwin resolve paths like `/usr/bin`.
+           * These would fail the empty check, but we still want to include them */
     } else {
-       !Fs.isEmpty(Fpath.v(path))
-    }
-  };
+      switch (empty(Path.v(path))) {
+      | Ok(empty) => !empty
+      | Error(_) => false /* skip dirs which we can't check */
+      };
+    };
   List.filter(f, paths);
 };
 
-let getEnvAndPath = (build) => {
+let getEnvAndPath = build => {
   let path =
     switch (Astring.String.Map.find("PATH", build.env)) {
-    | Some(path) => 
-        String.split_on_char(System.Environment.sep().[0], path)
-        |> filterPathSegments
+    | Some(path) =>
+      String.split_on_char(System.Environment.sep().[0], path)
+      |> filterPathSegments
     | None => []
     };
 
@@ -421,12 +424,12 @@ let getEnvAndPath = (build) => {
     | None => build.env
     };
 
-  let env = 
+  let env =
     switch (path) {
-    | [] => env    
-    | v => 
-        let updatedPath = String.concat(System.Environment.sep(), v);
-        Astring.String.Map.add("PATH", updatedPath, env);
+    | [] => env
+    | v =>
+      let updatedPath = String.concat(System.Environment.sep(), v);
+      Astring.String.Map.add("PATH", updatedPath, env);
     };
 
   (env, path);
