@@ -3,8 +3,6 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('building @opam/* dependencies', () => {
   it('builds opam dependencies with patches', async () => {
     const p = await helpers.createTestSandbox();
