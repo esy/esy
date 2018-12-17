@@ -12,7 +12,7 @@ exports[`'esy build': simple executable with no deps out of source build macos |
 
 
 #
-# no-deps@1.0.0
+# no-deps@link:./package.json
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
