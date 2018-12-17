@@ -1,7 +1,10 @@
 type t = {
-  name : string;
   root : Path.t;
+  name : string;
 }
+
+let pp fmt file =
+  Fmt.pf fmt "%a/%s" Path.pp file.root file.name
 
 let digest file =
   let path = Path.(file.root / file.name) in

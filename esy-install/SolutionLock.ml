@@ -110,8 +110,8 @@ let readOverride sandbox override =
   match override with
   | OfJson {json;} -> return (Override.OfJson {json;})
   | OfOpamOverride {path;} ->
-    let path = DistPath.toPath sandbox.Sandbox.spec.path DistPath.(path / "package.json") in
-    let%bind json = Fs.readJsonFile path in
+    let path = DistPath.toPath sandbox.Sandbox.spec.path path in
+    let%bind json = Fs.readJsonFile Path.(path / "package.json") in
     return (Override.OfOpamOverride {json; path;})
   | OfPath local ->
     let filename =
