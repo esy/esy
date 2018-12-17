@@ -1,5 +1,6 @@
 type t
 
+val pp : t Fmt.t
 val digest : t -> Digestv.t RunAsync.t
 
 val ofDir : Path.t -> t list RunAsync.t
