@@ -60,5 +60,7 @@ if (!isWindows) {
   // require("./fastpack.test.js");
 
   // Windows: Release blocked by #418
-  require('./release.test.js');
+  require('./esy-release/legacy.test.js');
 }
+
+require('./esy-release/no-rewrite.test.js');

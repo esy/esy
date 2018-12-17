@@ -44,6 +44,14 @@ module OfPackageJson = struct
 
     | _ -> error {|"esy.release.bin": expected a string, array or an object|}
 
+  type release = {
+    includePackages : PkgSpec.t list option [@default None];
+    releasedBinaries: string list option [@default None];
+    bin : bin option [@default None];
+    deleteFromBinaryRelease: string list option [@default None];
+    rewritePrefix : bool option [@default None]
+  } [@@deriving of_yojson]
+
   type t = {
     name : string [@default "project"];
     version : string [@default "0.0.0"];
@@ -54,14 +62,6 @@ module OfPackageJson = struct
 
   and esy = {
     release : release option [@default None];
-  }
-
-  and release = {
-    includePackages : PkgSpec.t list option [@default None];
-    releasedBinaries: string list option [@default None];
-    bin : bin option [@default None];
-    deleteFromBinaryRelease: string list option [@default None];
-    rewritePrefix : bool option [@default None]
   }
 
 end

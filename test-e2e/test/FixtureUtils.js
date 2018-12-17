@@ -7,6 +7,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 
+/*::
 export type Fixture = Array<FixtureItem>;
 export type FixtureItem = FixtureDir | FixtureFile | FixtureFileCopy | FixtureSymlink;
 export type FixtureDir = {
@@ -29,8 +30,12 @@ export type FixtureSymlink = {
   name: string,
   path: string,
 };
+*/
 
-function dir(name: string | string[], ...items: Array<FixtureItem>): FixtureDir {
+function dir(
+  name /*: string | string[] */,
+  ...items /*: Array<FixtureItem>*/
+) /*: FixtureDir*/ {
   if (Array.isArray(name)) {
     if (name.length === 0) {
       throw new Error('invalid fixture');
@@ -44,24 +49,24 @@ function dir(name: string | string[], ...items: Array<FixtureItem>): FixtureDir 
   }
 }
 
-function file(name: string, data: string): FixtureFile {
+function file(name /*: string*/, data /*: string*/) /*: FixtureFile*/ {
   return {type: 'file', name, data};
 }
 
-function json(name: string, json: Object): FixtureFile {
+function json(name /*: string*/, json /*: Object*/) /*: FixtureFile*/ {
   const data = JSON.stringify(json, null, 2);
   return {type: 'file', name, data};
 }
 
-function symlink(name: string, path: string): FixtureSymlink {
+function symlink(name /*: string*/, path /*: string*/) /*: FixtureSymlink*/ {
   return {type: 'symlink', name, path};
 }
 
-function packageJson(json: Object) {
+function packageJson(json /*: Object*/) {
   return file('package.json', JSON.stringify(json, null, 2));
 }
 
-async function layout(p: string, fixture: FixtureItem) {
+async function layout(p /*: string*/, fixture /*: FixtureItem*/) {
   if (fixture.type === 'file') {
     await fs.writeFile(path.join(p, fixture.name), fixture.data);
   } else if (fixture.type === 'file-copy') {
@@ -77,12 +82,33 @@ async function layout(p: string, fixture: FixtureItem) {
   }
 }
 
-function initialize(p: string, fixture: Fixture) {
+function layoutSync(p /*: string*/, fixture /*: FixtureItem*/) {
+  if (fixture.type === 'file') {
+    fs.writeFileSync(path.join(p, fixture.name), fixture.data);
+  } else if (fixture.type === 'file-copy') {
+    fs.copyFileSync(fixture.path, path.join(p, fixture.name));
+  } else if (fixture.type === 'symlink') {
+    fs.symlinkSync(fixture.path, path.join(p, fixture.name));
+  } else if (fixture.type === 'dir') {
+    const nextp = path.join(p, fixture.name);
+    fs.mkdirSync(nextp);
+    fixture.items.forEach(item => layoutSync(nextp, item));
+  } else {
+    throw new Error('unknown fixture ' + JSON.stringify(fixture));
+  }
+}
+
+function initialize(p /*: string*/, fixture /*: Fixture*/) {
   return Promise.all(fixture.map(item => layout(p, item)));
+}
+
+function initializeSync(p /*: string*/, fixture /*: Fixture*/) {
+  fixture.forEach(item => layoutSync(p, item));
 }
 
 module.exports = {
   initialize,
+  initializeSync,
   dir,
   file,
   symlink,
