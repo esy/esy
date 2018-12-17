@@ -7,6 +7,7 @@
 (** Environment binding *)
 module Binding : sig
   type 'v t
+  val origin : 'v t -> string option
 end
 
 (** Environment representation over value type. *)
