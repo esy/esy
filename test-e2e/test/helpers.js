@@ -4,6 +4,7 @@ jest.setTimeout(120000);
 
 import type {Fixture} from './FixtureUtils.js';
 import type {PackageRegistry} from './NpmRegistryMock.js';
+import type {OpamRegistry} from './OpamRegistryMock.js.js';
 const path = require('path');
 const fs = require('fs-extra');
 const fsUtils = require('./fs.js');
@@ -58,6 +59,7 @@ export type TestSandbox = {
   esyStorePath: string,
   npmPrefixPath: string,
   npmRegistry: PackageRegistry,
+  opamRegistry: OpamRegistry,
 
   fixture: (...fixture: Fixture) => Promise<void>,
 
@@ -271,6 +273,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     printEsy,
     npm,
     npmRegistry,
+    opamRegistry,
     normalizePathsForSnapshot,
     fixture: async (...fixture) => {
       await FixtureUtils.initialize(projectPath, fixture);
