@@ -5,7 +5,67 @@ const helpers = require('../test/helpers.js');
 
 helpers.skipSuiteOnWindows();
 
-describe('build projects with opam dependencies', () => {
+describe('building @opam/* dependencies', () => {
+  it('builds opam dependencies with patches', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          '@opam/pkg': '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'pkg',
+        version: '1.0.0',
+        opam: outdent`
+          opam-version: "2.0"
+          patches: [
+            "some.patch"
+          ]
+          build: [
+            ${helpers.buildCommandInOpam('hello.js')}
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
+          ]
+        `,
+      },
+      [
+        helpers.dummyExecutable('hello'),
+        helpers.file(
+          'some.patch',
+          outdent`
+            --- a/hello.js
+            +++ b/hello.js
+            @@ -1 +1 @@
+            -console.log("__" + "hello" + "__");
+            +console.log("__" + "hello-patched" + "__");
+
+          `,
+        ),
+      ],
+    );
+
+    await p.esy('install');
+    await p.esy('build');
+
+    {
+      const {stdout} = await p.esy('x hello.cmd');
+      expect(stdout.trim()).toEqual('__hello-patched__');
+    }
+  });
+
   it('builds a project with an opam dep which refernces ocaml:* variables', async () => {
     const p = await helpers.createTestSandbox();
 
