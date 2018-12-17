@@ -8,9 +8,12 @@ let esyInstallReleaseJs =
   | Error (`Msg msg) -> failwith msg
 
 type filterPackages =
-  | NoFilter
   | ExcludeById of string list
   | IncludeByPkgSpec of PkgSpec.t list
+
+type rewritePrefix =
+  | Rewrite
+  | NoRewrite
 
 type config = {
   name : string;
@@ -19,6 +22,7 @@ type config = {
   description : string option;
   bin : string StringMap.t;
   filterPackages : filterPackages;
+  rewritePrefix : rewritePrefix;
 }
 
 module OfPackageJson = struct
@@ -57,6 +61,7 @@ module OfPackageJson = struct
     releasedBinaries: string list option [@default None];
     bin : bin option [@default None];
     deleteFromBinaryRelease: string list option [@default None];
+    rewritePrefix : bool option [@default None]
   }
 
 end
@@ -76,7 +81,7 @@ let configure (cfg : Config.t) () =
     | Some releaseCfg ->
       let%bind filterPackages =
         match releaseCfg.includePackages, releaseCfg.deleteFromBinaryRelease with
-        | None, None -> return NoFilter
+        | None, None -> return (IncludeByPkgSpec [PkgSpec.Root])
         | Some f, None -> return (IncludeByPkgSpec f)
         | None, Some f -> return (ExcludeById f)
         | Some _, Some _ ->
@@ -97,6 +102,12 @@ let configure (cfg : Config.t) () =
         | Some _, Some _ ->
           errorf {|both "esy.release.bin" and "esy.release.releasedBinaries" are specified, which is not allowed|}
       in
+      let rewritePrefix =
+        match releaseCfg.rewritePrefix with
+        | None -> NoRewrite
+        | Some false -> NoRewrite
+        | Some true -> Rewrite
+      in
       return {
         name = pkgJson.name;
         version = pkgJson.version;
@@ -104,6 +115,7 @@ let configure (cfg : Config.t) () =
         description = pkgJson.description;
         bin;
         filterPackages;
+        rewritePrefix;
       }
 
 let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
@@ -120,6 +132,76 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
     |> String.concat ";"
   in
   Printf.sprintf {|
+
+    let windows = Sys.os_type = "Win32";;
+    let cwd = Sys.getcwd ();;
+    let path_sep = if windows then '\\' else '/';;
+    let path_sep_str = String.make 1 path_sep
+
+    let is_root p =
+      if windows
+      then
+        match String.split_on_char ':' p with
+        | [drive] when String.length drive = 1 -> true
+        | [drive; p] when String.length drive = 1 && (String.equal p "/" || String.equal p "//") -> true
+        | _ -> false
+      else String.equal p "/" || String.equal p "//"
+    ;;
+
+    let is_abs p =
+      if windows
+      then
+        match String.split_on_char ':' p with
+        | drive::_ when String.length drive = 1 -> true
+        | _ -> false
+      else String.length p > 0 && String.get p 0 = '/'
+    ;;
+
+    let normalize p =
+      let p = Str.global_substitute (Str.regexp "\\") (fun _ -> "/") p in
+      let parts = String.split_on_char '/' p in
+      let need_leading_sep = not windows && is_abs p in
+      let f parts part =
+        match part, parts with
+        | "", parts -> parts
+        | ".", parts -> parts
+        | "..", [] -> parts
+        | "..", part::[] -> if windows then part::[] else []
+        | "..", _::parts -> parts
+        | part, parts -> part::parts
+      in
+      let p = String.concat path_sep_str (List.rev (List.fold_left f [] parts)) in
+      if need_leading_sep
+      then "/" ^ p
+      else p
+    ;;
+
+    let is_symlink p =
+      match Unix.lstat p with
+      | {Unix.st_kind = Unix.S_LNK; _} -> true
+      | _ -> false
+      | exception Unix.Unix_error _ -> false
+    ;;
+
+    let rec resolve_path p =
+      let p =
+        if is_abs p
+        then p
+        else normalize (Filename.concat cwd p)
+      in
+
+      if is_root p then p
+      else
+        if is_symlink p then (
+          let target = Unix.readlink p in
+          if is_abs target
+          then resolve_path target
+          else resolve_path (normalize (Filename.concat (Filename.dirname p) target))
+        ) else (
+          Filename.concat (resolve_path (Filename.dirname p)) (Filename.basename p)
+        )
+    ;;
+
     let curEnvMap =
       let curEnv = Unix.environment () in
       let table = Hashtbl.create (Array.length curEnv) in
@@ -132,9 +214,10 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         ) with Not_found -> ()
       in
       Array.iter f curEnv;
-      table;;
+      table
+    ;;
 
-    let env =
+    let expandEnv env =
       let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
       let replace v =
         let name = Str.matched_group 1 v in
@@ -145,28 +228,56 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
         let value = Str.global_substitute findVarRe replace value in
         Hashtbl.replace curEnvMap name value
       in
-      Array.iter f [|%s|];
+      Array.iter f env;
       let f name value items = (name ^ "=" ^ value)::items in
-      Array.of_list (Hashtbl.fold f curEnvMap []);;
+      Array.of_list (Hashtbl.fold f curEnvMap [])
+    ;;
+
+    let this_executable =
+      resolve_path Sys.executable_name
+    ;;
+
+    let expandFallback padding =
+      let dirname = Filename.dirname this_executable in
+      let pattern = String.make padding '_' in
+      let pattern = Str.regexp pattern in
+      let storePrefix =
+        let (/) = Filename.concat in
+        normalize (dirname / ".." / "3")
+      in
+      let rewrite value =
+        Str.global_substitute pattern (fun _ -> storePrefix) value
+      in
+      rewrite
+    ;;
+
+    let expandFallbackEnv padding env =
+      Array.map (expandFallback padding) env
+    ;;
 
     let () =
+      let env = [|%s|] in
+      let program = "%s" in
+      let padding = %i in
+      let expandedEnv = expandFallbackEnv padding (expandEnv env) in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
-        print_endline "%s"
+        print_endline (expandFallback padding program)
       else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
-        Array.iter print_endline env
+        Array.iter print_endline expandedEnv
       else (
-        let program = "%s" in
+        let program = expandFallback padding program in
         Sys.argv.(0) <- program;
-        Unix.execve program Sys.argv env
+        Unix.execve program Sys.argv expandedEnv
       )
-  |} environmentString bin bin
+    ;;
+  |} environmentString bin (Store.maxStorePaddingLength + 2) (* TODO: why + 2 *)
 
 let envspec = {
   EnvSpec.
   buildIsInProgress = false;
-  includeCurrentEnv = true;
+  includeCurrentEnv = false;
   includeBuildEnv = false;
-  includeNpmBin = true;
+  includeNpmBin = false;
   augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
@@ -204,7 +315,6 @@ let make
 
   let shouldDeleteFromBinaryRelease =
     match releaseCfg.filterPackages with
-    | NoFilter -> fun _ _ -> false
     | IncludeByPkgSpec specs -> fun pkgid _buildid ->
       let f spec = PkgSpec.matches root.Package.id spec pkgid in
       let included = List.exists ~f specs in
@@ -353,12 +463,19 @@ let make
 
     (* Emit package.json *)
     let%bind () =
+
+      let postinstall =
+        match releaseCfg.rewritePrefix with
+        | NoRewrite -> "node ./esyInstallRelease.js"
+        | Rewrite -> "ESY_RELEASE_REWRITE_PREFIX=true node ./esyInstallRelease.js"
+      in
+
       let pkgJson =
         let items = [
           "name", `String releaseCfg.name;
           "version", `String releaseCfg.version;
           "scripts", `Assoc [
-            "postinstall", `String "node ./esyInstallRelease.js"
+            "postinstall", `String postinstall
           ];
           "bin", `Assoc (
             let f (publicName, _innerName) = publicName, `String ("bin/" ^ publicName) in

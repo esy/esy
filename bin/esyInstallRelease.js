@@ -29,6 +29,8 @@ var ESY_STORE_PADDING_LENGTH =
   '!#'.length -
   ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 
+var shouldRewritePrefix = process.env.ESY_RELEASE_REWRITE_PREFIX === 'true';
+
 /**
  * Utils
  */
@@ -270,7 +272,7 @@ var cwd = process.cwd();
 var releasePackagePath = cwd;
 var releaseExportPath = path.join(releasePackagePath, '_export');
 var releaseBinPath = path.join(releasePackagePath, 'bin');
-var storePath = getStorePathForPrefix(releasePackagePath);
+var unpaddedStorePath = path.join(releasePackagePath, String(ESY_STORE_VERSION));
 
 /**
  * Main
@@ -281,26 +283,41 @@ function importBuild(filename, storePath) {
 
   info('importing: ' + buildId);
 
-  // We try to rewrite path prefix inside a stage path and then transactionally
-  // mv to the final path
-  var storeStagePath = path.join(storePath, STORE_STAGE_TREE);
-  var buildStagePath = path.join(storeStagePath, buildId);
-  var buildFinalPath = path.join(storePath, STORE_INSTALL_TREE, buildId);
+  if (storePath != null) {
+    var storeStagePath = path.join(storePath, STORE_STAGE_TREE);
+    var buildStagePath = path.join(storeStagePath, buildId);
+    var buildFinalPath = path.join(storePath, STORE_INSTALL_TREE, buildId);
 
-  return fsMkdir(buildStagePath).then(function() {
-    return childSpawn('tar', ['xzf', filename, '-C', storeStagePath], {
-      stdio: 'inherit'
-    }).then(function() {
-      return fsReadFile(path.join(buildStagePath, '_esy', 'storePrefix')).then(function(
-        prevStorePrefix
-      ) {
-        prevStorePrefix = prevStorePrefix.toString();
-        return rewritePaths(buildStagePath, prevStorePrefix, storePath).then(function() {
-          return fsRename(buildStagePath, buildFinalPath);
+    return fsMkdir(buildStagePath).then(function() {
+      return childSpawn('tar', ['xzf', filename, '-C', storeStagePath], {
+        stdio: 'inherit'
+      }).then(function() {
+        // We try to rewrite path prefix inside a stage path and then transactionally
+        // mv to the final path
+        return fsReadFile(path.join(buildStagePath, '_esy', 'storePrefix')).then(function(
+          prevStorePrefix
+        ) {
+          prevStorePrefix = prevStorePrefix.toString();
+          return rewritePaths(buildStagePath, prevStorePrefix, storePath).then(
+            function() {
+              return fsRename(buildStagePath, buildFinalPath);
+            }
+          );
         });
       });
     });
-  });
+  } else {
+    var storeStagePath = path.join(unpaddedStorePath, STORE_STAGE_TREE);
+    var buildStagePath = path.join(storeStagePath, buildId);
+    var buildFinalPath = path.join(unpaddedStorePath, STORE_INSTALL_TREE, buildId);
+    return fsMkdir(buildStagePath).then(function() {
+      return childSpawn('tar', ['xzf', filename, '-C', storeStagePath], {
+        stdio: 'inherit'
+      }).then(function() {
+        return fsRename(buildStagePath, buildFinalPath);
+      });
+    });
+  }
 }
 
 function rewritePaths(path, from, to) {
@@ -367,6 +384,10 @@ function main() {
     }
 
     function checkStorePath() {
+      if (!shouldRewritePrefix) {
+        return;
+      }
+      var storePath = getStorePathForPrefix(releasePackagePath);
       return fsExists(storePath).then(function(exists) {
         if (exists) {
           info('Release already installed, exiting...');
@@ -379,6 +400,9 @@ function main() {
   }
 
   function initStore() {
+    var storePath = shouldRewritePrefix
+      ? getStorePathForPrefix(releasePackagePath)
+      : unpaddedStorePath;
     return fsMkdir(storePath).then(function() {
       return Promise.all([
         fsMkdir(path.join(storePath, STORE_BUILD_TREE)),
@@ -393,6 +417,10 @@ function main() {
       return fsWalk(releaseExportPath).then(function(builds) {
         return Promise.all(
           builds.map(function(file) {
+            var storePath = null;
+            if (shouldRewritePrefix) {
+              storePath = getStorePathForPrefix(releasePackagePath);
+            }
             return importBuild(file.absolute, storePath);
           })
         );
@@ -400,6 +428,10 @@ function main() {
     }
 
     function rewriteBinWrappers() {
+      if (!shouldRewritePrefix) {
+        return;
+      }
+      var storePath = getStorePathForPrefix(releasePackagePath);
       return fsReadFile(path.join(releaseBinPath, '_storePath')).then(function(
         prevStorePath
       ) {
