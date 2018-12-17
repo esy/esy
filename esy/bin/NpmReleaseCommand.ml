@@ -313,6 +313,23 @@ let make
   ) in
   let tasks = BuildSandbox.Plan.all plan in
 
+  let shouldDeleteFromEnv =
+    match releaseCfg.filterPackages with
+    | IncludeByPkgSpec specs -> fun binding ->
+      begin match Environment.Binding.origin binding with
+      | None -> false
+      | Some pkgid ->
+        begin match EsyInstall.PackageId.parse pkgid with
+        | Error _ -> false
+        | Ok pkgid ->
+            let f spec = PkgSpec.matches root.Package.id spec pkgid in
+            let included = List.exists ~f specs in
+            not included
+        end
+      end
+    | ExcludeById _ -> fun _ -> false
+  in
+
   let shouldDeleteFromBinaryRelease =
     match releaseCfg.filterPackages with
     | IncludeByPkgSpec specs -> fun pkgid _buildid ->
@@ -387,20 +404,29 @@ let make
   let%bind () =
 
     let%lwt () = Logs_lwt.app (fun m -> m "Configuring release") in
-    let%bind bindings = RunAsync.ofRun (
-      BuildSandbox.env
-        ~forceImmutable:true
-        envspec
-        buildspec
-        sandbox
-        root.Package.id
-    ) in
     let binPath = Path.(outputPath / "bin") in
     let%bind () = Fs.createDir binPath in
 
     (* Emit wrappers for released binaries *)
     let%bind () =
-      let bindings = Scope.SandboxEnvironment.Bindings.render cfg.buildCfg bindings in
+      let%bind bindings = RunAsync.ofRun (
+        BuildSandbox.env
+          ~forceImmutable:true
+          envspec
+          buildspec
+          sandbox
+          root.Package.id
+      ) in
+      let bindings =
+        Scope.SandboxEnvironment.Bindings.render
+          cfg.buildCfg
+          bindings
+      in
+      let bindings =
+        List.filter
+          ~f:(fun binding -> not (shouldDeleteFromEnv binding))
+          bindings
+      in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
       let generateBinaryWrapper stagePath (publicName, innerName) =
