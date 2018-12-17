@@ -45,6 +45,7 @@ function dummyExecutable(name: string) {
     `${name}.js`,
     outdent`
       console.log("__" + ${JSON.stringify(name)} + "__");
+
     `,
   );
 }
