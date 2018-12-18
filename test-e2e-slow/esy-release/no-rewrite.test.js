@@ -9,7 +9,7 @@ const path = require('path');
 const outdent = require('outdent');
 const childProcess = require('child_process');
 
-const {setup} = require('./setup.js');
+const {setup, isWindows} = require('./setup.js');
 const {npmPrefix, sandbox, npm} = setup();
 
 console.log(`*** Release test at ${sandbox.path} ***`);
@@ -33,8 +33,8 @@ FixtureUtils.initializeSync(sandbox.path, [
       },
       release: {
         bin: {
-          'r.exe': 'release.exe',
-          'rd.exe': 'releaseDep.exe',
+          r: 'release.exe',
+          rd: 'releaseDep.exe',
         },
         includePackages: ['release', 'releaseDep'],
       },
@@ -82,29 +82,42 @@ sandbox.esy('release');
 const releasePath = path.join(sandbox.path, '_release');
 
 npm(releasePath, 'pack');
-npm(releasePath, '-g install ./release-*.tgz');
+npm(releasePath, '-g install ./release-0.1.0.tgz');
 
-{
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'r.exe'), {
+if (!isWindows) {
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'r'), {
     env: {
       ...process.env,
       NAME: 'ME',
     },
   });
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\n');
+} else {
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'r.cmd'), {
+    env: {
+      ...process.env,
+      NAME: 'ME',
+    },
+  });
+  assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\r\n');
 }
 
-{
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'rd.exe'));
+if (!isWindows) {
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'rd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
+} else {
+  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'rd.cmd'));
+  assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\r\n');
 }
 
 // check that `release ----where` returns a path to a real `release` binary
 
-{
-  const releaseBin = childProcess.execSync(
-    path.join(npmPrefix, 'bin', 'r.exe ----where'),
-  );
+if (!isWindows) {
+  const releaseBin = childProcess.execSync(path.join(npmPrefix, 'bin', 'r'));
   const stdout = childProcess.execSync(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\n');
+} else {
+  const releaseBin = childProcess.execSync(path.join(npmPrefix, 'bin', 'r.cmd'));
+  const stdout = childProcess.execSync(releaseBin.toString());
+  assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\r\n');
 }

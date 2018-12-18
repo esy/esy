@@ -26,4 +26,7 @@ function setup() {
   return {sandbox, npmPrefix, npm};
 }
 
-module.exports = {setup};
+module.exports = {
+  setup,
+  isWindows: process.platform === 'win32',
+};

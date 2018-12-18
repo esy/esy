@@ -269,7 +269,7 @@ let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
         Unix.execve program Sys.argv expandedEnv
       )
     ;;
-  |} environmentString bin (Path.show destPrefix) (* TODO: why + 2 *)
+  |} environmentString bin (Path.show destPrefix)
 
 let envspec = {
   EnvSpec.
