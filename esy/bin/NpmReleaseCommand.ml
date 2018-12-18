@@ -143,7 +143,7 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       then
         match String.split_on_char ':' p with
         | [drive] when String.length drive = 1 -> true
-        | [drive; p] when String.length drive = 1 && (String.equal p "/" || String.equal p "//") -> true
+        | [drive; p] when String.length drive = 1 && (String.equal p "/" || String.equal p "\\") -> true
         | _ -> false
       else String.equal p "/" || String.equal p "//"
     ;;
