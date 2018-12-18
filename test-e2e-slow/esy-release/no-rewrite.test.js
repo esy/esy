@@ -93,7 +93,7 @@ if (!isWindows) {
   });
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\n');
 } else {
-  const stdout = exec(path.join(npmPrefix, 'bin', 'r.cmd'), {
+  const stdout = exec(path.join(npmPrefix, 'r.cmd'), {
     env: {
       ...process.env,
       NAME: 'ME',
@@ -106,7 +106,7 @@ if (!isWindows) {
   const stdout = exec(path.join(npmPrefix, 'bin', 'rd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
 } else {
-  const stdout = exec(path.join(npmPrefix, 'bin', 'rd.cmd'));
+  const stdout = exec(path.join(npmPrefix, 'rd.cmd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\r\n');
 }
 
@@ -117,7 +117,7 @@ if (!isWindows) {
   const stdout = exec(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\n');
 } else {
-  const releaseBin = exec(path.join(npmPrefix, 'bin', 'r.cmd') + ' ----where');
+  const releaseBin = exec(path.join(npmPrefix, 'r.cmd') + ' ----where');
   const stdout = exec(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\r\n');
 }
