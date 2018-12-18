@@ -22,7 +22,7 @@ const siteConfig = {
     {doc: 'getting-started', label: 'Getting started'},
     {doc: 'what-why', label: 'Docs'},
     {doc: 'community', label: 'Community'},
-    {languages: true},
+    {languages: false},
     {search: true},
     {href: 'https://github.com/esy/esy', label: 'GitHub'},
   ],

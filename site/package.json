@@ -5,7 +5,11 @@
     "build": "docusaurus-build",
     "write-translations": "docusaurus-write-translations",
     "crowdin-upload": "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml upload sources --auto-update -b master",
-    "crowdin-download": "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml download -b master"
+    "crowdin-download": "export CROWDIN_DOCUSAURUS_PROJECT_ID=\"esy-website\"; export CROWDIN_DOCUSAURUS_API_KEY=$ESY_CROWDIN_API_KEY; crowdin --config ../crowdin.yaml download -b master",
+    "publish-gh-pages": "docusaurus-publish",
+    "examples": "docusaurus-examples",
+    "version": "docusaurus-version",
+    "rename-version": "docusaurus-rename-version"
   },
   "keywords": [],
   "author": "",
