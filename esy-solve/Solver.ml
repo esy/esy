@@ -352,10 +352,7 @@ let lockPackage
     |> EsyInstall.PackageId.Set.union optDependencies
     |> EsyInstall.PackageId.Set.union peerDependencies
   in
-  let devDependencies =
-    let devDependencies = idsOfDependencies devDependencies in
-    EsyInstall.PackageId.Set.diff devDependencies dependencies
-  in
+  let devDependencies = idsOfDependencies devDependencies in
   let source =
     match source with
     | EsyInstall.PackageSource.Link link -> EsyInstall.PackageSource.Link link

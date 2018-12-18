@@ -42,6 +42,10 @@ let run
     let%bind stdout, stderr, log =
       match logPath with
       | Some logPath ->
+        let%lwt () =
+          try%lwt Fs.rmPathLwt logPath
+          with _ -> Lwt.return ()
+        in
         let%lwt fd = Lwt_unix.openfile
           (Path.show logPath)
           Lwt_unix.[O_WRONLY; O_CREAT]
