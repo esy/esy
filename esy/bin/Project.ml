@@ -411,9 +411,11 @@ let buildDependencies
   let%bind fetched = fetched proj in
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      TermPp.(ppFlag "--all") buildLinked
+      TermPp.(ppFlag "--devDependencies") buildDevDependencies
       PackageId.pp pkg.Package.id
     )
   in
