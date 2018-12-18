@@ -512,7 +512,14 @@ let make
             "postinstall", `String postinstall
           ];
           "bin", `Assoc (
-            let f (publicName, _innerName) = publicName, `String ("bin/" ^ publicName) in
+            let f (publicName, _innerName) =
+              let binName =
+                match System.Platform.host with
+                | Windows -> publicName ^ ".exe"
+                | _ -> publicName
+              in
+              publicName, `String ("bin/" ^ binName)
+            in
             List.map ~f (StringMap.bindings releaseCfg.bin)
           )
         ]
