@@ -1,5 +1,48 @@
-open Esy
 open EsyInstall
+open Esy
+
+module TermPp = struct
+  let ppOption name pp fmt option =
+    match option with
+    | None -> Fmt.string fmt ""
+    | Some v -> Fmt.pf fmt "%s %a \\@;" name pp v
+
+  let ppFlag flag fmt enabled =
+    if enabled
+    then Fmt.pf fmt "%s \\@;" flag
+    else Fmt.string fmt ""
+
+  let ppEnvSpec fmt envspec =
+    let {
+      EnvSpec.
+      augmentDeps;
+      buildIsInProgress;
+      includeCurrentEnv;
+      includeBuildEnv;
+      includeNpmBin;
+    } = envspec in
+    Fmt.pf fmt
+      "%a%a%a%a%a"
+      (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
+      (ppFlag "--build-context") buildIsInProgress
+      (ppFlag "--include-current-env") includeCurrentEnv
+      (ppFlag "--include-npm-bin") includeNpmBin
+      (ppFlag "--include-build-env") includeBuildEnv
+
+  let ppMode fmt mode =
+    match mode with
+    | BuildSpec.Build -> Fmt.pf fmt "--release \\@;"
+    | BuildSpec.BuildDev -> Fmt.pf fmt ""
+
+  let ppBuildSpec fmt buildspec =
+    match buildspec.BuildSpec.buildLink with
+    | None -> Fmt.string fmt ""
+    | Some {mode; deps} ->
+      Fmt.pf fmt
+        "%a%a"
+        ppMode mode
+        (ppOption "--link-depspec" DepSpec.pp) (Some deps)
+end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
   let hash = [
@@ -295,6 +338,29 @@ module WithWorkflow = struct
         Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
       ]
 
+  let resolvePackage ~pkgName (proj : t) =
+    let open RunAsync.Syntax in
+    let%bind fetched = fetched proj in
+    let%bind configured = configured proj in
+    let%bind task, sandbox = RunAsync.ofRun (
+      let open Run.Syntax in
+      let task =
+        let open Option.Syntax in
+        let%bind task = BuildSandbox.Plan.getByName configured.plan pkgName in
+        return task
+      in
+      return (task, fetched.sandbox)
+    ) in
+    match task with
+    | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
+    | Some task ->
+      if%bind BuildSandbox.isBuilt sandbox task
+      then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
+      else errorf "package %s isn't built yet, run 'esy build'" pkgName
+
+  let ocamlfind = resolvePackage ~pkgName:"@opam/ocamlfind"
+  let ocaml = resolvePackage ~pkgName:"ocaml"
+
   include MakeProject(struct
     type nonrec t = t
     let make = make
@@ -303,3 +369,224 @@ module WithWorkflow = struct
   end)
 
 end
+
+let withPackage proj (pkgArg : PkgArg.t) f =
+  let open RunAsync.Syntax in
+  let%bind solved = solved proj in
+  let solution = solved.solution in
+  let runWith pkg =
+    match pkg with
+    | Some pkg ->
+      Logs_lwt.debug (fun m ->
+        m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Package.pp pkg
+      );%lwt
+      f pkg
+    | None -> errorf "no package found: %a" PkgArg.pp pkgArg
+  in
+  let pkg =
+    match pkgArg with
+    | ByPkgSpec Root -> Some (Solution.root solution)
+    | ByPkgSpec ByName name ->
+      Solution.findByName name solution
+    | ByPkgSpec ByNameVersion (name, version) ->
+      Solution.findByNameVersion name version solution
+    | ByPkgSpec ById id ->
+      Solution.get id solution
+    | ByPath path ->
+      let root = proj.projcfg.installSandbox.spec.path in
+      let path = Path.(EsyRuntime.currentWorkingDir // path) in
+      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
+      Solution.findByPath path solution
+  in
+  runWith pkg
+
+let buildDependencies
+  ~buildLinked
+  ~buildDevDependencies
+  (proj : _ fetched solved project)
+  plan
+  pkg
+  =
+  let open RunAsync.Syntax in
+  let%bind fetched = fetched proj in
+  let () =
+    Logs.info (fun m ->
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
+      proj.projcfg.ProjectConfig.mainprg
+      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      PackageId.pp pkg.Package.id
+    )
+  in
+  match BuildSandbox.Plan.get plan pkg.id with
+  | None -> RunAsync.return ()
+  | Some task ->
+    let dependencies = task.dependencies in
+    let dependencies =
+      if buildDevDependencies
+      then
+        dependencies
+        @ PackageId.Set.elements pkg.devDependencies
+      else dependencies
+    in
+    BuildSandbox.build
+      ~concurrency:EsyRuntime.concurrency
+      ~buildLinked
+      fetched.sandbox
+      plan
+      dependencies
+
+let buildPackage
+  ~quiet
+  ~buildOnly
+  projcfg
+  sandbox
+  plan
+  pkg
+  =
+  let () =
+    Logs.info (fun m ->
+      m "running:@[<v>@;%s build-package \\@;%a%a@]"
+      projcfg.ProjectConfig.mainprg
+      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      PackageId.pp pkg.Package.id
+    )
+  in
+  BuildSandbox.buildOnly
+    ~force:true
+    ~quiet
+    ~buildOnly
+    sandbox
+    plan
+    pkg.id
+
+let printEnv
+  ?(name="Environment")
+  (proj : _ project)
+  envspec
+  buildspec
+  asJson
+  pkgarg
+  ()
+  =
+  let open RunAsync.Syntax in
+
+  let%bind solved = solved proj in
+  let%bind fetched = fetched proj in
+
+  let f (pkg : Package.t) =
+
+    let () =
+      Logs.info (fun m ->
+        m "running:@[<v>@;%s print-env \\@;%a%a@]"
+        proj.projcfg.ProjectConfig.mainprg
+        TermPp.ppEnvSpec envspec
+        PackageId.pp pkg.Package.id
+      )
+    in
+
+    let%bind source = RunAsync.ofRun (
+      let open Run.Syntax in
+      let%bind env = BuildSandbox.env envspec buildspec fetched.sandbox pkg.id in
+      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg.buildCfg env in
+      if asJson
+      then
+        let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
+        Ok (
+          env
+          |> Environment.to_yojson
+          |> Yojson.Safe.pretty_to_string)
+      else
+        let {BuildSpec.mode = _; deps} =
+          BuildSpec.classify buildspec solved.solution pkg
+        in
+        let header =
+          Format.asprintf {|# %s
+# package:            %a
+# depspec:            %a
+# envspec:            %a
+# buildIsInProgress:  %b
+# includeBuildEnv:    %b
+# includeCurrentEnv:  %b
+# includeNpmBin:      %b
+|}
+            name
+            Package.pp pkg
+            DepSpec.pp deps
+            (Fmt.option DepSpec.pp)
+            envspec.EnvSpec.augmentDeps
+            envspec.buildIsInProgress
+            envspec.includeBuildEnv
+            envspec.includeCurrentEnv
+            envspec.includeNpmBin
+        in
+        Environment.renderToShellSource
+          ~header
+          env
+    )
+    in
+    let%lwt () = Lwt_io.print source in
+    return ()
+  in
+  withPackage proj pkgarg f
+
+let execCommand
+    ~checkIfDependenciesAreBuilt
+    ~buildLinked
+    ~buildDevDependencies
+    (proj : _ project)
+    envspec
+    buildspec
+    (pkgarg : PkgArg.t)
+    cmd
+    ()
+  =
+  let open RunAsync.Syntax in
+
+  let%bind fetched = fetched proj in
+
+  let f (pkg : Package.t) =
+
+    let%bind plan = RunAsync.ofRun (
+      BuildSandbox.makePlan
+        fetched.sandbox
+        buildspec
+    ) in
+
+    let%bind () =
+      if checkIfDependenciesAreBuilt
+      then
+        buildDependencies
+          ~buildLinked
+          ~buildDevDependencies
+          proj
+          plan
+          pkg
+      else return ()
+    in
+
+    let () =
+      Logs.info (fun m ->
+        m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
+        proj.projcfg.ProjectConfig.mainprg
+        TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+        TermPp.ppEnvSpec envspec
+        PackageId.pp pkg.Package.id
+        Cmd.pp cmd
+      )
+    in
+
+    let%bind status =
+      BuildSandbox.exec
+        envspec
+        buildspec
+        fetched.sandbox
+        pkg.id
+        cmd
+    in
+    match status with
+    | Unix.WEXITED n
+    | Unix.WSTOPPED n
+    | Unix.WSIGNALED n -> exit n
+  in
+  withPackage proj pkgarg f
+

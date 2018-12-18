@@ -12,7 +12,7 @@ exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
 
 
 #
-# dep@1.0.0
+# dep@path:dep@d41d8cd9
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
@@ -52,7 +52,7 @@ exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
 
 
 #
-# devDep@1.0.0
+# devDep@path:devDep@d41d8cd9
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
@@ -92,7 +92,7 @@ exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 
 
 #
-# dep@1.0.0
+# dep@path:dep@d41d8cd9
 #
 export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
 export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
@@ -100,7 +100,7 @@ export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
 export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
-# withDevDep@1.0.0
+# withDevDep@link:./package.json
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"

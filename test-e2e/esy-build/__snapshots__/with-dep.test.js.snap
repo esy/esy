@@ -12,7 +12,7 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 
 
 #
-# dep@1.0.0
+# dep@path:dep@d41d8cd9
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
@@ -53,7 +53,7 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 
 
 #
-# dep@1.0.0
+# dep@path:dep@d41d8cd9
 #
 export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
 export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
@@ -61,7 +61,7 @@ export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
 export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
-# withDep@1.0.0
+# withDep@link:./package.json
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"

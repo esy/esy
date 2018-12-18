@@ -60,6 +60,58 @@ module WithWorkflow : sig
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
 
+  val ocaml : t -> Fpath.t RunAsync.t
+  (** Built and installed ocaml package resolved in a project env. *)
+
+  val ocamlfind : t -> Fpath.t RunAsync.t
+  (** Build & installed ocamlfind package resolved in a project env. *)
+
   val term : Fpath.t option -> t Cmdliner.Term.t
   val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
+
 end
+
+val withPackage :
+  _ solved project
+  -> PkgArg.t
+  -> (Package.t -> 'a Run.t Lwt.t)
+  -> 'a RunAsync.t
+
+val buildDependencies :
+  buildLinked:bool
+  -> buildDevDependencies:bool
+  -> _ fetched solved project
+  -> BuildSandbox.Plan.t
+  -> Package.t
+  -> unit RunAsync.t
+
+val buildPackage :
+  quiet:bool
+  -> buildOnly:bool
+  -> ProjectConfig.t
+  -> BuildSandbox.t
+  -> BuildSandbox.Plan.t
+  -> Package.t
+  -> unit RunAsync.t
+
+val execCommand :
+  checkIfDependenciesAreBuilt:bool
+  -> buildLinked:bool
+  -> buildDevDependencies:bool
+  -> _ fetched solved project
+  -> EnvSpec.t
+  -> BuildSpec.t
+  -> PkgArg.t
+  -> Cmd.t
+  -> unit
+  -> unit RunAsync.t
+
+val printEnv :
+  ?name:string
+  -> _ fetched solved project
+  -> EnvSpec.t
+  -> BuildSpec.t
+  -> bool
+  -> PkgArg.t
+  -> unit
+  -> unit RunAsync.t

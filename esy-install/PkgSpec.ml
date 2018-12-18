@@ -10,6 +10,15 @@ let pp fmt = function
   | ByNameVersion (name, version) -> Fmt.pf fmt "%s@%a" name Version.pp version
   | ById id -> PackageId.pp fmt id
 
+let matches rootid pkgspec pkgid =
+  match pkgspec with
+  | Root -> PackageId.compare rootid pkgid = 0
+  | ByName name -> String.compare name (PackageId.name pkgid) = 0
+  | ByNameVersion (name, version) ->
+    String.compare name (PackageId.name pkgid) = 0
+    && Version.compare version (PackageId.version pkgid) = 0
+  | ById id -> PackageId.compare id pkgid = 0
+
 let parse =
   let open Result.Syntax in
   function
@@ -37,3 +46,8 @@ let parse =
         let%bind version = Version.parse rest in
         return (ByNameVersion (name, version))
       end
+
+let of_yojson json =
+  match json with
+  | `String v -> parse v
+  | _ -> Error "PkgSpec: expected a string"

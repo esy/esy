@@ -1,6 +1,6 @@
 // @flow
 
-const {setup, createSandbox, mkdirTemp, ocamlVersion} = require('./setup.js');
+const {setup, createSandbox, mkdirTemp, ocamlVersion} = require('../setup.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -46,6 +46,7 @@ fs.writeFileSync(
       release: {
         releasedBinaries: ['release.exe', 'releaseDep.exe'],
         deleteFromBinaryRelease: ['ocaml-*'],
+        rewritePrefix: true,
       },
     },
   }),
@@ -91,7 +92,7 @@ fs.writeFileSync(
 );
 
 sandbox.esy('install');
-sandbox.esy('release');
+sandbox.esy('npm-release');
 
 const releasePath = path.join(sandbox.path, '_release');
 
