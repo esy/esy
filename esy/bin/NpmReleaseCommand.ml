@@ -118,7 +118,7 @@ let configure (cfg : Config.t) () =
         rewritePrefix;
       }
 
-let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
+let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
   let environmentString =
     environment
     |> Environment.renderToList
@@ -237,10 +237,9 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       resolve_path Sys.executable_name
     ;;
 
-    let expandFallback padding =
+    let expandFallback storePrefix =
       let dirname = Filename.dirname this_executable in
-      let pattern = String.make padding '_' in
-      let pattern = Str.regexp pattern in
+      let pattern = Str.regexp storePrefix in
       let storePrefix =
         let (/) = Filename.concat in
         normalize (dirname / ".." / "3")
@@ -251,26 +250,26 @@ let makeBinWrapper ~bin ~(environment : Environment.Bindings.t) =
       rewrite
     ;;
 
-    let expandFallbackEnv padding env =
-      Array.map (expandFallback padding) env
+    let expandFallbackEnv storePrefix env =
+      Array.map (expandFallback storePrefix) env
     ;;
 
     let () =
       let env = [|%s|] in
       let program = "%s" in
-      let padding = %i in
-      let expandedEnv = expandFallbackEnv padding (expandEnv env) in
+      let storePrefix = "%s" in
+      let expandedEnv = expandFallbackEnv storePrefix (expandEnv env) in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
-        print_endline (expandFallback padding program)
+        print_endline (expandFallback storePrefix program)
       else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
         Array.iter print_endline expandedEnv
       else (
-        let program = expandFallback padding program in
+        let program = expandFallback storePrefix program in
         Sys.argv.(0) <- program;
         Unix.execve program Sys.argv expandedEnv
       )
     ;;
-  |} environmentString bin (Store.maxStorePaddingLength + 2) (* TODO: why + 2 *)
+  |} environmentString bin (Path.show destPrefix) (* TODO: why + 2 *)
 
 let envspec = {
   EnvSpec.
@@ -429,7 +428,7 @@ let make
       in
       let%bind env = RunAsync.ofStringError (Environment.Bindings.eval bindings) in
 
-      let generateBinaryWrapper stagePath (publicName, innerName) =
+      let generateBinaryWrapper stagePath destPrefix (publicName, innerName) =
         let resolveBinInEnv ~env prg =
           let path =
             let v = match StringMap.find_opt "PATH" env with
@@ -441,7 +440,12 @@ let make
         in
         let%bind namePath = resolveBinInEnv ~env innerName in
         (* Create the .ml file that we will later compile and write it to disk *)
-        let data = makeBinWrapper ~environment:bindings ~bin:(EsyLib.Path.normalizePathSlashes namePath) in
+        let data =
+          makeBinWrapper
+            ~destPrefix
+            ~environment:bindings
+            ~bin:(EsyLib.Path.normalizePathSlashes namePath)
+        in
         let mlPath = Path.(stagePath / (innerName ^ ".ml")) in
         let%bind () = Fs.writeFile ~data mlPath in
         (* Compile the wrapper to a binary *)
@@ -469,22 +473,26 @@ let make
         in
         ChildProcess.run ~env compile
       in
+      let%bind destPrefix =
+        (* Replace the storePath with a string of equal length containing only _ *)
+        let (origPrefix, destPrefix) =
+          let nextStorePrefix =
+            String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
+          in
+          (cfg.buildCfg.storePath, Path.v nextStorePrefix)
+        in
+        let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
+        let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath in
+        return destPrefix
+      in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
           RunAsync.List.mapAndWait
-            ~f:(generateBinaryWrapper stagePath)
+            ~f:(generateBinaryWrapper stagePath destPrefix)
             (StringMap.bindings releaseCfg.bin)
         )
       in
-      (* Replace the storePath with a string of equal length containing only _ *)
-      let (origPrefix, destPrefix) =
-        let nextStorePrefix =
-          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
-        in
-        (cfg.buildCfg.storePath, Path.v nextStorePrefix)
-      in
-      let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
-      RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath
+      return ()
     in
 
     (* Emit package.json *)
