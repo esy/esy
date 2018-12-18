@@ -92,7 +92,7 @@ fs.writeFileSync(
 );
 
 sandbox.esy('install');
-sandbox.esy('release');
+sandbox.esy('npm-release');
 
 const releasePath = path.join(sandbox.path, '_release');
 
