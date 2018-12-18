@@ -10,7 +10,7 @@ const outdent = require('outdent');
 const childProcess = require('child_process');
 
 const {setup, isWindows} = require('./setup.js');
-const {npmPrefix, sandbox, npm} = setup();
+const {npmPrefix, sandbox, npm, exec} = setup();
 
 console.log(`*** Release test at ${sandbox.path} ***`);
 
@@ -85,7 +85,7 @@ npm(releasePath, 'pack');
 npm(releasePath, '-g install ./release-0.1.0.tgz');
 
 if (!isWindows) {
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'r'), {
+  const stdout = exec(path.join(npmPrefix, 'bin', 'r'), {
     env: {
       ...process.env,
       NAME: 'ME',
@@ -93,7 +93,7 @@ if (!isWindows) {
   });
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\n');
 } else {
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'r.cmd'), {
+  const stdout = exec(path.join(npmPrefix, 'bin', 'r.cmd'), {
     env: {
       ...process.env,
       NAME: 'ME',
@@ -103,21 +103,21 @@ if (!isWindows) {
 }
 
 if (!isWindows) {
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'rd'));
+  const stdout = exec(path.join(npmPrefix, 'bin', 'rd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
 } else {
-  const stdout = childProcess.execSync(path.join(npmPrefix, 'bin', 'rd.cmd'));
+  const stdout = exec(path.join(npmPrefix, 'bin', 'rd.cmd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\r\n');
 }
 
 // check that `release ----where` returns a path to a real `release` binary
 
 if (!isWindows) {
-  const releaseBin = childProcess.execSync(path.join(npmPrefix, 'bin', 'r'));
-  const stdout = childProcess.execSync(releaseBin.toString());
+  const releaseBin = exec(path.join(npmPrefix, 'bin', 'r') + ' ----where');
+  const stdout = exec(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\n');
 } else {
-  const releaseBin = childProcess.execSync(path.join(npmPrefix, 'bin', 'r.cmd'));
-  const stdout = childProcess.execSync(releaseBin.toString());
+  const releaseBin = exec(path.join(npmPrefix, 'bin', 'r.cmd') + ' ----where');
+  const stdout = exec(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\r\n');
 }

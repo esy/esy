@@ -23,7 +23,12 @@ function setup() {
     });
   }
 
-  return {sandbox, npmPrefix, npm};
+  function exec(cmd /*:string*/, options) {
+    console.log(`EXEC: ${cmd}`);
+    return childProcess.execSync(cmd, options);
+  }
+
+  return {sandbox, npmPrefix, npm, exec};
 }
 
 module.exports = {
