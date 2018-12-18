@@ -19,6 +19,7 @@ type config = {
   name : string;
   version : string;
   license : Json.t option;
+  keywords : Json.t option;
   description : string option;
   bin : string StringMap.t;
   filterPackages : filterPackages;
@@ -57,6 +58,7 @@ module OfPackageJson = struct
     version : string [@default "0.0.0"];
     license : Json.t option [@default None];
     description : string option [@default None];
+    keywords : Json.t option [@default None];
     esy : esy [@default {release = None}]
   } [@@deriving (of_yojson { strict = false })]
 
@@ -112,6 +114,7 @@ let configure (cfg : Config.t) () =
         name = pkgJson.name;
         version = pkgJson.version;
         license = pkgJson.license;
+        keywords = pkgJson.keywords;
         description = pkgJson.description;
         bin;
         filterPackages;
@@ -528,6 +531,10 @@ let make
           | Some license -> ("license", license)::items
           | None -> items
         in
+        let items = match releaseCfg.keywords with
+          | Some keywords -> ("keywords", keywords)::items
+          | None -> items
+        in
         let items = match releaseCfg.description with
           | Some description -> ("description", `String description)::items
           | None -> items
@@ -538,8 +545,22 @@ let make
       Fs.writeFile ~data Path.(outputPath / "package.json")
     in
 
+    let%bind () = Fs.copyFile ~src:esyInstallReleaseJs ~dst:Path.(outputPath / "esyInstallRelease.js") in
     let%bind () =
-      Fs.copyFile ~src:esyInstallReleaseJs ~dst:Path.(outputPath / "esyInstallRelease.js")
+      let f filename =
+        let src = Path.(cfg.spec.path / filename) in
+        if%bind Fs.exists src
+        then Fs.copyFile ~src ~dst:Path.(outputPath / filename)
+        else return ()
+      in
+      RunAsync.List.mapAndWait ~f [
+        "README.md";
+        "README";
+        "LICENSE.md";
+        "LICENSE";
+        "LICENCE.md";
+        "LICENCE";
+      ]
     in
 
     return ()
