@@ -47,14 +47,14 @@
       "node-compatibility": {
         "title": "Node/npm Compatibility"
       },
+      "npm-release": {
+        "title": "Building npm releases"
+      },
       "offline": {
         "title": "Offline Builds"
       },
       "opam-workflow": {
         "title": "Developing opam projects"
-      },
-      "release": {
-        "title": "Building Releases"
       },
       "using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"

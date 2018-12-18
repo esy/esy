@@ -20,7 +20,7 @@
     ],
     "Advanced Workflow": [
       "multiple-sandboxes",
-      "release",
+      "npm-release",
       "opam-workflow",
       "offline"
     ],
