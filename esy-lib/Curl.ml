@@ -1,9 +1,5 @@
 module String = Astring.String
 
-module Meta = struct
-  type t = {code : int} [@@deriving of_yojson]
-end
-
 type response =
   | Success of string
   | NotFound
@@ -15,9 +11,12 @@ type url = string
 let parseStdout stdout =
   let open Run.Syntax in
   match String.cut ~rev:true ~sep:"\n" stdout with
-  | Some (stdout, meta) ->
-    let%bind meta = Json.parseStringWith Meta.of_yojson meta in
-    return (stdout, meta)
+  | Some (stdout, httpcode) ->
+    let%bind httpcode =
+      try return (int_of_string httpcode)
+      with Failure _ -> errorf "unable to parse HTTP code: %s" httpcode
+    in
+    return (stdout, httpcode)
   | None ->
     error "unable to parse metadata from a curl response"
 
@@ -25,7 +24,7 @@ let runCurl cmd =
   let cmd = Cmd.(
     cmd
     % "--write-out"
-    % {|\n{"code": %{http_code}}|}
+    % {|\n%{http_code}|}
   ) in
   let f p =
     let%lwt stdout =
@@ -36,17 +35,17 @@ let runCurl cmd =
     match%lwt p#status with
     | Unix.WEXITED 0 -> begin
       match parseStdout stdout with
-      | Ok (stdout, _meta) -> RunAsync.return (Success stdout)
+      | Ok (stdout, _httpcode) -> RunAsync.return (Success stdout)
       | Error err -> Lwt.return (Error err)
       end
     | _ -> begin
       match parseStdout stdout with
-      | Ok (_stdout, meta) when meta.Meta.code = 404 ->
+      | Ok (_stdout, httpcode) when httpcode = 404 ->
         RunAsync.return NotFound
-      | Ok (_stdout, meta) ->
+      | Ok (_stdout, httpcode) ->
         RunAsync.errorf
           "@[<v>error running curl: %a:@\ncode: %i@\nstderr:@[<v 2>@\n%a@]@]"
-          Cmd.pp cmd meta.code Fmt.lines stderr
+          Cmd.pp cmd httpcode Fmt.lines stderr
       | _ ->
         RunAsync.errorf
           "@[<v>error running curl: %a:@\nstderr:@[<v 2>@\n%a@]@]"
@@ -59,8 +58,8 @@ let runCurl cmd =
   | Unix.Unix_error (err, _, _) ->
     let msg = Unix.error_message err in
     RunAsync.error msg
-  | _ ->
-    RunAsync.error "error running subprocess"
+  | exn ->
+    RunAsync.errorf "error running subprocess %s" (Printexc.exn_slot_name exn)
 
 let getOrNotFound ?accept url =
   let cmd = Cmd.(
