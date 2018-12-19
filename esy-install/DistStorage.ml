@@ -24,27 +24,27 @@ let cache fetched tarballPath =
   let open RunAsync.Syntax in
   match fetched with
   | Empty ->
-    let unpackPath = Path.(tarballPath |> addExt ".unpack") in
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind unpackPath = Fs.randomPathVariation tarballPath in
+    let%bind tempTarballPath = Fs.randomPathVariation tarballPath in
     let%bind () = Fs.createDir unpackPath in
     let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
     let%bind () = Fs.rmPath unpackPath in
     return (Tarball {tarballPath; stripComponents = 0;})
   | SourcePath path ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind tempTarballPath = Fs.randomPathVariation tarballPath in
     let%bind () = Tarball.create ~filename:tempTarballPath path in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
     return (Tarball {tarballPath; stripComponents = 0;})
   | Path path ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
+    let%bind tempTarballPath = Fs.randomPathVariation tarballPath in
     let%bind () = Tarball.create ~filename:tempTarballPath path in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in
     let%bind () = Fs.rmPath path in
     return (Tarball {tarballPath; stripComponents = 0;})
   | Tarball info ->
-    let tempTarballPath = Path.(tarballPath |> addExt ".stage") in
-    let unpackPath = Path.(info.tarballPath |> addExt ".unpack") in
+    let%bind tempTarballPath = Fs.randomPathVariation tarballPath in
+    let%bind unpackPath = Fs.randomPathVariation info.tarballPath in
     let%bind () = Tarball.unpack ~stripComponents:1 ~dst:unpackPath info.tarballPath in
     let%bind () = Tarball.create ~filename:tempTarballPath unpackPath in
     let%bind () = Fs.rename ~src:tempTarballPath tarballPath in

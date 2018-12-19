@@ -61,3 +61,5 @@ val rmPathLwt : Path.t -> unit Lwt.t
 
 val withTempDir : ?tempPath:Path.t -> (Path.t -> 'a RunAsync.t) -> 'a RunAsync.t
 val withTempFile : data:string -> (Path.t -> 'a Lwt.t) -> 'a Lwt.t
+
+val randomPathVariation : Fpath.t -> Fpath.t RunAsync.t
