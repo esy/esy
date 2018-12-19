@@ -30,6 +30,8 @@ module Arch : sig
 
 end
 
+val supportsLongPaths: unit -> bool
+
 module Environment : sig
   (** Environment variable separator which is used for $PATH and etc *)
   val sep : ?platform:Platform.t -> ?name:string -> unit -> string

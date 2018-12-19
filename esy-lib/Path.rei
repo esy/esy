@@ -20,8 +20,6 @@ let currentPath: unit => t;
 let homePath: unit => t;
 let dataPath: unit => t;
 
-let supportsLongPaths: unit => bool;
-
 let isPrefix: (t, t) => bool;
 let remPrefix: (t, t) => option(t);
 

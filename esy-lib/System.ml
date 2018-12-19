@@ -107,6 +107,13 @@ module Arch = struct
     uname ()
 end
 
+external checkLongPathRegistryKey: unit -> bool = "caml_win32_check_long_path_regkey"
+
+let supportsLongPaths () =
+  match Sys.win32 with
+  | false -> true
+  | true -> checkLongPathRegistryKey()
+
 module Environment = struct
   let sep ?(platform=Platform.host) ?name () =
     match name, platform with
