@@ -5,6 +5,9 @@
     "previous": "Previous",
     "tagline": "Simple workflow for native Reason and OCaml",
     "docs": {
+      "c-workflow": {
+        "title": "Workflow for C/C++ Packages"
+      },
       "commands": {
         "title": "Commands"
       },
@@ -48,13 +51,13 @@
         "title": "Node/npm Compatibility"
       },
       "npm-release": {
-        "title": "Building npm releases"
+        "title": "Building npm Releases"
       },
       "offline": {
         "title": "Offline Builds"
       },
       "opam-workflow": {
-        "title": "Developing opam projects"
+        "title": "Workflow for opam Packages"
       },
       "using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"
