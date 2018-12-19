@@ -1,6 +1,6 @@
 ---
 id: opam-workflow
-title: Developing opam projects
+title: Workflow for opam Packages
 ---
 
 > **This feature is experimental**
