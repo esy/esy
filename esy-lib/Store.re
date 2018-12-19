@@ -26,8 +26,8 @@ let maxStorePaddingLength = {
     );
 };
 
-let getPadding = (~system=System.Platform.host, prefixPath) =>
-  switch (system) {
+let getPadding = (~system=System.Platform.host, ~longPathsSupported=System.checkLongPathRegistryKey(), prefixPath) =>
+  switch (system, ) {
   | Windows => Ok("_")
   | _ =>
     let prefixPathLength = String.length(Fpath.to_string(prefixPath));
