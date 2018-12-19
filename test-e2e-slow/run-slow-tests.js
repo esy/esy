@@ -31,7 +31,6 @@ const shouldRunSlowtests =
   isTaggedCommit() ||
   latestCommit.indexOf('@slowtest') !== -1 ||
   process.env['ESY_SLOWTEST'] != null;
-
 if (!shouldRunSlowtests) {
   console.warn('Not running slowtests - commit message was: ' + latestCommit);
   process.exit(0);
@@ -64,4 +63,3 @@ if (!isWindows) {
 }
 
 require('./esy-npm-release/no-rewrite.test.js');
-require('./c-workflow.test.js');
