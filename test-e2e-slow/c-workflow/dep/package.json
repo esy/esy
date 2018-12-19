@@ -1,0 +1,13 @@
+{
+  "name": "dep",
+  "esy": {
+    "build": "make build",
+    "install": "make install",
+    "exportedEnv": {
+      "PKG_CONFIG_PATH": {
+        "val": "#{self.lib : $PKG_CONFIG_PATH}",
+        "scope": "global"
+      }
+    }
+  }
+}

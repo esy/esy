@@ -22,6 +22,7 @@
       "multiple-sandboxes",
       "npm-release",
       "opam-workflow",
+      "c-workflow",
       "offline"
     ],
     "Internals": [
