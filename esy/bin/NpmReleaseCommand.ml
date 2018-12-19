@@ -476,17 +476,11 @@ let make
         in
         ChildProcess.run ~env compile
       in
-      let%bind destPrefix =
-        (* Replace the storePath with a string of equal length containing only _ *)
-        let (origPrefix, destPrefix) =
-          let nextStorePrefix =
-            String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
-          in
-          (cfg.buildCfg.storePath, Path.v nextStorePrefix)
+      let origPrefix, destPrefix =
+        let destPrefix =
+          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
         in
-        let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
-        let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath in
-        return destPrefix
+        cfg.buildCfg.storePath, Path.v destPrefix
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
@@ -494,6 +488,12 @@ let make
             ~f:(generateBinaryWrapper stagePath destPrefix)
             (StringMap.bindings releaseCfg.bin)
         )
+      in
+      let%bind () =
+        (* Replace the storePath with a string of equal length containing only _ *)
+        let%bind () = Fs.writeFile ~data:(Path.show destPrefix) Path.(binPath / "_storePath") in
+        let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix binPath in
+        return ()
       in
       return ()
     in
