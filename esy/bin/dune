@@ -20,5 +20,6 @@
             ppx_deriving_yojson.runtime
             Esy
             EsyInstall
+            EsySolve
             )
   )

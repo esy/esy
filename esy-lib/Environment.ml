@@ -13,6 +13,8 @@ module Binding = struct
     | Prefix of 'v
     | Suffix of 'v
 
+  let origin binding = binding.origin
+
   let pp ppValue fmt binding =
     match binding.value with
     | Value v -> Fmt.pf fmt "%s=%a" binding.name ppValue v

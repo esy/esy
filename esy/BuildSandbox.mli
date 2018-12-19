@@ -36,7 +36,7 @@ val exec :
 module Task : sig
   type t = {
     idrepr : BuildId.Repr.t;
-    pkg : EsyInstall.Solution.Package.t;
+    pkg : EsyInstall.Package.t;
     scope : Scope.t;
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;

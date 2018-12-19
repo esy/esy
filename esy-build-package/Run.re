@@ -50,6 +50,12 @@ let mkdir = path =>
 
 let ls = path => Bos.OS.Dir.contents(~dotfiles=true, ~rel=true, path);
 
+let empty = path =>
+  switch%bind (ls(path)) {
+  | [] => return(true)
+  | _ => return(false)
+  };
+
 let rm = path =>
   switch (Bos.OS.Path.symlink_stat(path)) {
   | Ok({Unix.st_kind: S_DIR, _}) =>

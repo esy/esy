@@ -214,12 +214,11 @@ Example:
 % esy add @opam/lwt
 ```
 
-### `esy release`
+### `esy npm-release`
 
-Produce an npm package with pre built binaries for the current platform inside
-the `_release` directory.
+Produce an npm package with pre built binaries for the current platform.
 
-See [Building Releases](release.md) for more info.
+See [Building npm Releases](npm-release.md) for more info.
 
 ### `esy export-dependencies`
 

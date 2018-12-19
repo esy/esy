@@ -13,7 +13,7 @@ val make :
   -> mode:BuildSpec.mode
   -> sourceType:BuildManifest.SourceType.t
   -> sourcePath:SandboxPath.t
-  -> EsyInstall.Solution.Package.t
+  -> EsyInstall.Package.t
   -> BuildManifest.t
   -> t
 (** An initial scope for the package. *)
@@ -21,7 +21,7 @@ val make :
 val add : direct:bool -> dep:t -> t -> t
 (** Add new pkg *)
 
-val pkg : t -> EsyInstall.Solution.Package.t
+val pkg : t -> EsyInstall.Package.t
 val id : t -> BuildId.t
 val name : t -> string
 val version : t -> EsyInstall.Version.t
@@ -38,7 +38,11 @@ val logPath : t -> SandboxPath.t
 
 val pp : t Fmt.t
 
-val env : includeBuildEnv:bool -> buildIsInProgress:bool -> t -> SandboxEnvironment.Bindings.t Run.t
+val env :
+  includeBuildEnv:bool
+  -> buildIsInProgress:bool
+  -> t
+  -> SandboxEnvironment.Bindings.t Run.t
 
 val render :
   ?env:SandboxEnvironment.t

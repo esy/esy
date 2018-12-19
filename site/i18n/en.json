@@ -47,19 +47,70 @@
       "node-compatibility": {
         "title": "Node/npm Compatibility"
       },
+      "npm-release": {
+        "title": "Building npm releases"
+      },
       "offline": {
         "title": "Offline Builds"
       },
       "opam-workflow": {
         "title": "Developing opam projects"
       },
-      "release": {
-        "title": "Building Releases"
-      },
       "using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"
       },
       "what-why": {
+        "title": "What & Why"
+      },
+      "version-0.3.4-commands": {
+        "title": "Commands"
+      },
+      "version-0.3.4-community": {
+        "title": "Community"
+      },
+      "version-0.3.4-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.3.4-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.3.4-contributing": {
+        "title": "Contributing"
+      },
+      "version-0.3.4-development": {
+        "title": "Development"
+      },
+      "version-0.3.4-environment": {
+        "title": "Environment"
+      },
+      "version-0.3.4-esy-configuration": {
+        "title": "Configuration"
+      },
+      "version-0.3.4-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.3.4-how-it-works": {
+        "title": "How esy works"
+      },
+      "version-0.3.4-linking-workflow": {
+        "title": "Linking Packages in Development"
+      },
+      "version-0.3.4-multiple-sandboxes": {
+        "title": "Multiple Project Sandboxes"
+      },
+      "version-0.3.4-offline": {
+        "title": "Offline Builds"
+      },
+      "version-0.3.4-opam-workflow": {
+        "title": "Developing opam projects"
+      },
+      "version-0.3.4-release": {
+        "title": "Building Releases"
+      },
+      "version-0.3.4-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
+      },
+      "version-0.3.4-what-why": {
         "title": "What & Why"
       }
     },

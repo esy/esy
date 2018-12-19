@@ -71,6 +71,15 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
+  it(`fails if project is not installed`, async () => {
+    const p = await createTestSandbox();
+    await expect(p.esy('dep.cmd')).rejects.toMatchObject({
+      message: expect.stringMatching(
+        'error: project is missing a lock, run `esy install`',
+      ),
+    });
+  });
+
   it(`can execute commands defined in sandbox dependencies, dependencies will be built`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
@@ -80,7 +89,7 @@ describe(`'esy CMD' invocation`, () => {
   it(`can execute commands defined in sandbox devDependencies, devDependencies will be built`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
-    await p.esy('dep.cmd');
+    await p.esy('devDep.cmd');
   });
 
   it('inherits the outside environment', async () => {

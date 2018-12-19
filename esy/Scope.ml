@@ -1,5 +1,5 @@
 module Id = EsyInstall.PackageId
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 module SandboxPath = EsyBuildPackage.Config.Path
 module SandboxValue = EsyBuildPackage.Config.Value
 module SandboxEnvironment = EsyBuildPackage.Config.Environment
@@ -425,11 +425,7 @@ let render ?env ?environmentVariableName ~buildIsInProgress scope expr =
 
 let makeEnvBindings ~buildIsInProgress bindings scope =
   let open Run.Syntax in
-  let origin =
-    let name = PackageScope.name scope.self in
-    let version = PackageScope.version scope.self in
-    Printf.sprintf "%s@%s" name (Version.show version)
-  in
+  let origin = EsyInstall.PackageId.show scope.pkg.id in
   let f (name, value) =
     let%bind value =
       Run.contextf

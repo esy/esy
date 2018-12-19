@@ -6,32 +6,8 @@ module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Version = EsyInstall.Version
 module PackageId = EsyInstall.PackageId
+module Package = EsyInstall.Package
 module PkgSpec = EsyInstall.PkgSpec
-
-module PkgArg = struct
-  type t =
-    | ByPkgSpec of PkgSpec.t
-    | ByPath of Path.t
-
-  let pp fmt = function
-    | ByPkgSpec spec -> PkgSpec.pp fmt spec
-    | ByPath path -> Path.pp fmt path
-
-  let parse v =
-    let open Result.Syntax in
-    if Sys.file_exists v && not (Sys.is_directory v)
-    then return (ByPath (Path.v v))
-    else
-      let%map pkgspec = PkgSpec.parse v in
-      ByPkgSpec pkgspec
-
-  let root = ByPkgSpec Root
-
-  let conv =
-    let open Cmdliner in
-    let parse v = Rresult.R.error_to_msg ~pp_error:Fmt.string (parse v) in
-    Arg.conv ~docv:"PACKAGE" (parse, pp)
-end
 
 let splitBy line ch =
   match String.index line ch with
@@ -55,72 +31,6 @@ let depspecConv =
   in
   let pp = DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
-
-module TermPp = struct
-  let ppOption name pp fmt option =
-    match option with
-    | None -> Fmt.string fmt ""
-    | Some v -> Fmt.pf fmt "%s %a \\@;" name pp v
-
-  let ppFlag flag fmt enabled =
-    if enabled
-    then Fmt.pf fmt "%s \\@;" flag
-    else Fmt.string fmt ""
-
-  let ppEnvSpec fmt envspec =
-    let {
-      EnvSpec.
-      augmentDeps;
-      buildIsInProgress;
-      includeCurrentEnv;
-      includeBuildEnv;
-      includeNpmBin;
-    } = envspec in
-    Fmt.pf fmt
-      "%a%a%a%a%a"
-      (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
-      (ppFlag "--build-context") buildIsInProgress
-      (ppFlag "--include-current-env") includeCurrentEnv
-      (ppFlag "--include-npm-bin") includeNpmBin
-      (ppFlag "--include-build-env") includeBuildEnv
-
-  let ppMode fmt mode =
-    match mode with
-    | BuildSpec.Build -> Fmt.pf fmt "--release \\@;"
-    | BuildSpec.BuildDev -> Fmt.pf fmt ""
-
-  let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.buildLink with
-    | None -> Fmt.string fmt ""
-    | Some {mode; deps} ->
-      Fmt.pf fmt
-        "%a%a"
-        ppMode mode
-        (ppOption "--link-depspec" DepSpec.pp) (Some deps)
-end
-
-let resolvePackage ~pkgName (proj : Project.WithWorkflow.t) =
-  let open RunAsync.Syntax in
-  let%bind fetched = Project.fetched proj in
-  let%bind configured = Project.configured proj in
-  let%bind task, sandbox = RunAsync.ofRun (
-    let open Run.Syntax in
-    let task =
-      let open Option.Syntax in
-      let%bind task = BuildSandbox.Plan.getByName configured.Project.WithWorkflow.plan pkgName in
-      return task
-    in
-    return (task, fetched.Project.sandbox)
-  ) in
-  match task with
-  | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
-  | Some task ->
-    if%bind BuildSandbox.isBuilt sandbox task
-    then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
-    else errorf "package %s isn't built yet, run 'esy build'" pkgName
-
-let ocamlfind = resolvePackage ~pkgName:"@opam/ocamlfind"
-let ocaml = resolvePackage ~pkgName:"ocaml"
 
 module Findlib = struct
   type meta = {
@@ -242,79 +152,15 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let withPackage proj solution (pkgArg : PkgArg.t) f =
+let buildDependencies (proj : Project.WithoutWorkflow.t) release all devDependencies depspec pkgspec () =
   let open RunAsync.Syntax in
-  let runWith pkg =
-    match pkg with
-    | Some pkg ->
-      Logs_lwt.debug (fun m ->
-        m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Solution.Package.pp pkg
-      );%lwt
-      f pkg
-    | None -> errorf "no package found: %a" PkgArg.pp pkgArg
-  in
-  let pkg =
-    match pkgArg with
-    | ByPkgSpec Root -> Some (Solution.root solution)
-    | ByPkgSpec ByName name ->
-      Solution.findByName name solution
-    | ByPkgSpec ByNameVersion (name, version) ->
-      Solution.findByNameVersion name version solution
-    | ByPkgSpec ById id ->
-      Solution.get id solution
-    | ByPath path ->
-      let root = proj.Project.projcfg.installSandbox.spec.path in
-      let path = Path.(EsyRuntime.currentWorkingDir // path) in
-      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
-      Solution.findByPath path solution
-  in
-  runWith pkg
-
-let runBuildDependencies
-  ~buildLinked
-  ~buildDevDependencies
-  (proj : _ Project.fetched Project.solved Project.project)
-  plan
-  pkg
-  =
-  let open RunAsync.Syntax in
-  let%bind fetched = Project.fetched proj in
-  let () =
-    Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
-      proj.projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
-      PackageId.pp pkg.Solution.Package.id
-    )
-  in
-  match BuildSandbox.Plan.get plan pkg.id with
-  | None -> RunAsync.return ()
-  | Some task ->
-    let dependencies = task.dependencies in
-    let dependencies =
-      if buildDevDependencies
-      then
-        dependencies
-        @ PackageId.Set.elements pkg.devDependencies
-      else dependencies
-    in
-    BuildSandbox.build
-      ~concurrency:EsyRuntime.concurrency
-      ~buildLinked
-      fetched.Project.sandbox
-      plan
-      dependencies
-
-let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkgspec () =
-  let open RunAsync.Syntax in
-  let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
   let mode =
     if release
     then BuildSpec.Build
     else BuildSpec.BuildDev
   in
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let buildspec =
       let deps =
         match depspec with
@@ -328,43 +174,18 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all depspec pkg
         fetched.Project.sandbox
         buildspec
     ) in
-    runBuildDependencies
+    Project.buildDependencies
       ~buildLinked:all
-      ~buildDevDependencies:false
+      ~buildDevDependencies:devDependencies
       proj
       plan
       pkg
   in
-  withPackage proj solved.Project.solution pkgspec f
-
-let runBuild
-  ~quiet
-  ~buildOnly
-  projcfg
-  sandbox
-  plan
-  pkg
-  =
-  let () =
-    Logs.info (fun m ->
-      m "running:@[<v>@;%s build-package \\@;%a%a@]"
-      projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
-      PackageId.pp pkg.Solution.Package.id
-    )
-  in
-  BuildSandbox.buildOnly
-    ~force:true
-    ~quiet
-    ~buildOnly
-    sandbox
-    plan
-    pkg.id
+  Project.withPackage proj pkgspec f
 
 let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
   let open RunAsync.Syntax in
 
-  let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
 
   let mode =
@@ -382,13 +203,13 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
     {Workflow.default.buildspec with buildLink = Some {mode; deps}}
   in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         fetched.Project.sandbox
         buildspec
     ) in
-    runBuild
+    Project.buildPackage
       ~quiet:true
       ~buildOnly:true
       proj.projcfg
@@ -396,68 +217,7 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
       plan
       pkg
   in
-  withPackage proj solved.Project.solution pkgspec f
-
-let runExec
-    ~checkIfDependenciesAreBuilt
-    ~buildLinked
-    (proj : _ Project.project)
-    envspec
-    buildspec
-    (pkgspec : PkgArg.t)
-    cmd
-    ()
-  =
-  let open RunAsync.Syntax in
-
-  let%bind solved = Project.solved proj in
-  let%bind fetched = Project.fetched proj in
-
-  let f (pkg : Solution.Package.t) =
-
-    let%bind plan = RunAsync.ofRun (
-      BuildSandbox.makePlan
-        fetched.Project.sandbox
-        buildspec
-    ) in
-
-    let%bind () =
-      if checkIfDependenciesAreBuilt
-      then
-        runBuildDependencies
-          ~buildLinked
-          ~buildDevDependencies:false
-          proj
-          plan
-          pkg
-      else return ()
-    in
-
-    let () =
-      Logs.info (fun m ->
-        m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
-        proj.projcfg.ProjectConfig.mainprg
-        TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
-        TermPp.ppEnvSpec envspec
-        PackageId.pp pkg.Solution.Package.id
-        Cmd.pp cmd
-      )
-    in
-
-    let%bind status =
-      BuildSandbox.exec
-        envspec
-        buildspec
-        fetched.Project.sandbox
-        pkg.id
-        cmd
-    in
-    match status with
-    | Unix.WEXITED n
-    | Unix.WSTOPPED n
-    | Unix.WSIGNALED n -> exit n
-  in
-  withPackage proj solved.Project.solution pkgspec f
+  Project.withPackage proj pkgspec f
 
 let execCommand
   (proj : _ Project.project)
@@ -493,8 +253,9 @@ let execCommand
         with buildLink = Some {mode; deps = Workflow.defaultDepspecForLink};
       }
   in
-  runExec
+  Project.execCommand
     ~checkIfDependenciesAreBuilt:false
+    ~buildDevDependencies:false
     ~buildLinked:false
     proj
     envspec
@@ -502,76 +263,6 @@ let execCommand
     pkgspec
     cmd
     ()
-
-let runPrintEnv
-  ?(name="Environment")
-  (proj : _ Project.project)
-  envspec
-  buildspec
-  asJson
-  pkg
-  ()
-  =
-  let open RunAsync.Syntax in
-
-  let%bind solved = Project.solved proj in
-  let%bind fetched = Project.fetched proj in
-
-  let f (pkg : Solution.Package.t) =
-
-    let () =
-      Logs.info (fun m ->
-        m "running:@[<v>@;%s print-env \\@;%a%a@]"
-        proj.projcfg.ProjectConfig.mainprg
-        TermPp.ppEnvSpec envspec
-        PackageId.pp pkg.Solution.Package.id
-      )
-    in
-
-    let%bind source = RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind env = BuildSandbox.env envspec buildspec fetched.Project.sandbox pkg.id in
-      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg.buildCfg env in
-      if asJson
-      then
-        let%bind env = Run.ofStringError (Environment.Bindings.eval env) in
-        Ok (
-          env
-          |> Environment.to_yojson
-          |> Yojson.Safe.pretty_to_string)
-      else
-        let {BuildSpec.mode = _; deps} =
-          BuildSpec.classify buildspec solved.Project.solution pkg
-        in
-        let header =
-          Format.asprintf {|# %s
-# package:            %a
-# depspec:            %a
-# envspec:            %a
-# buildIsInProgress:  %b
-# includeBuildEnv:    %b
-# includeCurrentEnv:  %b
-# includeNpmBin:      %b
-|}
-            name
-            Solution.Package.pp pkg
-            DepSpec.pp deps
-            (Fmt.option DepSpec.pp)
-            envspec.EnvSpec.augmentDeps
-            envspec.buildIsInProgress
-            envspec.includeBuildEnv
-            envspec.includeCurrentEnv
-            envspec.includeNpmBin
-        in
-        Environment.renderToShellSource
-          ~header
-          env
-    )
-    in
-    let%lwt () = Lwt_io.print source in
-    return ()
-  in
-  withPackage proj solved.Project.solution pkg f
 
 let printEnv
   (proj : _ Project.project)
@@ -598,7 +289,7 @@ let printEnv
       {Workflow.default.buildspec with buildLink = Some {mode = BuildDev; deps;};}
     | None -> Workflow.default.buildspec
   in
-  runPrintEnv
+  Project.printEnv
     proj
     envspec
     buildspec
@@ -703,10 +394,9 @@ let status
 let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
   let open RunAsync.Syntax in
 
-  let%bind solved = Project.solved proj in
   let%bind configured = Project.configured proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.id with
     | Some task ->
       let json = BuildSandbox.Task.to_yojson task in
@@ -715,18 +405,17 @@ let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
       return ()
     | None -> errorf "not build defined for %a" PkgArg.pp pkgspec
   in
-  withPackage proj solved.Project.solution pkgspec f
+  Project.withPackage proj pkgspec f
 
 let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
   let open RunAsync.Syntax in
 
-  let%bind solved = Project.solved proj in
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
 
-  let f (pkg : Solution.Package.t) =
+  let f (pkg : Package.t) =
     let%bind () =
-      runBuildDependencies
+      Project.buildDependencies
         ~buildLinked:true
         ~buildDevDependencies:false
         proj
@@ -745,7 +434,7 @@ let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  withPackage proj solved.Project.solution pkgspec f
+  Project.withPackage proj pkgspec f
 
 let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
@@ -756,14 +445,14 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
   begin match cmd with
   | None ->
     let%bind () =
-      runBuildDependencies
+      Project.buildDependencies
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in
-    runBuild
+    Project.buildPackage
       ~quiet:true
       ~buildOnly
       proj.projcfg
@@ -772,16 +461,17 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       configured.Project.WithWorkflow.root.pkg
   | Some cmd ->
     let%bind () =
-      runBuildDependencies
+      Project.buildDependencies
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in
-    runExec
+    Project.execCommand
       ~checkIfDependenciesAreBuilt:false
       ~buildLinked:false
+      ~buildDevDependencies:false
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
@@ -793,7 +483,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
 let buildEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  runPrintEnv
+  Project.printEnv
     ~name:"Build environment"
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
@@ -805,7 +495,7 @@ let buildEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
 let commandEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  runPrintEnv
+  Project.printEnv
     ~name:"Command environment"
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
@@ -817,7 +507,7 @@ let commandEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
 let execEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  runPrintEnv
+  Project.printEnv
     ~name:"Exec environment"
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
@@ -830,9 +520,10 @@ let exec (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false proj None () in
-  runExec
+  Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
+    ~buildDevDependencies:false
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
@@ -925,9 +616,10 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
   | Some script ->
     runScript proj script (Cmd.getArgs cmd) ()
   | None ->
-    runExec
+    Project.execCommand
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
+      ~buildDevDependencies:true
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
@@ -942,9 +634,10 @@ let devShell (proj : Project.WithWorkflow.t) () =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  runExec
+  Project.execCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
+    ~buildDevDependencies:true
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
@@ -962,7 +655,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (proj: Project.WithWorkflo
   let root = Solution.root solved.Project.solution in
 
   let rec draw pkg =
-    let id = pkg.Solution.Package.id in
+    let id = pkg.Package.id in
     if PackageId.Set.mem id !seen then
       return None
     else (
@@ -1023,7 +716,7 @@ let lsLibs (proj : Project.WithWorkflow.t) includeTransitive () =
   let%bind fetched = Project.fetched proj in
 
   let%bind ocamlfind =
-    let%bind p = ocamlfind proj in
+    let%bind p = Project.WithWorkflow.ocamlfind proj in
     return Path.(p / "bin" / "ocamlfind")
   in
   let%bind builtIns = Findlib.libraries ~ocamlfind proj.projcfg in
@@ -1058,11 +751,11 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
   let%bind configured = Project.configured proj in
 
   let%bind ocamlfind =
-    let%bind p = ocamlfind proj in
+    let%bind p = Project.WithWorkflow.ocamlfind proj in
     return Path.(p / "bin" / "ocamlfind")
   in
   let%bind ocamlobjinfo =
-    let%bind p = ocaml proj in
+    let%bind p = Project.WithWorkflow.ocaml proj in
     return Path.(p / "bin" / "ocamlobjinfo")
   in
   let%bind builtIns = Findlib.libraries ~ocamlfind proj.projcfg in
@@ -1143,15 +836,16 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
   in
   makeLsCommand ~computeTermNode ~includeTransitive:false proj
 
-let getSandboxSolution installSandbox =
-  let open EsyInstall in
+let getSandboxSolution (projcfg : ProjectConfig.t) =
+  let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind solution = Solver.solve installSandbox in
-  let lockPath = SandboxSpec.solutionLockPath installSandbox.Sandbox.spec in
+  let%bind solution = Solver.solve projcfg.installSandbox in
+  let lockPath = SandboxSpec.solutionLockPath projcfg.installSandbox.Sandbox.spec in
   let%bind () =
-    SolutionLock.toPath ~sandbox:installSandbox ~solution lockPath
+    let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+    EsyInstall.SolutionLock.toPath ~checksum ~sandbox:projcfg.sandbox ~solution lockPath
   in
-  let unused = Resolver.getUnusedResolutions installSandbox.resolver in
+  let unused = Resolver.getUnusedResolutions projcfg.installSandbox.resolver in
   let%lwt () =
     let log resolution =
       Logs_lwt.warn (
@@ -1159,35 +853,34 @@ let getSandboxSolution installSandbox =
           m "resolution %a is unused (defined in %a)"
           Fmt.(quote string)
           resolution
-          ManifestSpec.pp
-          installSandbox.spec.manifest
+          EsyInstall.ManifestSpec.pp
+          projcfg.installSandbox.spec.manifest
       )
     in
     Lwt_list.iter_s log unused
   in
   return solution
 
-let solve {ProjectConfig. installSandbox; _} () =
-  let open EsyInstall in
+let solve projcfg () =
   let open RunAsync.Syntax in
-  let%bind _ : Solution.t = getSandboxSolution installSandbox in
+  let%bind _ : Solution.t = getSandboxSolution projcfg in
   return ()
 
-let fetch {ProjectConfig. installSandbox = sandbox; _} () =
-  let open EsyInstall in
+let fetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
-  match%bind SolutionLock.ofPath ~sandbox lockPath with
-  | Some solution -> Fetch.fetch sandbox solution
+  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
+  | Some solution -> EsyInstall.Fetch.fetch projcfg.sandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
-let solveAndFetch ({ProjectConfig. installSandbox = sandbox; _} as projcfg) () =
-  let open EsyInstall in
+let solveAndFetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath sandbox.Sandbox.spec in
-  match%bind SolutionLock.ofPath ~sandbox lockPath with
+  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
   | Some solution ->
-    if%bind Fetch.isInstalled ~sandbox solution
+    if%bind EsyInstall.Fetch.isInstalled ~sandbox:projcfg.sandbox solution
     then return ()
     else fetch projcfg ()
   | None ->
@@ -1196,14 +889,14 @@ let solveAndFetch ({ProjectConfig. installSandbox = sandbox; _} as projcfg) () =
     return ()
 
 let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () =
-  let open EsyInstall in
+  let open EsySolve in
   let open RunAsync.Syntax in
   let opamError =
     "add dependencies manually when working with opam sandboxes"
   in
 
   let%bind reqs = RunAsync.ofStringError (
-    Result.List.map ~f:Req.parse reqs
+    Result.List.map ~f:EsyInstall.Req.parse reqs
   ) in
 
   let%bind installSandbox =
@@ -1221,29 +914,29 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
   let projcfg = {projcfg with installSandbox} in
 
-  let%bind solution = getSandboxSolution installSandbox in
+  let%bind solution = getSandboxSolution projcfg in
   let%bind () = fetch projcfg () in
 
   let%bind addedDependencies, configPath =
     let records =
-      let f (record : Solution.Package.t) _ map =
+      let f (record : EsyInstall.Package.t) _ map =
         StringMap.add record.name record map
       in
       Solution.fold ~f ~init:StringMap.empty solution
     in
     let addedDependencies =
-      let f {Req. name; _} =
+      let f {EsyInstall.Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
-            match record.Solution.Package.version with
+            match record.EsyInstall.Package.version with
             | Version.Npm version ->
-              SemverVersion.Formula.DNF.show
-                (SemverVersion.caretRangeOfVersion version)
+              EsyInstall.SemverVersion.Formula.DNF.show
+                (EsyInstall.SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
-              Version.show record.Solution.Package.version
+              Version.show record.EsyInstall.Package.version
           in
           name, `String constr
         | None -> assert false
@@ -1253,7 +946,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
     let%bind path =
       let spec = projcfg.installSandbox.Sandbox.spec in
       match spec.manifest with
-      | ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
+      | EsyInstall.ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
       | One (Opam, _) -> error opamError
       | ManyOpam -> error opamError
       in
@@ -1290,14 +983,16 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
 
       let%bind () =
         let%bind installSandbox =
-          EsyInstall.Sandbox.make
+          EsySolve.Sandbox.make
             ~cfg:installSandbox.cfg
             installSandbox.spec
         in
+        let projcfg = {projcfg with installSandbox} in
+        let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
         (* we can only do this because we keep invariant that the constraint we
          * save in manifest covers the installed version *)
-        SolutionLock.unsafeUpdateChecksum
-          ~sandbox:installSandbox
+        EsyInstall.SolutionLock.unsafeUpdateChecksum
+          ~checksum
           (SandboxSpec.solutionLockPath installSandbox.spec)
       in
       return ()
@@ -1313,7 +1008,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) () =
   let%bind configured = Project.configured proj in
 
   let exportBuild (_, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Solution.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
@@ -1367,7 +1062,7 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
   in
 
   let importBuild (_direct, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Solution.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
     | Some task ->
       if%bind BuildSandbox.isBuilt fetched.Project.sandbox task
       then return ()
@@ -1393,19 +1088,19 @@ let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
     (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
 
 let show (projcfg : ProjectConfig.t) _asJson req () =
-  let open EsyInstall in
+  let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
-  let%bind resolver = Resolver.make ~cfg:projcfg.cfg.installCfg ~sandbox:projcfg.spec () in
+  let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
+  let%bind resolver = Resolver.make ~cfg:projcfg.solveCfg ~sandbox:projcfg.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver
-    ) "resolving %a" Req.pp req
+    ) "resolving %a" EsyInstall.Req.pp req
   in
   match req.spec with
-  | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
-  | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
-    let f (res : Package.Resolution.t) = match res.resolution with
+  | EsyInstall.VersionSpec.Npm [[EsyInstall.SemverVersion.Constraint.ANY]]
+  | EsyInstall.VersionSpec.Opam [[EsyInstall.OpamPackageVersion.Constraint.ANY]] ->
+    let f (res : EsyInstall.PackageConfig.Resolution.t) = match res.resolution with
     | Version v -> `String (Version.showSimple v)
     | _ -> failwith "unreachable"
     in
@@ -1415,11 +1110,11 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
     return ()
   | _ ->
     match resolutions with
-    | [] -> errorf "No package found for %a" Req.pp req
+    | [] -> errorf "No package found for %a" EsyInstall.Req.pp req
     | resolution::_ ->
       let%bind pkg = RunAsync.contextf (
           Resolver.package ~resolution resolver
-        ) "resolving metadata %a" Package.Resolution.pp resolution
+        ) "resolving metadata %a" EsyInstall.PackageConfig.Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
       Package.to_yojson pkg
@@ -1427,33 +1122,22 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
       |> print_endline;
       return ()
 
-let release (proj : Project.WithWorkflow.t) () =
+let default (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
-
-  let%bind solved = Project.solved proj in
-  let%bind fetched = Project.fetched proj in
-
-  let%bind outputPath =
-    let outputDir = "_release" in
-    let outputPath = Path.(proj.projcfg.cfg.buildCfg.projectPath / outputDir) in
-    let%bind () = Fs.rmPath outputPath in
-    return outputPath
-  in
-
-  let%bind () = build proj None () in
-
-  let%bind ocamlopt =
-    let%bind p = ocaml proj in
-    return Path.(p / "bin" / "ocamlopt")
-  in
-
-  NpmRelease.make
-    ~ocamlopt
-    ~outputPath
-    ~concurrency:EsyRuntime.concurrency
-    proj.projcfg.ProjectConfig.cfg
-    fetched.Project.sandbox
-    (Solution.root solved.Project.solution)
+  let%lwt fetched = Project.fetched proj in
+  match fetched, cmd with
+  | Ok _, _ ->
+    begin match cmd with
+    | Some cmd -> devExec proj cmd ()
+    | None -> build proj None ()
+    end
+  | Error _, None ->
+    Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
+    let%bind () = solveAndFetch proj.projcfg () in
+    let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
+    build proj None ()
+  | Error _ as err, Some _ ->
+    Lwt.return err
 
 let commonSection = "COMMON COMMANDS"
 let aliasesSection = "ALIASES"
@@ -1498,7 +1182,7 @@ let makeCommand
 
   cmd, info
 
-let makeAlias command alias =
+let makeAlias ?(docs=aliasesSection) command alias =
   let term, info = command in
   let name = Cmdliner.Term.name info in
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
@@ -1507,7 +1191,7 @@ let makeAlias command alias =
       alias
       ~version:EsyRuntime.version
       ~doc
-      ~docs:aliasesSection
+      ~docs
   in
   term, info
 
@@ -1517,20 +1201,6 @@ let makeCommands ~sandbox () =
   let commonOpts = ProjectConfig.term sandbox in
 
   let defaultCommand =
-    let run (proj : Project.WithWorkflow.t) cmd () =
-      let open RunAsync.Syntax in
-      match%lwt Project.fetched proj with
-      | Ok _ ->
-        begin match cmd with
-        | Some cmd -> devExec proj cmd ()
-        | None -> build proj None ()
-        end
-      | Error _ ->
-        Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
-        let%bind () = solveAndFetch proj.projcfg () in
-        let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-        build proj None ()
-    in
     let cmdTerm =
       Cli.cmdOptionTerm
         ~doc:"Command to execute within the sandbox environment."
@@ -1542,7 +1212,7 @@ let makeCommands ~sandbox () =
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
       Term.(
-        const run
+        const default
         $ Project.WithWorkflow.term sandbox
         $ cmdTerm
         $ Cli.setupLogTerm
@@ -1587,6 +1257,18 @@ let makeCommands ~sandbox () =
           $ commonOpts
           $ Cli.setupLogTerm
         )
+    in
+
+    let npmReleaseCommand =
+      makeCommand
+        ~name:"npm-release"
+        ~doc:"Produce npm package with prebuilt artifacts"
+        ~docs:otherSection
+        Term.(
+          const NpmReleaseCommand.run
+          $ Project.WithWorkflow.term sandbox
+          $ Cli.setupLogTerm
+        );
     in
 
     [
@@ -1694,15 +1376,8 @@ let makeCommands ~sandbox () =
 
     (* OTHER COMMANDS *)
 
-    makeCommand
-      ~name:"release"
-      ~doc:"Produce npm package with prebuilt artifacts"
-      ~docs:otherSection
-      Term.(
-        const release
-        $ Project.WithWorkflow.term sandbox
-        $ Cli.setupLogTerm
-      );
+    npmReleaseCommand;
+    makeAlias ~docs:otherSection npmReleaseCommand "release";
 
     makeCommand
       ~name:"export-build"
@@ -1932,6 +1607,11 @@ let makeCommands ~sandbox () =
             value
             & flag
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
+          )
+        $ Arg.(
+            value
+            & flag
+            & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
         $ Arg.(
             value

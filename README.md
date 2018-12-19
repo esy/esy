@@ -43,17 +43,20 @@ obvious items) with further explanations:
     ├── esy
     │   This dune library implements sandbox builder - a routine which builds
     │   the enture dependency graph and provides other introspection APIs.
+    │
     ├── esy/bin
     │   This dune executable implements "esy" command.
     │
-    ├── esyi
+    ├── esy-solve
+    │   This dune library implements solver.
+    │
+    ├── esy-install
     │   This dune library implements installer.
-    ├── esyi/bin
-    │   This dune executable implements "esy install" command.
     │
     ├── esy-build-package
     │   This dune library implements package builder. esy library uses this to
     │   build each package.
+    │
     ├── esy-build-package/bin
     │   This dune executable implements "esy-build-package" command.
     │
@@ -63,8 +66,10 @@ obvious items) with further explanations:
     │
     ├── esy-command-expression
     │   Parser for #{...} syntax used in esy manifests.
+    │
     ├── esy-shell-expansion
     │   A simple shell expansion.
+    │
     ├── esy-yarn-lockfile
     │   Parser for a subset of yarn lockfile format.
     │
@@ -74,12 +79,17 @@ obvious items) with further explanations:
     ├── site
     │   Sources for https://esy.sh
     │
-    ├── esy.lock.json
+    ├── esy.lock
     ├── package.json
     │
     ├── scripts
+    │
     ├── test
     │   Unit tests.
+    │
+    ├── test-e2e-slow
+    │   End-to-end test suite which takes a significiant amount of time.
+    │   We execute it on CI by placing `@slowtest` token in commit messages.
     │
     └── test-e2e
         End-to-end test suite.

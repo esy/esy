@@ -1,4 +1,4 @@
-module Package = EsyInstall.Solution.Package
+module Package = EsyInstall.Package
 
 type t = {
   build : build;

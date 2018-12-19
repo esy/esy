@@ -101,14 +101,18 @@ let isCommitLike v =
 module ShallowClone = struct
 
   let update ~branch ~dst source =
+
+    let getLocalCommit () =
+      let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
+      lsRemote ~remote ()
+    in
+
     let rec aux ?(retry=true) () =
       let open RunAsync.Syntax in
       if%bind Fs.exists dst then
 
-        let%bind remoteCommit = lsRemote ~ref:branch ~remote:source ()
-        and localCommit =
-          let remote = EsyBash.normalizePathForCygwin (Path.show dst) in
-          lsRemote ~remote () in
+        let%bind remoteCommit = lsRemote ~ref:branch ~remote:source () in
+        let%bind localCommit = getLocalCommit () in
 
         if remoteCommit = localCommit
         then return ()
@@ -131,7 +135,9 @@ module ShallowClone = struct
         )
       else
         let%bind () = Fs.createDir (Path.parent dst) in
-        let%bind _ = clone ~branch ~depth:1 ~remote:source ~dst () in
-        return ();
-    in aux ()
+        let%bind () = clone ~branch ~depth:1 ~remote:source ~dst () in
+        return ()
+    in
+
+    aux ()
 end
