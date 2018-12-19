@@ -1,0 +1,1 @@
+char* dep_hello();

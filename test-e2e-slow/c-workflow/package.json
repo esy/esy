@@ -1,0 +1,14 @@
+{
+  "name": "c-workflow",
+  "esy": {
+    "build": "make build",
+    "install": "make install"
+  },
+  "dependencies": {
+    "dep": "*",
+    "pkg-config": "esy-packages/pkg-config"
+  },
+  "resolutions": {
+    "dep": "link:./dep"
+  }
+}

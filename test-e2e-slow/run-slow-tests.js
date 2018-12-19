@@ -64,3 +64,4 @@ if (!isWindows) {
 }
 
 require('./esy-npm-release/no-rewrite.test.js');
+require('./c-workflow.test.js');
