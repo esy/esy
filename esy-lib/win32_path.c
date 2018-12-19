@@ -9,7 +9,7 @@
 #endif
 
 CAMLprim value
-caml_win32_check_long_path_regkey(value unit) {
+esy_win32_check_long_path_regkey(value unit) {
 #ifndef WIN32
     return Val_true; 
 #else
