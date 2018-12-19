@@ -54,6 +54,21 @@ let chmod permission (path : Path.t) =
       RunAsync.error msg
   ) "changing permissions for path %a" Path.pp path
 
+let createDirLwt (path : Path.t) =
+  let rec create path =
+    try%lwt (
+      let path = Path.show path in
+      Lwt_unix.mkdir path 0o777;%lwt
+      Lwt.return `Created
+    ) with
+    | Unix.Unix_error (Unix.EEXIST, _, _) ->
+      Lwt.return `AlreadyExists
+    | Unix.Unix_error (Unix.ENOENT, _, _) ->
+      let%lwt _ = create (Path.parent path) in
+      create path
+  in
+  create path
+
 let createDir (path : Path.t) =
   let rec create path =
     try%lwt (
@@ -325,14 +340,25 @@ let randomPathVariation path =
   in
   make 3
 
+let createRandomPath path pattern =
+  let rec make retry =
+    let rpath = randPath path pattern in
+    match%lwt createDirLwt rpath with
+    | `Created -> RunAsync.return rpath
+    | `AlreadyExists ->
+      if retry <= 0
+      then RunAsync.errorf "unable to create a temporary path at %a" Path.pp path
+      else make (retry - 1)
+  in
+  make 3
+
 let withTempDir ?tempPath f =
   let open RunAsync.Syntax in
   let tempPath = match tempPath with
     | Some tempPath -> tempPath
     | None -> Path.v (Filename.get_temp_dir_name ())
   in
-  let path = randPath tempPath "esy-%s" in
-  let%bind () = createDir path in
+  let%bind path = createRandomPath tempPath "esy-%s" in
   Lwt.finalize
     (fun () -> f path)
     (fun () ->
