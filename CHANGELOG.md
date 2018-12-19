@@ -41,18 +41,42 @@
   }
   ```
 
+- Improvements to `esy release` command:
+
+  - New configuration option `"esy.release.bin"` which replaces
+    `"esy.release.releasedBinaries"`.
+
+  - New configuration option `"esy.release.includePackages"` which replaces
+    `"esy.release.deleteFromBinaryRelease"`.
+
+  - Releases are now created w/o prefix path rewriting by default.
+
+  - Release environment now doesn't contain exported environment variables from
+    packages which are not in a release.
+
 - Include system32 directory for native windows utilities in build environment
 
   This provides more compatibility with build processes designed to work in Win32
   environments.
 
-  Thanks @bryphe!
+  (@bryphe).
+
+- Use `curl` on Windows from native toolchain (@bryphe).
 
 - `esy.lock` dir is marked as `linguist-generated=true` in `.gitattributes` file.
 
   This makes it not appear by default in GitHub diff.
 
-  Thanks @reccanti!
+  (@reccanti)
+
+- Allow to refer to linked packages on command line by the path to their
+  corresponding manifests:
+
+  ```
+  % esy build-env ./dep/package.json
+  ```
+
+- Error messages when parsing `"resolutions"` are made more informative.
 
 - Generated `pnp.js` runtime is now executable as per specification.
 
@@ -64,6 +88,11 @@
 
 - esy now warns if multiple same named npm executables are installed
   simultaneously overwriting each other.
+
+- Fix `esy install` to work on systems with `$TMPDIR` set on a different mount.
+
+  Previously it was failing due to `Unix.rename` was unable to rename across
+  different mounts.
 
 ## 0.4.3 @ next
 
