@@ -321,11 +321,10 @@ let withTempDir ?tempPath f =
   Lwt.finalize
     (fun () -> f path)
     (fun () ->
-      Lwt.return ()
       (* never fail on removing a temp folder. *)
-      (* match%lwt rmPath path with *)
-      (* | Ok () -> Lwt.return () *)
-      (* | Error _ -> Lwt.return () *)
+      match%lwt rmPath path with
+      | Ok () -> Lwt.return ()
+      | Error _ -> Lwt.return ()
     )
 
 let withTempFile ~data f =
