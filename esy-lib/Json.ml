@@ -22,8 +22,10 @@ let parseJsonWith parser json =
   Run.ofStringError (parser json)
 
 let parseStringWith parser data =
-  let json = Yojson.Safe.from_string data in
-  parseJsonWith parser json
+  try
+    let json = Yojson.Safe.from_string data in
+    parseJsonWith parser json
+  with Yojson.Json_error msg -> Run.errorf "error parsing JSON: %s" msg
 
 let mergeAssoc items update =
   let toMap items =

@@ -6,7 +6,7 @@ module EsyBashLwt = EsyLib.EsyBashLwt
 module RunAsync = EsyLib.RunAsync
 
 let%test "execute a simple bash command (cross-platform)" =
-    let t () = 
+    let t () =
         let f p =
             let%lwt stdout =
               Lwt.finalize
@@ -20,9 +20,6 @@ let%test "execute a simple bash command (cross-platform)" =
             % "-c"
             % "echo hello-world"
         ) in
-        let%lwt result = EsyBashLwt.with_process_full cmd f in
-        match result with
-        | Ok true -> Lwt.return  true
-        | _ -> Lwt.return false
+        EsyBashLwt.with_process_full cmd f
     in
-    TestLwt.runLwtTest t
+    TestHarness.runRunAsyncTest t

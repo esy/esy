@@ -14,6 +14,7 @@ val isDefault : t -> bool
 val projectName : t -> string
 
 val distPath : t -> Path.t
+val tempPath : t -> Path.t
 val cachePath : t -> Path.t
 val storePath : t -> Path.t
 val buildPath : t -> Path.t

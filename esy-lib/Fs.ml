@@ -310,19 +310,37 @@ let randPath dir pat =
   let rand = Random.State.bits (Lazy.force randGen) land 0xFFFFFF in
   Fpath.(dir / Astring.strf pat (Astring.strf "%06x" rand))
 
-let withTempDir ?tempDir f =
-  let tempDir = match tempDir with
-  | Some tempDir -> tempDir
-  | None -> Filename.get_temp_dir_name ()
+let randomPathVariation path =
+  let open RunAsync.Syntax in
+  let rec make retry =
+    let rand = Random.State.bits (Lazy.force randGen) land 0xFFFFFF in
+    let ext = (Astring.strf ".%06x" rand) in
+    let rpath = Path.(path |> addExt ext) in
+    if%bind exists rpath
+    then
+      if retry <= 0
+      then errorf "unable to generate a random path for %a" Path.pp path
+      else make (retry - 1)
+    else return rpath
   in
-  let path = randPath (Path.v tempDir) "esy-%s" in
-  let%lwt () = Lwt_unix.mkdir (Path.show path) 0o700 in
+  make 3
+
+let withTempDir ?tempPath f =
+  let open RunAsync.Syntax in
+  let tempPath = match tempPath with
+    | Some tempPath -> tempPath
+    | None -> Path.v (Filename.get_temp_dir_name ())
+  in
+  let path = randPath tempPath "esy-%s" in
+  let%bind () = createDir path in
   Lwt.finalize
     (fun () -> f path)
-    (fun () -> 
-       (* never fail on removing a temp folder. *)
-       try%lwt rmPathLwt path
-       with Unix.Unix_error _ -> Lwt.return ())
+    (fun () ->
+      (* never fail on removing a temp folder. *)
+      match%lwt rmPath path with
+      | Ok () -> Lwt.return ()
+      | Error _ -> Lwt.return ()
+    )
 
 let withTempFile ~data f =
   let path = Filename.temp_file "esy" "tmp" in
