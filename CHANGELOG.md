@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.4.5 @ next
+
+- Fix `esy npm-release` to rewrite bin wrappers too to remove build store
+  prefix.
+
 ## 0.4.4 @ next
 
 - `esy CMD` invocation no longer builds linked packages.
