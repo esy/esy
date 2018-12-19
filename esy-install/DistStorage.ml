@@ -57,6 +57,7 @@ let ofDir path = SourcePath path
 
 let fetch' sandbox dist =
   let open RunAsync.Syntax in
+  let tempPath = SandboxSpec.tempPath sandbox in
   match dist with
 
   | Dist.LocalPath { path = srcPath; manifest = _; } ->
@@ -68,7 +69,7 @@ let fetch' sandbox dist =
 
   | Dist.Archive {url; checksum}  ->
     let path = CachePaths.fetchedDist sandbox dist in
-    Fs.withTempDir (fun stagePath ->
+    Fs.withTempDir ~tempPath (fun stagePath ->
       let%bind () = Fs.createDir stagePath in
       let tarballPath = Path.(stagePath / "archive") in
       let%bind () = Curl.download ~output:tarballPath url in
@@ -81,7 +82,7 @@ let fetch' sandbox dist =
   | Dist.Github github ->
     let path = CachePaths.fetchedDist sandbox dist in
     let%bind () = Fs.createDir (Path.parent path) in
-    Fs.withTempDir (fun stagePath ->
+    Fs.withTempDir ~tempPath (fun stagePath ->
       let%bind () = Fs.createDir stagePath in
       let tarballPath = Path.(stagePath / "archive.tgz") in
       let url =
@@ -97,7 +98,7 @@ let fetch' sandbox dist =
   | Dist.Git git ->
     let path = CachePaths.fetchedDist sandbox dist in
     let%bind () = Fs.createDir (Path.parent path) in
-    Fs.withTempDir (fun stagePath ->
+    Fs.withTempDir ~tempPath (fun stagePath ->
       let%bind () = Fs.createDir stagePath in
       let%bind () = Git.clone ~dst:stagePath ~remote:git.remote () in
       let%bind () = Git.checkout ~ref:git.commit ~repo:stagePath () in
