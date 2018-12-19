@@ -21,7 +21,7 @@ const args = process.argv.slice(2);
 const commit = args[0] != null ? args[0] : exec(`git rev-parse --verify HEAD`);
 const nightyVersion = `${version}-${commit.slice(0, 6)}`;
 
-const dist = JSON.parse(exec(`npm view --json @esy-nightly/esy@${nightyVersion}`)).dist;
+const tarballUrl = `https://registry.npmjs.org/@esy-nightly/esy/-/esy-${nightyVersion}.tgz`
 
 const root = path.resolve(path.join(__dirname, '..', '_release'));
 const tarball = path.join(root, 'package.tgz');
@@ -30,7 +30,7 @@ const pkgJson = path.join(root, 'package', 'package.json');
 fs.removeSync(root);
 fs.mkdirSync(root);
 
-exec(`curl --location "${dist.tarball}" --output "${tarball}"`);
+exec(`curl --location "${tarballUrl}" --output "${tarball}"`);
 exec(`tar xzf "${tarball}" -C "${root}"`);
 
 const pkgJsonData = JSON.parse(fs.readFileSync(pkgJson, 'utf8'));
