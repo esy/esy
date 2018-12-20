@@ -6,6 +6,8 @@ const path = require('path');
 const fs = require('../test/fs.js');
 const FixtureUtils = require('../test/FixtureUtils.js');
 
+helpers.skipSuiteOnWindows();
+
 describe(`'esy install': Cache invalidation`, () => {
   test(`opam override updates should be picked up`, async () => {
     const p = await helpers.createTestSandbox();
