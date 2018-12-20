@@ -51,6 +51,10 @@ describe(`'esy install': Cache invalidation`, () => {
     }
 
     // add new opam override
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await FixtureUtils.initialize(path.join(p.opamRegistry.overridePath, 'packages'), [
       helpers.dir(
         'dep',
@@ -121,7 +125,11 @@ describe(`'esy install': Cache invalidation`, () => {
       expect(stdout.trim()).toBe('ok');
     }
 
-    // add new opam override
+    // add new override
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     await FixtureUtils.initialize(p.projectPath, [
       helpers.packageJson({
         name: 'root',
@@ -166,6 +174,9 @@ describe(`'esy install': Cache invalidation`, () => {
     });
 
     await expect(p.esy('')).rejects.toThrow();
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await FixtureUtils.initialize(p.projectPath, [
       helpers.packageJson({
