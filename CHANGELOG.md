@@ -1,6 +1,14 @@
 # CHANGELOG
 
-## 0.4.5 @ next
+## 0.4.6 @ latest
+
+- Fix cache keys for fetched package distributions. They were not respecting
+  opam override info.
+
+- Fix invalidating local sandbox metadata cache when sandbox wasn't solved yet
+  (#750).
+
+## 0.4.5 @ latest
 
 - Fix `esy npm-release` to rewrite bin wrappers too to remove build store
   prefix.
