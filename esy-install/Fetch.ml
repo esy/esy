@@ -103,13 +103,19 @@ end
 module PackagePaths = struct
 
   let key pkg =
-    let suffix =
-      match pkg.Package.version with
-      | Version.Npm v -> SemverVersion.Version.show v
-      | Version.Opam v -> "opam-" ^ OpamPackageVersion.Version.show v
-      | Version.Source source -> Digest.(to_hex (string (Source.show source)))
+    let hash =
+      let digest = Digestv.(ofString (PackageId.show pkg.Package.id)) in
+      let digest = Digestv.toHex digest in
+      String.Sub.to_string (String.sub ~start:0 ~stop:8 digest)
     in
-    Path.safeSeg pkg.Package.name ^ "--" ^ Path.safeSeg suffix
+    let suffix =
+      (* we try to have nice suffix for package with a version *)
+      match pkg.Package.version with
+      | Version.Source _ -> hash
+      | Version.Npm _
+      | Version.Opam _ -> Version.show pkg.version ^ "__" ^ hash
+    in
+    Path.safeSeg (pkg.Package.name ^ "__" ^ suffix)
 
   let stagePath sandbox pkg =
     (* We are getting EACCESS error on Windows if we try to rename directory
