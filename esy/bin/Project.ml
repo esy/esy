@@ -343,28 +343,34 @@ module WithWorkflow = struct
         Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
       ]
 
-  let resolvePackage ~pkgName (proj : t) =
+  let resolvePackage ~name (proj : t) =
     let open RunAsync.Syntax in
+    let%bind solved = solved proj in
     let%bind fetched = fetched proj in
     let%bind configured = configured proj in
-    let%bind task, sandbox = RunAsync.ofRun (
-      let open Run.Syntax in
-      let task =
-        let open Option.Syntax in
-        let%bind task = BuildSandbox.Plan.getByName configured.plan pkgName in
-        return task
-      in
-      return (task, fetched.sandbox)
-    ) in
-    match task with
-    | None -> errorf "package %s isn't built yet, run 'esy build'" pkgName
-    | Some task ->
-      if%bind BuildSandbox.isBuilt sandbox task
-      then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
-      else errorf "package %s isn't built yet, run 'esy build'" pkgName
 
-  let ocamlfind = resolvePackage ~pkgName:"@opam/ocamlfind"
-  let ocaml = resolvePackage ~pkgName:"ocaml"
+    match Solution.findByName name solved.solution with
+    | None -> errorf "package %s is not installed as a part of the project" name
+    | Some _ ->
+      let%bind task, sandbox = RunAsync.ofRun (
+        let open Run.Syntax in
+        let task =
+          let open Option.Syntax in
+          let%bind task = BuildSandbox.Plan.getByName configured.plan name in
+          return task
+        in
+        return (task, fetched.sandbox)
+      ) in
+      begin match task with
+      | None -> errorf "package %s isn't built yet, run 'esy build'" name
+      | Some task ->
+        if%bind BuildSandbox.isBuilt sandbox task
+        then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
+        else errorf "package %s isn't built yet, run 'esy build'" name
+      end
+
+  let ocamlfind = resolvePackage ~name:"@opam/ocamlfind"
+  let ocaml = resolvePackage ~name:"ocaml"
 
   include MakeProject(struct
     type nonrec t = t
