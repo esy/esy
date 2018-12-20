@@ -12,7 +12,7 @@ exports[`Build with a linked dep out of source build macos || linux: build-env d
 
 
 #
-# dep@link:dep
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
@@ -33,10 +33,6 @@ export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -61,7 +57,7 @@ export MAN_PATH=\\"%projectPath%/_esy/default/store/i/%depid%/man:$MAN_PATH\\"
 export PATH=\\"%projectPath%/_esy/default/store/i/%depid%/bin:$PATH\\"
 
 #
-# with-linked-dep-_build@link:./package.json
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
@@ -82,10 +78,6 @@ export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"with-linked-dep-_build\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
