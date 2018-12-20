@@ -583,8 +583,7 @@ let run (proj : Project.WithWorkflow.t) () =
     return outputPath
   in
 
-  let%bind () =
-
+  let%bind ocamlopt =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
@@ -593,16 +592,6 @@ let run (proj : Project.WithWorkflow.t) () =
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in
-    Project.buildPackage
-      ~quiet:true
-      ~buildOnly:false
-      proj.projcfg
-      fetched.Project.sandbox
-      configured.Project.WithWorkflow.plan
-      configured.Project.WithWorkflow.root.pkg
-  in
-
-  let%bind ocamlopt =
     let%bind p = Project.WithWorkflow.ocaml proj in
     return Path.(p / "bin" / "ocamlopt")
   in
