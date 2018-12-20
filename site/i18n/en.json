@@ -154,6 +154,123 @@
       },
       "version-0.4.4-using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"
+      },
+      "version-0.4.5-c-workflow": {
+        "title": "Workflow for C/C++ Packages"
+      },
+      "version-0.4.5-commands": {
+        "title": "Commands"
+      },
+      "version-0.4.5-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.4.5-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.4.5-esy-configuration": {
+        "title": "Configuration"
+      },
+      "version-0.4.5-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.4.5-how-it-works": {
+        "title": "How esy works"
+      },
+      "version-0.4.5-low-level-commands": {
+        "title": "Low Level Commands"
+      },
+      "version-0.4.5-node-compatibility": {
+        "title": "Node/npm Compatibility"
+      },
+      "version-0.4.5-npm-release": {
+        "title": "Building npm Releases"
+      },
+      "version-0.4.5-offline": {
+        "title": "Offline Builds"
+      },
+      "version-0.4.5-opam-workflow": {
+        "title": "Workflow for opam Packages"
+      },
+      "version-0.4.5-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
+      },
+      "version-0.4.6-c-workflow": {
+        "title": "Workflow for C/C++ Packages"
+      },
+      "version-0.4.6-commands": {
+        "title": "Commands"
+      },
+      "version-0.4.6-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.4.6-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.4.6-esy-configuration": {
+        "title": "Configuration"
+      },
+      "version-0.4.6-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.4.6-how-it-works": {
+        "title": "How esy works"
+      },
+      "version-0.4.6-low-level-commands": {
+        "title": "Low Level Commands"
+      },
+      "version-0.4.6-node-compatibility": {
+        "title": "Node/npm Compatibility"
+      },
+      "version-0.4.6-npm-release": {
+        "title": "Building npm Releases"
+      },
+      "version-0.4.6-offline": {
+        "title": "Offline Builds"
+      },
+      "version-0.4.6-opam-workflow": {
+        "title": "Workflow for opam Packages"
+      },
+      "version-0.4.6-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
+      },
+      "version-0.4.7-c-workflow": {
+        "title": "Workflow for C/C++ Packages"
+      },
+      "version-0.4.7-commands": {
+        "title": "Commands"
+      },
+      "version-0.4.7-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.4.7-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.4.7-esy-configuration": {
+        "title": "Configuration"
+      },
+      "version-0.4.7-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.4.7-how-it-works": {
+        "title": "How esy works"
+      },
+      "version-0.4.7-low-level-commands": {
+        "title": "Low Level Commands"
+      },
+      "version-0.4.7-node-compatibility": {
+        "title": "Node/npm Compatibility"
+      },
+      "version-0.4.7-npm-release": {
+        "title": "Building npm Releases"
+      },
+      "version-0.4.7-offline": {
+        "title": "Offline Builds"
+      },
+      "version-0.4.7-opam-workflow": {
+        "title": "Workflow for opam Packages"
+      },
+      "version-0.4.7-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
       }
     },
     "links": {

@@ -1,5 +1,5 @@
 ---
-id: version-0.4.5-c-workflow
+id: version-0.4.7-c-workflow
 title: Workflow for C/C++ Packages
 original_id: c-workflow
 ---

@@ -1,5 +1,5 @@
 ---
-id: version-0.4.4-npm-release
+id: version-0.4.6-npm-release
 title: Building npm Releases
 original_id: npm-release
 ---

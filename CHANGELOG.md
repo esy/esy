@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## NEXT
+## 0.4.7 @ latest
 
 - Cleanup linked packages built by `esy npm-release` from global store.
+
+- Fix `esy npm-release` with `"rewritePrefix": true`.
 
 ## 0.4.6 @ latest
 

@@ -1,5 +1,5 @@
 ---
-id: version-0.4.4-opam-workflow
+id: version-0.4.6-opam-workflow
 title: Workflow for opam Packages
 original_id: opam-workflow
 ---

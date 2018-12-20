@@ -1,5 +1,5 @@
 ---
-id: version-0.4.4-esy-configuration
+id: version-0.4.5-esy-configuration
 title: Configuration
 original_id: esy-configuration
 ---

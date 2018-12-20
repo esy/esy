@@ -1,5 +1,5 @@
 ---
-id: version-0.4.6-configuration
+id: version-0.4.7-configuration
 title: Project Configuration
 original_id: configuration
 ---
