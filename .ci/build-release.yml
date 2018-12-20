@@ -79,17 +79,29 @@ jobs:
         ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
+  - job: buildWindowsLongPath
+    displayName: WindowsLongPath
+    condition: succeeded()
+    timeoutInMinutes: 0
+    pool:
+      vmImage: vs2017-win2016
+      demands: npm
+
+    variables:
+        STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
+        STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
+        ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
+        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
+
     steps:
+      - template: windows-enable-long-paths.yml
       - template: use-node.yml
       - template: restore-build-cache.yml
       - template: build.yml
+      - script: esy b where ocamlc
+        displayName: Check OCaml path
       - template: publish-build-cache.yml
-
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: Windows'
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-win32
 
   - job: buildRelease
     displayName: Build Release
