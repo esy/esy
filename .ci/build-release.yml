@@ -64,7 +64,7 @@ jobs:
           ArtifactName: platform-darwin
 
   - job: buildWindows
-    displayName: Windows
+    displayName: Build Windows
     condition: succeeded()
     timeoutInMinutes: 0
     pool:
@@ -78,8 +78,14 @@ jobs:
         ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
+    steps:
+      - template: use-node.yml
+      - template: restore-build-cache.yml
+      - template: build.yml
+      - template: publish-build-cache.yml
+
   - job: buildWindowsLongPath
-    displayName: WindowsLongPath
+    displayName: Build Windows with long paths
     condition: succeeded()
     timeoutInMinutes: 0
     pool:
