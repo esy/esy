@@ -28,7 +28,7 @@ export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
 export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
-# root@link:./package.json
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
@@ -49,10 +49,6 @@ export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"root\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -77,7 +73,7 @@ export MAN_PATH=\\"%esyStorePath%/i/%optdepid%/man:$MAN_PATH\\"
 export PATH=\\"%esyStorePath%/i/%optdepid%/bin:$PATH\\"
 
 #
-# dep@path:dep@d41d8cd9
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
@@ -98,10 +94,6 @@ export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
 export DUNE_BUILD_DIR=\\"%esyStorePath%/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -126,7 +118,7 @@ export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
 export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 
 #
-# root@link:./package.json
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
@@ -147,10 +139,6 @@ export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"root\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -167,7 +155,7 @@ exports[`Build with optDependencies builds w/o opt dependency installed snapshot
 
 
 #
-# dep@path:dep@d41d8cd9
+# Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
 export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
@@ -188,10 +176,6 @@ export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
 export DUNE_BUILD_DIR=\\"%esyStorePath%/b/%id%\\"
-
-#
-# Built-in
-#
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;

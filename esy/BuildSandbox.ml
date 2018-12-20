@@ -668,6 +668,33 @@ let makeEnv
     then Scope.SandboxEnvironment.Bindings.current @ env
     else env
   in
+
+  let env =
+    (* if envspec's DEPSPEC expression was provided we need to filter out env
+     * bindings according to it. *)
+    match envspec.augmentDeps with
+    | None -> env
+    | Some depspec ->
+      let matched =
+        DepSpec.collect
+          sandbox.solution
+          depspec
+          (Scope.pkg scope).id
+      in
+      let matched =
+        matched
+        |> PackageId.Set.elements
+        |> List.map ~f:PackageId.show
+        |> StringSet.of_list
+      in
+      let f binding =
+        match Environment.Binding.origin binding with
+        | None -> true
+        | Some pkgid -> StringSet.mem pkgid matched
+      in
+      List.filter ~f env
+  in
+
   return (env, scope)
 
 let configure

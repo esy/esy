@@ -423,16 +423,15 @@ let render ?env ?environmentVariableName ~buildIsInProgress scope expr =
   ) in
   return (SandboxValue.v v)
 
-let makeEnvBindings ~buildIsInProgress bindings scope =
+let makeEnvBindings ~buildIsInProgress ?origin bindings scope =
   let open Run.Syntax in
-  let origin = EsyInstall.PackageId.show scope.pkg.id in
   let f (name, value) =
     let%bind value =
       Run.contextf
         (render ~buildIsInProgress ~environmentVariableName:name scope value)
         "processing exportedEnv $%s" name
     in
-    return (SandboxEnvironment.Bindings.value ~origin name value)
+    return (SandboxEnvironment.Bindings.value ?origin name value)
   in
   Result.List.map ~f bindings
 
@@ -445,13 +444,15 @@ let buildEnv ~buildIsInProgress scope =
 let exportedEnvGlobal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvGlobal scope.self in
-  let%bind env = makeEnvBindings ~buildIsInProgress:false bindings scope in
+  let origin = EsyInstall.PackageId.show scope.pkg.id in
+  let%bind env = makeEnvBindings ~buildIsInProgress:false ~origin bindings scope in
   return env
 
 let exportedEnvLocal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvLocal scope.self in
-  let%bind env = makeEnvBindings ~buildIsInProgress:false bindings scope in
+  let origin = EsyInstall.PackageId.show scope.pkg.id in
+  let%bind env = makeEnvBindings ~buildIsInProgress:false ~origin bindings scope in
   return env
 
 let env ~includeBuildEnv ~buildIsInProgress scope =

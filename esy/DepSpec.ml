@@ -36,3 +36,15 @@ let eval solution self depspec =
     | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
   in
   eval' depspec
+
+let rec collect' solution depspec seen id =
+  if PackageId.Set.mem id seen
+  then seen
+  else
+    let f nextid seen = collect' solution depspec seen nextid in
+    let seen = PackageId.Set.add id seen in
+    let seen = PackageId.Set.fold f (eval solution id depspec) seen in
+    seen
+
+let collect solution depspec root =
+  collect' solution depspec PackageId.Set.empty root
