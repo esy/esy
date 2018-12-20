@@ -423,29 +423,27 @@ module Plan = struct
     | Some None -> None
     | Some Some task -> Some task
 
-  let findByPred plan pred =
-    let f id =
-      let task = PackageId.Map.find id plan.tasks in
-      pred task
-    in
-    match PackageId.Map.find_first_opt f plan.tasks with
+  let findBy plan pred =
+    let f (_id, node) = pred node in
+    let bindings = PackageId.Map.bindings plan.tasks in
+    match List.find_opt ~f bindings with
     | None -> None
     | Some (_id, task) -> task
 
   let getByName plan name =
-    findByPred
+    findBy
       plan
       (function
         | None -> false
-        | Some task -> String.compare task.Task.pkg.Package.name name >= 0)
+        | Some task -> String.compare task.Task.pkg.Package.name name = 0)
 
   let getByNameVersion (plan : t) name version =
     let compare = [%derive.ord: string * Version.t] in
-    findByPred
+    findBy
       plan
       (function
         | None -> false
-        | Some task -> compare (task.Task.pkg.name, task.Task.pkg.version) (name, version) >= 0)
+        | Some task -> compare (task.Task.pkg.name, task.Task.pkg.version) (name, version) = 0)
 
   let all plan =
     let f tasks = function
