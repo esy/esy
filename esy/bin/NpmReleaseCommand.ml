@@ -240,9 +240,11 @@ let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
       resolve_path Sys.executable_name
     ;;
 
+    (** this expands not rewritten store prefix _______ into a local release path *)
     let expandFallback storePrefix =
+      let dummyPrefix = String.make (String.length storePrefix) '_' in
       let dirname = Filename.dirname this_executable in
-      let pattern = Str.regexp storePrefix in
+      let pattern = Str.regexp dummyPrefix in
       let storePrefix =
         let (/) = Filename.concat in
         normalize (dirname / ".." / "3")
@@ -288,6 +290,17 @@ let buildspec = {
   buildLink = Some {mode = Build; deps = DepSpec.(dependencies self);};
   buildRoot = Some {mode = Build; deps = DepSpec.(dependencies self);};
 }
+
+let cleanupLinksFromGlobalStore cfg tasks =
+  let open RunAsync.Syntax in
+  let f task =
+    match task.BuildSandbox.Task.pkg.source with
+    | PackageSource.Install _ -> return ()
+    | PackageSource.Link _ ->
+      let installPath = BuildSandbox.Task.installPath cfg task in
+      Fs.rmPath installPath
+  in
+  RunAsync.List.mapAndWait ~f tasks
 
 let make
   ~ocamlopt
@@ -566,6 +579,9 @@ let make
     return ()
   in
 
+  (** Cleanup linked packages from global store *)
+  let%bind () = cleanupLinksFromGlobalStore cfg tasks in
+
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
 
@@ -583,8 +599,7 @@ let run (proj : Project.WithWorkflow.t) () =
     return outputPath
   in
 
-  let%bind () =
-
+  let%bind ocamlopt =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
@@ -593,16 +608,6 @@ let run (proj : Project.WithWorkflow.t) () =
         configured.Project.WithWorkflow.plan
         configured.Project.WithWorkflow.root.pkg
     in
-    Project.buildPackage
-      ~quiet:true
-      ~buildOnly:false
-      proj.projcfg
-      fetched.Project.sandbox
-      configured.Project.WithWorkflow.plan
-      configured.Project.WithWorkflow.root.pkg
-  in
-
-  let%bind ocamlopt =
     let%bind p = Project.WithWorkflow.ocaml proj in
     return Path.(p / "bin" / "ocamlopt")
   in

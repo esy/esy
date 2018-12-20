@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## NEXT
+
+- Cleanup linked packages built by `esy npm-release` from global store.
+
 ## 0.4.6 @ latest
 
 - Fix cache keys for fetched package distributions. They were not respecting
