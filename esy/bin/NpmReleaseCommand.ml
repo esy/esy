@@ -240,9 +240,11 @@ let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
       resolve_path Sys.executable_name
     ;;
 
+    (** this expands not rewritten store prefix _______ into a local release path *)
     let expandFallback storePrefix =
+      let dummyPrefix = String.make (String.length storePrefix) '_' in
       let dirname = Filename.dirname this_executable in
-      let pattern = Str.regexp storePrefix in
+      let pattern = Str.regexp dummyPrefix in
       let storePrefix =
         let (/) = Filename.concat in
         normalize (dirname / ".." / "3")
