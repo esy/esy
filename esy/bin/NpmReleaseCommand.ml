@@ -289,6 +289,17 @@ let buildspec = {
   buildRoot = Some {mode = Build; deps = DepSpec.(dependencies self);};
 }
 
+let cleanupLinksFromGlobalStore cfg tasks =
+  let open RunAsync.Syntax in
+  let f task =
+    match task.BuildSandbox.Task.pkg.source with
+    | PackageSource.Install _ -> return ()
+    | PackageSource.Link _ ->
+      let installPath = BuildSandbox.Task.installPath cfg task in
+      Fs.rmPath installPath
+  in
+  RunAsync.List.mapAndWait ~f tasks
+
 let make
   ~ocamlopt
   ~outputPath
@@ -565,6 +576,9 @@ let make
 
     return ()
   in
+
+  (** Cleanup linked packages from global store *)
+  let%bind () = cleanupLinksFromGlobalStore cfg tasks in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
