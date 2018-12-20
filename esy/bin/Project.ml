@@ -169,9 +169,14 @@ let configured proj = Lwt.return (
 )
 
 let makeProject makeSolved projcfg =
-  let files = ref [] in
+  let open RunAsync.Syntax in
+  let%bind files =
+    let%bind paths = SandboxSpec.manifestPaths projcfg.spec in
+    RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
+  in
+  let files = ref files in
   let%lwt solved = makeSolved projcfg files in
-  RunAsync.return ({projcfg; solved;}, !files)
+  return ({projcfg; solved;}, !files)
 
 let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let open RunAsync.Syntax in

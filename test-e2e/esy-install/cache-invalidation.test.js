@@ -146,4 +146,35 @@ describe(`'esy install': Cache invalidation`, () => {
       expect(stdout.trim()).toBe('ok');
     }
   });
+
+  it(`invalidates sandbox cache on 'esy' invocation`, async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          dep: '^1.0.0',
+        },
+      }),
+    );
+    await p.defineNpmPackage({
+      name: 'dep',
+      version: '2.0.0',
+    });
+
+    await expect(p.esy('')).rejects.toThrow();
+
+    await FixtureUtils.initialize(p.projectPath, [
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          dep: '^2.0.0',
+        },
+      }),
+    ]);
+
+    await p.esy('');
+  });
 });

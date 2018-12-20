@@ -35,6 +35,12 @@ let localPrefixPath spec =
   let name = name spec in
   Path.(spec.path / "_esy" / name)
 
+let manifestPaths spec =
+  let open RunAsync.Syntax in
+  let%bind filenames = ManifestSpec.findManifestsAtPath spec.path spec.manifest in
+  let f (_kind, filename) = Path.(spec.path / filename) in
+  return (List.map ~f filenames)
+
 let installationPath spec = Path.(localPrefixPath spec / "installation.json")
 let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
 let cachePath spec = Path.(localPrefixPath spec / "cache")

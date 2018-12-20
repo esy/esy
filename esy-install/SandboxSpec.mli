@@ -13,6 +13,7 @@ val doesPathReferToConcreteManifest : Path.t -> bool
 val isDefault : t -> bool
 val projectName : t -> string
 
+val manifestPaths : t -> Path.t list RunAsync.t
 val distPath : t -> Path.t
 val tempPath : t -> Path.t
 val cachePath : t -> Path.t
