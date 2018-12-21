@@ -296,10 +296,10 @@ let discoverManifest path =
   let filenames =
     let dirname = Path.basename path in
     [
-      ManifestSpec.Filename.Esy, "esy.json";
-      ManifestSpec.Filename.Esy, "package.json";
-      ManifestSpec.Filename.Opam, Path.(v dirname |> addExt ".opam" |> show);
-      ManifestSpec.Filename.Opam, "opam";
+      ManifestSpec.Esy, "esy.json";
+      ManifestSpec.Esy, "package.json";
+      ManifestSpec.Opam, Path.(v dirname |> addExt ".opam" |> show);
+      ManifestSpec.Opam, "opam";
     ]
   in
 
@@ -309,14 +309,14 @@ let discoverManifest path =
       Logs_lwt.debug (fun m ->
         m "trying %a %a"
         Path.pp path
-        ManifestSpec.Filename.pp (kind, fname)
+        ManifestSpec.pp (kind, fname)
       );%lwt
       let fname = Path.(path / fname) in
       if%bind Fs.exists fname
       then
         match kind with
-        | ManifestSpec.Filename.Esy -> EsyBuild.ofFile fname
-        | ManifestSpec.Filename.Opam -> OpamBuild.ofFile fname
+        | ManifestSpec.Esy -> EsyBuild.ofFile fname
+        | ManifestSpec.Opam -> OpamBuild.ofFile fname
       else tryLoad rest
   in
 
@@ -325,7 +325,7 @@ let discoverManifest path =
 let ofPath ?manifest (path : Path.t) =
   Logs_lwt.debug (fun m ->
     m "BuildManifest.ofPath %a %a"
-    Fmt.(option ManifestSpec.Filename.pp) manifest
+    Fmt.(option ManifestSpec.pp) manifest
     Path.pp path
   );%lwt
 
@@ -334,10 +334,10 @@ let ofPath ?manifest (path : Path.t) =
     | None -> discoverManifest path
     | Some spec ->
       begin match spec with
-      | ManifestSpec.Filename.Esy, fname ->
+      | ManifestSpec.Esy, fname ->
         let path = Path.(path / fname) in
         EsyBuild.ofFile path
-      | ManifestSpec.Filename.Opam, fname ->
+      | ManifestSpec.Opam, fname ->
         let path = Path.(path / fname) in
         OpamBuild.ofFile path
       end
@@ -361,9 +361,9 @@ let ofInstallationLocation ~cfg (pkg : Package.t) (loc : Installation.location) 
     let overrides = Overrides.merge pkg.overrides res.DistResolver.overrides in
     let%bind manifest =
       begin match res.DistResolver.manifest with
-      | Some {kind = ManifestSpec.Filename.Esy; filename = _; data; suggestedPackageName = _;} ->
+      | Some {kind = ManifestSpec.Esy; filename = _; data; suggestedPackageName = _;} ->
         RunAsync.ofRun (EsyBuild.ofData data)
-      | Some {kind = ManifestSpec.Filename.Opam; filename = _; data; suggestedPackageName;} ->
+      | Some {kind = ManifestSpec.Opam; filename = _; data; suggestedPackageName;} ->
         RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
       | None ->
         let manifest = empty ~name:None ~version:None () in

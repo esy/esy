@@ -1,6 +1,6 @@
 type local = {
   path : DistPath.t;
-  manifest : ManifestSpec.Filename.t option;
+  manifest : ManifestSpec.t option;
 }
 
 val compare_local : local -> local -> int
@@ -16,13 +16,13 @@ type t =
   | Git of {
       remote : string;
       commit : string;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | Github of {
       user : string;
       repo : string;
       commit : string;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPath of local
   | NoSource
@@ -37,7 +37,7 @@ val sexp_of_t : t -> Sexplib0.Sexp.t
 val parser : t Parse.t
 val parse : string -> (t, string) result
 
-val manifest : t -> ManifestSpec.Filename.t option
+val manifest : t -> ManifestSpec.t option
 
 val parserRelaxed : t Parse.t
 val parseRelaxed : string -> (t, string) result

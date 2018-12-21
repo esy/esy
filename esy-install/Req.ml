@@ -305,7 +305,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+        manifest = Some (ManifestSpec.Opam, "lwt.opam");
       });
     };
 
@@ -338,7 +338,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+        manifest = Some (ManifestSpec.Opam, "lwt.opam");
       });
     };
 
@@ -371,7 +371,7 @@ let%test_module "parsing" = (module struct
         user = "user";
         repo = "repo";
         ref = Some "ref";
-        manifest = Some (ManifestSpec.Filename.Opam, "lwt.opam");
+        manifest = Some (ManifestSpec.Opam, "lwt.opam");
       });
     };
 

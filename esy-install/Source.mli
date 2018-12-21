@@ -15,7 +15,7 @@ val parse : string -> (t, string) result
 val parserRelaxed : t Parse.t
 val parseRelaxed : string -> (t, string) result
 
-val manifest : t -> ManifestSpec.Filename.t option
+val manifest : t -> ManifestSpec.t option
 val toDist : t -> Dist.t
 
 module Map : Map.S with type key := t

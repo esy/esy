@@ -4,8 +4,8 @@ type t = {
 } [@@deriving ord]
 
 and manifest =
-  | Manifest of ManifestSpec.Filename.t
-  | ManifestAggregate of ManifestSpec.Filename.t list
+  | Manifest of ManifestSpec.t
+  | ManifestAggregate of ManifestSpec.t list
 
 let projectName spec =
   let nameOfPath spec = Path.basename spec.path in
@@ -79,7 +79,7 @@ let ofPath path =
         | [] -> errorf "no manifests found at %a" Path.pp path
         | [fname] -> return (Manifest (Opam, fname))
         | filenames ->
-          let filenames = List.map ~f:(fun fn -> ManifestSpec.Filename.Opam, fn) filenames in
+          let filenames = List.map ~f:(fun fn -> ManifestSpec.Opam, fn) filenames in
           return (ManifestAggregate filenames)
         end
     in
@@ -117,9 +117,9 @@ let ofPath path =
 let pp fmt spec =
   match spec.manifest with
   | Manifest filename ->
-    ManifestSpec.Filename.pp fmt filename
+    ManifestSpec.pp fmt filename
   | ManifestAggregate filenames ->
-    Fmt.(list ~sep:(unit ", ") ManifestSpec.Filename.pp) fmt filenames
+    Fmt.(list ~sep:(unit ", ") ManifestSpec.pp) fmt filenames
 
 let show spec = Format.asprintf "%a" pp spec
 

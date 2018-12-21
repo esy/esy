@@ -18,22 +18,22 @@ let show' ~showPath = function
   | Dist Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Dist Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.show manifest) commit
   | Dist Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Dist Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) commit
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.show manifest) commit
   | Dist Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | Dist LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (showPath path)
   | Dist LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
   | Dist NoSource -> "no-source:"
   | Link {path; manifest = None;} ->
     Printf.sprintf "link:%s" (showPath path)
   | Link {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.show manifest)
 
 let show = show' ~showPath:DistPath.show
 let showPretty = show' ~showPath:DistPath.showPretty
@@ -54,7 +54,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.Filename.ofString (Path.basename path) with
+        match ManifestSpec.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
