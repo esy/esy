@@ -173,7 +173,7 @@ let configured proj = Lwt.return (
 let makeProject makeSolved projcfg =
   let open RunAsync.Syntax in
   let%bind files =
-    let%bind paths = SandboxSpec.manifestPaths projcfg.spec in
+    let paths = SandboxSpec.manifestPaths projcfg.spec in
     RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
   in
   let files = ref files in

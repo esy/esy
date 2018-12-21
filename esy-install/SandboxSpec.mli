@@ -1,7 +1,11 @@
 type t = {
   path : Path.t;
-  manifest : ManifestSpec.t;
+  manifest : manifest;
 }
+
+and manifest =
+  | Manifest of ManifestSpec.Filename.t
+  | ManifestAggregate of ManifestSpec.Filename.t list
 
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
@@ -12,7 +16,7 @@ module Map : Map.S with type key = t
 val isDefault : t -> bool
 val projectName : t -> string
 
-val manifestPaths : t -> Path.t list RunAsync.t
+val manifestPaths : t -> Path.t list
 val distPath : t -> Path.t
 val tempPath : t -> Path.t
 val cachePath : t -> Path.t

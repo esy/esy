@@ -200,19 +200,16 @@ let ofSource ~cfg ~spec source =
   | Error msg -> errorf "unable to construct sandbox: %s" msg
 
 let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
-  let open RunAsync.Syntax in
-
   RunAsync.contextf (
     match spec.manifest with
-    | EsyInstall.ManifestSpec.One (Esy, fname)
-    | EsyInstall.ManifestSpec.One (Opam, fname) ->
+    | EsyInstall.SandboxSpec.Manifest (Esy, fname)
+    | EsyInstall.SandboxSpec.Manifest (Opam, fname) ->
       let source = "link:" ^ fname in
       begin match EsyInstall.Source.parse source with
       | Ok source -> ofSource ~cfg ~spec source
       | Error msg -> RunAsync.errorf "unable to construct sandbox: %s" msg
       end
-    | EsyInstall.ManifestSpec.ManyOpam ->
-      let%bind paths = EsyInstall.ManifestSpec.findManifestsAtPath spec.path spec.manifest in
-      let paths = List.map ~f:(fun (_, filename) -> Path.(spec.path / filename)) paths in
+    | EsyInstall.SandboxSpec.ManifestAggregate _ ->
+      let paths = EsyInstall.SandboxSpec.manifestPaths spec in
       ofMultiplOpamFiles ~cfg ~spec spec.path paths
   ) "loading root package metadata"

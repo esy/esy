@@ -852,8 +852,8 @@ let getSandboxSolution (projcfg : ProjectConfig.t) =
           m "resolution %a is unused (defined in %a)"
           Fmt.(quote string)
           resolution
-          EsyInstall.ManifestSpec.pp
-          projcfg.installSandbox.spec.manifest
+          EsyInstall.SandboxSpec.pp
+          projcfg.installSandbox.spec
       )
     in
     Lwt_list.iter_s log unused
@@ -948,9 +948,9 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
     let%bind path =
       let spec = projcfg.solveSandbox.Sandbox.spec in
       match spec.manifest with
-      | EsyInstall.ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
-      | One (Opam, _) -> error opamError
-      | ManyOpam -> error opamError
+      | EsyInstall.SandboxSpec.Manifest (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
+      | Manifest (Opam, _) -> error opamError
+      | ManifestAggregate _ -> error opamError
       in
       return (addedDependencies, path)
     in

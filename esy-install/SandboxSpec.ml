@@ -1,27 +1,33 @@
 type t = {
   path : Path.t;
-  manifest : ManifestSpec.t
+  manifest : manifest;
 } [@@deriving ord]
+
+and manifest =
+  | Manifest of ManifestSpec.Filename.t
+  | ManifestAggregate of ManifestSpec.Filename.t list
 
 let projectName spec =
   let nameOfPath spec = Path.basename spec.path in
   match spec.manifest with
-  | ManyOpam -> nameOfPath spec
-  | One (Opam, "opam") -> nameOfPath spec
-  | One (Esy, "package.json") | One (Esy, "esy.json") -> nameOfPath spec
-  | One (_, fname) -> Path.(show (remExt (v fname)))
+  | ManifestAggregate _ -> nameOfPath spec
+  | Manifest (Opam, "opam") -> nameOfPath spec
+  | Manifest (Esy, "package.json")
+  | Manifest (Esy, "esy.json") -> nameOfPath spec
+  | Manifest (_, fname) -> Path.(show (remExt (v fname)))
 
 let name spec =
   match spec.manifest with
-  | ManyOpam -> "opam"
-  | One (Opam, "opam") -> "opam"
-  | One (Esy, "package.json") | One (Esy, "esy.json") -> "default"
-  | One (_, fname) -> Path.(show (remExt (v fname)))
+  | ManifestAggregate _ -> "opam"
+  | Manifest (Opam, "opam") -> "opam"
+  | Manifest (Esy, "package.json")
+  | Manifest (Esy, "esy.json") -> "default"
+  | Manifest (_, fname) -> Path.(show (remExt (v fname)))
 
 let isDefault spec =
   match spec.manifest with
-  | One (Esy, "package.json") -> true
-  | One (Esy, "esy.json") -> true
+  | Manifest (Esy, "package.json") -> true
+  | Manifest (Esy, "esy.json") -> true
   | _ -> false
 
 let localPrefixPath spec =
@@ -29,10 +35,13 @@ let localPrefixPath spec =
   Path.(spec.path / "_esy" / name)
 
 let manifestPaths spec =
-  let open RunAsync.Syntax in
-  let%bind filenames = ManifestSpec.findManifestsAtPath spec.path spec.manifest in
-  let f (_kind, filename) = Path.(spec.path / filename) in
-  return (List.map ~f filenames)
+  match spec.manifest with
+  | Manifest (_kind, filename) ->
+    [Path.(spec.path / filename)]
+  | ManifestAggregate filenames ->
+    List.map
+      ~f:(fun (_kind, filename) -> Path.(spec.path / filename))
+      filenames
 
 let installationPath spec = Path.(localPrefixPath spec / "installation.json")
 let pnpJsPath spec = Path.(localPrefixPath spec / "pnp.js")
@@ -45,8 +54,8 @@ let tempPath spec = Path.(localPrefixPath spec / "tmp")
 
 let solutionLockPath spec =
   match spec.manifest with
-  | One (Esy, "package.json")
-  | One (Esy, "esy.json") -> Path.(spec.path / "esy.lock")
+  | Manifest (Esy, "package.json")
+  | Manifest (Esy, "esy.json") -> Path.(spec.path / "esy.lock")
   | _ -> Path.(spec.path / (name spec ^ ".esy.lock"))
 
 let ofPath path =
@@ -58,9 +67,9 @@ let ofPath path =
 
     let%bind manifest =
       if StringSet.mem "esy.json" fnames
-      then return (ManifestSpec.One (Esy, "esy.json"))
+      then return (Manifest (Esy, "esy.json"))
       else if StringSet.mem "package.json" fnames
-      then return (ManifestSpec.One (Esy, "package.json"))
+      then return (Manifest (Esy, "package.json"))
       else
         let opamFnames =
           let isOpamFname fname = Path.(hasExt ".opam" (v fname)) || fname = "opam" in
@@ -68,8 +77,10 @@ let ofPath path =
         in
         begin match opamFnames with
         | [] -> errorf "no manifests found at %a" Path.pp path
-        | [fname] -> return (ManifestSpec.One (Opam, fname))
-        | _fnames -> return ManifestSpec.ManyOpam
+        | [fname] -> return (Manifest (Opam, fname))
+        | filenames ->
+          let filenames = List.map ~f:(fun fn -> ManifestSpec.Filename.Opam, fn) filenames in
+          return (ManifestAggregate filenames)
         end
     in
     return {path; manifest}
@@ -86,11 +97,11 @@ let ofPath path =
         then (
           if fname = "opam"
           then
-            return {path = sandboxPath; manifest = One (Opam, fname);}
+            return {path = sandboxPath; manifest = Manifest (Opam, fname);}
           else
             match Path.getExt fpath with
-            | ".json" -> return {path = sandboxPath; manifest = One (Esy, fname);}
-            | ".opam" -> return {path = sandboxPath; manifest = One (Opam, fname);}
+            | ".json" -> return {path = sandboxPath; manifest = Manifest (Esy, fname);}
+            | ".opam" -> return {path = sandboxPath; manifest = Manifest (Opam, fname);}
             | _ -> tryLoad rest
         ) else
           tryLoad rest
@@ -104,7 +115,11 @@ let ofPath path =
   else ofFile path
 
 let pp fmt spec =
-  ManifestSpec.pp fmt spec.manifest
+  match spec.manifest with
+  | Manifest filename ->
+    ManifestSpec.Filename.pp fmt filename
+  | ManifestAggregate filenames ->
+    Fmt.(list ~sep:(unit ", ") ManifestSpec.Filename.pp) fmt filenames
 
 let show spec = Format.asprintf "%a" pp spec
 
