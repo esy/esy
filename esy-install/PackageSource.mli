@@ -1,5 +1,5 @@
 type t =
-  | Link of Source.link
+  | Link of Dist.local
   | Install of {
       source : Dist.t * Dist.t list;
       opam : opam option;

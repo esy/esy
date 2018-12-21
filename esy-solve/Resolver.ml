@@ -260,7 +260,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
       match source, resolvedDist with
       | EsyInstall.Source.Dist _, _ -> return (EsyInstall.Source.Dist resolvedDist)
       | EsyInstall.Source.Link _, EsyInstall.Dist.LocalPath {path; manifest;} ->
-        return (EsyInstall.Source.Link {path;manifest;})
+        return (EsyInstall.Source.Link {path; manifest;})
       | EsyInstall.Source.Link _, dist -> errorf "unable to link to %a" EsyInstall.Dist.pp dist
     in
 

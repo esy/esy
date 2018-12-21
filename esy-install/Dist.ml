@@ -2,7 +2,7 @@ open Sexplib0.Sexp_conv
 
 type local = {
   path : DistPath.t;
-  manifest : ManifestSpec.t option;
+  manifest : ManifestSpec.Filename.t option;
 } [@@deriving ord, sexp_of]
 
 type t =
@@ -27,9 +27,9 @@ type t =
 
 let manifest (dist : t) =
   match dist with
-  | Git { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
+  | Git { manifest = Some manifest; _ } -> Some manifest
   | Git _ -> None
-  | Github { manifest = Some manifest; _ } -> Some (ManifestSpec.One manifest)
+  | Github { manifest = Some manifest; _ } -> Some manifest
   | Github _ -> None
   | LocalPath info -> info.manifest
   | Archive _ -> None
@@ -49,7 +49,7 @@ let show' ~showPath = function
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (showPath path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
+    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
   | NoSource -> "no-source:"
 
 let show = show' ~showPath:DistPath.show
@@ -141,7 +141,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.ofString (Path.basename path) with
+        match ManifestSpec.Filename.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
@@ -491,7 +491,7 @@ let local_of_yojson json =
 let local_to_yojson local =
   match local.manifest with
   | None -> `String (DistPath.show local.path)
-  | Some m -> `String (DistPath.(show (local.path / ManifestSpec.show m)))
+  | Some m -> `String (DistPath.(show (local.path / ManifestSpec.Filename.show m)))
 
 module Map = Map.Make(struct
   type nonrec t = t
