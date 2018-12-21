@@ -1,5 +1,5 @@
 steps:
-  - script: 'npm install -g esy@0.4.3 --unsafe-perm'
+  - script: 'npm install -g esy@0.4.7 --unsafe-perm'
     displayName: 'npm install -g esy'
 
   - script: 'esy install'
@@ -26,7 +26,7 @@ steps:
     inputs:
       testResultsFiles: '**junit*.xml'
       testRunTitle: TestRun ${{ parameters.name }} $(node_version)
-      
+
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage results'
     condition: succeededOrFailed()

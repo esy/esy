@@ -1,0 +1,21 @@
+{
+  "build": [
+    [
+      "bash",
+      "-c",
+      "#{os == 'windows' ? 'patch -p1 < dose3-5.0.1.patch' : 'true'}"
+    ],
+    [
+      "./configure"
+    ],
+    [
+      "make",
+      "printconf"
+    ],
+    [
+      "bash",
+      "-c",
+      "#{os == 'windows' ? 'make' : 'make libs'}"
+    ]
+  ]
+}
