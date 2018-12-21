@@ -60,6 +60,7 @@ module type PROJECT = sig
   type t
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) RunAsync.t
+  val setProjecyConfig : ProjectConfig.t -> t -> t
   val cachePath : ProjectConfig.t -> Path.t
   val writeAuxCache : t -> unit RunAsync.t
 end
@@ -91,6 +92,7 @@ end = struct
     let f ic =
       try%lwt
         let%lwt v, files = (Lwt_io.read_value ic : (P.t * FileInfo.t list) Lwt.t) in
+        let v = P.setProjecyConfig projcfg v in
         if%bind checkStaleness files
         then return None
         else return (Some v)
@@ -244,6 +246,7 @@ module WithoutWorkflow = struct
   include MakeProject(struct
     type nonrec t = t
     let make = make
+    let setProjecyConfig projcfg proj = {proj with projcfg;}
     let cachePath = makeCachePath "WithoutWorkflow"
     let writeAuxCache _ = RunAsync.return ()
   end)
@@ -375,6 +378,7 @@ module WithWorkflow = struct
   include MakeProject(struct
     type nonrec t = t
     let make = make
+    let setProjecyConfig projcfg proj = {proj with projcfg;}
     let cachePath = makeCachePath "WithWorkflow"
     let writeAuxCache = writeAuxCache
   end)

@@ -55,7 +55,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -99,7 +99,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -167,7 +167,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -226,7 +226,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -280,7 +280,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -321,7 +321,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -353,7 +353,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
       error: No solution found:
@@ -385,7 +385,7 @@ describe('"esy solve" errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       error: path 'missing' does not exist
         resolving missing@path:missing
       esy: exiting due to errors above
@@ -470,7 +470,7 @@ describe('"resolutions" misconfiguration errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       error: somepath/pkg doesn't exist
         reading package metadata from link:somepath/pkg
       esy: exiting due to errors above
@@ -497,7 +497,7 @@ describe('"resolutions" misconfiguration errors', function() {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      info install ${version}
+      info install ${version} (using package.json)
       error: unable to read manifests from some.json
         reading package metadata from link:somepath/some.json
       esy: exiting due to errors above

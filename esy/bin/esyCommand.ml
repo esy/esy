@@ -152,7 +152,7 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let buildDependencies (proj : Project.WithoutWorkflow.t) release all devDependencies depspec pkgspec () =
+let buildDependencies release all devDependencies depspec pkgspec (proj : Project.WithoutWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let mode =
@@ -183,7 +183,7 @@ let buildDependencies (proj : Project.WithoutWorkflow.t) release all devDependen
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
+let buildPackage release depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -220,7 +220,6 @@ let buildPackage (proj : Project.WithoutWorkflow.t) release depspec pkgspec () =
   Project.withPackage proj pkgspec f
 
 let execCommand
-  (proj : _ Project.project)
   release
   buildIsInProgress
   includeBuildEnv
@@ -230,7 +229,8 @@ let execCommand
   envspec
   pkgspec
   cmd
-  () =
+  (proj : _ Project.project)
+  =
   let envspec = {
     EnvSpec.
     buildIsInProgress;
@@ -265,7 +265,6 @@ let execCommand
     ()
 
 let printEnv
-  (proj : _ Project.project)
   asJson
   includeBuildEnv
   includeCurrentEnv
@@ -273,7 +272,7 @@ let printEnv
   depspec
   envspec
   pkgspec
-  ()
+  (proj : _ Project.project)
   =
   let envspec = {
     EnvSpec.
@@ -391,7 +390,7 @@ let status
       (Status.to_yojson status);
   return ()
 
-let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
+let buildPlan pkgspec (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind configured = Project.configured proj in
@@ -407,7 +406,7 @@ let buildPlan (proj : Project.WithWorkflow.t) pkgspec () =
   in
   Project.withPackage proj pkgspec f
 
-let buildShell (proj : Project.WithWorkflow.t) pkgspec () =
+let buildShell pkgspec (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -480,7 +479,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       ()
   end
 
-let buildEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
+let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -492,7 +491,7 @@ let buildEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
     packagePath
     ()
 
-let commandEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
+let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -504,7 +503,7 @@ let commandEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
     packagePath
     ()
 
-let execEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
+let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -516,7 +515,7 @@ let execEnv (proj : Project.WithWorkflow.t) asJson packagePath () =
     packagePath
     ()
 
-let exec (proj : Project.WithWorkflow.t) cmd () =
+let exec cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false proj None () in
@@ -627,7 +626,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       cmd
       ()
 
-let devShell (proj : Project.WithWorkflow.t) () =
+let devShell (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind (configured : Project.WithWorkflow.configured) = Project.configured proj in
   let shell =
@@ -701,7 +700,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let line = Printf.sprintf "%s%s %s" (Scope.name task.scope) version status in
   return line
 
-let lsBuilds (proj : Project.WithWorkflow.t) includeTransitive () =
+let lsBuilds includeTransitive (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let computeTermNode task children =
@@ -711,7 +710,7 @@ let lsBuilds (proj : Project.WithWorkflow.t) includeTransitive () =
   in
   makeLsCommand ~computeTermNode ~includeTransitive proj
 
-let lsLibs (proj : Project.WithWorkflow.t) includeTransitive () =
+let lsLibs includeTransitive (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
 
@@ -744,7 +743,7 @@ let lsLibs (proj : Project.WithWorkflow.t) includeTransitive () =
   in
   makeLsCommand ~computeTermNode ~includeTransitive proj
 
-let lsModules (proj : Project.WithWorkflow.t) only () =
+let lsModules only (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -861,34 +860,34 @@ let getSandboxSolution (projcfg : ProjectConfig.t) =
   in
   return solution
 
-let solve projcfg () =
+let solve (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
-  let%bind _ : Solution.t = getSandboxSolution projcfg in
+  let%bind _ : Solution.t = getSandboxSolution proj.projcfg in
   return ()
 
-let fetch (projcfg : ProjectConfig.t) () =
+let fetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
-  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox lockPath with
-  | Some solution -> EsyInstall.Fetch.fetch projcfg.installSandbox solution
+  let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum proj.projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
+  | Some solution -> EsyInstall.Fetch.fetch proj.projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
-let solveAndFetch (projcfg : ProjectConfig.t) () =
+let solveAndFetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
-  let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
-  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox lockPath with
+  let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
+  let%bind checksum = ProjectConfig.computeSolutionChecksum proj.projcfg in
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
   | Some solution ->
-    if%bind EsyInstall.Fetch.isInstalled ~sandbox:projcfg.installSandbox solution
+    if%bind EsyInstall.Fetch.isInstalled ~sandbox:proj.projcfg.installSandbox solution
     then return ()
-    else fetch projcfg ()
+    else fetch proj
   | None ->
-    let%bind () = solve projcfg () in
-    let%bind () = fetch projcfg () in
+    let%bind () = solve proj in
+    let%bind () = fetch proj in
     return ()
 
-let add ({ProjectConfig. solveSandbox; _} as projcfg) (reqs : string list) () =
+let add (reqs : string list) (proj : Project.WithWorkflow.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
   let opamError =
@@ -898,6 +897,9 @@ let add ({ProjectConfig. solveSandbox; _} as projcfg) (reqs : string list) () =
   let%bind reqs = RunAsync.ofStringError (
     Result.List.map ~f:EsyInstall.Req.parse reqs
   ) in
+
+  let projcfg = proj.projcfg in
+  let solveSandbox = proj.projcfg.solveSandbox in
 
   let%bind solveSandbox =
     let addReqs origDeps =
@@ -915,7 +917,7 @@ let add ({ProjectConfig. solveSandbox; _} as projcfg) (reqs : string list) () =
   let projcfg = {projcfg with solveSandbox;} in
 
   let%bind solution = getSandboxSolution projcfg in
-  let%bind () = fetch projcfg () in
+  let%bind () = fetch {proj with projcfg;} in
 
   let%bind addedDependencies, configPath =
     let records =
@@ -997,11 +999,11 @@ let add ({ProjectConfig. solveSandbox; _} as projcfg) (reqs : string list) () =
       in
       return ()
 
-let exportBuild (proj : Project.WithWorkflow.t) buildPath () =
+let exportBuild buildPath (proj : Project.WithWorkflow.t) =
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
   BuildSandbox.exportBuild ~outputPrefixPath ~cfg:proj.projcfg.cfg buildPath
 
-let exportDependencies (proj : Project.WithWorkflow.t) () =
+let exportDependencies (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
@@ -1049,7 +1051,7 @@ let importBuild (projcfg : ProjectConfig.t) fromPath buildPaths () =
     ~f:(fun path -> BuildSandbox.importBuild ~cfg:projcfg.cfg path)
     buildPaths
 
-let importDependencies (proj : Project.WithWorkflow.t) fromPath () =
+let importDependencies fromPath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
@@ -1091,7 +1093,7 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
   let open EsySolve in
   let open RunAsync.Syntax in
   let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
-  let%bind resolver = Resolver.make ~cfg:projcfg.solveCfg ~sandbox:projcfg.spec () in
+  let%bind resolver = Resolver.make ~cfg:projcfg.solveSandbox.cfg ~sandbox:projcfg.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver
@@ -1122,18 +1124,25 @@ let show (projcfg : ProjectConfig.t) _asJson req () =
       |> print_endline;
       return ()
 
-let default (proj : Project.WithWorkflow.t) cmd () =
+let printHeader ?spec name =
+  match spec with
+  | Some spec ->
+    Logs.app (fun m -> m "%s %s (using %a)" name EsyRuntime.version EsyInstall.SandboxSpec.pp spec)
+  | None ->
+    Logs.app (fun m -> m "%s %s" name EsyRuntime.version)
+
+let default cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%lwt fetched = Project.fetched proj in
   match fetched, cmd with
-  | Ok _, _ ->
-    begin match cmd with
-    | Some cmd -> devExec proj cmd ()
-    | None -> build proj None ()
-    end
+  | Ok _, None ->
+    printHeader ~spec:proj.projcfg.spec "esy";
+    build proj None ()
+  | Ok _, Some cmd ->
+    devExec proj cmd ()
   | Error _, None ->
-    Logs_lwt.app (fun m -> m "esy %s" EsyRuntime.version);%lwt
-    let%bind () = solveAndFetch proj.projcfg () in
+    printHeader ~spec:proj.projcfg.spec "esy";
+    let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
     build proj None ()
   | Error _ as err, Some _ ->
@@ -1147,35 +1156,26 @@ let otherSection = "OTHER COMMANDS"
 
 let makeCommand
   ?(header=`Standard)
-  ?(sdocs=Cmdliner.Manpage.s_common_options)
   ?docs
   ?doc
-  ?(version=EsyRuntime.version)
-  ?(exits=Cmdliner.Term.default_exits)
   ~name
   cmd =
   let info =
     Cmdliner.Term.info
-      ~exits
-      ~sdocs
+      ~exits:Cmdliner.Term.default_exits
       ?docs
       ?doc
-      ~version
+      ~version:EsyRuntime.version
       name
   in
-
-  let printHeader () =
-    match header with
-    | `Standard -> Logs_lwt.app (fun m -> m "%s %s" name version);
-    | `No -> Lwt.return ()
-  in
-
   let cmd =
     let f comp =
-      Cli.runAsyncToCmdlinerRet (
-        printHeader ();%lwt
-        comp
-      )
+      let () =
+        match header with
+        | `Standard -> printHeader name
+        | `No -> ()
+      in
+      Cli.runAsyncToCmdlinerRet comp
     in
     Cmdliner.Term.(ret (app (const f) cmd))
   in
@@ -1199,6 +1199,38 @@ let makeCommands ~sandbox () =
   let open Cmdliner in
 
   let commonOpts = ProjectConfig.term sandbox in
+  let projectWithWorkflow = Project.WithWorkflow.term sandbox in
+  let project = Project.WithoutWorkflow.term sandbox in
+
+  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+    let cmd =
+      let run cmd project () =
+        let () =
+          match header with
+          | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
+          | `No -> ()
+        in
+        cmd project
+      in
+      Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow $ Cli.setupLogTerm)
+    in
+    makeCommand ~header:`No ?docs ?doc ~name cmd
+  in
+
+  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+    let cmd =
+      let run cmd project () =
+        let () =
+          match header with
+          | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
+          | `No -> ()
+        in
+        cmd project
+      in
+      Cmdliner.Term.(pure run $ cmd $ project $ Cli.setupLogTerm)
+    in
+    makeCommand ~header:`No ?docs ?doc ~name cmd
+  in
 
   let defaultCommand =
     let cmdTerm =
@@ -1206,69 +1238,54 @@ let makeCommands ~sandbox () =
         ~doc:"Command to execute within the sandbox environment."
         ~docv:"COMMAND"
     in
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
-      Term.(
-        const default
-        $ Project.WithWorkflow.term sandbox
-        $ cmdTerm
-        $ Cli.setupLogTerm
-      )
+      Term.(const default $ cmdTerm)
   in
 
   let commands =
 
     let buildCommand =
 
-      let run projcfg cmd () =
-        let%lwt () =
+      let run cmd proj =
+        let () =
           match cmd with
-          | None -> Logs_lwt.app (fun m -> m "esy build %s" EsyRuntime.version)
-          | Some _ -> Lwt.return ()
+          | None -> printHeader ~spec:proj.Project.projcfg.spec "esy build"
+          | Some _ -> ()
         in
-        build ~buildOnly:true projcfg cmd ()
+        build ~buildOnly:true proj cmd ()
       in
 
-      makeCommand
+      makeProjectWithWorkflowCommand
         ~header:`No
         ~name:"build"
         ~doc:"Build the entire sandbox"
         ~docs:commonSection
         Term.(
           const run
-          $ Project.WithWorkflow.term sandbox
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
-          $ Cli.setupLogTerm
         )
     in
 
     let installCommand =
-      makeCommand
+      makeProjectWithWorkflowCommand
         ~name:"install"
         ~doc:"Solve & fetch dependencies"
         ~docs:commonSection
-        Term.(
-          const solveAndFetch
-          $ commonOpts
-          $ Cli.setupLogTerm
-        )
+        Term.(const solveAndFetch)
     in
 
     let npmReleaseCommand =
-      makeCommand
+      makeProjectWithWorkflowCommand
         ~name:"npm-release"
         ~doc:"Produce npm package with prebuilt artifacts"
         ~docs:otherSection
-        Term.(
-          const NpmReleaseCommand.run
-          $ Project.WithWorkflow.term sandbox
-          $ Cli.setupLogTerm
-        );
+        Term.(const NpmReleaseCommand.run)
     in
 
     [
@@ -1278,60 +1295,49 @@ let makeCommands ~sandbox () =
     installCommand;
     buildCommand;
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"build-shell"
       ~doc:"Enter the build shell"
       ~docs:commonSection
       Term.(
         const buildShell
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
-      ~header:`No
+    makeProjectWithWorkflowCommand
       ~name:"shell"
       ~doc:"Enter esy sandbox shell"
       ~docs:commonSection
-      Term.(
-        const devShell
-        $ Project.WithWorkflow.term sandbox
-        $ Cli.setupLogTerm
-      );
+      Term.(const devShell);
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"x"
       ~doc:"Execute command as if the package is installed"
       ~docs:commonSection
       Term.(
         const exec
-        $ Project.WithWorkflow.term sandbox
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
             (Cmdliner.Arg.pos_all)
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"add"
       ~doc:"Add a new dependency"
       ~docs:commonSection
       Term.(
         const add
-        $ commonOpts
         $ Arg.(
             non_empty
             & pos_all string []
             & info [] ~docv:"PACKAGE" ~doc:"Package to install"
           )
-        $ Cli.setupLogTerm
       );
 
     makeCommand
@@ -1379,19 +1385,17 @@ let makeCommands ~sandbox () =
     npmReleaseCommand;
     makeAlias ~docs:otherSection npmReleaseCommand "release";
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"export-build"
       ~doc:"Export build from the store"
       ~docs:otherSection
       Term.(
         const exportBuild
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             required
             & pos 0  (some resolvedPathTerm) None
             & info [] ~doc:"Path with builds."
           )
-        $ Cli.setupLogTerm
       );
 
     makeCommand
@@ -1414,73 +1418,61 @@ let makeCommands ~sandbox () =
         $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"export-dependencies"
       ~doc:"Export sandbox dependendencies as prebuilt artifacts"
       ~docs:otherSection
-      Term.(
-        const exportDependencies
-        $ Project.WithWorkflow.term sandbox
-        $ Cli.setupLogTerm
-      );
+      Term.(const exportDependencies);
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"import-dependencies"
       ~doc:"Import sandbox dependencies"
       ~docs:otherSection
       Term.(
         const importDependencies
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & pos 0  (some resolvedPathTerm) None
             & info [] ~doc:"Path with builds."
           )
-        $ Cli.setupLogTerm
       );
 
     (* INTROSPECTION COMMANDS *)
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"ls-builds"
       ~doc:"Output a tree of packages in the sandbox along with their status"
       ~docs:introspectionSection
       Term.(
         const lsBuilds
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"ls-libs"
       ~doc:"Output a tree of packages along with the set of libraries made available by each package dependency."
       ~docs:introspectionSection
       Term.(
         const lsLibs
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"ls-modules"
       ~doc:"Output a tree of packages along with the set of libraries and modules made available by each package dependency."
       ~docs:introspectionSection
       Term.(
         const lsModules
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & (pos_all string [])
             & info [] ~docv:"LIB" ~doc:"Output modules only for specified lib(s)")
-        $ Cli.setupLogTerm
       );
 
     makeCommand
@@ -1495,82 +1487,73 @@ let makeCommands ~sandbox () =
         $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"build-plan"
       ~doc:"Print build plan to stdout"
       ~docs:introspectionSection
       Term.(
         const buildPlan
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"build-env"
       ~doc:"Print build environment to stdout"
       ~docs:introspectionSection
       Term.(
         const buildEnv
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"command-env"
       ~doc:"Print command environment to stdout"
       ~docs:introspectionSection
       Term.(
         const commandEnv
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"exec-env"
       ~doc:"Print exec environment to stdout"
       ~docs:introspectionSection
       Term.(
         const execEnv
-        $ Project.WithWorkflow.term sandbox
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-package"
       ~doc:"Build a specified package"
       ~docs:lowLevelSection
       Term.(
         const buildPackage
-        $ Project.WithoutWorkflow.term sandbox
         $ Arg.(
             value
             & flag
@@ -1587,16 +1570,14 @@ let makeCommands ~sandbox () =
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
       Term.(
         const buildDependencies
-        $ Project.WithoutWorkflow.term sandbox
         $ Arg.(
             value
             & flag
@@ -1625,17 +1606,15 @@ let makeCommands ~sandbox () =
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package to build dependencies for" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
       ~docs:lowLevelSection
       Term.(
         const execCommand
-        $ Project.WithoutWorkflow.term sandbox
         $ Arg.(
             value
             & flag
@@ -1674,17 +1653,15 @@ let makeCommands ~sandbox () =
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
             (Cmdliner.Arg.pos_right 0)
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
       ~docs:lowLevelSection
       Term.(
         const printEnv
-        $ Project.WithoutWorkflow.term sandbox
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
         $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
@@ -1708,28 +1685,19 @@ let makeCommands ~sandbox () =
             & pos 0 (some PkgArg.conv) None
             & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
           )
-        $ Cli.setupLogTerm
       );
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
       ~docs:lowLevelSection
-      Term.(
-        const solve
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
+      Term.(const solve);
 
-    makeCommand
+    makeProjectWithWorkflowCommand
       ~name:"fetch"
       ~doc:"Fetch dependencies using the stored solution"
       ~docs:lowLevelSection
-      Term.(
-        const fetch
-        $ commonOpts
-        $ Cli.setupLogTerm
-      );
+      Term.(const fetch);
 
   ] in
 

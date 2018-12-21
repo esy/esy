@@ -585,7 +585,7 @@ let make
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
 
-let run (proj : Project.WithWorkflow.t) () =
+let run (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in

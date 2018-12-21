@@ -47,7 +47,7 @@ describe('offline installation workflow', function() {
     await p.esy(`fetch --cache-tarballs-path ${tarballsPath}`);
   });
 
-  test('it can checks that cached tarballs are downloaded', async function() {
+  test('it checks that cached tarballs are downloaded', async function() {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(

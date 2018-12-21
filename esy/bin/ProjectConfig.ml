@@ -4,8 +4,6 @@ open Cmdliner
 type t = {
   mainprg : string;
   cfg : Config.t;
-  installCfg : EsyInstall.Config.t;
-  solveCfg : EsySolve.Config.t;
   spec : EsyInstall.SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;
@@ -193,8 +191,6 @@ let make
   return {
     mainprg;
     cfg;
-    solveCfg;
-    installCfg;
     solveSandbox;
     installSandbox;
     spec;
