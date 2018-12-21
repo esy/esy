@@ -45,7 +45,7 @@ describe('build opam sandbox', () => {
         `
         opam-version: "1.2"
         build: [
-          ["false"]
+          ["true"]
         ]
         install: [
           ["true"]
@@ -57,7 +57,7 @@ describe('build opam sandbox', () => {
         `
         opam-version: "1.2"
         build: [
-          ["false"]
+          ["true"]
         ]
         install: [
           ["true"]

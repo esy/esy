@@ -143,7 +143,7 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["false"]
+            ["true"]
           ]
           depends: [
             "ocaml"
@@ -157,7 +157,7 @@ describe('complete flow for opam sandboxes', () => {
         outdent`
           opam-version: "1.2"
           build: [
-            ["false"]
+            ["true"]
           ]
           depends: [
             "ocaml"
@@ -168,8 +168,6 @@ describe('complete flow for opam sandboxes', () => {
 
     const p = await createTestSandbox(...fixture);
     await p.esy('install --skip-repository-update');
-
-    // build shouldn't execute build commands from *.opam files
     await p.esy('build');
   });
 
