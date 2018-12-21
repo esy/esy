@@ -1,11 +1,12 @@
 /** Configuration for esy installer */
 
-type t = {
-  sourceArchivePath: option(Path.t),
-  sourceFetchPath: Path.t,
-  sourceStagePath: Path.t,
-  sourceInstallPath: Path.t,
-};
+type t =
+  pri {
+    sourceArchivePath: option(Path.t),
+    sourceFetchPath: Path.t,
+    sourceStagePath: Path.t,
+    sourceInstallPath: Path.t,
+  };
 
 let make:
   (

@@ -51,30 +51,6 @@ let make =
       ),
     );
 
-  let sourcePath =
-    switch (cacheSourcesPath) {
-    | Some(path) => path
-    | None => Path.(cachePath / "source")
-    };
-  let%bind () = Fs.createDir(sourcePath);
-
-  let%bind sourceArchivePath =
-    switch (cacheTarballsPath) {
-    | Some(path) =>
-      let%bind () = Fs.createDir(path);
-      return(Some(path));
-    | None => return(None)
-    };
-
-  let sourceFetchPath = Path.(sourcePath / "f");
-  let%bind () = Fs.createDir(sourceFetchPath);
-
-  let sourceStagePath = Path.(sourcePath / "s");
-  let%bind () = Fs.createDir(sourceStagePath);
-
-  let sourceInstallPath = Path.(sourcePath / "i");
-  let%bind () = Fs.createDir(sourceInstallPath);
-
   let opamRepository = {
     let defaultRemote = "https://github.com/ocaml/opam-repository";
     let defaultLocal = Path.(cachePath / "opam-repository");
@@ -90,12 +66,13 @@ let make =
   let npmRegistry =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
-  let installCfg = {
-    EsyInstall.Config.sourceArchivePath,
-    sourceFetchPath,
-    sourceStagePath,
-    sourceInstallPath,
-  };
+  let%bind installCfg =
+    EsyInstall.Config.make(
+      ~cachePath,
+      ~cacheTarballsPath?,
+      ~cacheSourcesPath?,
+      (),
+    );
 
   return({
     installCfg,
