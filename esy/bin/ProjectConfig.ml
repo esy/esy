@@ -7,8 +7,8 @@ type t = {
   installCfg : EsyInstall.Config.t;
   solveCfg : EsySolve.Config.t;
   spec : EsyInstall.SandboxSpec.t;
-  installSandbox : EsySolve.Sandbox.t;
-  sandbox : EsyInstall.Sandbox.t;
+  solveSandbox : EsySolve.Sandbox.t;
+  installSandbox : EsyInstall.Sandbox.t;
 }
 
 let findSandboxPathStartingWith currentPath =
@@ -187,7 +187,7 @@ let make
     )
   in
 
-  let%bind installSandbox =
+  let%bind solveSandbox =
     EsySolve.Sandbox.make ~cfg:solveCfg spec
   in
 
@@ -196,10 +196,10 @@ let make
     cfg;
     solveCfg;
     installCfg;
-    installSandbox;
-    sandbox = {
+    solveSandbox;
+    installSandbox = {
       EsyInstall.Sandbox.
-      cfg = installSandbox.cfg.installCfg;
+      cfg = solveSandbox.cfg.installCfg;
       spec;
     };
     spec;
@@ -208,7 +208,7 @@ let make
 let computeSolutionChecksum projcfg =
   let open RunAsync.Syntax in
 
-  let sandbox = projcfg.installSandbox in
+  let sandbox = projcfg.solveSandbox in
 
   let ppDependencies fmt deps =
 

@@ -839,13 +839,13 @@ let lsModules (proj : Project.WithWorkflow.t) only () =
 let getSandboxSolution (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind solution = Solver.solve projcfg.installSandbox in
-  let lockPath = SandboxSpec.solutionLockPath projcfg.installSandbox.Sandbox.spec in
+  let%bind solution = Solver.solve projcfg.solveSandbox in
+  let lockPath = SandboxSpec.solutionLockPath projcfg.solveSandbox.Sandbox.spec in
   let%bind () =
     let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-    EsyInstall.SolutionLock.toPath ~checksum ~sandbox:projcfg.sandbox ~solution lockPath
+    EsyInstall.SolutionLock.toPath ~checksum ~sandbox:projcfg.installSandbox ~solution lockPath
   in
-  let unused = Resolver.getUnusedResolutions projcfg.installSandbox.resolver in
+  let unused = Resolver.getUnusedResolutions projcfg.solveSandbox.resolver in
   let%lwt () =
     let log resolution =
       Logs_lwt.warn (
@@ -870,17 +870,17 @@ let fetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
-  | Some solution -> EsyInstall.Fetch.fetch projcfg.sandbox solution
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox lockPath with
+  | Some solution -> EsyInstall.Fetch.fetch projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch (projcfg : ProjectConfig.t) () =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox lockPath with
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox lockPath with
   | Some solution ->
-    if%bind EsyInstall.Fetch.isInstalled ~sandbox:projcfg.sandbox solution
+    if%bind EsyInstall.Fetch.isInstalled ~sandbox:projcfg.installSandbox solution
     then return ()
     else fetch projcfg ()
   | None ->
@@ -888,7 +888,7 @@ let solveAndFetch (projcfg : ProjectConfig.t) () =
     let%bind () = fetch projcfg () in
     return ()
 
-let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () =
+let add ({ProjectConfig. solveSandbox; _} as projcfg) (reqs : string list) () =
   let open EsySolve in
   let open RunAsync.Syntax in
   let opamError =
@@ -899,20 +899,20 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
     Result.List.map ~f:EsyInstall.Req.parse reqs
   ) in
 
-  let%bind installSandbox =
+  let%bind solveSandbox =
     let addReqs origDeps =
       let open Package.Dependencies in
       match origDeps with
       | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
       | OpamFormula _ -> error opamError
     in
-    let%bind combinedDeps = addReqs installSandbox.root.dependencies in
-    let%bind sbDeps = addReqs installSandbox.dependencies in
-    let root = { installSandbox.root with dependencies = combinedDeps } in
-    return { installSandbox with root; dependencies = sbDeps }
+    let%bind combinedDeps = addReqs solveSandbox.root.dependencies in
+    let%bind sbDeps = addReqs solveSandbox.dependencies in
+    let root = { solveSandbox.root with dependencies = combinedDeps } in
+    return { solveSandbox with root; dependencies = sbDeps }
   in
 
-  let projcfg = {projcfg with installSandbox} in
+  let projcfg = {projcfg with solveSandbox;} in
 
   let%bind solution = getSandboxSolution projcfg in
   let%bind () = fetch projcfg () in
@@ -944,7 +944,7 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
       List.map ~f reqs
     in
     let%bind path =
-      let spec = projcfg.installSandbox.Sandbox.spec in
+      let spec = projcfg.solveSandbox.Sandbox.spec in
       match spec.manifest with
       | EsyInstall.ManifestSpec.One (Esy, fname) -> return Path.(spec.SandboxSpec.path / fname)
       | One (Opam, _) -> error opamError
@@ -982,18 +982,18 @@ let add ({ProjectConfig. installSandbox; _} as projcfg) (reqs : string list) () 
       let%bind () = Fs.writeJsonFile ~json configPath in
 
       let%bind () =
-        let%bind installSandbox =
+        let%bind solveSandbox =
           EsySolve.Sandbox.make
-            ~cfg:installSandbox.cfg
-            installSandbox.spec
+            ~cfg:solveSandbox.cfg
+            solveSandbox.spec
         in
-        let projcfg = {projcfg with installSandbox} in
+        let projcfg = {projcfg with solveSandbox} in
         let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
         (* we can only do this because we keep invariant that the constraint we
          * save in manifest covers the installed version *)
         EsyInstall.SolutionLock.unsafeUpdateChecksum
           ~checksum
-          (SandboxSpec.solutionLockPath installSandbox.spec)
+          (SandboxSpec.solutionLockPath solveSandbox.spec)
       in
       return ()
 

@@ -184,7 +184,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
   let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox path with
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in
     return {solution; fetched;}
