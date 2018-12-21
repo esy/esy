@@ -1,0 +1,39 @@
+opam-version: "2.0"
+maintainer: "opam-devel@lists.ocaml.org"
+authors: [
+  "Vincent Bernardoff <vb@luminar.eu.org>"
+  "Raja Boujbel <raja.boujbel@ocamlpro.com>"
+  "Roberto Di Cosmo <roberto@dicosmo.org>"
+  "Thomas Gazagnaire <thomas@gazagnaire.org>"
+  "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  "Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>"
+  "Anil Madhavapeddy <anil@recoil.org>"
+  "Guillem Rieu <guillem.rieu@ocamlpro.com>"
+  "Ralf Treinen <ralf.treinen@pps.jussieu.fr>"
+  "Frederic Tuong <tuong@users.gforge.inria.fr>"
+]
+homepage: "https://opam.ocaml.org/"
+bug-reports: "https://github.com/ocaml/opam/issues"
+depends: [
+  "ocaml" {>= "4.02.3"}
+  "opam-core" {= "2.0.2"}
+  "opam-file-format" {>= "2.0.0~rc2"}
+  "dune" {build & >= "1.2.1"}
+]
+build: [
+  ["./configure" "--disable-checks" "--prefix" prefix]
+  [make "%{name}%.install"]
+]
+dev-repo: "git+https://github.com/ocaml/opam.git"
+url {
+  src: "https://github.com/ocaml/opam/archive/2.0.2.tar.gz"
+  checksum: [
+    "md5=b9536b57408632daed491bae0eea947a"
+    "sha512=5c30ec0a09981860453972a351e27f6e882f023041514ecdc48702de40aa770d3e54931dfb2f9e8070f4233fd5e9bf5bfae6b2797b1b2068a49cab9f5784bafc"
+  ]
+}
+description:"""
+opam 2.0 development libraries
+
+Definition of opam datastructures and its file interface.
+"""

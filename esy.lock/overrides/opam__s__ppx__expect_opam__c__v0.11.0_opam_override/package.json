@@ -1,0 +1,12 @@
+{
+  "build": [
+    [
+      "bash",
+      "-c",
+      "#{os == 'windows' ? 'patch -p1 < ppx_expect.v0.11.0.patch' : 'true'}"
+    ],
+    [
+      "jbuilder", "build", "-p", "ppx_expect", "-j", "4"
+    ]
+  ]
+}
