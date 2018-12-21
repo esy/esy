@@ -161,12 +161,11 @@ let ofPath ?manifest (path : Path.t) =
   match manifest with
   | Some manifest ->
     let%bind tried, state =
-      let%bind filenames = ManifestSpec.findManifestsAtPath path manifest in
-      tryManifests Path.Set.empty filenames
+      tryManifests Path.Set.empty [manifest]
     in
     begin match state with
     | EmptyManifest ->
-      errorf "unable to read manifests from %a" ManifestSpec.pp manifest
+      errorf "unable to read manifests from %a" ManifestSpec.Filename.pp manifest
     | state ->
       return (tried, state)
     end
@@ -197,7 +196,6 @@ let resolve
         return (pkg, tried)
       end
     | Git {remote; commit; manifest;} ->
-      let manifest = Option.map ~f:(fun m -> ManifestSpec.One m) manifest in
       Fs.withTempDir begin fun repo ->
         let%bind () = Git.clone ~dst:repo ~remote () in
         let%bind () = Git.checkout ~ref:commit ~repo () in

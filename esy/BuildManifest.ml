@@ -323,11 +323,9 @@ let discoverManifest path =
   tryLoad filenames
 
 let ofPath ?manifest (path : Path.t) =
-  let open RunAsync.Syntax in
-
   Logs_lwt.debug (fun m ->
     m "BuildManifest.ofPath %a %a"
-    Fmt.(option ManifestSpec.pp) manifest
+    Fmt.(option ManifestSpec.Filename.pp) manifest
     Path.pp path
   );%lwt
 
@@ -336,31 +334,12 @@ let ofPath ?manifest (path : Path.t) =
     | None -> discoverManifest path
     | Some spec ->
       begin match spec with
-      | ManifestSpec.One (ManifestSpec.Filename.Esy, fname) ->
+      | ManifestSpec.Filename.Esy, fname ->
         let path = Path.(path / fname) in
         EsyBuild.ofFile path
-      | ManifestSpec.One (ManifestSpec.Filename.Opam, fname) ->
+      | ManifestSpec.Filename.Opam, fname ->
         let path = Path.(path / fname) in
         OpamBuild.ofFile path
-      | ManifestSpec.ManyOpam ->
-        let%bind filenames = ManifestSpec.findManifestsAtPath path spec in
-        let paths =
-          let f (_kind, filename) = Path.(path / filename) in
-          List.map ~f filenames
-          |> Path.Set.of_list
-        in
-        return (Some {
-          name = None;
-          version = None;
-          buildType = BuildType.Unsafe;
-          exportedEnv = ExportedEnv.empty;
-          buildEnv = Env.empty;
-          build = OpamCommands [];
-          buildDev = None;
-          install = OpamCommands [];
-          patches = [];
-          substs = [];
-        }, paths)
       end
     in
 

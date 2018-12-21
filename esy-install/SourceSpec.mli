@@ -19,10 +19,7 @@ type t =
       ref : string option;
       manifest : ManifestSpec.Filename.t option;
     }
-  | LocalPath of {
-      path : DistPath.t;
-      manifest : ManifestSpec.t option;
-    }
+  | LocalPath of Dist.local
   | NoSource
 
 include S.PRINTABLE with type t := t

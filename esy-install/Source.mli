@@ -1,14 +1,6 @@
-type link = {
-  path : DistPath.t;
-  manifest : ManifestSpec.t option;
-}
-
-val link_to_yojson : link Json.encoder
-val link_of_yojson : link Json.decoder
-
 type t =
   | Dist of Dist.t
-  | Link of link
+  | Link of Dist.local
 
 include S.COMMON with type t := t
 
@@ -23,7 +15,7 @@ val parse : string -> (t, string) result
 val parserRelaxed : t Parse.t
 val parseRelaxed : string -> (t, string) result
 
-val manifest : t -> ManifestSpec.t option
+val manifest : t -> ManifestSpec.Filename.t option
 val toDist : t -> Dist.t
 
 module Map : Map.S with type key := t

@@ -117,9 +117,8 @@ let readOverride sandbox override =
     let filename =
       match local.manifest with
       | None -> "package.json"
-      | Some One (Esy, filename) -> filename
-      | Some One (Opam, _filename) -> failwith "cannot load override from opam file"
-      | Some ManyOpam -> failwith "cannot load override from opam files"
+      | Some (Esy, filename) -> filename
+      | Some (Opam, _filename) -> failwith "cannot load override from opam file"
     in
     let dist = Dist.LocalPath local in
     let path = DistPath.toPath sandbox.Sandbox.spec.path DistPath.(local.path / filename) in

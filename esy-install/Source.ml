@@ -1,13 +1,7 @@
 open Sexplib0.Sexp_conv
-
-type link = {
-  path : DistPath.t;
-  manifest : ManifestSpec.t option;
-} [@@deriving ord, sexp_of, yojson]
-
 type t =
   | Dist of Dist.t
-  | Link of link
+  | Link of Dist.local
   [@@deriving ord, sexp_of]
 
 let manifest (src : t) =
@@ -34,12 +28,12 @@ let show' ~showPath = function
   | Dist LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (showPath path)
   | Dist LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
+    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
   | Dist NoSource -> "no-source:"
   | Link {path; manifest = None;} ->
     Printf.sprintf "link:%s" (showPath path)
   | Link {path; manifest = Some manifest;} ->
-    Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.show manifest)
+    Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
 
 let show = show' ~showPath:DistPath.show
 let showPretty = show' ~showPath:DistPath.showPretty
@@ -60,7 +54,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.ofString (Path.basename path) with
+        match ManifestSpec.Filename.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
