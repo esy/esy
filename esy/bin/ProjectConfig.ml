@@ -288,7 +288,7 @@ let promiseTerm sandboxPath =
     npmRegistry
     solveTimeout
     skipRepositoryUpdate
-    solveCudfCommand =
+    solveCudfCommand () =
     make
       sandboxPath
       mainprg
@@ -314,6 +314,7 @@ let promiseTerm sandboxPath =
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg
     $ solveCudfCommandArg
+    $ Cli.setupLogTerm
   )
 
 let term sandboxPath =

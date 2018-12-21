@@ -1031,7 +1031,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) =
     ~f:exportBuild
     (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.solution)
 
-let importBuild (projcfg : ProjectConfig.t) fromPath buildPaths () =
+let importBuild fromPath buildPaths (projcfg : ProjectConfig.t) =
   let open RunAsync.Syntax in
   let%bind buildPaths = match fromPath with
   | Some fromPath ->
@@ -1089,7 +1089,7 @@ let importDependencies fromPath (proj : Project.WithWorkflow.t) =
     ~f:importBuild
     (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
 
-let show (projcfg : ProjectConfig.t) _asJson req () =
+let show _asJson req (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
   let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
@@ -1198,13 +1198,13 @@ let makeAlias ?(docs=aliasesSection) command alias =
 let makeCommands ~sandbox () =
   let open Cmdliner in
 
-  let commonOpts = ProjectConfig.term sandbox in
+  let projectConfig = ProjectConfig.term sandbox in
   let projectWithWorkflow = Project.WithWorkflow.term sandbox in
   let project = Project.WithoutWorkflow.term sandbox in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
     let cmd =
-      let run cmd project () =
+      let run cmd project =
         let () =
           match header with
           | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
@@ -1212,14 +1212,14 @@ let makeCommands ~sandbox () =
         in
         cmd project
       in
-      Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow $ Cli.setupLogTerm)
+      Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow)
     in
     makeCommand ~header:`No ?docs ?doc ~name cmd
   in
 
   let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
     let cmd =
-      let run cmd project () =
+      let run cmd project =
         let () =
           match header with
           | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
@@ -1227,7 +1227,7 @@ let makeCommands ~sandbox () =
         in
         cmd project
       in
-      Cmdliner.Term.(pure run $ cmd $ project $ Cli.setupLogTerm)
+      Cmdliner.Term.(pure run $ cmd $ project)
     in
     makeCommand ~header:`No ?docs ?doc ~name cmd
   in
@@ -1347,14 +1347,13 @@ let makeCommands ~sandbox () =
       ~header:`No
       Term.(
         const show
-        $ commonOpts
         $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
         $ Arg.(
             required
             & pos 0 (some string) None
             & info [] ~docv:"PACKAGE" ~doc:"Package to display information about"
           )
-        $ Cli.setupLogTerm
+        $ projectConfig
       );
 
     makeCommand
@@ -1404,7 +1403,6 @@ let makeCommands ~sandbox () =
       ~docs:otherSection
       Term.(
         const importBuild
-        $ commonOpts
         $ Arg.(
             value
             & opt (some resolvedPathTerm) None
@@ -1415,7 +1413,7 @@ let makeCommands ~sandbox () =
             & pos_all resolvedPathTerm []
             & info [] ~docv:"BUILD"
           )
-        $ Cli.setupLogTerm
+        $ projectConfig
       );
 
     makeProjectWithWorkflowCommand
