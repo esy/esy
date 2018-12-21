@@ -73,7 +73,7 @@ let ofPath path =
       else if StringSet.mem "package.json" fnames
       then return (Manifest (Esy, "package.json"))
       else if StringSet.mem "opam" fnames
-      then return (Manifest (Esy, "opam"))
+      then return (Manifest (Opam, "opam"))
       else
         let%bind filenames =
           let f filename =
