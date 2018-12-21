@@ -3,13 +3,6 @@ type t = {
   manifest : ManifestSpec.t
 } [@@deriving ord]
 
-let doesPathReferToConcreteManifest path =
-  Path.(
-    hasExt ".json" path
-    || hasExt ".opam" path
-    || Path.(compare path (v "opam") = 0)
-  )
-
 let projectName spec =
   let nameOfPath spec = Path.basename spec.path in
   match spec.manifest with

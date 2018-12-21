@@ -9,7 +9,6 @@ include S.COMPARABLE with type t := t
 module Set : Set.S with type elt = t
 module Map : Map.S with type key = t
 
-val doesPathReferToConcreteManifest : Path.t -> bool
 val isDefault : t -> bool
 val projectName : t -> string
 
