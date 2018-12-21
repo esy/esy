@@ -293,15 +293,10 @@ end
 let discoverManifest path =
   let open RunAsync.Syntax in
 
-  let filenames =
-    let dirname = Path.basename path in
-    [
-      ManifestSpec.Esy, "esy.json";
-      ManifestSpec.Esy, "package.json";
-      ManifestSpec.Opam, Path.(v dirname |> addExt ".opam" |> show);
-      ManifestSpec.Opam, "opam";
-    ]
-  in
+  let filenames = [
+    ManifestSpec.Esy, "esy.json";
+    ManifestSpec.Esy, "package.json";
+  ] in
 
   let rec tryLoad = function
     | [] -> return (None, Path.Set.empty)
