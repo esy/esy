@@ -187,9 +187,8 @@ let make
     )
   in
 
-  let%bind solveSandbox =
-    EsySolve.Sandbox.make ~cfg:solveCfg spec
-  in
+  let%bind solveSandbox = EsySolve.Sandbox.make ~cfg:solveCfg spec in
+  let installSandbox = EsyInstall.Sandbox.make installCfg spec in
 
   return {
     mainprg;
@@ -197,11 +196,7 @@ let make
     solveCfg;
     installCfg;
     solveSandbox;
-    installSandbox = {
-      EsyInstall.Sandbox.
-      cfg = solveSandbox.cfg.installCfg;
-      spec;
-    };
+    installSandbox;
     spec;
   }
 
