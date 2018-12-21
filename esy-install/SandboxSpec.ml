@@ -18,8 +18,8 @@ let projectName spec =
 
 let name spec =
   match spec.manifest with
-  | ManifestAggregate _ -> "opam"
-  | Manifest (Opam, "opam") -> "opam"
+  | ManifestAggregate _
+  | Manifest (Opam, "opam")
   | Manifest (Esy, "package.json")
   | Manifest (Esy, "esy.json") -> "default"
   | Manifest (_, fname) -> Path.(show (remExt (v fname)))
@@ -54,6 +54,8 @@ let tempPath spec = Path.(localPrefixPath spec / "tmp")
 
 let solutionLockPath spec =
   match spec.manifest with
+  | ManifestAggregate _
+  | Manifest (Opam, "opam")
   | Manifest (Esy, "package.json")
   | Manifest (Esy, "esy.json") -> Path.(spec.path / "esy.lock")
   | _ -> Path.(spec.path / (name spec ^ ".esy.lock"))
@@ -70,14 +72,24 @@ let ofPath path =
       then return (Manifest (Esy, "esy.json"))
       else if StringSet.mem "package.json" fnames
       then return (Manifest (Esy, "package.json"))
+      else if StringSet.mem "opam" fnames
+      then return (Manifest (Esy, "opam"))
       else
-        let opamFnames =
-          let isOpamFname fname = Path.(hasExt ".opam" (v fname)) || fname = "opam" in
-          List.filter ~f:isOpamFname (StringSet.elements fnames)
+        let%bind filenames =
+          let f filename =
+            let path = Path.(path / filename) in
+            if Path.(hasExt ".opam" path)
+            then
+              let%bind data = Fs.readFile path in
+              return (String.(length (trim data)) > 0)
+            else
+              return false
+          in
+          RunAsync.List.filter ~f (StringSet.elements fnames)
         in
-        begin match opamFnames with
+        begin match filenames with
         | [] -> errorf "no manifests found at %a" Path.pp path
-        | [fname] -> return (Manifest (Opam, fname))
+        | [filename] -> return (Manifest (Opam, filename))
         | filenames ->
           let filenames = List.map ~f:(fun fn -> ManifestSpec.Opam, fn) filenames in
           return (ManifestAggregate filenames)
