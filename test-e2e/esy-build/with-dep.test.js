@@ -21,7 +21,15 @@ function makeFixture(p, buildDep) {
       helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
-        esy: buildDep,
+        esy: {
+          ...buildDep,
+          exportedEnv: {
+            dep__local: {val: 'dep__local'},
+            dep__global: {val: 'dep__global', scope: 'global'},
+            dep__local_dyn: {val: 'dep__local_dyn:$cur__name'},
+            dep__global_dyn: {val: 'dep__global_dyn:$cur__name', scope: 'global'},
+          },
+        },
         dependencies: {
           depOfDep: 'path:../depOfDep',
         },
@@ -33,7 +41,18 @@ function makeFixture(p, buildDep) {
       helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
-        esy: {build: 'true'},
+        esy: {
+          build: 'true',
+          exportedEnv: {
+            depOfDep__local: {val: 'depOfDep__local'},
+            depOfDep__global: {val: 'depOfDep__global', scope: 'global'},
+            depOfDep__local_dyn: {val: 'depOfDep__local_dyn:$cur__name'},
+            depOfDep__global_dyn: {
+              val: 'depOfDep__global_dyn:$cur__name',
+              scope: 'global',
+            },
+          },
+        },
       }),
       helpers.dummyExecutable('dep'),
     ),
@@ -95,6 +114,16 @@ describe('Build with dep', () => {
         const {stdout} = await p.esy('build-env --json');
         const env = JSON.parse(stdout);
         expect(env).toMatchObject({
+          // exports
+          dep__local: 'dep__local',
+          dep__global: 'dep__global',
+          dep__local_dyn: 'dep__local_dyn:withDep',
+          dep__global_dyn: 'dep__global_dyn:withDep',
+          depOfDep__global: 'depOfDep__global',
+          // depOfDep__local: undefined,
+          depOfDep__global_dyn: 'depOfDep__global_dyn:withDep',
+          // depOfDep__local_dyn: undefined,
+          //built ins (cur)
           cur__version: '1.0.0',
           cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,
           cur__target_dir: `${p.projectPath}/_esy/default/store/b/${id}`,
@@ -110,6 +139,7 @@ describe('Build with dep', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
+          // built ins
           PATH: [
             `${p.esyStorePath}/i/${depId}/bin`,
             `${p.esyStorePath}/i/${depOfDepId}/bin`,

@@ -12,18 +12,8 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 
 
 #
-# depOfDep@path:depOfDep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
-
-#
 # Built-in
 #
-export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -40,6 +30,24 @@ export cur__root=\\"%esyPrefixPath%/esyi/source/i/dep__5d502355\\"
 export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
+
+#
+# depOfDep@path:depOfDep@d41d8cd9
+#
+export depOfDep__local=\\"depOfDep__local\\"
+export depOfDep__local_dyn=\\"depOfDep__local_dyn:$cur__name\\"
+export depOfDep__global=\\"depOfDep__global\\"
+export depOfDep__global_dyn=\\"depOfDep__global_dyn:$cur__name\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
+
+#
+# Built-in
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export DUNE_BUILD_DIR=\\"%esyStorePath%/b/%id%\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
@@ -57,26 +65,8 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 
 
 #
-# depOfDep@path:depOfDep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
-
-#
-# dep@path:dep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depId%/stublibs:%esyStorePath%/i/%depId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depId%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depId%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depId%/bin:$PATH\\"
-
-#
 # Built-in
 #
-export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
 export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
 export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
 export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
@@ -93,6 +83,36 @@ export cur__root=\\"%projectPath%\\"
 export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"withDep\\"
+
+#
+# depOfDep@path:depOfDep@d41d8cd9
+#
+export depOfDep__local=\\"depOfDep__local\\"
+export depOfDep__local_dyn=\\"depOfDep__local_dyn:$cur__name\\"
+export depOfDep__global=\\"depOfDep__global\\"
+export depOfDep__global_dyn=\\"depOfDep__global_dyn:$cur__name\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
+
+#
+# dep@path:dep@d41d8cd9
+#
+export dep__local=\\"dep__local\\"
+export dep__local_dyn=\\"dep__local_dyn:$cur__name\\"
+export dep__global=\\"dep__global\\"
+export dep__global_dyn=\\"dep__global_dyn:$cur__name\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depId%/stublibs:%esyStorePath%/i/%depId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depId%/bin:$PATH\\"
+
+#
+# Built-in
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
