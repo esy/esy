@@ -286,8 +286,10 @@ describe('devDep workflow', () => {
     async function() {
       const p = await createTestSandbox();
       const id = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+      const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout)
+        .id;
       const {stdout} = await p.esy('build-env devDep');
-      expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
+      expect(p.normalizePathsForSnapshot(stdout, {id, depOfDevDepId})).toMatchSnapshot();
     },
   );
 
