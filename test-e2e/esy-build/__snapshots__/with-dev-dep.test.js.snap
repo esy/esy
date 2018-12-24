@@ -48,6 +48,14 @@ exports[`devDep workflow macos || linux: build-env devDep snapshot 1`] = `
 
 
 #
+# depOfDevDep@path:depOfDevDep@d41d8cd9
+#
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/depofdevdep-c91d380e/stublibs:%esyStorePath%/i/depofdevdep-c91d380e/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/depofdevdep-c91d380e/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/depofdevdep-c91d380e/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/depofdevdep-c91d380e/bin:$PATH\\"
+
+#
 # Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
