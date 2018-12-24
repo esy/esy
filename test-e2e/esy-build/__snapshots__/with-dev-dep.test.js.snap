@@ -14,8 +14,6 @@ exports[`devDep workflow macos || linux: build-env dep snapshot 1`] = `
 #
 # Built-in
 #
-export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -32,6 +30,8 @@ export cur__root=\\"%esyStorePath%/b/%id%\\"
 export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -58,8 +58,6 @@ export PATH=\\"%esyStorePath%/i/%depOfDevDepId%/bin:$PATH\\"
 #
 # Built-in
 #
-export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -76,6 +74,8 @@ export cur__root=\\"%esyStorePath%/b/%id%\\"
 export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"devDep\\"
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%esyStorePath%/s/%id%/lib\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -92,18 +92,8 @@ exports[`devDep workflow macos || linux: build-env snapshot 1`] = `
 
 
 #
-# dep@path:dep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
-
-#
 # Built-in
 #
-export OCAMLFIND_LDCONF=\\"ignore\\"
-export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
 export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
 export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
 export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
@@ -120,6 +110,20 @@ export cur__root=\\"%projectPath%\\"
 export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"withDevDep\\"
+
+#
+# dep@path:dep@d41d8cd9
+#
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
+
+#
+# Built-in
+#
+export OCAMLFIND_LDCONF=\\"ignore\\"
+export OCAMLFIND_DESTDIR=\\"%projectPath%/_esy/default/store/i/%id%/lib\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
