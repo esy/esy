@@ -37,7 +37,7 @@ let to_yojson source =
     assoc [
       field "type" string "link";
       field "path" DistPath.to_yojson path;
-      fieldOpt "manifest" ManifestSpec.Filename.to_yojson manifest;
+      fieldOpt "manifest" ManifestSpec.to_yojson manifest;
     ]
   | Install { source = source, mirrors; opam } ->
     assoc [
@@ -60,7 +60,7 @@ let of_yojson json =
     Ok (Install {source; opam;})
   | "link" ->
     let%bind path = fieldWith ~name:"path" DistPath.of_yojson json in
-    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.Filename.of_yojson json in
+    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
     Ok (Link {path; manifest;})
   | typ -> errorf "unknown source type: %s" typ
 

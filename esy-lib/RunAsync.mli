@@ -109,17 +109,29 @@ module List : sig
     -> 'b list
     -> 'a t
 
-  val mapAndWait :
+  val filter :
     ?concurrency:int
-    -> f:('a -> unit t)
+    -> f:('a -> bool t)
     -> 'a list
-    -> unit t
+    -> 'a list t
+
+  val map :
+    ?concurrency:int
+    -> f:('a -> 'b t)
+    -> 'a list
+    -> 'b list t
 
   val mapAndJoin :
     ?concurrency:int
     -> f:('a -> 'b t)
     -> 'a list
     -> 'b list t
+
+  val mapAndWait :
+    ?concurrency:int
+    -> f:('a -> unit t)
+    -> 'a list
+    -> unit t
 
   val waitAll : unit t list -> unit t
   val joinAll : 'a t list -> 'a list t

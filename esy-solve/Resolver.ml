@@ -223,7 +223,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
   let readPackage ~name ~source {EsyInstall.DistResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
-    | EsyInstall.ManifestSpec.Filename.Esy ->
+    | EsyInstall.ManifestSpec.Esy ->
       let%bind pkg = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind json = Json.parse data in
@@ -236,7 +236,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
           json
       ) in
       return (Ok pkg)
-    | EsyInstall.ManifestSpec.Filename.Opam ->
+    | EsyInstall.ManifestSpec.Opam ->
       let%bind opamname = RunAsync.ofRun (
         ensureOpamName suggestedPackageName
       ) in

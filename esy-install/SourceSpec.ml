@@ -8,13 +8,13 @@ type t =
   | Git of {
       remote : string;
       ref : string option;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | Github of {
       user : string;
       repo : string;
       ref : string option;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPath of Dist.local
   | NoSource
@@ -24,20 +24,20 @@ let show = function
   | Github {user; repo; ref = None; manifest = None;} ->
     Printf.sprintf "github:%s/%s" user repo
   | Github {user; repo; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s" user repo (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "github:%s/%s:%s" user repo (ManifestSpec.show manifest)
   | Github {user; repo; ref = Some ref; manifest = None} ->
     Printf.sprintf "github:%s/%s#%s" user repo ref
   | Github {user; repo; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) ref
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.show manifest) ref
 
   | Git {remote; ref = None; manifest = None;} ->
     Printf.sprintf "git:%s" remote
   | Git {remote; ref = None; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s" remote (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "git:%s:%s" remote (ManifestSpec.show manifest)
   | Git {remote; ref = Some ref; manifest = None} ->
     Printf.sprintf "git:%s#%s" remote ref
   | Git {remote; ref = Some ref; manifest = Some manifest} ->
-    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) ref
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.show manifest) ref
 
   | Archive {url; checksum = Some checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
@@ -47,7 +47,7 @@ let show = function
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (DistPath.show path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (DistPath.show path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "path:%s/%s" (DistPath.show path) (ManifestSpec.show manifest)
 
   | NoSource -> "no-source:"
 
@@ -73,7 +73,7 @@ module Parse = struct
   include Parse
 
   let manifestFilenameBeforeSharp =
-    till (fun c -> c <> '#') ManifestSpec.Filename.parser
+    till (fun c -> c <> '#') ManifestSpec.parser
 
   let collectString xs =
     let l = List.length xs in
@@ -134,7 +134,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.Filename.ofString (Path.basename path) with
+        match ManifestSpec.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest

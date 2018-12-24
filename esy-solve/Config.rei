@@ -1,14 +1,15 @@
 /** Configuration for esy installer */
 
-type t = {
-  installCfg: EsyInstall.Config.t,
-  esySolveCmd: Cmd.t,
-  esyOpamOverride: checkout,
-  opamRepository: checkout,
-  npmRegistry: string,
-  solveTimeout: float,
-  skipRepositoryUpdate: bool,
-}
+type t =
+  pri {
+    installCfg: EsyInstall.Config.t,
+    esySolveCmd: Cmd.t,
+    esyOpamOverride: checkout,
+    opamRepository: checkout,
+    npmRegistry: string,
+    solveTimeout: float,
+    skipRepositoryUpdate: bool,
+  }
 /** This described how a reposoitory should be used */
 and checkout =
   | Local(Path.t)

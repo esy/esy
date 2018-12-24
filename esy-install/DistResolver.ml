@@ -30,7 +30,7 @@ type resolution = {
 }
 
 and manifest = {
-  kind : ManifestSpec.Filename.kind;
+  kind : ManifestSpec.kind;
   filename : string;
   suggestedPackageName : string;
   data : string;
@@ -59,13 +59,13 @@ let suggestPackageName ~fallback (kind, filename) =
     | None -> "@opam/" ^ name
   in
   let name =
-    match ManifestSpec.Filename.inferPackageName (kind, filename) with
+    match ManifestSpec.inferPackageName (kind, filename) with
     | Some name -> name
     | None -> fallback
   in
   match kind with
-  | ManifestSpec.Filename.Esy -> name
-  | ManifestSpec.Filename.Opam -> ensurehasOpamScope name
+  | ManifestSpec.Esy -> name
+  | ManifestSpec.Opam -> ensurehasOpamScope name
 
 let ofGithub
   ?manifest
@@ -90,7 +90,7 @@ let ofGithub
       | Error _ -> tryFilename rest
       | Ok data ->
         match kind with
-        | ManifestSpec.Filename.Esy ->
+        | ManifestSpec.Esy ->
           begin match Json.parseStringWith PackageOverride.of_yojson data with
           | Ok override -> return (Override override)
           | Error err ->
@@ -100,7 +100,7 @@ let ofGithub
               );%lwt
             return (Manifest {data; filename; kind; suggestedPackageName;})
           end
-        | ManifestSpec.Filename.Opam ->
+        | ManifestSpec.Opam ->
           let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
           return (Manifest {data; filename; kind; suggestedPackageName;})
       end
@@ -110,8 +110,8 @@ let ofGithub
     match manifest with
     | Some manifest -> [manifest]
     | None -> [
-      ManifestSpec.Filename.Esy, "esy.json";
-      ManifestSpec.Filename.Esy, "package.json"
+      ManifestSpec.Esy, "esy.json";
+      ManifestSpec.Esy, "package.json"
     ]
   in
 
@@ -131,7 +131,7 @@ let ofPath ?manifest (path : Path.t) =
     then
       let%bind data = Fs.readFile manifestPath in
       match kind with
-      | ManifestSpec.Filename.Esy ->
+      | ManifestSpec.Esy ->
         begin match Json.parseStringWith PackageOverride.of_yojson data with
         | Ok override -> return (Some (Override override))
         | Error err ->
@@ -140,7 +140,7 @@ let ofPath ?manifest (path : Path.t) =
             );%lwt
           return (Some (Manifest {data; filename; kind; suggestedPackageName;}))
         end
-      | ManifestSpec.Filename.Opam ->
+      | ManifestSpec.Opam ->
         return (Some (Manifest {data; filename; kind; suggestedPackageName;}))
     else
       return None
@@ -165,16 +165,16 @@ let ofPath ?manifest (path : Path.t) =
     in
     begin match state with
     | EmptyManifest ->
-      errorf "unable to read manifests from %a" ManifestSpec.Filename.pp manifest
+      errorf "unable to read manifests from %a" ManifestSpec.pp manifest
     | state ->
       return (tried, state)
     end
   | None ->
     tryManifests Path.Set.empty [
-      ManifestSpec.Filename.Esy, "esy.json";
-      ManifestSpec.Filename.Esy, "package.json";
-      ManifestSpec.Filename.Opam, "opam";
-      ManifestSpec.Filename.Opam, (Path.basename path ^ ".opam");
+      ManifestSpec.Esy, "esy.json";
+      ManifestSpec.Esy, "package.json";
+      ManifestSpec.Opam, "opam";
+      ManifestSpec.Opam, (Path.basename path ^ ".opam");
     ]
 
 let resolve

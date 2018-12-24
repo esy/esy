@@ -2,7 +2,7 @@ open Sexplib0.Sexp_conv
 
 type local = {
   path : DistPath.t;
-  manifest : ManifestSpec.Filename.t option;
+  manifest : ManifestSpec.t option;
 } [@@deriving ord, sexp_of]
 
 type t =
@@ -13,13 +13,13 @@ type t =
   | Git of {
       remote : string;
       commit : string;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | Github of {
       user : string;
       repo : string;
       commit : string;
-      manifest : ManifestSpec.Filename.t option;
+      manifest : ManifestSpec.t option;
     }
   | LocalPath of local
   | NoSource
@@ -39,17 +39,17 @@ let show' ~showPath = function
   | Github {user; repo; commit; manifest = None;} ->
     Printf.sprintf "github:%s/%s#%s" user repo commit
   | Github {user; repo; commit; manifest = Some manifest;} ->
-    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.Filename.show manifest) commit
+    Printf.sprintf "github:%s/%s:%s#%s" user repo (ManifestSpec.show manifest) commit
   | Git {remote; commit; manifest = None;} ->
     Printf.sprintf "git:%s#%s" remote commit
   | Git {remote; commit; manifest = Some manifest;} ->
-    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.Filename.show manifest) commit
+    Printf.sprintf "git:%s:%s#%s" remote (ManifestSpec.show manifest) commit
   | Archive {url; checksum} ->
     Printf.sprintf "archive:%s#%s" url (Checksum.show checksum)
   | LocalPath {path; manifest = None;} ->
     Printf.sprintf "path:%s" (showPath path)
   | LocalPath {path; manifest = Some manifest;} ->
-    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.Filename.show manifest)
+    Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
   | NoSource -> "no-source:"
 
 let show = show' ~showPath:DistPath.show
@@ -65,7 +65,7 @@ module Parse = struct
   include Parse
 
   let manifestFilenameBeforeSharp =
-    till (fun c -> c <> '#') ManifestSpec.Filename.parser
+    till (fun c -> c <> '#') ManifestSpec.parser
 
   let commitsha =
     let err = fail "missing or incorrect <commit>" in
@@ -141,7 +141,7 @@ module Parse = struct
     let make path =
       let path = Path.(normalizeAndRemoveEmptySeg (v path)) in
       let path, manifest =
-        match ManifestSpec.Filename.ofString (Path.basename path) with
+        match ManifestSpec.ofString (Path.basename path) with
         | Ok manifest ->
           let path = Path.(remEmptySeg (parent path)) in
           path, Some manifest
@@ -491,7 +491,7 @@ let local_of_yojson json =
 let local_to_yojson local =
   match local.manifest with
   | None -> `String (DistPath.show local.path)
-  | Some m -> `String (DistPath.(show (local.path / ManifestSpec.Filename.show m)))
+  | Some m -> `String (DistPath.(show (local.path / ManifestSpec.show m)))
 
 module Map = Map.Make(struct
   type nonrec t = t

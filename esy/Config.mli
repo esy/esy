@@ -1,6 +1,6 @@
 (** Configuration *)
 
-type t = {
+type t = private {
   esyVersion : string;
   spec : EsyInstall.SandboxSpec.t;
   installCfg : EsyInstall.Config.t;

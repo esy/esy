@@ -117,8 +117,17 @@ module List = struct
   let mapAndWait ?concurrency ~f xs =
     waitAll (List.map ~f:(limitWithConccurrency concurrency f) xs)
 
-  let mapAndJoin ?concurrency ~f xs =
+  let map ?concurrency ~f xs =
     joinAll (List.map ~f:(limitWithConccurrency concurrency f) xs)
+
+  let filter ?concurrency ~f xs =
+    let open Syntax in
+    let f x = if%bind f x then return (Some x) else return None in
+    let f = limitWithConccurrency concurrency f in
+    let%bind xs = joinAll (List.map ~f xs) in
+    return (List.filterNone xs)
+
+  let mapAndJoin = map
 
   let rec processSeq ~f =
     let open Syntax in

@@ -4,11 +4,9 @@ open Cmdliner
 type t = {
   mainprg : string;
   cfg : Config.t;
-  installCfg : EsyInstall.Config.t;
-  solveCfg : EsySolve.Config.t;
   spec : EsyInstall.SandboxSpec.t;
-  installSandbox : EsySolve.Sandbox.t;
-  sandbox : EsyInstall.Sandbox.t;
+  solveSandbox : EsySolve.Sandbox.t;
+  installSandbox : EsyInstall.Sandbox.t;
 }
 
 let findSandboxPathStartingWith currentPath =
@@ -187,28 +185,21 @@ let make
     )
   in
 
-  let%bind installSandbox =
-    EsySolve.Sandbox.make ~cfg:solveCfg spec
-  in
+  let%bind solveSandbox = EsySolve.Sandbox.make ~cfg:solveCfg spec in
+  let installSandbox = EsyInstall.Sandbox.make installCfg spec in
 
   return {
     mainprg;
     cfg;
-    solveCfg;
-    installCfg;
+    solveSandbox;
     installSandbox;
-    sandbox = {
-      EsyInstall.Sandbox.
-      cfg = installSandbox.cfg.installCfg;
-      spec;
-    };
     spec;
   }
 
 let computeSolutionChecksum projcfg =
   let open RunAsync.Syntax in
 
-  let sandbox = projcfg.installSandbox in
+  let sandbox = projcfg.solveSandbox in
 
   let ppDependencies fmt deps =
 
@@ -297,7 +288,7 @@ let promiseTerm sandboxPath =
     npmRegistry
     solveTimeout
     skipRepositoryUpdate
-    solveCudfCommand =
+    solveCudfCommand () =
     make
       sandboxPath
       mainprg
@@ -323,6 +314,7 @@ let promiseTerm sandboxPath =
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg
     $ solveCudfCommandArg
+    $ Cli.setupLogTerm
   )
 
 let term sandboxPath =

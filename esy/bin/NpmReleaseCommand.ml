@@ -72,10 +72,10 @@ let configure (cfg : Config.t) () =
   let open RunAsync.Syntax in
   let docs = "https://esy.sh/docs/release.html" in
   match cfg.spec.manifest with
-  | EsyInstall.ManifestSpec.ManyOpam
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _) ->
+  | EsyInstall.SandboxSpec.ManifestAggregate _
+  | EsyInstall.SandboxSpec.Manifest (Opam, _) ->
     errorf "could not create releases without package.json, see %s for details" docs
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
+  | EsyInstall.SandboxSpec.Manifest (Esy, filename) ->
     let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
     let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
     match pkgJson.OfPackageJson.esy.release with
@@ -585,7 +585,7 @@ let make
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
 
-let run (proj : Project.WithWorkflow.t) () =
+let run (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in

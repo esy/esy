@@ -60,6 +60,7 @@ module type PROJECT = sig
   type t
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) RunAsync.t
+  val setProjecyConfig : ProjectConfig.t -> t -> t
   val cachePath : ProjectConfig.t -> Path.t
   val writeAuxCache : t -> unit RunAsync.t
 end
@@ -91,6 +92,7 @@ end = struct
     let f ic =
       try%lwt
         let%lwt v, files = (Lwt_io.read_value ic : (P.t * FileInfo.t list) Lwt.t) in
+        let v = P.setProjecyConfig projcfg v in
         if%bind checkStaleness files
         then return None
         else return (Some v)
@@ -171,7 +173,7 @@ let configured proj = Lwt.return (
 let makeProject makeSolved projcfg =
   let open RunAsync.Syntax in
   let%bind files =
-    let%bind paths = SandboxSpec.manifestPaths projcfg.spec in
+    let paths = SandboxSpec.manifestPaths projcfg.spec in
     RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
   in
   let files = ref files in
@@ -184,7 +186,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
   let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.sandbox path with
+  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in
     return {solution; fetched;}
@@ -244,6 +246,7 @@ module WithoutWorkflow = struct
   include MakeProject(struct
     type nonrec t = t
     let make = make
+    let setProjecyConfig projcfg proj = {proj with projcfg;}
     let cachePath = makeCachePath "WithoutWorkflow"
     let writeAuxCache _ = RunAsync.return ()
   end)
@@ -375,6 +378,7 @@ module WithWorkflow = struct
   include MakeProject(struct
     type nonrec t = t
     let make = make
+    let setProjecyConfig projcfg proj = {proj with projcfg;}
     let cachePath = makeCachePath "WithWorkflow"
     let writeAuxCache = writeAuxCache
   end)

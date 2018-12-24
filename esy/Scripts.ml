@@ -44,11 +44,11 @@ let ofSandbox (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
   match spec.manifest with
 
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Esy, filename) ->
+  | EsyInstall.SandboxSpec.Manifest (Esy, filename) ->
     let%bind json = Fs.readJsonFile Path.(spec.path / filename) in
     let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith OfPackageJson.of_yojson json) in
     return pkgJson.OfPackageJson.scripts
 
-  | EsyInstall.ManifestSpec.One (EsyInstall.ManifestSpec.Filename.Opam, _)
-  | EsyInstall.ManifestSpec.ManyOpam ->
+  | EsyInstall.SandboxSpec.Manifest (Opam, _)
+  | EsyInstall.SandboxSpec.ManifestAggregate _ ->
     return Scripts.empty
