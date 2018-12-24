@@ -39,7 +39,7 @@ function makeFixture(p, buildDep) {
     helpers.dir(
       'depOfDep',
       helpers.packageJson({
-        name: 'dep',
+        name: 'depOfDep',
         version: '1.0.0',
         esy: {
           build: 'true',
@@ -120,9 +120,7 @@ describe('Build with dep', () => {
           dep__local_dyn: 'dep__local_dyn:withDep',
           dep__global_dyn: 'dep__global_dyn:withDep',
           depOfDep__global: 'depOfDep__global',
-          // depOfDep__local: undefined,
           depOfDep__global_dyn: 'depOfDep__global_dyn:withDep',
-          // depOfDep__local_dyn: undefined,
           //built ins (cur)
           cur__version: '1.0.0',
           cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,

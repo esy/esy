@@ -87,8 +87,6 @@ export cur__name=\\"withDep\\"
 #
 # depOfDep@path:depOfDep@d41d8cd9
 #
-export depOfDep__local=\\"depOfDep__local\\"
-export depOfDep__local_dyn=\\"depOfDep__local_dyn:$cur__name\\"
 export depOfDep__global=\\"depOfDep__global\\"
 export depOfDep__global_dyn=\\"depOfDep__global_dyn:$cur__name\\"
 export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"

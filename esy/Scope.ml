@@ -346,7 +346,7 @@ let add ~direct ~dep scope =
     let directDependencies =
       if direct
       then
-        let name = PackageScope.name dep.self in
+        let name = dep.pkg.name in
         StringMap.add name dep scope.directDependencies
       else scope.directDependencies
     in
@@ -355,7 +355,7 @@ let add ~direct ~dep scope =
     {scope with directDependencies; dependencies; children}
   | true, Some false ->
     let directDependencies =
-      let name = PackageScope.name dep.self in
+      let name = dep.pkg.name in
       StringMap.add name dep scope.directDependencies
     in
     let children = Id.Map.add dep.pkg.id direct scope.children in
@@ -478,8 +478,9 @@ let env ~includeBuildEnv ~buildIsInProgress scope =
 
   let%bind dependenciesEnv =
     let f env dep =
-      let name = PackageScope.name dep.self in
-      if StringMap.mem name scope.directDependencies
+      let name = dep.pkg.name in
+      let isDirect = StringMap.mem name scope.directDependencies in
+      if isDirect
       then
         let%bind g = exportedEnvGlobal dep in
         let%bind l = exportedEnvLocal dep in
@@ -655,7 +656,7 @@ let toOpamEnv ~buildIsInProgress (scope : t) (name : OpamVariable.Full.t) =
       | false -> Some (string "disable")
       end
     | name ->
-      if namespace = PackageScope.name scope.self
+      if namespace = scope.pkg.name
       then opamPackageScope ~buildIsInProgress ~namespace scope.self name
       else
         begin match StringMap.find_opt namespace scope.directDependencies with
