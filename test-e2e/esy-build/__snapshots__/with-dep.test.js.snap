@@ -12,6 +12,14 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 
 
 #
+# depOfDep@path:depOfDep@d41d8cd9
+#
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
+
+#
 # Built-in
 #
 export OCAMLFIND_LDCONF=\\"ignore\\"
@@ -49,12 +57,20 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 
 
 #
+# depOfDep@path:depOfDep@d41d8cd9
+#
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depOfDepId%/stublibs:%esyStorePath%/i/%depOfDepId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depOfDepId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depOfDepId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depOfDepId%/bin:$PATH\\"
+
+#
 # dep@path:dep@d41d8cd9
 #
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depid%/stublibs:%esyStorePath%/i/%depid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depid%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depid%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depId%/stublibs:%esyStorePath%/i/%depId%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depId%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depId%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depId%/bin:$PATH\\"
 
 #
 # Built-in
