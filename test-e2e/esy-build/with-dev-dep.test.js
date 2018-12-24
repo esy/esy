@@ -62,6 +62,12 @@ function makeFixture(p) {
     }),
     makePackage(p, {
       name: 'devDep',
+      dependencies: {
+        depOfDevDep: 'path:../depOfDevDep',
+      },
+    }),
+    makePackage(p, {
+      name: 'depOfDevDep',
     }),
   ];
 }
@@ -150,6 +156,44 @@ describe('devDep workflow', () => {
     });
   });
 
+  test('command-env', async function() {
+    const p = await createTestSandbox();
+    const id = JSON.parse((await p.esy('build-plan')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+    const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
+
+    const {stdout} = await p.esy('command-env --json');
+    const env = JSON.parse(stdout);
+
+    const PATH = env.PATH.split(path.delimiter);
+
+    expect(PATH).toContain(`${p.esyStorePath}/i/${depId}/bin`);
+    expect(PATH).toContain(`${p.esyStorePath}/i/${devDepId}/bin`);
+    expect(PATH).toContain(`${p.esyStorePath}/i/${depOfDevDepId}/bin`);
+
+    expect(env).toMatchObject({
+      cur__version: '1.0.0',
+      cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,
+      cur__target_dir: `${p.projectPath}/_esy/default/store/b/${id}`,
+      cur__stublibs: `${p.projectPath}/_esy/default/store/i/${id}/stublibs`,
+      cur__share: `${p.projectPath}/_esy/default/store/i/${id}/share`,
+      cur__sbin: `${p.projectPath}/_esy/default/store/i/${id}/sbin`,
+      cur__root: `${p.projectPath}`,
+      cur__original_root: `${p.projectPath}`,
+      cur__name: `withDevDep`,
+      cur__man: `${p.projectPath}/_esy/default/store/i/${id}/man`,
+      cur__lib: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
+      cur__install: `${p.projectPath}/_esy/default/store/i/${id}`,
+      cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
+      cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
+      cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
+      OCAMLFIND_LDCONF: `ignore`,
+      OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
+      DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
+    });
+  });
+
   test.enableIf(isMacos || isLinux)(
     'macos || linux: build-env snapshot',
     async function() {
@@ -205,6 +249,7 @@ describe('devDep workflow', () => {
   test('build-env devDep', async function() {
     const p = await createTestSandbox();
     const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
 
     const {stdout} = await p.esy('build-env --json devDep');
     const env = JSON.parse(stdout);
@@ -222,9 +267,15 @@ describe('devDep workflow', () => {
       cur__etc: `${p.esyStorePath}/s/${devDepId}/etc`,
       cur__doc: `${p.esyStorePath}/s/${devDepId}/doc`,
       cur__bin: `${p.esyStorePath}/s/${devDepId}/bin`,
-      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
-        path.delimiter,
-      ),
+      PATH: [
+        `${p.esyStorePath}/i/${depOfDevDepId}/bin`,
+        ``,
+        `/usr/local/bin`,
+        `/usr/bin`,
+        `/bin`,
+        `/usr/sbin`,
+        `/sbin`,
+      ].join(path.delimiter),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${devDepId}/lib`,
     });
@@ -235,8 +286,10 @@ describe('devDep workflow', () => {
     async function() {
       const p = await createTestSandbox();
       const id = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+      const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout)
+        .id;
       const {stdout} = await p.esy('build-env devDep');
-      expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
+      expect(p.normalizePathsForSnapshot(stdout, {id, depOfDevDepId})).toMatchSnapshot();
     },
   );
 

@@ -238,8 +238,23 @@ let renderOpamPatchesToCommands opamEnv patches =
     )
   ) "processing patch field"
 
+
+module Reason = struct
+  type t =
+    | ForBuild
+    | ForScope
+    [@@deriving ord]
+
+  let (+) a b =
+    match a, b with
+    | ForBuild, _
+    | _, ForBuild -> ForBuild
+    | ForScope, ForScope -> ForScope
+end
+
 let makeScope
   ?cache
+  ?envspec
   ~forceImmutable
   buildspec
   sandbox
@@ -259,7 +274,7 @@ let makeScope
     | Some cache -> cache
   in
 
-  let rec visit seen (id : PackageId.t) =
+  let rec visit envspec seen (id : PackageId.t) =
     match Hashtbl.find_opt cache id with
     | Some None -> return None
     | Some (Some res) ->
@@ -271,7 +286,7 @@ let makeScope
         | Some build ->
           let%bind seen = updateSeen seen id in
           Run.contextf (
-            let%bind scope, idrepr, directDependencies = visit' seen id build in
+            let%bind scope, idrepr, directDependencies = visit' envspec seen id build in
             return (Some (scope, build, idrepr, directDependencies))
           ) "processing %a" PackageId.ppNoHash id
         | None -> return None
@@ -279,45 +294,125 @@ let makeScope
       Hashtbl.replace cache id res;
       return res
 
-  and visit' seen id build =
+  and visit' envspec seen id build =
+    let module IdS = PackageId.Set in
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let {BuildSpec. mode; deps} = BuildSpec.classify buildspec sandbox.solution pkg in
-
-    let matched =
-      DepSpec.eval sandbox.solution pkg.Package.id deps
+    let mode, matchedForBuild =
+      let {BuildSpec. mode; deps} =
+        BuildSpec.classify buildspec sandbox.solution pkg
+      in
+      let matched =
+        DepSpec.eval sandbox.solution pkg.Package.id deps
+      in
+      mode, matched
     in
 
-    let directDependencies =
-      (* remove self here so we don't call into itself *)
-      PackageId.Set.(elements (remove pkg.Package.id matched))
+    let matchedForScope =
+      match envspec with
+      | None -> matchedForBuild
+      | Some envspec -> DepSpec.eval sandbox.solution pkg.Package.id envspec
+    in
+
+    let annotateWithReason pkgid =
+      if IdS.mem pkgid matchedForBuild
+      then Reason.ForBuild, pkgid
+      else Reason.ForScope, pkgid
     in
 
     let%bind dependencies =
-      let collect dependencies (direct, pkg) =
-        match%bind visit seen pkg.Package.id with
+
+      let module Seen = Set.Make(struct
+        type t = Reason.t * PackageId.t [@@deriving ord]
+      end) in
+
+      let collectAllDependencies initDependencies =
+
+        let queue  = Queue.create () in
+        let enqueue direct dependencies =
+          let f id = Queue.add (direct, id) queue in
+          List.iter ~f dependencies;
+        in
+
+        let rec process (seen, reasons, dependencies) =
+          match Queue.pop queue with
+          | exception Queue.Empty -> seen, reasons, dependencies
+          | direct, (reason, id) ->
+            if Seen.mem (reason, id) seen
+            then process (seen, reasons, dependencies)
+            else
+              let node = Solution.getExn id sandbox.solution in
+              let seen = Seen.add (reason, id) seen in
+              let dependencies = (direct, node)::dependencies in
+              let reasons =
+                let f = function
+                  | None -> Some reason
+                  | Some prevreason -> Some Reason.(reason + prevreason)
+                in
+                PackageId.Map.update id f reasons
+              in
+              let next =
+                List.map
+                  ~f:(fun depid ->
+                    let depreason, depid = annotateWithReason depid in
+                    depreason, depid)
+                  (Solution.traverse node)
+              in
+              enqueue false next;
+              process (seen, reasons, dependencies)
+        in
+
+        let _, reasons, dependencies =
+          enqueue true initDependencies;
+          process (Seen.empty, PackageId.Map.empty, [])
+        in
+
+        let _seen, dependencies =
+          let f (seen, res) (direct, pkg) =
+            if IdS.mem pkg.Package.id seen
+            then seen, res
+            else
+              let seen = IdS.add pkg.id seen in
+              let reason = PackageId.Map.find pkg.Package.id reasons in
+              seen, ((direct, reason, pkg)::res)
+          in
+          List.fold_left ~f ~init:(IdS.empty, []) dependencies
+        in
+
+        dependencies
+      in
+
+      let collect dependencies (direct, reason, pkg) =
+        match%bind visit None seen pkg.Package.id with
         | Some (scope, _build, _idrepr, _directDependencies) ->
-          return ((direct, scope)::dependencies)
+          let _pkgid = (Scope.pkg scope).id in
+          return ((direct, reason, scope)::dependencies)
         | None -> return dependencies
       in
       let lineage =
-        Solution.allDependenciesBFS
-          ~dependencies:directDependencies
-          id
-          sandbox.solution
+        let dependencies = PackageId.Set.(
+          let set = union matchedForBuild matchedForScope in
+          let set = remove pkg.Package.id set in
+          List.map ~f:annotateWithReason (elements set)
+        ) in
+        collectAllDependencies dependencies
       in
       Result.List.foldLeft
         ~f:collect
         ~init:[]
-        (lineage)
+        lineage
     in
 
     let sourceType =
       match pkg.source with
       | Install _ ->
         let hasTransientDeps =
-          let f (_direct, scope) = Scope.sourceType scope = SourceType.Transient in
+          let f (_direct, reason, scope) =
+            match reason with
+            | Reason.ForBuild -> Scope.sourceType scope = SourceType.Transient
+            | Reason.ForScope -> false
+          in
           List.exists ~f dependencies
         in
         let sourceType =
@@ -341,8 +436,9 @@ let makeScope
     let id, idrepr =
       let dependencies =
         let f = function
-          | true, dep -> Some (Scope.id dep)
-          | false, _ -> None
+          | true, Reason.ForBuild, dep -> Some (Scope.id dep)
+          | true, Reason.ForScope, _ -> None
+          | false, _, _ -> None
         in
         dependencies
         |> List.map ~f
@@ -383,30 +479,33 @@ let makeScope
         build
     in
 
-    let _, scope =
-      let f (seen, scope) (direct, dep) =
-        let id = Scope.id dep in
-        if BuildId.Set.mem id seen
-        then seen, scope
-        else
-          let pkg = Scope.pkg dep in
-          match direct, PackageId.Set.mem pkg.id matched with
-          | true, false -> seen, scope
-          | true, true
-          | false, _ ->
-            BuildId.Set.add id seen,
-            Scope.add ~direct ~dep scope
+    let scope =
+      let _seen, scope =
+        let f (seen, scope) (direct, _reason, dep) =
+          let id = Scope.id dep in
+          if BuildId.Set.mem id seen
+          then seen, scope
+          else
+            BuildId.Set.add id seen, Scope.add ~direct ~dep scope
+        in
+        List.fold_left
+          ~f
+          ~init:(BuildId.Set.empty, scope)
+          dependencies
       in
-      List.fold_left
-        ~f
-        ~init:(BuildId.Set.empty, scope)
-        (dependencies @ [true, scope])
+      if IdS.mem pkg.id matchedForScope
+      then Scope.add ~direct:true ~dep:scope scope
+      else scope
+    in
+
+    let directDependencies =
+      PackageId.Set.(elements (remove pkg.Package.id matchedForBuild))
     in
 
     return (scope, idrepr, directDependencies)
   in
 
-  visit [] id
+  visit envspec [] id
 
 module Plan = struct
 
@@ -581,62 +680,8 @@ let buildShell buildspec sandbox id =
   let plan = Task.plan task in
   EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
 
-let makeEnv
-  ?cache
-  ~forceImmutable
-  envspec
-  buildspec
-  sandbox
-  scope
-  =
+let augmentEnvWithOptions envspec sandbox scope =
   let open Run.Syntax in
-  let pkg = Scope.pkg scope in
-  let envdepspec =
-    let {BuildSpec. deps; mode = _;} = BuildSpec.classify buildspec sandbox.solution pkg in
-    Option.orDefault
-      ~default:deps
-      envspec.EnvSpec.augmentDeps
-  in
-  let matched = DepSpec.eval sandbox.solution pkg.id envdepspec in
-  Logs.debug (fun m ->
-    m "envspec %a at %a matches %a"
-      DepSpec.pp
-      envdepspec
-      PackageId.pp
-      pkg.id
-      Fmt.(list ~sep:(unit ", ") PackageId.pp)
-      (PackageId.Set.elements matched)
-  );
-
-  let makeScope id =
-    match%bind makeScope ?cache ~forceImmutable buildspec sandbox id with
-    | None -> return None
-    | Some (scope, _build, _idrepr, _dependencies) -> return (Some scope)
-  in
-
-  let dependencies =
-    let dependencies = PackageId.Set.(elements (remove pkg.id matched)) in
-    Solution.allDependenciesBFS
-      ~dependencies
-      pkg.id
-      sandbox.solution
-  in
-
-  let%bind scope =
-    let collect scope (_direct, pkg) =
-      if PackageId.Set.mem pkg.Package.id matched
-      then
-        match%bind makeScope pkg.Package.id with
-        | None -> return scope
-        | Some dep -> return (Scope.add ~direct:true ~dep scope)
-      else
-        return scope
-    in
-    Run.List.foldLeft
-      ~f:collect
-      ~init:scope
-      (dependencies @ [true, Solution.getExn pkg.id sandbox.solution])
-  in
 
   let%bind env =
     let scope =
@@ -652,7 +697,7 @@ let makeEnv
       scope
   in
   let env =
-    if envspec.includeNpmBin
+    if envspec.EnvSpec.includeNpmBin
     then
       let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
       Scope.SandboxEnvironment.Bindings.prefixValue
@@ -706,18 +751,12 @@ let configure
   let cache = Hashtbl.create 100 in
 
   let%bind scope =
-    match%bind makeScope ~cache ~forceImmutable buildspec sandbox id with
+    match%bind makeScope ~cache ~forceImmutable ?envspec:envspec.augmentDeps buildspec sandbox id with
     | None -> errorf "no build found for %a" PackageId.pp id
     | Some (scope, _, _, _) -> return scope
   in
 
-  makeEnv
-    ~cache
-    ~forceImmutable
-    envspec
-    buildspec
-    sandbox
-    scope
+  augmentEnvWithOptions envspec sandbox scope
 
 let env ?forceImmutable envspec buildspec sandbox id =
   let open Run.Syntax in
@@ -731,17 +770,9 @@ let exec
   id
   cmd =
   let open RunAsync.Syntax in
-  let%bind task = task buildspec sandbox id in
   let%bind env, scope = RunAsync.ofRun (
     let open Run.Syntax in
-    let%bind env, scope =
-      makeEnv
-        ~forceImmutable:false
-        envspec
-        buildspec
-        sandbox
-        task.Task.scope
-    in
+    let%bind env, scope = configure envspec buildspec sandbox id in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
     return (env, scope)
   ) in
@@ -761,6 +792,7 @@ let exec
 
   if envspec.EnvSpec.buildIsInProgress
   then
+    let%bind task = task buildspec sandbox id in
     let plan = Task.plan ~env task in
     EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
   else
