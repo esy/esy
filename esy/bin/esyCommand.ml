@@ -1127,21 +1127,21 @@ let show _asJson req (projcfg : ProjectConfig.t) =
 let printHeader ?spec name =
   match spec with
   | Some spec ->
-    Logs.app (fun m -> m "%s %s (using %a)" name EsyRuntime.version EsyInstall.SandboxSpec.pp spec)
+    Logs_lwt.app (fun m -> m "%s %s (using %a)" name EsyRuntime.version EsyInstall.SandboxSpec.pp spec)
   | None ->
-    Logs.app (fun m -> m "%s %s" name EsyRuntime.version)
+    Logs_lwt.app (fun m -> m "%s %s" name EsyRuntime.version)
 
 let default cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%lwt fetched = Project.fetched proj in
   match fetched, cmd with
   | Ok _, None ->
-    printHeader ~spec:proj.projcfg.spec "esy";
+    printHeader ~spec:proj.projcfg.spec "esy";%lwt
     build proj None ()
   | Ok _, Some cmd ->
     devExec proj cmd ()
   | Error _, None ->
-    printHeader ~spec:proj.projcfg.spec "esy";
+    printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
     build proj None ()
@@ -1172,7 +1172,7 @@ let makeCommand
     let f comp =
       let () =
         match header with
-        | `Standard -> printHeader name
+        | `Standard -> Lwt_main.run (printHeader name)
         | `No -> ()
       in
       Cli.runAsyncToCmdlinerRet comp
@@ -1207,7 +1207,7 @@ let makeCommands ~sandbox () =
       let run cmd project =
         let () =
           match header with
-          | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
+          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
           | `No -> ()
         in
         cmd project
@@ -1222,7 +1222,7 @@ let makeCommands ~sandbox () =
       let run cmd project =
         let () =
           match header with
-          | `Standard -> printHeader ~spec:project.Project.projcfg.spec name
+          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
           | `No -> ()
         in
         cmd project
@@ -1253,7 +1253,7 @@ let makeCommands ~sandbox () =
       let run cmd proj =
         let () =
           match cmd with
-          | None -> printHeader ~spec:proj.Project.projcfg.spec "esy build"
+          | None -> Lwt_main.run (printHeader ~spec:proj.Project.projcfg.spec "esy build")
           | Some _ -> ()
         in
         build ~buildOnly:true proj cmd ()
