@@ -34,6 +34,7 @@ module PackageScope : sig
   val logPath : t -> SandboxPath.t
 
   val buildEnv : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
+  val buildEnvAuto : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
   val exportedEnvGlobal : t -> (string * string) list
 
@@ -213,7 +214,7 @@ end = struct
       | Transient -> true)
     | _ -> None
 
-  let buildEnv ~buildIsInProgress mode scope =
+  let buildEnvAuto ~buildIsInProgress mode scope =
     let installPath =
       if buildIsInProgress
       then stagePath scope
@@ -228,26 +229,37 @@ end = struct
       | _, Immutable
       | _, ImmutableWithTransientDependencies -> "false"
     in
+    [
+      "cur__name", (name scope);
+      "cur__version", (Version.showSimple (version scope));
+      "cur__dev", dev;
+      "cur__root", (p (rootPath scope));
+      "cur__original_root", (p (sourcePath scope));
+      "cur__target_dir", (p (buildPath scope));
+      "cur__install", (p installPath);
+      "cur__bin", (p SandboxPath.(installPath / "bin"));
+      "cur__sbin", (p SandboxPath.(installPath / "sbin"));
+      "cur__lib", (p SandboxPath.(installPath / "lib"));
+      "cur__man", (p SandboxPath.(installPath / "man"));
+      "cur__doc", (p SandboxPath.(installPath / "doc"));
+      "cur__stublibs", (p SandboxPath.(installPath / "stublibs"));
+      "cur__toplevel", (p SandboxPath.(installPath / "toplevel"));
+      "cur__share", (p SandboxPath.(installPath / "share"));
+      "cur__etc", (p SandboxPath.(installPath / "etc"));
+    ]
+
+  let buildEnv ~buildIsInProgress _mode scope =
+    let installPath =
+      if buildIsInProgress
+      then stagePath scope
+      else installPath scope
+    in
+
+    let p v = SandboxValue.show (SandboxPath.toValue v) in
 
     (* add builtins *)
     let env =
       [
-        "cur__name", (name scope);
-        "cur__version", (Version.showSimple (version scope));
-        "cur__dev", dev;
-        "cur__root", (p (rootPath scope));
-        "cur__original_root", (p (sourcePath scope));
-        "cur__target_dir", (p (buildPath scope));
-        "cur__install", (p installPath);
-        "cur__bin", (p SandboxPath.(installPath / "bin"));
-        "cur__sbin", (p SandboxPath.(installPath / "sbin"));
-        "cur__lib", (p SandboxPath.(installPath / "lib"));
-        "cur__man", (p SandboxPath.(installPath / "man"));
-        "cur__doc", (p SandboxPath.(installPath / "doc"));
-        "cur__stublibs", (p SandboxPath.(installPath / "stublibs"));
-        "cur__toplevel", (p SandboxPath.(installPath / "toplevel"));
-        "cur__share", (p SandboxPath.(installPath / "share"));
-        "cur__etc", (p SandboxPath.(installPath / "etc"));
         "OCAMLFIND_DESTDIR", (p SandboxPath.(installPath / "lib"));
         "OCAMLFIND_LDCONF", "ignore";
       ]
@@ -441,6 +453,12 @@ let buildEnv ~buildIsInProgress scope =
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
+let buildEnvAuto ~buildIsInProgress scope =
+  let open Run.Syntax in
+  let bindings = PackageScope.buildEnvAuto ~buildIsInProgress scope.mode scope.self in
+  let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
+  return env
+
 let exportedEnvGlobal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvGlobal scope.self in
@@ -474,13 +492,22 @@ let env ~includeBuildEnv ~buildIsInProgress scope =
   in
 
   let%bind buildEnv =
-    buildEnv ~buildIsInProgress scope
+    if includeBuildEnv
+    then buildEnv ~buildIsInProgress scope
+    else return []
+  in
+
+  let%bind buildEnvAuto =
+    if includeBuildEnv
+    then buildEnvAuto ~buildIsInProgress scope
+    else return []
   in
 
   return (List.rev (
     scope.finalEnv
-    @ (if includeBuildEnv then buildEnv else [])
+    @ buildEnv
     @ dependenciesEnv
+    @ buildEnvAuto
     @ scope.sandboxEnv
   ))
 
