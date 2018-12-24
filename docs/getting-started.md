@@ -3,12 +3,17 @@ id: getting-started
 title: Getting started
 ---
 
-esy provides a single command called `esy`.
+esy provides a single command called `esy` that can be invoked inside of any
+directory containing a `package.json` file. The typical workflow is to `cd`
+into a directory that contains a `package.json` file, and then perform
+operations on that project.
 
-The typical workflow is to `cd` into a directory that contains a `package.json`
-file, and then perform operations on that project.
 
-There are example projects:
+When running `esy` commands in that directory, `esy` creates and manages
+isolated build environment for your package called a "sandbox".
+Each sandbox, in each directory is isolated from every other sandbox.
+
+Here are two example projects:
 
 - [hello-reason](https://github.com/esy-ocaml/hello-reason), an example Reason
   project which uses [dune][] build system.
