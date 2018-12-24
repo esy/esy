@@ -32,7 +32,7 @@ your packages to opam repository.
 
 * Manages OCaml compilers and dependencies on a per project basis.
 
-* Sandboxes project environment by exposing only those packages which are
+* Isolates each package environment by exposing only those packages which are
   defined as dependencies.
 
 * Fast parallel builds which are agressively cached (even across different
@@ -51,7 +51,7 @@ your packages to opam repository.
 * Global build cache automatically shared across all projects — initializing new
   projects is often cheap.
 
-* File system sandboxing to prevent builds from mutating locations they don't
+* File system checks to prevent builds from mutating locations they don't
   own.
 
 * Solves environment variable pain. Native toolchains rely heavily on environment
