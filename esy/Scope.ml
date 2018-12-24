@@ -561,6 +561,13 @@ let toOpamEnv ~buildIsInProgress (scope : t) (name : OpamVariable.Full.t) =
     | _ -> name
   in
 
+  let ensurehasOpamScope name =
+    match Astring.String.cut ~sep:"@opam/" name with
+    | Some ("", _) -> name
+    | Some _
+    | None -> "@opam/" ^ name
+  in
+
   let opamPackageScope ?namespace ~buildIsInProgress (scope : PackageScope.t) name =
     let opamname = opamname scope in
     let installPath =
@@ -656,7 +663,7 @@ let toOpamEnv ~buildIsInProgress (scope : t) (name : OpamVariable.Full.t) =
       | false -> Some (string "disable")
       end
     | name ->
-      if namespace = scope.pkg.name
+      if namespace = ensurehasOpamScope scope.pkg.name
       then opamPackageScope ~buildIsInProgress ~namespace scope.self name
       else
         begin match StringMap.find_opt namespace scope.directDependencies with

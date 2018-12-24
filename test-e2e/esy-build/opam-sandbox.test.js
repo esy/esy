@@ -399,6 +399,7 @@ describe('build opam sandbox', () => {
       ['dep:build-id', depPlan.id],
     ];
 
+    console.log(p.projectPath);
     for (let i = 0; i < expectBuild.length; i++) {
       expect(plan.build[i]).toEqual(expectBuild[i]);
     }
