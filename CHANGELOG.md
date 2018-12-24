@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.4.8 @ latest
+
+- More robust handling of sandboxes with multipl `*.opam` files. Now esy
+  constructs a new root package with each `*.opam` package linked. One can see
+  `*.opam` projects as autoconfigurable monorepos (#757).
+
+- Fix regression with `$cur__*` variables being not available for re-exporting
+  by other packgages (#750).
+
+- Fix envspec regression which resulted in transitive dependencies of envspec
+  not being included in the env (#760).
+
 ## 0.4.7 @ latest
 
 - Cleanup linked packages built by `esy npm-release` from global store.
