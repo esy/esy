@@ -21,8 +21,38 @@ function makeFixture(p, buildDep) {
       helpers.packageJson({
         name: 'dep',
         version: '1.0.0',
-        esy: buildDep,
-        '_esy.source': 'path:./',
+        esy: {
+          ...buildDep,
+          exportedEnv: {
+            dep__local: {val: 'dep__local'},
+            dep__global: {val: 'dep__global', scope: 'global'},
+            dep__local_dyn: {val: 'dep__local_dyn:$cur__name'},
+            dep__global_dyn: {val: 'dep__global_dyn:$cur__name', scope: 'global'},
+          },
+        },
+        dependencies: {
+          depOfDep: 'path:../depOfDep',
+        },
+      }),
+      helpers.dummyExecutable('dep'),
+    ),
+    helpers.dir(
+      'depOfDep',
+      helpers.packageJson({
+        name: 'depOfDep',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+          exportedEnv: {
+            depOfDep__local: {val: 'depOfDep__local'},
+            depOfDep__global: {val: 'depOfDep__global', scope: 'global'},
+            depOfDep__local_dyn: {val: 'depOfDep__local_dyn:$cur__name'},
+            depOfDep__global_dyn: {
+              val: 'depOfDep__global_dyn:$cur__name',
+              scope: 'global',
+            },
+          },
+        },
       }),
       helpers.dummyExecutable('dep'),
     ),
@@ -79,10 +109,19 @@ describe('Build with dep', () => {
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
 
         const {stdout} = await p.esy('build-env --json');
         const env = JSON.parse(stdout);
         expect(env).toMatchObject({
+          // exports
+          dep__local: 'dep__local',
+          dep__global: 'dep__global',
+          dep__local_dyn: 'dep__local_dyn:withDep',
+          dep__global_dyn: 'dep__global_dyn:withDep',
+          depOfDep__global: 'depOfDep__global',
+          depOfDep__global_dyn: 'depOfDep__global_dyn:withDep',
+          //built ins (cur)
           cur__version: '1.0.0',
           cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,
           cur__target_dir: `${p.projectPath}/_esy/default/store/b/${id}`,
@@ -98,8 +137,10 @@ describe('Build with dep', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
+          // built ins
           PATH: [
             `${p.esyStorePath}/i/${depId}/bin`,
+            `${p.esyStorePath}/i/${depOfDepId}/bin`,
             ``,
             `/usr/local/bin`,
             `/usr/bin`,
@@ -119,9 +160,12 @@ describe('Build with dep', () => {
       'macos || linux: build-env snapshot',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
         const {stdout} = await p.esy('build-env');
-        expect(p.normalizePathsForSnapshot(stdout, {id, depid})).toMatchSnapshot();
+        expect(
+          p.normalizePathsForSnapshot(stdout, {id, depId, depOfDepId}),
+        ).toMatchSnapshot();
       }),
     );
 
@@ -130,6 +174,7 @@ describe('Build with dep', () => {
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
 
         const {stdout} = await p.esy('build-env --json dep');
         const env = JSON.parse(stdout);
@@ -148,6 +193,7 @@ describe('Build with dep', () => {
           cur__doc: `${p.esyStorePath}/s/${depId}/doc`,
           cur__bin: `${p.esyStorePath}/s/${depId}/bin`,
           PATH: [
+            `${p.esyStorePath}/i/${depOfDepId}/bin`,
             ``,
             `/usr/local/bin`,
             `/usr/bin`,
@@ -167,8 +213,9 @@ describe('Build with dep', () => {
       'macos || linux: build-env dep snapshot',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
         const {stdout} = await p.esy('build-env dep');
-        expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
+        expect(p.normalizePathsForSnapshot(stdout, {id, depOfDepId})).toMatchSnapshot();
       }),
     );
 
@@ -191,6 +238,7 @@ describe('Build with dep', () => {
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
         const {stdout} = await p.esy('command-env --json');
         const env = JSON.parse(stdout);
         expect(env).toMatchObject({
@@ -215,6 +263,7 @@ describe('Build with dep', () => {
         });
         const envpath = env.PATH.split(path.delimiter);
         expect(envpath.includes(`${p.esyStorePath}/i/${depId}/bin`)).toBeTruthy();
+        expect(envpath.includes(`${p.esyStorePath}/i/${depOfDepId}/bin`)).toBeTruthy();
       }),
     );
   });
