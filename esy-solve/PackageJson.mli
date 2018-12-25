@@ -1,4 +1,4 @@
-val packageOfJson :
+val ofJson :
   ?parseResolutions:bool
   -> ?parseDevDependencies:bool
   -> ?source:EsyInstall.Source.t

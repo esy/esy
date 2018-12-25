@@ -79,7 +79,7 @@ let versions ?(fullMetadata=false) ~name registry () =
           let%bind version = EsyInstall.SemverVersion.Version.parse version in
           PackageCache.ensureComputed registry.pkgCache (name, version) begin fun () ->
             let version = EsyInstall.Version.Npm version in
-            RunAsync.ofRun (PackageJson.packageOfJson ~name ~version packageJson)
+            RunAsync.ofRun (PackageJson.ofJson ~name ~version packageJson)
           end;
           return version
         in

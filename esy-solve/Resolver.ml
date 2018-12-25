@@ -227,7 +227,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
       let%bind pkg = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind json = Json.parse data in
-        PackageJson.packageOfJson
+        PackageJson.ofJson
           ~parseResolutions:true
           ~parseDevDependencies:true
           ~name
