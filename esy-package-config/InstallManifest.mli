@@ -1,5 +1,3 @@
-open EsyInstall.PackageConfig
-
 type 'a disj = 'a list
 type 'a conj = 'a list
 
@@ -10,10 +8,10 @@ module Dep : sig
   }
 
   and req =
-    | Npm of EsyInstall.SemverVersion.Constraint.t
+    | Npm of SemverVersion.Constraint.t
     | NpmDistTag of string
-    | Opam of EsyInstall.OpamPackageVersion.Constraint.t
-    | Source of EsyInstall.SourceSpec.t
+    | Opam of OpamPackageVersion.Constraint.t
+    | Source of SourceSpec.t
 
   val pp : t Fmt.t
 end
@@ -26,23 +24,23 @@ module Dependencies : sig
   include S.PRINTABLE with type t := t
   include S.COMPARABLE with type t := t
 
-  val toApproximateRequests : t -> EsyInstall.Req.t list
+  val toApproximateRequests : t -> Req.t list
 
   val filterDependenciesByName : name:string -> t -> t
 end
 
 type t = {
   name : string;
-  version : EsyInstall.Version.t;
-  originalVersion : EsyInstall.Version.t option;
+  version : Version.t;
+  originalVersion : Version.t option;
   originalName : string option;
-  source : EsyInstall.PackageSource.t;
-  overrides : EsyInstall.Overrides.t;
+  source : PackageSource.t;
+  overrides : Overrides.t;
   dependencies: Dependencies.t;
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
-  resolutions : EsyInstall.PackageConfig.Resolutions.t;
+  resolutions : Resolutions.t;
   kind : kind;
 }
 

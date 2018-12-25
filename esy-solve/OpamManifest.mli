@@ -2,12 +2,14 @@
  * Representation of an opam package (opam file, url file, override).
  *)
 
+open EsyPackageConfig
+
 type t = {
   name: OpamPackage.Name.t;
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : EsyInstall.Override.t option;
+  override : Override.t option;
   opamRepositoryPath : Path.t option;
 }
 
@@ -36,10 +38,10 @@ val ofPath :
   -> t RunAsync.t
 (** Load opam manifest of path. *)
 
-val toPackage :
-  ?source:EsyInstall.Source.t
+val toInstallManifest :
+  ?source:Source.t
   -> name : string
-  -> version : EsyInstall.Version.t
+  -> version : Version.t
   -> t
-  -> (Package.t, string) result RunAsync.t
+  -> (InstallManifest.t, string) result RunAsync.t
 (** Convert opam manifest to a package. *)

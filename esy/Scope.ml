@@ -1,9 +1,9 @@
-module Id = EsyInstall.PackageId
+open EsyPackageConfig
+
 module Package = EsyInstall.Package
 module SandboxPath = EsyBuildPackage.Config.Path
 module SandboxValue = EsyBuildPackage.Config.Value
 module SandboxEnvironment = EsyBuildPackage.Config.Environment
-module Version = EsyInstall.Version
 
 (** Scope exported by a package. *)
 module PackageScope : sig
@@ -13,7 +13,7 @@ module PackageScope : sig
     id:BuildId.t
     -> name:string
     -> version:Version.t
-    -> sourceType : BuildManifest.SourceType.t
+    -> sourceType : SourceType.t
     -> sourcePath : SandboxPath.t
     -> BuildManifest.t
     -> t
@@ -21,8 +21,8 @@ module PackageScope : sig
   val id : t -> BuildId.t
   val name : t -> string
   val version : t -> Version.t
-  val sourceType : t -> BuildManifest.SourceType.t
-  val buildType : t -> BuildManifest.BuildType.t
+  val sourceType : t -> SourceType.t
+  val buildType : t -> BuildType.t
 
   val storePath : t -> SandboxPath.t
   val rootPath : t -> SandboxPath.t
@@ -46,7 +46,7 @@ end = struct
     name : string;
     version : Version.t;
     sourcePath : SandboxPath.t;
-    sourceType : BuildManifest.SourceType.t;
+    sourceType : SourceType.t;
     build : BuildManifest.t;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;
@@ -63,17 +63,17 @@ end = struct
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
           _name
-          BuildManifest.ExportedEnv.{name; scope = envScope; value; exclusive = _}
+          ExportedEnv.{name; scope = envScope; value; exclusive = _}
           (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal)
           =
           match envScope with
-          | BuildManifest.ExportedEnv.Global ->
+          | Global ->
             let injectCamlLdLibraryPath =
               name <> "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath
             in
             let exportedEnvGlobal = (name, value)::exportedEnvGlobal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
-          | BuildManifest.ExportedEnv.Local ->
+          | Local ->
             let exportedEnvLocal = (name, value)::exportedEnvLocal in
             injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal
         in
@@ -266,13 +266,13 @@ end = struct
     in
 
     let env =
-      let f _name {BuildManifest.Env. name; value;} env = (name, value)::env in
+      let f _name {BuildEnv. name; value;} env = (name, value)::env in
       StringMap.fold f scope.build.buildEnv env
     in
 
     let env =
       match scope.build.buildType with
-      | BuildManifest.BuildType.OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
+      | OutOfSource -> ("DUNE_BUILD_DIR", p (buildPath scope))::env
       | _ -> env
     in
 
@@ -285,7 +285,7 @@ type t = {
   pkg : Package.t;
   mode : BuildSpec.mode;
 
-  children : bool Id.Map.t;
+  children : bool PackageId.Map.t;
 
   self : PackageScope.t;
   dependencies : t list;
@@ -318,7 +318,7 @@ let make
   {
     platform;
     sandboxEnv;
-    children = Id.Map.empty;
+    children = PackageId.Map.empty;
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
@@ -341,7 +341,7 @@ let make
   }
 
 let add ~direct ~dep scope =
-  match direct, Id.Map.find_opt dep.pkg.id scope.children with
+  match direct, PackageId.Map.find_opt dep.pkg.id scope.children with
   | direct, None ->
     let directDependencies =
       if direct
@@ -351,14 +351,14 @@ let add ~direct ~dep scope =
       else scope.directDependencies
     in
     let dependencies = dep::scope.dependencies in
-    let children = Id.Map.add dep.pkg.id direct scope.children in
+    let children = PackageId.Map.add dep.pkg.id direct scope.children in
     {scope with directDependencies; dependencies; children}
   | true, Some false ->
     let directDependencies =
       let name = dep.pkg.name in
       StringMap.add name dep scope.directDependencies
     in
-    let children = Id.Map.add dep.pkg.id direct scope.children in
+    let children = PackageId.Map.add dep.pkg.id direct scope.children in
     {scope with directDependencies; children}
   | true, Some true
   | false, Some false
@@ -462,14 +462,14 @@ let buildEnvAuto ~buildIsInProgress scope =
 let exportedEnvGlobal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvGlobal scope.self in
-  let origin = EsyInstall.PackageId.show scope.pkg.id in
+  let origin = PackageId.show scope.pkg.id in
   let%bind env = makeEnvBindings ~buildIsInProgress:false ~origin bindings scope in
   return env
 
 let exportedEnvLocal scope =
   let open Run.Syntax in
   let bindings = PackageScope.exportedEnvLocal scope.self in
-  let origin = EsyInstall.PackageId.show scope.pkg.id in
+  let origin = PackageId.show scope.pkg.id in
   let%bind env = makeEnvBindings ~buildIsInProgress:false ~origin bindings scope in
   return env
 

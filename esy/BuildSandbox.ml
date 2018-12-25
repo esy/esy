@@ -1,15 +1,14 @@
+open EsyPackageConfig
+
 module Solution = EsyInstall.Solution
-module PackageId = EsyInstall.PackageId
 module Package = EsyInstall.Package
 module Installation = EsyInstall.Installation
-module Source = EsyInstall.Source
-module Version = EsyInstall.Version
 
 type t = {
   cfg : Config.t;
   arch : System.Arch.t;
   platform : System.Platform.t;
-  sandboxEnv : BuildManifest.Env.t;
+  sandboxEnv : SandboxEnv.t;
   solution : EsyInstall.Solution.t;
   installation : EsyInstall.Installation.t;
   manifests : BuildManifest.t PackageId.Map.t;
@@ -31,7 +30,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
 
     RunAsync.contextf (
       let%bind manifest, paths =
-        BuildManifest.ofInstallationLocation
+        ReadBuildManifest.ofInstallationLocation
           ~cfg
           pkg
           loc
@@ -80,7 +79,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   return (paths, manifests)
 
 let make
-  ?(sandboxEnv=BuildManifest.Env.empty)
+  ?(sandboxEnv=SandboxEnv.empty)
   cfg
   solution
   installation =
@@ -131,7 +130,7 @@ module Task = struct
       EsyBuildPackage.Plan.
       id = BuildId.show (Scope.id t.scope);
       name = t.pkg.name;
-      version = EsyInstall.Version.show t.pkg.version;
+      version = Version.show t.pkg.version;
       sourceType = Scope.sourceType t.scope;
       buildType = Scope.buildType t.scope;
       build = t.build;
@@ -176,13 +175,13 @@ let renderEsyCommands ~env ~buildIsInProgress scope commands =
 
   let renderCommand =
     function
-    | BuildManifest.Command.Parsed args ->
+    | Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
         return (Scope.SandboxValue.v arg)
       in
       Result.List.map ~f args
-    | BuildManifest.Command.Unparsed line ->
+    | Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
       return (List.map ~f:Scope.SandboxValue.v args)
@@ -459,7 +458,7 @@ let makeScope
     let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg.buildCfg location in
 
     let sandboxEnv =
-      let f {BuildManifest.Env. name; value} =
+      let f {BuildEnv. name; value} =
         Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
       in
       List.map ~f (StringMap.values sandbox.sandboxEnv)

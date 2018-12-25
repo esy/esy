@@ -1,3 +1,5 @@
+open EsyPackageConfig;
+
 module Path = EsyLib.Path;
 
 module Env = EsyLib.Environment.Make(Config.Value);
@@ -7,8 +9,8 @@ type t = {
   id: string,
   name: string,
   version: string,
-  sourceType: EsyLib.SourceType.t,
-  buildType: EsyLib.BuildType.t,
+  sourceType: SourceType.t,
+  buildType: BuildType.t,
   build: list(list(Config.Value.t)),
   install: option(list(list(Config.Value.t))),
   sourcePath: Config.Value.t,

@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 let jsppString = Fmt.(quote string)
 
 let pnpPath path =

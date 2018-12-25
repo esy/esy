@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 module PackageOverride = struct
   type t = {
     dist : Dist.t;

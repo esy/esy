@@ -1,5 +1,7 @@
 (** PkgSpec allows to specify a subset of packages of the sandbox. *)
 
+open EsyPackageConfig
+
 type t =
   | Root
   | ByName of string

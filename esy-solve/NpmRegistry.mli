@@ -1,8 +1,10 @@
+open EsyPackageConfig
+
 type t
 
 type versions = {
-  versions : EsyInstall.SemverVersion.Version.t list;
-  distTags : EsyInstall.SemverVersion.Version.t StringMap.t;
+  versions : SemverVersion.Version.t list;
+  distTags : SemverVersion.Version.t StringMap.t;
 }
 
 val make :
@@ -20,7 +22,7 @@ val versions :
 
 val package :
   name:string
-  -> version:EsyInstall.SemverVersion.Version.t
+  -> version:SemverVersion.Version.t
   -> t
   -> unit
-  -> Package.t RunAsync.t
+  -> InstallManifest.t RunAsync.t

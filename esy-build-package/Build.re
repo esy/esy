@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 module EsyBash = EsyLib.EsyBash;
 module Fs = EsyLib.Fs;
 module Path = EsyLib.Path;
@@ -188,7 +190,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
         Subpath(tempPath),
       ];
       let allowWrite =
-        if (plan.buildType == EsyLib.BuildType.Unsafe) {
+        if (plan.buildType == BuildType.Unsafe) {
           [Sandbox.Subpath(Path.show(sourcePath)), ...allowWrite];
         } else {
           allowWrite;

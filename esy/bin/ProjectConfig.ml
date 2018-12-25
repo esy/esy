@@ -1,3 +1,4 @@
+open EsyPackageConfig
 open Esy
 open Cmdliner
 
@@ -207,8 +208,8 @@ let computeSolutionChecksum projcfg =
       let ppDisj fmt disj =
         match disj with
         | [] -> Fmt.unit "true" fmt ()
-        | [dep] -> EsySolve.Package.Dep.pp fmt dep
-        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") EsySolve.Package.Dep.pp) deps
+        | [dep] -> InstallManifest.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") InstallManifest.Dep.pp) deps
       in
       Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
     in
@@ -220,32 +221,32 @@ let computeSolutionChecksum projcfg =
       in
       let ppVersionSpec fmt spec =
         match spec with
-        | EsyInstall.VersionSpec.Npm f ->
-          ppDnf EsyInstall.SemverVersion.Constraint.pp fmt f
-        | EsyInstall.VersionSpec.NpmDistTag tag ->
+        | VersionSpec.Npm f ->
+          ppDnf SemverVersion.Constraint.pp fmt f
+        | VersionSpec.NpmDistTag tag ->
           Fmt.string fmt tag
-        | EsyInstall.VersionSpec.Opam f ->
-          ppDnf EsyInstall.OpamPackageVersion.Constraint.pp fmt f
-        | EsyInstall.VersionSpec.Source src ->
-          Fmt.pf fmt "%a" EsyInstall.SourceSpec.pp src
+        | VersionSpec.Opam f ->
+          ppDnf OpamPackageVersion.Constraint.pp fmt f
+        | VersionSpec.Source src ->
+          Fmt.pf fmt "%a" SourceSpec.pp src
       in
       let ppReq fmt req =
-        Fmt.fmt "%s@%a" fmt req.EsyInstall.Req.name ppVersionSpec req.spec
+        Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
       in
       Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
     in
 
     match deps with
-    | EsySolve.Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
-    | EsySolve.Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+    | InstallManifest.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | InstallManifest.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
   in
 
-  let showDependencies (deps : EsySolve.Package.Dependencies.t) =
+  let showDependencies (deps : InstallManifest.Dependencies.t) =
     Format.asprintf "%a" ppDependencies deps
   in
 
   let digest =
-    EsyInstall.PackageConfig.Resolutions.digest sandbox.root.resolutions
+    Resolutions.digest sandbox.root.resolutions
     |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
     |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
   in
@@ -253,10 +254,10 @@ let computeSolutionChecksum projcfg =
   let%bind digest =
     let f digest resolution =
       let resolution =
-        match resolution.EsyInstall.PackageConfig.Resolution.resolution with
-        | SourceOverride {source = EsyInstall.Source.Link _; override = _;} -> Some resolution
+        match resolution.Resolution.resolution with
+        | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
         | SourceOverride _ -> None
-        | Version (EsyInstall.Version.Source (EsyInstall.Source.Link _)) -> Some resolution
+        | Version (Version.Source (Source.Link _)) -> Some resolution
         | Version _ -> None
       in
       match resolution with
@@ -264,15 +265,15 @@ let computeSolutionChecksum projcfg =
       | Some resolution ->
         begin match%bind EsySolve.Resolver.package ~resolution sandbox.resolver with
         | Error _ ->
-          errorf "unable to read package: %a" EsyInstall.PackageConfig.Resolution.pp resolution
+          errorf "unable to read package: %a" Resolution.pp resolution
         | Ok pkg ->
-          return Digestv.(add (string (showDependencies pkg.EsySolve.Package.dependencies)) digest)
+          return Digestv.(add (string (showDependencies pkg.InstallManifest.dependencies)) digest)
         end
     in
     RunAsync.List.foldLeft
       ~f
       ~init:digest
-      (EsyInstall.PackageConfig.Resolutions.entries sandbox.resolutions)
+      (Resolutions.entries sandbox.resolutions)
   in
 
   return (Digestv.toHex digest)

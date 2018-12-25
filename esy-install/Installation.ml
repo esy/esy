@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type location = Path.t
 
 let location_to_yojson = Path.to_yojson

@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 let traverse pkg =
   PackageId.Set.elements pkg.Package.dependencies
 

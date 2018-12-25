@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (**
 
   Loading packages from sources and collecting overrides.

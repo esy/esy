@@ -1,14 +1,13 @@
-module Resolutions = EsyInstall.PackageConfig.Resolutions
-module Resolution = EsyInstall.PackageConfig.Resolution
+open EsyPackageConfig
 
 module PackageCache = Memoize.Make(struct
   type key = (string * Resolution.resolution)
-  type value = (Package.t, string) result RunAsync.t
+  type value = (InstallManifest.t, string) result RunAsync.t
 end)
 
 module SourceCache = Memoize.Make(struct
-  type key = EsyInstall.SourceSpec.t
-  type value = EsyInstall.Source.t RunAsync.t
+  type key = SourceSpec.t
+  type value = Source.t RunAsync.t
 end)
 
 module ResolutionCache = Memoize.Make(struct
@@ -31,7 +30,7 @@ let ensureOpamName name =
 
 let toOpamOcamlVersion version =
   match version with
-  | Some (EsyInstall.Version.Npm { major; minor; patch; _ }) ->
+  | Some (Version.Npm { major; minor; patch; _ }) ->
     let minor =
       if minor < 10
       then "0" ^ (string_of_int minor)
@@ -44,13 +43,13 @@ let toOpamOcamlVersion version =
     in
     let v = Printf.sprintf "%i.%s.%i" major minor patch in
     let v =
-      match EsyInstall.OpamPackageVersion.Version.parse v with
+      match OpamPackageVersion.Version.parse v with
       | Ok v -> v
       | Error msg -> failwith msg
     in
     Some v
-  | Some (EsyInstall.Version.Opam v) -> Some v
-  | Some (EsyInstall.Version.Source _) -> None
+  | Some (Version.Opam v) -> Some v
+  | Some (Version.Source _) -> None
   | None -> None
 
 type t = {
@@ -60,31 +59,31 @@ type t = {
   srcCache: SourceCache.t;
   opamRegistry : OpamRegistry.t;
   npmRegistry : NpmRegistry.t;
-  mutable ocamlVersion : EsyInstall.Version.t option;
+  mutable ocamlVersion : Version.t option;
   mutable resolutions : Resolutions.t;
   resolutionCache : ResolutionCache.t;
   resolutionUsage : (Resolution.t, bool) Hashtbl.t;
 
-  npmDistTags : (string, EsyInstall.SemverVersion.Version.t StringMap.t) Hashtbl.t;
-  sourceSpecToSource : (EsyInstall.SourceSpec.t, EsyInstall.Source.t) Hashtbl.t;
-  sourceToSource : (EsyInstall.Source.t, EsyInstall.Source.t) Hashtbl.t;
+  npmDistTags : (string, SemverVersion.Version.t StringMap.t) Hashtbl.t;
+  sourceSpecToSource : (SourceSpec.t, Source.t) Hashtbl.t;
+  sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
 let emptyLink ~name ~path ~manifest () =
   {
-    Package.
+    InstallManifest.
     name;
-    version = EsyInstall.Version.Source (EsyInstall.Source.Link {path; manifest;});
+    version = Version.Source (Source.Link {path; manifest;});
     originalVersion = None;
     originalName = None;
-    source = EsyInstall.PackageSource.Link {
+    source = PackageSource.Link {
       path;
       manifest = None;
     };
-    overrides = EsyInstall.Overrides.empty;
-    dependencies = Package.Dependencies.NpmFormula [];
-    devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
+    overrides = Overrides.empty;
+    dependencies = InstallManifest.Dependencies.NpmFormula [];
+    devDependencies = InstallManifest.Dependencies.NpmFormula [];
+    peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -92,19 +91,19 @@ let emptyLink ~name ~path ~manifest () =
 
 let emptyInstall ~name ~source () =
   {
-    Package.
+    InstallManifest.
     name;
-    version = EsyInstall.Version.Source (Dist source);
+    version = Version.Source (Dist source);
     originalVersion = None;
     originalName = None;
-    source = EsyInstall.PackageSource.Install {
+    source = PackageSource.Install {
       source = source, [];
       opam = None;
     };
-    overrides = EsyInstall.Overrides.empty;
-    dependencies = Package.Dependencies.NpmFormula [];
-    devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
+    overrides = Overrides.empty;
+    dependencies = InstallManifest.Dependencies.NpmFormula [];
+    devDependencies = InstallManifest.Dependencies.NpmFormula [];
+    peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -148,43 +147,43 @@ let markResolutionAsUsed resolver resolution =
 let sourceMatchesSpec resolver spec source =
   match Hashtbl.find_opt resolver.sourceSpecToSource spec with
   | Some resolvedSource ->
-    if EsyInstall.Source.compare resolvedSource source = 0
+    if Source.compare resolvedSource source = 0
     then true
     else
       begin match Hashtbl.find_opt resolver.sourceToSource resolvedSource with
-      | Some resolvedSource -> EsyInstall.Source.compare resolvedSource source = 0
+      | Some resolvedSource -> Source.compare resolvedSource source = 0
       | None -> false
       end
   | None -> false
 
-let versionMatchesReq (resolver : t) (req : EsyInstall.Req.t) name (version : EsyInstall.Version.t) =
+let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
   let checkVersion () =
     match req.spec, version with
 
-    | (EsyInstall.VersionSpec.Npm spec, EsyInstall.Version.Npm version) ->
-      EsyInstall.SemverVersion.Formula.DNF.matches ~version spec
+    | (VersionSpec.Npm spec, Version.Npm version) ->
+      SemverVersion.Formula.DNF.matches ~version spec
 
-    | (EsyInstall.VersionSpec.NpmDistTag tag, EsyInstall.Version.Npm version) ->
+    | (VersionSpec.NpmDistTag tag, Version.Npm version) ->
       begin match Hashtbl.find_opt resolver.npmDistTags req.name with
       | Some tags ->
         begin match StringMap.find_opt tag tags with
         | None -> false
         | Some taggedVersion ->
-          EsyInstall.SemverVersion.Version.compare version taggedVersion = 0
+          SemverVersion.Version.compare version taggedVersion = 0
         end
       | None -> false
       end
 
-    | (EsyInstall.VersionSpec.Opam spec, EsyInstall.Version.Opam version) ->
-      EsyInstall.OpamPackageVersion.Formula.DNF.matches ~version spec
+    | (VersionSpec.Opam spec, Version.Opam version) ->
+      OpamPackageVersion.Formula.DNF.matches ~version spec
 
-    | (EsyInstall.VersionSpec.Source spec, EsyInstall.Version.Source source) ->
+    | (VersionSpec.Source spec, Version.Source source) ->
       sourceMatchesSpec resolver spec source
 
-    | (EsyInstall.VersionSpec.Npm _, _) -> false
-    | (EsyInstall.VersionSpec.NpmDistTag _, _) -> false
-    | (EsyInstall.VersionSpec.Opam _, _) -> false
-    | (EsyInstall.VersionSpec.Source _, _) -> false
+    | (VersionSpec.Npm _, _) -> false
+    | (VersionSpec.NpmDistTag _, _) -> false
+    | (VersionSpec.Opam _, _) -> false
+    | (VersionSpec.Source _, _) -> false
   in
   let checkResolutions () =
     match Resolutions.find resolver.resolutions req.name with
@@ -193,22 +192,22 @@ let versionMatchesReq (resolver : t) (req : EsyInstall.Req.t) name (version : Es
   in
   req.name = name && (checkResolutions () || checkVersion ())
 
-let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : EsyInstall.Version.t) =
+let versionMatchesDep (resolver : t) (dep : InstallManifest.Dep.t) name (version : Version.t) =
   let checkVersion () =
-    match version, dep.Package.Dep.req with
+    match version, dep.InstallManifest.Dep.req with
 
-    | EsyInstall.Version.Npm version, Npm spec ->
-      EsyInstall.SemverVersion.Constraint.matches ~version spec
+    | Version.Npm version, Npm spec ->
+      SemverVersion.Constraint.matches ~version spec
 
-    | EsyInstall.Version.Opam version, Opam spec ->
-      EsyInstall.OpamPackageVersion.Constraint.matches ~version spec
+    | Version.Opam version, Opam spec ->
+      OpamPackageVersion.Constraint.matches ~version spec
 
-    | EsyInstall.Version.Source source, Source spec ->
+    | Version.Source source, Source spec ->
       sourceMatchesSpec resolver spec source
 
-    | EsyInstall.Version.Npm _, _ -> false
-    | EsyInstall.Version.Opam _, _ -> false
-    | EsyInstall.Version.Source _, _ -> false
+    | Version.Npm _, _ -> false
+    | Version.Opam _, _ -> false
+    | Version.Source _, _ -> false
   in
   let checkResolutions () =
     match Resolutions.find resolver.resolutions dep.name with
@@ -217,26 +216,26 @@ let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : EsyIn
   in
   dep.name = name && (checkResolutions () || checkVersion ())
 
-let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
+let packageOfSource ~name ~overrides (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
-  let readPackage ~name ~source {EsyInstall.DistResolver. kind; filename = _; data; suggestedPackageName} =
+  let readManifest ~name ~source {EsyInstall.DistResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
-    | EsyInstall.ManifestSpec.Esy ->
-      let%bind pkg = RunAsync.ofRun (
+    | ManifestSpec.Esy ->
+      let%bind manifest, _warnings = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind json = Json.parse data in
-        PackageJson.packageOfJson
+        OfPackageJson.installManifest
           ~parseResolutions:true
           ~parseDevDependencies:true
           ~name
-          ~version:(EsyInstall.Version.Source source)
+          ~version:(Version.Source source)
           ~source
           json
       ) in
-      return (Ok pkg)
-    | EsyInstall.ManifestSpec.Opam ->
+      return (Ok manifest)
+    | ManifestSpec.Opam ->
       let%bind opamname = RunAsync.ofRun (
         ensureOpamName suggestedPackageName
       ) in
@@ -244,7 +243,7 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
         let version = OpamPackage.Version.of_string "dev" in
         OpamManifest.ofString ~name:opamname ~version data
       ) in
-      OpamManifest.toPackage ~name ~version:(EsyInstall.Version.Source source) ~source manifest
+      OpamManifest.toInstallManifest ~name ~version:(Version.Source source) ~source manifest
   in
 
   let pkg =
@@ -253,37 +252,37 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
         ~cfg:resolver.cfg.installCfg
         ~sandbox:resolver.sandbox
         ~overrides
-        (EsyInstall.Source.toDist source)
+        (Source.toDist source)
     in
 
     let%bind resolvedSource =
       match source, resolvedDist with
-      | EsyInstall.Source.Dist _, _ -> return (EsyInstall.Source.Dist resolvedDist)
-      | EsyInstall.Source.Link _, EsyInstall.Dist.LocalPath {path; manifest;} ->
-        return (EsyInstall.Source.Link {path; manifest;})
-      | EsyInstall.Source.Link _, dist -> errorf "unable to link to %a" EsyInstall.Dist.pp dist
+      | Source.Dist _, _ -> return (Source.Dist resolvedDist)
+      | Source.Link _, Dist.LocalPath {path; manifest;} ->
+        return (Source.Link {path; manifest;})
+      | Source.Link _, dist -> errorf "unable to link to %a" Dist.pp dist
     in
 
     let%bind pkg =
       match manifest with
       | Some manifest ->
-        readPackage ~name ~source:resolvedSource manifest
+        readManifest ~name ~source:resolvedSource manifest
       | None ->
-        if not (EsyInstall.Overrides.isEmpty overrides)
+        if not (Overrides.isEmpty overrides)
         then
           match source with
-          | EsyInstall.Source.Link {path; manifest;} ->
+          | Source.Link {path; manifest;} ->
             let pkg = emptyLink ~name ~path ~manifest () in
             return (Ok pkg)
           | _ ->
             let pkg = emptyInstall ~name ~source:resolvedDist () in
             return (Ok pkg)
-        else errorf "no manifest found at %a" EsyInstall.Source.pp source
+        else errorf "no manifest found at %a" Source.pp source
     in
 
     let pkg =
       match pkg with
-      | Ok pkg -> Ok {pkg with Package.overrides}
+      | Ok pkg -> Ok {pkg with InstallManifest.overrides}
       | err -> err
     in
 
@@ -293,11 +292,11 @@ let packageOfSource ~name ~overrides (source : EsyInstall.Source.t) resolver =
   in
 
   RunAsync.contextf pkg
-    "reading package metadata from %a" EsyInstall.Source.ppPretty source
+    "reading package metadata from %a" Source.ppPretty source
 
-let applyOverride pkg (override : EsyInstall.Override.install) =
+let applyOverride pkg (override : Override.install) =
   let {
-    EsyInstall.Override.
+    Override.
     dependencies;
     devDependencies;
     resolutions;
@@ -305,10 +304,10 @@ let applyOverride pkg (override : EsyInstall.Override.install) =
 
   let applyNpmFormulaOverride dependencies override =
     match dependencies with
-    | Package.Dependencies.NpmFormula formula ->
+    | InstallManifest.Dependencies.NpmFormula formula ->
       let formula =
         let dependencies =
-          let f map req = StringMap.add req.EsyInstall.Req.name req map in
+          let f map req = StringMap.add req.Req.name req map in
           List.fold_left ~f ~init:StringMap.empty formula
         in
         let dependencies =
@@ -316,12 +315,12 @@ let applyOverride pkg (override : EsyInstall.Override.install) =
         in
         StringMap.values dependencies
       in
-      Package.Dependencies.NpmFormula formula
-    | Package.Dependencies.OpamFormula formula ->
+      InstallManifest.Dependencies.NpmFormula formula
+    | InstallManifest.Dependencies.OpamFormula formula ->
       (* remove all terms which we override *)
       let formula =
         let filter dep =
-          match StringMap.find_opt dep.Package.Dep.name override with
+          match StringMap.find_opt dep.InstallManifest.Dep.name override with
           | None -> true
           | Some _ -> false
         in
@@ -336,37 +335,37 @@ let applyOverride pkg (override : EsyInstall.Override.install) =
             match override with
             | StringMap.Override.Drop -> edits
             | StringMap.Override.Edit req ->
-              begin match req.EsyInstall.Req.spec with
-              | EsyInstall.VersionSpec.Npm formula ->
-                let f (c : EsyInstall.SemverVersion.Constraint.t) =
-                  {Package.Dep. name = req.name; req = Npm c}
+              begin match req.Req.spec with
+              | VersionSpec.Npm formula ->
+                let f (c : SemverVersion.Constraint.t) =
+                  {InstallManifest.Dep. name = req.name; req = Npm c}
                 in
-                let formula = EsyInstall.SemverVersion.Formula.ofDnfToCnf formula in
+                let formula = SemverVersion.Formula.ofDnfToCnf formula in
                 (List.map ~f:(List.map ~f) formula) @ edits
-              | EsyInstall.VersionSpec.Opam formula ->
-                let f (c : EsyInstall.OpamPackageVersion.Constraint.t) =
-                  {Package.Dep. name = req.name; req = Opam c}
+              | VersionSpec.Opam formula ->
+                let f (c : OpamPackageVersion.Constraint.t) =
+                  {InstallManifest.Dep. name = req.name; req = Opam c}
                 in
                 (List.map ~f:(List.map ~f) formula) @ edits
-              | EsyInstall.VersionSpec.NpmDistTag _ ->
+              | VersionSpec.NpmDistTag _ ->
                 failwith "cannot override opam with npm dist tag"
-              | EsyInstall.VersionSpec.Source spec ->
-                [{Package.Dep. name = req.name; req = Source spec}]::edits
+              | VersionSpec.Source spec ->
+                [{InstallManifest.Dep. name = req.name; req = Source spec}]::edits
               end
           in
           StringMap.fold f override []
         in
         formula @ edits
       in
-      Package.Dependencies.OpamFormula formula
+      InstallManifest.Dependencies.OpamFormula formula
   in
 
   let pkg =
     match dependencies with
     | Some override -> {
         pkg with
-        Package.
-        dependencies = applyNpmFormulaOverride pkg.Package.dependencies override;
+        InstallManifest.
+        dependencies = applyNpmFormulaOverride pkg.InstallManifest.dependencies override;
       }
     | None -> pkg
   in
@@ -374,8 +373,8 @@ let applyOverride pkg (override : EsyInstall.Override.install) =
     match devDependencies with
     | Some override -> {
         pkg with
-        Package.
-        devDependencies = applyNpmFormulaOverride pkg.Package.devDependencies override;
+        InstallManifest.
+        devDependencies = applyNpmFormulaOverride pkg.InstallManifest.devDependencies override;
       }
     | None -> pkg
   in
@@ -386,7 +385,7 @@ let applyOverride pkg (override : EsyInstall.Override.install) =
         let f = Resolutions.add in
         StringMap.fold f resolutions Resolutions.empty
       in
-      {pkg with Package.resolutions;}
+      {pkg with InstallManifest.resolutions;}
     | None -> pkg
   in
   pkg
@@ -395,10 +394,10 @@ let package ~(resolution : Resolution.t) resolver =
   let open RunAsync.Syntax in
   let key = (resolution.name, resolution.resolution) in
 
-  let ofVersion (version : EsyInstall.Version.t) =
+  let ofVersion (version : Version.t) =
     match version with
 
-    | EsyInstall.Version.Npm version ->
+    | Version.Npm version ->
       let%bind pkg =
         NpmRegistry.package
           ~name:resolution.name
@@ -406,7 +405,7 @@ let package ~(resolution : Resolution.t) resolver =
           resolver.npmRegistry ()
       in
       return (Ok pkg)
-    | EsyInstall.Version.Opam version ->
+    | Version.Opam version ->
       begin match%bind
         let%bind name = RunAsync.ofRun (requireOpamName resolution.name) in
         OpamRegistry.version
@@ -415,17 +414,17 @@ let package ~(resolution : Resolution.t) resolver =
           resolver.opamRegistry
       with
         | Some manifest ->
-          OpamManifest.toPackage
+          OpamManifest.toInstallManifest
             ~name:resolution.name
-            ~version:(EsyInstall.Version.Opam version)
+            ~version:(Version.Opam version)
             manifest
         | None ->
           errorf "no such opam package: %a" Resolution.pp resolution
       end
 
-    | EsyInstall.Version.Source source ->
+    | Version.Source source ->
       packageOfSource
-        ~overrides:EsyInstall.Overrides.empty
+        ~overrides:Overrides.empty
         ~name:resolution.name
         source
         resolver
@@ -436,8 +435,8 @@ let package ~(resolution : Resolution.t) resolver =
       match resolution.resolution with
       | Version version -> ofVersion version
       | SourceOverride {source; override} ->
-        let override = EsyInstall.Override.ofJson override in
-        let overrides = EsyInstall.Overrides.(add override empty) in
+        let override = Override.ofJson override in
+        let overrides = Overrides.(add override empty) in
         packageOfSource
           ~name:resolution.name
           ~overrides
@@ -447,7 +446,7 @@ let package ~(resolution : Resolution.t) resolver =
     match pkg with
     | Ok pkg ->
       let%bind pkg =
-        EsyInstall.Overrides.foldWithInstallOverrides
+        Overrides.foldWithInstallOverrides
           ~f:applyOverride
           ~init:pkg
           pkg.overrides
@@ -456,58 +455,58 @@ let package ~(resolution : Resolution.t) resolver =
     | err -> return err
   end
 
-let resolveSource ~name ~(sourceSpec : EsyInstall.SourceSpec.t) (resolver : t) =
+let resolveSource ~name ~(sourceSpec : SourceSpec.t) (resolver : t) =
   let open RunAsync.Syntax in
 
   let errorResolvingSource msg =
     errorf
       "unable to resolve %s@%a: %s"
-      name EsyInstall.SourceSpec.pp sourceSpec msg
+      name SourceSpec.pp sourceSpec msg
   in
 
   SourceCache.compute resolver.srcCache sourceSpec begin fun _ ->
-    let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name EsyInstall.SourceSpec.pp sourceSpec) in
+    let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s@%a" name SourceSpec.pp sourceSpec) in
     let%bind source =
       match sourceSpec with
-      | EsyInstall.SourceSpec.Github {user; repo; ref; manifest;} ->
+      | SourceSpec.Github {user; repo; ref; manifest;} ->
         let remote = Printf.sprintf "https://github.com/%s/%s.git" user repo in
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref with
         | Some commit, _ ->
-          return (EsyInstall.Source.Dist (Github {user; repo; commit; manifest;}))
+          return (Source.Dist (Github {user; repo; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (EsyInstall.Source.Dist (Github {user; repo; commit = ref; manifest;}))
+          then return (Source.Dist (Github {user; repo; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
         end
 
-      | EsyInstall.SourceSpec.Git {remote; ref; manifest;} ->
+      | SourceSpec.Git {remote; ref; manifest;} ->
         let%bind commit = Git.lsRemote ?ref ~remote () in
         begin match commit, ref  with
         | Some commit, _ ->
-          return (EsyInstall.Source.Dist (Git {remote; commit; manifest;}))
+          return (Source.Dist (Git {remote; commit; manifest;}))
         | None, Some ref ->
           if Git.isCommitLike ref
-          then return (EsyInstall.Source.Dist (Git {remote; commit = ref; manifest;}))
+          then return (Source.Dist (Git {remote; commit = ref; manifest;}))
           else errorResolvingSource "cannot resolve commit"
         | None, None ->
           errorResolvingSource "cannot resolve commit"
         end
 
-      | EsyInstall.SourceSpec.NoSource ->
-        return (EsyInstall.Source.Dist NoSource)
+      | SourceSpec.NoSource ->
+        return (Source.Dist NoSource)
 
-      | EsyInstall.SourceSpec.Archive {url; checksum = None} ->
+      | SourceSpec.Archive {url; checksum = None} ->
         failwith ("archive sources without checksums are not implemented: " ^ url)
-      | EsyInstall.SourceSpec.Archive {url; checksum = Some checksum} ->
-        return (EsyInstall.Source.Dist (Archive {url; checksum}))
+      | SourceSpec.Archive {url; checksum = Some checksum} ->
+        return (Source.Dist (Archive {url; checksum}))
 
-      | EsyInstall.SourceSpec.LocalPath {path; manifest;} ->
-        let abspath = EsyInstall.DistPath.toPath resolver.sandbox.path path in
+      | SourceSpec.LocalPath {path; manifest;} ->
+        let abspath = DistPath.toPath resolver.sandbox.path path in
         if%bind Fs.exists abspath
-        then return (EsyInstall.Source.Dist (LocalPath {path; manifest;}))
+        then return (Source.Dist (LocalPath {path; manifest;}))
         else errorf "path '%a' does not exist" Path.ppPretty abspath
 
     in
@@ -519,8 +518,8 @@ let resolve' ~fullMetadata ~name ~spec resolver =
   let open RunAsync.Syntax in
   match spec with
 
-  | EsyInstall.VersionSpec.Npm _
-  | EsyInstall.VersionSpec.NpmDistTag _ ->
+  | VersionSpec.Npm _
+  | VersionSpec.NpmDistTag _ ->
 
     let%bind resolutions =
       match%bind
@@ -532,7 +531,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 
         let resolutions =
           let f version =
-            let version = EsyInstall.Version.Npm version in
+            let version = Version.Npm version in
             {Resolution. name; resolution = Version version}
           in
           List.map ~f versions
@@ -547,7 +546,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       let tryCheckConformsToSpec resolution =
         match resolution.Resolution.resolution with
         | Version version ->
-          versionMatchesReq resolver (EsyInstall.Req.make ~name ~spec) resolution.name version
+          versionMatchesReq resolver (Req.make ~name ~spec) resolution.name version
         | SourceOverride _ -> true (* do not filter them out yet *)
       in
 
@@ -558,10 +557,10 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 
     return resolutions
 
-  | EsyInstall.VersionSpec.Opam _ ->
+  | VersionSpec.Opam _ ->
     let%bind resolutions =
       ResolutionCache.compute resolver.resolutionCache name begin fun () ->
-        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s %a" name EsyInstall.VersionSpec.pp spec) in
+        let%lwt () = Logs_lwt.debug (fun m -> m "resolving %s %a" name VersionSpec.pp spec) in
         let%bind versions =
           let%bind name = RunAsync.ofRun (requireOpamName name) in
           OpamRegistry.versions
@@ -581,7 +580,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
       let tryCheckConformsToSpec resolution =
         match resolution.Resolution.resolution with
         | Version version ->
-          versionMatchesReq resolver (EsyInstall.Req.make ~name ~spec) resolution.name version
+          versionMatchesReq resolver (Req.make ~name ~spec) resolution.name version
         | SourceOverride _ -> true (* do not filter them out yet *)
       in
 
@@ -592,9 +591,9 @@ let resolve' ~fullMetadata ~name ~spec resolver =
 
     return resolutions
 
-  | EsyInstall.VersionSpec.Source sourceSpec ->
+  | VersionSpec.Source sourceSpec ->
     let%bind source = resolveSource ~name ~sourceSpec resolver in
-    let version = EsyInstall.Version.Source source in
+    let version = Version.Source source in
     let resolution = {
       Resolution.
       name;
@@ -602,7 +601,7 @@ let resolve' ~fullMetadata ~name ~spec resolver =
     } in
     return [resolution]
 
-let resolve ?(fullMetadata=false) ~(name : string) ?(spec : EsyInstall.VersionSpec.t option) (resolver : t) =
+let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option) (resolver : t) =
   let open RunAsync.Syntax in
   match Resolutions.find resolver.resolutions name with
   | Some resolution ->
@@ -613,9 +612,9 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : EsyInstall.VersionSp
     let spec =
       match spec with
       | None ->
-        if Package.isOpamPackageName name
-        then EsyInstall.VersionSpec.Opam [[EsyInstall.OpamPackageVersion.Constraint.ANY]]
-        else EsyInstall.VersionSpec.Npm [[EsyInstall.SemverVersion.Constraint.ANY]]
+        if InstallManifest.isOpamPackageName name
+        then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
+        else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
       | Some spec -> spec
     in
     resolve' ~fullMetadata ~name ~spec resolver

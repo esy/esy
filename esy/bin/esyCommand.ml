@@ -1,11 +1,10 @@
 open Esy
+open EsyPackageConfig
 
 module SandboxSpec = EsyInstall.SandboxSpec
 module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
-module Version = EsyInstall.Version
-module PackageId = EsyInstall.PackageId
 module Package = EsyInstall.Package
 module PkgSpec = EsyInstall.PkgSpec
 
@@ -551,12 +550,12 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
     in
 
     match script.Scripts.command with
-    | BuildManifest.Command.Parsed args ->
+    | Parsed args ->
       let args, spec = peekArgs args in
-      BuildManifest.Command.Parsed args, spec
-    | BuildManifest.Command.Unparsed line ->
+      Command.Parsed args, spec
+    | Unparsed line ->
       let args, spec = peekArgs (Astring.String.cuts ~sep:" " line) in
-      BuildManifest.Command.Unparsed (String.concat " " args), spec
+      Command.Unparsed (String.concat " " args), spec
   in
 
   let%bind cmd = RunAsync.ofRun (
@@ -578,8 +577,8 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
 
     let%bind scriptArgs =
       match scriptArgs with
-      | BuildManifest.Command.Parsed args -> Result.List.map ~f:expand args
-      | BuildManifest.Command.Unparsed line ->
+      | Parsed args -> Result.List.map ~f:expand args
+      | Unparsed line ->
         let%bind line = expand line in
         ShellSplit.split line
     in
@@ -692,7 +691,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let version = Chalk.grey ("@" ^ Version.show (Scope.version task.scope)) in
   let status =
     match Scope.sourceType task.scope, built with
-    | BuildManifest.SourceType.Immutable, true ->
+    | SourceType.Immutable, true ->
       Chalk.green "[built]"
     | _, _ ->
       Chalk.blue "[build pending]"
@@ -895,7 +894,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
   in
 
   let%bind reqs = RunAsync.ofStringError (
-    Result.List.map ~f:EsyInstall.Req.parse reqs
+    Result.List.map ~f:Req.parse reqs
   ) in
 
   let projcfg = proj.projcfg in
@@ -903,7 +902,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
 
   let%bind solveSandbox =
     let addReqs origDeps =
-      let open Package.Dependencies in
+      let open InstallManifest.Dependencies in
       match origDeps with
       | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
       | OpamFormula _ -> error opamError
@@ -927,14 +926,14 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
       Solution.fold ~f ~init:StringMap.empty solution
     in
     let addedDependencies =
-      let f {EsyInstall.Req. name; _} =
+      let f {Req. name; _} =
         match StringMap.find name records with
         | Some record ->
           let constr =
             match record.EsyInstall.Package.version with
             | Version.Npm version ->
-              EsyInstall.SemverVersion.Formula.DNF.show
-                (EsyInstall.SemverVersion.caretRangeOfVersion version)
+              SemverVersion.Formula.DNF.show
+                (SemverVersion.caretRangeOfVersion version)
             | Version.Opam version ->
               OpamPackage.Version.to_string version
             | Version.Source _ ->
@@ -1092,17 +1091,17 @@ let importDependencies fromPath (proj : Project.WithWorkflow.t) =
 let show _asJson req (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind (req : EsyInstall.Req.t) = RunAsync.ofStringError (EsyInstall.Req.parse req) in
+  let%bind (req : Req.t) = RunAsync.ofStringError (Req.parse req) in
   let%bind resolver = Resolver.make ~cfg:projcfg.solveSandbox.cfg ~sandbox:projcfg.spec () in
   let%bind resolutions =
     RunAsync.contextf (
       Resolver.resolve ~name:req.name ~spec:req.spec resolver
-    ) "resolving %a" EsyInstall.Req.pp req
+    ) "resolving %a" Req.pp req
   in
   match req.spec with
-  | EsyInstall.VersionSpec.Npm [[EsyInstall.SemverVersion.Constraint.ANY]]
-  | EsyInstall.VersionSpec.Opam [[EsyInstall.OpamPackageVersion.Constraint.ANY]] ->
-    let f (res : EsyInstall.PackageConfig.Resolution.t) = match res.resolution with
+  | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
+  | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
+    let f (res : Resolution.t) = match res.resolution with
     | Version v -> `String (Version.showSimple v)
     | _ -> failwith "unreachable"
     in
@@ -1112,14 +1111,14 @@ let show _asJson req (projcfg : ProjectConfig.t) =
     return ()
   | _ ->
     match resolutions with
-    | [] -> errorf "No package found for %a" EsyInstall.Req.pp req
+    | [] -> errorf "No package found for %a" Req.pp req
     | resolution::_ ->
       let%bind pkg = RunAsync.contextf (
           Resolver.package ~resolution resolver
-        ) "resolving metadata %a" EsyInstall.PackageConfig.Resolution.pp resolution
+        ) "resolving metadata %a" Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
-      Package.to_yojson pkg
+      InstallManifest.to_yojson pkg
       |> Yojson.Safe.pretty_to_string
       |> print_endline;
       return ()

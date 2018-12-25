@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type t
 
 type location = Path.t

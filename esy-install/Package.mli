@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type t = {
   id: PackageId.t;
   name: string;

@@ -1,7 +1,9 @@
+open EsyPackageConfig
+
 type t
 
 val make :
-  ?sandboxEnv:BuildManifest.Env.t
+  ?sandboxEnv:SandboxEnv.t
   -> Config.t
   -> EsyInstall.Solution.t
   -> EsyInstall.Installation.t
@@ -14,7 +16,7 @@ val configure :
   -> EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> PackageId.t
   -> (Scope.SandboxEnvironment.Bindings.t * Scope.t) Run.t
 
 val env :
@@ -22,14 +24,14 @@ val env :
   -> EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
 
 val exec :
   EnvSpec.t
   -> BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> PackageId.t
   -> Cmd.t
   -> Unix.process_status RunAsync.t
 
@@ -41,7 +43,7 @@ module Task : sig
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
-    dependencies : EsyInstall.PackageId.t list;
+    dependencies : PackageId.t list;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -57,9 +59,9 @@ module Plan : sig
 
   val buildspec : t -> BuildSpec.t
 
-  val get : t -> EsyInstall.PackageId.t -> Task.t option
+  val get : t -> PackageId.t -> Task.t option
   val getByName : t -> string -> Task.t option
-  val getByNameVersion : t -> string -> EsyInstall.Version.t -> Task.t option
+  val getByNameVersion : t -> string -> Version.t -> Task.t option
 
   val all : t -> Task.t list
 end
@@ -73,7 +75,7 @@ val makePlan :
 val buildShell :
   BuildSpec.t
   -> t
-  -> EsyInstall.PackageId.t
+  -> PackageId.t
   -> Unix.process_status RunAsync.t
 (** [shell task ()] shells into [task]'s build environment. *)
 
@@ -84,7 +86,7 @@ val buildOnly :
   -> ?logPath:Path.t
   -> t
   -> Plan.t
-  -> EsyInstall.PackageId.t
+  -> PackageId.t
   -> unit RunAsync.t
 (** [build task ()] builds the [task]. *)
 
@@ -93,7 +95,7 @@ val build :
   -> buildLinked:bool
   -> t
   -> Plan.t
-  -> EsyInstall.PackageId.t list
+  -> PackageId.t list
   -> unit RunAsync.t
 
 

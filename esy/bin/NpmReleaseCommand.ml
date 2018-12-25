@@ -1,3 +1,4 @@
+open EsyPackageConfig
 open EsyInstall
 open Esy
 
@@ -334,7 +335,7 @@ let make
       begin match Environment.Binding.origin binding with
       | None -> false
       | Some pkgid ->
-        begin match EsyInstall.PackageId.parse pkgid with
+        begin match PackageId.parse pkgid with
         | Error _ -> false
         | Ok pkgid ->
             let f spec = PkgSpec.matches root.Package.id spec pkgid in

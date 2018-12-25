@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (**
  * This module represents a solution.
  *)

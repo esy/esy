@@ -7,24 +7,24 @@ type t =
     }
 
 module BuildType = struct
-  include EsyLib.BuildType
-  include EsyLib.BuildType.AsInPackageJson
+  include BuildType
+  include BuildType.AsInPackageJson
 end
 
 type build = {
   buildType : BuildType.t option [@default None] [@key "buildsInSource"];
-  build : PackageConfig.CommandList.t option [@default None];
-  install : PackageConfig.CommandList.t option [@default None];
-  exportedEnv: PackageConfig.ExportedEnv.t option [@default None];
-  exportedEnvOverride: PackageConfig.ExportedEnvOverride.t option [@default None];
-  buildEnv: PackageConfig.Env.t option [@default None];
-  buildEnvOverride: PackageConfig.EnvOverride.t option [@default None];
+  build : CommandList.t option [@default None];
+  install : CommandList.t option [@default None];
+  exportedEnv: ExportedEnv.t option [@default None];
+  exportedEnvOverride: ExportedEnv.Override.t option [@default None];
+  buildEnv: BuildEnv.t option [@default None];
+  buildEnvOverride: BuildEnv.Override.t option [@default None];
 } [@@deriving of_yojson { strict = false }]
 
 type install = {
-  dependencies : PackageConfig.NpmFormulaOverride.t option [@default None];
-  devDependencies : PackageConfig.NpmFormulaOverride.t option [@default None];
-  resolutions : PackageConfig.Resolution.resolution StringMap.t option [@default None];
+  dependencies : NpmFormula.Override.t option [@default None];
+  devDependencies : NpmFormula.Override.t option [@default None];
+  resolutions : Resolution.resolution StringMap.t option [@default None];
 } [@@deriving of_yojson { strict = false }]
 
 let pp fmt = function
@@ -53,14 +53,3 @@ let install override =
 
 let ofJson json = OfJson {json;}
 let ofDist json dist = OfDist {json; dist;}
-
-let files cfg sandbox override =
-  let open RunAsync.Syntax in
-
-  match override with
-  | OfJson _ -> return []
-  | OfDist info ->
-    let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox info.dist in
-    File.ofDir Path.(path / "files")
-  | OfOpamOverride info ->
-    File.ofDir Path.(info.path / "files")

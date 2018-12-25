@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (** Sandbox *)
 
 type t = {
@@ -7,7 +9,7 @@ type t = {
   spec : EsyInstall.SandboxSpec.t;
 
   (** Root package. *)
-  root : Package.t;
+  root : InstallManifest.t;
 
   (**
    * A set of dependencies to be installed for the sandbox.
@@ -15,13 +17,13 @@ type t = {
    * Such dependencies are different than of root.dependencies as sandbox
    * aggregates both regular dependencies and devDependencies.
    *)
-  dependencies : Package.Dependencies.t;
+  dependencies : InstallManifest.Dependencies.t;
 
   (** A set of resolutions. *)
-  resolutions : EsyInstall.PackageConfig.Resolutions.t;
+  resolutions : Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : EsyInstall.Req.t option;
+  ocamlReq : Req.t option;
 
   (** Resolver associated with a sandbox. *)
   resolver : Resolver.t;
