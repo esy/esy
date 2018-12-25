@@ -151,14 +151,16 @@ module OpamBuild = struct
         try Some (Version.Opam (OpamFile.OPAM.version opam))
         with _ -> None
       in
-      return (Some (buildOfOpam ~name ~version opam))
+      let warnings = [] in
+      return (Some (buildOfOpam ~name ~version opam, warnings))
 
   let ofFile (path : Path.t) =
     let open RunAsync.Syntax in
     let%bind data = Fs.readFile path in
     match ofData ~nameFallback:None data with
     | Ok None -> errorf "unable to load opam manifest at %a" Path.pp path
-    | Ok Some manifest -> return (Some manifest, Path.Set.singleton path)
+    | Ok Some manifest ->
+      return (Some manifest, Path.Set.singleton path)
     | Error err -> Lwt.return (Error err)
 
 end
@@ -239,7 +241,7 @@ let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.I
         RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
       | None ->
         let manifest = BuildManifest.empty ~name:None ~version:None () in
-        return (Some manifest)
+        return (Some (manifest, []))
       end
     in
     begin match manifest with
@@ -255,7 +257,7 @@ let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.I
             overrides
         in
         return (Some manifest, res.EsyInstall.DistResolver.paths)
-    | Some manifest ->
+    | Some (manifest, _warnings) ->
       let%bind manifest =
         Overrides.foldWithBuildOverrides
           ~f:applyOverride
@@ -286,7 +288,7 @@ let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.I
       let%bind manifest, paths = ofPath ?manifest loc in
       let%bind manifest =
         match manifest with
-        | Some manifest ->
+        | Some (manifest, _warnings) ->
           let%bind manifest =
             Overrides.foldWithBuildOverrides
               ~f:applyOverride

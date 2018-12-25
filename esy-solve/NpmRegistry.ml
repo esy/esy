@@ -71,8 +71,8 @@ let versions ?(fullMetadata=false) ~name registry () =
     | Curl.Success data ->
       let%bind packument =
         RunAsync.context (
-        Json.parseStringWith Packument.of_yojson data
-        |> RunAsync.ofRun
+          Json.parseStringWith Packument.of_yojson data
+          |> RunAsync.ofRun
         ) "parsing packument"
       in
       let%bind versions = RunAsync.ofStringError (
@@ -80,8 +80,12 @@ let versions ?(fullMetadata=false) ~name registry () =
           let open Result.Syntax in
           let%bind version = SemverVersion.Version.parse version in
           PackageCache.ensureComputed registry.pkgCache (name, version) begin fun () ->
+            let open RunAsync.Syntax in
             let version = Version.Npm version in
-            RunAsync.ofRun (OfPackageJson.installManifest ~name ~version packageJson)
+            let%bind manifest, _warnings =
+              RunAsync.ofRun (OfPackageJson.installManifest ~name ~version packageJson)
+            in
+            return manifest
           end;
           return version
         in

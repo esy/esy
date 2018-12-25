@@ -1,3 +1,5 @@
+type warning = string
+
 (** Parse [InstallManifest.t] out of package.json data.
   *)
 val installManifest :
@@ -7,7 +9,7 @@ val installManifest :
   -> name:string
   -> version:Version.t
   -> Json.t
-  -> InstallManifest.t Run.t
+  -> (InstallManifest.t * warning list) Run.t
 
 (** Parse [BuildManifest.t] out of package.json data.
 
@@ -17,4 +19,4 @@ val installManifest :
   *)
 val buildManifest :
   Json.t
-  -> BuildManifest.t option Run.t
+  -> (BuildManifest.t * warning list) option Run.t

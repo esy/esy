@@ -223,7 +223,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Esy ->
-      let%bind manifest = RunAsync.ofRun (
+      let%bind manifest, _warnings = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind json = Json.parse data in
         OfPackageJson.installManifest

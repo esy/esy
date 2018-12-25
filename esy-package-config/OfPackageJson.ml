@@ -1,3 +1,5 @@
+type warning = string
+
 module BuildType = struct
   include BuildType
   include BuildType.AsInPackageJson
@@ -129,7 +131,8 @@ module InstallManifestV1 = struct
         PackageSource.Install {source = dist, []; opam = None;}
     in
 
-    return {
+    let warnings = [] in
+    return ({
       InstallManifest.
       name;
       version;
@@ -143,7 +146,7 @@ module InstallManifestV1 = struct
       resolutions;
       source;
       kind = if Option.isSome pkgJson.esy then Esy else Npm;
-    }
+    }, warnings)
 end
 
 module BuildManifestV1 = struct
@@ -168,6 +171,7 @@ module BuildManifestV1 = struct
     let%bind pkgJson = Json.parseJsonWith packageJson_of_yojson json in
     match pkgJson.esy with
     | Some m ->
+      let warnings = [] in
       let build = {
         BuildManifest.
         name = pkgJson.name;
@@ -181,7 +185,7 @@ module BuildManifestV1 = struct
         patches = [];
         substs = [];
       } in
-      return (Some build)
+      return (Some (build, warnings))
     | None -> return None
 end
 
@@ -216,7 +220,7 @@ module EsyVersion = struct
 
   module OfPackageJson = struct
     type dependencies = {
-      esy : t [@default default]
+      esy : t option;
     }
 
     let dependencies_of_yojson json =
@@ -227,13 +231,13 @@ module EsyVersion = struct
         begin match List.find_opt ~f items with
         | Some (_, json) ->
           let%bind esy = of_yojson json in
-          return {esy;}
-        | None -> return {esy = default;}
+          return {esy = Some esy;}
+        | None -> return {esy = None;}
         end
       | _ -> errorf {|reading "dependencies": expected an object|}
 
     type manifest = {
-      dependencies : dependencies [@default {esy = default;}]
+      dependencies : dependencies [@default {esy = Some default;}]
     } [@@deriving of_yojson { strict = false; }]
 
     let parse json =
@@ -249,6 +253,13 @@ let unknownEsyVersionError version =
     EsyVersion.pp version
     Fmt.(list EsyVersion.pp) EsyVersion.supported
 
+let missingEsyVersionWarning =
+  Format.asprintf
+    {|missing "esy" version declaration in "dependencies", assuming it is %a. \
+      This version of esy supports the following versions: %a|}
+    EsyVersion.pp EsyVersion.default
+    Fmt.(list EsyVersion.pp) EsyVersion.supported
+
 let installManifest
   ?(parseResolutions=false)
   ?(parseDevDependencies=false)
@@ -259,12 +270,29 @@ let installManifest
   let open Run.Syntax in
   let%bind esyVersion = EsyVersion.OfPackageJson.parse json in
   match esyVersion with
-  | 1 -> InstallManifestV1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
-  | v -> unknownEsyVersionError v
+  | Some 1 -> InstallManifestV1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
+  | Some v -> unknownEsyVersionError v
+  | None ->
+    let%bind m, warnings =
+      InstallManifestV1.ofJson
+        ~parseResolutions
+        ~parseDevDependencies
+        ?source
+        ~name
+        ~version
+        json
+    in
+  return (m, missingEsyVersionWarning::warnings)
 
 let buildManifest json =
   let open Run.Syntax in
   let%bind esyVersion = EsyVersion.OfPackageJson.parse json in
   match esyVersion with
-  | 1 -> BuildManifestV1.ofJson json
-  | v -> unknownEsyVersionError v
+  | Some 1 -> BuildManifestV1.ofJson json
+  | Some v -> unknownEsyVersionError v
+  | None ->
+    begin match%bind BuildManifestV1.ofJson json with
+    | Some (m, warnings) ->
+      return (Some (m, missingEsyVersionWarning::warnings))
+    | None -> return None
+    end
