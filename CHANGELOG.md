@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 0.4.9 @ latest
+
+- Fix a bug which caused esy to reuse build directories whem building package to
+  the global store (#763).
+
+- Allow packages to declare a dependency on esy:
+
+  ```
+  {
+    ...
+    "dependencies": {"esy": "1.0.0"}
+  }
+  ```
+
+  The only valid constraint now is `"1.0.0"` which is also assumed when `"esy"`
+  is absent.
+
+  The version declared will be used to version `package.json` config format.
+
+
 ## 0.4.8 @ latest
 
 - More robust handling of sandboxes with multipl `*.opam` files. Now esy
