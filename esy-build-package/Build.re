@@ -345,6 +345,13 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   let perform = () => {
     let%bind () = rm(build.installPath);
     let%bind () = rm(build.stagePath);
+    /* remove buildPath only if we build into a global store, otherwise we keep
+     * buildPath and thus keep incremental builds */
+    let%bind () = switch(build.plan.sourceType) {
+      | Immutable => rm(build.buildPath);
+      | ImmutableWithTransientDependencies
+      | Transient => return();
+    };
     let%bind () = mkdir(build.stagePath);
     let%bind () = mkdir(build.stagePath / "bin");
     let%bind () = mkdir(build.stagePath / "lib");
