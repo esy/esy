@@ -1,7 +1,9 @@
+open EsyPackageConfig
+
 type t
 
 type script = {
-  command : EsyInstall.PackageConfig.Command.t;
+  command : PackageConfig.Command.t;
 }
 
 val empty : t

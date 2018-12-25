@@ -1,6 +1,4 @@
-module PackageId = EsyInstall.PackageId
-module Dist = EsyInstall.Dist
-module Version = EsyInstall.Version
+open EsyPackageConfig
 
 module Repr = struct
 
@@ -15,13 +13,13 @@ module Repr = struct
   } [@@deriving yojson]
 
   type commands =
-    | EsyCommands of EsyInstall.PackageConfig.CommandList.t
+    | EsyCommands of PackageConfig.CommandList.t
     | OpamCommands of opamcommands
     | NoCommands
 
   let commands_to_yojson = function
     | NoCommands -> `Null
-    | EsyCommands commands -> EsyInstall.PackageConfig.CommandList.to_yojson commands
+    | EsyCommands commands -> PackageConfig.CommandList.to_yojson commands
     | OpamCommands commands -> opamcommands_to_yojson commands
 
   let commands_of_yojson =
@@ -29,7 +27,7 @@ module Repr = struct
     function
     | `Null -> return NoCommands
     | `List _ as json ->
-      let%map commands = EsyInstall.PackageConfig.CommandList.of_yojson json in
+      let%map commands = PackageConfig.CommandList.of_yojson json in
       EsyCommands commands
     | `Assoc _ as json ->
       let%map commands = opamcommands_of_yojson json in
@@ -42,7 +40,7 @@ module Repr = struct
   } [@@deriving yojson]
 
   type t = {
-    packageId : EsyInstall.PackageId.t;
+    packageId : PackageId.t;
     build : build;
     platform : System.Platform.t;
     arch : System.Arch.t;
@@ -59,8 +57,8 @@ module Repr = struct
     installCommands : commands;
     patches : patch list;
     substs : Path.t list;
-    exportedEnv : EsyInstall.PackageConfig.ExportedEnv.t;
-    buildEnv : EsyInstall.PackageConfig.Env.t;
+    exportedEnv : PackageConfig.ExportedEnv.t;
+    buildEnv : PackageConfig.Env.t;
   }
 
   let convFilter filter =
@@ -125,9 +123,9 @@ module Repr = struct
       let buildCommands =
         match mode, sourceType, buildDev with
         | BuildSpec.Build, _, _
-        | BuildSpec.BuildDev, (BuildManifest.SourceType.ImmutableWithTransientDependencies | Immutable), _
+        | BuildSpec.BuildDev, (EsyLib.SourceType.ImmutableWithTransientDependencies | Immutable), _
         | BuildSpec.BuildDev, Transient, None -> build
-        | BuildSpec.BuildDev, BuildManifest.SourceType.Transient, Some commands ->
+        | BuildSpec.BuildDev, EsyLib.SourceType.Transient, Some commands ->
           BuildManifest.EsyCommands commands
       in
       {
@@ -175,7 +173,7 @@ module Repr = struct
 
       let sandboxEnv =
         sandboxEnv
-        |> BuildManifest.Env.to_yojson
+        |> PackageConfig.Env.to_yojson
         |> Yojson.Safe.to_string
       in
 

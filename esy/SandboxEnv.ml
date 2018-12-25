@@ -1,17 +1,19 @@
-type t = BuildManifest.Env.t
+open EsyPackageConfig
 
-let empty = BuildManifest.Env.empty
+type t = PackageConfig.Env.t
 
-let to_yojson = BuildManifest.Env.to_yojson
-let of_yojson = BuildManifest.Env.of_yojson
+let empty = PackageConfig.Env.empty
+
+let to_yojson = PackageConfig.Env.to_yojson
+let of_yojson = PackageConfig.Env.of_yojson
 
 module OfPackageJson = struct
   type esy = {
-    sandboxEnv : BuildManifest.Env.t [@default BuildManifest.Env.empty];
+    sandboxEnv : PackageConfig.Env.t [@default PackageConfig.Env.empty];
   } [@@deriving of_yojson { strict = false }]
 
   type t = {
-    esy : esy [@default {sandboxEnv = BuildManifest.Env.empty}]
+    esy : esy [@default {sandboxEnv = PackageConfig.Env.empty}]
   } [@@deriving of_yojson { strict = false }]
 
 end
@@ -27,4 +29,4 @@ let ofSandbox spec =
 
   | EsyInstall.SandboxSpec.Manifest (Opam, _)
   | EsyInstall.SandboxSpec.ManifestAggregate _ ->
-    return BuildManifest.Env.empty
+    return PackageConfig.Env.empty

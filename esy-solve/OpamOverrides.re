@@ -1,3 +1,5 @@
+open EsyPackageConfig;
+
 type t = {records: OpamPackage.Name.Map.t(record)}
 and record = {
   default: option(Path.t),
@@ -14,7 +16,7 @@ let parseOverridePattern = pattern =>
   | Some(("", _)) => None
   | Some((name, version)) =>
     let name = OpamPackage.Name.of_string(name);
-    let version = EsyInstall.OpamPackageVersion.Version.parseExn(version);
+    let version = OpamPackageVersion.Version.parseExn(version);
     Some((name, Some(version)));
   };
 
@@ -88,7 +90,7 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
       | (Some(path), _)
       | (None, Some(path)) =>
         let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
-        let override = EsyInstall.Override.OfOpamOverride({json, path});
+        let override = Override.OfOpamOverride({json, path});
         return(Some(override));
       | (None, None) => return(None)
       };

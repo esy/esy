@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type t =
   | Root
   | ByName of string

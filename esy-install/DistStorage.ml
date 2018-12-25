@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 module CachePaths = struct
   let key dist =
     Digest.to_hex (Digest.string (Dist.show dist))

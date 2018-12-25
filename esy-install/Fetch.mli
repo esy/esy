@@ -4,6 +4,8 @@
 
  *)
 
+open EsyPackageConfig
+
 val fetch :
   Sandbox.t
   -> Solution.t
@@ -18,3 +20,9 @@ val isInstalled :
   -> Solution.t
   -> bool RunAsync.t
 (** Check if the solution is installed. *)
+
+val fetchOverrideFiles :
+  Config.t
+  -> SandboxSpec.t
+  -> Override.t
+  -> File.t list RunAsync.t

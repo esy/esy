@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 module BuildType = struct
   include EsyLib.BuildType
   include EsyLib.BuildType.AsInPackageJson
@@ -5,11 +7,6 @@ end
 
 module Solution = EsyInstall.Solution
 module SandboxSpec = EsyInstall.SandboxSpec
-module ManifestSpec = EsyInstall.ManifestSpec
-module PackageConfig = EsyInstall.PackageConfig
-module Version = EsyInstall.Version
-module Dist = EsyInstall.Dist
-module Source = EsyInstall.Source
 module Package = EsyInstall.Package
 module SourceType = EsyLib.SourceType
 module Command = PackageConfig.Command
@@ -17,8 +14,6 @@ module CommandList = PackageConfig.CommandList
 module ExportedEnv = PackageConfig.ExportedEnv
 module Env = PackageConfig.Env
 module DistResolver = EsyInstall.DistResolver
-module Override = EsyInstall.Override
-module Overrides = EsyInstall.Overrides
 module Installation = EsyInstall.Installation
 
 let ensurehasOpamScope name =

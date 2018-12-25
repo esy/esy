@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (** Sandbox *)
 
 type t = {
@@ -18,10 +20,10 @@ type t = {
   dependencies : Package.Dependencies.t;
 
   (** A set of resolutions. *)
-  resolutions : EsyInstall.PackageConfig.Resolutions.t;
+  resolutions : PackageConfig.Resolutions.t;
 
   (** OCaml version request defined for the sandbox. *)
-  ocamlReq : EsyInstall.Req.t option;
+  ocamlReq : Req.t option;
 
   (** Resolver associated with a sandbox. *)
   resolver : Resolver.t;

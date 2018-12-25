@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type t = {
   path : Path.t;
   manifest : manifest;

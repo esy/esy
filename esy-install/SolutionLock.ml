@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 type override =
   | OfJson of {json : Json.t}
   | OfPath of Dist.local

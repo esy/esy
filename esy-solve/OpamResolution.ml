@@ -1,14 +1,15 @@
+open EsyPackageConfig
 
-type t = EsyInstall.PackageSource.opam [@@deriving yojson]
+type t = PackageSource.opam [@@deriving yojson]
 
 let make name version path =
-  {EsyInstall.PackageSource.name; version; path;}
+  {PackageSource.name; version; path;}
 
-let name {EsyInstall.PackageSource.name;_} = OpamPackage.Name.to_string name
-let version {EsyInstall.PackageSource.version;_} = EsyInstall.Version.Opam version
-let path {EsyInstall.PackageSource.path;_} = path
+let name {PackageSource.name;_} = OpamPackage.Name.to_string name
+let version {PackageSource.version;_} = Version.Opam version
+let path {PackageSource.path;_} = path
 
-let opam (res : EsyInstall.PackageSource.opam) =
+let opam (res : PackageSource.opam) =
   let open RunAsync.Syntax in
   let path = Path.(res.path / "opam") in
   let%bind data = Fs.readFile path in
@@ -17,12 +18,12 @@ let opam (res : EsyInstall.PackageSource.opam) =
   | Failure msg -> errorf "error parsing opam metadata %a: %s" Path.pp path msg
   | _ -> error "error parsing opam metadata"
 
-let files (res : EsyInstall.PackageSource.opam) = EsyInstall.File.ofDir Path.(res.path / "files")
+let files (res : PackageSource.opam) = File.ofDir Path.(res.path / "files")
 
-let digest (res : EsyInstall.PackageSource.opam) =
+let digest (res : PackageSource.opam) =
   let open RunAsync.Syntax in
   let%bind files = files res in
-  let%bind digests = RunAsync.List.mapAndJoin ~f:EsyInstall.File.digest files in
+  let%bind digests = RunAsync.List.mapAndJoin ~f:File.digest files in
   let%bind digest = Digestv.ofFile Path.(res.path / "opam") in
   let digests = digest::digests in
   let digests = List.sort ~cmp:Digestv.compare digests in

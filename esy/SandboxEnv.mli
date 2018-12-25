@@ -1,4 +1,6 @@
-type t = BuildManifest.Env.t
+open EsyPackageConfig
+
+type t = PackageConfig.Env.t
 
 val empty : t
 

@@ -1,4 +1,28 @@
+open EsyPackageConfig
+
 module String = Astring.String
+
+let fetchOverrideFiles cfg sandbox (override : EsyPackageConfig.Override.t) =
+  let open RunAsync.Syntax in
+
+  match override with
+  | OfJson _ -> return []
+  | OfDist info ->
+    let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox info.dist in
+    File.ofDir Path.(path / "files")
+  | OfOpamOverride info ->
+    File.ofDir Path.(info.path / "files")
+
+let fetchOverridesFiles cfg sandbox overrides =
+  let open RunAsync.Syntax in
+  let f files override =
+    let%bind filesOfOverride = fetchOverrideFiles cfg sandbox override in
+    return (filesOfOverride @ files)
+  in
+  let fold' ~f ~init overrides =
+    RunAsync.List.foldLeft ~f ~init (List.rev overrides)
+  in
+  fold' ~f ~init:[] overrides
 
 module NpmPackageJson : sig
   type t
@@ -382,7 +406,7 @@ end = struct
     in
 
     let%bind filesOfOverride =
-      Overrides.files
+      fetchOverridesFiles
         sandbox.Sandbox.cfg
         sandbox.Sandbox.spec
         pkg.Package.overrides

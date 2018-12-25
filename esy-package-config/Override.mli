@@ -29,5 +29,3 @@ val install : t -> install option RunAsync.t
 
 val ofJson : Json.t -> t
 val ofDist : Json.t -> Dist.t -> t
-
-val files : Config.t -> SandboxSpec.t -> t -> File.t list RunAsync.t

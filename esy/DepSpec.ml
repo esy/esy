@@ -1,5 +1,4 @@
-module Solution = EsyInstall.Solution
-module PackageId = EsyInstall.PackageId
+open EsyPackageConfig
 
 module Id = struct
   type t =
@@ -19,7 +18,7 @@ let self = Id.Self
 
 let resolve solution self id =
   match id with
-  | Id.Root -> (Solution.root solution).id
+  | Id.Root -> (EsyInstall.Solution.root solution).id
   | Id.Self -> self
 
 let eval solution self depspec =
@@ -28,10 +27,10 @@ let eval solution self depspec =
     match expr with
     | Package id -> PackageId.Set.singleton (resolve id)
     | Dependencies id ->
-      let pkg = Solution.getExn (resolve id) solution in
+      let pkg = EsyInstall.Solution.getExn (resolve id) solution in
       pkg.dependencies
     | DevDependencies id ->
-      let pkg = Solution.getExn (resolve id) solution in
+      let pkg = EsyInstall.Solution.getExn (resolve id) solution in
       pkg.devDependencies
     | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
   in

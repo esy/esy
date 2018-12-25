@@ -1,8 +1,10 @@
+open EsyPackageConfig
+
 val ofJson :
   ?parseResolutions:bool
   -> ?parseDevDependencies:bool
-  -> ?source:EsyInstall.Source.t
+  -> ?source:Source.t
   -> name:string
-  -> version:EsyInstall.Version.t
+  -> version:Version.t
   -> Json.t
   -> Package.t Run.t

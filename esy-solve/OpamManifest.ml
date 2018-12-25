@@ -1,7 +1,9 @@
+open EsyPackageConfig
+
 let esySubstsDep = {
   Package.Dep.
   name = "@esy-ocaml/substs";
-  req = Npm EsyInstall.SemverVersion.Constraint.ANY;
+  req = Npm SemverVersion.Constraint.ANY;
 }
 
 module File = struct
@@ -41,7 +43,7 @@ type t = {
   version: OpamPackage.Version.t;
   opam: OpamFile.OPAM.t;
   url: OpamFile.URL.t option;
-  override : EsyInstall.Override.t option;
+  override : Override.t option;
   opamRepositoryPath : Path.t option;
 }
 
@@ -71,7 +73,7 @@ let ofString ~name ~version (data : string) =
 
 let ocamlOpamVersionToOcamlNpmVersion v =
   let v = OpamPackage.Version.to_string v in
-  EsyInstall.SemverVersion.Version.parse v
+  SemverVersion.Version.parse v
 
 let convertOpamAtom ((name, relop) : OpamFormula.atom) =
   let open Result.Syntax in
@@ -82,7 +84,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
   in
   match name with
   | "ocaml" ->
-    let module C = EsyInstall.SemverVersion.Constraint in
+    let module C = SemverVersion.Constraint in
     let%bind req =
       match relop with
       | None -> return C.ANY
@@ -106,7 +108,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
     in
     return {Package.Dep. name; req = Npm req}
   | name ->
-    let module C = EsyInstall.OpamPackageVersion.Constraint in
+    let module C = OpamPackageVersion.Constraint in
     let req =
       match relop with
       | None -> C.ANY
@@ -158,7 +160,7 @@ let convertOpamUrl (manifest : t) =
       in
       let f mirrors url =
         match convUrl url with
-        | Ok url -> EsyInstall.Dist.Archive {url; checksum = convChecksum hash;}::mirrors
+        | Ok url -> Dist.Archive {url; checksum = convChecksum hash;}::mirrors
         | Error _ -> mirrors
       in
       List.fold_left ~f ~init:[] urls
@@ -166,7 +168,7 @@ let convertOpamUrl (manifest : t) =
 
     let main =
       let url = "https://opam.ocaml.org/cache/" ^ String.concat "/" (OpamHash.to_path hash) in
-      EsyInstall.Dist.Archive {url; checksum = convChecksum hash;}
+      Dist.Archive {url; checksum = convChecksum hash;}
     in
 
     return (main, mirrors)
@@ -175,7 +177,7 @@ let convertOpamUrl (manifest : t) =
   match manifest.url with
   | Some url -> sourceOfOpamUrl url
   | None ->
-    let main = EsyInstall.Dist.NoSource in
+    let main = Dist.NoSource in
     Ok (main, [])
 
 let convertDependencies manifest =
@@ -266,17 +268,17 @@ let toPackage ?source ~name ~version manifest =
     let source =
       match source with
       | None ->
-        EsyInstall.PackageSource.Install {source = sourceFromOpam; opam;}
-      | Some (EsyInstall.Source.Link {path; manifest;}) ->
+        PackageSource.Install {source = sourceFromOpam; opam;}
+      | Some (Source.Link {path; manifest;}) ->
         Link {path; manifest;}
-      | Some (EsyInstall.Source.Dist source) ->
+      | Some (Source.Dist source) ->
         Install {source = source, []; opam;}
     in
 
     let overrides =
       match manifest.override with
-      | None -> EsyInstall.Overrides.empty
-      | Some override -> EsyInstall.Overrides.(add override empty)
+      | None -> Overrides.empty
+      | Some override -> Overrides.(add override empty)
     in
 
     return (Ok {
@@ -291,6 +293,6 @@ let toPackage ?source ~name ~version manifest =
       dependencies;
       devDependencies;
       optDependencies;
-      peerDependencies = EsyInstall.PackageConfig.NpmFormula.empty;
-      resolutions = EsyInstall.PackageConfig.Resolutions.empty;
+      peerDependencies = PackageConfig.NpmFormula.empty;
+      resolutions = PackageConfig.Resolutions.empty;
     })

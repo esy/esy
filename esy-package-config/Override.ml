@@ -53,14 +53,3 @@ let install override =
 
 let ofJson json = OfJson {json;}
 let ofDist json dist = OfDist {json; dist;}
-
-let files cfg sandbox override =
-  let open RunAsync.Syntax in
-
-  match override with
-  | OfJson _ -> return []
-  | OfDist info ->
-    let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox info.dist in
-    File.ofDir Path.(path / "files")
-  | OfOpamOverride info ->
-    File.ofDir Path.(info.path / "files")

@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (**
 
     Storage for package dists.

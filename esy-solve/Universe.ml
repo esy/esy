@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 module Dependencies = Package.Dependencies
 
 module CudfName : sig
@@ -25,7 +27,7 @@ end = struct
 end
 
 type t = {
-  pkgs : Package.t EsyInstall.Version.Map.t StringMap.t;
+  pkgs : Package.t Version.Map.t StringMap.t;
   resolver : Resolver.t;
 }
 
@@ -40,21 +42,21 @@ let add ~pkg (univ : t) =
   let {Package. name; version; _} = pkg in
   let versions =
     match StringMap.find_opt name univ.pkgs with
-    | None -> EsyInstall.Version.Map.empty
+    | None -> Version.Map.empty
     | Some versions -> versions
   in
-  let pkgs = StringMap.add name (EsyInstall.Version.Map.add version pkg versions) univ.pkgs in
+  let pkgs = StringMap.add name (Version.Map.add version pkg versions) univ.pkgs in
   {univ with pkgs}
 
 let mem ~pkg (univ : t) =
   match StringMap.find pkg.Package.name univ.pkgs with
   | None -> false
-  | Some versions -> EsyInstall.Version.Map.mem pkg.Package.version versions
+  | Some versions -> Version.Map.mem pkg.Package.version versions
 
 let findVersion ~name ~version (univ : t) =
   match StringMap.find name univ.pkgs with
   | None -> None
-  | Some versions -> EsyInstall.Version.Map.find_opt version versions
+  | Some versions -> Version.Map.find_opt version versions
 
 let findVersionExn ~name ~version (univ : t) =
   match findVersion ~name ~version univ with
@@ -63,7 +65,7 @@ let findVersionExn ~name ~version (univ : t) =
     let msg =
       Printf.sprintf
         "inconsistent state: package not in the universr %s@%s"
-        name (EsyInstall.Version.show version)
+        name (Version.show version)
     in
     failwith msg
 
@@ -72,24 +74,24 @@ let findVersions ~name (univ : t) =
   | None -> []
   | Some versions ->
     versions
-    |> EsyInstall.Version.Map.bindings
+    |> Version.Map.bindings
     |> List.map ~f:(fun (_, pkg) -> pkg)
 
 module CudfVersionMap : sig
   type t
 
   val make : ?size:int -> unit -> t
-  val update : t -> string -> EsyInstall.Version.t -> int -> unit
-  val findVersion : cudfName:CudfName.t -> cudfVersion:int -> t -> EsyInstall.Version.t option
-  val findVersionExn : cudfName:CudfName.t -> cudfVersion:int -> t -> EsyInstall.Version.t
-  val findCudfVersion : name:string -> version:EsyInstall.Version.t -> t -> int option
-  val findCudfVersionExn : name:string -> version:EsyInstall.Version.t -> t -> int
+  val update : t -> string -> Version.t -> int -> unit
+  val findVersion : cudfName:CudfName.t -> cudfVersion:int -> t -> Version.t option
+  val findVersionExn : cudfName:CudfName.t -> cudfVersion:int -> t -> Version.t
+  val findCudfVersion : name:string -> version:Version.t -> t -> int option
+  val findCudfVersionExn : name:string -> version:Version.t -> t -> int
 end = struct
 
   type t = {
-    cudfVersionToVersion: ((CudfName.t * int), EsyInstall.Version.t) Hashtbl.t ;
-    versionToCudfVersion: ((string * EsyInstall.Version.t), int) Hashtbl.t;
-    versions : (string, EsyInstall.Version.Set.t) Hashtbl.t;
+    cudfVersionToVersion: ((CudfName.t * int), Version.t) Hashtbl.t ;
+    versionToCudfVersion: ((string * Version.t), int) Hashtbl.t;
+    versions : (string, Version.Set.t) Hashtbl.t;
   }
 
   let make ?(size=100) () = {
@@ -104,9 +106,9 @@ end = struct
     let () =
       let versions =
         try Hashtbl.find map.versions name
-        with _ -> EsyInstall.Version.Set.empty
+        with _ -> Version.Set.empty
       in
-      let versions = EsyInstall.Version.Set.add version versions in
+      let versions = Version.Set.add version versions in
       Hashtbl.replace map.versions name versions
     in
     ()
@@ -139,7 +141,7 @@ end = struct
       let msg =
         Printf.sprintf
           "inconsistent state: found a package not in the cudf version map %s@%s"
-          name (EsyInstall.Version.show version)
+          name (Version.show version)
       in
       failwith msg
 
@@ -256,7 +258,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       (univ, cudfUniv, cudfVersionMap)
   in
 
-  let encodeNpmReq (req : EsyInstall.Req.t) =
+  let encodeNpmReq (req : Req.t) =
     let versions = findVersions ~name:req.name univ in
     if not (seen req.name) then (
       markAsSeen req.name;
@@ -285,7 +287,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       List.map ~f deps
     | Package.Dependencies.NpmFormula reqs ->
       let reqs =
-        let f (req : EsyInstall.Req.t) = StringMap.mem req.name univ.pkgs in
+        let f (req : Req.t) = StringMap.mem req.name univ.pkgs in
         List.filter ~f reqs
       in
       List.map ~f:encodeNpmReq reqs
@@ -310,7 +312,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       installed = Package.Set.mem pkg installed;
       pkg_extra = [
         "staleness", `Int staleness;
-        "original-version", `String (EsyInstall.Version.show pkg.version)
+        "original-version", `String (Version.show pkg.version)
       ];
       depends;
     }

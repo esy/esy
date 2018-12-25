@@ -1,6 +1,8 @@
 (** This represents a ref to a package from opam repository. *)
 
-type t = EsyInstall.PackageSource.opam
+open EsyPackageConfig
+
+type t = PackageSource.opam
 
 val make :
   OpamPackage.Name.t
@@ -9,10 +11,10 @@ val make :
   -> t
 
 val name : t -> string
-val version : t -> EsyInstall.Version.t
+val version : t -> Version.t
 val path : t -> Path.t
 
-val files : t -> EsyInstall.File.t list RunAsync.t
+val files : t -> File.t list RunAsync.t
 val opam : t -> OpamFile.OPAM.t RunAsync.t
 val digest : t -> Digestv.t RunAsync.t
 

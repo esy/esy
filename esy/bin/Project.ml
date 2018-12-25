@@ -1,3 +1,4 @@
+open EsyPackageConfig
 open EsyInstall
 open Esy
 
@@ -410,7 +411,7 @@ let withPackage proj (pkgArg : PkgArg.t) f =
     | ByPath path ->
       let root = proj.projcfg.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
-      let path = EsyInstall.DistPath.ofPath (Path.tryRelativize ~root path) in
+      let path = DistPath.ofPath (Path.tryRelativize ~root path) in
       Solution.findByPath path solution
   in
   runWith pkg

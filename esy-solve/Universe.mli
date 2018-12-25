@@ -1,3 +1,5 @@
+open EsyPackageConfig
+
 (**
  * Package universe holds information about available packages.
  *)
@@ -19,8 +21,8 @@ val mem : pkg:Package.t -> t -> bool
 val findVersions : name:string -> t -> Package.t list
 
 (** Find a specific version of a package. *)
-val findVersion : name:string -> version:EsyInstall.Version.t -> t -> Package.t option
-val findVersionExn : name:string -> version:EsyInstall.Version.t -> t -> Package.t
+val findVersion : name:string -> version:Version.t -> t -> Package.t option
+val findVersionExn : name:string -> version:Version.t -> t -> Package.t
 
 module CudfName : sig
   type t

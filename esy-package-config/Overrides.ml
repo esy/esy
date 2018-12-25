@@ -37,12 +37,3 @@ let foldWithInstallOverrides ~f ~init overrides =
     | None -> return v
   in
   fold' ~f ~init overrides
-
-let files cfg sandbox overrides =
-  let open RunAsync.Syntax in
-  let f files override =
-    let%bind filesOfOverride = Override.files cfg sandbox override in
-    return (filesOfOverride @ files)
-  in
-  fold' ~f ~init:[] overrides
-

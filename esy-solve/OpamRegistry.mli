@@ -2,13 +2,15 @@
  * API for querying opam registry.
  *)
 
+open EsyPackageConfig
+
 type t
 
 val make : cfg:Config.t -> unit -> t
 (** Configure a new opam registry instance. *)
 
 val versions :
-  ?ocamlVersion : EsyInstall.OpamPackageVersion.Version.t
+  ?ocamlVersion : OpamPackageVersion.Version.t
   -> name : OpamPackage.Name.t
   -> t
   -> OpamResolution.t list RunAsync.t

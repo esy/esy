@@ -12,12 +12,6 @@ val addMany : Override.t list -> t -> t
 val merge : t -> t -> t
 (* [merge newOverrides overrides] adds [newOverrides] on top of [overrides]. *)
 
-val files :
-  Config.t
-  -> SandboxSpec.t
-  -> t
-  -> File.t list RunAsync.t
-
 val foldWithBuildOverrides :
   f:('v -> Override.build -> 'v)
   -> init:'v

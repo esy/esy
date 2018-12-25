@@ -1,4 +1,6 @@
-module NpmFormula = EsyInstall.PackageConfig.NpmFormula
+open EsyPackageConfig
+
+module NpmFormula = PackageConfig.NpmFormula
 
 module V1 = struct
   module EsyPackageJson = struct
@@ -10,7 +12,7 @@ module V1 = struct
   module Manifest = struct
     type t = {
       name : string option [@default None];
-      version : EsyInstall.SemverVersion.Version.t option [@default None];
+      version : SemverVersion.Version.t option [@default None];
       dependencies : NpmFormula.t [@default NpmFormula.empty];
       peerDependencies : NpmFormula.t [@default NpmFormula.empty];
       optDependencies : Json.t StringMap.t [@default StringMap.empty];
@@ -27,7 +29,7 @@ module V1 = struct
 
   module ResolutionsOfManifest = struct
     type t = {
-      resolutions : (EsyInstall.PackageConfig.Resolutions.t [@default EsyInstall.PackageConfig.Resolutions.empty]);
+      resolutions : (PackageConfig.Resolutions.t [@default PackageConfig.Resolutions.empty]);
     } [@@deriving of_yojson { strict = false }]
   end
 
@@ -40,17 +42,17 @@ module V1 = struct
   let rebaseDependencies source reqs =
     let open Run.Syntax in
     let f req =
-      match source, req.EsyInstall.Req.spec with
-      | (EsyInstall.Source.Dist LocalPath {path = basePath; _}
-        | EsyInstall.Source.Link {path = basePath; _}),
-        EsyInstall.VersionSpec.Source (EsyInstall.SourceSpec.LocalPath {path; manifest;}) ->
-        let path = EsyInstall.DistPath.rebase ~base:basePath path in
-        let spec = EsyInstall.VersionSpec.Source (EsyInstall.SourceSpec.LocalPath {path; manifest;}) in
-        return (EsyInstall.Req.make ~name:req.name ~spec)
-      | _, EsyInstall.VersionSpec.Source (EsyInstall.SourceSpec.LocalPath _) ->
+      match source, req.Req.spec with
+      | (Source.Dist LocalPath {path = basePath; _}
+        | Source.Link {path = basePath; _}),
+        VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) ->
+        let path = DistPath.rebase ~base:basePath path in
+        let spec = VersionSpec.Source (SourceSpec.LocalPath {path; manifest;}) in
+        return (Req.make ~name:req.name ~spec)
+      | _, VersionSpec.Source (SourceSpec.LocalPath _) ->
         errorf
           "path constraints %a are not allowed from %a"
-          EsyInstall.VersionSpec.pp req.spec EsyInstall.Source.pp source
+          VersionSpec.pp req.spec Source.pp source
       | _ -> return req
     in
     Result.List.map ~f reqs
@@ -66,7 +68,7 @@ module V1 = struct
     let%bind pkgJson = Json.parseJsonWith Manifest.of_yojson json in
     let originalVersion =
       match pkgJson.Manifest.version with
-      | Some version -> Some (EsyInstall.Version.Npm version)
+      | Some version -> Some (Version.Npm version)
       | None -> None
     in
 
@@ -74,7 +76,7 @@ module V1 = struct
       match source, pkgJson.dist with
       | Some source, _ -> return source
       | None, Some dist ->
-        return (EsyInstall.Source.Dist (Archive {
+        return (Source.Dist (Archive {
           url = dist.tarball;
           checksum = Checksum.Sha1, dist.shasum;
         }))
@@ -106,7 +108,7 @@ module V1 = struct
 
     let%bind resolutions =
       match parseResolutions with
-      | false -> return EsyInstall.PackageConfig.Resolutions.empty
+      | false -> return PackageConfig.Resolutions.empty
       | true ->
         let%bind {ResolutionsOfManifest. resolutions} =
           Json.parseJsonWith ResolutionsOfManifest.of_yojson json
@@ -116,10 +118,10 @@ module V1 = struct
 
     let source =
       match source with
-      | EsyInstall.Source.Link {path; manifest;} ->
-        EsyInstall.PackageSource.Link {path; manifest;}
-      | EsyInstall.Source.Dist dist ->
-        EsyInstall.PackageSource.Install {source = dist, []; opam = None;}
+      | Source.Link {path; manifest;} ->
+        PackageSource.Link {path; manifest;}
+      | Source.Dist dist ->
+        PackageSource.Install {source = dist, []; opam = None;}
     in
 
     return {
@@ -128,7 +130,7 @@ module V1 = struct
       version;
       originalVersion;
       originalName = pkgJson.name;
-      overrides = EsyInstall.Overrides.empty;
+      overrides = Overrides.empty;
       dependencies = Package.Dependencies.NpmFormula dependencies;
       devDependencies = Package.Dependencies.NpmFormula devDependencies;
       peerDependencies = pkgJson.peerDependencies;

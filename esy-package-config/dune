@@ -1,24 +1,20 @@
 (library
-  (name EsyInstall)
+  (name EsyPackageConfig)
   (inline_tests)
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
             EsyLib
-            EsyPackageConfig
             angstrom
             str
-            cudf
             ppx_deriving_yojson.runtime
             yojson
             logs
-            logs.lwt
-            dose3.algo
             opam-format
-            opam-state
             opam-file-format
             )
   (preprocess (pps
-                  lwt_ppx ppx_let
+                  lwt_ppx
+                  ppx_let
                   ppx_deriving.std
                   ppx_deriving_yojson
                   ppxlib
