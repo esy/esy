@@ -1,3 +1,5 @@
+(** Parse [InstallManifest.t] out of package.json data.
+  *)
 val installManifest :
   ?parseResolutions:bool
   -> ?parseDevDependencies:bool
@@ -7,6 +9,12 @@ val installManifest :
   -> Json.t
   -> InstallManifest.t Run.t
 
+(** Parse [BuildManifest.t] out of package.json data.
+
+    Note that some package.json data don't have build manifests defined. We
+    return [None] in this case.
+
+  *)
 val buildManifest :
   Json.t
   -> BuildManifest.t option Run.t
