@@ -293,6 +293,6 @@ let toPackage ?source ~name ~version manifest =
       dependencies;
       devDependencies;
       optDependencies;
-      peerDependencies = PackageConfig.NpmFormula.empty;
-      resolutions = PackageConfig.Resolutions.empty;
+      peerDependencies = NpmFormula.empty;
+      resolutions = Resolutions.empty;
     })

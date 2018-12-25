@@ -10,18 +10,18 @@ val pp : t Fmt.t
 
 type build = {
   buildType : BuildType.t option;
-  build : PackageConfig.CommandList.t option;
-  install : PackageConfig.CommandList.t option;
-  exportedEnv: PackageConfig.ExportedEnv.t option;
-  exportedEnvOverride: PackageConfig.ExportedEnvOverride.t option;
-  buildEnv: PackageConfig.Env.t option;
-  buildEnvOverride: PackageConfig.EnvOverride.t option;
+  build : CommandList.t option;
+  install : CommandList.t option;
+  exportedEnv: ExportedEnv.t option;
+  exportedEnvOverride: ExportedEnv.Override.t option;
+  buildEnv: BuildEnv.t option;
+  buildEnvOverride: BuildEnv.Override.t option;
 }
 
 type install = {
-  dependencies : PackageConfig.NpmFormulaOverride.t option;
-  devDependencies : PackageConfig.NpmFormulaOverride.t option;
-  resolutions : PackageConfig.Resolution.resolution StringMap.t option [@default None];
+  dependencies : NpmFormula.Override.t option;
+  devDependencies : NpmFormula.Override.t option;
+  resolutions : Resolution.resolution StringMap.t option [@default None];
 }
 
 val build : t -> build option RunAsync.t

@@ -9,10 +9,6 @@ module Solution = EsyInstall.Solution
 module SandboxSpec = EsyInstall.SandboxSpec
 module Package = EsyInstall.Package
 module SourceType = SourceType
-module Command = PackageConfig.Command
-module CommandList = PackageConfig.CommandList
-module ExportedEnv = PackageConfig.ExportedEnv
-module Env = PackageConfig.Env
 module DistResolver = EsyInstall.DistResolver
 module Installation = EsyInstall.Installation
 
@@ -74,7 +70,7 @@ type t = {
   patches : patch list;
   substs : Path.t list;
   exportedEnv : ExportedEnv.t;
-  buildEnv : Env.t;
+  buildEnv : BuildEnv.t;
 } [@@deriving to_yojson, show]
 
 let empty ~name ~version () = {
@@ -172,8 +168,8 @@ module EsyBuild = struct
     install: (CommandList.t [@default CommandList.empty]);
     buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
     exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
-    buildEnv: (Env.t [@default Env.empty]);
-    sandboxEnv: (Env.t [@default Env.empty]);
+    buildEnv: (BuildEnv.t [@default BuildEnv.empty]);
+    sandboxEnv: (SandboxEnv.t [@default SandboxEnv.empty]);
   } [@@deriving (of_yojson { strict = false })]
 
   let ofData data =
@@ -252,7 +248,7 @@ module OpamBuild = struct
       version;
       buildType = BuildType.InSource;
       exportedEnv = ExportedEnv.empty;
-      buildEnv = Env.empty;
+      buildEnv = BuildEnv.empty;
       build;
       buildDev = None;
       install;

@@ -6,7 +6,7 @@ open EsyPackageConfig
 
 type commands =
   | OpamCommands of OpamTypes.command list
-  | EsyCommands of PackageConfig.CommandList.t
+  | EsyCommands of CommandList.t
   | NoCommands
 
 val commands_to_yojson : commands Json.encoder
@@ -16,12 +16,12 @@ type t = {
   version : Version.t option;
   buildType : BuildType.t;
   build : commands;
-  buildDev : PackageConfig.CommandList.t option;
+  buildDev : CommandList.t option;
   install : commands;
   patches : (Path.t * OpamTypes.filter option) list;
   substs : Path.t list;
-  exportedEnv : PackageConfig.ExportedEnv.t;
-  buildEnv : PackageConfig.Env.t;
+  exportedEnv : ExportedEnv.t;
+  buildEnv : BuildEnv.t;
 }
 
 val empty : name:string option -> version:Version.t option -> unit -> t

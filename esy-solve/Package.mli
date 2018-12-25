@@ -1,5 +1,4 @@
 open EsyPackageConfig
-open EsyPackageConfig.PackageConfig
 
 type 'a disj = 'a list
 type 'a conj = 'a list
@@ -43,7 +42,7 @@ type t = {
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : Resolutions.t;
   kind : kind;
 }
 

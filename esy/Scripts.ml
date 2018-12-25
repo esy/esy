@@ -7,13 +7,13 @@ module Scripts = struct
     [@@deriving ord]
 
   and script = {
-    command : PackageConfig.Command.t;
+    command : Command.t;
   }
   [@@deriving ord]
 
   let of_yojson =
     let script (json: Json.t) =
-      match PackageConfig.CommandList.of_yojson json with
+      match CommandList.of_yojson json with
       | Ok command ->
         begin match command with
         | [] -> Error "empty command"
@@ -37,7 +37,7 @@ module OfPackageJson = struct
 end
 
 type t = Scripts.t
-type script = Scripts.script = { command : PackageConfig.Command.t; }
+type script = Scripts.script = { command : Command.t; }
 
 let empty = Scripts.empty
 let find = Scripts.find

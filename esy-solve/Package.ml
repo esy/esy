@@ -1,5 +1,4 @@
 open EsyPackageConfig
-open EsyPackageConfig.PackageConfig
 
 module String = Astring.String
 
@@ -125,7 +124,7 @@ type t = {
   devDependencies: Dependencies.t;
   peerDependencies: NpmFormula.t;
   optDependencies: StringSet.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : Resolutions.t;
   kind : kind;
 }
 

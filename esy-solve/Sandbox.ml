@@ -5,13 +5,13 @@ type t = {
   spec : EsyInstall.SandboxSpec.t;
   root : Package.t;
   dependencies : Package.Dependencies.t;
-  resolutions : PackageConfig.Resolutions.t;
+  resolutions : Resolutions.t;
   ocamlReq : Req.t option;
   resolver : Resolver.t;
 }
 
 let makeResolution source = {
-  PackageConfig.Resolution.
+  Resolution.
   name = "root";
   resolution = Version (Version.Source source);
 }
@@ -35,8 +35,8 @@ let ofResolution cfg spec resolver resolution =
         let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
         deps, None
       | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
-        let deps = PackageConfig.NpmFormula.override deps devDeps in
-        let ocamlReq = PackageConfig.NpmFormula.find ~name:"ocaml" deps in
+        let deps = NpmFormula.override deps devDeps in
+        let ocamlReq = NpmFormula.find ~name:"ocaml" deps in
         Package.Dependencies.NpmFormula deps, ocamlReq
       | Package.Dependencies.NpmFormula _, _
       | Package.Dependencies.OpamFormula _, _  ->
@@ -85,8 +85,8 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
               | Some name -> name
             in
             let resolutions =
-              let resolution = PackageConfig.Resolution.Version (Version.Source source) in
-              PackageConfig.Resolutions.add name resolution resolutions
+              let resolution = Resolution.Version (Version.Source source) in
+              Resolutions.add name resolution resolutions
             in
             let reqs = (Req.make ~name ~spec:anyOpam)::reqs in
             let devDeps =
@@ -96,7 +96,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
             in
             return (resolutions, reqs, devDeps)
         in
-        RunAsync.List.foldLeft ~f ~init:(PackageConfig.Resolutions.empty, [], []) manifests
+        RunAsync.List.foldLeft ~f ~init:(Resolutions.empty, [], []) manifests
       in
       Resolver.setResolutions resolutions resolver;
       let root = {
@@ -112,7 +112,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
         overrides = Overrides.empty;
         dependencies = Package.Dependencies.NpmFormula reqs;
         devDependencies = Package.Dependencies.OpamFormula devDeps;
-        peerDependencies = PackageConfig.NpmFormula.empty;
+        peerDependencies = NpmFormula.empty;
         optDependencies = StringSet.empty;
         resolutions;
         kind = Npm;

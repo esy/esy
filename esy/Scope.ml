@@ -63,7 +63,7 @@ end = struct
       let injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal =
         let f
           _name
-          PackageConfig.ExportedEnv.{name; scope = envScope; value; exclusive = _}
+          ExportedEnv.{name; scope = envScope; value; exclusive = _}
           (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal)
           =
           match envScope with
@@ -266,7 +266,7 @@ end = struct
     in
 
     let env =
-      let f _name {PackageConfig.Env. name; value;} env = (name, value)::env in
+      let f _name {BuildEnv. name; value;} env = (name, value)::env in
       StringMap.fold f scope.build.buildEnv env
     in
 

@@ -8,7 +8,7 @@ type t = {
   cfg : Config.t;
   arch : System.Arch.t;
   platform : System.Platform.t;
-  sandboxEnv : PackageConfig.Env.t;
+  sandboxEnv : SandboxEnv.t;
   solution : EsyInstall.Solution.t;
   installation : EsyInstall.Installation.t;
   manifests : BuildManifest.t PackageId.Map.t;
@@ -79,7 +79,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   return (paths, manifests)
 
 let make
-  ?(sandboxEnv=PackageConfig.Env.empty)
+  ?(sandboxEnv=SandboxEnv.empty)
   cfg
   solution
   installation =
@@ -175,13 +175,13 @@ let renderEsyCommands ~env ~buildIsInProgress scope commands =
 
   let renderCommand =
     function
-    | PackageConfig.Command.Parsed args ->
+    | Command.Parsed args ->
       let f arg =
         let%bind arg = renderArg arg in
         return (Scope.SandboxValue.v arg)
       in
       Result.List.map ~f args
-    | PackageConfig.Command.Unparsed line ->
+    | Command.Unparsed line ->
       let%bind line = renderArg line in
       let%bind args = ShellSplit.split line in
       return (List.map ~f:Scope.SandboxValue.v args)
@@ -458,7 +458,7 @@ let makeScope
     let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg.buildCfg location in
 
     let sandboxEnv =
-      let f {PackageConfig.Env. name; value} =
+      let f {BuildEnv. name; value} =
         Scope.SandboxEnvironment.Bindings.value name (Scope.SandboxValue.v value)
       in
       List.map ~f (StringMap.values sandbox.sandboxEnv)

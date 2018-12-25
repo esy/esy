@@ -552,10 +552,10 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
     match script.Scripts.command with
     | Parsed args ->
       let args, spec = peekArgs args in
-      PackageConfig.Command.Parsed args, spec
+      Command.Parsed args, spec
     | Unparsed line ->
       let args, spec = peekArgs (Astring.String.cuts ~sep:" " line) in
-      PackageConfig.Command.Unparsed (String.concat " " args), spec
+      Command.Unparsed (String.concat " " args), spec
   in
 
   let%bind cmd = RunAsync.ofRun (
@@ -1101,7 +1101,7 @@ let show _asJson req (projcfg : ProjectConfig.t) =
   match req.spec with
   | VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
   | VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]] ->
-    let f (res : PackageConfig.Resolution.t) = match res.resolution with
+    let f (res : Resolution.t) = match res.resolution with
     | Version v -> `String (Version.showSimple v)
     | _ -> failwith "unreachable"
     in
@@ -1115,7 +1115,7 @@ let show _asJson req (projcfg : ProjectConfig.t) =
     | resolution::_ ->
       let%bind pkg = RunAsync.contextf (
           Resolver.package ~resolution resolver
-        ) "resolving metadata %a" PackageConfig.Resolution.pp resolution
+        ) "resolving metadata %a" Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
       Package.to_yojson pkg

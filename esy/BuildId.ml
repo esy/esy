@@ -13,13 +13,13 @@ module Repr = struct
   } [@@deriving yojson]
 
   type commands =
-    | EsyCommands of PackageConfig.CommandList.t
+    | EsyCommands of CommandList.t
     | OpamCommands of opamcommands
     | NoCommands
 
   let commands_to_yojson = function
     | NoCommands -> `Null
-    | EsyCommands commands -> PackageConfig.CommandList.to_yojson commands
+    | EsyCommands commands -> CommandList.to_yojson commands
     | OpamCommands commands -> opamcommands_to_yojson commands
 
   let commands_of_yojson =
@@ -27,7 +27,7 @@ module Repr = struct
     function
     | `Null -> return NoCommands
     | `List _ as json ->
-      let%map commands = PackageConfig.CommandList.of_yojson json in
+      let%map commands = CommandList.of_yojson json in
       EsyCommands commands
     | `Assoc _ as json ->
       let%map commands = opamcommands_of_yojson json in
@@ -57,8 +57,8 @@ module Repr = struct
     installCommands : commands;
     patches : patch list;
     substs : Path.t list;
-    exportedEnv : PackageConfig.ExportedEnv.t;
-    buildEnv : PackageConfig.Env.t;
+    exportedEnv : ExportedEnv.t;
+    buildEnv : BuildEnv.t;
   }
 
   let convFilter filter =
@@ -173,7 +173,7 @@ module Repr = struct
 
       let sandboxEnv =
         sandboxEnv
-        |> PackageConfig.Env.to_yojson
+        |> SandboxEnv.to_yojson
         |> Yojson.Safe.to_string
       in
 

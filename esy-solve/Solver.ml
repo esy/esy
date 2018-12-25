@@ -1,8 +1,6 @@
 open EsyPackageConfig
 
 module Dependencies = Package.Dependencies
-module Resolutions = PackageConfig.Resolutions
-module Resolution = PackageConfig.Resolution
 
 let computeOverrideDigest sandbox override =
   let open RunAsync.Syntax in
@@ -508,7 +506,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     overrides = Overrides.empty;
     dependencies;
     devDependencies = Dependencies.NpmFormula [];
-    peerDependencies = PackageConfig.NpmFormula.empty;
+    peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -786,7 +784,7 @@ let solve (sandbox : Sandbox.t) =
         | Some ocamlVersion, Package.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
-          let reqs = PackageConfig.NpmFormula.override reqs [ocamlReq] in
+          let reqs = NpmFormula.override reqs [ocamlReq] in
           Package.Dependencies.NpmFormula reqs
         | Some ocamlVersion, Package.Dependencies.OpamFormula deps ->
           let req =

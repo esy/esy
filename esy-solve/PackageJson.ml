@@ -1,7 +1,5 @@
 open EsyPackageConfig
 
-module NpmFormula = PackageConfig.NpmFormula
-
 module V1 = struct
   module EsyPackageJson = struct
     type t = {
@@ -29,7 +27,7 @@ module V1 = struct
 
   module ResolutionsOfManifest = struct
     type t = {
-      resolutions : (PackageConfig.Resolutions.t [@default PackageConfig.Resolutions.empty]);
+      resolutions : (Resolutions.t [@default Resolutions.empty]);
     } [@@deriving of_yojson { strict = false }]
   end
 
@@ -108,7 +106,7 @@ module V1 = struct
 
     let%bind resolutions =
       match parseResolutions with
-      | false -> return PackageConfig.Resolutions.empty
+      | false -> return Resolutions.empty
       | true ->
         let%bind {ResolutionsOfManifest. resolutions} =
           Json.parseJsonWith ResolutionsOfManifest.of_yojson json

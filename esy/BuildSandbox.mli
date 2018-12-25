@@ -3,7 +3,7 @@ open EsyPackageConfig
 type t
 
 val make :
-  ?sandboxEnv:PackageConfig.Env.t
+  ?sandboxEnv:SandboxEnv.t
   -> Config.t
   -> EsyInstall.Solution.t
   -> EsyInstall.Installation.t

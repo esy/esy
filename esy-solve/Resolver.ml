@@ -1,8 +1,5 @@
 open EsyPackageConfig
 
-module Resolutions = PackageConfig.Resolutions
-module Resolution = PackageConfig.Resolution
-
 module PackageCache = Memoize.Make(struct
   type key = (string * Resolution.resolution)
   type value = (Package.t, string) result RunAsync.t
@@ -86,7 +83,7 @@ let emptyLink ~name ~path ~manifest () =
     overrides = Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = PackageConfig.NpmFormula.empty;
+    peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;
@@ -106,7 +103,7 @@ let emptyInstall ~name ~source () =
     overrides = Overrides.empty;
     dependencies = Package.Dependencies.NpmFormula [];
     devDependencies = Package.Dependencies.NpmFormula [];
-    peerDependencies = PackageConfig.NpmFormula.empty;
+    peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
     kind = Esy;

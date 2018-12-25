@@ -14,7 +14,7 @@ val make :
   -> mode:BuildSpec.mode
   -> platform:System.Platform.t
   -> arch:System.Arch.t
-  -> sandboxEnv:PackageConfig.Env.t
+  -> sandboxEnv:BuildEnv.t
   -> dependencies:t list
   -> unit
   -> t * Repr.t

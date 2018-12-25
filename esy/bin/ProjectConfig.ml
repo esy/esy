@@ -246,7 +246,7 @@ let computeSolutionChecksum projcfg =
   in
 
   let digest =
-    PackageConfig.Resolutions.digest sandbox.root.resolutions
+    Resolutions.digest sandbox.root.resolutions
     |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
     |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
   in
@@ -254,7 +254,7 @@ let computeSolutionChecksum projcfg =
   let%bind digest =
     let f digest resolution =
       let resolution =
-        match resolution.PackageConfig.Resolution.resolution with
+        match resolution.Resolution.resolution with
         | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
         | SourceOverride _ -> None
         | Version (Version.Source (Source.Link _)) -> Some resolution
@@ -265,7 +265,7 @@ let computeSolutionChecksum projcfg =
       | Some resolution ->
         begin match%bind EsySolve.Resolver.package ~resolution sandbox.resolver with
         | Error _ ->
-          errorf "unable to read package: %a" PackageConfig.Resolution.pp resolution
+          errorf "unable to read package: %a" Resolution.pp resolution
         | Ok pkg ->
           return Digestv.(add (string (showDependencies pkg.EsySolve.Package.dependencies)) digest)
         end
@@ -273,7 +273,7 @@ let computeSolutionChecksum projcfg =
     RunAsync.List.foldLeft
       ~f
       ~init:digest
-      (PackageConfig.Resolutions.entries sandbox.resolutions)
+      (Resolutions.entries sandbox.resolutions)
   in
 
   return (Digestv.toHex digest)
