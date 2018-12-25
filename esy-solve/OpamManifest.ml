@@ -241,7 +241,7 @@ let convertDependencies manifest =
 
   return (dependencies, devDependencies, optDependencies)
 
-let toPackage ?source ~name ~version manifest =
+let toInstallManifest ?source ~name ~version manifest =
   let open RunAsync.Syntax in
 
   let converted =

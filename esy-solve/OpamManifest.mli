@@ -38,7 +38,7 @@ val ofPath :
   -> t RunAsync.t
 (** Load opam manifest of path. *)
 
-val toPackage :
+val toInstallManifest :
   ?source:Source.t
   -> name : string
   -> version : Version.t

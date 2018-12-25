@@ -219,7 +219,7 @@ let versionMatchesDep (resolver : t) (dep : InstallManifest.Dep.t) name (version
 let packageOfSource ~name ~overrides (source : Source.t) resolver =
   let open RunAsync.Syntax in
 
-  let readPackage ~name ~source {EsyInstall.DistResolver. kind; filename = _; data; suggestedPackageName} =
+  let readManifest ~name ~source {EsyInstall.DistResolver. kind; filename = _; data; suggestedPackageName} =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Esy ->
@@ -243,7 +243,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
         let version = OpamPackage.Version.of_string "dev" in
         OpamManifest.ofString ~name:opamname ~version data
       ) in
-      OpamManifest.toPackage ~name ~version:(Version.Source source) ~source manifest
+      OpamManifest.toInstallManifest ~name ~version:(Version.Source source) ~source manifest
   in
 
   let pkg =
@@ -266,7 +266,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
     let%bind pkg =
       match manifest with
       | Some manifest ->
-        readPackage ~name ~source:resolvedSource manifest
+        readManifest ~name ~source:resolvedSource manifest
       | None ->
         if not (Overrides.isEmpty overrides)
         then
@@ -414,7 +414,7 @@ let package ~(resolution : Resolution.t) resolver =
           resolver.opamRegistry
       with
         | Some manifest ->
-          OpamManifest.toPackage
+          OpamManifest.toInstallManifest
             ~name:resolution.name
             ~version:(Version.Opam version)
             manifest
