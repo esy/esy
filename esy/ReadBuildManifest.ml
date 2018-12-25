@@ -5,88 +5,7 @@ module BuildType = struct
   include BuildType.AsInPackageJson
 end
 
-module Solution = EsyInstall.Solution
-module SandboxSpec = EsyInstall.SandboxSpec
-module Package = EsyInstall.Package
-module SourceType = SourceType
-module DistResolver = EsyInstall.DistResolver
-module Installation = EsyInstall.Installation
-
-let ensurehasOpamScope name =
-  match Astring.String.cut ~sep:"@opam/" name with
-  | Some ("", _) -> name
-  | Some _
-  | None -> "@opam/" ^ name
-
-(* aliases for opam types with to_yojson implementations *)
-module OpamTypes = struct
-  type filter = OpamTypes.filter
-
-  let filter_to_yojson filter = `String (OpamFilter.to_string filter)
-
-  type command = arg list * filter option [@@deriving to_yojson]
-  and arg = simple_arg * filter option
-  and simple_arg = OpamTypes.simple_arg =
-    | CString of string
-    | CIdent of string
-end
-
-type commands =
-  | OpamCommands of OpamTypes.command list
-  | EsyCommands of CommandList.t
-  | NoCommands
-  [@@deriving to_yojson]
-
-let pp_commands fmt cmds =
-  match cmds with
-  | OpamCommands cmds ->
-    let json = `List (List.map ~f:OpamTypes.command_to_yojson cmds) in
-    Fmt.pf fmt "OpamCommands %a" (Json.pp ~std:true) json
-  | EsyCommands cmds ->
-    let json = CommandList.to_yojson cmds in
-    Fmt.pf fmt "EsyCommands %a" (Json.pp ~std:true) json
-  | NoCommands ->
-    Fmt.pf fmt "NoCommands"
-
-type patch = Path.t * OpamTypes.filter option
-
-let patch_to_yojson (path, filter) =
-  let filter =
-    match filter with
-    | None -> `Null
-    | Some filter -> `String (OpamFilter.to_string filter)
-  in
-  `Assoc ["path", Path.to_yojson path; "filter", filter]
-
-let pp_patch fmt (path, _) = Fmt.pf fmt "Patch %a" Path.pp path
-
-type t = {
-  name : string option;
-  version : Version.t option;
-  buildType : BuildType.t;
-  build : commands;
-  buildDev : CommandList.t option;
-  install : commands;
-  patches : patch list;
-  substs : Path.t list;
-  exportedEnv : ExportedEnv.t;
-  buildEnv : BuildEnv.t;
-} [@@deriving to_yojson, show]
-
-let empty ~name ~version () = {
-  name;
-  version;
-  buildType = BuildType.OutOfSource;
-  build = EsyCommands [];
-  buildDev = None;
-  install = NoCommands;
-  patches = [];
-  substs = [];
-  exportedEnv = ExportedEnv.empty;
-  buildEnv = StringMap.empty;
-}
-
-let applyOverride (manifest : t) (override : Override.build) =
+let applyOverride (manifest : BuildManifest.t) (override : Override.build) =
 
   let {
     Override.
@@ -179,6 +98,7 @@ module EsyBuild = struct
     match pkgJson.esy with
     | Some m ->
       let build = {
+        BuildManifest.
         name = pkgJson.name;
         version = pkgJson.version;
         buildType = m.buildsInSource;
@@ -216,11 +136,17 @@ let parseOpam data =
     return (Some opam)
   )
 
+let ensurehasOpamScope name =
+  match Astring.String.cut ~sep:"@opam/" name with
+  | Some ("", _) -> name
+  | Some _
+  | None -> "@opam/" ^ name
+
 module OpamBuild = struct
 
   let buildOfOpam ~name ~version (opam : OpamFile.OPAM.t) =
-    let build = OpamCommands (OpamFile.OPAM.build opam) in
-    let install = OpamCommands (OpamFile.OPAM.install opam) in
+    let build = BuildManifest.OpamCommands (OpamFile.OPAM.build opam) in
+    let install = BuildManifest.OpamCommands (OpamFile.OPAM.install opam) in
 
     let patches =
       let patches = OpamFile.OPAM.patches opam in
@@ -244,6 +170,7 @@ module OpamBuild = struct
     in
 
     {
+      BuildManifest.
       name;
       version;
       buildType = BuildType.InSource;
@@ -333,42 +260,42 @@ let ofPath ?manifest (path : Path.t) =
       "reading package metadata from %a"
       Path.ppPretty path
 
-let ofInstallationLocation ~cfg (pkg : Package.t) (loc : Installation.location) =
+let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
   | Link { path; manifest; } ->
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
-      DistResolver.resolve
+      EsyInstall.DistResolver.resolve
         ~cfg:cfg.Config.installCfg
         ~sandbox:cfg.spec
         dist
     in
-    let overrides = Overrides.merge pkg.overrides res.DistResolver.overrides in
+    let overrides = Overrides.merge pkg.overrides res.EsyInstall.DistResolver.overrides in
     let%bind manifest =
-      begin match res.DistResolver.manifest with
+      begin match res.EsyInstall.DistResolver.manifest with
       | Some {kind = ManifestSpec.Esy; filename = _; data; suggestedPackageName = _;} ->
         RunAsync.ofRun (EsyBuild.ofData data)
       | Some {kind = ManifestSpec.Opam; filename = _; data; suggestedPackageName;} ->
         RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
       | None ->
-        let manifest = empty ~name:None ~version:None () in
+        let manifest = BuildManifest.empty ~name:None ~version:None () in
         return (Some manifest)
       end
     in
     begin match manifest with
     | None ->
       if Overrides.isEmpty overrides
-      then return (None, res.DistResolver.paths)
+      then return (None, res.EsyInstall.DistResolver.paths)
       else
-        let manifest = empty ~name:None ~version:None () in
+        let manifest = BuildManifest.empty ~name:None ~version:None () in
         let%bind manifest =
           Overrides.foldWithBuildOverrides
             ~f:applyOverride
             ~init:manifest
             overrides
         in
-        return (Some manifest, res.DistResolver.paths)
+        return (Some manifest, res.EsyInstall.DistResolver.paths)
     | Some manifest ->
       let%bind manifest =
         Overrides.foldWithBuildOverrides
@@ -376,11 +303,11 @@ let ofInstallationLocation ~cfg (pkg : Package.t) (loc : Installation.location) 
           ~init:manifest
           overrides
       in
-      return (Some manifest, res.DistResolver.paths)
+      return (Some manifest, res.EsyInstall.DistResolver.paths)
     end
 
   | Install { source = source, _; opam = _ } ->
-    begin match%bind Package.opam pkg with
+    begin match%bind EsyInstall.Package.opam pkg with
     | Some (name, version, opamfile) ->
       let manifest =
         OpamBuild.buildOfOpam
@@ -412,7 +339,7 @@ let ofInstallationLocation ~cfg (pkg : Package.t) (loc : Installation.location) 
           if Overrides.isEmpty pkg.overrides
           then return None
           else
-            let manifest = empty ~name:None ~version:None () in
+            let manifest = BuildManifest.empty ~name:None ~version:None () in
             let%bind manifest =
               Overrides.foldWithBuildOverrides
                 ~f:applyOverride

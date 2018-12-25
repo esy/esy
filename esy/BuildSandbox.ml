@@ -30,7 +30,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
 
     RunAsync.contextf (
       let%bind manifest, paths =
-        BuildManifest.ofInstallationLocation
+        ReadBuildManifest.ofInstallationLocation
           ~cfg
           pkg
           loc
