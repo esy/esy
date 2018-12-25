@@ -1,9 +1,12 @@
 open EsyPackageConfig
 
-module BuildType = struct
-  include BuildType
-  include BuildType.AsInPackageJson
-end
+let ofPackageJson (path : Path.t) =
+  let open RunAsync.Syntax in
+  let%bind json = Fs.readJsonFile path in
+  match OfPackageJson.buildManifest json with
+  | Ok (Some manifest) -> return (Some manifest, Path.Set.singleton path)
+  | Ok None -> return (None, Path.Set.empty)
+  | Error err -> Lwt.return (Error err)
 
 let applyOverride (manifest : BuildManifest.t) (override : Override.build) =
 
@@ -73,54 +76,6 @@ let applyOverride (manifest : BuildManifest.t) (override : Override.build) =
   in
 
   manifest
-
-module EsyBuild = struct
-  type packageJson = {
-    name: string option [@default None];
-    version: Version.t option [@default None];
-    esy: packageJsonEsy option [@default None];
-  } [@@deriving (of_yojson {strict = false})]
-
-  and packageJsonEsy = {
-    build: (CommandList.t [@default CommandList.empty]);
-    buildDev: (CommandList.t option [@default None]);
-    install: (CommandList.t [@default CommandList.empty]);
-    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
-    exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
-    buildEnv: (BuildEnv.t [@default BuildEnv.empty]);
-    sandboxEnv: (SandboxEnv.t [@default SandboxEnv.empty]);
-  } [@@deriving (of_yojson { strict = false })]
-
-  let ofData data =
-    let open Run.Syntax in
-    let%bind json = Json.parse data in
-    let%bind pkgJson = Json.parseJsonWith packageJson_of_yojson json in
-    match pkgJson.esy with
-    | Some m ->
-      let build = {
-        BuildManifest.
-        name = pkgJson.name;
-        version = pkgJson.version;
-        buildType = m.buildsInSource;
-        exportedEnv = m.exportedEnv;
-        buildEnv = m.buildEnv;
-        build = EsyCommands (m.build);
-        buildDev = m.buildDev;
-        install = EsyCommands (m.install);
-        patches = [];
-        substs = [];
-      } in
-      return (Some build)
-    | None -> return None
-
-  let ofFile (path : Path.t) =
-    let open RunAsync.Syntax in
-    let%bind data = Fs.readFile path in
-    match ofData data with
-    | Ok (Some manifest) -> return (Some manifest, Path.Set.singleton path)
-    | Ok None -> return (None, Path.Set.empty)
-    | Error err -> Lwt.return (Error err)
-end
 
 let parseOpam data =
   let open Run.Syntax in
@@ -228,7 +183,7 @@ let discoverManifest path =
       if%bind Fs.exists fname
       then
         match kind with
-        | ManifestSpec.Esy -> EsyBuild.ofFile fname
+        | ManifestSpec.Esy -> ofPackageJson fname
         | ManifestSpec.Opam -> OpamBuild.ofFile fname
       else tryLoad rest
   in
@@ -249,7 +204,7 @@ let ofPath ?manifest (path : Path.t) =
       begin match spec with
       | ManifestSpec.Esy, fname ->
         let path = Path.(path / fname) in
-        EsyBuild.ofFile path
+        ofPackageJson path
       | ManifestSpec.Opam, fname ->
         let path = Path.(path / fname) in
         OpamBuild.ofFile path
@@ -275,7 +230,11 @@ let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.I
     let%bind manifest =
       begin match res.EsyInstall.DistResolver.manifest with
       | Some {kind = ManifestSpec.Esy; filename = _; data; suggestedPackageName = _;} ->
-        RunAsync.ofRun (EsyBuild.ofData data)
+        RunAsync.ofRun (
+          let open Run.Syntax in
+          let%bind json = Json.parse data in
+          OfPackageJson.buildManifest json
+        )
       | Some {kind = ManifestSpec.Opam; filename = _; data; suggestedPackageName;} ->
         RunAsync.ofRun (OpamBuild.ofData ~nameFallback:(Some suggestedPackageName) data)
       | None ->

@@ -6,3 +6,7 @@ val installManifest :
   -> version:Version.t
   -> Json.t
   -> InstallManifest.t Run.t
+
+val buildManifest :
+  Json.t
+  -> BuildManifest.t option Run.t

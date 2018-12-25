@@ -193,6 +193,30 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
     return {solution; fetched;}
   | None -> errorf "project is missing a lock, run `esy install`"
 
+module OfPackageJson = struct
+  type esy = {
+    sandboxEnv : BuildEnv.t [@default BuildEnv.empty];
+  } [@@deriving of_yojson { strict = false }]
+
+  type t = {
+    esy : esy [@default {sandboxEnv = BuildEnv.empty}]
+  } [@@deriving of_yojson { strict = false }]
+
+end
+
+let readSandboxEnv spec =
+  let open RunAsync.Syntax in
+  match spec.EsyInstall.SandboxSpec.manifest with
+
+  | EsyInstall.SandboxSpec.Manifest (Esy, filename) ->
+    let%bind json = Fs.readJsonFile Path.(spec.path / filename) in
+    let%bind pkgJson = RunAsync.ofRun (Json.parseJsonWith OfPackageJson.of_yojson json) in
+    return pkgJson.OfPackageJson.esy.sandboxEnv
+
+  | EsyInstall.SandboxSpec.Manifest (Opam, _)
+  | EsyInstall.SandboxSpec.ManifestAggregate _ ->
+    return BuildEnv.empty
+
 let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
   let open RunAsync.Syntax in
   let path = EsyInstall.SandboxSpec.installationPath projcfg.spec in
@@ -218,7 +242,7 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
     if isActual
     then
       let%bind sandbox =
-        let%bind sandboxEnv = SandboxEnv.ofSandbox projcfg.spec in
+        let%bind sandboxEnv = readSandboxEnv projcfg.spec in
         let%bind sandbox, filesUsedForPlan =
           BuildSandbox.make
             ~sandboxEnv

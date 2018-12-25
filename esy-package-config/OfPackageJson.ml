@@ -1,4 +1,9 @@
-module V1 = struct
+module BuildType = struct
+  include BuildType
+  include BuildType.AsInPackageJson
+end
+
+module InstallManifestV1 = struct
   module EsyPackageJson = struct
     type t = {
       _dependenciesForNewEsyInstaller : NpmFormula.t option [@default None];
@@ -137,6 +142,45 @@ module V1 = struct
     }
 end
 
+module BuildManifestV1 = struct
+  type packageJson = {
+    name: string option [@default None];
+    version: Version.t option [@default None];
+    esy: packageJsonEsy option [@default None];
+  } [@@deriving (of_yojson {strict = false})]
+
+  and packageJsonEsy = {
+    build: (CommandList.t [@default CommandList.empty]);
+    buildDev: (CommandList.t option [@default None]);
+    install: (CommandList.t [@default CommandList.empty]);
+    buildsInSource: (BuildType.t [@default BuildType.OutOfSource]);
+    exportedEnv: (ExportedEnv.t [@default ExportedEnv.empty]);
+    buildEnv: (BuildEnv.t [@default BuildEnv.empty]);
+    sandboxEnv: (SandboxEnv.t [@default SandboxEnv.empty]);
+  } [@@deriving (of_yojson { strict = false })]
+
+  let ofJson json =
+    let open Run.Syntax in
+    let%bind pkgJson = Json.parseJsonWith packageJson_of_yojson json in
+    match pkgJson.esy with
+    | Some m ->
+      let build = {
+        BuildManifest.
+        name = pkgJson.name;
+        version = pkgJson.version;
+        buildType = m.buildsInSource;
+        exportedEnv = m.exportedEnv;
+        buildEnv = m.buildEnv;
+        build = EsyCommands (m.build);
+        buildDev = m.buildDev;
+        install = EsyCommands (m.install);
+        patches = [];
+        substs = [];
+      } in
+      return (Some build)
+    | None -> return None
+end
+
 module EsyVersion = struct
   let default = "1.0.0"
   let supported = [default;]
@@ -161,7 +205,15 @@ let installManifest
   ~version
   json =
   match EsyVersion.ofJson json with
-  | "1.0.0" -> V1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
+  | "1.0.0" -> InstallManifestV1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
+  | unknownVersion ->
+    Run.errorf
+      "unsupported esy version declaration found: %s must be one of %a"
+      unknownVersion Fmt.(list string) EsyVersion.supported
+
+let buildManifest json =
+  match EsyVersion.ofJson json with
+  | "1.0.0" -> BuildManifestV1.ofJson json
   | unknownVersion ->
     Run.errorf
       "unsupported esy version declaration found: %s must be one of %a"
