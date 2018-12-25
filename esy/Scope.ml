@@ -13,7 +13,7 @@ module PackageScope : sig
     id:BuildId.t
     -> name:string
     -> version:Version.t
-    -> sourceType : EsyLib.SourceType.t
+    -> sourceType : SourceType.t
     -> sourcePath : SandboxPath.t
     -> BuildManifest.t
     -> t
@@ -21,8 +21,8 @@ module PackageScope : sig
   val id : t -> BuildId.t
   val name : t -> string
   val version : t -> Version.t
-  val sourceType : t -> EsyLib.SourceType.t
-  val buildType : t -> EsyLib.BuildType.t
+  val sourceType : t -> SourceType.t
+  val buildType : t -> BuildType.t
 
   val storePath : t -> SandboxPath.t
   val rootPath : t -> SandboxPath.t
@@ -46,7 +46,7 @@ end = struct
     name : string;
     version : Version.t;
     sourcePath : SandboxPath.t;
-    sourceType : EsyLib.SourceType.t;
+    sourceType : SourceType.t;
     build : BuildManifest.t;
     exportedEnvLocal : (string * string) list;
     exportedEnvGlobal : (string * string) list;

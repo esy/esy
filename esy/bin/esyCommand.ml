@@ -691,7 +691,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let version = Chalk.grey ("@" ^ Version.show (Scope.version task.scope)) in
   let status =
     match Scope.sourceType task.scope, built with
-    | EsyLib.SourceType.Immutable, true ->
+    | SourceType.Immutable, true ->
       Chalk.green "[built]"
     | _, _ ->
       Chalk.blue "[build pending]"

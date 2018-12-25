@@ -13,7 +13,7 @@ val make :
   -> name:string
   -> version:Version.t
   -> mode:BuildSpec.mode
-  -> sourceType:EsyLib.SourceType.t
+  -> sourceType:SourceType.t
   -> sourcePath:SandboxPath.t
   -> EsyInstall.Package.t
   -> BuildManifest.t
@@ -27,8 +27,8 @@ val pkg : t -> EsyInstall.Package.t
 val id : t -> BuildId.t
 val name : t -> string
 val version : t -> Version.t
-val sourceType : t -> EsyLib.SourceType.t
-val buildType : t -> EsyLib.BuildType.t
+val sourceType : t -> SourceType.t
+val buildType : t -> BuildType.t
 val storePath : t -> SandboxPath.t
 val rootPath : t -> SandboxPath.t
 val sourcePath : t -> SandboxPath.t

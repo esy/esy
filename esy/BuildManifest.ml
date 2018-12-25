@@ -1,14 +1,14 @@
 open EsyPackageConfig
 
 module BuildType = struct
-  include EsyLib.BuildType
-  include EsyLib.BuildType.AsInPackageJson
+  include BuildType
+  include BuildType.AsInPackageJson
 end
 
 module Solution = EsyInstall.Solution
 module SandboxSpec = EsyInstall.SandboxSpec
 module Package = EsyInstall.Package
-module SourceType = EsyLib.SourceType
+module SourceType = SourceType
 module Command = PackageConfig.Command
 module CommandList = PackageConfig.CommandList
 module ExportedEnv = PackageConfig.ExportedEnv

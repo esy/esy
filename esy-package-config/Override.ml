@@ -7,8 +7,8 @@ type t =
     }
 
 module BuildType = struct
-  include EsyLib.BuildType
-  include EsyLib.BuildType.AsInPackageJson
+  include BuildType
+  include BuildType.AsInPackageJson
 end
 
 type build = {
