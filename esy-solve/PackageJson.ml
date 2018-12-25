@@ -123,14 +123,14 @@ module V1 = struct
     in
 
     return {
-      Package.
+      InstallManifest.
       name;
       version;
       originalVersion;
       originalName = pkgJson.name;
       overrides = Overrides.empty;
-      dependencies = Package.Dependencies.NpmFormula dependencies;
-      devDependencies = Package.Dependencies.NpmFormula devDependencies;
+      dependencies = InstallManifest.Dependencies.NpmFormula dependencies;
+      devDependencies = InstallManifest.Dependencies.NpmFormula devDependencies;
       peerDependencies = pkgJson.peerDependencies;
       optDependencies = pkgJson.optDependencies |> StringMap.keys |> StringSet.of_list;
       resolutions;

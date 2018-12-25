@@ -3,8 +3,8 @@ open EsyPackageConfig
 type t = {
   cfg : Config.t;
   spec : EsyInstall.SandboxSpec.t;
-  root : Package.t;
-  dependencies : Package.Dependencies.t;
+  root : InstallManifest.t;
+  dependencies : InstallManifest.Dependencies.t;
   resolutions : Resolutions.t;
   ocamlReq : Req.t option;
   resolver : Resolver.t;
@@ -22,7 +22,7 @@ let ofResolution cfg spec resolver resolution =
   | Ok root ->
     let root =
       let name =
-        match root.Package.originalName with
+        match root.InstallManifest.originalName with
         | Some name -> name
         | None -> EsyInstall.SandboxSpec.projectName spec
       in
@@ -30,16 +30,16 @@ let ofResolution cfg spec resolver resolution =
     in
 
     let dependencies, ocamlReq =
-      match root.Package.dependencies, root.devDependencies with
-      | Package.Dependencies.OpamFormula deps, Package.Dependencies.OpamFormula devDeps ->
-        let deps = Package.Dependencies.OpamFormula (deps @ devDeps) in
+      match root.InstallManifest.dependencies, root.devDependencies with
+      | InstallManifest.Dependencies.OpamFormula deps, InstallManifest.Dependencies.OpamFormula devDeps ->
+        let deps = InstallManifest.Dependencies.OpamFormula (deps @ devDeps) in
         deps, None
-      | Package.Dependencies.NpmFormula deps, Package.Dependencies.NpmFormula devDeps  ->
+      | InstallManifest.Dependencies.NpmFormula deps, InstallManifest.Dependencies.NpmFormula devDeps  ->
         let deps = NpmFormula.override deps devDeps in
         let ocamlReq = NpmFormula.find ~name:"ocaml" deps in
-        Package.Dependencies.NpmFormula deps, ocamlReq
-      | Package.Dependencies.NpmFormula _, _
-      | Package.Dependencies.OpamFormula _, _  ->
+        InstallManifest.Dependencies.NpmFormula deps, ocamlReq
+      | InstallManifest.Dependencies.NpmFormula _, _
+      | InstallManifest.Dependencies.OpamFormula _, _  ->
         failwith "mixing npm and opam dependencies"
     in
 
@@ -90,9 +90,9 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
             in
             let reqs = (Req.make ~name ~spec:anyOpam)::reqs in
             let devDeps =
-              match pkg.Package.devDependencies with
-              | Package.Dependencies.OpamFormula deps -> deps @ devDeps
-              | Package.Dependencies.NpmFormula _ -> devDeps
+              match pkg.InstallManifest.devDependencies with
+              | InstallManifest.Dependencies.OpamFormula deps -> deps @ devDeps
+              | InstallManifest.Dependencies.NpmFormula _ -> devDeps
             in
             return (resolutions, reqs, devDeps)
         in
@@ -100,7 +100,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
       in
       Resolver.setResolutions resolutions resolver;
       let root = {
-        Package.
+        InstallManifest.
         name = Path.basename spec.path;
         version = Version.Source (Dist NoSource);
         originalVersion = None;
@@ -110,8 +110,8 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
           opam = None;
         };
         overrides = Overrides.empty;
-        dependencies = Package.Dependencies.NpmFormula reqs;
-        devDependencies = Package.Dependencies.OpamFormula devDeps;
+        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
+        devDependencies = InstallManifest.Dependencies.OpamFormula devDeps;
         peerDependencies = NpmFormula.empty;
         optDependencies = StringSet.empty;
         resolutions;
@@ -123,7 +123,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
         root;
         resolutions = root.resolutions;
         ocamlReq = None;
-        dependencies = Package.Dependencies.NpmFormula reqs;
+        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
         resolver;
       }
   ) "loading root package metadata"

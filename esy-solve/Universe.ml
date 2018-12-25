@@ -1,6 +1,6 @@
 open EsyPackageConfig
 
-module Dependencies = Package.Dependencies
+module Dependencies = InstallManifest.Dependencies
 
 module CudfName : sig
 
@@ -27,7 +27,7 @@ end = struct
 end
 
 type t = {
-  pkgs : Package.t Version.Map.t StringMap.t;
+  pkgs : InstallManifest.t Version.Map.t StringMap.t;
   resolver : Resolver.t;
 }
 
@@ -39,7 +39,7 @@ let empty resolver = {
 }
 
 let add ~pkg (univ : t) =
-  let {Package. name; version; _} = pkg in
+  let {InstallManifest. name; version; _} = pkg in
   let versions =
     match StringMap.find_opt name univ.pkgs with
     | None -> Version.Map.empty
@@ -49,9 +49,9 @@ let add ~pkg (univ : t) =
   {univ with pkgs}
 
 let mem ~pkg (univ : t) =
-  match StringMap.find pkg.Package.name univ.pkgs with
+  match StringMap.find pkg.InstallManifest.name univ.pkgs with
   | None -> false
-  | Some versions -> Version.Map.mem pkg.Package.version versions
+  | Some versions -> Version.Map.mem pkg.InstallManifest.version versions
 
 let findVersion ~name ~version (univ : t) =
   match StringMap.find name univ.pkgs with
@@ -167,7 +167,7 @@ module CudfMapping = struct
     let version = CudfVersionMap.findVersionExn ~cudfName ~cudfVersion:cudf.version vmap in
     findVersionExn ~name ~version univ
 
-  let encodePkg (pkg : Package.t) (_univ, cudfUniv, vmap) =
+  let encodePkg (pkg : InstallManifest.t) (_univ, cudfUniv, vmap) =
     let name = pkg.name in
     let cudfName = CudfName.encode pkg.name in
     match CudfVersionMap.findCudfVersion ~name ~version:pkg.version vmap with
@@ -178,7 +178,7 @@ module CudfMapping = struct
       end
     | None -> None
 
-  let encodePkgExn (pkg : Package.t) (_univ, cudfUniv, vmap) =
+  let encodePkgExn (pkg : InstallManifest.t) (_univ, cudfUniv, vmap) =
     let name = pkg.name in
     let cudfName = CudfName.encode pkg.name in
     let cudfVersion = CudfVersionMap.findCudfVersionExn ~name ~version:pkg.version vmap in
@@ -200,11 +200,11 @@ module CudfMapping = struct
       let pkgToConstraint pkg =
         let cudfVersion =
           CudfVersionMap.findCudfVersionExn
-            ~name:pkg.Package.name
-            ~version:pkg.Package.version
+            ~name:pkg.InstallManifest.name
+            ~version:pkg.InstallManifest.version
             vmap
         in
-        CudfName.show (CudfName.encode pkg.Package.name), Some (`Eq, cudfVersion)
+        CudfName.show (CudfName.encode pkg.InstallManifest.name), Some (`Eq, cudfVersion)
       in
       List.map ~f:pkgToConstraint versionsMatched
 
@@ -214,7 +214,7 @@ module CudfMapping = struct
 
 end
 
-let toCudf ?(installed=Package.Set.empty) univ =
+let toCudf ?(installed=InstallManifest.Set.empty) univ =
   let cudfUniv = Cudf.empty_universe () in
   let cudfVersionMap = CudfVersionMap.make () in
 
@@ -229,7 +229,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
   in
 
   let updateVersionMap pkgs =
-    let f cudfVersion (pkg : Package.t) =
+    let f cudfVersion (pkg : InstallManifest.t) =
       CudfVersionMap.update
         cudfVersionMap
         pkg.name
@@ -239,7 +239,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
     List.iteri ~f pkgs;
   in
 
-  let encodeOpamDep (dep : Package.Dep.t) =
+  let encodeOpamDep (dep : InstallManifest.Dep.t) =
     let versions = findVersions ~name:dep.name univ in
     if not (seen dep.name) then (
       markAsSeen dep.name;
@@ -249,8 +249,8 @@ let toCudf ?(installed=Package.Set.empty) univ =
       Resolver.versionMatchesDep
         univ.resolver
         dep
-        pkg.Package.name
-        pkg.Package.version
+        pkg.InstallManifest.name
+        pkg.InstallManifest.version
     in
     CudfMapping.encodeDepExn
       ~name:dep.name
@@ -268,8 +268,8 @@ let toCudf ?(installed=Package.Set.empty) univ =
       Resolver.versionMatchesReq
         univ.resolver
         req
-        pkg.Package.name
-        pkg.Package.version
+        pkg.InstallManifest.name
+        pkg.InstallManifest.version
     in
     CudfMapping.encodeDepExn
       ~name:req.name
@@ -279,13 +279,13 @@ let toCudf ?(installed=Package.Set.empty) univ =
 
   let encodeDeps (deps : Dependencies.t) =
     match deps with
-    | Package.Dependencies.OpamFormula deps ->
+    | InstallManifest.Dependencies.OpamFormula deps ->
       let f deps =
         let f deps dep = deps @ (encodeOpamDep dep) in
         List.fold_left ~f ~init:[] deps
       in
       List.map ~f deps
-    | Package.Dependencies.NpmFormula reqs ->
+    | InstallManifest.Dependencies.NpmFormula reqs ->
       let reqs =
         let f (req : Req.t) = StringMap.mem req.name univ.pkgs in
         List.filter ~f reqs
@@ -293,7 +293,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       List.map ~f:encodeNpmReq reqs
   in
 
-  let encodePkg pkgSize (pkg : Package.t) =
+  let encodePkg pkgSize (pkg : InstallManifest.t) =
     let cudfVersion =
       CudfVersionMap.findCudfVersionExn
         ~name:pkg.name
@@ -309,7 +309,7 @@ let toCudf ?(installed=Package.Set.empty) univ =
       package = CudfName.show cudfName;
       version = cudfVersion;
       conflicts = [CudfName.show cudfName, None];
-      installed = Package.Set.mem pkg installed;
+      installed = InstallManifest.Set.mem pkg installed;
       pkg_extra = [
         "staleness", `Int staleness;
         "original-version", `String (Version.show pkg.version)

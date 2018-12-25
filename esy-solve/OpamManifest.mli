@@ -43,5 +43,5 @@ val toPackage :
   -> name : string
   -> version : Version.t
   -> t
-  -> (Package.t, string) result RunAsync.t
+  -> (InstallManifest.t, string) result RunAsync.t
 (** Convert opam manifest to a package. *)

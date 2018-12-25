@@ -1,5 +1,3 @@
-open EsyPackageConfig
-
 module String = Astring.String
 
 [@@@ocaml.warning "-32"]

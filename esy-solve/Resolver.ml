@@ -2,7 +2,7 @@ open EsyPackageConfig
 
 module PackageCache = Memoize.Make(struct
   type key = (string * Resolution.resolution)
-  type value = (Package.t, string) result RunAsync.t
+  type value = (InstallManifest.t, string) result RunAsync.t
 end)
 
 module SourceCache = Memoize.Make(struct
@@ -71,7 +71,7 @@ type t = {
 
 let emptyLink ~name ~path ~manifest () =
   {
-    Package.
+    InstallManifest.
     name;
     version = Version.Source (Source.Link {path; manifest;});
     originalVersion = None;
@@ -81,8 +81,8 @@ let emptyLink ~name ~path ~manifest () =
       manifest = None;
     };
     overrides = Overrides.empty;
-    dependencies = Package.Dependencies.NpmFormula [];
-    devDependencies = Package.Dependencies.NpmFormula [];
+    dependencies = InstallManifest.Dependencies.NpmFormula [];
+    devDependencies = InstallManifest.Dependencies.NpmFormula [];
     peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
@@ -91,7 +91,7 @@ let emptyLink ~name ~path ~manifest () =
 
 let emptyInstall ~name ~source () =
   {
-    Package.
+    InstallManifest.
     name;
     version = Version.Source (Dist source);
     originalVersion = None;
@@ -101,8 +101,8 @@ let emptyInstall ~name ~source () =
       opam = None;
     };
     overrides = Overrides.empty;
-    dependencies = Package.Dependencies.NpmFormula [];
-    devDependencies = Package.Dependencies.NpmFormula [];
+    dependencies = InstallManifest.Dependencies.NpmFormula [];
+    devDependencies = InstallManifest.Dependencies.NpmFormula [];
     peerDependencies = NpmFormula.empty;
     optDependencies = StringSet.empty;
     resolutions = Resolutions.empty;
@@ -192,9 +192,9 @@ let versionMatchesReq (resolver : t) (req : Req.t) name (version : Version.t) =
   in
   req.name = name && (checkResolutions () || checkVersion ())
 
-let versionMatchesDep (resolver : t) (dep : Package.Dep.t) name (version : Version.t) =
+let versionMatchesDep (resolver : t) (dep : InstallManifest.Dep.t) name (version : Version.t) =
   let checkVersion () =
-    match version, dep.Package.Dep.req with
+    match version, dep.InstallManifest.Dep.req with
 
     | Version.Npm version, Npm spec ->
       SemverVersion.Constraint.matches ~version spec
@@ -282,7 +282,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
 
     let pkg =
       match pkg with
-      | Ok pkg -> Ok {pkg with Package.overrides}
+      | Ok pkg -> Ok {pkg with InstallManifest.overrides}
       | err -> err
     in
 
@@ -304,7 +304,7 @@ let applyOverride pkg (override : Override.install) =
 
   let applyNpmFormulaOverride dependencies override =
     match dependencies with
-    | Package.Dependencies.NpmFormula formula ->
+    | InstallManifest.Dependencies.NpmFormula formula ->
       let formula =
         let dependencies =
           let f map req = StringMap.add req.Req.name req map in
@@ -315,12 +315,12 @@ let applyOverride pkg (override : Override.install) =
         in
         StringMap.values dependencies
       in
-      Package.Dependencies.NpmFormula formula
-    | Package.Dependencies.OpamFormula formula ->
+      InstallManifest.Dependencies.NpmFormula formula
+    | InstallManifest.Dependencies.OpamFormula formula ->
       (* remove all terms which we override *)
       let formula =
         let filter dep =
-          match StringMap.find_opt dep.Package.Dep.name override with
+          match StringMap.find_opt dep.InstallManifest.Dep.name override with
           | None -> true
           | Some _ -> false
         in
@@ -338,34 +338,34 @@ let applyOverride pkg (override : Override.install) =
               begin match req.Req.spec with
               | VersionSpec.Npm formula ->
                 let f (c : SemverVersion.Constraint.t) =
-                  {Package.Dep. name = req.name; req = Npm c}
+                  {InstallManifest.Dep. name = req.name; req = Npm c}
                 in
                 let formula = SemverVersion.Formula.ofDnfToCnf formula in
                 (List.map ~f:(List.map ~f) formula) @ edits
               | VersionSpec.Opam formula ->
                 let f (c : OpamPackageVersion.Constraint.t) =
-                  {Package.Dep. name = req.name; req = Opam c}
+                  {InstallManifest.Dep. name = req.name; req = Opam c}
                 in
                 (List.map ~f:(List.map ~f) formula) @ edits
               | VersionSpec.NpmDistTag _ ->
                 failwith "cannot override opam with npm dist tag"
               | VersionSpec.Source spec ->
-                [{Package.Dep. name = req.name; req = Source spec}]::edits
+                [{InstallManifest.Dep. name = req.name; req = Source spec}]::edits
               end
           in
           StringMap.fold f override []
         in
         formula @ edits
       in
-      Package.Dependencies.OpamFormula formula
+      InstallManifest.Dependencies.OpamFormula formula
   in
 
   let pkg =
     match dependencies with
     | Some override -> {
         pkg with
-        Package.
-        dependencies = applyNpmFormulaOverride pkg.Package.dependencies override;
+        InstallManifest.
+        dependencies = applyNpmFormulaOverride pkg.InstallManifest.dependencies override;
       }
     | None -> pkg
   in
@@ -373,8 +373,8 @@ let applyOverride pkg (override : Override.install) =
     match devDependencies with
     | Some override -> {
         pkg with
-        Package.
-        devDependencies = applyNpmFormulaOverride pkg.Package.devDependencies override;
+        InstallManifest.
+        devDependencies = applyNpmFormulaOverride pkg.InstallManifest.devDependencies override;
       }
     | None -> pkg
   in
@@ -385,7 +385,7 @@ let applyOverride pkg (override : Override.install) =
         let f = Resolutions.add in
         StringMap.fold f resolutions Resolutions.empty
       in
-      {pkg with Package.resolutions;}
+      {pkg with InstallManifest.resolutions;}
     | None -> pkg
   in
   pkg
@@ -612,7 +612,7 @@ let resolve ?(fullMetadata=false) ~(name : string) ?(spec : VersionSpec.t option
     let spec =
       match spec with
       | None ->
-        if Package.isOpamPackageName name
+        if InstallManifest.isOpamPackageName name
         then VersionSpec.Opam [[OpamPackageVersion.Constraint.ANY]]
         else VersionSpec.Npm [[SemverVersion.Constraint.ANY]]
       | Some spec -> spec

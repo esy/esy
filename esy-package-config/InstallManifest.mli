@@ -1,5 +1,3 @@
-open EsyPackageConfig
-
 type 'a disj = 'a list
 type 'a conj = 'a list
 

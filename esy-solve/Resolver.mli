@@ -36,7 +36,7 @@ val resolve :
 val package :
   resolution:Resolution.t
   -> t
-  -> (Package.t, string) result RunAsync.t
+  -> (InstallManifest.t, string) result RunAsync.t
 
 val versionMatchesReq : t -> Req.t -> string -> Version.t -> bool
-val versionMatchesDep : t -> Package.Dep.t -> string -> Version.t -> bool
+val versionMatchesDep : t -> InstallManifest.Dep.t -> string -> Version.t -> bool

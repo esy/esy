@@ -33,9 +33,9 @@ val make :
 
 (** Add dependencies to the solver *)
 val add :
-  dependencies:Package.Dependencies.t
+  dependencies:InstallManifest.Dependencies.t
   -> t
-  -> (t * Package.Dependencies.t) RunAsync.t
+  -> (t * InstallManifest.Dependencies.t) RunAsync.t
 
 (**
  * Solve dependencies for the root

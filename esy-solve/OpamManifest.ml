@@ -1,7 +1,7 @@
 open EsyPackageConfig
 
 let esySubstsDep = {
-  Package.Dep.
+  InstallManifest.Dep.
   name = "@esy-ocaml/substs";
   req = Npm SemverVersion.Constraint.ANY;
 }
@@ -106,7 +106,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
       | Some (`Geq, v) ->
         let%bind v = ocamlOpamVersionToOcamlNpmVersion v in return (C.GTE v)
     in
-    return {Package.Dep. name; req = Npm req}
+    return {InstallManifest.Dep. name; req = Npm req}
   | name ->
     let module C = OpamPackageVersion.Constraint in
     let req =
@@ -119,7 +119,7 @@ let convertOpamAtom ((name, relop) : OpamFormula.atom) =
       | Some (`Leq, v) -> C.LTE v
       | Some (`Geq, v) -> C.GTE v
     in
-    return {Package.Dep. name; req = Opam req}
+    return {InstallManifest.Dep. name; req = Opam req}
 
 let convertOpamFormula f =
   let cnf = OpamFormula.to_cnf f in
@@ -214,7 +214,7 @@ let convertDependencies manifest =
           [esySubstsDep];
         ]
     in
-    return (Package.Dependencies.OpamFormula formula)
+    return (InstallManifest.Dependencies.OpamFormula formula)
   in
 
   let%bind devDependencies =
@@ -222,7 +222,7 @@ let convertDependencies manifest =
       filterAndConvertOpamFormula
         ~build:false ~post:false ~test:true ~doc:true ~dev:true
         (OpamFile.OPAM.depends manifest.opam)
-    in return (Package.Dependencies.OpamFormula formula)
+    in return (InstallManifest.Dependencies.OpamFormula formula)
   in
 
   let%bind optDependencies =
@@ -282,12 +282,12 @@ let toPackage ?source ~name ~version manifest =
     in
 
     return (Ok {
-      Package.
+      InstallManifest.
       name;
       version;
       originalVersion = None;
       originalName = None;
-      kind = Package.Esy;
+      kind = InstallManifest.Esy;
       source;
       overrides;
       dependencies;

@@ -208,8 +208,8 @@ let computeSolutionChecksum projcfg =
       let ppDisj fmt disj =
         match disj with
         | [] -> Fmt.unit "true" fmt ()
-        | [dep] -> EsySolve.Package.Dep.pp fmt dep
-        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") EsySolve.Package.Dep.pp) deps
+        | [dep] -> InstallManifest.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") InstallManifest.Dep.pp) deps
       in
       Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
     in
@@ -237,11 +237,11 @@ let computeSolutionChecksum projcfg =
     in
 
     match deps with
-    | EsySolve.Package.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
-    | EsySolve.Package.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+    | InstallManifest.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | InstallManifest.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
   in
 
-  let showDependencies (deps : EsySolve.Package.Dependencies.t) =
+  let showDependencies (deps : InstallManifest.Dependencies.t) =
     Format.asprintf "%a" ppDependencies deps
   in
 
@@ -267,7 +267,7 @@ let computeSolutionChecksum projcfg =
         | Error _ ->
           errorf "unable to read package: %a" Resolution.pp resolution
         | Ok pkg ->
-          return Digestv.(add (string (showDependencies pkg.EsySolve.Package.dependencies)) digest)
+          return Digestv.(add (string (showDependencies pkg.InstallManifest.dependencies)) digest)
         end
     in
     RunAsync.List.foldLeft

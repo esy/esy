@@ -7,4 +7,4 @@ val ofJson :
   -> name:string
   -> version:Version.t
   -> Json.t
-  -> Package.t Run.t
+  -> InstallManifest.t Run.t

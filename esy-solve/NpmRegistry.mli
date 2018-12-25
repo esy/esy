@@ -25,4 +25,4 @@ val package :
   -> version:SemverVersion.Version.t
   -> t
   -> unit
-  -> Package.t RunAsync.t
+  -> InstallManifest.t RunAsync.t

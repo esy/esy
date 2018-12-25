@@ -9,7 +9,7 @@ type t = {
   spec : EsyInstall.SandboxSpec.t;
 
   (** Root package. *)
-  root : Package.t;
+  root : InstallManifest.t;
 
   (**
    * A set of dependencies to be installed for the sandbox.
@@ -17,7 +17,7 @@ type t = {
    * Such dependencies are different than of root.dependencies as sandbox
    * aggregates both regular dependencies and devDependencies.
    *)
-  dependencies : Package.Dependencies.t;
+  dependencies : InstallManifest.Dependencies.t;
 
   (** A set of resolutions. *)
   resolutions : Resolutions.t;

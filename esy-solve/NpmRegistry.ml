@@ -19,7 +19,7 @@ end)
 
 module PackageCache = Memoize.Make(struct
   type key = string * SemverVersion.Version.t
-  type value = Package.t RunAsync.t
+  type value = InstallManifest.t RunAsync.t
 end)
 
 type t = {

@@ -902,7 +902,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
 
   let%bind solveSandbox =
     let addReqs origDeps =
-      let open Package.Dependencies in
+      let open InstallManifest.Dependencies in
       match origDeps with
       | NpmFormula prevReqs -> return (NpmFormula (reqs @ prevReqs))
       | OpamFormula _ -> error opamError
@@ -1118,7 +1118,7 @@ let show _asJson req (projcfg : ProjectConfig.t) =
         ) "resolving metadata %a" Resolution.pp resolution
       in
       let%bind pkg = RunAsync.ofStringError pkg in
-      Package.to_yojson pkg
+      InstallManifest.to_yojson pkg
       |> Yojson.Safe.pretty_to_string
       |> print_endline;
       return ()
