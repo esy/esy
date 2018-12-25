@@ -29,7 +29,7 @@ describe('build errors', function() {
     const err = await expectAndReturnRejection(p.esy('install'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      error: expected object
+      error: reading "dependencies": expected an object
         reading package metadata from link:./package.json
         loading root package metadata
       esy: exiting due to errors above
@@ -59,7 +59,7 @@ describe('build errors', function() {
     const err = await expectAndReturnRejection(p.esy('install'));
     expect(err.stderr).toMatch(
       outdent`
-      error: expected object
+      error: reading "dependencies": expected an object
         reading package metadata from path:dep
         resolving metadata dep@path:dep
       esy: exiting due to errors above

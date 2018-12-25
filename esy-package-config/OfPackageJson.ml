@@ -94,6 +94,10 @@ module InstallManifestV1 = struct
         dependencies
     in
 
+    let dependencies =
+      let f req = req.Req.name <> "esy" in
+      List.filter ~f dependencies
+    in
     let%bind dependencies = rebaseDependencies source dependencies in
 
     let%bind devDependencies =
@@ -182,20 +186,68 @@ module BuildManifestV1 = struct
 end
 
 module EsyVersion = struct
-  let default = "1.0.0"
+  type t = int
+
+  let default = 1
   let supported = [default;]
 
-  type t =
-    {dependencies : dependencies [@default {esy = default;}]}
-    [@@deriving of_yojson]
-  and dependencies =
-    {esy : string [@default default]}
+  let pp fmt version =
+    Fmt.pf fmt "%i.0.0" version
 
-  let ofJson json =
-    match Json.parseJsonWith of_yojson json with
-    | Ok manifest -> manifest.dependencies.esy
-    | Error _ -> default
+  let of_yojson json =
+    let open Result.Syntax in
+    let%bind constr = Json.Decode.string json in
+    let%bind constr = SemverVersion.Formula.parse constr in
+    match constr with
+    | [[
+        SemverVersion.Constraint.EQ {
+          SemverVersion.Version.
+          major = v;
+          minor = 0;
+          patch = 0;
+          prerelease = [];
+          build = []
+        }
+      ]] -> return v
+    | invalid ->
+      errorf {|invalid "esy" version: %a must be one of: %a|}
+        SemverVersion.Formula.DNF.pp invalid
+        Fmt.(list pp) supported
+
+  module OfPackageJson = struct
+    type dependencies = {
+      esy : t [@default default]
+    }
+
+    let dependencies_of_yojson json =
+      let open Result.Syntax in
+      match json with
+      | `Assoc items ->
+        let f (key, _json) = key = "esy" in
+        begin match List.find_opt ~f items with
+        | Some (_, json) ->
+          let%bind esy = of_yojson json in
+          return {esy;}
+        | None -> return {esy = default;}
+        end
+      | _ -> errorf {|reading "dependencies": expected an object|}
+
+    type manifest = {
+      dependencies : dependencies [@default {esy = default;}]
+    } [@@deriving of_yojson { strict = false; }]
+
+    let parse json =
+      match Json.parseJsonWith manifest_of_yojson json with
+      | Ok manifest -> Ok manifest.dependencies.esy
+      | Error err -> Error err
+  end
 end
+
+let unknownEsyVersionError version =
+  Run.errorf
+    {|unsupported "esy" version: %a must be one of: %a|}
+    EsyVersion.pp version
+    Fmt.(list EsyVersion.pp) EsyVersion.supported
 
 let installManifest
   ?(parseResolutions=false)
@@ -204,17 +256,15 @@ let installManifest
   ~name
   ~version
   json =
-  match EsyVersion.ofJson json with
-  | "1.0.0" -> InstallManifestV1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
-  | unknownVersion ->
-    Run.errorf
-      "unsupported esy version declaration found: %s must be one of %a"
-      unknownVersion Fmt.(list string) EsyVersion.supported
+  let open Run.Syntax in
+  let%bind esyVersion = EsyVersion.OfPackageJson.parse json in
+  match esyVersion with
+  | 1 -> InstallManifestV1.ofJson ~parseResolutions ~parseDevDependencies ?source ~name ~version json
+  | v -> unknownEsyVersionError v
 
 let buildManifest json =
-  match EsyVersion.ofJson json with
-  | "1.0.0" -> BuildManifestV1.ofJson json
-  | unknownVersion ->
-    Run.errorf
-      "unsupported esy version declaration found: %s must be one of %a"
-      unknownVersion Fmt.(list string) EsyVersion.supported
+  let open Run.Syntax in
+  let%bind esyVersion = EsyVersion.OfPackageJson.parse json in
+  match esyVersion with
+  | 1 -> BuildManifestV1.ofJson json
+  | v -> unknownEsyVersionError v

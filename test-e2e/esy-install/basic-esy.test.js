@@ -1,5 +1,6 @@
 /* @flow */
 
+const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
@@ -299,6 +300,81 @@ describe(`Basic tests`, () => {
         },
       },
     });
+  });
+
+  test(`it should accept 1.0.0 esy config specified explcitly`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          [`one-fixed-dep`]: `1.0.0`,
+          esy: '1.0.0',
+        },
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.esy(`install`);
+
+    await expect(
+      p.runJavaScriptInNodeAndReturnJson(`require('one-fixed-dep')`),
+    ).resolves.toMatchObject({
+      name: `one-fixed-dep`,
+      version: `1.0.0`,
+      dependencies: {
+        [`no-deps`]: {
+          name: `no-deps`,
+          version: `1.0.0`,
+        },
+      },
+    });
+  });
+
+  test(`it should fail on incorrect esy version in dependencies (constraint)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          [`one-fixed-dep`]: `1.0.0`,
+          esy: '^3.0.0',
+        },
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await expect(p.esy(`install`)).rejects.toThrowError(
+      outdent`
+        error: invalid "esy" version: ^3.0.0 must be one of: 1.0.0
+          reading package metadata from link:./package.json
+          loading root package metadata
+        esy: exiting due to errors above
+      `,
+    );
+  });
+
+  test(`it should fail on incorrect esy version in dependencies (incorrect version)`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {
+          [`one-fixed-dep`]: `1.0.0`,
+          esy: '3.4.5',
+        },
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await expect(p.esy(`install`)).rejects.toThrowError(
+      outdent`
+        error: invalid "esy" version: =3.4.5 must be one of: 1.0.0
+          reading package metadata from link:./package.json
+          loading root package metadata
+        esy: exiting due to errors above
+      `,
+    );
   });
 
   it('should re-install if package dependencies were changed', async () => {
