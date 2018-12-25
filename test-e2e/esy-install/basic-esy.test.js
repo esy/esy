@@ -4,6 +4,7 @@ const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
+const {test, isWindows} = helpers;
 
 describe(`Basic tests`, () => {
   test(`it should correctly install a single dependency that contains no sub-dependencies`, async () => {
@@ -331,7 +332,7 @@ describe(`Basic tests`, () => {
     });
   });
 
-  test(`it should fail on incorrect esy version in dependencies (constraint)`, async () => {
+  test.disableIf(isWindows)(`it should fail on incorrect esy version in dependencies (constraint)`, async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -354,7 +355,7 @@ describe(`Basic tests`, () => {
     );
   });
 
-  test(`it should fail on incorrect esy version in dependencies (incorrect version)`, async () => {
+  test.disableIf(isWindows)(`it should fail on incorrect esy version in dependencies (incorrect version)`, async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
