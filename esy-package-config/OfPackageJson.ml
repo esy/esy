@@ -1,5 +1,3 @@
-open EsyPackageConfig
-
 module V1 = struct
   module EsyPackageJson = struct
     type t = {
@@ -155,7 +153,7 @@ module EsyVersion = struct
     | Error _ -> default
 end
 
-let ofJson
+let installManifest
   ?(parseResolutions=false)
   ?(parseDevDependencies=false)
   ?source

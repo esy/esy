@@ -1,6 +1,4 @@
-open EsyPackageConfig
-
-val ofJson :
+val installManifest :
   ?parseResolutions:bool
   -> ?parseDevDependencies:bool
   -> ?source:Source.t

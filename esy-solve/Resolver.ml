@@ -223,10 +223,10 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
     let open RunAsync.Syntax in
     match kind with
     | ManifestSpec.Esy ->
-      let%bind pkg = RunAsync.ofRun (
+      let%bind manifest = RunAsync.ofRun (
         let open Run.Syntax in
         let%bind json = Json.parse data in
-        PackageJson.ofJson
+        OfPackageJson.installManifest
           ~parseResolutions:true
           ~parseDevDependencies:true
           ~name
@@ -234,7 +234,7 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
           ~source
           json
       ) in
-      return (Ok pkg)
+      return (Ok manifest)
     | ManifestSpec.Opam ->
       let%bind opamname = RunAsync.ofRun (
         ensureOpamName suggestedPackageName
