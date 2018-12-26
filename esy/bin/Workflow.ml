@@ -1,8 +1,7 @@
 open Esy
 
 type t = {
-  buildspecForDev : BuildSpec.t;
-  buildspecForRelease : BuildSpec.t;
+  buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;
@@ -10,30 +9,22 @@ type t = {
 
 let defaultDepspec = DepSpec.(dependencies self)
 let defaultDepspecForLink = DepSpec.(dependencies self)
-let defaultDepspecForRoot = DepSpec.(dependencies self)
+let defaultDepspecForRootForRelease = DepSpec.(dependencies self)
+let defaultDepspecForRootForDev = DepSpec.(dependencies self + devDependencies self)
 
 let default =
 
   (* This defines how project is built. *)
-  let buildspecForDev = {
+  let buildspec = {
     BuildSpec.
     (* build all other packages using "build" command with dependencies in the env *)
-    build = {mode = Build; deps = defaultDepspec};
-    (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildLink = Some {mode = BuildDev; deps = defaultDepspecForLink};
-    (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildRoot = Some {mode = BuildDev; deps = defaultDepspecForRoot};
-  } in
+    build = defaultDepspec;
+    (* build linked packages using "build" command with dependencies in the env *)
+    buildLink = Some defaultDepspecForLink;
 
-  let buildspecForRelease =
-    let build = {BuildSpec.mode = Build; deps = defaultDepspec} in
-    {
-      BuildSpec.
-      build = build;
-      buildLink = Some build;
-      buildRoot = Some build;
-    }
-  in
+    buildRootForRelease = Some defaultDepspecForRootForRelease;
+    buildRootForDev = Some defaultDepspecForRootForDev;
+  } in
 
   (* This defines environment for "esy x CMD" invocation. *)
   let execenvspec = {
@@ -71,4 +62,4 @@ let default =
     augmentDeps = None;
   } in
 
-  {buildspecForDev; buildspecForRelease; execenvspec; commandenvspec; buildenvspec;}
+  {buildspec; execenvspec; commandenvspec; buildenvspec;}

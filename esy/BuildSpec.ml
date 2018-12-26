@@ -1,12 +1,14 @@
+open EsyPackageConfig
 module Package = EsyInstall.Package
 
 type t = {
-  build : build;
-  buildLink : build option;
-  buildRoot : build option;
+  build : DepSpec.t;
+  buildLink : DepSpec.t option;
+  buildRootForRelease : DepSpec.t option;
+  buildRootForDev : DepSpec.t option;
 }
 
-and build = {
+type build = {
   mode : mode;
   deps : DepSpec.t;
 }
@@ -32,9 +34,17 @@ let mode_of_yojson = function
   | `String "buildDev" -> Ok BuildDev
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
-let classify spec solution pkg =
+let classify spec mode solution pkg buildManifest =
   let root = EsyInstall.Solution.root solution in
   let isRoot = Package.compare root pkg = 0 in
+  let commands = buildManifest.BuildManifest.build in
+  (* force Build mode if no build commands is provided *)
+  let mode, commands =
+    match mode, buildManifest.BuildManifest.buildDev with
+    | Build, _ -> mode, commands
+    | BuildDev, None -> Build, commands
+    | BuildDev, Some commands -> BuildDev, BuildManifest.EsyCommands commands
+  in
   let kind =
     if isRoot
     then `Root
@@ -42,12 +52,29 @@ let classify spec solution pkg =
     | Link _ -> `Link
     | Install _ -> `All
   in
-  match kind, spec.buildRoot, spec.buildLink with
-  | `All,     _,              _               -> spec.build
-
-  | `Link,    _,              None            -> spec.build
-  | `Link,    _,              Some buildLink  -> buildLink
-
-  | `Root,    Some buildRoot, _               -> buildRoot
-  | `Root,    None,           Some buildLink  -> buildLink
-  | `Root,    None,           None            -> spec.build
+  let build =
+    match kind with
+    | `All -> spec.build
+    | `Link ->
+      begin match spec.buildLink with
+      | None -> spec.build
+      | Some build -> build
+      end
+    | `Root ->
+      begin match mode with
+      | BuildDev ->
+        begin match spec.buildRootForDev, spec.buildRootForRelease, spec.buildLink with
+        | Some build, _,          _     -> build
+        | None,       Some build, _     -> build
+        | None,       None, Some build  -> build
+        | None,       None,      None   -> spec.build
+        end
+      | Build ->
+        begin match spec.buildRootForRelease, spec.buildLink with
+        | Some build, _     -> build
+        | None, Some build  -> build
+        | None, None        -> spec.build
+        end
+      end
+  in
+  {deps = build; mode;}, commands

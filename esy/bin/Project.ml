@@ -32,19 +32,11 @@ module TermPp = struct
       (ppFlag "--include-esy-introspection-env") includeEsyIntrospectionEnv
       (ppFlag "--include-build-env") includeBuildEnv
 
-  let ppMode fmt mode =
-    match mode with
-    | BuildSpec.Build -> Fmt.pf fmt "--release \\@;"
-    | BuildSpec.BuildDev -> Fmt.pf fmt ""
-
   let ppBuildSpec fmt buildspec =
     match buildspec.BuildSpec.buildLink with
     | None -> Fmt.string fmt ""
-    | Some {mode; deps} ->
-      Fmt.pf fmt
-        "%a%a"
-        ppMode mode
-        (ppOption "--link-depspec" DepSpec.pp) (Some deps)
+    | Some deps ->
+      Fmt.pf fmt "%a" (ppOption "--link-depspec" DepSpec.pp) (Some deps)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
@@ -301,8 +293,9 @@ module WithWorkflow = struct
       let open Run.Syntax in
       let%bind plan =
         BuildSandbox.makePlan
+          workflow.buildspec
+          BuildSpec.BuildDev
           sandbox
-          workflow.buildspecForDev
       in
       let pkg = EsyInstall.Solution.root solution in
       let root =
@@ -348,11 +341,13 @@ module WithWorkflow = struct
       let%bind commandEnv = RunAsync.ofRun (
         let open Run.Syntax in
         let header = "# Command environment" in
-        let%bind commandEnv = BuildSandbox.env
-          configured.workflow.commandenvspec
-          configured.workflow.buildspecForDev
-          fetched.sandbox
-          root.Package.id
+        let%bind commandEnv =
+          BuildSandbox.env
+            configured.workflow.commandenvspec
+            configured.workflow.buildspec
+            BuildSpec.BuildDev
+            fetched.sandbox
+            root.Package.id
         in
         let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
         Environment.renderToShellSource ~header commandEnv
@@ -508,13 +503,14 @@ let printEnv
   (proj : _ project)
   envspec
   buildspec
+  mode
   asJson
   pkgarg
   ()
   =
   let open RunAsync.Syntax in
 
-  let%bind solved = solved proj in
+  let%bind _solved = solved proj in
   let%bind fetched = fetched proj in
 
   let f (pkg : Package.t) =
@@ -530,7 +526,14 @@ let printEnv
 
     let%bind source = RunAsync.ofRun (
       let open Run.Syntax in
-      let%bind env = BuildSandbox.env envspec buildspec fetched.sandbox pkg.id in
+      let%bind env, scope =
+        BuildSandbox.configure
+          envspec
+          buildspec
+          mode
+          fetched.sandbox
+          pkg.id
+      in
       let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg.buildCfg env in
       if asJson
       then
@@ -540,13 +543,12 @@ let printEnv
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        let {BuildSpec.mode = _; deps} =
-          BuildSpec.classify buildspec solved.solution pkg
-        in
+        let build = Scope.build scope in
         let header =
           Format.asprintf {|# %s
 # package:            %a
 # depspec:            %a
+# mode:               %a
 # envspec:            %a
 # buildIsInProgress:  %b
 # includeBuildEnv:    %b
@@ -555,7 +557,8 @@ let printEnv
 |}
             name
             Package.pp pkg
-            DepSpec.pp deps
+            DepSpec.pp build.BuildSpec.deps
+            BuildSpec.pp_mode mode
             (Fmt.option DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress
@@ -580,6 +583,7 @@ let execCommand
     (proj : _ project)
     envspec
     buildspec
+    mode
     (pkgarg : PkgArg.t)
     cmd
     ()
@@ -590,15 +594,15 @@ let execCommand
 
   let f (pkg : Package.t) =
 
-    let%bind plan = RunAsync.ofRun (
-      BuildSandbox.makePlan
-        fetched.sandbox
-        buildspec
-    ) in
-
     let%bind () =
       if checkIfDependenciesAreBuilt
       then
+        let%bind plan = RunAsync.ofRun (
+          BuildSandbox.makePlan
+            buildspec
+            mode
+            fetched.sandbox
+        ) in
         buildDependencies
           ~buildLinked
           ~buildDevDependencies
@@ -612,7 +616,7 @@ let execCommand
       Logs.info (fun m ->
         m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
         proj.projcfg.ProjectConfig.mainprg
-        TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+        TermPp.ppBuildSpec buildspec
         TermPp.ppEnvSpec envspec
         PackageId.pp pkg.Package.id
         Cmd.pp cmd
@@ -623,6 +627,7 @@ let execCommand
       BuildSandbox.exec
         envspec
         buildspec
+        mode
         fetched.sandbox
         pkg.id
         cmd

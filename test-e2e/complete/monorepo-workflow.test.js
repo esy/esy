@@ -117,36 +117,33 @@ async function createTestSandbox() {
 }
 
 describe('Monorepo workflow using low level commands', function() {
-  const depspec = 'dependencies(self)+devDependencies(root)';
 
   test('that the build is failing with default config', async function() {
     const p = await createTestSandbox();
 
     // simple build doesn't work as we are using devDep of the root in "buildDev"
-    await expect(p.esy('build')).rejects.toThrowError(
-      'unable to resolve command: devDep.cmd',
-    );
-
-    await expect(p.esy('build-dependencies --all')).rejects.toThrowError(
+    await expect(p.esy('build-dependencies --all --link-mode dev')).rejects.toThrowError(
       'unable to resolve command: devDep.cmd',
     );
   });
+
+  const depspec = 'dependencies(self)+devDependencies(root)';
 
   test('that the build is ok with custom DEPSPEC config', async function() {
     // now try to build with a custom DEPSPEC
     const p = await createTestSandbox();
 
-    await p.esy(`build-dependencies --all --link-depspec "${depspec}"`);
+    await p.esy(`build-dependencies --all --link-mode dev --link-depspec "${depspec}"`);
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --include-current-env --link-depspec "${depspec}" root -- ${pkg}.cmd`,
+        `exec-command --include-current-env --link-mode dev --link-depspec "${depspec}" root -- ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
   });
 
-  test('that the release build is ok with custom DEPSPEC config', async function() {
+  test('that the release build is ok without custom DEPSPEC config', async function() {
     // release build should work as-is as we are building using `"esy.build"`
     // commands.
     const p = await createTestSandbox();
@@ -166,7 +163,7 @@ describe('Monorepo workflow using low level commands', function() {
       // run commands in a specified package environment.
       const p = await createTestSandbox();
       const {stdout} = await p.esy(
-        `exec-command --link-depspec "${depspec}" pkga -- echo '#{self.name}'`,
+        `exec-command --link-mode dev --link-depspec "${depspec}" pkga -- echo '#{self.name}'`,
       );
 
       expect(stdout.trim()).toBe('pkga');
@@ -179,7 +176,7 @@ describe('Monorepo workflow using low level commands', function() {
       // we can also refer to linked package by its manifest path
       const p = await createTestSandbox();
       const {stdout} = await p.esy(
-        `exec-command --link-depspec "${depspec}" ./pkgb/package.json -- echo '#{self.name}'`,
+        `exec-command --link-mode dev --link-depspec "${depspec}" ./pkgb/package.json -- echo '#{self.name}'`,
       );
 
       expect(stdout.trim()).toBe('pkgb');

@@ -283,7 +283,7 @@ end
 type t = {
   platform : System.Platform.t;
   pkg : Package.t;
-  mode : BuildSpec.mode;
+  build : BuildSpec.build;
 
   children : bool PackageId.Map.t;
 
@@ -301,11 +301,11 @@ let make
   ~id
   ~name
   ~version
-  ~mode
+  ~build
   ~sourceType
   ~sourcePath
   pkg
-  build =
+  buildManifest =
   let self =
     PackageScope.make
       ~id
@@ -313,7 +313,7 @@ let make
       ~version
       ~sourceType
       ~sourcePath
-      build
+      buildManifest
   in
   {
     platform;
@@ -322,7 +322,7 @@ let make
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
-    mode;
+    build;
     pkg;
     finalEnv = (
       let defaultPath =
@@ -368,6 +368,7 @@ let add ~direct ~dep scope =
 let pkg scope = scope.pkg
 let id scope = PackageScope.id scope.self
 let name scope = PackageScope.name scope.self
+let build scope = scope.build
 let version scope = PackageScope.version scope.self
 let sourceType scope = PackageScope.sourceType scope.self
 let buildType scope = PackageScope.buildType scope.self
@@ -449,13 +450,13 @@ let makeEnvBindings ~buildIsInProgress ?origin bindings scope =
 
 let buildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.mode scope.self in
+  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.build.mode scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
 let buildEnvAuto ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnvAuto ~buildIsInProgress scope.mode scope.self in
+  let bindings = PackageScope.buildEnvAuto ~buildIsInProgress scope.build.mode scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
