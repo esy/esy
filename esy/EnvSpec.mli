@@ -23,6 +23,12 @@ type t = {
   includeBuildEnv : bool;
 
   (**
+    If we should include additional environment variables for introspection so
+    that tools running can access info about the project.
+    *)
+  includeEsyIntrospectionEnv : bool;
+
+  (**
     If we should include the project's npm bin in $PATH.
     *)
   includeNpmBin : bool;

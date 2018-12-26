@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const os = require('os');
 
 const helpers = require('./test/helpers');
-const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
+const {test, isWindows, packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
 
 helpers.skipSuiteOnWindows();
 
@@ -57,7 +57,7 @@ describe(`'esy CMD' invocation`, () => {
     return p;
   }
 
-  it(`can execute commands defined in sandbox dependencies`, async () => {
+  test(`can execute commands defined in sandbox dependencies`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build');
@@ -71,7 +71,7 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
-  it(`fails if project is not installed`, async () => {
+  test(`fails if project is not installed`, async () => {
     const p = await createTestSandbox();
     await expect(p.esy('dep.cmd')).rejects.toMatchObject({
       message: expect.stringMatching(
@@ -80,19 +80,19 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
-  it(`can execute commands defined in sandbox dependencies, dependencies will be built`, async () => {
+  test(`can execute commands defined in sandbox dependencies, dependencies will be built`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('dep.cmd');
   });
 
-  it(`can execute commands defined in sandbox devDependencies, devDependencies will be built`, async () => {
+  test(`can execute commands defined in sandbox devDependencies, devDependencies will be built`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('devDep.cmd');
   });
 
-  it('inherits the outside environment', async () => {
+  test('inherits the outside environment', async () => {
     process.env.X = '1';
     const p = await createTestSandbox();
     await p.esy('install');
@@ -111,7 +111,7 @@ describe(`'esy CMD' invocation`, () => {
     process.env = prevEnv;
   });
 
-  it('preserves exit code of the command it runs', async () => {
+  test('preserves exit code of the command test runs', async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build');
@@ -123,7 +123,7 @@ describe(`'esy CMD' invocation`, () => {
     );
   });
 
-  it(`can be invoked from project's subdirectories`, async () => {
+  test(`can be invoked from project's subdirectories`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build');
@@ -136,7 +136,7 @@ describe(`'esy CMD' invocation`, () => {
     );
   });
 
-  it(`doesn't wait for linked packages to be built`, async () => {
+  test(`doesn't wait for linked packages to be built`, async () => {
     const p = await helpers.createTestSandbox();
     await p.fixture(
       packageJson({
@@ -165,4 +165,61 @@ describe(`'esy CMD' invocation`, () => {
     // just check that we don't faail on building 'dep'
     await p.esy('true');
   });
+
+  test.disableIf(isWindows)(`exports the path to the root package config to the env`, async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      file('package.json', JSON.stringify({
+        name: 'package',
+        version: '1.0.0',
+      }, null, 2)),
+      file('dev.json', JSON.stringify({
+        name: 'dev',
+        version: '1.0.0',
+      }, null, 2))
+    );
+
+    // check `esy ...`
+    {
+      await p.esy('install');
+      const {stdout} = await p.esy("bash -c 'echo $ESY__ROOT_PACKAGE_CONFIG_PATH'");
+      expect(stdout.trim()).toBe(path.join(p.projectPath, 'package.json'));
+    }
+
+    // check `esy @dev ...`
+    {
+      await p.esy('@dev install');
+      const {stdout} = await p.esy("@dev bash -c 'echo $ESY__ROOT_PACKAGE_CONFIG_PATH'");
+      expect(stdout.trim()).toBe(path.join(p.projectPath, 'dev.json'));
+    }
+  });
+
+  test.disableIf(isWindows)(`nested esy invocations autoconfigure with the right root package config`, async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      file('package.json', JSON.stringify({
+        name: 'package',
+        version: '1.0.0',
+      }, null, 2)),
+      file('dev.json', JSON.stringify({
+        name: 'dev',
+        version: '1.0.0',
+      }, null, 2))
+    );
+
+    // check `esy ...`
+    {
+      await p.esy('install');
+      const {stdout} = await p.esy("esy echo '#{self.name}'");
+      expect(stdout.trim()).toBe('package');
+    }
+
+    // check `esy @dev ...`
+    {
+      await p.esy('@dev install');
+      const {stdout} = await p.esy("@dev esy echo '#{self.name}'");
+      expect(stdout.trim()).toBe('dev');
+    }
+  });
+
 });

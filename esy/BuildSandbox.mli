@@ -1,5 +1,9 @@
 open EsyPackageConfig
 
+module EsyIntrospectionEnv : sig
+  val rootPackageConfigPath : string
+end
+
 type t
 
 val make :
