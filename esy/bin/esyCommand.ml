@@ -164,9 +164,11 @@ let buildDependencies release all devDependencies depspec pkgspec (proj : Projec
       let deps =
         match depspec with
         | Some depspec -> depspec
-        | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.build in deps
+        | None ->
+          let {BuildSpec. deps; mode = _} = Workflow.default.buildspecForDev.build in
+          deps
       in
-      {Workflow.default.buildspec with buildLink = Some {mode; deps}}
+      {Workflow.default.buildspecForDev with buildLink = Some {mode; deps}}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -197,9 +199,11 @@ let buildPackage release depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     let deps =
       match depspec with
       | Some depspec -> depspec
-      | None -> let {BuildSpec. deps; mode = _} = Workflow.default.buildspec.build in deps
+      | None ->
+        let {BuildSpec. deps; mode = _} = Workflow.default.buildspecForDev.build in
+        deps
     in
-    {Workflow.default.buildspec with buildLink = Some {mode; deps}}
+    {Workflow.default.buildspecForDev with buildLink = Some {mode; deps}}
   in
 
   let f (pkg : Package.t) =
@@ -247,10 +251,10 @@ let execCommand
   in
   let buildspec =
     match depspec with
-    | Some deps -> {Workflow.default.buildspec with buildLink = Some {mode; deps};}
+    | Some deps -> {Workflow.default.buildspecForDev with buildLink = Some {mode; deps};}
     | None ->
       {
-        Workflow.default.buildspec
+        Workflow.default.buildspecForDev
         with buildLink = Some {mode; deps = Workflow.defaultDepspecForLink};
       }
   in
@@ -288,8 +292,8 @@ let printEnv
   let buildspec =
     match depspec with
     | Some deps ->
-      {Workflow.default.buildspec with buildLink = Some {mode = BuildDev; deps;};}
-    | None -> Workflow.default.buildspec
+      {Workflow.default.buildspecForDev with buildLink = Some {mode = BuildDev; deps;};}
+    | None -> Workflow.default.buildspecForDev
   in
   Project.printEnv
     proj
@@ -365,7 +369,7 @@ let status
         RunAsync.List.foldLeft
           ~f:checkTask
           ~init:true
-          (BuildSandbox.Plan.all configured.Project.WithWorkflow.plan)
+          (BuildSandbox.Plan.all configured.Project.WithWorkflow.planForDev)
       ) in
       let%lwt rootBuildPath =
         let open RunAsync.Syntax in
@@ -407,7 +411,7 @@ let buildPlan pkgspec (proj : Project.WithWorkflow.t) =
   let%bind configured = Project.configured proj in
 
   let f (pkg : Package.t) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev pkg.id with
     | Some task ->
       let json = BuildSandbox.Task.to_yojson task in
       let data = Yojson.Safe.pretty_to_string json in
@@ -429,12 +433,12 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
         ~buildLinked:true
         ~buildDevDependencies:false
         proj
-        configured.Project.WithWorkflow.plan
+        configured.Project.WithWorkflow.planForDev
         pkg
     in
     let p =
       BuildSandbox.buildShell
-        configured.Project.WithWorkflow.workflow.buildspec
+        configured.Project.WithWorkflow.workflow.buildspecForDev
         fetched.Project.sandbox
         pkg.id
     in
@@ -459,7 +463,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
-        configured.Project.WithWorkflow.plan
+        configured.Project.WithWorkflow.planForDev
         configured.Project.WithWorkflow.root.pkg
     in
     Project.buildPackage
@@ -467,7 +471,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       ~buildOnly
       proj.projcfg
       fetched.Project.sandbox
-      configured.Project.WithWorkflow.plan
+      configured.Project.WithWorkflow.planForDev
       configured.Project.WithWorkflow.root.pkg
   | Some cmd ->
     let%bind () =
@@ -475,7 +479,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
-        configured.Project.WithWorkflow.plan
+        configured.Project.WithWorkflow.planForDev
         configured.Project.WithWorkflow.root.pkg
     in
     Project.execCommand
@@ -484,7 +488,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       ~buildDevDependencies:false
       proj
       configured.workflow.buildenvspec
-      configured.workflow.buildspec
+      configured.workflow.buildspecForDev
       PkgArg.root
       cmd
       ()
@@ -497,7 +501,7 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     ~name:"Build environment"
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
+    configured.Project.WithWorkflow.workflow.buildspecForDev
     asJson
     packagePath
     ()
@@ -509,7 +513,7 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     ~name:"Command environment"
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
+    configured.Project.WithWorkflow.workflow.buildspecForDev
     asJson
     packagePath
     ()
@@ -521,7 +525,7 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     ~name:"Exec environment"
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
+    configured.Project.WithWorkflow.workflow.buildspecForDev
     asJson
     packagePath
     ()
@@ -536,7 +540,7 @@ let exec cmd (proj : Project.WithWorkflow.t) =
     ~buildDevDependencies:false
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
+    configured.Project.WithWorkflow.workflow.buildspecForDev
     PkgArg.root
     cmd
     ()
@@ -577,7 +581,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
     let%bind env, scope =
       BuildSandbox.configure
         envspec
-        configured.workflow.buildspec fetched.Project.sandbox
+        configured.workflow.buildspecForDev fetched.Project.sandbox
         id
     in
     let%bind env = Run.ofStringError (Scope.SandboxEnvironment.Bindings.eval env) in
@@ -632,7 +636,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       ~buildDevDependencies:true
       proj
       configured.workflow.commandenvspec
-      configured.workflow.buildspec
+      configured.workflow.buildspecForDev
       PkgArg.root
       cmd
       ()
@@ -650,7 +654,7 @@ let devShell (proj : Project.WithWorkflow.t) =
     ~buildDevDependencies:true
     proj
     configured.workflow.commandenvspec
-    configured.workflow.buildspec
+    configured.workflow.buildspecForDev
     PkgArg.root
     (Cmd.v shell)
     ()
@@ -671,7 +675,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (proj: Project.WithWorkflo
     else (
       let isRoot = Solution.isRoot pkg solved.Project.solution in
       seen := PackageId.Set.add id !seen;
-      match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan id with
+      match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev id with
       | None -> return None
       | Some task ->
         let%bind children =
@@ -1021,7 +1025,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) =
   let%bind configured = Project.configured proj in
 
   let exportBuild (_, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev pkg.Package.id with
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
@@ -1075,7 +1079,7 @@ let importDependencies fromPath (proj : Project.WithWorkflow.t) =
   in
 
   let importBuild (_direct, pkg) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.plan pkg.Package.id with
+    match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev pkg.Package.id with
     | Some task ->
       if%bind BuildSandbox.isBuilt fetched.Project.sandbox task
       then return ()

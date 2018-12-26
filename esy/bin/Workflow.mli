@@ -1,7 +1,8 @@
 open Esy
 
 type t = {
-  buildspec : BuildSpec.t;
+  buildspecForDev : BuildSpec.t;
+  buildspecForRelease : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;

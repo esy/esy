@@ -285,7 +285,7 @@ module WithWorkflow = struct
   type configured = {
     workflow : Workflow.t;
     scripts : Scripts.t;
-    plan : BuildSandbox.Plan.t;
+    planForDev : BuildSandbox.Plan.t;
     root : BuildSandbox.Task.t;
   }
 
@@ -297,12 +297,12 @@ module WithWorkflow = struct
 
     let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
 
-    let%bind root, plan = RunAsync.ofRun (
+    let%bind root, planForDev = RunAsync.ofRun (
       let open Run.Syntax in
       let%bind plan =
         BuildSandbox.makePlan
           sandbox
-          workflow.buildspec
+          workflow.buildspecForDev
       in
       let pkg = EsyInstall.Solution.root solution in
       let root =
@@ -315,7 +315,7 @@ module WithWorkflow = struct
 
     return {
       workflow;
-      plan;
+      planForDev;
       root;
       scripts;
     }
@@ -350,7 +350,7 @@ module WithWorkflow = struct
         let header = "# Command environment" in
         let%bind commandEnv = BuildSandbox.env
           configured.workflow.commandenvspec
-          configured.workflow.buildspec
+          configured.workflow.buildspecForDev
           fetched.sandbox
           root.Package.id
         in
@@ -386,7 +386,7 @@ module WithWorkflow = struct
         let open Run.Syntax in
         let task =
           let open Option.Syntax in
-          let%bind task = BuildSandbox.Plan.getByName configured.plan name in
+          let%bind task = BuildSandbox.Plan.getByName configured.planForDev name in
           return task
         in
         return (task, fetched.sandbox)

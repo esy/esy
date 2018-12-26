@@ -1,7 +1,8 @@
 open Esy
 
 type t = {
-  buildspec : BuildSpec.t;
+  buildspecForDev : BuildSpec.t;
+  buildspecForRelease : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;
@@ -14,7 +15,7 @@ let defaultDepspecForRoot = DepSpec.(dependencies self)
 let default =
 
   (* This defines how project is built. *)
-  let buildspec = {
+  let buildspecForDev = {
     BuildSpec.
     (* build all other packages using "build" command with dependencies in the env *)
     build = {mode = Build; deps = defaultDepspec};
@@ -23,6 +24,16 @@ let default =
     (* build linked packages using "buildDev" command with dependencies in the env *)
     buildRoot = Some {mode = BuildDev; deps = defaultDepspecForRoot};
   } in
+
+  let buildspecForRelease =
+    let build = {BuildSpec.mode = Build; deps = defaultDepspec} in
+    {
+      BuildSpec.
+      build = build;
+      buildLink = Some build;
+      buildRoot = Some build;
+    }
+  in
 
   (* This defines environment for "esy x CMD" invocation. *)
   let execenvspec = {
@@ -60,4 +71,4 @@ let default =
     augmentDeps = None;
   } in
 
-  {buildspec; execenvspec; commandenvspec; buildenvspec;}
+  {buildspecForDev; buildspecForRelease; execenvspec; commandenvspec; buildenvspec;}

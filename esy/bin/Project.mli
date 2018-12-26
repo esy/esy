@@ -54,7 +54,7 @@ module WithWorkflow : sig
   and configured = {
     workflow : Workflow.t;
     scripts : Scripts.t;
-    plan : BuildSandbox.Plan.t;
+    planForDev : BuildSandbox.Plan.t;
     root : BuildSandbox.Task.t;
   }
 
