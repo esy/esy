@@ -15,6 +15,8 @@ val make :
 
 val renderExpression : t -> Scope.t -> string -> string Run.t
 
+val rootPackageConfigPath : t -> Fpath.t option
+
 val configure :
   ?forceImmutable:bool
   -> EnvSpec.t

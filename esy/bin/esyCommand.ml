@@ -308,6 +308,7 @@ module Status = struct
     isProjectReadyForDev : bool;
     rootBuildPath : Path.t option;
     rootInstallPath : Path.t option;
+    rootPackageConfigPath : Path.t option;
   } [@@deriving to_yojson]
 
   let notAProject = {
@@ -317,6 +318,7 @@ module Status = struct
     isProjectReadyForDev = false;
     rootBuildPath = None;
     rootInstallPath = None;
+    rootPackageConfigPath = None;
   }
 
 end
@@ -377,6 +379,11 @@ let status
         let root = configured.Project.WithWorkflow.root in
         return (Some (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg root))
       in
+      let%lwt rootPackageConfigPath =
+        let open RunAsync.Syntax in
+        let%bind fetched = Project.fetched proj in
+        return (BuildSandbox.rootPackageConfigPath fetched.Project.sandbox)
+      in
       return {
         isProject = true;
         isProjectSolved;
@@ -384,6 +391,7 @@ let status
         isProjectReadyForDev = Result.getOr false built;
         rootBuildPath = Result.getOr None rootBuildPath;
         rootInstallPath = Result.getOr None rootInstallPath;
+        rootPackageConfigPath = Result.getOr None rootPackageConfigPath;
       }
     in
     Format.fprintf

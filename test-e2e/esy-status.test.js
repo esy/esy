@@ -1,5 +1,6 @@
 // @flow
 
+const path = require('path');
 const helpers = require('./test/helpers.js');
 
 describe(`'esy status' command`, function() {
@@ -16,6 +17,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: false,
       rootBuildPath: null,
       rootInstallPath: null,
+      rootPackageConfigPath: null,
     });
   });
 
@@ -26,6 +28,12 @@ describe(`'esy status' command`, function() {
         dep: 'path:./dep',
       },
     }),
+    helpers.file('dev.json', JSON.stringify({
+      name: 'dev',
+      dependencies: {
+        dep: 'path:./dep',
+      },
+    }, null, 2)),
     helpers.dir(
       'dep',
       helpers.packageJson({
@@ -48,6 +56,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: false,
       rootBuildPath: null,
       rootInstallPath: null,
+      rootPackageConfigPath: null,
     });
   });
 
@@ -65,6 +74,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: true,
       rootBuildPath: null,
       rootInstallPath: null,
+      rootPackageConfigPath: null,
     });
   });
 
@@ -80,6 +90,7 @@ describe(`'esy status' command`, function() {
       isProjectFetched: true,
       isProjectReadyForDev: false,
       isProjectSolved: true,
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
@@ -98,6 +109,26 @@ describe(`'esy status' command`, function() {
       isProjectFetched: true,
       isProjectReadyForDev: true,
       isProjectSolved: true,
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
+    });
+    expect(status.rootBuildPath).not.toBe(null);
+    expect(status.rootInstallPath).not.toBe(null);
+  });
+
+  it('reports correct "rootPackageConfigPath" with named invocation', async function() {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(...fixture);
+    await p.esy('@dev install');
+    await p.esy('@dev build');
+
+    const {stdout} = await p.esy('@dev status --json');
+    const status = JSON.parse(stdout);
+    expect(status).toMatchObject({
+      isProject: true,
+      isProjectFetched: true,
+      isProjectReadyForDev: true,
+      isProjectSolved: true,
+      rootPackageConfigPath: path.join(p.projectPath, 'dev.json')
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
