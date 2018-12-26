@@ -101,7 +101,7 @@ val execCommand :
   -> _ fetched solved project
   -> EnvSpec.t
   -> BuildSpec.t
-  -> BuildSpec.mode
+  -> BuildSpec.plan
   -> PkgArg.t
   -> Cmd.t
   -> unit
@@ -112,7 +112,7 @@ val printEnv :
   -> _ fetched solved project
   -> EnvSpec.t
   -> BuildSpec.t
-  -> BuildSpec.mode
+  -> BuildSpec.plan
   -> bool
   -> PkgArg.t
   -> unit

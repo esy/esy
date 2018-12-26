@@ -327,7 +327,7 @@ let make
     BuildSandbox.makePlan
       ~forceImmutable:true
       buildspec
-      BuildSpec.Build
+      {all = Build; link = Build; root = Build;}
       sandbox
   ) in
   let tasks = BuildSandbox.Plan.all plan in
@@ -433,7 +433,7 @@ let make
           ~forceImmutable:true
           envspec
           buildspec
-          BuildSpec.Build
+          {all = Build; link = Build; root = Build;}
           sandbox
           root.Package.id
       ) in

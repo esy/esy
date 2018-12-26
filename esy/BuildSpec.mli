@@ -24,6 +24,16 @@ type t = {
   buildRootForDev : DepSpec.t option;
 }
 
+type mode =
+  | Build
+  | BuildDev
+
+val pp_mode : mode Fmt.t
+val show_mode : mode -> string
+
+val mode_to_yojson : mode Json.encoder
+val mode_of_yojson : mode Json.decoder
+
 (**
   This is a pair of which build command to use ("build" or "buildDev") and
   a specification of what to bring into the build env.
@@ -33,18 +43,18 @@ type build = {
   deps : DepSpec.t;
 }
 
-and mode =
-  | Build
-  | BuildDev
+type plan = {
+  all : mode;
+  link : mode;
+  root : mode;
+}
 
-val pp_mode : mode Fmt.t
-val show_mode : mode -> string
-val mode_to_yojson : mode Json.encoder
-val mode_of_yojson : mode Json.decoder
+val pp_plan : plan Fmt.t
+val show_plan : plan -> string
 
 val classify :
   t
-  -> mode
+  -> plan
   -> EsyInstall.Solution.t
   -> EsyInstall.Package.t
   -> BuildManifest.t

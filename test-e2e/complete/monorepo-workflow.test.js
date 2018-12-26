@@ -147,11 +147,11 @@ describe('Monorepo workflow using low level commands', function() {
     // release build should work as-is as we are building using `"esy.build"`
     // commands.
     const p = await createTestSandbox();
-    await p.esy('build-dependencies --all --release');
+    await p.esy('build-dependencies --all --link-mode release');
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --release --include-current-env root -- ${pkg}.cmd`,
+        `exec-command --link-mode release --include-current-env root -- ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }

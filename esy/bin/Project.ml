@@ -294,7 +294,7 @@ module WithWorkflow = struct
       let%bind plan =
         BuildSandbox.makePlan
           workflow.buildspec
-          BuildSpec.BuildDev
+          Workflow.defaultPlan
           sandbox
       in
       let pkg = EsyInstall.Solution.root solution in
@@ -345,7 +345,7 @@ module WithWorkflow = struct
           BuildSandbox.env
             configured.workflow.commandenvspec
             configured.workflow.buildspec
-            BuildSpec.BuildDev
+            Workflow.defaultPlan
             fetched.sandbox
             root.Package.id
         in
@@ -503,7 +503,7 @@ let printEnv
   (proj : _ project)
   envspec
   buildspec
-  mode
+  plan
   asJson
   pkgarg
   ()
@@ -530,7 +530,7 @@ let printEnv
         BuildSandbox.configure
           envspec
           buildspec
-          mode
+          plan
           fetched.sandbox
           pkg.id
       in
@@ -548,7 +548,7 @@ let printEnv
           Format.asprintf {|# %s
 # package:            %a
 # depspec:            %a
-# mode:               %a
+# plan:               %a
 # envspec:            %a
 # buildIsInProgress:  %b
 # includeBuildEnv:    %b
@@ -558,7 +558,7 @@ let printEnv
             name
             Package.pp pkg
             DepSpec.pp build.BuildSpec.deps
-            BuildSpec.pp_mode mode
+            BuildSpec.pp_plan plan
             (Fmt.option DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress

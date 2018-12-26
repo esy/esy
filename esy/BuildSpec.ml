@@ -8,12 +8,7 @@ type t = {
   buildRootForDev : DepSpec.t option;
 }
 
-type build = {
-  mode : mode;
-  deps : DepSpec.t;
-}
-
-and mode =
+type mode =
   | Build
   | BuildDev
 
@@ -34,23 +29,41 @@ let mode_of_yojson = function
   | `String "buildDev" -> Ok BuildDev
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
-let classify spec mode solution pkg buildManifest =
+type plan = {
+  all : mode;
+  link : mode;
+  root : mode;
+}
+
+let pp_plan fmt plan =
+  Fmt.pf
+    fmt "root=%a link=%a all=%a"
+    pp_mode plan.root pp_mode plan.link pp_mode plan.all
+
+let show_plan plan = Fmt.strf "%a" pp_plan plan
+
+type build = {
+  mode : mode;
+  deps : DepSpec.t;
+}
+
+let classify spec plan solution pkg buildManifest =
   let root = EsyInstall.Solution.root solution in
   let isRoot = Package.compare root pkg = 0 in
   let commands = buildManifest.BuildManifest.build in
+  let kind, mode =
+    if isRoot
+    then `Root, plan.root
+    else match pkg.Package.source with
+    | Link _ -> `Link, plan.link
+    | Install _ -> `All, plan.all
+  in
   (* force Build mode if no build commands is provided *)
   let mode, commands =
     match mode, buildManifest.BuildManifest.buildDev with
     | Build, _ -> mode, commands
     | BuildDev, None -> Build, commands
     | BuildDev, Some commands -> BuildDev, BuildManifest.EsyCommands commands
-  in
-  let kind =
-    if isRoot
-    then `Root
-    else match pkg.Package.source with
-    | Link _ -> `Link
-    | Install _ -> `All
   in
   let build =
     match kind with

@@ -52,6 +52,26 @@ let modeConv =
   in
   Arg.conv ~docv:"MODE" (parse, pp)
 
+let planArg =
+  let make root link =
+    {Workflow.defaultPlan with root; link;}
+  in
+  Cmdliner.Term.(
+    const make
+    $ Cmdliner.Arg.(
+        value
+        & opt modeConv BuildSpec.BuildDev
+        & info ["root-mode"]
+          ~doc:{|Define build mode for the root|}
+      )
+    $ Cmdliner.Arg.(
+        value
+        & opt modeConv BuildSpec.Build
+        & info ["link-mode"]
+          ~doc:{|Define build mode for linked packages|}
+      )
+  )
+
 module Findlib = struct
   type meta = {
     package : string;
@@ -175,8 +195,7 @@ let resolvedPathTerm =
 let buildDependencies
   all
   devDependencies
-  release
-  _linkMode
+  plan
   linkDepspec
   pkgspec
   (proj : Project.WithoutWorkflow.t) =
@@ -192,14 +211,9 @@ let buildDependencies
       {Workflow.default.buildspec with buildLink = Some deps}
     in
     let%bind plan = RunAsync.ofRun (
-      let mode =
-        if release
-        then BuildSpec.Build
-        else BuildSpec.BuildDev
-      in
       BuildSandbox.makePlan
         buildspec
-        mode
+        plan
         fetched.Project.sandbox
     ) in
     Project.buildDependencies
@@ -211,16 +225,10 @@ let buildDependencies
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage release depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
+let buildPackage plan depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
-
-  let mode =
-    if release
-    then BuildSpec.Build
-    else BuildSpec.BuildDev
-  in
 
   let buildspec =
     let deps =
@@ -238,7 +246,7 @@ let buildPackage release depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         buildspec
-        mode
+        plan
         fetched.Project.sandbox
     ) in
     Project.buildPackage
@@ -257,8 +265,7 @@ let execCommand
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
-  release
-  _linkMode
+  plan
   linkDepspec
   envspec
   pkgspec
@@ -282,11 +289,6 @@ let execCommand
     in
     {Workflow.default.buildspec with buildLink = Some deps;}
   in
-  let mode =
-    if release
-    then BuildSpec.Build
-    else BuildSpec.BuildDev
-  in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false
     ~buildDevDependencies:false
@@ -294,7 +296,7 @@ let execCommand
     proj
     envspec
     buildspec
-    mode
+    plan
     pkgspec
     cmd
     ()
@@ -305,18 +307,12 @@ let printEnv
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
-  release
-  _linkMode
+  plan
   linkDepspec
   envspec
   pkgspec
   (proj : _ Project.project)
   =
-  let mode =
-    if release
-    then BuildSpec.Build
-    else BuildSpec.BuildDev
-  in
   let envspec = {
     EnvSpec.
     buildIsInProgress = false;
@@ -338,7 +334,7 @@ let printEnv
     proj
     envspec
     buildspec
-    mode
+    plan
     asJson
     pkgspec
     ()
@@ -464,7 +460,6 @@ let buildPlan pkgspec (proj : Project.WithWorkflow.t) =
 let buildShell pkgspec (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
-  let mode = BuildSpec.BuildDev in
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
 
@@ -480,7 +475,7 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
     let p =
       BuildSandbox.buildShell
         configured.Project.WithWorkflow.workflow.buildspec
-        mode
+        Workflow.defaultPlan
         fetched.Project.sandbox
         pkg.id
     in
@@ -495,7 +490,6 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
 let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
 
-  let mode = BuildSpec.BuildDev in
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
 
@@ -532,7 +526,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
-      mode
+      Workflow.defaultPlan
       PkgArg.root
       cmd
       ()
@@ -541,13 +535,12 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
 let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let mode = BuildSpec.BuildDev in
   Project.printEnv
     ~name:"Build environment"
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    mode
+    Workflow.defaultPlan
     asJson
     packagePath
     ()
@@ -555,13 +548,12 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
 let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let mode = BuildSpec.BuildDev in
   Project.printEnv
     ~name:"Command environment"
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    mode
+    Workflow.defaultPlan
     asJson
     packagePath
     ()
@@ -569,13 +561,12 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
 let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let mode = BuildSpec.BuildDev in
   Project.printEnv
     ~name:"Exec environment"
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    mode
+    Workflow.defaultPlan
     asJson
     packagePath
     ()
@@ -584,7 +575,6 @@ let exec cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false proj None () in
-  let mode = BuildSpec.BuildDev in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
@@ -592,7 +582,7 @@ let exec cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    mode
+    Workflow.defaultPlan
     PkgArg.root
     cmd
     ()
@@ -634,7 +624,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
       BuildSandbox.configure
         envspec
         configured.workflow.buildspec
-        BuildSpec.BuildDev
+        Workflow.defaultPlan
         fetched.Project.sandbox
         id
     in
@@ -691,7 +681,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
-      BuildSpec.BuildDev
+      Workflow.defaultPlan
       PkgArg.root
       cmd
       ()
@@ -710,7 +700,7 @@ let devShell (proj : Project.WithWorkflow.t) =
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
-    BuildSpec.BuildDev
+    Workflow.defaultPlan
     PkgArg.root
     (Cmd.v shell)
     ()
@@ -1645,12 +1635,7 @@ let makeCommands projectPath =
       ~docs:lowLevelSection
       Term.(
         const buildPackage
-        $ Arg.(
-            value
-            & flag
-            & info ["release"]
-              ~doc:{|Force release build mode.|}
-          )
+        $ planArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1679,18 +1664,7 @@ let makeCommands projectPath =
             & flag
             & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
-        $ Arg.(
-            value
-            & flag
-            & info ["release"]
-              ~doc:{|Force to use "esy.build" commands (by default "esy.buildDev" commands are used)|}
-          )
-        $ Arg.(
-            value
-            & opt (some modeConv) None
-            & info ["link-mode"]
-              ~doc:{|Define build mode for linked packages|}
-          )
+        $ planArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1727,18 +1701,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ Arg.(
-            value
-            & flag
-            & info ["release"]
-              ~doc:{|Force to use "esy.build" commands (by default "esy.buildDev" commands are used)|}
-          )
-        $ Arg.(
-            value
-            & opt (some modeConv) None
-            & info ["link-mode"]
-              ~doc:{|Define build mode for linked packages|}
-          )
+        $ planArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1781,18 +1744,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ Arg.(
-            value
-            & flag
-            & info ["release"]
-              ~doc:{|Force to use "esy.build" commands (by default "esy.buildDev" commands are used)|}
-          )
-        $ Arg.(
-            value
-            & opt (some modeConv) None
-            & info ["link-mode"]
-              ~doc:{|Define build mode for linked packages|}
-          )
+        $ planArg
         $ Arg.(
             value
             & opt (some depspecConv) None

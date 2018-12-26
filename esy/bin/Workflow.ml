@@ -12,6 +12,13 @@ let defaultDepspecForLink = DepSpec.(dependencies self)
 let defaultDepspecForRootForRelease = DepSpec.(dependencies self)
 let defaultDepspecForRootForDev = DepSpec.(dependencies self + devDependencies self)
 
+let defaultPlan = {
+  BuildSpec.
+  all = Build;
+  link = Build;
+  root = BuildDev;
+}
+
 let default =
 
   (* This defines how project is built. *)

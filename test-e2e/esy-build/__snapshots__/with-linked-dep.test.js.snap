@@ -4,7 +4,7 @@ exports[`Build with a linked dep out of source build macos || linux: build-env d
 "# Build environment
 # package:            dep@link:dep
 # depspec:            dependencies(self)
-# mode:               buildDev
+# plan:               root=buildDev link=build all=build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -42,7 +42,7 @@ exports[`Build with a linked dep out of source build macos || linux: build-env s
 "# Build environment
 # package:            with-linked-dep-_build@link:./package.json
 # depspec:            dependencies(self)
-# mode:               buildDev
+# plan:               root=buildDev link=build all=build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
