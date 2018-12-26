@@ -1228,25 +1228,12 @@ let makeAlias ?(docs=aliasesSection) command alias =
   in
   term, info
 
-let makeCommands rootPackagePath =
+let makeCommands projectPath =
   let open Cmdliner in
 
-  let rootPackagePath =
-    match rootPackagePath with
-    | Some _ -> rootPackagePath
-    | None ->
-      let open Option.Syntax in
-      let%map v =
-        StringMap.find_opt
-          BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath
-          System.Environment.current
-      in
-      Path.v v
-  in
-
-  let projectConfig = ProjectConfig.term rootPackagePath in
-  let projectWithWorkflow = Project.WithWorkflow.term rootPackagePath in
-  let project = Project.WithoutWorkflow.term rootPackagePath in
+  let projectConfig = ProjectConfig.term projectPath in
+  let projectWithWorkflow = Project.WithWorkflow.term projectPath in
+  let project = Project.WithoutWorkflow.term projectPath in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
     let cmd =
@@ -1526,7 +1513,7 @@ let makeCommands rootPackagePath =
       ~docs:introspectionSection
       Term.(
         const status
-        $ Project.WithWorkflow.promiseTerm rootPackagePath
+        $ Project.WithWorkflow.promiseTerm projectPath
         $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
         $ Cli.setupLogTerm
       );
