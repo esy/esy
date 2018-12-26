@@ -271,6 +271,12 @@
       },
       "version-0.4.7-using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"
+      },
+      "version-0.4.8-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.4.8-what-why": {
+        "title": "What & Why"
       }
     },
     "links": {
