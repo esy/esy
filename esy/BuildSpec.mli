@@ -1,32 +1,34 @@
 (** This describes how a project should be built. *)
 
 type t = {
+  (**
+    Define how we build packages.
+    *)
   build : build;
-  (** Define how we build packages. *)
 
+  (**
+    Optionally define if we need to treat linked packages in a specific way.
+
+    (this overrides buildLink and build)
+    *)
   buildLink : build option;
-  (**
-   * Optionally define if we need to treat linked packages in a specific way.
-   *
-   * (this overrides buildLink and build)
-   *)
 
-  buildRoot : build option;
   (**
-   * Optionally define if we need to treat the root packag in a specific way.
-   *
-   * (this overrides buildLink and build)
-   *)
+    Optionally define if we need to treat the root package in a specific way.
+
+    (this overrides buildLink and build)
+    *)
+  buildRoot : build option;
 }
 
+(**
+  This is a pair of which build command to use ("build" or "buildDev") and
+  a specification of what to bring into the build env.
+ *)
 and build = {
   mode : mode;
   deps : DepSpec.t;
 }
-(**
-  * This is a pair of which build command to use ("build" or "buildDev") and
-  * a specification of what to bring into the build env.
-  *)
 
 and mode =
   | Build
