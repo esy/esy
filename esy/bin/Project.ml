@@ -20,14 +20,16 @@ module TermPp = struct
       buildIsInProgress;
       includeCurrentEnv;
       includeBuildEnv;
+      includeEsyIntrospectionEnv;
       includeNpmBin;
     } = envspec in
     Fmt.pf fmt
-      "%a%a%a%a%a"
+      "%a%a%a%a%a%a"
       (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
       (ppFlag "--build-context") buildIsInProgress
       (ppFlag "--include-current-env") includeCurrentEnv
       (ppFlag "--include-npm-bin") includeNpmBin
+      (ppFlag "--include-esy-introspection-env") includeEsyIntrospectionEnv
       (ppFlag "--include-build-env") includeBuildEnv
 
   let ppMode fmt mode =

@@ -283,6 +283,7 @@ let envspec = {
   includeCurrentEnv = false;
   includeBuildEnv = false;
   includeNpmBin = false;
+  includeEsyIntrospectionEnv = false;
   augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {

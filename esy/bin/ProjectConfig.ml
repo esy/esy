@@ -42,6 +42,33 @@ let findProjectPathFrom currentPath =
   in
   climb currentPath
 
+let findProjectPath projectPath =
+  let open Run.Syntax in
+
+  (* check if we can get projectPath from env *)
+  let projectPath =
+    match projectPath with
+    | Some _ -> projectPath
+    | None ->
+      let open Option.Syntax in
+      let%map v =
+        StringMap.find_opt
+          BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath
+          System.Environment.current
+      in
+      Path.v v
+  in
+
+  let%bind projectPath =
+    match projectPath with
+    | Some path -> return path
+    | None -> findProjectPathFrom (Path.currentPath ())
+  in
+
+  if Path.isAbs projectPath
+  then return projectPath
+  else return Path.(EsyRuntime.currentWorkingDir // projectPath)
+
 let commonOptionsSection = Manpage.s_common_options
 
 let prefixPath =
@@ -125,7 +152,7 @@ let solveCudfCommandArg =
   )
 
 let make
-  sandboxPath
+  projectPath
   mainprg
   prefixPath
   cachePath
@@ -138,19 +165,9 @@ let make
   solveCudfCommand
   =
   let open RunAsync.Syntax in
-  let%bind sandboxPath =
-    RunAsync.ofRun (
-      match sandboxPath with
-      | Some sandboxPath ->
-        if Path.isAbs sandboxPath
-        then Run.return sandboxPath
-        else Run.return Path.(EsyRuntime.currentWorkingDir // sandboxPath)
-      | None ->
-        findProjectPathFrom (Path.currentPath ())
-    )
-  in
 
-  let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
+  let%bind projectPath = RunAsync.ofRun (findProjectPath projectPath) in
+  let%bind spec = EsyInstall.SandboxSpec.ofPath projectPath in
 
   let%bind prefixPath = match prefixPath with
     | Some prefixPath -> return (Some prefixPath)
@@ -285,7 +302,7 @@ let computeSolutionChecksum projcfg =
 
   return (Digestv.toHex digest)
 
-let promiseTerm sandboxPath =
+let promiseTerm projectPath =
   let parse
     mainprg
     prefixPath
@@ -298,7 +315,7 @@ let promiseTerm sandboxPath =
     skipRepositoryUpdate
     solveCudfCommand () =
     make
-      sandboxPath
+      projectPath
       mainprg
       prefixPath
       cachePath
@@ -325,5 +342,5 @@ let promiseTerm sandboxPath =
     $ Cli.setupLogTerm
   )
 
-let term sandboxPath =
-  Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm sandboxPath))
+let term projectPath =
+  Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm projectPath))

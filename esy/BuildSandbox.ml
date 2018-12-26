@@ -9,10 +9,19 @@ type t = {
   arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : SandboxEnv.t;
-  solution : EsyInstall.Solution.t;
-  installation : EsyInstall.Installation.t;
+  solution : Solution.t;
+  installation : Installation.t;
   manifests : BuildManifest.t PackageId.Map.t;
 }
+
+let rootPackageConfigPath sandbox =
+  let root = Solution.root sandbox.solution in
+  match root.source with
+  | Link { path; manifest = Some (_kind, filename) } ->
+    let path = DistPath.toPath sandbox.cfg.spec.path path in
+    Some Path.(path / filename)
+  | Link { path = _; manifest = None } -> None
+  | Install _ -> None
 
 let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   let open RunAsync.Syntax in
@@ -679,42 +688,70 @@ let buildShell buildspec sandbox id =
   let plan = Task.plan task in
   EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
 
-let augmentEnvWithOptions envspec sandbox scope =
+module EsyIntrospectionEnv = struct
+  let rootPackageConfigPath = "ESY__ROOT_PACKAGE_CONFIG_PATH"
+end
+
+let augmentEnvWithOptions (envspec : EnvSpec.t) sandbox scope =
   let open Run.Syntax in
+
+  let {
+    EnvSpec.
+    augmentDeps;
+    buildIsInProgress;
+    includeCurrentEnv;
+    includeBuildEnv;
+    includeEsyIntrospectionEnv;
+    includeNpmBin;
+  } = envspec in
+
+  let module Env = Scope.SandboxEnvironment.Bindings in
+  let module Val = Scope.SandboxValue in
 
   let%bind env =
     let scope =
-      if envspec.EnvSpec.includeCurrentEnv
+      if includeCurrentEnv
       then
         scope
-        |> Scope.exposeUserEnvWith Scope.SandboxEnvironment.Bindings.value "SHELL"
+        |> Scope.exposeUserEnvWith Env.value "SHELL"
       else scope
     in
     Scope.env
-      ~includeBuildEnv:envspec.includeBuildEnv
-      ~buildIsInProgress:envspec.buildIsInProgress
+      ~includeBuildEnv
+      ~buildIsInProgress
       scope
   in
   let env =
-    if envspec.EnvSpec.includeNpmBin
+    if includeNpmBin
     then
       let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
-      Scope.SandboxEnvironment.Bindings.prefixValue
-        "PATH"
-        (Scope.SandboxValue.v npmBin)
+      Env.prefixValue "PATH" (Val.v npmBin)
       ::env
     else env
   in
   let env =
-    if envspec.includeCurrentEnv
-    then Scope.SandboxEnvironment.Bindings.current @ env
+    if includeCurrentEnv
+    then Env.current @ env
+    else env
+  in
+
+  let env =
+    if includeEsyIntrospectionEnv
+    then
+      match rootPackageConfigPath sandbox with
+      | None -> env
+      | Some path ->
+        Env.value
+          EsyIntrospectionEnv.rootPackageConfigPath
+          (Val.v (Path.show path))
+        ::env
     else env
   in
 
   let env =
     (* if envspec's DEPSPEC expression was provided we need to filter out env
      * bindings according to it. *)
-    match envspec.augmentDeps with
+    match augmentDeps with
     | None -> env
     | Some depspec ->
       let matched =

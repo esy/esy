@@ -30,6 +30,7 @@ let default =
     buildIsInProgress = false;
     includeCurrentEnv = true;
     includeBuildEnv = false;
+    includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies, devDependencies and package itself. *)
     augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
@@ -41,6 +42,7 @@ let default =
     buildIsInProgress = false;
     includeCurrentEnv = true;
     includeBuildEnv = true;
+    includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies and devDependencies. *)
     augmentDeps = Some DepSpec.(dependencies self + devDependencies self);
@@ -52,6 +54,7 @@ let default =
     buildIsInProgress = true;
     includeCurrentEnv = false;
     includeBuildEnv = true;
+    includeEsyIntrospectionEnv = false;
     includeNpmBin = false;
     (* This means that environment is the same as in buildspec. *)
     augmentDeps = None;

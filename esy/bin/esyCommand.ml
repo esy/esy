@@ -223,6 +223,7 @@ let execCommand
   buildIsInProgress
   includeBuildEnv
   includeCurrentEnv
+  includeEsyIntrospectionEnv
   includeNpmBin
   depspec
   envspec
@@ -236,6 +237,7 @@ let execCommand
     includeBuildEnv;
     includeCurrentEnv;
     includeNpmBin;
+    includeEsyIntrospectionEnv;
     augmentDeps = envspec;
   } in
   let mode =
@@ -267,6 +269,7 @@ let printEnv
   asJson
   includeBuildEnv
   includeCurrentEnv
+  includeEsyIntrospectionEnv
   includeNpmBin
   depspec
   envspec
@@ -278,6 +281,7 @@ let printEnv
     buildIsInProgress = false;
     includeBuildEnv;
     includeCurrentEnv;
+    includeEsyIntrospectionEnv;
     includeNpmBin;
     augmentDeps = envspec;
   } in
@@ -304,6 +308,7 @@ module Status = struct
     isProjectReadyForDev : bool;
     rootBuildPath : Path.t option;
     rootInstallPath : Path.t option;
+    rootPackageConfigPath : Path.t option;
   } [@@deriving to_yojson]
 
   let notAProject = {
@@ -313,6 +318,7 @@ module Status = struct
     isProjectReadyForDev = false;
     rootBuildPath = None;
     rootInstallPath = None;
+    rootPackageConfigPath = None;
   }
 
 end
@@ -373,6 +379,11 @@ let status
         let root = configured.Project.WithWorkflow.root in
         return (Some (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg root))
       in
+      let%lwt rootPackageConfigPath =
+        let open RunAsync.Syntax in
+        let%bind fetched = Project.fetched proj in
+        return (BuildSandbox.rootPackageConfigPath fetched.Project.sandbox)
+      in
       return {
         isProject = true;
         isProjectSolved;
@@ -380,6 +391,7 @@ let status
         isProjectReadyForDev = Result.getOr false built;
         rootBuildPath = Result.getOr None rootBuildPath;
         rootInstallPath = Result.getOr None rootInstallPath;
+        rootPackageConfigPath = Result.getOr None rootPackageConfigPath;
       }
     in
     Format.fprintf
@@ -1216,12 +1228,12 @@ let makeAlias ?(docs=aliasesSection) command alias =
   in
   term, info
 
-let makeCommands ~sandbox () =
+let makeCommands projectPath =
   let open Cmdliner in
 
-  let projectConfig = ProjectConfig.term sandbox in
-  let projectWithWorkflow = Project.WithWorkflow.term sandbox in
-  let project = Project.WithoutWorkflow.term sandbox in
+  let projectConfig = ProjectConfig.term projectPath in
+  let projectWithWorkflow = Project.WithWorkflow.term projectPath in
+  let project = Project.WithoutWorkflow.term projectPath in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
     let cmd =
@@ -1501,7 +1513,7 @@ let makeCommands ~sandbox () =
       ~docs:introspectionSection
       Term.(
         const status
-        $ Project.WithWorkflow.promiseTerm sandbox
+        $ Project.WithWorkflow.promiseTerm projectPath
         $ Arg.(value & flag & info ["json"] ~doc:"Format output as JSON")
         $ Cli.setupLogTerm
       );
@@ -1648,6 +1660,12 @@ let makeCommands ~sandbox () =
           )
         $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
         $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
+        $ Arg.(
+            value
+            & flag
+            & info ["include-esy-introspection-env"]
+              ~doc:"Include esy introspection environment"
+          )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ Arg.(
             value
@@ -1684,6 +1702,12 @@ let makeCommands ~sandbox () =
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(value & flag & info ["include-build-env"]  ~doc:"Include build environment")
         $ Arg.(value & flag & info ["include-current-env"]  ~doc:"Include current environment")
+        $ Arg.(
+            value
+            & flag
+            & info ["include-esy-introspection-env"]
+              ~doc:"Include esy introspection environment"
+          )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ Arg.(
             value
@@ -1737,10 +1761,10 @@ let () =
 
   let () = checkSymlinks () in
 
-  let argv, commandName, sandbox =
+  let argv, commandName, rootPackagePath =
     let argv = Array.to_list Sys.argv in
 
-    let sandbox, argv =
+    let rootPackagePath, argv =
       match argv with
       | [] -> None, argv
       | prg::elem::rest when String.get elem 0 = '@' ->
@@ -1757,10 +1781,10 @@ let () =
       | _ -> None, argv
     in
 
-    Array.of_list argv, commandName, sandbox
+    Array.of_list argv, commandName, rootPackagePath
   in
 
-  let defaultCommand, commands = makeCommands ~sandbox () in
+  let defaultCommand, commands = makeCommands rootPackagePath in
 
   let hasCommand name =
     List.exists

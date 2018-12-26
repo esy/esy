@@ -1,5 +1,9 @@
 open EsyPackageConfig
 
+module EsyIntrospectionEnv : sig
+  val rootPackageConfigPath : string
+end
+
 type t
 
 val make :
@@ -10,6 +14,8 @@ val make :
   -> (t * Fpath.set) RunAsync.t
 
 val renderExpression : t -> Scope.t -> string -> string Run.t
+
+val rootPackageConfigPath : t -> Fpath.t option
 
 val configure :
   ?forceImmutable:bool

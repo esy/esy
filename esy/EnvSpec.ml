@@ -3,5 +3,6 @@ type t = {
   buildIsInProgress : bool;
   includeCurrentEnv : bool;
   includeBuildEnv : bool;
+  includeEsyIntrospectionEnv : bool;
   includeNpmBin : bool;
 }
