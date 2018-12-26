@@ -1126,9 +1126,31 @@ let show _asJson req (projcfg : ProjectConfig.t) =
 let printHeader ?spec name =
   match spec with
   | Some spec ->
-    Logs_lwt.app (fun m -> m "%s %s (using %a)" name EsyRuntime.version EsyInstall.SandboxSpec.pp spec)
+    let needReportProjectPath =
+      Path.compare
+        spec.EsyInstall.SandboxSpec.path
+        EsyRuntime.currentWorkingDir
+        <> 0
+    in
+    if needReportProjectPath
+    then
+      Logs_lwt.app (fun m -> m
+        "%s %s (using %a)@;found project at %a"
+        name EsyRuntime.version
+        EsyInstall.SandboxSpec.pp spec
+        Path.ppPretty spec.path
+      )
+    else
+      Logs_lwt.app (fun m -> m
+        "%s %s (using %a)"
+        name EsyRuntime.version
+        EsyInstall.SandboxSpec.pp spec
+      )
   | None ->
-    Logs_lwt.app (fun m -> m "%s %s" name EsyRuntime.version)
+    Logs_lwt.app (fun m -> m
+      "%s %s"
+      name EsyRuntime.version
+    )
 
 let default cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in

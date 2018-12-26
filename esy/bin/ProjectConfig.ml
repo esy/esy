@@ -10,27 +10,35 @@ type t = {
   installSandbox : EsyInstall.Sandbox.t;
 }
 
-let findSandboxPathStartingWith currentPath =
-  let open RunAsync.Syntax in
+let findProjectPathFrom currentPath =
+  let open Run.Syntax in
   let isProject path =
-    let%bind items = Fs.listDir path in
+    let items = Sys.readdir (Path.show path) in
     let f name =
       match name with
       | "package.json"
-      | "esy.json"
-      | "opam" -> true
-      | name -> Path.(v name |> hasExt ".opam")
+      | "esy.json" -> true
+      | "opam" ->
+        (* opam could easily by a directory name *)
+        let p = Path.(path / name) in
+        not (Sys.is_directory Path.(show p))
+      | name ->
+        let p = Path.(path / name) in
+        Path.hasExt ".opam" p && not (Sys.is_directory Path.(show p))
     in
-    return (List.exists ~f items)
+    Array.exists f items
   in
   let rec climb path =
-    if%bind isProject path
+    if isProject path
     then return path
     else
       let parent = Path.parent path in
       if not (Path.compare path parent = 0)
       then climb (Path.parent path)
-      else errorf "No sandbox found (from %a and up)" Path.ppPretty currentPath
+      else
+        errorf
+          "No esy project found (was looking from %a and up)"
+          Path.ppPretty currentPath
   in
   climb currentPath
 
@@ -130,19 +138,18 @@ let make
   solveCudfCommand
   =
   let open RunAsync.Syntax in
-  let sandboxPath =
-    match sandboxPath with
-    | Some sandboxPath ->
-      RunAsync.return (
+  let%bind sandboxPath =
+    RunAsync.ofRun (
+      match sandboxPath with
+      | Some sandboxPath ->
         if Path.isAbs sandboxPath
-        then sandboxPath
-        else Path.(EsyRuntime.currentWorkingDir // sandboxPath)
-      )
-    | None ->
-      findSandboxPathStartingWith (Path.currentPath ())
+        then Run.return sandboxPath
+        else Run.return Path.(EsyRuntime.currentWorkingDir // sandboxPath)
+      | None ->
+        findProjectPathFrom (Path.currentPath ())
+    )
   in
 
-  let%bind sandboxPath = sandboxPath in
   let%bind spec = EsyInstall.SandboxSpec.ofPath sandboxPath in
 
   let%bind prefixPath = match prefixPath with
