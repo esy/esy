@@ -63,23 +63,6 @@ describe('Build with dep', () => {
   let winsysDir =
     process.platform === 'win32' ? [helpers.getWindowsSystemDirectory()] : [];
 
-  async function checkDepIsInEnv(p) {
-    {
-      const {stdout} = await p.esy('dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-
-    {
-      const {stdout} = await p.esy('b dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-
-    {
-      const {stdout} = await p.esy('x dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-  }
-
   describe('out of source build', () => {
     function withProject(assertions) {
       return async () => {
@@ -102,7 +85,22 @@ describe('Build with dep', () => {
       };
     }
 
-    it('makes dep available in envs', withProject(checkDepIsInEnv));
+    it('makes dep available in envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
 
     test(
       'build-env',
@@ -288,7 +286,22 @@ describe('Build with dep', () => {
       };
     }
 
-    it('makes dep available in envs', withProject(checkDepIsInEnv));
+    it('makes dep available in envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
   });
 
   describe('_build build', () => {
@@ -314,6 +327,65 @@ describe('Build with dep', () => {
         await assertions(p);
       };
     }
-    it('makes dep available in envs', withProject(checkDepIsInEnv));
+    it('makes dep available in envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
   });
+
+  describe('out of source build with buildDev in deps', () => {
+    function withProject(assertions) {
+      return async () => {
+        const p = await helpers.createTestSandbox();
+        await p.fixture(
+          ...makeFixture(p, {
+            build: [
+              'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            // set buildDev to false to make sure we fail if it's going to be
+            // executed
+            buildDev: 'false',
+            install: [
+              `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }),
+        );
+        await p.esy('install');
+        await p.esy('build');
+        await assertions(p);
+      };
+    }
+
+    it('makes dep available in envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
+  });
+
 });
