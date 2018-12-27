@@ -90,7 +90,7 @@ describe(`'esy build CMD' invocation`, () => {
     });
   });
 
-  it(`cannot invoke commands defined in devDependencies`, async () => {
+  it(`can invoke commands defined in devDependencies`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build');
@@ -98,6 +98,17 @@ describe(`'esy build CMD' invocation`, () => {
     await expect(p.esy('build devDep.cmd')).resolves.toMatchObject({
       stdout: '__devDep__' + os.EOL,
       stderr: '',
+    });
+  });
+
+  it(`cannot invoke commands defined in devDependencies if --release is passed`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
+
+    await expect(p.esy('build --release devDep.cmd')).rejects.toMatchObject({
+      stdout: '',
+      stderr: expect.stringMatching('unable to resolve command: devDep.cmd'),
     });
   });
 
