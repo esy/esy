@@ -585,10 +585,10 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     packagePath
     ()
 
-let exec cmd (proj : Project.WithWorkflow.t) =
+let exec release cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let%bind () = build ~buildOnly:false proj None () in
+  let%bind () = build ~release ~buildOnly:false proj None () in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
@@ -596,7 +596,7 @@ let exec cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    (if release then Workflow.defaultPlanForRelease else Workflow.defaultPlanForDev)
     PkgArg.root
     cmd
     ()
@@ -1423,6 +1423,11 @@ let makeCommands projectPath =
       ~docs:commonSection
       Term.(
         const exec
+        $ Arg.(
+            value
+            & flag
+            & info ["release"] ~doc:"Build in release mode"
+          )
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
@@ -1865,6 +1870,7 @@ let () =
     let argv =
       match Array.to_list argv with
       | (_prg::_command::"--help"::[]) as argv -> argv
+      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
       | prg::command::rest -> prg::command::"--"::rest
       | argv -> argv
     in
