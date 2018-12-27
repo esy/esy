@@ -48,23 +48,33 @@ declare build commands.
 ### `esy.buildDev`
 
 Describe how your package's default targets should be built when package is
-being developed.
+being developed. This is only used for the root package of an esy project.
 
-For example, for a [dune](https://dune.readthedocs.io/) based package you'd want to call `dune build`
-command.
+The main difference with `esy.build` is that commands declared in `esy.buildDev`
+have access to `"devDependencies"`.
+
+For example, for a [dune](https://dune.readthedocs.io/) based package you'd want
+to call `dune build` command.
 
 ```
 {
   "esy": {
     "buildDev": [
-      "dune build --root . --only-packages #{self.name}",
+      "refmterr dune build --root . --only-packages #{self.name}",
     ]
+  },
+  "dependencies": {
+    "refmterr": "*",
+    ...
   }
 }
 ```
 
-[esy variable substitution syntax](environment.md#variable-substitution-syntax) can be used to
-declare build commands.
+Note that we use `refmterr` command which is declared in `"devDependencies"`
+section.
+
+[esy variable substitution syntax](environment.md#variable-substitution-syntax)
+can be used to declare build commands.
 
 If no `esy.buildDev` is defined then `esy.build` is used instead.
 
