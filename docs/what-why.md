@@ -35,7 +35,7 @@ your packages to opam repository.
 * Isolates each package environment by exposing only those packages which are
   defined as dependencies.
 
-* Fast parallel builds which are agressively cached (even across different
+* Fast parallel builds which are aggressively cached (even across different
   projects).
 
 * Keeps the ability to use packages published on opam repository.
