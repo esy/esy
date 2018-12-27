@@ -60,6 +60,6 @@ if (!isWindows) {
 
   // Windows: Release blocked by #418
   require('./esy-npm-release/legacy.test.js');
+  require('./esy-npm-release/no-rewrite.test.js');
 }
 
-require('./esy-npm-release/no-rewrite.test.js');
