@@ -4,6 +4,7 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 "# Build environment
 # package:            dep@path:dep
 # depspec:            dependencies(self)
+# plan:               root=buildDev link=build all=build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -57,6 +58,7 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 "# Build environment
 # package:            withDep@link:./package.json
 # depspec:            dependencies(self)
+# plan:               root=buildDev link=build all=build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -80,7 +82,7 @@ export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
 export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export cur__original_root=\\"%projectPath%\\"
 export cur__root=\\"%projectPath%\\"
-export cur__dev=\\"true\\"
+export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"withDep\\"
 

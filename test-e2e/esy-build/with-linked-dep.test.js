@@ -37,23 +37,6 @@ function makeFixture(p, buildDep) {
 }
 
 describe('Build with a linked dep', () => {
-  async function checkDepIsInEnv(p) {
-    {
-      const {stdout} = await p.esy('dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-
-    {
-      const {stdout} = await p.esy('b dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-
-    {
-      const {stdout} = await p.esy('x dep.cmd');
-      expect(stdout.trim()).toEqual('__dep__');
-    }
-  }
-
   describe('out of source build', () => {
     function withProject(assertions) {
       return async () => {
@@ -76,7 +59,22 @@ describe('Build with a linked dep', () => {
       };
     }
 
-    it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
+    it('package "dep" should be visible in all envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
 
     test.enableIf(isMacos || isLinux)(
       'macos || linux: build-env snapshot',
@@ -118,7 +116,22 @@ describe('Build with a linked dep', () => {
       };
     }
 
-    it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
+    it('package "dep" should be visible in all envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
   });
 
   describe('_build build', () => {
@@ -145,6 +158,64 @@ describe('Build with a linked dep', () => {
       };
     }
 
-    it('package "dep" should be visible in all envs', withProject(checkDepIsInEnv));
+    it('package "dep" should be visible in all envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
   });
+
+  describe('out of source build with "buildDev" in dep', () => {
+    function withProject(assertions) {
+      return async () => {
+        const p = await helpers.createTestSandbox();
+        await p.fixture(
+          ...makeFixture(p, {
+            build: [
+              'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            // set it to false so we fail if it's executed
+            buildDev: 'false',
+            install: [
+              `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }),
+        );
+        await p.esy('install');
+        await p.esy('build');
+        await assertions(p);
+      };
+    }
+
+    it('package "dep" should be visible in all envs', withProject(async p => {
+      {
+        const {stdout} = await p.esy('dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('b dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+
+      {
+        const {stdout} = await p.esy('x dep.cmd');
+        expect(stdout.trim()).toEqual('__dep__');
+      }
+    }));
+  });
+
 });

@@ -9,7 +9,29 @@ type t = {
 
 let defaultDepspec = DepSpec.(dependencies self)
 let defaultDepspecForLink = DepSpec.(dependencies self)
-let defaultDepspecForRoot = DepSpec.(dependencies self)
+let defaultDepspecForRootForRelease = DepSpec.(dependencies self)
+let defaultDepspecForRootForDev = DepSpec.(dependencies self + devDependencies self)
+
+let defaultPlanForRelease = {
+  BuildSpec.
+  all = Build;
+  link = Build;
+  root = Build;
+}
+
+let defaultPlanForDev = {
+  BuildSpec.
+  all = Build;
+  link = Build;
+  root = BuildDev;
+}
+
+let defaultPlanForDevForce = {
+  BuildSpec.
+  all = Build;
+  link = Build;
+  root = BuildDevForce;
+}
 
 let default =
 
@@ -17,11 +39,12 @@ let default =
   let buildspec = {
     BuildSpec.
     (* build all other packages using "build" command with dependencies in the env *)
-    build = {mode = Build; deps = defaultDepspec};
-    (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildLink = Some {mode = BuildDev; deps = defaultDepspecForLink};
-    (* build linked packages using "buildDev" command with dependencies in the env *)
-    buildRoot = Some {mode = BuildDev; deps = defaultDepspecForRoot};
+    build = defaultDepspec;
+    (* build linked packages using "build" command with dependencies in the env *)
+    buildLink = Some defaultDepspecForLink;
+
+    buildRootForRelease = Some defaultDepspecForRootForRelease;
+    buildRootForDev = Some defaultDepspecForRootForDev;
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)

@@ -1,5 +1,6 @@
 // @flow
 
+const os = require('os');
 const path = require('path');
 const helpers = require('../test/helpers');
 const {test, isWindows, isMacos, isLinux} = helpers;
@@ -41,41 +42,38 @@ function makePackage(
   );
 }
 
-function makeFixture(p) {
-  return [
-    helpers.packageJson({
-      name: 'withDevDep',
-      version: '1.0.0',
-      esy: {
-        build: 'true',
-      },
-      dependencies: {
-        dep: 'path:./dep',
-      },
-      devDependencies: {
-        devDep: 'path:./devDep',
-      },
-    }),
-    makePackage(p, {
-      name: 'dep',
-      devDependencies: {devDepOfDep: '*'},
-    }),
-    makePackage(p, {
-      name: 'devDep',
-      dependencies: {
-        depOfDevDep: 'path:../depOfDevDep',
-      },
-    }),
-    makePackage(p, {
-      name: 'depOfDevDep',
-    }),
-  ];
-}
+describe(`Project with "devDependencies"`, () => {
 
-describe('devDep workflow', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
-    await p.fixture(...makeFixture(p));
+    await p.fixture(
+      helpers.packageJson({
+        name: 'withDevDep',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+        },
+        dependencies: {
+          dep: 'path:./dep',
+        },
+        devDependencies: {
+          devDep: 'path:./devDep',
+        },
+      }),
+      makePackage(p, {
+        name: 'dep',
+        devDependencies: {devDepOfDep: '*'},
+      }),
+      makePackage(p, {
+        name: 'devDep',
+        dependencies: {
+          depOfDevDep: 'path:../depOfDevDep',
+        },
+      }),
+      makePackage(p, {
+        name: 'depOfDevDep',
+      }),
+    )
     await p.esy('install');
     await p.esy('build');
     return p;
@@ -101,7 +99,7 @@ describe('devDep workflow', () => {
     }
   });
 
-  it('package "dev-dep" should be visible only in command env', async () => {
+  it(`package "dev-dep" is visible in command env / test env and via 'esy b CMD'`, async () => {
     const p = await createTestSandbox();
 
     {
@@ -114,7 +112,10 @@ describe('devDep workflow', () => {
       expect(stdout.trim()).toEqual('__devDep__');
     }
 
-    return expect(p.esy('b devDep.cmd')).rejects.toThrow();
+    {
+      const {stdout} = await p.esy('b devDep.cmd');
+      expect(stdout.trim()).toEqual('__devDep__');
+    }
   });
 
   test('build-env', async function() {
@@ -335,5 +336,86 @@ describe('devDep workflow', () => {
     const envpath = env.PATH.split(path.delimiter);
     expect(envpath.includes(`${p.esyStorePath}/i/${depId}/bin`)).toBeTruthy();
     expect(envpath.includes(`${p.esyStorePath}/i/${devDepId}/bin`)).toBeTruthy();
+  });
+});
+
+describe('Project with "devDependencies" (with "buildDev" config at the root)', () => {
+
+  async function createTestSandbox() {
+    const p = await helpers.createTestSandbox();
+    const name = 'withDevDep';
+    await p.fixture(
+      helpers.packageJson({
+        name: name,
+        version: '1.0.0',
+        esy: {
+          build: [
+            'cp #{self.name}.js #{self.target_dir / self.name}.js',
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js')
+          ],
+          // run commands from "devDependencies" here
+          buildDev: [
+            'devDep.cmd',
+            'cp #{self.name}-dev.js #{self.target_dir / self.name}.js',
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js')
+          ],
+          install: [
+            `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+          ],
+        },
+        dependencies: {
+          dep: 'path:./dep',
+        },
+        devDependencies: {
+          devDep: 'path:./devDep',
+        },
+      }),
+      helpers.dummyExecutable(name),
+      helpers.dummyExecutable(`${name}-dev`),
+      makePackage(p, {
+        name: 'dep',
+        devDependencies: {devDepOfDep: '*'},
+      }),
+      makePackage(p, {
+        name: 'devDep',
+        dependencies: {
+          depOfDevDep: 'path:../depOfDevDep',
+        },
+      }),
+      makePackage(p, {
+        name: 'depOfDevDep',
+      }),
+    )
+    await p.esy('install');
+    return p;
+  }
+
+  it(`can be built with 'esy build'`, async () => {
+    const p = await createTestSandbox();
+
+    {
+      const {stdout} = await p.esy('build');
+      expect(stdout).toBe(`__devDep__${os.EOL}`);
+    }
+
+    {
+      const {stdout} = await p.esy('x withDevDep.cmd');
+      expect(stdout).toBe(`__devDep__${os.EOL}__withDevDep-dev__${os.EOL}`);
+    }
+  });
+
+  it(`can be built with 'esy build --release'`, async () => {
+    const p = await createTestSandbox();
+
+    {
+      const {stdout} = await p.esy('build --release');
+      expect(stdout).toBe(``);
+    }
+
+    {
+      const {stdout} = await p.esy('x --release withDevDep.cmd');
+      expect(stdout).toBe(`__withDevDep__${os.EOL}`);
+    }
   });
 });

@@ -101,7 +101,7 @@ describe(`'esy build-env' command`, () => {
 
     expect(env.cur__name).toBe('simple-project');
     expect(env.cur__version).toBe('1.0.0');
-    expect(env.cur__dev).toBe('true');
+    expect(env.cur__dev).toBe('false');
     expect(env.cur__toplevel).toBeTruthy();
     expect(env.cur__target_dir).toBeTruthy();
     expect(env.cur__stublibs).toBeTruthy();
@@ -166,7 +166,7 @@ describe(`'esy build-env' command`, () => {
 
     const env = JSON.parse((await p.esy('build-env --json linkedDep')).stdout);
     expect(env.cur__name).toBe('linkedDep');
-    expect(env.cur__dev).toBe('true');
+    expect(env.cur__dev).toBe('false');
   });
 
   it('allows to query build env for a dep (by name, version)', async () => {

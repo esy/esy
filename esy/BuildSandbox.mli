@@ -21,6 +21,7 @@ val configure :
   ?forceImmutable:bool
   -> EnvSpec.t
   -> BuildSpec.t
+  -> BuildSpec.plan
   -> t
   -> PackageId.t
   -> (Scope.SandboxEnvironment.Bindings.t * Scope.t) Run.t
@@ -29,6 +30,7 @@ val env :
   ?forceImmutable:bool
   -> EnvSpec.t
   -> BuildSpec.t
+  -> BuildSpec.plan
   -> t
   -> PackageId.t
   -> Scope.SandboxEnvironment.Bindings.t Run.t
@@ -36,6 +38,7 @@ val env :
 val exec :
   EnvSpec.t
   -> BuildSpec.t
+  -> BuildSpec.plan
   -> t
   -> PackageId.t
   -> Cmd.t
@@ -70,16 +73,19 @@ module Plan : sig
   val getByNameVersion : t -> string -> Version.t -> Task.t option
 
   val all : t -> Task.t list
+  val plan : t -> BuildSpec.plan
 end
 
 val makePlan :
   ?forceImmutable : bool
-  -> t
   -> BuildSpec.t
+  -> BuildSpec.plan
+  -> t
   -> Plan.t Run.t
 
 val buildShell :
   BuildSpec.t
+  -> BuildSpec.plan
   -> t
   -> PackageId.t
   -> Unix.process_status RunAsync.t

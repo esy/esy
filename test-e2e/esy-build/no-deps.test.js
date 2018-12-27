@@ -4,50 +4,50 @@ const path = require('path');
 const helpers = require('../test/helpers');
 const {test, isWindows, isMacos, isLinux} = helpers;
 
-function makeFixture(p, buildDep) {
-  return [
+async function fixture(p, buildDep) {
+  const fixture = [
     helpers.packageJson({
       name: 'no-deps',
       version: '1.0.0',
       esy: buildDep,
     }),
     helpers.dummyExecutable('no-deps'),
+    helpers.dummyExecutable('no-deps-dev'),
   ];
+  await p.fixture(...fixture);
 }
 
 describe(`'esy build': simple executable with no deps`, () => {
-  async function checkIsInEnv(p) {
-    const {stdout} = await p.esy('x no-deps.cmd');
-    expect(stdout.trim()).toEqual('__no-deps__');
-  }
-
   describe('out of source build', () => {
+
     function withProject(assertions) {
       return async () => {
         const p = await helpers.createTestSandbox();
-        p.fixture(
-          ...makeFixture(p, {
-            build: [
-              ['cp', '#{self.name}.js', '#{self.target_dir / self.name}.js'],
-              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
-            ],
-            install: [
-              `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
-              `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
-            ],
-          }),
-        );
+        await fixture(p, {
+          build: [
+            ['cp', '#{self.name}.js', '#{self.target_dir / self.name}.js'],
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+          ],
+          install: [
+            `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+          ],
+        });
         await p.esy('install');
-        await p.esy('build');
         await assertions(p);
       };
     }
 
-    test('executable is available in sandbox env', withProject(checkIsInEnv));
+    test('executable is available in sandbox env', withProject(async (p) => {
+      await p.esy('build');
+      const {stdout} = await p.esy('x no-deps.cmd');
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
 
     test(
       'build-env',
       withProject(async function(p) {
+        await p.esy('build');
         let winsysDir =
           process.platform === 'win32' ? [helpers.getWindowsSystemDirectory()] : [];
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
@@ -88,6 +88,7 @@ describe(`'esy build': simple executable with no deps`, () => {
     test.enableIf(isMacos || isLinux)(
       'macos || linux: build-env snapshot',
       withProject(async function(p) {
+        await p.esy('build');
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('build-env');
         expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
@@ -97,6 +98,7 @@ describe(`'esy build': simple executable with no deps`, () => {
     test(
       'exec-env',
       withProject(async function(p) {
+        await p.esy('build');
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('exec-env --json');
         const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
@@ -109,6 +111,7 @@ describe(`'esy build': simple executable with no deps`, () => {
     test(
       'command-env',
       withProject(async function(p) {
+        await p.esy('build');
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const {stdout} = await p.esy('command-env --json');
         const env = JSON.parse(stdout);
@@ -140,47 +143,123 @@ describe(`'esy build': simple executable with no deps`, () => {
     function withProject(assertions) {
       return async () => {
         const p = await helpers.createTestSandbox();
-        p.fixture(
-          ...makeFixture(p, {
-            buildsInSource: true,
-            build: [helpers.buildCommand(p, '#{self.name}.js')],
-            install: [
-              `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
-              `cp #{self.name}.js #{self.bin / self.name}.js`,
-            ],
-          }),
-        );
+        await fixture(p, {
+          buildsInSource: true,
+          build: [helpers.buildCommand(p, '#{self.name}.js')],
+          install: [
+            `cp #{self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp #{self.name}.js #{self.bin / self.name}.js`,
+          ],
+        });
         await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
     }
-    test('executable is available in sandbox env', withProject(checkIsInEnv));
+    test('executable is available in sandbox env', withProject(async (p) => {
+      await p.esy('build');
+      const {stdout} = await p.esy('x no-deps.cmd');
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
   });
 
   describe('_build build', () => {
     function withProject(assertions) {
       return async () => {
         const p = await helpers.createTestSandbox();
-        p.fixture(
-          ...makeFixture(p, {
-            buildsInSource: '_build',
-            build: [
-              'mkdir -p _build',
-              'cp #{self.name}.js _build/#{self.name}.js',
-              helpers.buildCommand(p, '_build/#{self.name}.js'),
-            ],
-            install: [
-              `cp _build/#{self.name}.cmd #{self.bin / self.name}.cmd`,
-              `cp _build/#{self.name}.js #{self.bin / self.name}.js`,
-            ],
-          }),
-        );
+        await fixture(p, {
+          buildsInSource: '_build',
+          build: [
+            'mkdir -p _build',
+            'cp #{self.name}.js _build/#{self.name}.js',
+            helpers.buildCommand(p, '_build/#{self.name}.js'),
+          ],
+          install: [
+            `cp _build/#{self.name}.cmd #{self.bin / self.name}.cmd`,
+            `cp _build/#{self.name}.js #{self.bin / self.name}.js`,
+          ],
+        });
         await p.esy('install');
         await p.esy('build');
         await assertions(p);
       };
     }
-    test('executable is available in sandbox env', withProject(checkIsInEnv));
+    test('executable is available in sandbox env', withProject(async (p) => {
+      await p.esy('build');
+      const {stdout} = await p.esy('x no-deps.cmd');
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
+  });
+
+  describe('out of source build with buildDev', () => {
+
+    async function createTestSandbox() {
+      const p = await helpers.createTestSandbox();
+      await p.fixture(
+        helpers.packageJson({
+          name: 'no-deps',
+          version: '1.0.0',
+          esy: {
+            build: [
+              ['cp', '#{self.name}.js', '#{self.target_dir / self.name}.js'],
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            buildDev: [
+              ['cp', '#{self.name}-dev.js', '#{self.target_dir / self.name}.js'],
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            install: [
+              `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
+              `cp #{self.target_dir / self.name}.js #{self.bin / self.name}.js`,
+            ],
+          }
+        }),
+        helpers.dummyExecutable('no-deps'),
+        helpers.dummyExecutable('no-deps-dev'),
+      );
+      await p.esy('install');
+      return p;
+    }
+
+    test('builds using "buildDev" command if it is set', async () => {
+      const p = await createTestSandbox();
+      // build will use "buildDev" if it exists by default for the root package
+      await p.esy('build');
+      const {stdout} = await p.esy('x no-deps.cmd');
+      expect(stdout.trim()).toEqual('__no-deps-dev__');
+    });
+
+    test('we can force using "build" command by passing --release', async () => {
+      const p = await createTestSandbox();
+      // we can force to use "build" instead by passing --release flag
+      await p.esy('build --release');
+      const {stdout} = await p.esy('x --release no-deps.cmd');
+      expect(stdout.trim()).toEqual('__no-deps__');
+    });
+
+    test.disableIf(isWindows)('both built artifacts are present at the same time', async () => {
+      const p = await createTestSandbox();
+
+      // get the path to built executable in release mode
+      await p.esy('build --release');
+      const {stdout: releaseStdout} = await p.esy('x --release which no-deps.cmd');
+
+      // get the path to built executable in dev mode
+      await p.esy('build');
+      const {stdout: devStdout} = await p.esy('x which no-deps.cmd');
+
+      // run them directly so we don't trigger builds and thus we make sure we
+      // run them build dirs
+      {
+        const {stdout} = await p.run(releaseStdout.trim());
+        expect(stdout.trim()).toEqual('__no-deps__');
+      }
+      {
+        const {stdout} = await p.run(devStdout.trim());
+        expect(stdout.trim()).toEqual('__no-deps-dev__');
+      }
+    });
+
+
   });
 });

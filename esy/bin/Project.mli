@@ -54,7 +54,7 @@ module WithWorkflow : sig
   and configured = {
     workflow : Workflow.t;
     scripts : Scripts.t;
-    plan : BuildSandbox.Plan.t;
+    planForDev : BuildSandbox.Plan.t;
     root : BuildSandbox.Task.t;
   }
 
@@ -101,6 +101,7 @@ val execCommand :
   -> _ fetched solved project
   -> EnvSpec.t
   -> BuildSpec.t
+  -> BuildSpec.plan
   -> PkgArg.t
   -> Cmd.t
   -> unit
@@ -111,6 +112,7 @@ val printEnv :
   -> _ fetched solved project
   -> EnvSpec.t
   -> BuildSpec.t
+  -> BuildSpec.plan
   -> bool
   -> PkgArg.t
   -> unit
