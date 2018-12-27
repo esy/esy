@@ -12,6 +12,13 @@ let defaultDepspecForLink = DepSpec.(dependencies self)
 let defaultDepspecForRootForRelease = DepSpec.(dependencies self)
 let defaultDepspecForRootForDev = DepSpec.(dependencies self + devDependencies self)
 
+let defaultPlanForRelease = {
+  BuildSpec.
+  all = Build;
+  link = Build;
+  root = Build;
+}
+
 let defaultPlanForDev = {
   BuildSpec.
   all = Build;
@@ -19,11 +26,11 @@ let defaultPlanForDev = {
   root = BuildDev;
 }
 
-let defaultPlanForRelease = {
+let defaultPlanForDevForce = {
   BuildSpec.
   all = Build;
   link = Build;
-  root = Build;
+  root = BuildDevForce;
 }
 
 let default =

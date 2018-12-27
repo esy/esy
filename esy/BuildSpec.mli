@@ -27,6 +27,7 @@ type t = {
 type mode =
   | Build
   | BuildDev
+  | BuildDevForce
 
 val pp_mode : mode Fmt.t
 val show_mode : mode -> string

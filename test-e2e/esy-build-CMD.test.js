@@ -95,8 +95,9 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('install');
     await p.esy('build');
 
-    await expect(p.esy('build devDep.cmd')).rejects.toMatchObject({
-      code: 1,
+    await expect(p.esy('build devDep.cmd')).resolves.toMatchObject({
+      stdout: '__devDep__' + os.EOL,
+      stderr: '',
     });
   });
 

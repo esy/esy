@@ -224,7 +224,7 @@ end = struct
     let p v = SandboxValue.show (SandboxPath.toValue v) in
     let dev =
       match mode, scope.sourceType with
-      | BuildSpec.BuildDev, Transient -> "true"
+      | (BuildSpec.BuildDev | BuildDevForce), Transient -> "true"
       | BuildSpec.Build, Transient -> "false"
       | _, Immutable
       | _, ImmutableWithTransientDependencies -> "false"

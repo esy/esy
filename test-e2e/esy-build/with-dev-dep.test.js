@@ -99,7 +99,7 @@ describe(`Project with "devDependencies"`, () => {
     }
   });
 
-  it('package "dev-dep" should be visible only in command env', async () => {
+  it(`package "dev-dep" is visible in command env / test env and via 'esy b CMD'`, async () => {
     const p = await createTestSandbox();
 
     {
@@ -112,7 +112,10 @@ describe(`Project with "devDependencies"`, () => {
       expect(stdout.trim()).toEqual('__devDep__');
     }
 
-    return expect(p.esy('b devDep.cmd')).rejects.toThrow();
+    {
+      const {stdout} = await p.esy('b devDep.cmd');
+      expect(stdout.trim()).toEqual('__devDep__');
+    }
   });
 
   test('build-env', async function() {

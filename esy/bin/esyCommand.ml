@@ -38,6 +38,7 @@ let modeConv =
     match v with
     | BuildSpec.Build -> Fmt.unit "release" fmt ()
     | BuildSpec.BuildDev -> Fmt.unit "dev" fmt ()
+    | BuildSpec.BuildDevForce -> Fmt.unit "force-dev" fmt ()
   in
   let parse v =
     match v with
@@ -501,7 +502,7 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
         BuildSandbox.makePlan
           Workflow.default.buildspec
           Workflow.defaultPlanForRelease
-          fetched.sandbox
+          fetched.Project.sandbox
       else
         return configured.Project.WithWorkflow.planForDev
     )
@@ -540,7 +541,9 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
-      (BuildSandbox.Plan.plan plan)
+      (if release
+      then BuildSandbox.Plan.plan plan
+      else Workflow.defaultPlanForDevForce)
       PkgArg.root
       cmd
       ()

@@ -11,18 +11,22 @@ type t = {
 type mode =
   | Build
   | BuildDev
+  | BuildDevForce
 
 let pp_mode fmt = function
   | Build -> Fmt.string fmt "build"
   | BuildDev -> Fmt.string fmt "buildDev"
+  | BuildDevForce -> Fmt.string fmt "buildDevForce"
 
 let show_mode = function
   | Build -> "build"
   | BuildDev -> "buildDev"
+  | BuildDevForce -> "buildDevForce"
 
 let mode_to_yojson = function
   | Build -> `String "build"
   | BuildDev -> `String "buildDev"
+  | BuildDevForce -> `String "buildDevForce"
 
 let mode_of_yojson = function
   | `String "build" -> Ok Build
@@ -64,6 +68,8 @@ let classify spec plan solution pkg buildManifest =
     | Build, _ -> mode, commands
     | BuildDev, None -> Build, commands
     | BuildDev, Some commands -> BuildDev, BuildManifest.EsyCommands commands
+    | BuildDevForce, None -> mode, commands
+    | BuildDevForce, Some commands -> mode, BuildManifest.EsyCommands commands
   in
   let build =
     match kind with
@@ -75,7 +81,7 @@ let classify spec plan solution pkg buildManifest =
       end
     | `Root ->
       begin match mode with
-      | BuildDev ->
+      | BuildDev | BuildDevForce ->
         begin match spec.buildRootForDev, spec.buildRootForRelease, spec.buildLink with
         | Some build, _,          _     -> build
         | None,       Some build, _     -> build
