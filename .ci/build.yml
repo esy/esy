@@ -1,5 +1,5 @@
 steps:
-  - script: 'npm install -g esy@0.4.7 --unsafe-perm'
+  - script: 'npm install -g esy@0.4.9 --unsafe-perm'
     displayName: 'npm install -g esy'
 
   - script: 'esy install'
