@@ -54,7 +54,7 @@ let modeConv =
 
 let planArg =
   let make root link =
-    {Workflow.defaultPlan with root; link;}
+    {Workflow.defaultPlanForDev with root; link;}
   in
   Cmdliner.Term.(
     const make
@@ -475,7 +475,7 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
     let p =
       BuildSandbox.buildShell
         configured.Project.WithWorkflow.workflow.buildspec
-        Workflow.defaultPlan
+        Workflow.defaultPlanForDev
         fetched.Project.sandbox
         pkg.id
     in
@@ -487,11 +487,25 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgspec f
 
-let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
+let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
+
+  let%bind plan =
+    RunAsync.ofRun (
+      let open Run.Syntax in
+      if release
+      then
+        BuildSandbox.makePlan
+          Workflow.default.buildspec
+          Workflow.defaultPlanForRelease
+          fetched.sandbox
+      else
+        return configured.Project.WithWorkflow.planForDev
+    )
+  in
 
   begin match cmd with
   | None ->
@@ -500,7 +514,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
-        configured.Project.WithWorkflow.planForDev
+        plan
         configured.Project.WithWorkflow.root.pkg
     in
     Project.buildPackage
@@ -508,7 +522,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       ~buildOnly
       proj.projcfg
       fetched.Project.sandbox
-      configured.Project.WithWorkflow.planForDev
+      plan
       configured.Project.WithWorkflow.root.pkg
   | Some cmd ->
     let%bind () =
@@ -516,7 +530,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
         ~buildLinked:true
         ~buildDevDependencies:true
         proj
-        configured.Project.WithWorkflow.planForDev
+        plan
         configured.Project.WithWorkflow.root.pkg
     in
     Project.execCommand
@@ -526,7 +540,7 @@ let build ?(buildOnly=true) (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.buildenvspec
       configured.workflow.buildspec
-      Workflow.defaultPlan
+      (BuildSandbox.Plan.plan plan)
       PkgArg.root
       cmd
       ()
@@ -540,7 +554,7 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlan
+    Workflow.defaultPlanForDev
     asJson
     packagePath
     ()
@@ -553,7 +567,7 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlan
+    Workflow.defaultPlanForDev
     asJson
     packagePath
     ()
@@ -566,7 +580,7 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlan
+    Workflow.defaultPlanForDev
     asJson
     packagePath
     ()
@@ -582,7 +596,7 @@ let exec cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlan
+    Workflow.defaultPlanForDev
     PkgArg.root
     cmd
     ()
@@ -624,7 +638,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
       BuildSandbox.configure
         envspec
         configured.workflow.buildspec
-        Workflow.defaultPlan
+        Workflow.defaultPlanForDev
         fetched.Project.sandbox
         id
     in
@@ -681,7 +695,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
-      Workflow.defaultPlan
+      Workflow.defaultPlanForDev
       PkgArg.root
       cmd
       ()
@@ -700,7 +714,7 @@ let devShell (proj : Project.WithWorkflow.t) =
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
-    Workflow.defaultPlan
+    Workflow.defaultPlanForDev
     PkgArg.root
     (Cmd.v shell)
     ()
@@ -1333,13 +1347,13 @@ let makeCommands projectPath =
 
     let buildCommand =
 
-      let run cmd proj =
+      let run release cmd proj =
         let () =
           match cmd with
           | None -> Lwt_main.run (printHeader ~spec:proj.Project.projcfg.spec "esy build")
           | Some _ -> ()
         in
-        build ~buildOnly:true proj cmd ()
+        build ~buildOnly:true ~release proj cmd ()
       in
 
       makeProjectWithWorkflowCommand
@@ -1349,6 +1363,11 @@ let makeCommands projectPath =
         ~docs:commonSection
         Term.(
           const run
+          $ Arg.(
+              value
+              & flag
+              & info ["release"] ~doc:"Build in release mode"
+            )
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
@@ -1842,12 +1861,22 @@ let () =
    * (like --sandbox-path or --prefix-path) from working for these commands.
    * This should be fixed.
    *)
-  | Some "x"
+  | Some "x" ->
+    let argv =
+      match Array.to_list argv with
+      | (_prg::_command::"--help"::[]) as argv -> argv
+      | prg::command::rest -> prg::command::"--"::rest
+      | argv -> argv
+    in
+    let argv = Array.of_list argv in
+    runCmdliner argv
+
   | Some "b"
   | Some "build" ->
     let argv =
       match Array.to_list argv with
       | (_prg::_command::"--help"::[]) as argv -> argv
+      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
       | prg::command::rest -> prg::command::"--"::rest
       | argv -> argv
     in

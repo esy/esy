@@ -518,6 +518,7 @@ module Plan = struct
 
   type t = {
     buildspec : BuildSpec.t;
+    plan : BuildSpec.plan;
     tasks : Task.t option PackageId.Map.t;
   }
 
@@ -557,6 +558,8 @@ module Plan = struct
       | _ , None -> tasks
     in
     List.fold_left ~f ~init:[] (PackageId.Map.bindings plan.tasks)
+
+  let plan plan = plan.plan
 end
 
 let makePlan
@@ -669,7 +672,7 @@ let makePlan
     visit PackageId.Map.empty [root.id]
   in
 
-  return {Plan. tasks; buildspec;}
+  return {Plan. plan = mode; tasks; buildspec;}
 
 let task buildspec mode sandbox id =
   let open RunAsync.Syntax in

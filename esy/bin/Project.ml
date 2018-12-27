@@ -294,7 +294,7 @@ module WithWorkflow = struct
       let%bind plan =
         BuildSandbox.makePlan
           workflow.buildspec
-          Workflow.defaultPlan
+          Workflow.defaultPlanForDev
           sandbox
       in
       let pkg = EsyInstall.Solution.root solution in
@@ -345,7 +345,7 @@ module WithWorkflow = struct
           BuildSandbox.env
             configured.workflow.commandenvspec
             configured.workflow.buildspec
-            Workflow.defaultPlan
+            Workflow.defaultPlanForDev
             fetched.sandbox
             root.Package.id
         in

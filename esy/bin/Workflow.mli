@@ -12,5 +12,6 @@ val defaultDepspecForLink : DepSpec.t
 val defaultDepspecForRootForDev : DepSpec.t
 val defaultDepspecForRootForRelease : DepSpec.t
 
-val defaultPlan : BuildSpec.plan
+val defaultPlanForDev : BuildSpec.plan
+val defaultPlanForRelease : BuildSpec.plan
 val default : t

@@ -73,6 +73,7 @@ module Plan : sig
   val getByNameVersion : t -> string -> Version.t -> Task.t option
 
   val all : t -> Task.t list
+  val plan : t -> BuildSpec.plan
 end
 
 val makePlan :
