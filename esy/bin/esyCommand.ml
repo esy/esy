@@ -216,11 +216,13 @@ let resolvedPathTerm =
 let buildDependencies
   all
   devDependencies
+  solvespec
   plan
   linkDepspec
   pkgspec
-  (proj : Project.WithoutWorkflow.t) =
+  (proj : Project.WithoutSolution.t) =
   let open RunAsync.Syntax in
+  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let%bind fetched = Project.fetched proj in
   let f (pkg : Package.t) =
     let buildspec =
@@ -246,9 +248,10 @@ let buildDependencies
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage plan depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
+let buildPackage solvespec plan depspec pkgspec (proj : Project.WithoutSolution.t)  =
   let open RunAsync.Syntax in
 
+  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let%bind fetched = Project.fetched proj in
 
   let buildspec =
@@ -273,7 +276,7 @@ let buildPackage plan depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     Project.buildPackage
       ~quiet:true
       ~buildOnly:true
-      proj.projcfg
+      proj.Project.projcfg
       fetched.Project.sandbox
       plan
       pkg
@@ -286,13 +289,16 @@ let execCommand
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
+  solvespec
   plan
   linkDepspec
   envspec
   pkgspec
   cmd
-  (proj : _ Project.project)
+  (proj : Project.WithoutSolution.t)
   =
+  let open RunAsync.Syntax in
+  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let envspec = {
     EnvSpec.
     buildIsInProgress;
@@ -328,12 +334,15 @@ let printEnv
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
+  solvespec
   plan
   linkDepspec
   envspec
   pkgspec
-  (proj : _ Project.project)
+  (proj : Project.WithoutSolution.t)
   =
+  let open RunAsync.Syntax in
+  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let envspec = {
     EnvSpec.
     buildIsInProgress = false;
@@ -1339,6 +1348,7 @@ let makeCommands projectPath =
 
   let projectConfig = ProjectConfig.term projectPath in
   let projectWithWorkflow = Project.WithWorkflow.term projectPath in
+  let projectWithoutSolution = Project.WithoutSolution.term projectPath in
   let project = Project.WithoutWorkflow.term projectPath in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
@@ -1367,6 +1377,21 @@ let makeCommands projectPath =
         cmd project
       in
       Cmdliner.Term.(pure run $ cmd $ project)
+    in
+    makeCommand ~header:`No ?docs ?doc ~name cmd
+  in
+
+  let makeProjectWithoutSolutionCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+    let cmd =
+      let run cmd project =
+        let () =
+          match header with
+          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
+          | `No -> ()
+        in
+        cmd project
+      in
+      Cmdliner.Term.(pure run $ cmd $ projectWithoutSolution)
     in
     makeCommand ~header:`No ?docs ?doc ~name cmd
   in
@@ -1695,12 +1720,13 @@ let makeCommands projectPath =
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithoutSolutionCommand
       ~name:"build-package"
       ~doc:"Build a specified package"
       ~docs:lowLevelSection
       Term.(
         const buildPackage
+        $ solvespecArg
         $ planArg
         $ Arg.(
             value
@@ -1714,7 +1740,7 @@ let makeCommands projectPath =
           )
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithoutSolutionCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
@@ -1730,6 +1756,7 @@ let makeCommands projectPath =
             & flag
             & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
+        $ solvespecArg
         $ planArg
         $ Arg.(
             value
@@ -1745,7 +1772,7 @@ let makeCommands projectPath =
           )
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithoutSolutionCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
@@ -1767,6 +1794,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
+        $ solvespecArg
         $ planArg
         $ Arg.(
             value
@@ -1793,7 +1821,7 @@ let makeCommands projectPath =
             (Cmdliner.Arg.pos_right 0)
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithoutSolutionCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
@@ -1810,6 +1838,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
+        $ solvespecArg
         $ planArg
         $ Arg.(
             value
