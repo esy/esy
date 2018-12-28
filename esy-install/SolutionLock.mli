@@ -1,17 +1,17 @@
 val toPath :
-  checksum:string
-  -> sandbox:Sandbox.t
-  -> solution:Solution.t
+  digest:Digestv.t
+  -> Sandbox.t
+  -> Solution.t
   -> Fpath.t
   -> unit RunAsync.t
 
 val ofPath :
-  checksum:string
-  -> sandbox:Sandbox.t
+  ?digest:Digestv.t
+  -> Sandbox.t
   -> Fpath.t
   -> Solution.t option RunAsync.t
 
 val unsafeUpdateChecksum :
-  checksum:string
+  digest:Digestv.t
   -> Fpath.t
   -> unit RunAsync.t

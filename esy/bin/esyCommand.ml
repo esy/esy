@@ -924,9 +924,9 @@ let getSandboxSolution (projcfg : ProjectConfig.t) =
       Sandbox.digest solvespec projcfg.solveSandbox
     in
     EsyInstall.SolutionLock.toPath
-      ~checksum:(Digestv.toHex digest)
-      ~sandbox:projcfg.installSandbox
-      ~solution
+      ~digest
+      projcfg.installSandbox
+      solution
       lockPath
   in
   let unused = Resolver.getUnusedResolutions projcfg.solveSandbox.resolver in
@@ -953,14 +953,7 @@ let solve (proj : Project.WithWorkflow.t) =
 let fetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
-  let solvespec = Workflow.default.solvespec in
-  let%bind digest =
-    EsySolve.Sandbox.digest
-      solvespec
-      proj.projcfg.solveSandbox
-  in
-  let checksum = Digestv.toHex digest in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
+  match%bind SolutionLock.ofPath proj.projcfg.installSandbox lockPath with
   | Some solution -> EsyInstall.Fetch.fetch proj.projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
@@ -969,8 +962,7 @@ let solveAndFetch (proj : Project.WithWorkflow.t) =
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
   let solvespec = Workflow.default.solvespec in
   let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
-  let checksum = Digestv.toHex digest in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
+  match%bind SolutionLock.ofPath ~digest proj.projcfg.installSandbox lockPath with
   | Some solution ->
     if%bind EsyInstall.Fetch.isInstalled ~sandbox:proj.projcfg.installSandbox solution
     then return ()
@@ -1090,7 +1082,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
         (* we can only do this because we keep invariant that the constraint we
          * save in manifest covers the installed version *)
         EsyInstall.SolutionLock.unsafeUpdateChecksum
-          ~checksum:(Digestv.toHex digest)
+          ~digest
           (SandboxSpec.solutionLockPath solveSandbox.spec)
       in
       return ()

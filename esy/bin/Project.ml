@@ -185,8 +185,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
       Workflow.default.solvespec
       projcfg.solveSandbox
   in
-  let checksum = Digestv.toHex digest in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox path with
+  match%bind SolutionLock.ofPath ~digest projcfg.installSandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in
     return {solution; fetched;}
