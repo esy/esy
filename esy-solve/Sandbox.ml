@@ -4,9 +4,7 @@ type t = {
   cfg : Config.t;
   spec : EsyInstall.SandboxSpec.t;
   root : InstallManifest.t;
-  dependencies : InstallManifest.Dependencies.t;
   resolutions : Resolutions.t;
-  ocamlReq : Req.t option;
   resolver : Resolver.t;
 }
 
@@ -29,32 +27,14 @@ let ofResolution cfg spec resolver resolution =
       {root with name;}
     in
 
-    let dependencies, ocamlReq =
-      match root.InstallManifest.dependencies, root.devDependencies with
-      | InstallManifest.Dependencies.OpamFormula deps, InstallManifest.Dependencies.OpamFormula devDeps ->
-        let deps = InstallManifest.Dependencies.OpamFormula (deps @ devDeps) in
-        deps, None
-      | InstallManifest.Dependencies.NpmFormula deps, InstallManifest.Dependencies.NpmFormula devDeps  ->
-        let deps = NpmFormula.override deps devDeps in
-        let ocamlReq = NpmFormula.find ~name:"ocaml" deps in
-        InstallManifest.Dependencies.NpmFormula deps, ocamlReq
-      | InstallManifest.Dependencies.NpmFormula _, _
-      | InstallManifest.Dependencies.OpamFormula _, _  ->
-        failwith "mixing npm and opam dependencies"
-    in
-
     return {
       cfg;
       spec;
       root;
       resolutions = root.resolutions;
-      ocamlReq;
-      dependencies;
       resolver;
     }
   | Error msg -> errorf "unable to construct sandbox: %s" msg
-
-let anyOpam = VersionSpec.Opam (OpamPackageVersion.Formula.any)
 
 let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
@@ -72,8 +52,8 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
       Resolver.setResolutions sandbox.resolutions sandbox.resolver;
       return sandbox
     | EsyInstall.SandboxSpec.ManifestAggregate manifests ->
-      let%bind resolutions, reqs, devDeps =
-        let f (resolutions, reqs, devDeps) manifest  =
+      let%bind resolutions, deps, devDeps =
+        let f (resolutions, deps, devDeps) manifest  =
           let source = makeSource manifest in
           let resolution = makeResolution source in
           match%bind Resolver.package ~resolution resolver with
@@ -88,13 +68,14 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
               let resolution = Resolution.Version (Version.Source source) in
               Resolutions.add name resolution resolutions
             in
-            let reqs = (Req.make ~name ~spec:anyOpam)::reqs in
+            let dep = {InstallManifest.Dep.name; req = Opam OpamPackageVersion.Constraint.ANY;} in
+            let deps = [dep]::deps in
             let devDeps =
               match pkg.InstallManifest.devDependencies with
               | InstallManifest.Dependencies.OpamFormula deps -> deps @ devDeps
               | InstallManifest.Dependencies.NpmFormula _ -> devDeps
             in
-            return (resolutions, reqs, devDeps)
+            return (resolutions, deps, devDeps)
         in
         RunAsync.List.foldLeft ~f ~init:(Resolutions.empty, [], []) manifests
       in
@@ -110,7 +91,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
           opam = None;
         };
         overrides = Overrides.empty;
-        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
+        dependencies = InstallManifest.Dependencies.OpamFormula deps;
         devDependencies = InstallManifest.Dependencies.OpamFormula devDeps;
         peerDependencies = NpmFormula.empty;
         optDependencies = StringSet.empty;
@@ -122,8 +103,6 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
         spec;
         root;
         resolutions = root.resolutions;
-        ocamlReq = None;
-        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
         resolver;
       }
   ) "loading root package metadata"

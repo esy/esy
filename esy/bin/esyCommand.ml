@@ -916,7 +916,7 @@ let lsModules only (proj : Project.WithWorkflow.t) =
 let getSandboxSolution (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind solution = Solver.solve projcfg.solveSandbox in
+  let%bind solution = Solver.solve Workflow.default.solvespec projcfg.solveSandbox in
   let lockPath = SandboxSpec.solutionLockPath projcfg.solveSandbox.Sandbox.spec in
   let%bind () =
     let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
@@ -987,9 +987,8 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
       | OpamFormula _ -> error opamError
     in
     let%bind combinedDeps = addReqs solveSandbox.root.dependencies in
-    let%bind sbDeps = addReqs solveSandbox.dependencies in
     let root = { solveSandbox.root with dependencies = combinedDeps } in
-    return { solveSandbox with root; dependencies = sbDeps }
+    return { solveSandbox with root; }
   in
 
   let projcfg = {projcfg with solveSandbox;} in

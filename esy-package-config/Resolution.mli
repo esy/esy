@@ -11,6 +11,7 @@ val resolution_of_yojson : resolution Json.decoder
 val resolution_to_yojson : resolution Json.encoder
 
 val digest : t -> Digestv.t
+val source : t -> Source.t option
 
 include S.COMPARABLE with type t := t
 include S.PRINTABLE with type t := t
