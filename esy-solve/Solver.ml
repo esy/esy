@@ -56,6 +56,9 @@ type t = {
   sandbox : Sandbox.t;
 }
 
+let evalDependencies solver manifest =
+  SolveSpec.eval solver.solvespec solver.sandbox.root manifest
+
 module Reason : sig
 
   type t
@@ -137,7 +140,7 @@ module Explanation = struct
     in
     Fmt.pf fmt "@[<v>No solution found:@;@;%a@]" ppReasons reasons
 
-  let collectReasons ~resolver ~cudfMapping ~root reasons =
+  let collectReasons cudfMapping solver reasons =
     let open RunAsync.Syntax in
 
     (* Find a pair of requestor, path for the current package.
@@ -163,7 +166,7 @@ module Explanation = struct
       in
 
       let resolve pkg =
-        if pkg.InstallManifest.name = root.InstallManifest.name
+        if pkg.InstallManifest.name = solver.sandbox.root.InstallManifest.name
         then pkg, []
         else
           let rec aux path pkg =
@@ -185,6 +188,12 @@ module Explanation = struct
       (requestor, path)
     in
 
+    let maybeEvalDependencies manifest =
+      match evalDependencies solver manifest with
+      | Ok deps -> deps
+      | Error _ -> Dependencies.NpmFormula []
+    in
+
     let%bind reasons =
       let f reasons = function
         | Algo.Diagnostic.Conflict (left, right, _) ->
@@ -193,7 +202,7 @@ module Explanation = struct
             let requestor, path = resolveReqViaDepChain pkg in
             let constr = Dependencies.filterDependenciesByName
               ~name:pkg.name
-              requestor.dependencies
+              (maybeEvalDependencies requestor)
             in
             {Reason. constr; trace = requestor::path}
           in
@@ -202,7 +211,7 @@ module Explanation = struct
             let requestor, path = resolveReqViaDepChain pkg in
             let constr = Dependencies.filterDependenciesByName
               ~name:pkg.name
-              requestor.dependencies
+              (maybeEvalDependencies requestor)
             in
             {Reason. constr; trace = requestor::path}
           in
@@ -214,18 +223,18 @@ module Explanation = struct
           let pkg = Universe.CudfMapping.decodePkgExn pkg cudfMapping in
           let requestor, path = resolveDepChain pkg in
           let trace =
-            if pkg.InstallManifest.name = root.InstallManifest.name
+            if pkg.InstallManifest.name = solver.sandbox.root.InstallManifest.name
             then []
             else pkg::requestor::path
           in
           let f reasons (name, _) =
             let name = Universe.CudfMapping.decodePkgName (Universe.CudfName.make name) in
             let%lwt available =
-              match%lwt Resolver.resolve ~name resolver with
+              match%lwt Resolver.resolve ~name solver.sandbox.resolver with
               | Ok available -> Lwt.return available
               | Error _ -> Lwt.return []
             in
-            let constr = Dependencies.filterDependenciesByName ~name pkg.dependencies in
+            let constr = Dependencies.filterDependenciesByName ~name (maybeEvalDependencies pkg) in
             let missing = Reason.missing ~available {constr; trace} in
             if not (Reason.Set.mem missing reasons)
             then return (Reason.Set.add missing reasons)
@@ -239,7 +248,7 @@ module Explanation = struct
 
     return (Reason.Set.elements reasons)
 
-  let explain ~resolver ~cudfMapping ~root cudf =
+  let explain cudfMapping solver cudf =
     let open RunAsync.Syntax in
     begin match Algo.Depsolver.check_request ~explain:true cudf with
     | Algo.Depsolver.Sat  _
@@ -248,7 +257,7 @@ module Explanation = struct
       return None
     | Algo.Depsolver.Unsat (Some { result = Algo.Diagnostic.Failure reasons; _ }) ->
       let reasons = reasons () in
-      let%bind reasons = collectReasons ~resolver ~cudfMapping ~root reasons in
+      let%bind reasons = collectReasons cudfMapping solver reasons in
       return (Some reasons)
     | Algo.Depsolver.Error err -> error err
     end
@@ -392,9 +401,7 @@ let add ~(dependencies : Dependencies.t) solver =
       match manifest.kind with
       | InstallManifest.Esy ->
         universe := Universe.add ~pkg:manifest !universe;
-        let%bind dependencies = RunAsync.ofRun (
-          SolveSpec.eval solver.solvespec solver.sandbox.root manifest
-        ) in
+        let%bind dependencies = RunAsync.ofRun (evalDependencies solver manifest) in
         let%bind () =
           RunAsync.contextf
             (addDependencies dependencies)
@@ -591,9 +598,8 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     let cudf = preamble, cudfUniverse, request in
     begin match%bind
       Explanation.explain
-        ~resolver:solver.sandbox.resolver
-        ~cudfMapping
-        ~root:dummyRoot
+        cudfMapping
+        solver
         cudf
     with
     | Some reasons -> return (Error reasons)
@@ -732,9 +738,7 @@ let solveDependenciesNaively
         loop trace seen rest
       | false ->
         let seen = InstallManifest.Set.add pkg seen in
-        let%bind dependencies = RunAsync.ofRun (
-          SolveSpec.eval solver.solvespec solver.sandbox.root pkg
-        ) in
+        let%bind dependencies = RunAsync.ofRun (evalDependencies solver pkg) in
         let%bind dependencies =
           RunAsync.contextf
             (solveDependencies (pkg::trace) dependencies)
@@ -792,10 +796,14 @@ let solve solvespec (sandbox : Sandbox.t) =
       errorf "%a" Explanation.pp explanation
   in
 
+  let%bind solver = make solvespec sandbox in
+
   let%bind dependencies, ocamlVersion =
 
+    let%bind rootDependencies = RunAsync.ofRun (evalDependencies solver sandbox.root) in
+
     let ocamlReq =
-      match sandbox.root.dependencies with
+      match rootDependencies with
       | InstallManifest.Dependencies.OpamFormula _ -> None
       | InstallManifest.Dependencies.NpmFormula reqs ->
         NpmFormula.find ~name:"ocaml" reqs
@@ -803,10 +811,7 @@ let solve solvespec (sandbox : Sandbox.t) =
 
     match ocamlReq with
     | None ->
-      let%bind dependencies = RunAsync.ofRun (
-        SolveSpec.eval solvespec sandbox.root sandbox.root
-      ) in
-      return (dependencies, None)
+      return (rootDependencies, None)
     | Some ocamlReq ->
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf
@@ -815,10 +820,7 @@ let solve solvespec (sandbox : Sandbox.t) =
       in
 
       let%bind dependencies =
-        let%bind dependencies = RunAsync.ofRun (
-          SolveSpec.eval solvespec sandbox.root sandbox.root
-        ) in
-        match ocamlVersion, dependencies with
+        match ocamlVersion, rootDependencies with
         | Some ocamlVersion, InstallManifest.Dependencies.NpmFormula reqs ->
           let ocamlSpec = VersionSpec.ofVersion ocamlVersion in
           let ocamlReq = Req.make ~name:"ocaml" ~spec:ocamlSpec in
@@ -846,7 +848,6 @@ let solve solvespec (sandbox : Sandbox.t) =
   in
 
   let%bind solver, dependencies =
-    let%bind solver = make solvespec sandbox in
     let%bind solver, dependencies = add ~dependencies solver in
     return (solver, dependencies)
   in
