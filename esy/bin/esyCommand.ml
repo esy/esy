@@ -73,6 +73,26 @@ let planArg =
       )
   )
 
+let solvespecArg =
+  let make includeLinkDevDependencies =
+    if includeLinkDevDependencies
+    then EsySolve.{
+      Workflow.default.solvespec with
+      SolveSpec.
+      solveLink = DepSpec.(dependencies self + devDependencies self);
+    }
+    else Workflow.default.solvespec
+  in
+  Cmdliner.Term.(
+    const make
+    $ Cmdliner.Arg.(
+        value
+        & flag
+        & info ["include-link-devDependencies"]
+          ~doc:"Include devDependencies of linked packages"
+      )
+  )
+
 module Findlib = struct
   type meta = {
     package : string;
@@ -913,10 +933,9 @@ let lsModules only (proj : Project.WithWorkflow.t) =
   in
   makeLsCommand ~computeTermNode ~includeTransitive:false proj
 
-let getSandboxSolution (projcfg : ProjectConfig.t) =
+let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
-  let solvespec = Workflow.default.solvespec in
   let%bind solution = Solver.solve solvespec projcfg.solveSandbox in
   let lockPath = SandboxSpec.solutionLockPath projcfg.solveSandbox.Sandbox.spec in
   let%bind () =
@@ -945,10 +964,20 @@ let getSandboxSolution (projcfg : ProjectConfig.t) =
   in
   return solution
 
-let solve (proj : _ Project.project) =
+let solve force solvespec (proj : _ Project.project) =
   let open RunAsync.Syntax in
-  let%bind _ : Solution.t = getSandboxSolution proj.projcfg in
-  return ()
+  let run () =
+    let%bind _ : Solution.t = getSandboxSolution solvespec proj.projcfg in
+    return ()
+  in
+  if force
+  then run ()
+  else
+    let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
+    let path = SandboxSpec.solutionLockPath proj.projcfg.solveSandbox.spec in
+    match%bind EsyInstall.SolutionLock.ofPath ~digest proj.projcfg.installSandbox path with
+    | Some _ -> return ()
+    | None -> run ()
 
 let fetch (proj : _ Project.project) =
   let open RunAsync.Syntax in
@@ -968,7 +997,7 @@ let solveAndFetch (proj : Project.WithWorkflow.t) =
     then return ()
     else fetch proj
   | None ->
-    let%bind () = solve proj in
+    let%bind () = solve false solvespec proj in
     let%bind () = fetch proj in
     return ()
 
@@ -1000,7 +1029,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
 
   let projcfg = {projcfg with solveSandbox;} in
 
-  let%bind solution = getSandboxSolution projcfg in
+  let%bind solution = getSandboxSolution Workflow.default.solvespec projcfg in
   let%bind () = fetch {proj with projcfg;} in
 
   let%bind addedDependencies, configPath =
@@ -1807,7 +1836,16 @@ let makeCommands projectPath =
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
       ~docs:lowLevelSection
-      Term.(const solve);
+      Term.(
+        const solve
+        $ Arg.(
+            value
+            & flag
+            & info ["force"]
+              ~doc:"Do not check if solution exist, run solver and produce new one"
+          )
+        $ solvespecArg
+      );
 
     makeProjectWithoutWorkflowCommand
       ~name:"fetch"
