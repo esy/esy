@@ -945,12 +945,12 @@ let getSandboxSolution (projcfg : ProjectConfig.t) =
   in
   return solution
 
-let solve (proj : Project.WithWorkflow.t) =
+let solve (proj : _ Project.project) =
   let open RunAsync.Syntax in
   let%bind _ : Solution.t = getSandboxSolution proj.projcfg in
   return ()
 
-let fetch (proj : Project.WithWorkflow.t) =
+let fetch (proj : _ Project.project) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
   match%bind SolutionLock.ofPath proj.projcfg.installSandbox lockPath with
@@ -1803,13 +1803,13 @@ let makeCommands projectPath =
           )
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
       ~docs:lowLevelSection
       Term.(const solve);
 
-    makeProjectWithWorkflowCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"fetch"
       ~doc:"Fetch dependencies using the stored solution"
       ~docs:lowLevelSection
