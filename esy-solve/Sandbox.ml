@@ -107,7 +107,14 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
       }
   ) "loading root package metadata"
 
-let digest _solvespec sandbox =
+let defaultSolvespec = {
+  SolveSpec.
+  solveRoot = DepSpec.(dependencies self + devDependencies self);
+  solveLink = DepSpec.(dependencies self);
+  solveAll = DepSpec.(dependencies self);
+}
+
+let digest solvespec sandbox =
   let open RunAsync.Syntax in
 
   let ppDependencies fmt deps =
@@ -153,10 +160,35 @@ let digest _solvespec sandbox =
     Format.asprintf "%a" ppDependencies deps
   in
 
+  let rootDigest, linkDigest =
+    (* this is to keep compat with pre solvespec lockfiles *)
+    match SolveSpec.compare solvespec defaultSolvespec = 0 with
+    | true ->
+      let rootDigest (manifest : InstallManifest.t) digest =
+        digest
+        |> Digestv.(add (string (showDependencies manifest.dependencies)))
+        |> Digestv.(add (string (showDependencies manifest.devDependencies)))
+      in
+      let linkDigest (manifest : InstallManifest.t) =
+        Digestv.(add (string (showDependencies manifest.dependencies)))
+      in
+      rootDigest, linkDigest
+    | false ->
+      let manifestDigest manifest =
+        match SolveSpec.eval solvespec sandbox.root manifest with
+        | Ok dependencies ->
+          Digestv.(add (string (showDependencies dependencies)))
+        | Error _ ->
+          (* this will just invalidate lockfile and thus we will recompute 
+             solution and handle this error more gracefully *)
+          Digestv.(add (string "INVALID"))
+      in
+      manifestDigest, manifestDigest
+  in
+
   let digest =
     Resolutions.digest sandbox.root.resolutions
-    |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
-    |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
+    |> rootDigest sandbox.root
   in
 
   let%bind digest =
@@ -175,7 +207,7 @@ let digest _solvespec sandbox =
         | Error _ ->
           errorf "unable to read package: %a" Resolution.pp resolution
         | Ok pkg ->
-          return Digestv.(add (string (showDependencies pkg.InstallManifest.dependencies)) digest)
+          return (linkDigest pkg digest)
         end
     in
     RunAsync.List.foldLeft
