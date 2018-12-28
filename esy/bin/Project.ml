@@ -180,7 +180,12 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
-  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+  let%bind digest =
+    EsySolve.Sandbox.digest
+      Workflow.default.solvespec
+      projcfg.solveSandbox
+  in
+  let checksum = Digestv.toHex digest in
   match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in

@@ -16,8 +16,6 @@ type t = {
   installSandbox : EsyInstall.Sandbox.t;
 }
 
-val computeSolutionChecksum : t -> string RunAsync.t
-
 val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
 
 val term : Fpath.t option -> t Cmdliner.Term.t

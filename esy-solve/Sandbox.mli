@@ -19,3 +19,4 @@ type t = {
 }
 
 val make : cfg:Config.t -> EsyInstall.SandboxSpec.t -> t RunAsync.t
+val digest : SolveSpec.t -> t -> Digestv.t RunAsync.t

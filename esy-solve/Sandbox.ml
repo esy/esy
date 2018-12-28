@@ -106,3 +106,82 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
         resolver;
       }
   ) "loading root package metadata"
+
+let digest _solvespec sandbox =
+  let open RunAsync.Syntax in
+
+  let ppDependencies fmt deps =
+
+    let ppOpamDependencies fmt deps =
+      let ppDisj fmt disj =
+        match disj with
+        | [] -> Fmt.unit "true" fmt ()
+        | [dep] -> InstallManifest.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") InstallManifest.Dep.pp) deps
+      in
+      Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
+    in
+
+    let ppNpmDependencies fmt deps =
+      let ppDnf ppConstr fmt f =
+        let ppConj = Fmt.(list ~sep:(unit " && ") ppConstr) in
+        Fmt.(list ~sep:(unit " || ") ppConj) fmt f
+      in
+      let ppVersionSpec fmt spec =
+        match spec with
+        | VersionSpec.Npm f ->
+          ppDnf SemverVersion.Constraint.pp fmt f
+        | VersionSpec.NpmDistTag tag ->
+          Fmt.string fmt tag
+        | VersionSpec.Opam f ->
+          ppDnf OpamPackageVersion.Constraint.pp fmt f
+        | VersionSpec.Source src ->
+          Fmt.pf fmt "%a" SourceSpec.pp src
+      in
+      let ppReq fmt req =
+        Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
+      in
+      Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
+    in
+
+    match deps with
+    | InstallManifest.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | InstallManifest.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+  in
+
+  let showDependencies (deps : InstallManifest.Dependencies.t) =
+    Format.asprintf "%a" ppDependencies deps
+  in
+
+  let digest =
+    Resolutions.digest sandbox.root.resolutions
+    |> Digestv.(add (string (showDependencies sandbox.root.dependencies)))
+    |> Digestv.(add (string (showDependencies sandbox.root.devDependencies)))
+  in
+
+  let%bind digest =
+    let f digest resolution =
+      let resolution =
+        match resolution.Resolution.resolution with
+        | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
+        | SourceOverride _ -> None
+        | Version (Version.Source (Source.Link _)) -> Some resolution
+        | Version _ -> None
+      in
+      match resolution with
+      | None -> return digest
+      | Some resolution ->
+        begin match%bind Resolver.package ~resolution sandbox.resolver with
+        | Error _ ->
+          errorf "unable to read package: %a" Resolution.pp resolution
+        | Ok pkg ->
+          return Digestv.(add (string (showDependencies pkg.InstallManifest.dependencies)) digest)
+        end
+    in
+    RunAsync.List.foldLeft
+      ~f
+      ~init:digest
+      (Resolutions.entries sandbox.resolutions)
+  in
+
+  return digest

@@ -916,11 +916,18 @@ let lsModules only (proj : Project.WithWorkflow.t) =
 let getSandboxSolution (projcfg : ProjectConfig.t) =
   let open EsySolve in
   let open RunAsync.Syntax in
-  let%bind solution = Solver.solve Workflow.default.solvespec projcfg.solveSandbox in
+  let solvespec = Workflow.default.solvespec in
+  let%bind solution = Solver.solve solvespec projcfg.solveSandbox in
   let lockPath = SandboxSpec.solutionLockPath projcfg.solveSandbox.Sandbox.spec in
   let%bind () =
-    let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-    EsyInstall.SolutionLock.toPath ~checksum ~sandbox:projcfg.installSandbox ~solution lockPath
+    let%bind digest =
+      Sandbox.digest solvespec projcfg.solveSandbox
+    in
+    EsyInstall.SolutionLock.toPath
+      ~checksum:(Digestv.toHex digest)
+      ~sandbox:projcfg.installSandbox
+      ~solution
+      lockPath
   in
   let unused = Resolver.getUnusedResolutions projcfg.solveSandbox.resolver in
   let%lwt () =
@@ -946,7 +953,13 @@ let solve (proj : Project.WithWorkflow.t) =
 let fetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
-  let%bind checksum = ProjectConfig.computeSolutionChecksum proj.projcfg in
+  let solvespec = Workflow.default.solvespec in
+  let%bind digest =
+    EsySolve.Sandbox.digest
+      solvespec
+      proj.projcfg.solveSandbox
+  in
+  let checksum = Digestv.toHex digest in
   match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
   | Some solution -> EsyInstall.Fetch.fetch proj.projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
@@ -954,7 +967,9 @@ let fetch (proj : Project.WithWorkflow.t) =
 let solveAndFetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
-  let%bind checksum = ProjectConfig.computeSolutionChecksum proj.projcfg in
+  let solvespec = Workflow.default.solvespec in
+  let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
+  let checksum = Digestv.toHex digest in
   match%bind SolutionLock.ofPath ~checksum ~sandbox:proj.projcfg.installSandbox lockPath with
   | Some solution ->
     if%bind EsyInstall.Fetch.isInstalled ~sandbox:proj.projcfg.installSandbox solution
@@ -1067,11 +1082,15 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
             solveSandbox.spec
         in
         let projcfg = {projcfg with solveSandbox} in
-        let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
+        let%bind digest =
+          EsySolve.Sandbox.digest
+            Workflow.default.solvespec
+            projcfg.solveSandbox
+        in
         (* we can only do this because we keep invariant that the constraint we
          * save in manifest covers the installed version *)
         EsyInstall.SolutionLock.unsafeUpdateChecksum
-          ~checksum
+          ~checksum:(Digestv.toHex digest)
           (SandboxSpec.solutionLockPath solveSandbox.spec)
       in
       return ()
