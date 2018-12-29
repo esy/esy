@@ -4,7 +4,7 @@ type t = {
   solveRoot : DepSpec.t;
   solveLink : DepSpec.t;
   solveAll : DepSpec.t;
-} [@@deriving ord]
+} [@@deriving ord, yojson]
 
 let eval spec root manifest =
   let depspec =

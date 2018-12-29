@@ -1,18 +1,5 @@
 open EsyPackageConfig
-
-
-module Id = struct
-  type t =
-    | Self
-    [@@deriving ord]
-
-  let pp fmt = function
-    | Self -> Fmt.unit "self" fmt ()
-end
-
-include EsyInstall.DepSpec.Make(Id)
-
-let self = Id.Self
+include DepSpecBase
 
 let rec eval (manifest : InstallManifest.t) (spec : t) =
   let module D = InstallManifest.Dependencies in
@@ -35,3 +22,21 @@ let rec eval (manifest : InstallManifest.t) (spec : t) =
         "incompatible dependency formulas found at %a: %a and %a"
         InstallManifest.pp manifest pp a pp b
     end
+
+let parse v =
+  let open Result.Syntax in
+  let lexbuf = Lexing.from_string v in
+  try return (DepSpecParser.start DepSpecLexer.read lexbuf) with
+  | DepSpecLexer.Error msg ->
+    let msg = Printf.sprintf "error parsing DEPSPEC: %s" msg in
+    error msg
+  | DepSpecParser.Error -> error "error parsing DEPSPEC"
+
+let of_yojson json =
+  match json with
+  | `String v -> parse v
+  | _ -> Result.errorf "expected string"
+
+let to_yojson spec =
+  let s = Format.asprintf "%a" pp spec in
+  `String s

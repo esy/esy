@@ -6,7 +6,7 @@ type t = {
   buildLink : DepSpec.t option;
   buildRootForRelease : DepSpec.t option;
   buildRootForDev : DepSpec.t option;
-}
+} [@@deriving yojson]
 
 type mode =
   | Build

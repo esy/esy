@@ -5,4 +5,4 @@ type t = {
   includeBuildEnv : bool;
   includeEsyIntrospectionEnv : bool;
   includeNpmBin : bool;
-}
+} [@@deriving yojson]

@@ -33,3 +33,5 @@ type t = {
     *)
   includeNpmBin : bool;
 }
+
+include S.JSONABLE with type t := t

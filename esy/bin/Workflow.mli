@@ -18,3 +18,5 @@ val defaultPlanForDev : BuildSpec.plan
 val defaultPlanForDevForce : BuildSpec.plan
 
 val default : t
+
+include S.JSONABLE with type t := t

@@ -26,7 +26,6 @@ expr:
 id:
   id = ID; {
     match id with
-    | "root" -> DepSpecBase.root
     | "self" -> DepSpecBase.self
     | _ -> $syntaxerror
   }
@@ -34,7 +33,6 @@ id:
 package:
   id = ID; {
     match id with
-    | "root" -> DepSpecBase.(package root)
     | "self" -> DepSpecBase.(package self)
     | _ -> $syntaxerror
   }

@@ -33,5 +33,7 @@ val collect : EsyInstall.Solution.t -> t -> PackageId.t -> PackageId.Set.t
  * [solution] starting with [id] using [depspec] expression for traverse.
  *)
 
+val parse : string -> (t, string) result
 val compare : t -> t -> int
 val pp : t Fmt.t
+include S.JSONABLE with type t := t

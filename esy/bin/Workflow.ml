@@ -6,7 +6,7 @@ type t = {
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;
-}
+} [@@deriving yojson]
 
 let defaultDepspec = DepSpec.(dependencies self)
 let defaultDepspecForLink = DepSpec.(dependencies self)

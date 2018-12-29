@@ -24,6 +24,8 @@ type t = {
   buildRootForDev : DepSpec.t option;
 }
 
+include S.JSONABLE with type t := t
+
 type mode =
   | Build
   | BuildDev

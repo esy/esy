@@ -19,14 +19,10 @@ let splitBy line ch =
 
 let depspecConv =
   let open Cmdliner in
-  let open Result.Syntax in
   let parse v =
-    let lexbuf = Lexing.from_string v in
-    try return (DepSpecParser.start DepSpecLexer.read lexbuf) with
-    | DepSpecLexer.Error msg ->
-      let msg = Printf.sprintf "error parsing DEPSPEC: %s" msg in
-      error (`Msg msg)
-    | DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
+    match DepSpec.parse v with
+    | Ok v -> Ok v
+    | Error err -> Error (`Msg err)
   in
   let pp = DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
