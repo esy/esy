@@ -23,21 +23,19 @@ let show_mode = function
   | BuildDev -> "buildDev"
   | BuildDevForce -> "buildDevForce"
 
-let mode_to_yojson = function
-  | Build -> `String "build"
-  | BuildDev -> `String "buildDev"
-  | BuildDevForce -> `String "buildDevForce"
+let mode_to_yojson mode = `String (show_mode mode)
 
 let mode_of_yojson = function
   | `String "build" -> Ok Build
   | `String "buildDev" -> Ok BuildDev
+  | `String "buildDevForce" -> Ok BuildDevForce
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
 type plan = {
   all : mode;
   link : mode;
   root : mode;
-}
+} [@@deriving yojson]
 
 let pp_plan fmt plan =
   Fmt.pf

@@ -11,6 +11,9 @@ open Esy
 type t = {
   mainprg : string;
   cfg : Config.t;
+  workflow : Workflow.t;
+  buildModeForDev : BuildSpec.plan;
+  buildModeForRelease : BuildSpec.plan;
   spec : SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;

@@ -52,6 +52,9 @@ type plan = {
   root : mode;
 }
 
+val plan_to_yojson : plan Json.encoder
+val plan_of_yojson : plan Json.decoder
+
 val pp_plan : plan Fmt.t
 val show_plan : plan -> string
 

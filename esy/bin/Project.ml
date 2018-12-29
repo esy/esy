@@ -44,6 +44,8 @@ let makeCachePath prefix (projcfg : ProjectConfig.t) =
       Path.show projcfg.cfg.buildCfg.storePath;
       Path.show projcfg.spec.path;
       projcfg.cfg.esyVersion;
+      Yojson.Safe.to_string (Workflow.to_yojson projcfg.workflow);
+      Yojson.Safe.to_string (BuildSpec.plan_to_yojson projcfg.buildModeForDev);
     ]
     |> String.concat "$$"
     |> Digest.string
@@ -290,7 +292,8 @@ module WithoutWorkflow = struct
     makeSolved solvespec (makeFetched makeConfigured)
 
   let make projcfg =
-    makeProject (configureSolution Workflow.default.solvespec) projcfg
+    let workflow = projcfg.ProjectConfig.workflow in
+    makeProject (configureSolution workflow.solvespec) projcfg
 
   let ofProjectWithoutSolution solvespec proj =
     let files = ref [] in
@@ -320,7 +323,7 @@ module WithWorkflow = struct
 
   let makeConfigured projcfg solution _installation sandbox _files =
     let open RunAsync.Syntax in
-    let workflow = Workflow.default in
+    let workflow = projcfg.ProjectConfig.workflow in
 
     let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
 
@@ -329,7 +332,7 @@ module WithWorkflow = struct
       let%bind plan =
         BuildSandbox.makePlan
           workflow.buildspec
-          Workflow.defaultPlanForDev
+          projcfg.buildModeForDev
           sandbox
       in
       let pkg = EsyInstall.Solution.root solution in
@@ -349,7 +352,8 @@ module WithWorkflow = struct
     }
 
   let make projcfg =
-    makeProject (makeSolved Workflow.default.solvespec (makeFetched makeConfigured)) projcfg
+    let workflow = projcfg.ProjectConfig.workflow in
+    makeProject (makeSolved workflow.solvespec (makeFetched makeConfigured)) projcfg
 
   let writeAuxCache proj =
     let open RunAsync.Syntax in
@@ -380,7 +384,7 @@ module WithWorkflow = struct
           BuildSandbox.env
             configured.workflow.commandenvspec
             configured.workflow.buildspec
-            Workflow.defaultPlanForDev
+            proj.projcfg.buildModeForDev
             fetched.sandbox
             root.Package.id
         in

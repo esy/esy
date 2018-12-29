@@ -4,6 +4,9 @@ open Cmdliner
 type t = {
   mainprg : string;
   cfg : Config.t;
+  workflow : Workflow.t;
+  buildModeForDev : BuildSpec.plan;
+  buildModeForRelease : BuildSpec.plan;
   spec : EsyInstall.SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;
@@ -168,11 +171,11 @@ let make
   let%bind projectPath = RunAsync.ofRun (findProjectPath projectPath) in
   let%bind spec = EsyInstall.SandboxSpec.ofPath projectPath in
 
+  let%bind esyrc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
+
   let%bind prefixPath = match prefixPath with
     | Some prefixPath -> return (Some prefixPath)
-    | None ->
-      let%bind rc = EsyRc.ofPath spec.EsyInstall.SandboxSpec.path in
-      return rc.EsyRc.prefixPath
+    | None -> return esyrc.EsyRc.prefixPath
   in
 
   let%bind esySolveCmd =
@@ -213,6 +216,9 @@ let make
   let installSandbox = EsyInstall.Sandbox.make installCfg spec in
 
   return {
+    workflow = esyrc.EsyRc.workflow;
+    buildModeForDev = esyrc.EsyRc.buildModeForDev;
+    buildModeForRelease = esyrc.EsyRc.buildModeForRelease;
     mainprg;
     cfg;
     solveSandbox;

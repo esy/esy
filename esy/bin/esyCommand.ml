@@ -501,7 +501,7 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
     let p =
       BuildSandbox.buildShell
         configured.Project.WithWorkflow.workflow.buildspec
-        Workflow.defaultPlanForDev
+        proj.projcfg.buildModeForDev
         fetched.Project.sandbox
         pkg.id
     in
@@ -525,8 +525,8 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       if release
       then
         BuildSandbox.makePlan
-          Workflow.default.buildspec
-          Workflow.defaultPlanForRelease
+          proj.projcfg.workflow.buildspec
+          proj.projcfg.buildModeForRelease
           fetched.Project.sandbox
       else
         return configured.Project.WithWorkflow.planForDev
@@ -568,7 +568,7 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       configured.workflow.buildspec
       (if release
       then BuildSandbox.Plan.plan plan
-      else Workflow.defaultPlanForDevForce)
+      else proj.projcfg.buildModeForDev)
       PkgArg.root
       cmd
       ()
@@ -582,7 +582,7 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    proj.projcfg.buildModeForDev
     asJson
     packagePath
     ()
@@ -595,7 +595,7 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    proj.projcfg.buildModeForDev
     asJson
     packagePath
     ()
@@ -608,7 +608,7 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    proj.projcfg.buildModeForDev
     asJson
     packagePath
     ()
@@ -624,7 +624,9 @@ let exec release cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    (if release then Workflow.defaultPlanForRelease else Workflow.defaultPlanForDev)
+    (if release
+      then proj.projcfg.buildModeForRelease
+      else proj.projcfg.buildModeForDev)
     PkgArg.root
     cmd
     ()
@@ -666,7 +668,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
       BuildSandbox.configure
         envspec
         configured.workflow.buildspec
-        Workflow.defaultPlanForDev
+        proj.projcfg.buildModeForDev
         fetched.Project.sandbox
         id
     in
@@ -723,7 +725,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
-      Workflow.defaultPlanForDev
+      proj.projcfg.buildModeForDev
       PkgArg.root
       cmd
       ()
@@ -742,7 +744,7 @@ let devShell (proj : Project.WithWorkflow.t) =
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
-    Workflow.defaultPlanForDev
+    proj.projcfg.buildModeForDev
     PkgArg.root
     (Cmd.v shell)
     ()
@@ -994,7 +996,7 @@ let fetch (proj : _ Project.project) =
 let solveAndFetch (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
-  let solvespec = Workflow.default.solvespec in
+  let solvespec = proj.projcfg.workflow.solvespec in
   let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
   match%bind SolutionLock.ofPath ~digest proj.projcfg.installSandbox lockPath with
   | Some solution ->
@@ -1034,7 +1036,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
 
   let projcfg = {projcfg with solveSandbox;} in
 
-  let%bind solution = getSandboxSolution Workflow.default.solvespec projcfg in
+  let%bind solution = getSandboxSolution proj.projcfg.workflow.solvespec projcfg in
   let%bind () = fetch {proj with projcfg;} in
 
   let%bind addedDependencies, configPath =
@@ -1110,7 +1112,7 @@ let add (reqs : string list) (proj : Project.WithWorkflow.t) =
         let projcfg = {projcfg with solveSandbox} in
         let%bind digest =
           EsySolve.Sandbox.digest
-            Workflow.default.solvespec
+            projcfg.workflow.solvespec
             projcfg.solveSandbox
         in
         (* we can only do this because we keep invariant that the constraint we
