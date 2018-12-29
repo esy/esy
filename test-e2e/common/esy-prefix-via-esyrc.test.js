@@ -20,7 +20,11 @@ it('Common - esy prefix via esyrc', async () => {
 
   await fs.writeFile(
     path.join(p.projectPath, '.esyrc'),
-    `esy-prefix-path: ${customEsyPrefix}`,
+    `
+      {
+        "prefixPath": "${customEsyPrefix}"
+      }
+    `
   );
 
   const prevEnv = process.env;
