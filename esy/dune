@@ -7,7 +7,6 @@
             EsyInstall
             EsyCommandExpression
             EsyShellExpansion
-            EsyYarnLockfile
             EsyBuildPackage
             lwt
             lwt.unix

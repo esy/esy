@@ -19,7 +19,7 @@ it('Can be configured to build into a custom prefix (via .esyrc)', async () => {
         ],
       },
     }),
-    helpers.file('.esyrc', 'esy-prefix-path: ./store'),
+    helpers.file('.esyrc', '{"prefixPath": "./store"}'),
     helpers.dummyExecutable('custom-prefix'),
   );
 
