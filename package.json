@@ -27,7 +27,7 @@
     "build:postinstall-esy-solve-cudf":
       "cd node_modules/esy-solve-cudf && npm install",
     "release:platform-release": "node ./scripts/make-platform-release.js",
-    "test:unit": "esy b dune runtest test",
+    "test:unit": "esy b dune runtest",
     "test:e2e": "jest test-e2e",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
