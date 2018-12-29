@@ -10,6 +10,12 @@ and resolution =
   | SourceOverride of {source : Source.t; override : Json.t}
 [@@@ocaml.warning "+32"]
 
+let source r =
+  match r.resolution with
+  | Version (Version.Source source) -> Some source
+  | Version _ -> None
+  | SourceOverride {source; _} -> Some source
+
 let resolution_to_yojson resolution =
   match resolution with
   | Version v -> `String (Version.show v)

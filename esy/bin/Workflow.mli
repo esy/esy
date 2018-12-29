@@ -1,6 +1,7 @@
 open Esy
 
 type t = {
+  solvespec : EsySolve.SolveSpec.t;
   buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;

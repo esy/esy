@@ -175,13 +175,17 @@ let makeProject makeSolved projcfg =
   let%lwt solved = makeSolved projcfg files in
   return ({projcfg; solved;}, !files)
 
-let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
+let makeSolved solvespec makeFetched (projcfg : ProjectConfig.t) files =
   let open RunAsync.Syntax in
   let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
   files := info::!files;
-  let%bind checksum = ProjectConfig.computeSolutionChecksum projcfg in
-  match%bind SolutionLock.ofPath ~checksum ~sandbox:projcfg.installSandbox path with
+  let%bind digest =
+    EsySolve.Sandbox.digest
+      solvespec
+      projcfg.solveSandbox
+  in
+  match%bind SolutionLock.ofPath ~digest projcfg.installSandbox path with
   | Some solution ->
     let%lwt fetched = makeFetched projcfg solution files in
     return {solution; fetched;}
@@ -252,15 +256,46 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
       return {installation; sandbox; configured;}
     else errorf "project requires to update its installation, run `esy install`"
 
+type projectWithoutSolution = unit project
+type projectWithoutWorkflow = unit fetched solved project
+
+module WithoutSolution = struct
+
+  type t = projectWithoutSolution
+
+  let makeSolved _projcfg _files =
+    RunAsync.return ()
+
+  let make projcfg =
+    makeProject makeSolved projcfg
+
+  include MakeProject(struct
+    type nonrec t = t
+    let make = make
+    let setProjecyConfig projcfg proj = {proj with projcfg;}
+    let cachePath = makeCachePath "WithoutWorkflow"
+    let writeAuxCache _ = RunAsync.return ()
+  end)
+
+end
+
 module WithoutWorkflow = struct
 
-  type t = unit fetched solved project
+  type t = projectWithoutWorkflow
 
   let makeConfigured _copts _solution _installation _sandbox _files =
     RunAsync.return ()
 
+  let configureSolution solvespec =
+    makeSolved solvespec (makeFetched makeConfigured)
+
   let make projcfg =
-    makeProject (makeSolved (makeFetched makeConfigured)) projcfg
+    makeProject (configureSolution Workflow.default.solvespec) projcfg
+
+  let ofProjectWithoutSolution solvespec proj =
+    let files = ref [] in
+    let%lwt solved = configureSolution solvespec proj.projcfg files in
+    RunAsync.return {projcfg = proj.projcfg; solved;}
 
   include MakeProject(struct
     type nonrec t = t
@@ -314,7 +349,7 @@ module WithWorkflow = struct
     }
 
   let make projcfg =
-    makeProject (makeSolved (makeFetched makeConfigured)) projcfg
+    makeProject (makeSolved Workflow.default.solvespec (makeFetched makeConfigured)) projcfg
 
   let writeAuxCache proj =
     let open RunAsync.Syntax in

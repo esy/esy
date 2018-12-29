@@ -4,9 +4,7 @@ type t = {
   cfg : Config.t;
   spec : EsyInstall.SandboxSpec.t;
   root : InstallManifest.t;
-  dependencies : InstallManifest.Dependencies.t;
   resolutions : Resolutions.t;
-  ocamlReq : Req.t option;
   resolver : Resolver.t;
 }
 
@@ -29,32 +27,14 @@ let ofResolution cfg spec resolver resolution =
       {root with name;}
     in
 
-    let dependencies, ocamlReq =
-      match root.InstallManifest.dependencies, root.devDependencies with
-      | InstallManifest.Dependencies.OpamFormula deps, InstallManifest.Dependencies.OpamFormula devDeps ->
-        let deps = InstallManifest.Dependencies.OpamFormula (deps @ devDeps) in
-        deps, None
-      | InstallManifest.Dependencies.NpmFormula deps, InstallManifest.Dependencies.NpmFormula devDeps  ->
-        let deps = NpmFormula.override deps devDeps in
-        let ocamlReq = NpmFormula.find ~name:"ocaml" deps in
-        InstallManifest.Dependencies.NpmFormula deps, ocamlReq
-      | InstallManifest.Dependencies.NpmFormula _, _
-      | InstallManifest.Dependencies.OpamFormula _, _  ->
-        failwith "mixing npm and opam dependencies"
-    in
-
     return {
       cfg;
       spec;
       root;
       resolutions = root.resolutions;
-      ocamlReq;
-      dependencies;
       resolver;
     }
   | Error msg -> errorf "unable to construct sandbox: %s" msg
-
-let anyOpam = VersionSpec.Opam (OpamPackageVersion.Formula.any)
 
 let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
@@ -72,8 +52,8 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
       Resolver.setResolutions sandbox.resolutions sandbox.resolver;
       return sandbox
     | EsyInstall.SandboxSpec.ManifestAggregate manifests ->
-      let%bind resolutions, reqs, devDeps =
-        let f (resolutions, reqs, devDeps) manifest  =
+      let%bind resolutions, deps, devDeps =
+        let f (resolutions, deps, devDeps) manifest  =
           let source = makeSource manifest in
           let resolution = makeResolution source in
           match%bind Resolver.package ~resolution resolver with
@@ -88,13 +68,14 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
               let resolution = Resolution.Version (Version.Source source) in
               Resolutions.add name resolution resolutions
             in
-            let reqs = (Req.make ~name ~spec:anyOpam)::reqs in
+            let dep = {InstallManifest.Dep.name; req = Opam OpamPackageVersion.Constraint.ANY;} in
+            let deps = [dep]::deps in
             let devDeps =
               match pkg.InstallManifest.devDependencies with
               | InstallManifest.Dependencies.OpamFormula deps -> deps @ devDeps
               | InstallManifest.Dependencies.NpmFormula _ -> devDeps
             in
-            return (resolutions, reqs, devDeps)
+            return (resolutions, deps, devDeps)
         in
         RunAsync.List.foldLeft ~f ~init:(Resolutions.empty, [], []) manifests
       in
@@ -110,7 +91,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
           opam = None;
         };
         overrides = Overrides.empty;
-        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
+        dependencies = InstallManifest.Dependencies.OpamFormula deps;
         devDependencies = InstallManifest.Dependencies.OpamFormula devDeps;
         peerDependencies = NpmFormula.empty;
         optDependencies = StringSet.empty;
@@ -122,8 +103,117 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
         spec;
         root;
         resolutions = root.resolutions;
-        ocamlReq = None;
-        dependencies = InstallManifest.Dependencies.NpmFormula reqs;
         resolver;
       }
   ) "loading root package metadata"
+
+let defaultSolvespec = {
+  SolveSpec.
+  solveRoot = DepSpec.(dependencies self + devDependencies self);
+  solveLink = DepSpec.(dependencies self);
+  solveAll = DepSpec.(dependencies self);
+}
+
+let digest solvespec sandbox =
+  let open RunAsync.Syntax in
+
+  let ppDependencies fmt deps =
+
+    let ppOpamDependencies fmt deps =
+      let ppDisj fmt disj =
+        match disj with
+        | [] -> Fmt.unit "true" fmt ()
+        | [dep] -> InstallManifest.Dep.pp fmt dep
+        | deps -> Fmt.pf fmt "(%a)" Fmt.(list ~sep:(unit " || ") InstallManifest.Dep.pp) deps
+      in
+      Fmt.pf fmt "@[<h>[@;%a@;]@]" Fmt.(list ~sep:(unit " && ") ppDisj) deps
+    in
+
+    let ppNpmDependencies fmt deps =
+      let ppDnf ppConstr fmt f =
+        let ppConj = Fmt.(list ~sep:(unit " && ") ppConstr) in
+        Fmt.(list ~sep:(unit " || ") ppConj) fmt f
+      in
+      let ppVersionSpec fmt spec =
+        match spec with
+        | VersionSpec.Npm f ->
+          ppDnf SemverVersion.Constraint.pp fmt f
+        | VersionSpec.NpmDistTag tag ->
+          Fmt.string fmt tag
+        | VersionSpec.Opam f ->
+          ppDnf OpamPackageVersion.Constraint.pp fmt f
+        | VersionSpec.Source src ->
+          Fmt.pf fmt "%a" SourceSpec.pp src
+      in
+      let ppReq fmt req =
+        Fmt.fmt "%s@%a" fmt req.Req.name ppVersionSpec req.spec
+      in
+      Fmt.pf fmt "@[<hov>[@;%a@;]@]" (Fmt.list ~sep:(Fmt.unit ", ") ppReq) deps
+    in
+
+    match deps with
+    | InstallManifest.Dependencies.OpamFormula deps -> ppOpamDependencies fmt deps
+    | InstallManifest.Dependencies.NpmFormula deps -> ppNpmDependencies fmt deps
+  in
+
+  let showDependencies (deps : InstallManifest.Dependencies.t) =
+    Format.asprintf "%a" ppDependencies deps
+  in
+
+  let rootDigest, linkDigest =
+    (* this is to keep compat with pre solvespec lockfiles *)
+    match SolveSpec.compare solvespec defaultSolvespec = 0 with
+    | true ->
+      let rootDigest (manifest : InstallManifest.t) digest =
+        digest
+        |> Digestv.(add (string (showDependencies manifest.dependencies)))
+        |> Digestv.(add (string (showDependencies manifest.devDependencies)))
+      in
+      let linkDigest (manifest : InstallManifest.t) =
+        Digestv.(add (string (showDependencies manifest.dependencies)))
+      in
+      rootDigest, linkDigest
+    | false ->
+      let manifestDigest manifest =
+        match SolveSpec.eval solvespec sandbox.root manifest with
+        | Ok dependencies ->
+          Digestv.(add (string (showDependencies dependencies)))
+        | Error _ ->
+          (* this will just invalidate lockfile and thus we will recompute 
+             solution and handle this error more gracefully *)
+          Digestv.(add (string "INVALID"))
+      in
+      manifestDigest, manifestDigest
+  in
+
+  let digest =
+    Resolutions.digest sandbox.root.resolutions
+    |> rootDigest sandbox.root
+  in
+
+  let%bind digest =
+    let f digest resolution =
+      let resolution =
+        match resolution.Resolution.resolution with
+        | SourceOverride {source = Source.Link _; override = _;} -> Some resolution
+        | SourceOverride _ -> None
+        | Version (Version.Source (Source.Link _)) -> Some resolution
+        | Version _ -> None
+      in
+      match resolution with
+      | None -> return digest
+      | Some resolution ->
+        begin match%bind Resolver.package ~resolution sandbox.resolver with
+        | Error _ ->
+          errorf "unable to read package: %a" Resolution.pp resolution
+        | Ok pkg ->
+          return (linkDigest pkg digest)
+        end
+    in
+    RunAsync.List.foldLeft
+      ~f
+      ~init:digest
+      (Resolutions.entries sandbox.resolutions)
+  in
+
+  return digest

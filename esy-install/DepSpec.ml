@@ -48,10 +48,7 @@ module Make (Id : ID) : DEPSPEC with type id = Id.t = struct
   let dependencies src = Dependencies src
   let devDependencies src = DevDependencies src
 
-  let union a b =
-    if compare a b > 0
-    then Union (a, b)
-    else Union (b, a)
+  let union a b = Union (a, b)
 
   let (+) = union
 

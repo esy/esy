@@ -30,7 +30,7 @@ type overrides = override list [@@deriving yojson]
 
 type t = {
   (* This is checksum of all dependencies/resolutios, used as a checksum. *)
-  checksum : string;
+  digest : string [@key "checksum"];
   (* Id of the root package. *)
   root : PackageId.t;
   (* Map from ids to nodes. *)
@@ -223,7 +223,7 @@ let lockOfSolution sandbox (solution : Solution.t) =
   in
   return (Solution.root solution, node)
 
-let ofPath ~checksum ~(sandbox : Sandbox.t) (path : Path.t) =
+let ofPath ?digest (sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
   RunAsync.contextf (
     Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path);%lwt
@@ -235,11 +235,17 @@ let ofPath ~checksum ~(sandbox : Sandbox.t) (path : Path.t) =
       in
       match lock with
       | Ok lock ->
-        if String.compare lock.checksum checksum = 0
-        then
+        begin match digest with
+        | None ->
           let%bind solution = solutionOfLock sandbox lock.root lock.node in
           return (Some solution)
-        else return None
+        | Some digest ->
+          if String.compare lock.digest (Digestv.toHex digest) = 0
+          then
+            let%bind solution = solutionOfLock sandbox lock.root lock.node in
+            return (Some solution)
+          else return None
+        end
       | Error err ->
         let path =
           Option.orDefault
@@ -253,23 +259,23 @@ let ofPath ~checksum ~(sandbox : Sandbox.t) (path : Path.t) =
       return None
   ) "reading lock %a" Path.pp path
 
-let toPath ~checksum ~sandbox ~(solution : Solution.t) (path : Path.t) =
+let toPath ~digest sandbox (solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
   Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
-  let lock = {checksum; node; root = root.Package.id;} in
+  let lock = {digest = Digestv.toHex digest; node; root = root.Package.id;} in
   let%bind () = Fs.createDir path in
   let%bind () = Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename) in
   let%bind () = Fs.writeFile ~data:gitAttributesContents Path.(path / ".gitattributes") in
   let%bind () = Fs.writeFile ~data:gitIgnoreContents Path.(path / ".gitignore") in
   return ()
 
-let unsafeUpdateChecksum ~checksum path =
+let unsafeUpdateChecksum ~digest path =
   let open RunAsync.Syntax in
   let%bind lock =
     let%bind json = Fs.readJsonFile Path.(path / indexFilename) in
     RunAsync.ofRun (Json.parseJsonWith of_yojson json)
   in
-  let lock = {lock with checksum;} in
+  let lock = {lock with digest = Digestv.toHex digest;} in
   Fs.writeJsonFile ~json:(to_yojson lock) Path.(path / indexFilename)

@@ -1,6 +1,7 @@
 open Esy
 
 type t = {
+  solvespec : EsySolve.SolveSpec.t;
   buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
@@ -34,6 +35,13 @@ let defaultPlanForDevForce = {
 }
 
 let default =
+
+  let solvespec = EsySolve.{
+    SolveSpec.
+    solveRoot = DepSpec.(dependencies self + devDependencies self);
+    solveLink = DepSpec.(dependencies self);
+    solveAll = DepSpec.(dependencies self);
+  } in
 
   (* This defines how project is built. *)
   let buildspec = {
@@ -83,4 +91,4 @@ let default =
     augmentDeps = None;
   } in
 
-  {buildspec; execenvspec; commandenvspec; buildenvspec;}
+  {solvespec; buildspec; execenvspec; commandenvspec; buildenvspec;}
