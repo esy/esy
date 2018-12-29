@@ -317,67 +317,67 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "file:/some/path" =
     parse "file:/some/path";
-    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ()))) |}]
 
   let%expect_test "file:/some/path/opam" =
     parse "file:/some/path/opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam opam))))) |}]
 
   let%expect_test "file:/some/path/lwt.opam" =
     parse "file:/some/path/lwt.opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "file:/some/path/package.json" =
     parse "file:/some/path/package.json";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Esy package.json))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Esy package.json))))) |}]
 
   let%expect_test "path:/some/path" =
     parse "path:/some/path";
-    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ()))) |}]
 
   let%expect_test "path:/some/path/opam" =
     parse "path:/some/path/opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam opam))))) |}]
 
   let%expect_test "path:/some/path/lwt.opam" =
     parse "path:/some/path/lwt.opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "path:/some/path/package.json" =
     parse "path:/some/path/package.json";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Esy package.json))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Esy package.json))))) |}]
 
   let%expect_test "/some/path" =
     parse "/some/path";
-    [%expect {| (LocalPath (path /some/path) (manifest ())) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ()))) |}]
 
   let%expect_test "/some/path/opam" =
     parse "/some/path/opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam opam))))) |}]
 
   let%expect_test "/some/path/lwt.opam" =
     parse "/some/path/lwt.opam";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "/some/path/package.json" =
     parse "/some/path/package.json";
-    [%expect {| (LocalPath (path /some/path) (manifest ((One (Esy package.json))))) |}]
+    [%expect {| (LocalPath ((path /some/path) (manifest ((Esy package.json))))) |}]
 
   let%expect_test "./some/path" =
     parse "./some/path";
-    [%expect {| (LocalPath (path some/path) (manifest ())) |}]
+    [%expect {| (LocalPath ((path some/path) (manifest ()))) |}]
 
   let%expect_test "./some/path/opam" =
     parse "./some/path/opam";
-    [%expect {| (LocalPath (path some/path) (manifest ((One (Opam opam))))) |}]
+    [%expect {| (LocalPath ((path some/path) (manifest ((Opam opam))))) |}]
 
   let%expect_test "./some/path/lwt.opam" =
     parse "./some/path/lwt.opam";
-    [%expect {| (LocalPath (path some/path) (manifest ((One (Opam lwt.opam))))) |}]
+    [%expect {| (LocalPath ((path some/path) (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "./some/path/package.json" =
     parse "./some/path/package.json";
-    [%expect {| (LocalPath (path some/path) (manifest ((One (Esy package.json))))) |}]
+    [%expect {| (LocalPath ((path some/path) (manifest ((Esy package.json))))) |}]
 
 end)
 

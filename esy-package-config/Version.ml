@@ -93,19 +93,19 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "./some/path" =
     parse "./some/path";
-    [%expect {| (Source (Dist (LocalPath (path some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}]
 
   let%expect_test "./some/path" =
     parse ~tryAsOpam:true "./some/path";
-    [%expect {| (Source (Dist (LocalPath (path some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}]
 
   let%expect_test "/some/path" =
     parse "/some/path";
-    [%expect {| (Source (Dist (LocalPath (path /some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |}]
 
   let%expect_test "/some/path" =
     parse ~tryAsOpam:true "/some/path";
-    [%expect {| (Source (Dist (LocalPath (path /some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |}]
 
   let%expect_test "link:/some/path" =
     parse "link:/some/path";
@@ -117,11 +117,11 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "some/path" =
     parse "some/path";
-    [%expect {| (Source (Dist (LocalPath (path some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}]
 
   let%expect_test "some/path" =
     parse ~tryAsOpam:true "some/path";
-    [%expect {| (Source (Dist (LocalPath (path some/path) (manifest ())))) |}]
+    [%expect {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}]
 
   let%expect_test "some" =
     parse "some";

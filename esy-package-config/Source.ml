@@ -187,11 +187,11 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "path:/some/path" =
     parse "path:/some/path";
-    [%expect {| (Dist (LocalPath (path /some/path) (manifest ()))) |}]
+    [%expect {| (Dist (LocalPath ((path /some/path) (manifest ())))) |}]
 
   let%expect_test "path:/some/path/lwt.opam" =
     parse "path:/some/path/lwt.opam";
-    [%expect {| (Dist (LocalPath (path /some/path) (manifest ((One (Opam lwt.opam)))))) |}]
+    [%expect {| (Dist (LocalPath ((path /some/path) (manifest ((Opam lwt.opam)))))) |}]
 
   let%expect_test "link:/some/path" =
     parse "link:/some/path";
@@ -199,11 +199,11 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "link:/some/path/lwt.opam" =
     parse "link:/some/path/lwt.opam";
-    [%expect {| (Link ((path /some/path) (manifest ((One (Opam lwt.opam)))))) |}]
+    [%expect {| (Link ((path /some/path) (manifest ((Opam lwt.opam))))) |}]
 
   let%expect_test "path:some" =
     parse "path:some";
-    [%expect {| (Dist (LocalPath (path some) (manifest ()))) |}]
+    [%expect {| (Dist (LocalPath ((path some) (manifest ())))) |}]
 
   let%expect_test "link:some" =
     parse "link:some";
@@ -248,7 +248,7 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "/some/path" =
     parseRelaxed "/some/path";
-    [%expect {| (Dist (LocalPath (path /some/path) (manifest ()))) |}]
+    [%expect {| (Dist (LocalPath ((path /some/path) (manifest ())))) |}]
 
   let%expect_test "some" =
     parseRelaxed "some";
