@@ -121,10 +121,10 @@ export cur__name=\\"withDevDep\\"
 #
 # depOfDevDep@path:depOfDevDep@d41d8cd9
 #
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/depofdevdep-cb1178c2/stublibs:%esyStorePath%/i/depofdevdep-cb1178c2/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/depofdevdep-cb1178c2/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/depofdevdep-cb1178c2/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/depofdevdep-cb1178c2/bin:$PATH\\"
+export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depofdevdepid%/stublibs:%esyStorePath%/i/%depofdevdepid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
+export OCAMLPATH=\\"%esyStorePath%/i/%depofdevdepid%/lib:$OCAMLPATH\\"
+export MAN_PATH=\\"%esyStorePath%/i/%depofdevdepid%/man:$MAN_PATH\\"
+export PATH=\\"%esyStorePath%/i/%depofdevdepid%/bin:$PATH\\"
 
 #
 # devDep@path:devDep@d41d8cd9
