@@ -89,13 +89,13 @@ describe(`'esy build-dependencies' command`, () => {
     });
   });
 
-  it(`build devDependencies`, async () => {
+  it(`does not build devDependencies by default`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
-    await expect(p.run('devDep.cmd', env)).resolves.toMatchObject({
-      stdout: '__devDep__' + os.EOL,
+    await expect(p.run('devDep.cmd', env)).rejects.toMatchObject({
+      code: 127,
     });
   });
 

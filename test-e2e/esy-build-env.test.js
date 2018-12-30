@@ -89,7 +89,9 @@ describe(`'esy build-env' command`, () => {
       promiseExec('. ./build-env && devDep.cmd', {
         cwd: p.projectPath,
       }),
-    ).resolves.toEqual({stdout: '__devDep__\n', stderr: ''});
+    ).rejects.toMatchObject({
+      code: 127
+    });
   });
 
   it('generates an environment in JSON', async () => {
@@ -144,9 +146,9 @@ describe(`'esy build-env' command`, () => {
     expect(env.depOfDep__local).toBe(undefined);
     expect(env.depOfDep__global).toBe('depOfDep__global__value');
 
-    // dev deps are present in build env in dev mode
-    expect(env.devDep__local).toBe('devDep__local__value');
-    expect(env.devDep__global).toBe('devDep__global__value');
+    // dev deps are not present in build env
+    expect(env.devDep__local).toBe(undefined);
+    expect(env.devDep__global).toBe(undefined);
   });
 
   it('allows to query build env for a dep (by name)', async () => {
