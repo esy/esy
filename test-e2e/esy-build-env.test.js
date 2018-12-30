@@ -90,7 +90,7 @@ describe(`'esy build-env' command`, () => {
         cwd: p.projectPath,
       }),
     ).rejects.toMatchObject({
-      message: expect.stringMatching('devDep.cmd: command not found'),
+      code: 127
     });
   });
 

@@ -95,7 +95,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
     await expect(p.run('devDep.cmd', env)).rejects.toMatchObject({
-      message: expect.stringMatching('devDep.cmd: command not found'),
+      code: 127,
     });
   });
 
