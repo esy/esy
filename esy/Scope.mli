@@ -12,7 +12,8 @@ val make :
   -> id:BuildId.t
   -> name:string
   -> version:Version.t
-  -> build:BuildSpec.build
+  -> mode:BuildSpec.mode
+  -> depspec:DepSpec.t
   -> sourceType:SourceType.t
   -> sourcePath:SandboxPath.t
   -> EsyInstall.Package.t
@@ -25,7 +26,8 @@ val add : direct:bool -> dep:t -> t -> t
 
 val pkg : t -> EsyInstall.Package.t
 val id : t -> BuildId.t
-val build : t -> BuildSpec.build
+val mode : t -> BuildSpec.mode
+val depspec : t -> DepSpec.t
 val name : t -> string
 val version : t -> Version.t
 val sourceType : t -> SourceType.t

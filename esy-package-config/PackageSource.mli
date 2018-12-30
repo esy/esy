@@ -1,5 +1,9 @@
 type t =
-  | Link of Dist.local
+  | Link of {
+      path : DistPath.t;
+      manifest : ManifestSpec.t option;
+      kind : Source.linkKind;
+    }
   | Install of {
       source : Dist.t * Dist.t list;
       opam : opam option;

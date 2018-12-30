@@ -38,7 +38,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         a: {name: 'a', version: '1.0.0', dependencies: {}},
       },
@@ -55,7 +55,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         a: {name: 'a', version: '1.0.0', dependencies: {}},
         b: {name: 'b', version: '1.0.0', dependencies: {}},
@@ -73,7 +73,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         a: {name: 'a', version: '1.0.0', dependencies: {}},
       },
@@ -114,7 +114,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         dep: {
           name: 'dep',
@@ -137,7 +137,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         dep: {
           name: 'dep',
@@ -161,7 +161,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         dep: {
           name: 'dep',
@@ -213,7 +213,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         a: {name: 'a', version: '1.0.0', dependencies: {}},
         dep: {
@@ -235,7 +235,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         a: {name: 'a', version: '1.0.0', dependencies: {}},
         dep: {
@@ -264,7 +264,7 @@ describe('lock invalidation', () => {
 
     expect(await helpers.readInstalledPackages(p.projectPath)).toEqual({
       name: 'root',
-      version: 'link:./package.json',
+      version: 'link-dev:./package.json',
       dependencies: {
         dep: {
           name: 'dep',

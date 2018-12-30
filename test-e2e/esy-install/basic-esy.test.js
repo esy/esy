@@ -348,7 +348,7 @@ describe(`Basic tests`, () => {
     await expect(p.esy(`install`)).rejects.toThrowError(
       outdent`
         error: invalid "esy" version: ^3.0.0 must be one of: 1.0.0
-          reading package metadata from link:./package.json
+          reading package metadata from link-dev:./package.json
           loading root package metadata
         esy: exiting due to errors above
       `,
@@ -371,7 +371,7 @@ describe(`Basic tests`, () => {
     await expect(p.esy(`install`)).rejects.toThrowError(
       outdent`
         error: invalid "esy" version: =3.4.5 must be one of: 1.0.0
-          reading package metadata from link:./package.json
+          reading package metadata from link-dev:./package.json
           loading root package metadata
         esy: exiting due to errors above
       `,

@@ -24,7 +24,11 @@ let opamfiles opam =
   File.ofDir Path.(opam.path / "files")
 
 type t =
-  | Link of Dist.local
+  | Link of {
+      path : DistPath.t;
+      manifest : ManifestSpec.t option;
+      kind : Source.linkKind;
+    }
   | Install of {
       source : Dist.t * Dist.t list;
       opam : opam option;
@@ -33,9 +37,14 @@ type t =
 let to_yojson source =
   let open Json.Encode in
   match source with
-  | Link { path; manifest } ->
+  | Link { path; manifest; kind; } ->
+    let typ =
+      match kind with
+      | LinkRegular -> field "type" string "link";
+      | LinkDev -> field "type" string "link-dev";
+    in
     assoc [
-      field "type" string "link";
+      typ;
       field "path" DistPath.to_yojson path;
       fieldOpt "manifest" ManifestSpec.to_yojson manifest;
     ]
@@ -61,6 +70,10 @@ let of_yojson json =
   | "link" ->
     let%bind path = fieldWith ~name:"path" DistPath.of_yojson json in
     let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
-    Ok (Link {path; manifest;})
+    Ok (Link {path; manifest; kind = LinkRegular;})
+  | "link-dev" ->
+    let%bind path = fieldWith ~name:"path" DistPath.of_yojson json in
+    let%bind manifest = fieldOptWith ~name:"manifest" ManifestSpec.of_yojson json in
+    Ok (Link {path; manifest; kind = LinkDev;})
   | typ -> errorf "unknown source type: %s" typ
 

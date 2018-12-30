@@ -168,7 +168,7 @@ module PackagePaths = struct
 
   let installPath sandbox pkg =
     match pkg.Package.source with
-    | Link { path; manifest = _; } ->
+    | Link { path; manifest = _; kind = _; } ->
       DistPath.toPath sandbox.Sandbox.spec.path path
     | Install _ ->
       Path.(sandbox.Sandbox.cfg.sourceInstallPath / key pkg)

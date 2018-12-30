@@ -2,9 +2,9 @@
 
 exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 1`] = `
 "# Build environment
-# package:            root@link:./package.json
-# depspec:            dependencies(self)
-# plan:               root=buildDev link=build all=build
+# package:            root@link-dev:./package.json
+# depspec:            dependencies(self)+devDependencies(self)
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -28,7 +28,7 @@ export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
 export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export cur__original_root=\\"%projectPath%\\"
 export cur__root=\\"%projectPath%\\"
-export cur__dev=\\"false\\"
+export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"root\\"
 
@@ -62,7 +62,7 @@ exports[`Build with optDependencies builds w/ opt dependency installed snapshot 
 "# Build environment
 # package:            dep@path:dep
 # depspec:            dependencies(self)
-# plan:               root=buildDev link=build all=build
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -110,9 +110,9 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 
 exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 1`] = `
 "# Build environment
-# package:            root@link:./package.json
-# depspec:            dependencies(self)
-# plan:               root=buildDev link=build all=build
+# package:            root@link-dev:./package.json
+# depspec:            dependencies(self)+devDependencies(self)
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -136,7 +136,7 @@ export cur__install=\\"%projectPath%/_esy/default/store/i/%id%\\"
 export cur__target_dir=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export cur__original_root=\\"%projectPath%\\"
 export cur__root=\\"%projectPath%\\"
-export cur__dev=\\"false\\"
+export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"root\\"
 
@@ -162,7 +162,7 @@ exports[`Build with optDependencies builds w/o opt dependency installed snapshot
 "# Build environment
 # package:            dep@path:dep
 # depspec:            dependencies(self)
-# plan:               root=buildDev link=build all=build
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true

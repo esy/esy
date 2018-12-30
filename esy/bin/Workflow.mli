@@ -8,13 +8,7 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
-val defaultDepspec : DepSpec.t
-val defaultDepspecForLink : DepSpec.t
-val defaultDepspecForRootForDev : DepSpec.t
-val defaultDepspecForRootForRelease : DepSpec.t
-
-val defaultPlanForRelease : BuildSpec.plan
-val defaultPlanForDev : BuildSpec.plan
-val defaultPlanForDevForce : BuildSpec.plan
+val buildAll : DepSpec.t
+val buildDev : DepSpec.t
 
 val default : t

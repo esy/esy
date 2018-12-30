@@ -8,38 +8,14 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
-let defaultDepspec = DepSpec.(dependencies self)
-let defaultDepspecForLink = DepSpec.(dependencies self)
-let defaultDepspecForRootForRelease = DepSpec.(dependencies self)
-let defaultDepspecForRootForDev = DepSpec.(dependencies self + devDependencies self)
-
-let defaultPlanForRelease = {
-  BuildSpec.
-  all = Build;
-  link = Build;
-  root = Build;
-}
-
-let defaultPlanForDev = {
-  BuildSpec.
-  all = Build;
-  link = Build;
-  root = BuildDev;
-}
-
-let defaultPlanForDevForce = {
-  BuildSpec.
-  all = Build;
-  link = Build;
-  root = BuildDevForce;
-}
+let buildAll = DepSpec.(dependencies self)
+let buildDev = DepSpec.(dependencies self + devDependencies self)
 
 let default =
 
   let solvespec = EsySolve.{
     SolveSpec.
-    solveRoot = DepSpec.(dependencies self + devDependencies self);
-    solveLink = DepSpec.(dependencies self);
+    solveDev = DepSpec.(dependencies self + devDependencies self);
     solveAll = DepSpec.(dependencies self);
   } in
 
@@ -47,12 +23,9 @@ let default =
   let buildspec = {
     BuildSpec.
     (* build all other packages using "build" command with dependencies in the env *)
-    build = defaultDepspec;
+    buildAll = buildAll;
     (* build linked packages using "build" command with dependencies in the env *)
-    buildLink = Some defaultDepspecForLink;
-
-    buildRootForRelease = Some defaultDepspecForRootForRelease;
-    buildRootForDev = Some defaultDepspecForRootForDev;
+    buildDev = Some buildDev;
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)

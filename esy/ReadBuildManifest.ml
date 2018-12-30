@@ -220,7 +220,7 @@ let ofPath ?manifest (path : Path.t) =
 let ofInstallationLocation ~cfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
-  | Link { path; manifest; } ->
+  | Link { path; manifest; kind = _; } ->
     let dist = Dist.LocalPath {path; manifest;} in
     let%bind res =
       EsyInstall.DistResolver.resolve

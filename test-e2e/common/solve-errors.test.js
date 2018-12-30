@@ -414,7 +414,7 @@ describe('"resolutions" misconfiguration errors', function() {
     expect(err.stderr.trim()).toEqual(
       outdent`
       error: parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-        reading package metadata from link:./package.json
+        reading package metadata from link-dev:./package.json
         loading root package metadata
       esy: exiting due to errors above
       `,
@@ -445,7 +445,7 @@ describe('"resolutions" misconfiguration errors', function() {
     expect(err.stderr.trim()).toEqual(
       outdent`
       error: parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-        reading package metadata from link:./package.json
+        reading package metadata from link-dev:./package.json
         loading root package metadata
       esy: exiting due to errors above
       `,

@@ -31,45 +31,19 @@ let depspecConv =
   let pp = DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
-let modeConv =
-  let open Cmdliner in
-  let open Result.Syntax in
-  let pp fmt v =
-    match v with
-    | BuildSpec.Build -> Fmt.unit "release" fmt ()
-    | BuildSpec.BuildDev -> Fmt.unit "dev" fmt ()
-    | BuildSpec.BuildDevForce -> Fmt.unit "force-dev" fmt ()
-  in
-  let parse v =
-    match v with
-    | "release" -> return BuildSpec.Build
-    | "dev" -> return BuildSpec.BuildDev
-    | unknown ->
-      let msg = Format.asprintf
-        "unknown build mode %s must be %a or %a"
-        unknown pp BuildSpec.Build pp BuildSpec.BuildDev
-      in
-      Error (`Msg msg)
-  in
-  Arg.conv ~docv:"MODE" (parse, pp)
-
-let planArg =
-  let make root link =
-    {Workflow.defaultPlanForDev with root; link;}
+let modeArg =
+  let make release =
+    if release
+    then BuildSpec.Build
+    else BuildSpec.BuildDev
   in
   Cmdliner.Term.(
     const make
     $ Cmdliner.Arg.(
         value
-        & opt modeConv BuildSpec.BuildDev
-        & info ["root-mode"]
-          ~doc:{|Define build mode for the root|}
-      )
-    $ Cmdliner.Arg.(
-        value
-        & opt modeConv BuildSpec.Build
-        & info ["link-mode"]
-          ~doc:{|Define build mode for linked packages|}
+        & flag
+        & info ["release"]
+          ~doc:"Build in release mode"
       )
   )
 
@@ -79,7 +53,7 @@ let solvespecArg =
     then EsySolve.{
       Workflow.default.solvespec with
       SolveSpec.
-      solveLink = DepSpec.(dependencies self + devDependencies self);
+      solveDev = DepSpec.(dependencies self + devDependencies self);
     }
     else Workflow.default.solvespec
   in
@@ -229,9 +203,9 @@ let buildDependencies
       let deps =
         match linkDepspec with
         | Some depspec -> depspec
-        | None -> Workflow.defaultDepspecForLink
+        | None -> Workflow.buildDev
       in
-      {Workflow.default.buildspec with buildLink = Some deps}
+      {Workflow.default.buildspec with buildDev = Some deps}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -248,7 +222,7 @@ let buildDependencies
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage solvespec plan depspec pkgspec (proj : Project.WithoutSolution.t)  =
+let buildPackage solvespec mode depspec pkgspec (proj : Project.WithoutSolution.t)  =
   let open RunAsync.Syntax in
 
   let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
@@ -258,11 +232,11 @@ let buildPackage solvespec plan depspec pkgspec (proj : Project.WithoutSolution.
     let deps =
       match depspec with
       | Some depspec -> depspec
-      | None -> Workflow.defaultDepspec
+      | None -> Workflow.buildAll
     in
     {
       Workflow.default.buildspec
-      with buildLink = Some deps;
+      with buildDev = Some deps;
     }
   in
 
@@ -270,7 +244,7 @@ let buildPackage solvespec plan depspec pkgspec (proj : Project.WithoutSolution.
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         buildspec
-        plan
+        mode
         fetched.Project.sandbox
     ) in
     Project.buildPackage
@@ -312,9 +286,9 @@ let execCommand
     let deps =
       match linkDepspec with
       | Some depspec -> depspec
-      | None -> Workflow.defaultDepspecForLink
+      | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildLink = Some deps;}
+    {Workflow.default.buildspec with buildDev = Some deps;}
   in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false
@@ -356,9 +330,9 @@ let printEnv
     let deps =
       match linkDepspec with
       | Some depspec -> depspec
-      | None -> Workflow.defaultDepspecForLink
+      | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildLink = Some deps;}
+    {Workflow.default.buildspec with buildDev = Some deps;}
   in
   Project.printEnv
     proj
@@ -505,7 +479,7 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
     let p =
       BuildSandbox.buildShell
         configured.Project.WithWorkflow.workflow.buildspec
-        Workflow.defaultPlanForDev
+        BuildDev
         fetched.Project.sandbox
         pkg.id
     in
@@ -530,7 +504,7 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       then
         BuildSandbox.makePlan
           Workflow.default.buildspec
-          Workflow.defaultPlanForRelease
+          Build
           fetched.Project.sandbox
       else
         return configured.Project.WithWorkflow.planForDev
@@ -571,8 +545,8 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       configured.workflow.buildenvspec
       configured.workflow.buildspec
       (if release
-      then BuildSandbox.Plan.plan plan
-      else Workflow.defaultPlanForDevForce)
+      then Build
+      else BuildDev)
       PkgArg.root
       cmd
       ()
@@ -586,7 +560,7 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    BuildDev
     asJson
     packagePath
     ()
@@ -599,7 +573,7 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.commandenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    BuildDev
     asJson
     packagePath
     ()
@@ -612,7 +586,7 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    Workflow.defaultPlanForDev
+    BuildDev
     asJson
     packagePath
     ()
@@ -628,7 +602,7 @@ let exec release cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    (if release then Workflow.defaultPlanForRelease else Workflow.defaultPlanForDev)
+    (if release then Build else BuildDev)
     PkgArg.root
     cmd
     ()
@@ -670,7 +644,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
       BuildSandbox.configure
         envspec
         configured.workflow.buildspec
-        Workflow.defaultPlanForDev
+        BuildDev
         fetched.Project.sandbox
         id
     in
@@ -727,7 +701,7 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
-      Workflow.defaultPlanForDev
+      BuildDev
       PkgArg.root
       cmd
       ()
@@ -746,7 +720,7 @@ let devShell (proj : Project.WithWorkflow.t) =
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
-    Workflow.defaultPlanForDev
+    BuildDev
     PkgArg.root
     (Cmd.v shell)
     ()
@@ -1727,7 +1701,7 @@ let makeCommands projectPath =
       Term.(
         const buildPackage
         $ solvespecArg
-        $ planArg
+        $ modeArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1757,7 +1731,7 @@ let makeCommands projectPath =
             & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
         $ solvespecArg
-        $ planArg
+        $ modeArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1795,7 +1769,7 @@ let makeCommands projectPath =
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ solvespecArg
-        $ planArg
+        $ modeArg
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1839,7 +1813,7 @@ let makeCommands projectPath =
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ solvespecArg
-        $ planArg
+        $ modeArg
         $ Arg.(
             value
             & opt (some depspecConv) None

@@ -30,7 +30,7 @@ describe('build errors', function() {
     expect(err.stderr.trim()).toEqual(
       outdent`
       error: reading "dependencies": expected an object
-        reading package metadata from link:./package.json
+        reading package metadata from link-dev:./package.json
         loading root package metadata
       esy: exiting due to errors above
       `,

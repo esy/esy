@@ -22,10 +22,10 @@ let findByPath p solution =
   let open Option.Syntax in
   let f _id pkg =
     match pkg.Package.source with
-    | Link {path; manifest = None;} ->
+    | Link {path; manifest = None; kind = _; } ->
       let path = DistPath.(path / "package.json") in
       DistPath.compare path p = 0
-    | Link {path; manifest = Some filename;} ->
+    | Link {path; manifest = Some filename; kind = _;} ->
       let path = DistPath.(path / ManifestSpec.show filename) in
       DistPath.compare path p = 0
     | _ -> false

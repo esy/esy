@@ -122,7 +122,8 @@ describe(`Project with "devDependencies"`, () => {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-    const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+    const devdepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+    const depofdevdepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
 
     const {stdout} = await p.esy('build-env --json');
     const env = JSON.parse(stdout);
@@ -144,6 +145,8 @@ describe(`Project with "devDependencies"`, () => {
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
       PATH: [
         `${p.esyStorePath}/i/${depId}/bin`,
+        `${p.esyStorePath}/i/${devdepId}/bin`,
+        `${p.esyStorePath}/i/${depofdevdepId}/bin`,
         ``,
         `/usr/local/bin`,
         `/usr/bin`,
@@ -202,9 +205,10 @@ describe(`Project with "devDependencies"`, () => {
       const id = JSON.parse((await p.esy('build-plan')).stdout).id;
       const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
       const devdepid = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+      const depofdevdepid = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
       const {stdout} = await p.esy('build-env');
       expect(
-        p.normalizePathsForSnapshot(stdout, {id, depid, devdepid}),
+        p.normalizePathsForSnapshot(stdout, {id, depid, devdepid, depofdevdepid}),
       ).toMatchSnapshot();
     },
   );

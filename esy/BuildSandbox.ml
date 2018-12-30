@@ -17,10 +17,10 @@ type t = {
 let rootPackageConfigPath sandbox =
   let root = Solution.root sandbox.solution in
   match root.source with
-  | Link { path; manifest = Some (_kind, filename) } ->
+  | Link { path; manifest = Some (_kind, filename); kind = _; } ->
     let path = DistPath.toPath sandbox.cfg.spec.path path in
     Some Path.(path / filename)
-  | Link { path = _; manifest = None } -> None
+  | Link { path = _; manifest = None; kind = _; } -> None
   | Install _ -> None
 
 let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
@@ -308,12 +308,12 @@ let makeScope
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let build, _commands =
-      BuildSpec.classify buildspec mode sandbox.solution pkg buildManifest
+    let depspec, _commands =
+      BuildSpec.classify buildspec mode pkg buildManifest
     in
 
     let matchedForBuild =
-      DepSpec.eval sandbox.solution pkg.Package.id build.deps
+      DepSpec.eval sandbox.solution pkg.Package.id depspec
     in
 
     let matchedForScope =
@@ -458,7 +458,7 @@ let makeScope
         ~arch:sandbox.arch
         ~build:buildManifest
         ~sourceType
-        ~mode:build.mode
+        ~mode
         ~dependencies
         ()
     in
@@ -481,7 +481,8 @@ let makeScope
         ~version
         ~sourceType
         ~sourcePath
-        ~build
+        ~mode
+        ~depspec
         pkg
         buildManifest
     in
@@ -518,7 +519,7 @@ module Plan = struct
 
   type t = {
     buildspec : BuildSpec.t;
-    plan : BuildSpec.plan;
+    mode : BuildSpec.mode;
     tasks : Task.t option PackageId.Map.t;
   }
 
@@ -559,7 +560,7 @@ module Plan = struct
     in
     List.fold_left ~f ~init:[] (PackageId.Map.bindings plan.tasks)
 
-  let plan plan = plan.plan
+  let mode plan = plan.mode
 end
 
 let makePlan
@@ -592,7 +593,6 @@ let makePlan
           BuildSpec.classify
             buildspec
             mode
-            sandbox.solution
             pkg
             build
         in
@@ -672,7 +672,7 @@ let makePlan
     visit PackageId.Map.empty [root.id]
   in
 
-  return {Plan. plan = mode; tasks; buildspec;}
+  return {Plan. mode = mode; tasks; buildspec;}
 
 let task buildspec mode sandbox id =
   let open RunAsync.Syntax in
