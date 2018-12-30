@@ -546,7 +546,7 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       configured.workflow.buildspec
       (if release
       then Build
-      else BuildDev)
+      else BuildDevForce)
       PkgArg.root
       cmd
       ()

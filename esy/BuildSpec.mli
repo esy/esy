@@ -19,6 +19,7 @@ type t = {
 type mode =
   | Build
   | BuildDev
+  | BuildDevForce
 
 val pp_mode : mode Fmt.t
 val show_mode : mode -> string
@@ -31,4 +32,4 @@ val classify :
   -> mode
   -> EsyInstall.Package.t
   -> BuildManifest.t
-  -> DepSpec.t * BuildManifest.commands
+  -> mode * DepSpec.t * BuildManifest.commands

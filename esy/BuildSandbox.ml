@@ -308,7 +308,7 @@ let makeScope
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let depspec, _commands =
+    let mode, depspec, _commands =
       BuildSpec.classify buildspec mode pkg buildManifest
     in
 
@@ -589,7 +589,7 @@ let makePlan
 
       let%bind buildCommands =
 
-        let _, commands =
+        let _, _, commands =
           BuildSpec.classify
             buildspec
             mode

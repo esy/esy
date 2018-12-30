@@ -4,7 +4,7 @@ exports[`Project with "devDependencies" macos || linux: build-env dep snapshot 1
 "# Build environment
 # package:            dep@path:dep
 # depspec:            dependencies(self)
-# mode:               buildDev
+# mode:               build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -41,7 +41,7 @@ exports[`Project with "devDependencies" macos || linux: build-env devDep snapsho
 "# Build environment
 # package:            devDep@path:devDep
 # depspec:            dependencies(self)
-# mode:               buildDev
+# mode:               build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -89,8 +89,8 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 exports[`Project with "devDependencies" macos || linux: build-env snapshot 1`] = `
 "# Build environment
 # package:            withDevDep@link-dev:./package.json
-# depspec:            dependencies(self)+devDependencies(self)
-# mode:               buildDev
+# depspec:            dependencies(self)
+# mode:               build
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -117,22 +117,6 @@ export cur__root=\\"%projectPath%\\"
 export cur__dev=\\"true\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"withDevDep\\"
-
-#
-# depOfDevDep@path:depOfDevDep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%depofdevdepid%/stublibs:%esyStorePath%/i/%depofdevdepid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%depofdevdepid%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%depofdevdepid%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%depofdevdepid%/bin:$PATH\\"
-
-#
-# devDep@path:devDep@d41d8cd9
-#
-export CAML_LD_LIBRARY_PATH=\\"%esyStorePath%/i/%devdepid%/stublibs:%esyStorePath%/i/%devdepid%/lib/stublibs:$CAML_LD_LIBRARY_PATH\\"
-export OCAMLPATH=\\"%esyStorePath%/i/%devdepid%/lib:$OCAMLPATH\\"
-export MAN_PATH=\\"%esyStorePath%/i/%devdepid%/man:$MAN_PATH\\"
-export PATH=\\"%esyStorePath%/i/%devdepid%/bin:$PATH\\"
 
 #
 # dep@path:dep@d41d8cd9

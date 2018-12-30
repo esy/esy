@@ -145,8 +145,6 @@ describe(`Project with "devDependencies"`, () => {
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
       PATH: [
         `${p.esyStorePath}/i/${depId}/bin`,
-        `${p.esyStorePath}/i/${devdepId}/bin`,
-        `${p.esyStorePath}/i/${depofdevdepId}/bin`,
         ``,
         `/usr/local/bin`,
         `/usr/bin`,
