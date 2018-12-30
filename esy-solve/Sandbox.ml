@@ -160,29 +160,16 @@ let digest solvespec sandbox =
   in
 
   let rootDigest, linkDigest =
-    (* this is to keep compat with pre solvespec lockfiles *)
-    match SolveSpec.compare solvespec defaultSolvespec = 0 with
-    | true ->
-      let rootDigest (manifest : InstallManifest.t) digest =
-        digest
-        |> Digestv.(add (string (showDependencies manifest.dependencies)))
-        |> Digestv.(add (string (showDependencies manifest.devDependencies)))
-      in
-      let linkDigest (manifest : InstallManifest.t) =
-        Digestv.(add (string (showDependencies manifest.dependencies)))
-      in
-      rootDigest, linkDigest
-    | false ->
-      let manifestDigest manifest =
-        match SolveSpec.eval solvespec manifest with
-        | Ok dependencies ->
-          Digestv.(add (string (showDependencies dependencies)))
-        | Error _ ->
-          (* this will just invalidate lockfile and thus we will recompute 
-             solution and handle this error more gracefully *)
-          Digestv.(add (string "INVALID"))
-      in
-      manifestDigest, manifestDigest
+    let manifestDigest manifest =
+      match SolveSpec.eval solvespec manifest with
+      | Ok dependencies ->
+        Digestv.(add (string (showDependencies dependencies)))
+      | Error _ ->
+        (* this will just invalidate lockfile and thus we will recompute 
+            solution and handle this error more gracefully *)
+        Digestv.(add (string "INVALID"))
+    in
+    manifestDigest, manifestDigest
   in
 
   let digest =
