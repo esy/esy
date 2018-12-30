@@ -107,12 +107,6 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
       }
   ) "loading root package metadata"
 
-let defaultSolvespec = {
-  SolveSpec.
-  solveDev = DepSpec.(dependencies self + devDependencies self);
-  solveAll = DepSpec.(dependencies self);
-}
-
 let digest solvespec sandbox =
   let open RunAsync.Syntax in
 
