@@ -1,6 +1,14 @@
 type t =
   | Dist of Dist.t
-  | Link of Dist.local
+  | Link of {
+      path : DistPath.t;
+      manifest : ManifestSpec.t option;
+      kind : linkKind;
+    }
+
+and linkKind =
+  | LinkRegular
+  | LinkDev
 
 include S.COMMON with type t := t
 

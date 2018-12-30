@@ -69,16 +69,17 @@ type t = {
   sourceToSource : (Source.t, Source.t) Hashtbl.t;
 }
 
-let emptyLink ~name ~path ~manifest () =
+let emptyLink ~name ~path ~manifest ~kind () =
   {
     InstallManifest.
     name;
-    version = Version.Source (Source.Link {path; manifest;});
+    version = Version.Source (Source.Link {path; manifest; kind;});
     originalVersion = None;
     originalName = None;
     source = PackageSource.Link {
       path;
       manifest = None;
+      kind;
     };
     overrides = Overrides.empty;
     dependencies = InstallManifest.Dependencies.NpmFormula [];
@@ -258,8 +259,8 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
     let%bind resolvedSource =
       match source, resolvedDist with
       | Source.Dist _, _ -> return (Source.Dist resolvedDist)
-      | Source.Link _, Dist.LocalPath {path; manifest;} ->
-        return (Source.Link {path; manifest;})
+      | Source.Link {kind;_}, Dist.LocalPath {path; manifest;} ->
+        return (Source.Link {path; manifest;kind;})
       | Source.Link _, dist -> errorf "unable to link to %a" Dist.pp dist
     in
 
@@ -271,8 +272,8 @@ let packageOfSource ~name ~overrides (source : Source.t) resolver =
         if not (Overrides.isEmpty overrides)
         then
           match source with
-          | Source.Link {path; manifest;} ->
-            let pkg = emptyLink ~name ~path ~manifest () in
+          | Source.Link {path; manifest; kind;} ->
+            let pkg = emptyLink ~name ~path ~manifest ~kind () in
             return (Ok pkg)
           | _ ->
             let pkg = emptyInstall ~name ~source:resolvedDist () in

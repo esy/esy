@@ -1,8 +1,17 @@
 open Sexplib0.Sexp_conv
+
 type t =
   | Dist of Dist.t
-  | Link of Dist.local
+  | Link of {
+      path : DistPath.t;
+      manifest : ManifestSpec.t option;
+      kind : linkKind;
+    }
   [@@deriving ord, sexp_of]
+
+and linkKind =
+  | LinkRegular
+  | LinkDev
 
 let manifest (src : t) =
   match src with
@@ -12,7 +21,7 @@ let manifest (src : t) =
 let toDist (src : t) =
   match src with
   | Dist dist -> dist
-  | Link {path;manifest;} -> Dist.LocalPath {path;manifest;}
+  | Link {path;manifest;kind = _} -> Dist.LocalPath {path;manifest;}
 
 let show' ~showPath = function
   | Dist Github {user; repo; commit; manifest = None;} ->
@@ -30,10 +39,14 @@ let show' ~showPath = function
   | Dist LocalPath {path; manifest = Some manifest;} ->
     Printf.sprintf "path:%s/%s" (showPath path) (ManifestSpec.show manifest)
   | Dist NoSource -> "no-source:"
-  | Link {path; manifest = None;} ->
+  | Link {path; manifest = None; kind = LinkRegular;} ->
     Printf.sprintf "link:%s" (showPath path)
-  | Link {path; manifest = Some manifest;} ->
+  | Link {path; manifest = Some manifest; kind = LinkRegular;} ->
     Printf.sprintf "link:%s/%s" (showPath path) (ManifestSpec.show manifest)
+  | Link {path; manifest = None; kind = LinkDev;} ->
+    Printf.sprintf "link-dev:%s" (showPath path)
+  | Link {path; manifest = Some manifest; kind = LinkDev;} ->
+    Printf.sprintf "link-dev:%s/%s" (showPath path) (ManifestSpec.show manifest)
 
 let show = show' ~showPath:DistPath.show
 let showPretty = show' ~showPath:DistPath.showPretty
@@ -76,9 +89,9 @@ module Parse = struct
     else fail "not a path"
 
 
-  let link =
+  let link kind =
     let make path manifest =
-      Link { path; manifest; }
+      Link { path; manifest; kind }
     in
     pathLike make
 
@@ -87,7 +100,9 @@ module Parse = struct
     Dist dist
 
   let parser =
-    withPrefix "link:" (link ~requirePathSep:false) <|> dist
+    withPrefix "link:" (link LinkRegular ~requirePathSep:false)
+    <|> withPrefix "link-dev:" (link LinkDev ~requirePathSep:false)
+    <|> dist
 
   let parserRelaxed =
     let distRelaxed =
@@ -195,11 +210,11 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "link:/some/path" =
     parse "link:/some/path";
-    [%expect {| (Link ((path /some/path) (manifest ()))) |}]
+    [%expect {| (Link (path /some/path) (manifest ()) (kind LinkRegular)) |}]
 
   let%expect_test "link:/some/path/lwt.opam" =
     parse "link:/some/path/lwt.opam";
-    [%expect {| (Link ((path /some/path) (manifest ((Opam lwt.opam))))) |}]
+    [%expect {| (Link (path /some/path) (manifest ((Opam lwt.opam))) (kind LinkRegular)) |}]
 
   let%expect_test "path:some" =
     parse "path:some";
@@ -207,7 +222,7 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "link:some" =
     parse "link:some";
-    [%expect {| (Link ((path some) (manifest ()))) |}]
+    [%expect {| (Link (path some) (manifest ()) (kind LinkRegular)) |}]
 
   let%expect_test "no-source:" =
     parse "no-source:";

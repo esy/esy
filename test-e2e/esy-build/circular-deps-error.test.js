@@ -56,8 +56,8 @@ describe(`'esy build' command: circular dependency error`, () => {
         error: found circular dependency on: dep@path:dep
           processing depOfDep@path:depOfDep
           processing dep@path:dep
-          processing hasCircularDeps@link:./package.json
-          creating task for hasCircularDeps@link:./package.json
+          processing hasCircularDeps@link-dev:./package.json
+          creating task for hasCircularDeps@link-dev:./package.json
         esy: exiting due to errors above
 
       `,

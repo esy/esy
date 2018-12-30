@@ -40,7 +40,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
   let open RunAsync.Syntax in
   let path = DistPath.make ~base:spec.path spec.path in
   let makeSource manifest =
-    Source.Link {path; manifest = Some manifest;}
+    Source.Link {path; manifest = Some manifest; kind = LinkDev;}
   in
   RunAsync.contextf (
     let%bind resolver = Resolver.make ~cfg ~sandbox:spec () in
@@ -109,8 +109,7 @@ let make ~cfg (spec : EsyInstall.SandboxSpec.t) =
 
 let defaultSolvespec = {
   SolveSpec.
-  solveRoot = DepSpec.(dependencies self + devDependencies self);
-  solveLink = DepSpec.(dependencies self);
+  solveDev = DepSpec.(dependencies self + devDependencies self);
   solveAll = DepSpec.(dependencies self);
 }
 
@@ -175,7 +174,7 @@ let digest solvespec sandbox =
       rootDigest, linkDigest
     | false ->
       let manifestDigest manifest =
-        match SolveSpec.eval solvespec sandbox.root manifest with
+        match SolveSpec.eval solvespec manifest with
         | Ok dependencies ->
           Digestv.(add (string (showDependencies dependencies)))
         | Error _ ->

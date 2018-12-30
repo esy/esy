@@ -1,20 +1,16 @@
 open EsyPackageConfig
 
 type t = {
-  solveRoot : DepSpec.t;
-  solveLink : DepSpec.t;
+  solveDev : DepSpec.t;
   solveAll : DepSpec.t;
 } [@@deriving ord]
 
-let eval spec root manifest =
+let eval spec manifest =
   let depspec =
-    let isRoot = InstallManifest.compare root manifest = 0 in
-    if isRoot
-    then spec.solveRoot
-    else
-      match manifest.InstallManifest.source with
-      | PackageSource.Link _ -> spec.solveLink
-      | _ -> spec.solveAll
+    match manifest.InstallManifest.source with
+    | Link {kind = LinkDev; _} -> spec.solveDev
+    | Link {kind = LinkRegular; _}
+    | Install _ -> spec.solveAll
   in
   DepSpec.eval manifest depspec
 

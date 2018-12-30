@@ -269,8 +269,8 @@ let toInstallManifest ?source ~name ~version manifest =
       match source with
       | None ->
         PackageSource.Install {source = sourceFromOpam; opam;}
-      | Some (Source.Link {path; manifest;}) ->
-        Link {path; manifest;}
+      | Some (Source.Link {path; manifest; kind;}) ->
+        Link {path; manifest; kind;}
       | Some (Source.Dist source) ->
         Install {source = source, []; opam;}
     in

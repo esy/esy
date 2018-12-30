@@ -66,7 +66,7 @@ let ofSource (src : Source.t) =
   | Dist LocalPath {path; manifest;} ->
     LocalPath {path; manifest;}
   | Dist NoSource -> NoSource
-  | Link {path; manifest;} ->
+  | Link {path; manifest;kind=_;} ->
     LocalPath {path; manifest;}
 
 module Parse = struct

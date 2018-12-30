@@ -159,7 +159,7 @@ let writePackage sandbox (pkg : Package.t) =
   let open RunAsync.Syntax in
   let%bind source =
     match pkg.source with
-    | Link { path; manifest } -> return (PackageSource.Link {path; manifest;})
+    | Link { path; manifest; kind; } -> return (PackageSource.Link {path; manifest; kind})
     | Install {source; opam = None;} -> return (PackageSource.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = writeOpam sandbox opam in
@@ -180,7 +180,7 @@ let readPackage sandbox (node : node) =
   let open RunAsync.Syntax in
   let%bind source =
     match node.source with
-    | Link { path; manifest } -> return (PackageSource.Link {path;manifest;})
+    | Link { path; manifest; kind } -> return (PackageSource.Link {path;manifest; kind;})
     | Install {source; opam = None;} -> return (PackageSource.Install {source; opam = None;})
     | Install {source; opam = Some opam;} ->
       let%bind opam = readOpam sandbox opam in

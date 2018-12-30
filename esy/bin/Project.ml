@@ -33,7 +33,7 @@ module TermPp = struct
       (ppFlag "--include-build-env") includeBuildEnv
 
   let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.buildLink with
+    match buildspec.BuildSpec.buildDev with
     | None -> Fmt.string fmt ""
     | Some deps ->
       Fmt.pf fmt "%a" (ppOption "--link-depspec" DepSpec.pp) (Some deps)
@@ -329,7 +329,7 @@ module WithWorkflow = struct
       let%bind plan =
         BuildSandbox.makePlan
           workflow.buildspec
-          Workflow.defaultPlanForDev
+          BuildDev
           sandbox
       in
       let pkg = EsyInstall.Solution.root solution in
@@ -380,7 +380,7 @@ module WithWorkflow = struct
           BuildSandbox.env
             configured.workflow.commandenvspec
             configured.workflow.buildspec
-            Workflow.defaultPlanForDev
+            BuildDev
             fetched.sandbox
             root.Package.id
         in
@@ -538,7 +538,7 @@ let printEnv
   (proj : _ project)
   envspec
   buildspec
-  plan
+  mode
   asJson
   pkgarg
   ()
@@ -565,7 +565,7 @@ let printEnv
         BuildSandbox.configure
           envspec
           buildspec
-          plan
+          mode
           fetched.sandbox
           pkg.id
       in
@@ -578,12 +578,13 @@ let printEnv
           |> Environment.to_yojson
           |> Yojson.Safe.pretty_to_string)
       else
-        let build = Scope.build scope in
+        let mode = Scope.mode scope in
+        let depspec = Scope.depspec scope in
         let header =
           Format.asprintf {|# %s
 # package:            %a
 # depspec:            %a
-# plan:               %a
+# mode:               %a
 # envspec:            %a
 # buildIsInProgress:  %b
 # includeBuildEnv:    %b
@@ -592,8 +593,8 @@ let printEnv
 |}
             name
             Package.pp pkg
-            DepSpec.pp build.BuildSpec.deps
-            BuildSpec.pp_plan plan
+            DepSpec.pp depspec
+            BuildSpec.pp_mode mode
             (Fmt.option DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress

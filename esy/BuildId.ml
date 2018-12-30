@@ -123,9 +123,9 @@ module Repr = struct
       let buildCommands =
         match (mode : BuildSpec.mode), sourceType, buildDev with
         | Build, _, _
-        | (BuildDev | BuildDevForce), (SourceType.ImmutableWithTransientDependencies | Immutable), _
-        | (BuildDev | BuildDevForce), Transient, None -> build
-        | (BuildDev | BuildDevForce), SourceType.Transient, Some commands ->
+        | BuildDev, (SourceType.ImmutableWithTransientDependencies | Immutable), _
+        | BuildDev, Transient, None -> build
+        | BuildDev, SourceType.Transient, Some commands ->
           BuildManifest.EsyCommands commands
       in
       {

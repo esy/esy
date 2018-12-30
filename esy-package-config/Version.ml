@@ -109,11 +109,11 @@ let%test_module "parsing" = (module struct
 
   let%expect_test "link:/some/path" =
     parse "link:/some/path";
-    [%expect {| (Source (Link ((path /some/path) (manifest ())))) |}]
+    [%expect {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |}]
 
   let%expect_test "link:/some/path" =
     parse ~tryAsOpam:true "link:/some/path";
-    [%expect {| (Source (Link ((path /some/path) (manifest ())))) |}]
+    [%expect {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |}]
 
   let%expect_test "some/path" =
     parse "some/path";

@@ -57,7 +57,7 @@ type t = {
 }
 
 let evalDependencies solver manifest =
-  SolveSpec.eval solver.solvespec solver.sandbox.root manifest
+  SolveSpec.eval solver.solvespec manifest
 
 module Reason : sig
 
@@ -515,6 +515,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
     source = PackageSource.Link {
       path = DistPath.v ".";
       manifest = None;
+      kind = LinkRegular;
     };
     overrides = Overrides.empty;
     dependencies;

@@ -34,7 +34,7 @@ module PackageScope : sig
   val logPath : t -> SandboxPath.t
 
   val buildEnv : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
-  val buildEnvAuto : buildIsInProgress:bool -> BuildSpec.mode -> t -> (string * string) list
+  val buildEnvAuto : buildIsInProgress:bool -> dev:bool -> t -> (string * string) list
   val exportedEnvLocal : t -> (string * string) list
   val exportedEnvGlobal : t -> (string * string) list
 
@@ -214,7 +214,7 @@ end = struct
       | Transient -> true)
     | _ -> None
 
-  let buildEnvAuto ~buildIsInProgress mode scope =
+  let buildEnvAuto ~buildIsInProgress ~dev scope =
     let installPath =
       if buildIsInProgress
       then stagePath scope
@@ -222,17 +222,10 @@ end = struct
     in
 
     let p v = SandboxValue.show (SandboxPath.toValue v) in
-    let dev =
-      match mode, scope.sourceType with
-      | (BuildSpec.BuildDev | BuildDevForce), Transient -> "true"
-      | BuildSpec.Build, Transient -> "false"
-      | _, Immutable
-      | _, ImmutableWithTransientDependencies -> "false"
-    in
     [
       "cur__name", (name scope);
       "cur__version", (Version.showSimple (version scope));
-      "cur__dev", dev;
+      "cur__dev", if dev then "true" else "false";
       "cur__root", (p (rootPath scope));
       "cur__original_root", (p (sourcePath scope));
       "cur__target_dir", (p (buildPath scope));
@@ -283,7 +276,8 @@ end
 type t = {
   platform : System.Platform.t;
   pkg : Package.t;
-  build : BuildSpec.build;
+  mode : BuildSpec.mode;
+  depspec : DepSpec.t;
 
   children : bool PackageId.Map.t;
 
@@ -301,7 +295,8 @@ let make
   ~id
   ~name
   ~version
-  ~build
+  ~mode
+  ~depspec
   ~sourceType
   ~sourcePath
   pkg
@@ -322,7 +317,8 @@ let make
     dependencies = [];
     directDependencies = StringMap.empty;
     self;
-    build;
+    mode;
+    depspec;
     pkg;
     finalEnv = (
       let defaultPath =
@@ -368,7 +364,8 @@ let add ~direct ~dep scope =
 let pkg scope = scope.pkg
 let id scope = PackageScope.id scope.self
 let name scope = PackageScope.name scope.self
-let build scope = scope.build
+let mode scope = scope.mode
+let depspec scope = scope.depspec
 let version scope = PackageScope.version scope.self
 let sourceType scope = PackageScope.sourceType scope.self
 let buildType scope = PackageScope.buildType scope.self
@@ -450,13 +447,19 @@ let makeEnvBindings ~buildIsInProgress ?origin bindings scope =
 
 let buildEnv ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.build.mode scope.self in
+  let bindings = PackageScope.buildEnv ~buildIsInProgress scope.mode scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 
 let buildEnvAuto ~buildIsInProgress scope =
   let open Run.Syntax in
-  let bindings = PackageScope.buildEnvAuto ~buildIsInProgress scope.build.mode scope.self in
+  let dev =
+    match scope.pkg.source with
+    | Link {kind = LinkDev; _} -> true
+    | Link {kind = LinkRegular; _}
+    | Install _ -> false
+  in
+  let bindings = PackageScope.buildEnvAuto ~buildIsInProgress ~dev scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in
   return env
 

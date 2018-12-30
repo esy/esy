@@ -125,8 +125,8 @@ module InstallManifestV1 = struct
 
     let source =
       match source with
-      | Source.Link {path; manifest;} ->
-        PackageSource.Link {path; manifest;}
+      | Source.Link {path; manifest; kind;} ->
+        PackageSource.Link {path; manifest; kind;}
       | Source.Dist dist ->
         PackageSource.Install {source = dist, []; opam = None;}
     in

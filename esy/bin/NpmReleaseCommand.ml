@@ -288,12 +288,9 @@ let envspec = {
 }
 let buildspec = {
   BuildSpec.
-  build = DepSpec.(dependencies self);
-  buildLink = Some DepSpec.(dependencies self);
-  buildRootForDev = Some DepSpec.(dependencies self);
-  buildRootForRelease = Some DepSpec.(dependencies self);
+  buildAll = DepSpec.(dependencies self);
+  buildDev = Some DepSpec.(dependencies self);
 }
-
 let cleanupLinksFromGlobalStore cfg tasks =
   let open RunAsync.Syntax in
   let f task =
@@ -327,7 +324,7 @@ let make
     BuildSandbox.makePlan
       ~forceImmutable:true
       buildspec
-      {all = Build; link = Build; root = Build;}
+      Build
       sandbox
   ) in
   let tasks = BuildSandbox.Plan.all plan in
@@ -433,7 +430,7 @@ let make
           ~forceImmutable:true
           envspec
           buildspec
-          {all = Build; link = Build; root = Build;}
+          Build
           sandbox
           root.Package.id
       ) in
