@@ -290,6 +290,21 @@ module WithWorkflow = struct
 
   type t = configured fetched solved project
 
+  let plan mode proj =
+    let open RunAsync.Syntax in
+    match mode with
+    | BuildSpec.Build ->
+      let%bind fetched = fetched proj in
+      Lwt.return (
+        BuildSandbox.makePlan
+          Workflow.default.buildspec
+          Build
+          fetched.sandbox
+      )
+    | BuildSpec.BuildDev | BuildDevForce ->
+      let%bind configured = configured proj in
+      return configured.planForDev
+
   let makeConfigured projcfg solution _installation sandbox _files =
     let open RunAsync.Syntax in
     let workflow = Workflow.default in

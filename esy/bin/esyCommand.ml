@@ -416,13 +416,13 @@ let status
       (Status.to_yojson status);
   return ()
 
-let buildPlan pkgspec (proj : Project.WithWorkflow.t) =
+let buildPlan mode pkgspec (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
-  let%bind configured = Project.configured proj in
+  let%bind plan = Project.WithWorkflow.plan mode proj in
 
   let f (pkg : Package.t) =
-    match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev pkg.id with
+    match BuildSandbox.Plan.get plan pkg.id with
     | Some task ->
       let json = BuildSandbox.Task.to_yojson task in
       let data = Yojson.Safe.pretty_to_string json in
@@ -432,7 +432,7 @@ let buildPlan pkgspec (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgspec f
 
-let buildShell pkgspec (proj : Project.WithWorkflow.t) =
+let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -450,7 +450,7 @@ let buildShell pkgspec (proj : Project.WithWorkflow.t) =
     let p =
       BuildSandbox.buildShell
         configured.Project.WithWorkflow.workflow.buildspec
-        BuildDev
+        mode
         fetched.Project.sandbox
         pkg.id
     in
@@ -523,7 +523,7 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       ()
   end
 
-let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
+let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -531,7 +531,7 @@ let buildEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.buildenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    BuildDev
+    mode
     asJson
     packagePath
     ()
@@ -696,11 +696,11 @@ let devShell (proj : Project.WithWorkflow.t) =
     (Cmd.v shell)
     ()
 
-let makeLsCommand ~computeTermNode ~includeTransitive (proj: Project.WithWorkflow.t) =
+let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
-  let%bind configured = Project.configured proj in
+  let%bind plan = Project.WithWorkflow.plan mode proj in
 
   let seen = ref PackageId.Set.empty in
   let root = Solution.root solved.Project.solution in
@@ -712,7 +712,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive (proj: Project.WithWorkflo
     else (
       let isRoot = Solution.isRoot pkg solved.Project.solution in
       seen := PackageId.Set.add id !seen;
-      match BuildSandbox.Plan.get configured.Project.WithWorkflow.planForDev id with
+      match BuildSandbox.Plan.get plan id with
       | None -> return None
       | Some task ->
         let%bind children =
@@ -752,7 +752,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let line = Printf.sprintf "%s%s %s" (Scope.name task.scope) version status in
   return line
 
-let lsBuilds includeTransitive (proj : Project.WithWorkflow.t) =
+let lsBuilds mode includeTransitive (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let computeTermNode task children =
@@ -760,9 +760,9 @@ let lsBuilds includeTransitive (proj : Project.WithWorkflow.t) =
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode proj
 
-let lsLibs includeTransitive (proj : Project.WithWorkflow.t) =
+let lsLibs mode includeTransitive (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
 
@@ -793,9 +793,9 @@ let lsLibs includeTransitive (proj : Project.WithWorkflow.t) =
 
     return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode proj
 
-let lsModules only (proj : Project.WithWorkflow.t) =
+let lsModules mode only (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -885,7 +885,7 @@ let lsModules only (proj : Project.WithWorkflow.t) =
 
       return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive:false proj
+  makeLsCommand ~computeTermNode ~includeTransitive:false mode proj
 
 let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
   let open EsySolve in
@@ -1414,6 +1414,7 @@ let makeCommands projectPath =
       ~docs:commonSection
       Term.(
         const buildShell
+        $ modeArg
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
@@ -1561,6 +1562,7 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsBuilds
+        $ modeArg
         $ Arg.(
             value
             & flag
@@ -1573,6 +1575,7 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsLibs
+        $ modeArg
         $ Arg.(
             value
             & flag
@@ -1585,6 +1588,7 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsModules
+        $ modeArg
         $ Arg.(
             value
             & (pos_all string [])
@@ -1610,6 +1614,7 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const buildPlan
+        $ modeArg
         $ Arg.(
             value
             & pos 0 PkgArg.conv PkgArg.root
@@ -1624,6 +1629,7 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const buildEnv
+        $ modeArg
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
         $ Arg.(
             value

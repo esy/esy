@@ -60,6 +60,8 @@ module WithWorkflow : sig
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
 
+  val plan : BuildSpec.mode -> t -> BuildSandbox.Plan.t RunAsync.t
+
   val ocaml : t -> Fpath.t RunAsync.t
   (** Built and installed ocaml package resolved in a project env. *)
 
