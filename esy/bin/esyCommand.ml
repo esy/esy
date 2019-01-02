@@ -22,13 +22,13 @@ let depspecConv =
   let open Result.Syntax in
   let parse v =
     let lexbuf = Lexing.from_string v in
-    try return (DepSpecParser.start DepSpecLexer.read lexbuf) with
-    | DepSpecLexer.Error msg ->
+    try return (EsyInstall.DepSpecParser.start EsyInstall.DepSpecLexer.read lexbuf) with
+    | EsyInstall.DepSpecLexer.Error msg ->
       let msg = Printf.sprintf "error parsing DEPSPEC: %s" msg in
       error (`Msg msg)
-    | DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
+    | EsyInstall.DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
   in
-  let pp = DepSpec.pp in
+  let pp = EsyInstall.DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
 let modeArg =

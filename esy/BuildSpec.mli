@@ -6,14 +6,14 @@ type t = {
   (**
     Define how we build packages.
     *)
-  buildAll : DepSpec.t;
+  buildAll : EsyInstall.DepSpec.t;
 
   (**
     Optionally define if we need to treat linked packages in a specific way.
 
     (this overrides buildLink and build)
     *)
-  buildDev : DepSpec.t option;
+  buildDev : EsyInstall.DepSpec.t option;
 }
 
 type mode =
@@ -31,4 +31,4 @@ val classify :
   -> mode
   -> EsyInstall.Package.t
   -> BuildManifest.t
-  -> mode * DepSpec.t * BuildManifest.commands
+  -> mode * EsyInstall.DepSpec.t * BuildManifest.commands

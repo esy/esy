@@ -8,8 +8,8 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
-let buildAll = DepSpec.(dependencies self)
-let buildDev = DepSpec.(dependencies self + devDependencies self)
+let buildAll = EsyInstall.DepSpec.(dependencies self)
+let buildDev = EsyInstall.DepSpec.(dependencies self + devDependencies self)
 
 let default =
 
@@ -37,7 +37,7 @@ let default =
     includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies, devDependencies and package itself. *)
-    augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
+    augmentDeps = Some EsyInstall.DepSpec.(package self + dependencies self + devDependencies self);
   } in
 
   (* This defines environment for "esy CMD" invocation. *)
@@ -49,7 +49,7 @@ let default =
     includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies and devDependencies. *)
-    augmentDeps = Some DepSpec.(dependencies self + devDependencies self);
+    augmentDeps = Some EsyInstall.DepSpec.(dependencies self + devDependencies self);
   } in
 
   (* This defines environment for "esy build CMD" invocation. *)

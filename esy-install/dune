@@ -27,3 +27,10 @@
                   ppx_sexp_conv
                   ))
   )
+
+(ocamllex (modules DepSpecLexer))
+
+(menhir
+  (flags "--explain")
+  (modules DepSpecParser)
+  )
