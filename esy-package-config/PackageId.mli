@@ -29,4 +29,6 @@ module Map : sig
 
   val to_yojson : 'a Json.encoder -> 'a t Json.encoder
   val of_yojson : 'a Json.decoder -> 'a t Json.decoder
+
+  val pp : 'v Fmt.t -> 'v t Fmt.t
 end
