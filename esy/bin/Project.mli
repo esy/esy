@@ -104,9 +104,8 @@ val execCommand :
   -> EnvSpec.t
   -> BuildSpec.t
   -> BuildSpec.mode
-  -> PkgArg.t
+  -> Package.t
   -> Cmd.t
-  -> unit
   -> unit RunAsync.t
 
 val printEnv :
