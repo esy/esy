@@ -27,12 +27,6 @@ val solved : 'a project -> 'a RunAsync.t
 val fetched : 'a solved project -> 'a RunAsync.t
 val configured : 'a fetched solved project -> 'a RunAsync.t
 
-module WithoutSolution : sig
-  type t = unit project
-  val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
-  val term : Fpath.t option -> t Cmdliner.Term.t
-end
-
 (**
  * Project without configured workflow.
  *
@@ -43,11 +37,6 @@ module WithoutWorkflow : sig
   type t = unit fetched solved project
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
-
-  val ofProjectWithoutSolution :
-    EsySolve.SolveSpec.t
-    -> unit project
-    -> unit fetched solved project Run.t Lwt.t
 
   val term : Fpath.t option -> t Cmdliner.Term.t
   val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
@@ -70,6 +59,8 @@ module WithWorkflow : sig
   }
 
   val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
+
+  val plan : BuildSpec.mode -> t -> BuildSandbox.Plan.t RunAsync.t
 
   val ocaml : t -> Fpath.t RunAsync.t
   (** Built and installed ocaml package resolved in a project env. *)
