@@ -937,7 +937,7 @@ let fetch (proj : _ Project.project) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
   match%bind SolutionLock.ofPath proj.projcfg.installSandbox lockPath with
-  | Some solution -> EsyInstall.Fetch.fetch proj.projcfg.installSandbox solution
+  | Some solution -> EsyInstall.Fetch.fetch Workflow.default.installspec proj.projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch (proj : Project.WithWorkflow.t) =
@@ -947,7 +947,7 @@ let solveAndFetch (proj : Project.WithWorkflow.t) =
   let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
   match%bind SolutionLock.ofPath ~digest proj.projcfg.installSandbox lockPath with
   | Some solution ->
-    if%bind EsyInstall.Fetch.isInstalled ~sandbox:proj.projcfg.installSandbox solution
+    if%bind EsyInstall.Fetch.isInstalled Workflow.default.installspec proj.projcfg.installSandbox solution
     then return ()
     else fetch proj
   | None ->
