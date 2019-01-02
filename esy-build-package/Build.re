@@ -574,14 +574,20 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       | Some(commands) => runCommands(commands)
       };
 
-    let%bind () = runBuild();
-    let%bind () =
-      if (!buildOnly) {
-        runInstall();
-      } else {
-        ok;
-      };
-    ok;
+    switch (runBuild()) {
+      | Ok() =>
+        if (!buildOnly) {
+          runInstall();
+        } else {
+          let%bind () = rm(build.installPath);
+          let%bind () = rm(build.stagePath);
+          ok;
+        }
+      | Error(msg) =>
+        let%bind () = rm(build.installPath);
+        let%bind () = rm(build.stagePath);
+        Error(msg)
+    };
   };
   withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);
 };
