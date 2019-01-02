@@ -607,58 +607,53 @@ let execCommand
     envspec
     buildspec
     mode
-    (pkgarg : PkgArg.t)
+    (pkg : Package.t)
     cmd
-    ()
   =
   let open RunAsync.Syntax in
 
   let%bind fetched = fetched proj in
 
-  let f (pkg : Package.t) =
-
-    let%bind () =
-      if checkIfDependenciesAreBuilt
-      then
-        let%bind plan = RunAsync.ofRun (
-          BuildSandbox.makePlan
-            buildspec
-            mode
-            fetched.sandbox
-        ) in
-        buildDependencies
-          ~buildLinked
-          ~buildDevDependencies
-          proj
-          plan
-          pkg
-      else return ()
-    in
-
-    let () =
-      Logs.info (fun m ->
-        m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
-        proj.projcfg.ProjectConfig.mainprg
-        TermPp.ppBuildSpec buildspec
-        TermPp.ppEnvSpec envspec
-        PackageId.pp pkg.Package.id
-        Cmd.pp cmd
-      )
-    in
-
-    let%bind status =
-      BuildSandbox.exec
-        envspec
-        buildspec
-        mode
-        fetched.sandbox
-        pkg.id
-        cmd
-    in
-    match status with
-    | Unix.WEXITED n
-    | Unix.WSTOPPED n
-    | Unix.WSIGNALED n -> exit n
+  let%bind () =
+    if checkIfDependenciesAreBuilt
+    then
+      let%bind plan = RunAsync.ofRun (
+        BuildSandbox.makePlan
+          buildspec
+          mode
+          fetched.sandbox
+      ) in
+      buildDependencies
+        ~buildLinked
+        ~buildDevDependencies
+        proj
+        plan
+        pkg
+    else return ()
   in
-  withPackage proj pkgarg f
+
+  let () =
+    Logs.info (fun m ->
+      m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
+      proj.projcfg.ProjectConfig.mainprg
+      TermPp.ppBuildSpec buildspec
+      TermPp.ppEnvSpec envspec
+      PackageId.pp pkg.Package.id
+      Cmd.pp cmd
+    )
+  in
+
+  let%bind status =
+    BuildSandbox.exec
+      envspec
+      buildspec
+      mode
+      fetched.sandbox
+      pkg.id
+      cmd
+  in
+  match status with
+  | Unix.WEXITED n
+  | Unix.WSTOPPED n
+  | Unix.WSIGNALED n -> exit n
 

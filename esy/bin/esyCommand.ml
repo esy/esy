@@ -224,6 +224,14 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
         mode
         fetched.Project.sandbox
     ) in
+    let%bind () =
+      Project.buildDependencies
+        ~buildLinked:true
+        ~buildDevDependencies:true
+        proj
+        plan
+        pkg
+    in
     Project.buildPackage
       ~quiet:true
       ~buildOnly:true
@@ -231,6 +239,32 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
       fetched.Project.sandbox
       plan
       pkg
+  in
+  Project.withPackage proj pkgspec f
+
+let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
+  let open RunAsync.Syntax in
+  let%bind configured = Project.configured proj in
+  let f (pkg : Package.t) =
+    let%bind plan = Project.WithWorkflow.plan mode proj in
+    let%bind () =
+      Project.buildDependencies
+        ~buildLinked:true
+        ~buildDevDependencies:true
+        proj
+        plan
+        pkg
+    in
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:false
+      ~buildLinked:false
+      ~buildDevDependencies:false
+      proj
+      configured.Project.WithWorkflow.workflow.buildenvspec
+      configured.workflow.buildspec
+      mode
+      pkg
+      cmd
   in
   Project.withPackage proj pkgspec f
 
@@ -264,17 +298,19 @@ let execCommand
     in
     {Workflow.default.buildspec with buildDev = Some deps;}
   in
-  Project.execCommand
-    ~checkIfDependenciesAreBuilt:false
-    ~buildDevDependencies:false
-    ~buildLinked:false
-    proj
-    envspec
-    buildspec
-    plan
-    pkgspec
-    cmd
-    ()
+  let f pkg =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:false
+      ~buildDevDependencies:false
+      ~buildLinked:false
+      proj
+      envspec
+      buildspec
+      plan
+      pkg
+      cmd
+  in
+  Project.withPackage proj pkgspec f
 
 let printEnv
   asJson
@@ -518,9 +554,8 @@ let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd
       (if release
       then Build
       else BuildDev)
-      PkgArg.root
+      configured.Project.WithWorkflow.root.pkg
       cmd
-      ()
   end
 
 let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
@@ -574,9 +609,8 @@ let exec release cmd (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
     (if release then Build else BuildDev)
-    PkgArg.root
+    configured.Project.WithWorkflow.root.pkg
     cmd
-    ()
 
 let runScript (proj : Project.WithWorkflow.t) script args () =
   let open RunAsync.Syntax in
@@ -673,9 +707,8 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
       configured.workflow.commandenvspec
       configured.workflow.buildspec
       BuildDev
-      PkgArg.root
+      configured.Project.WithWorkflow.root.pkg
       cmd
-      ()
 
 let devShell (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -692,9 +725,8 @@ let devShell (proj : Project.WithWorkflow.t) =
     configured.workflow.commandenvspec
     configured.workflow.buildspec
     BuildDev
-    PkgArg.root
+    configured.Project.WithWorkflow.root.pkg
     (Cmd.v shell)
-    ()
 
 let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -1420,6 +1452,24 @@ let makeCommands projectPath =
             & pos 0 PkgArg.conv PkgArg.root
             & info [] ~doc:"Package" ~docv:"PACKAGE"
           )
+      );
+
+    makeProjectWithWorkflowCommand
+      ~name:"build-exec"
+      ~doc:"Run a command in context of a specified package"
+      ~docs:commonSection
+      Term.(
+        const buildExec
+        $ modeArg
+        $ Arg.(
+            value
+            & pos 0 PkgArg.conv PkgArg.root
+            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
+          )
+        $ Cli.cmdTerm
+            ~doc:"Command to execute within the environment."
+            ~docv:"COMMAND"
+            (Cmdliner.Arg.pos_right 0)
       );
 
     makeProjectWithWorkflowCommand
