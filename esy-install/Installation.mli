@@ -19,3 +19,5 @@ val add : PackageId.t -> location -> t -> t
 
 val ofPath : Path.t -> t option RunAsync.t
 val toPath : Path.t -> t -> unit RunAsync.t
+
+val pp : t Fmt.t

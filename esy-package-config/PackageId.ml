@@ -80,6 +80,10 @@ module Map = struct
     let compare = compare
   end)
 
+  let pp ppValue fmt map =
+    let ppBinding fmt (k, v) = Fmt.pf fmt "%a = %a" pp k ppValue v in
+    Fmt.pf fmt "PackageId.Map { %a }" Fmt.(list ppBinding) (bindings map)
+
   let to_yojson v_to_yojson map =
     let items =
       let f id v items =

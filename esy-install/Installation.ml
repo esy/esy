@@ -13,6 +13,8 @@ type t =
   location PackageId.Map.t
   [@@deriving yojson]
 
+let pp = PackageId.Map.pp Path.pp
+
 let empty = PackageId.Map.empty
 let add = PackageId.Map.add
 
