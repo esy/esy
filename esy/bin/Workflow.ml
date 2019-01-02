@@ -2,6 +2,7 @@ open Esy
 
 type t = {
   solvespec : EsySolve.SolveSpec.t;
+  installspec : EsyInstall.InstallSpec.t;
   buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
@@ -17,6 +18,12 @@ let default =
     SolveSpec.
     solveDev = DepSpec.(dependencies self + devDependencies self);
     solveAll = DepSpec.(dependencies self);
+  } in
+
+  let installspec = EsyInstall.{
+    InstallSpec.
+    installDev = DepSpec.(dependencies self + devDependencies self);
+    installAll = DepSpec.(dependencies self);
   } in
 
   (* This defines how project is built. *)
@@ -64,4 +71,4 @@ let default =
     augmentDeps = None;
   } in
 
-  {solvespec; buildspec; execenvspec; commandenvspec; buildenvspec;}
+  {solvespec; installspec; buildspec; execenvspec; commandenvspec; buildenvspec;}

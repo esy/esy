@@ -35,3 +35,10 @@ let rec eval (manifest : InstallManifest.t) (spec : t) =
         "incompatible dependency formulas found at %a: %a and %a"
         InstallManifest.pp manifest pp a pp b
     end
+
+let rec toDepSpec (spec : t) =
+  match spec with
+  | Package Self -> EsyInstall.DepSpec.(package self)
+  | Dependencies Self -> EsyInstall.DepSpec.(dependencies self)
+  | DevDependencies Self -> EsyInstall.DepSpec.(devDependencies self)
+  | Union (a, b) -> EsyInstall.DepSpec.(toDepSpec a + toDepSpec b)

@@ -428,6 +428,7 @@ end = struct
     in
 
     let%bind () =
+      let%lwt () = Logs_lwt.debug (fun m -> m "unpacking %a" Package.pp pkg) in
       RunAsync.contextf
         (DistStorage.unpack fetched stagePath)
         "unpacking %a" Package.pp pkg
@@ -538,7 +539,7 @@ module LinkBin = struct
       RunAsync.return []
 end
 
-let collectPackagesOfSolution solution =
+let collectPackagesOfSolution installspec solution =
   let pkgs, root =
     let root = Solution.root solution in
 
@@ -552,15 +553,7 @@ let collectPackagesOfSolution solution =
         seen, topo
 
     and collectDependencies (seen, topo) pkg =
-      let isRoot = Package.compare root pkg = 0 in
-      let dependencies =
-        let traverse =
-          if isRoot
-          then Solution.traverseWithDevDependencies
-          else Solution.traverse
-        in
-        Solution.dependencies ~traverse pkg solution
-      in
+      let dependencies = InstallSpec.dependencies solution pkg installspec in
       List.fold_left ~f:collect ~init:(seen, topo) dependencies
     in
 
@@ -606,7 +599,7 @@ exec "%s" -r "%a" "$@"
     (* no node available in $PATH, just skip this then *)
     return ()
 
-let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
+let isInstalled installspec (sandbox : Sandbox.t) (solution : Solution.t) =
   let open RunAsync.Syntax in
   let installationPath = SandboxSpec.installationPath sandbox.spec in
   match%lwt Installation.ofPath installationPath with
@@ -638,16 +631,16 @@ let isInstalled ~(sandbox : Sandbox.t) (solution : Solution.t) =
         end
     in
 
-    let pkgs, _root = collectPackagesOfSolution solution in
+    let pkgs, _root = collectPackagesOfSolution installspec solution in
     if%bind checkSourcePaths pkgs
     then checkCachedTarballPaths pkgs
     else return false
 
-let fetchPackages sandbox solution =
+let fetchPackages installspec sandbox solution =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let pkgs, _root = collectPackagesOfSolution solution in
+  let pkgs, _root = collectPackagesOfSolution installspec solution in
 
   let report, finish = Cli.createProgressReporter ~name:"fetching" () in
   let%bind items =
@@ -668,14 +661,14 @@ let fetchPackages sandbox solution =
   in
   return fetched
 
-let fetch sandbox solution =
+let fetch installspec sandbox solution =
   let open RunAsync.Syntax in
 
   (* Collect packages which from the solution *)
-  let pkgs, root = collectPackagesOfSolution solution in
+  let pkgs, root = collectPackagesOfSolution installspec solution in
 
   (* Fetch all packages. *)
-  let%bind fetched = fetchPackages sandbox solution in
+  let%bind fetched = fetchPackages installspec sandbox solution in
 
   (* Produce _esy/<sandbox>/installation.json *)
   let%bind installation =
@@ -765,7 +758,7 @@ let fetch sandbox solution =
       let%bind dependencies =
         RunAsync.List.mapAndJoin
           ~f:(visit seen)
-          (Solution.dependencies pkg solution)
+          (InstallSpec.dependencies solution pkg installspec)
       in
       report "%a" PackageId.pp pkg.Package.id;%lwt
       install pkg (List.filterNone dependencies)
@@ -783,7 +776,7 @@ let fetch sandbox solution =
     let%bind rootDependencies =
       RunAsync.List.mapAndJoin
         ~f:(visit PackageId.Set.empty)
-        (Solution.dependencies ~traverse:Solution.traverseWithDevDependencies root solution)
+        (InstallSpec.dependencies solution root installspec)
     in
 
     let%bind () =
