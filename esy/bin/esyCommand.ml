@@ -170,8 +170,8 @@ let resolvedPathTerm =
 let buildDependencies
   all
   devDependencies
-  plan
-  linkDepspec
+  mode
+  devDepspec
   pkgspec
   (proj : Project.WithoutWorkflow.t) =
   let open RunAsync.Syntax in
@@ -179,7 +179,7 @@ let buildDependencies
   let f (pkg : Package.t) =
     let buildspec =
       let deps =
-        match linkDepspec with
+        match devDepspec with
         | Some depspec -> depspec
         | None -> Workflow.buildDev
       in
@@ -188,7 +188,7 @@ let buildDependencies
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         buildspec
-        plan
+        mode
         fetched.Project.sandbox
     ) in
     Project.buildDependencies
@@ -200,16 +200,16 @@ let buildDependencies
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage mode depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
+let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
 
   let buildspec =
     let deps =
-      match depspec with
+      match devDepspec with
       | Some depspec -> depspec
-      | None -> Workflow.buildAll
+      | None -> Workflow.buildDev
     in
     {
       Workflow.default.buildspec
@@ -241,7 +241,7 @@ let execCommand
   includeEsyIntrospectionEnv
   includeNpmBin
   plan
-  linkDepspec
+  devDepspec
   envspec
   pkgspec
   cmd
@@ -258,7 +258,7 @@ let execCommand
   } in
   let buildspec =
     let deps =
-      match linkDepspec with
+      match devDepspec with
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
@@ -283,7 +283,7 @@ let printEnv
   includeEsyIntrospectionEnv
   includeNpmBin
   plan
-  linkDepspec
+  devDepspec
   envspec
   pkgspec
   (proj : Project.WithoutWorkflow.t)
@@ -299,7 +299,7 @@ let printEnv
   } in
   let buildspec =
     let deps =
-      match linkDepspec with
+      match devDepspec with
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
@@ -1680,7 +1680,7 @@ let makeCommands projectPath =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["link-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
+            & info ["dev-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
         $ Arg.(
             value
@@ -1709,7 +1709,7 @@ let makeCommands projectPath =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["link-depspec"]
+            & info ["dev-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
@@ -1746,7 +1746,7 @@ let makeCommands projectPath =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["link-depspec"]
+            & info ["dev-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
@@ -1789,7 +1789,7 @@ let makeCommands projectPath =
         $ Arg.(
             value
             & opt (some depspecConv) None
-            & info ["link-depspec"]
+            & info ["dev-depspec"]
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
