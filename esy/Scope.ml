@@ -454,10 +454,11 @@ let buildEnv ~buildIsInProgress scope =
 let buildEnvAuto ~buildIsInProgress scope =
   let open Run.Syntax in
   let dev =
-    match scope.pkg.source with
-    | Link {kind = LinkDev; _} -> true
-    | Link {kind = LinkRegular; _}
-    | Install _ -> false
+    match scope.pkg.source, scope.mode with
+    | Link {kind = LinkDev; _}, BuildDev -> true
+    | Link {kind = LinkDev; _}, _ -> false
+    | Link {kind = LinkRegular; _}, _
+    | Install _, _ -> false
   in
   let bindings = PackageScope.buildEnvAuto ~buildIsInProgress ~dev scope.self in
   let%bind env = makeEnvBindings ~buildIsInProgress bindings scope in

@@ -3,8 +3,8 @@
 exports[`Build with optDependencies builds w/ opt dependency installed snapshot build-env 1`] = `
 "# Build environment
 # package:            root@link-dev:./package.json
-# depspec:            dependencies(self)
-# mode:               build
+# depspec:            dependencies(self)+devDependencies(self)
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true
@@ -111,8 +111,8 @@ export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 exports[`Build with optDependencies builds w/o opt dependency installed snapshot build-env 1`] = `
 "# Build environment
 # package:            root@link-dev:./package.json
-# depspec:            dependencies(self)
-# mode:               build
+# depspec:            dependencies(self)+devDependencies(self)
+# mode:               buildDev
 # envspec:            
 # buildIsInProgress:  true
 # includeBuildEnv:    true

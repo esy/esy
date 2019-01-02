@@ -89,13 +89,24 @@ describe(`'esy build-dependencies' command`, () => {
     });
   });
 
-  it(`does not build devDependencies by default`, async () => {
+  it(`builds devDependencies by default`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
+    await expect(p.run('devDep.cmd', env)).resolves.toMatchObject({
+      stdout: '__devDep__' + os.EOL,
+      stderr: '',
+    });
+  });
+
+  it(`doesn't build devDependencies with --release`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build-dependencies --release');
+    const env = await getCommandEnv(p);
     await expect(p.run('devDep.cmd', env)).rejects.toMatchObject({
-      code: 127,
+      code: 127
     });
   });
 
