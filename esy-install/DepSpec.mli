@@ -1,40 +1,37 @@
-(** Dependency specification language *)
+open EsyPackageConfig
 
-module type DEPSPEC = sig
-  type id
+type id
+(** Package id. *)
 
-  type t =
-    private
-    | Package of id
-    | Dependencies of id
-    | DevDependencies of id
-    | Union of t * t
-  (* term *)
+val root : id
+val self : id
 
-  val package : id -> t
-  (* refer to a package defined by source *)
+type t
+(** Dependency expression, *)
 
-  val dependencies : id -> t
-  (* refer to dependencies defined by source *)
+val package : id -> t
+(** [package id] refers to a package by its [id]. *)
 
-  val devDependencies : id -> t
-  (* refer to devDependencies defined by source *)
+val dependencies : id -> t
+(** [dependencies id] refers all dependencies of the package with [id]. *)
 
-  val union : t -> t -> t
-  (** [union a b] produces a new term with all packages defined by [a] and * [b] *)
+val devDependencies : id -> t
+(** [dependencies id] refers all devDependencies of the package with [id]. *)
 
-  val (+) : t -> t -> t
-  (** [a + b] is the same as [union a b] *)
+val (+) : t -> t -> t
+(** [a + b] refers to all packages in [a] and in [b]. *)
 
-  val compare : t -> t -> int
-  val pp : Format.formatter -> t -> unit
-end
+val eval : Solution.t -> PackageId.t -> t -> PackageId.Set.t
+(**
+ * [eval solution self depspec] evals [depspec] given the [solution] and the
+ * current package id [self].
+ *)
 
-module type ID = sig
-  type t
+val collect : Solution.t -> t -> PackageId.t -> PackageId.Set.t
+(**
+ * [collect solution depspec id] collects all package ids found in the
+ * [solution] starting with [id] using [depspec] expression for traverse.
+ *)
 
-  val compare : t -> t -> int
-  val pp : Format.formatter -> t -> unit
-end
-
-module Make (Id : ID) : DEPSPEC with type id = Id.t
+val compare : t -> t -> int
+val pp : t Fmt.t

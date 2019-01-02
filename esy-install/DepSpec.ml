@@ -1,61 +1,49 @@
-module type DEPSPEC = sig
-  type id
+open EsyPackageConfig
 
+module Id = struct
   type t =
-    private
-    | Package of id
-    | Dependencies of id
-    | DevDependencies of id
-    | Union of t * t
-  (* term *)
-
-  val package : id -> t
-  (* refer to a package defined by source *)
-
-  val dependencies : id -> t
-  (* refer to dependencies defined by source *)
-
-  val devDependencies : id -> t
-  (* refer to devDependencies defined by source *)
-
-  val union : t -> t -> t
-  (** [union a b] produces a new term with all packages defined by [a] and * [b] *)
-
-  val (+) : t -> t -> t
-  (** [a + b] is the same as [union a b] *)
-
-  val compare : t -> t -> int
-  val pp : Format.formatter -> t -> unit
-end
-
-module type ID = sig
-  type t
-
-  val compare : t -> t -> int
-  val pp : Format.formatter -> t -> unit
-end
-
-module Make (Id : ID) : DEPSPEC with type id = Id.t = struct
-  type id = Id.t
-  type t =
-    | Package of Id.t
-    | Dependencies of Id.t
-    | DevDependencies of Id.t
-    | Union of t * t
+    | Self
+    | Root
     [@@deriving ord]
 
-  let package src = Package src
-  let dependencies src = Dependencies src
-  let devDependencies src = DevDependencies src
-
-  let union a b = Union (a, b)
-
-  let (+) = union
-
-  let rec pp fmt spec =
-    match spec with
-    | Package id -> Fmt.pf fmt "%a" Id.pp id
-    | Dependencies id -> Fmt.pf fmt "dependencies(%a)" Id.pp id
-    | DevDependencies id -> Fmt.pf fmt "devDependencies(%a)" Id.pp id
-    | Union (a, b) -> Fmt.pf fmt "%a+%a" pp a pp b
+  let pp fmt = function
+    | Self -> Fmt.unit "self" fmt ()
+    | Root -> Fmt.unit "root" fmt ()
 end
+
+include DepSpecAst.Make(Id)
+
+let root = Id.Root
+let self = Id.Self
+
+let resolve solution self id =
+  match id with
+  | Id.Root -> (Solution.root solution).id
+  | Id.Self -> self
+
+let eval solution self depspec =
+  let resolve id = resolve solution self id in
+  let rec eval' expr =
+    match expr with
+    | Package id -> PackageId.Set.singleton (resolve id)
+    | Dependencies id ->
+      let pkg = Solution.getExn (resolve id) solution in
+      pkg.dependencies
+    | DevDependencies id ->
+      let pkg = Solution.getExn (resolve id) solution in
+      pkg.devDependencies
+    | Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
+  in
+  eval' depspec
+
+let rec collect' solution depspec seen id =
+  if PackageId.Set.mem id seen
+  then seen
+  else
+    let f nextid seen = collect' solution depspec seen nextid in
+    let seen = PackageId.Set.add id seen in
+    let seen = PackageId.Set.fold f (eval solution id depspec) seen in
+    seen
+
+let collect solution depspec root =
+  collect' solution depspec PackageId.Set.empty root

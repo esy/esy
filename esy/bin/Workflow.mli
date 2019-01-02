@@ -8,7 +8,7 @@ type t = {
   buildenvspec : EnvSpec.t;
 }
 
-val buildAll : DepSpec.t
-val buildDev : DepSpec.t
+val buildAll : EsyInstall.DepSpec.t
+val buildDev : EsyInstall.DepSpec.t
 
 val default : t

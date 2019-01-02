@@ -10,7 +10,7 @@ module Id = struct
     | Self -> Fmt.unit "self" fmt ()
 end
 
-include EsyInstall.DepSpec.Make(Id)
+include EsyInstall.DepSpecAst.Make(Id)
 
 let self = Id.Self
 
