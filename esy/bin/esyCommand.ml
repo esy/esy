@@ -47,26 +47,6 @@ let modeArg =
       )
   )
 
-let solvespecArg =
-  let make includeLinkDevDependencies =
-    if includeLinkDevDependencies
-    then EsySolve.{
-      Workflow.default.solvespec with
-      SolveSpec.
-      solveDev = DepSpec.(dependencies self + devDependencies self);
-    }
-    else Workflow.default.solvespec
-  in
-  Cmdliner.Term.(
-    const make
-    $ Cmdliner.Arg.(
-        value
-        & flag
-        & info ["include-link-devDependencies"]
-          ~doc:"Include devDependencies of linked packages"
-      )
-  )
-
 module Findlib = struct
   type meta = {
     package : string;
@@ -190,13 +170,11 @@ let resolvedPathTerm =
 let buildDependencies
   all
   devDependencies
-  solvespec
   plan
   linkDepspec
   pkgspec
-  (proj : Project.WithoutSolution.t) =
+  (proj : Project.WithoutWorkflow.t) =
   let open RunAsync.Syntax in
-  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let%bind fetched = Project.fetched proj in
   let f (pkg : Package.t) =
     let buildspec =
@@ -222,10 +200,9 @@ let buildDependencies
   in
   Project.withPackage proj pkgspec f
 
-let buildPackage solvespec mode depspec pkgspec (proj : Project.WithoutSolution.t)  =
+let buildPackage mode depspec pkgspec (proj : Project.WithoutWorkflow.t)  =
   let open RunAsync.Syntax in
 
-  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let%bind fetched = Project.fetched proj in
 
   let buildspec =
@@ -263,16 +240,13 @@ let execCommand
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
-  solvespec
   plan
   linkDepspec
   envspec
   pkgspec
   cmd
-  (proj : Project.WithoutSolution.t)
+  (proj : Project.WithoutWorkflow.t)
   =
-  let open RunAsync.Syntax in
-  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let envspec = {
     EnvSpec.
     buildIsInProgress;
@@ -308,15 +282,12 @@ let printEnv
   includeCurrentEnv
   includeEsyIntrospectionEnv
   includeNpmBin
-  solvespec
   plan
   linkDepspec
   envspec
   pkgspec
-  (proj : Project.WithoutSolution.t)
+  (proj : Project.WithoutWorkflow.t)
   =
-  let open RunAsync.Syntax in
-  let%bind proj = Project.WithoutWorkflow.ofProjectWithoutSolution solvespec proj in
   let envspec = {
     EnvSpec.
     buildIsInProgress = false;
@@ -947,16 +918,16 @@ let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
   in
   return solution
 
-let solve force solvespec (proj : _ Project.project) =
+let solve force (proj : _ Project.project) =
   let open RunAsync.Syntax in
   let run () =
-    let%bind _ : Solution.t = getSandboxSolution solvespec proj.projcfg in
+    let%bind _ : Solution.t = getSandboxSolution Workflow.default.solvespec proj.projcfg in
     return ()
   in
   if force
   then run ()
   else
-    let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
+    let%bind digest = EsySolve.Sandbox.digest Workflow.default.solvespec proj.projcfg.solveSandbox in
     let path = SandboxSpec.solutionLockPath proj.projcfg.solveSandbox.spec in
     match%bind EsyInstall.SolutionLock.ofPath ~digest proj.projcfg.installSandbox path with
     | Some _ -> return ()
@@ -980,7 +951,7 @@ let solveAndFetch (proj : Project.WithWorkflow.t) =
     then return ()
     else fetch proj
   | None ->
-    let%bind () = solve false solvespec proj in
+    let%bind () = solve false proj in
     let%bind () = fetch proj in
     return ()
 
@@ -1322,7 +1293,6 @@ let makeCommands projectPath =
 
   let projectConfig = ProjectConfig.term projectPath in
   let projectWithWorkflow = Project.WithWorkflow.term projectPath in
-  let projectWithoutSolution = Project.WithoutSolution.term projectPath in
   let project = Project.WithoutWorkflow.term projectPath in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
@@ -1365,7 +1335,7 @@ let makeCommands projectPath =
         in
         cmd project
       in
-      Cmdliner.Term.(pure run $ cmd $ projectWithoutSolution)
+      Cmdliner.Term.(pure run $ cmd $ project)
     in
     makeCommand ~header:`No ?docs ?doc ~name cmd
   in
@@ -1700,7 +1670,6 @@ let makeCommands projectPath =
       ~docs:lowLevelSection
       Term.(
         const buildPackage
-        $ solvespecArg
         $ modeArg
         $ Arg.(
             value
@@ -1730,7 +1699,6 @@ let makeCommands projectPath =
             & flag
             & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
-        $ solvespecArg
         $ modeArg
         $ Arg.(
             value
@@ -1768,7 +1736,6 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ solvespecArg
         $ modeArg
         $ Arg.(
             value
@@ -1812,7 +1779,6 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ solvespecArg
         $ modeArg
         $ Arg.(
             value
@@ -1847,7 +1813,6 @@ let makeCommands projectPath =
             & info ["force"]
               ~doc:"Do not check if solution exist, run solver and produce new one"
           )
-        $ solvespecArg
       );
 
     makeProjectWithoutWorkflowCommand
