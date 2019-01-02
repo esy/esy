@@ -308,7 +308,7 @@ let makeScope
     let pkg = Solution.getExn id sandbox.solution in
     let location = Installation.findExn id sandbox.installation in
 
-    let mode, depspec, _commands =
+    let mode, depspec, buildCommands =
       BuildSpec.classify buildspec mode pkg buildManifest
     in
 
@@ -457,9 +457,9 @@ let makeScope
         ~platform:sandbox.platform
         ~arch:sandbox.arch
         ~build:buildManifest
-        ~sourceType
         ~mode
         ~dependencies
+        ~buildCommands
         ()
     in
 

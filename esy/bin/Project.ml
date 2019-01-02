@@ -231,7 +231,7 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
         else (
           let check = Installation.mem pkg.Package.id installation in
           if not check
-          then Logs.debug (fun m -> m "missing from installation %a" Package.pp pkg);
+          then Logs.debug (fun m -> m "missing from installation %a" PackageId.pp pkg.Package.id);
           check
         )
       in
@@ -301,7 +301,7 @@ module WithWorkflow = struct
           Build
           fetched.sandbox
       )
-    | BuildSpec.BuildDev | BuildDevForce ->
+    | BuildSpec.BuildDev ->
       let%bind configured = configured proj in
       return configured.planForDev
 

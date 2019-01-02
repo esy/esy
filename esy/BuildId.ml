@@ -94,12 +94,12 @@ module Repr = struct
   let make
     ~packageId
     ~build
-    ~sourceType
     ~platform
     ~arch
     ~sandboxEnv
     ~mode
     ~dependencies
+    ~buildCommands
     ()
     =
 
@@ -112,22 +112,14 @@ module Repr = struct
         name;
         version;
         buildType;
-        build;
-        buildDev;
+        build = _;
+        buildDev = _;
         install;
         patches;
         substs;
         exportedEnv;
         buildEnv
       } = build in
-      let buildCommands =
-        match (mode : BuildSpec.mode), sourceType, buildDev with
-        | Build, _, _
-        | (BuildDev | BuildDevForce), (SourceType.ImmutableWithTransientDependencies | Immutable), _
-        | (BuildDev | BuildDevForce), Transient, None -> build
-        | (BuildDev | BuildDevForce), SourceType.Transient, Some commands ->
-          BuildManifest.EsyCommands commands
-      in
       {
         name;
         version;
@@ -211,23 +203,23 @@ type t = string
 let make
   ~packageId
   ~build
-  ~sourceType
   ~mode
   ~platform
   ~arch
   ~sandboxEnv
   ~dependencies
+  ~buildCommands
   ()
   =
   let repr = Repr.make
     ~packageId
     ~build
-    ~sourceType
     ~mode
     ~platform
     ~arch
     ~sandboxEnv
     ~dependencies
+  ~buildCommands
     ()
   in
   Repr.toString repr, repr

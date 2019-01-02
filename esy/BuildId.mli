@@ -10,12 +10,12 @@ type t
 val make :
   packageId:PackageId.t
   -> build:BuildManifest.t
-  -> sourceType:SourceType.t
   -> mode:BuildSpec.mode
   -> platform:System.Platform.t
   -> arch:System.Arch.t
   -> sandboxEnv:BuildEnv.t
   -> dependencies:t list
+  -> buildCommands:BuildManifest.commands
   -> unit
   -> t * Repr.t
 

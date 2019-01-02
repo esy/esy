@@ -128,6 +128,48 @@ describe(`Project with "devDependencies"`, () => {
     const {stdout} = await p.esy('build-env --json');
     const env = JSON.parse(stdout);
     expect(env).toMatchObject({
+      cur__dev: 'true',
+      cur__version: '1.0.0',
+      cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,
+      cur__target_dir: `${p.projectPath}/_esy/default/store/b/${id}`,
+      cur__stublibs: `${p.projectPath}/_esy/default/store/i/${id}/stublibs`,
+      cur__share: `${p.projectPath}/_esy/default/store/i/${id}/share`,
+      cur__sbin: `${p.projectPath}/_esy/default/store/i/${id}/sbin`,
+      cur__root: `${p.projectPath}`,
+      cur__original_root: `${p.projectPath}`,
+      cur__name: `withDevDep`,
+      cur__man: `${p.projectPath}/_esy/default/store/i/${id}/man`,
+      cur__lib: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
+      cur__install: `${p.projectPath}/_esy/default/store/i/${id}`,
+      cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
+      cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
+      cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
+      PATH: [
+        `${p.esyStorePath}/i/${depId}/bin`,
+        `${p.esyStorePath}/i/${devdepId}/bin`,
+        `${p.esyStorePath}/i/${depofdevdepId}/bin`,
+        ``,
+        `/usr/local/bin`,
+        `/usr/bin`,
+        `/bin`,
+        `/usr/sbin`,
+        `/sbin`,
+      ].join(path.delimiter),
+      OCAMLFIND_LDCONF: `ignore`,
+      OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
+      DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
+    });
+  });
+
+  test('build-env --release', async function() {
+    const p = await createTestSandbox();
+    const id = JSON.parse((await p.esy('build-plan --release')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan --release dep')).stdout).id;
+
+    const {stdout} = await p.esy('build-env --json --release');
+    const env = JSON.parse(stdout);
+    expect(env).toMatchObject({
+      cur__dev: 'false',
       cur__version: '1.0.0',
       cur__toplevel: `${p.projectPath}/_esy/default/store/i/${id}/toplevel`,
       cur__target_dir: `${p.projectPath}/_esy/default/store/b/${id}`,
