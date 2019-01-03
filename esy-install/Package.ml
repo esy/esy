@@ -18,6 +18,8 @@ let pp fmt pkg =
 
 let show = Format.asprintf "%a" pp
 
+let id pkg = pkg.id
+
 let opam pkg =
   let open RunAsync.Syntax in
   match pkg.source with

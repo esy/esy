@@ -82,7 +82,7 @@ module PackageInformation = struct
         let package = Solution.getExn solution id in
         let packageDependencies =
           let dependencies =
-            Solution.dependencies
+            Solution.dependenciesBySpec
               solution
               Solution.Spec.everything
               package

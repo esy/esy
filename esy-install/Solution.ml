@@ -38,14 +38,6 @@ end
 let traverse pkg =
   PackageId.Set.elements pkg.Package.dependencies
 
-let traverseWithDevDependencies pkg =
-  let dependencies =
-    PackageId.Set.union
-      pkg.Package.dependencies
-      pkg.Package.devDependencies
-  in
-  PackageId.Set.elements dependencies
-
 module Graph = Graph.Make(struct
   include Package
   let traverse = traverse
@@ -74,7 +66,7 @@ let resolve solution self id =
   | DepSpec.Id.Root -> (Graph.root solution).id
   | DepSpec.Id.Self -> self
 
-let eval solution self depspec =
+let eval solution depspec self =
   let resolve id = resolve solution self id in
   let rec eval' expr =
     match expr with
@@ -95,15 +87,20 @@ let rec collect' solution depspec seen id =
   else
     let f nextid seen = collect' solution depspec seen nextid in
     let seen = PackageId.Set.add id seen in
-    let seen = PackageId.Set.fold f (eval solution id depspec) seen in
+    let seen = PackageId.Set.fold f (eval solution depspec id) seen in
     seen
 
 let collect solution depspec root =
   collect' solution depspec PackageId.Set.empty root
 
-let dependencies solution spec self =
+let dependenciesBySpec solution spec self =
   let depspec = Spec.depspec spec self in
-  let ids = eval solution self.id depspec in
+  let ids = eval solution depspec self.id in
+  let ids = PackageId.Set.elements ids in
+  List.map ~f:(getExn solution) ids
+
+let dependenciesByDepSpec solution depspec self =
+  let ids = eval solution depspec self.Package.id in
   let ids = PackageId.Set.elements ids in
   List.map ~f:(getExn solution) ids
 

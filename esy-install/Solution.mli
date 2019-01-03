@@ -60,7 +60,10 @@ val nodes : t -> pkg list
 
 val root : t -> pkg
 val isRoot : t -> pkg -> bool
-val dependencies : t -> Spec.t -> pkg -> pkg list
+
+val dependenciesBySpec : t -> Spec.t -> pkg -> pkg list
+val dependenciesByDepSpec : t -> DepSpec.t -> pkg -> pkg list
+
 val get : t -> id -> pkg option
 val getExn : t -> id -> pkg
 val findBy : t -> (id -> pkg -> bool) -> (id * pkg) option
@@ -77,9 +80,8 @@ val findByName : string -> t -> pkg option
 val findByNameVersion : string -> Version.t -> t -> pkg option
 
 val traverse : pkg -> id list
-val traverseWithDevDependencies : pkg -> id list
 
-val eval : t -> PackageId.t -> DepSpec.t -> PackageId.Set.t
+val eval : t -> DepSpec.t -> PackageId.t -> PackageId.Set.t
 (**
  * [eval solution self depspec] evals [depspec] given the [solution] and the
  * current package id [self].
