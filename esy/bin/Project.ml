@@ -458,40 +458,33 @@ let withPackage proj (pkgArg : PkgArg.t) f =
 
 let buildDependencies
   ~buildLinked
-  ~buildDevDependencies
   (proj : _ fetched solved project)
   plan
   pkg
   =
   let open RunAsync.Syntax in
   let%bind fetched = fetched proj in
+  let%bind solved = solved proj in
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a%a@]"
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
       TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       TermPp.(ppFlag "--all") buildLinked
-      TermPp.(ppFlag "--devDependencies") buildDevDependencies
       PackageId.pp pkg.Package.id
     )
   in
   match BuildSandbox.Plan.get plan pkg.id with
   | None -> RunAsync.return ()
   | Some task ->
-    let dependencies = task.dependencies in
-    let dependencies =
-      if buildDevDependencies
-      then
-        dependencies
-        @ PackageId.Set.elements pkg.devDependencies
-      else dependencies
-    in
+    let depspec = Scope.depspec task.scope in
+    let dependencies = Solution.dependenciesByDepSpec solved.solution depspec task.pkg in
     BuildSandbox.build
       ~concurrency:EsyRuntime.concurrency
       ~buildLinked
       fetched.sandbox
       plan
-      dependencies
+      (List.map ~f:(fun pkg -> pkg.Package.id) dependencies)
 
 let buildPackage
   ~quiet
@@ -599,7 +592,6 @@ let printEnv
 let execCommand
     ~checkIfDependenciesAreBuilt
     ~buildLinked
-    ~buildDevDependencies
     (proj : _ project)
     envspec
     buildspec
@@ -622,7 +614,6 @@ let execCommand
       ) in
       buildDependencies
         ~buildLinked
-        ~buildDevDependencies
         proj
         plan
         pkg

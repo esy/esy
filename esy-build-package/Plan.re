@@ -20,6 +20,7 @@ type t = {
   installPath: Config.Value.t,
   env: Env.t,
   jbuilderHackEnabled: bool,
+  depspec: string,
 };
 
 let ofFile = (path: Path.t) => {

@@ -118,7 +118,6 @@ module Task = struct
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
-    dependencies : PackageId.t list;
   }
 
   let plan ?env (t : t) =
@@ -135,6 +134,11 @@ module Task = struct
       | Unsafe, _ -> false
     in
     let env = Option.orDefault ~default:t.env env in
+    let depspec =
+      Format.asprintf "%a"
+        EsyInstall.Solution.DepSpec.pp
+        (Scope.depspec t.scope)
+    in
     {
       EsyBuildPackage.Plan.
       id = BuildId.show (Scope.id t.scope);
@@ -151,6 +155,7 @@ module Task = struct
       installPath = Scope.SandboxPath.toValue installPath;
       jbuilderHackEnabled;
       env;
+      depspec;
     }
 
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
@@ -308,18 +313,18 @@ let makeScope
     let pkg = Solution.getExn sandbox.solution id in
     let location = Installation.findExn id sandbox.installation in
 
-    let mode, depspec, buildCommands =
-      BuildSpec.classify buildspec mode pkg buildManifest
-    in
+    let mode = BuildSpec.mode mode pkg in
+    let depspec = BuildSpec.depspec buildspec mode pkg in
+    let buildCommands = BuildSpec.buildCommands mode pkg buildManifest in
 
     let matchedForBuild =
-      EsyInstall.Solution.eval sandbox.solution pkg.Package.id depspec
+      EsyInstall.Solution.eval sandbox.solution depspec pkg.Package.id
     in
 
     let matchedForScope =
       match envspec with
       | None -> matchedForBuild
-      | Some envspec -> EsyInstall.Solution.eval sandbox.solution pkg.Package.id envspec
+      | Some envspec -> EsyInstall.Solution.eval sandbox.solution envspec pkg.Package.id
     in
 
     let annotateWithReason pkgid =
@@ -576,7 +581,7 @@ let makePlan
   let makeTask pkg =
     match%bind makeScope ~cache ~forceImmutable buildspec mode sandbox pkg.id with
     | None -> return None
-    | Some (scope, build, idrepr, dependencies) ->
+    | Some (scope, build, idrepr, _dependencies) ->
 
       let%bind env =
         let%bind bindings = Scope.env ~buildIsInProgress:true ~includeBuildEnv:true scope in
@@ -589,9 +594,8 @@ let makePlan
 
       let%bind buildCommands =
 
-        let _, _, commands =
-          BuildSpec.classify
-            buildspec
+        let commands =
+          BuildSpec.buildCommands
             mode
             pkg
             build
@@ -637,7 +641,6 @@ let makePlan
         build = buildCommands;
         install = installCommands;
         env;
-        dependencies;
       } in
 
       return (Some task)
@@ -659,12 +662,11 @@ let makePlan
           in
           let tasks = PackageId.Map.add id task tasks in
           let ids =
-            let deps =
-              if PackageId.compare id root.id = 0
-              then PackageId.Set.union pkg.Package.dependencies pkg.Package.devDependencies
-              else pkg.Package.dependencies
+            let dependencies =
+              let depspec = BuildSpec.depspec buildspec mode pkg in
+              Solution.dependenciesByDepSpec sandbox.solution depspec pkg
             in
-            PackageId.Set.elements deps @ ids
+            (List.map ~f:Package.id dependencies) @ ids
           in
           visit tasks ids
         end
@@ -1071,8 +1073,8 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
         match Plan.get plan id with
         | Some task ->
           let dependencies =
-            List.map ~f:(fun id -> Solution.getExn sandbox.solution id)
-            task.dependencies
+            let depspec = Scope.depspec task.scope in
+            Solution.dependenciesByDepSpec sandbox.solution depspec task.pkg
           in
           let%bind changes = processMany dependencies in
           begin match buildLinked, task.Task.pkg.source with

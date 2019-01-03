@@ -17,9 +17,6 @@ val show_mode : mode -> string
 val mode_to_yojson : mode Json.encoder
 val mode_of_yojson : mode Json.decoder
 
-val classify :
-  t
-  -> mode
-  -> EsyInstall.Package.t
-  -> BuildManifest.t
-  -> mode * EsyInstall.Solution.DepSpec.t * BuildManifest.commands
+val mode : mode -> EsyInstall.Package.t -> mode
+val depspec : t -> mode -> EsyInstall.Package.t -> EsyInstall.Solution.DepSpec.t
+val buildCommands : mode -> EsyInstall.Package.t -> BuildManifest.t -> BuildManifest.commands

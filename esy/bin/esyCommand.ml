@@ -175,7 +175,6 @@ let resolvedPathTerm =
 
 let buildDependencies
   all
-  devDependencies
   mode
   devDepspec
   pkgspec
@@ -199,7 +198,6 @@ let buildDependencies
     ) in
     Project.buildDependencies
       ~buildLinked:all
-      ~buildDevDependencies:devDependencies
       proj
       plan
       pkg
@@ -233,7 +231,6 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         plan
         pkg
@@ -256,7 +253,6 @@ let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         plan
         pkg
@@ -264,7 +260,6 @@ let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
       ~buildLinked:false
-      ~buildDevDependencies:false
       proj
       configured.Project.WithWorkflow.workflow.buildenvspec
       configured.workflow.buildspec
@@ -307,7 +302,6 @@ let execCommand
   let f pkg =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
-      ~buildDevDependencies:false
       ~buildLinked:false
       proj
       envspec
@@ -484,7 +478,6 @@ let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:false
         proj
         configured.Project.WithWorkflow.planForDev
         pkg
@@ -517,7 +510,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       let%bind () =
         Project.buildDependencies
           ~buildLinked:true
-          ~buildDevDependencies:true
           proj
           plan
           pkg
@@ -533,7 +525,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       let%bind () =
         Project.buildDependencies
           ~buildLinked:true
-          ~buildDevDependencies:true
           proj
           plan
           pkg
@@ -541,7 +532,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       Project.execCommand
         ~checkIfDependenciesAreBuilt:false
         ~buildLinked:false
-        ~buildDevDependencies:false
         proj
         configured.Project.WithWorkflow.workflow.buildenvspec
         configured.Project.WithWorkflow.workflow.buildspec
@@ -598,7 +588,6 @@ let exec mode cmd (proj : Project.WithWorkflow.t) =
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
-    ~buildDevDependencies:false
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
@@ -696,7 +685,6 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
-      ~buildDevDependencies:true
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
@@ -714,7 +702,6 @@ let devShell (proj : Project.WithWorkflow.t) =
   Project.execCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~buildDevDependencies:true
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
@@ -747,7 +734,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
           else
             let dependencies =
               let spec = BuildSandbox.Plan.spec plan in
-              Solution.dependencies solved.solution spec pkg
+              Solution.dependenciesBySpec solved.solution spec pkg
             in
             dependencies
             |> List.map ~f:draw
@@ -1695,11 +1682,6 @@ let makeCommands projectPath =
             value
             & flag
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
-          )
-        $ Arg.(
-            value
-            & flag
-            & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
         $ modeArg
         $ Arg.(

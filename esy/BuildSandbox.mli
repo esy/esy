@@ -52,7 +52,6 @@ module Task : sig
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
-    dependencies : PackageId.t list;
   }
 
   val installPath : Config.t -> t -> Path.t

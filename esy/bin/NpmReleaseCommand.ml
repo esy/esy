@@ -605,7 +605,6 @@ let run (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         configured.Project.WithWorkflow.planForDev
         configured.Project.WithWorkflow.root.pkg

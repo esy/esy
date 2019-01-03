@@ -15,6 +15,7 @@ type t = {
   installPath: Config.Value.t,
   env: EsyLib.Environment.Make(Config.Value).t,
   jbuilderHackEnabled: bool,
+  depspec: string,
 };
 
 include EsyLib.S.COMPARABLE with type t := t;
