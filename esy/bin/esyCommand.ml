@@ -504,65 +504,53 @@ let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgspec f
 
-let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd () =
+let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
+  let%bind plan = Project.WithWorkflow.plan mode proj in
 
-  let%bind plan =
-    RunAsync.ofRun (
-      let open Run.Syntax in
-      if release
-      then
-        BuildSandbox.makePlan
-          Workflow.default.buildspec
-          Build
-          fetched.Project.sandbox
-      else
-        return configured.Project.WithWorkflow.planForDev
-    )
+  let f pkg =
+    begin match cmd with
+    | None ->
+      let%bind () =
+        Project.buildDependencies
+          ~buildLinked:true
+          ~buildDevDependencies:true
+          proj
+          plan
+          pkg
+      in
+      Project.buildPackage
+        ~quiet:true
+        ~buildOnly
+        proj.projcfg
+        fetched.Project.sandbox
+        plan
+        pkg
+    | Some cmd ->
+      let%bind () =
+        Project.buildDependencies
+          ~buildLinked:true
+          ~buildDevDependencies:true
+          proj
+          plan
+          pkg
+      in
+      Project.execCommand
+        ~checkIfDependenciesAreBuilt:false
+        ~buildLinked:false
+        ~buildDevDependencies:false
+        proj
+        configured.Project.WithWorkflow.workflow.buildenvspec
+        configured.Project.WithWorkflow.workflow.buildspec
+        mode
+        pkg
+        cmd
+    end
   in
-
-  begin match cmd with
-  | None ->
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        ~buildDevDependencies:true
-        proj
-        plan
-        configured.Project.WithWorkflow.root.pkg
-    in
-    Project.buildPackage
-      ~quiet:true
-      ~buildOnly
-      proj.projcfg
-      fetched.Project.sandbox
-      plan
-      configured.Project.WithWorkflow.root.pkg
-  | Some cmd ->
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        ~buildDevDependencies:true
-        proj
-        plan
-        configured.Project.WithWorkflow.root.pkg
-    in
-    Project.execCommand
-      ~checkIfDependenciesAreBuilt:false
-      ~buildLinked:false
-      ~buildDevDependencies:false
-      proj
-      configured.workflow.buildenvspec
-      configured.workflow.buildspec
-      (if release
-      then Build
-      else BuildDev)
-      configured.Project.WithWorkflow.root.pkg
-      cmd
-  end
+  Project.withPackage proj pkgspec f
 
 let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -603,10 +591,10 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     packagePath
     ()
 
-let exec release cmd (proj : Project.WithWorkflow.t) =
+let exec mode cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let%bind () = build ~release ~buildOnly:false proj None () in
+  let%bind () = build ~buildOnly:false mode PkgArg.root None proj in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
@@ -614,7 +602,7 @@ let exec release cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    (if release then Build else BuildDev)
+    mode
     configured.Project.WithWorkflow.root.pkg
     cmd
 
@@ -1268,14 +1256,14 @@ let default cmd (proj : Project.WithWorkflow.t) =
   match fetched, cmd with
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
-    build proj None ()
+    build BuildDev PkgArg.root None proj
   | Ok _, Some cmd ->
     devExec proj cmd ()
   | Error _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-    build proj None ()
+    build BuildDev PkgArg.root None proj
   | Error _ as err, Some _ ->
     Lwt.return err
 
@@ -1385,13 +1373,13 @@ let makeCommands projectPath =
 
     let buildCommand =
 
-      let run release cmd proj =
+      let run mode pkgspec cmd proj =
         let () =
           match cmd with
           | None -> Lwt_main.run (printHeader ~spec:proj.Project.projcfg.spec "esy build")
           | Some _ -> ()
         in
-        build ~buildOnly:true ~release proj cmd ()
+        build ~buildOnly:true mode pkgspec cmd proj
       in
 
       makeProjectWithWorkflowCommand
@@ -1402,11 +1390,8 @@ let makeCommands projectPath =
         ~stop_on_pos:true
         Term.(
           const run
-          $ Arg.(
-              value
-              & flag
-              & info ["release"] ~doc:"Build in release mode"
-            )
+          $ modeArg
+          $ pkgArg
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
@@ -1474,11 +1459,7 @@ let makeCommands projectPath =
       ~stop_on_pos:true
       Term.(
         const exec
-        $ Arg.(
-            value
-            & flag
-            & info ["release"] ~doc:"Build in release mode"
-          )
+        $ modeArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
