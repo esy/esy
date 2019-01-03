@@ -33,10 +33,7 @@ module TermPp = struct
       (ppFlag "--include-build-env") includeBuildEnv
 
   let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.dev with
-    | None -> Fmt.string fmt ""
-    | Some deps ->
-      Fmt.pf fmt "%a" (ppOption "--dev-depspec" Solution.DepSpec.pp) (Some deps)
+    Fmt.pf fmt "%a" (ppOption "--dev-depspec" Solution.DepSpec.pp) (Some buildspec.BuildSpec.dev)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =

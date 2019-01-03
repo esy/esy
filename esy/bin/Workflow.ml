@@ -22,7 +22,7 @@ let default =
 
   let installspec = EsyInstall.{
     Solution.Spec.
-    dev = Some Solution.DepSpec.(dependencies self + devDependencies self);
+    dev = Solution.DepSpec.(dependencies self + devDependencies self);
     all = Solution.DepSpec.(dependencies self);
   } in
 
@@ -32,7 +32,7 @@ let default =
     (* build all other packages using "build" command with dependencies in the env *)
     all = buildAll;
     (* build linked packages using "build" command with dependencies in the env *)
-    dev = Some buildDev;
+    dev = buildDev;
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)

@@ -4,7 +4,7 @@ open EsyPackageConfig
 
 type t = EsyInstall.Solution.Spec.t = {
   all : EsyInstall.Solution.DepSpec.t;
-  dev : EsyInstall.Solution.DepSpec.t option;
+  dev : EsyInstall.Solution.DepSpec.t;
 }
 
 type mode =

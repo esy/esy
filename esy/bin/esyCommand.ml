@@ -189,7 +189,7 @@ let buildDependencies
         | Some depspec -> depspec
         | None -> Workflow.buildDev
       in
-      {Workflow.default.buildspec with dev = Some deps}
+      {Workflow.default.buildspec with dev = deps}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -219,7 +219,7 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     in
     {
       Workflow.default.buildspec
-      with dev = Some deps;
+      with dev = deps;
     }
   in
 
@@ -302,7 +302,7 @@ let execCommand
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with dev = Some deps;}
+    {Workflow.default.buildspec with dev = deps;}
   in
   let f pkg =
     Project.execCommand
@@ -345,7 +345,7 @@ let printEnv
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with dev = Some deps;}
+    {Workflow.default.buildspec with dev = deps;}
   in
   Project.printEnv
     proj

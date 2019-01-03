@@ -40,11 +40,9 @@ module Spec : sig
     all: DepSpec.t;
 
     (**
-      Optionally define if we need to traverse packages "in-dev" in a specific way.
-
-      (this overrides all if [Some])
+      Define how we traverse packages "in-dev".
       *)
-    dev : DepSpec.t option;
+    dev : DepSpec.t;
   }
 
   val everything : t

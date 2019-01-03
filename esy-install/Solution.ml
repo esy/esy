@@ -21,19 +21,18 @@ end
 module Spec = struct
   type t = {
     all: DepSpec.t;
-    dev : DepSpec.t option;
+    dev : DepSpec.t;
   }
 
   let depspec spec pkg =
     match pkg.Package.source with
-    | PackageSource.Link { kind = LinkDev; _ } ->
-      Option.orDefault ~default:spec.all spec.dev
+    | PackageSource.Link { kind = LinkDev; _ } -> spec.dev
     | PackageSource.Link { kind = LinkRegular; _ }
     | PackageSource.Install _ -> spec.all
 
   let everything =
     let all = DepSpec.(dependencies self + devDependencies self) in
-    {all = all; dev = Some all;}
+    {all = all; dev = all;}
 end
 
 let traverse pkg =
