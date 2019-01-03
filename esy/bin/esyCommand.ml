@@ -1283,6 +1283,7 @@ let makeCommand
   ?(header=`Standard)
   ?docs
   ?doc
+  ?(stop_on_pos=false)
   ~name
   cmd =
   let info =
@@ -1290,6 +1291,7 @@ let makeCommand
       ~exits:Cmdliner.Term.default_exits
       ?docs
       ?doc
+      ~stop_on_pos
       ~version:EsyRuntime.version
       name
   in
@@ -1307,7 +1309,7 @@ let makeCommand
 
   cmd, info
 
-let makeAlias ?(docs=aliasesSection) command alias =
+let makeAlias ?(docs=aliasesSection) ?(stop_on_pos=false) command alias =
   let term, info = command in
   let name = Cmdliner.Term.name info in
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
@@ -1317,6 +1319,7 @@ let makeAlias ?(docs=aliasesSection) command alias =
       ~version:EsyRuntime.version
       ~doc
       ~docs
+      ~stop_on_pos
   in
   term, info
 
@@ -1327,7 +1330,7 @@ let makeCommands projectPath =
   let projectWithWorkflow = Project.WithWorkflow.term projectPath in
   let project = Project.WithoutWorkflow.term projectPath in
 
-  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
       let run cmd project =
         let () =
@@ -1339,10 +1342,10 @@ let makeCommands projectPath =
       in
       Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow)
     in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
+    makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
-  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
       let run cmd project =
         let () =
@@ -1354,7 +1357,7 @@ let makeCommands projectPath =
       in
       Cmdliner.Term.(pure run $ cmd $ project)
     in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
+    makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
   let makeProjectWithoutSolutionCommand ?(header=`Standard) ?docs ?doc ~name cmd =
@@ -1383,6 +1386,7 @@ let makeCommands projectPath =
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
+      ~stop_on_pos:true
       Term.(const default $ cmdTerm)
   in
 
@@ -1404,6 +1408,7 @@ let makeCommands projectPath =
         ~name:"build"
         ~doc:"Build the entire sandbox"
         ~docs:commonSection
+        ~stop_on_pos:true
         Term.(
           const run
           $ Arg.(
@@ -1483,6 +1488,7 @@ let makeCommands projectPath =
       ~name:"x"
       ~doc:"Execute command as if the package is installed"
       ~docs:commonSection
+      ~stop_on_pos:true
       Term.(
         const exec
         $ Arg.(
@@ -1545,7 +1551,7 @@ let makeCommands projectPath =
 
     (* ALIASES *)
 
-    makeAlias buildCommand "b";
+    makeAlias buildCommand ~stop_on_pos:true "b";
     makeAlias installCommand "i";
 
     (* OTHER COMMANDS *)
@@ -1896,7 +1902,7 @@ let () =
 
   let () = checkSymlinks () in
 
-  let argv, commandName, rootPackagePath =
+  let argv, rootPackagePath =
     let argv = Array.to_list Sys.argv in
 
     let rootPackagePath, argv =
@@ -1908,82 +1914,9 @@ let () =
       | _ -> None, argv
     in
 
-    let commandName, argv =
-      match argv with
-      | [] -> None, argv
-      | _prg::elem::_rest when String.get elem 0 = '-' -> None, argv
-      | _prg::elem::_rest -> Some elem, argv
-      | _ -> None, argv
-    in
-
-    Array.of_list argv, commandName, rootPackagePath
+    Array.of_list argv, rootPackagePath
   in
 
   let defaultCommand, commands = makeCommands rootPackagePath in
 
-  let hasCommand name =
-    List.exists
-      ~f:(fun (_cmd, info) -> Cmdliner.Term.name info = name)
-      commands
-  in
-
-  let runCmdliner argv =
-    Cmdliner.Term.(exit @@ eval_choice ~argv defaultCommand commands);
-  in
-
-  match commandName with
-
-  (*
-   * Fixup invocations for commands which pass their arguments through to other
-   * executables.
-   *
-   * TODO: currently this is implemented in a way which prevents common options
-   * (like --sandbox-path or --prefix-path) from working for these commands.
-   * This should be fixed.
-   *)
-  | Some "x" ->
-    let argv =
-      match Array.to_list argv with
-      | (_prg::_command::"--help"::[]) as argv -> argv
-      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
-      | prg::command::rest -> prg::command::"--"::rest
-      | argv -> argv
-    in
-    let argv = Array.of_list argv in
-    runCmdliner argv
-
-  | Some "b"
-  | Some "build" ->
-    let argv =
-      match Array.to_list argv with
-      | (_prg::_command::"--help"::[]) as argv -> argv
-      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
-      | prg::command::rest -> prg::command::"--"::rest
-      | argv -> argv
-    in
-    let argv = Array.of_list argv in
-    runCmdliner argv
-
-  | Some "" ->
-    runCmdliner argv
-
-  (*
-   * Fix
-   *
-   *   esy <anycommand>
-   *
-   * for cmdliner by injecting "--" so that users are not requied to do that.
-   *)
-  | Some commandName ->
-    if hasCommand commandName
-    then runCmdliner argv
-    else
-      let argv =
-        match Array.to_list argv with
-        | prg::rest -> prg::"--"::rest
-        | argv -> argv
-      in
-      let argv = Array.of_list argv in
-      runCmdliner argv
-
-  | _ -> runCmdliner argv
+  Cmdliner.Term.(exit @@ eval_choice ~main_on_err:true ~argv defaultCommand commands);
