@@ -1,9 +1,9 @@
 open EsyPackageConfig
 module Package = EsyInstall.Package
 
-type t = {
-  buildAll : EsyInstall.DepSpec.t;
-  buildDev : EsyInstall.DepSpec.t option;
+type t = EsyInstall.Solution.Spec.t = {
+  all : EsyInstall.Solution.DepSpec.t;
+  dev : EsyInstall.Solution.DepSpec.t;
 }
 
 type mode =
@@ -26,17 +26,28 @@ let mode_of_yojson = function
   | `String "buildDev" -> Ok BuildDev
   | _json -> Result.errorf {|invalid BuildSpec.mode: expected "build" or "buildDev"|}
 
-let classify spec mode pkg (build : BuildManifest.t) =
+let mode mode pkg =
+  match pkg.Package.source, mode with
+  | Link {kind = LinkDev; _}, BuildDev -> BuildDev
+  | Link {kind = LinkDev; _}, Build
+  | Link {kind = LinkRegular; _}, _
+  | Install _, _ -> Build
+
+let depspec spec mode pkg =
+  match pkg.Package.source, mode with
+  | Link {kind = LinkDev; _}, BuildDev -> spec.dev
+  | Link {kind = LinkDev; _}, Build
+  | Link {kind = LinkRegular; _}, _
+  | Install _, _ -> spec.all
+
+let buildCommands mode pkg (build : BuildManifest.t) =
   match pkg.Package.source, mode with
   | Link {kind = LinkDev; _}, BuildDev ->
-    let depspec = Option.orDefault ~default:spec.buildAll spec.buildDev in
-    let commands =
-      match build.buildDev with
-      | Some buildDev -> BuildManifest.EsyCommands buildDev
-      | None -> build.build
-    in
-    BuildDev, depspec, commands
+    begin match build.buildDev with
+    | Some buildDev -> BuildManifest.EsyCommands buildDev
+    | None -> build.build
+    end
   | Link {kind = LinkDev; _}, Build
   | Link {kind = LinkRegular; _}, _
   | Install _, _ ->
-    Build, spec.buildAll, build.build
+    build.build

@@ -11,7 +11,7 @@
 %}
 
 %start start
-%type <DepSpec.t> start
+%type <Solution.DepSpec.t> start
 
 %%
 
@@ -26,30 +26,30 @@ expr:
 id:
   id = ID; {
     match id with
-    | "root" -> DepSpec.root
-    | "self" -> DepSpec.self
+    | "root" -> Solution.DepSpec.root
+    | "self" -> Solution.DepSpec.self
     | _ -> $syntaxerror
   }
 
 package:
   id = ID; {
     match id with
-    | "root" -> DepSpec.(package root)
-    | "self" -> DepSpec.(package self)
+    | "root" -> Solution.DepSpec.(package root)
+    | "self" -> Solution.DepSpec.(package self)
     | _ -> $syntaxerror
   }
 
 select:
   select = ID; LPAREN; id = id; RPAREN {
     match select with
-    | "dependencies" -> DepSpec.dependencies id
-    | "devDependencies" -> DepSpec.devDependencies id
+    | "dependencies" -> Solution.DepSpec.dependencies id
+    | "devDependencies" -> Solution.DepSpec.devDependencies id
     | _ -> $syntaxerror
   }
 
 union:
   a = expr; PLUS; b = expr {
-    DepSpec.(a + b)
+    Solution.DepSpec.(a + b)
   }
 
 %%

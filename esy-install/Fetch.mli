@@ -7,7 +7,7 @@
 open EsyPackageConfig
 
 val fetch :
-  InstallSpec.t
+  Solution.Spec.t
   -> Sandbox.t
   -> Solution.t
   -> unit RunAsync.t
@@ -17,7 +17,7 @@ val fetch :
  *)
 
 val isInstalled :
-  InstallSpec.t
+  Solution.Spec.t
   -> Sandbox.t
   -> Solution.t
   -> bool RunAsync.t

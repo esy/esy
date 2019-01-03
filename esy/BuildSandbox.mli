@@ -52,7 +52,6 @@ module Task : sig
     env : Scope.SandboxEnvironment.t;
     build : Scope.SandboxValue.t list list;
     install : Scope.SandboxValue.t list list option;
-    dependencies : PackageId.t list;
   }
 
   val installPath : Config.t -> t -> Path.t
@@ -66,7 +65,7 @@ module Plan : sig
   type t
   (** A collection of tasks. *)
 
-  val buildspec : t -> BuildSpec.t
+  val spec : t -> EsyInstall.Solution.Spec.t
 
   val get : t -> PackageId.t -> Task.t option
   val getByName : t -> string -> Task.t option

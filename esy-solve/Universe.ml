@@ -214,7 +214,7 @@ module CudfMapping = struct
 
 end
 
-let toCudf ?(installed=InstallManifest.Set.empty) univ =
+let toCudf ?(installed=InstallManifest.Set.empty) solvespec univ =
   let cudfUniv = Cudf.empty_universe () in
   let cudfVersionMap = CudfVersionMap.make () in
 
@@ -301,7 +301,12 @@ let toCudf ?(installed=InstallManifest.Set.empty) univ =
         cudfVersionMap
     in
 
-    let depends = encodeDeps pkg.dependencies in
+    let dependencies =
+      match SolveSpec.eval solvespec pkg with
+      | Error err -> Exn.failf "CUDF encoding error: %a" Run.ppError err
+      | Ok dependencies -> dependencies
+    in
+    let depends = encodeDeps dependencies in
     let staleness = pkgSize - cudfVersion in
     let cudfName = CudfName.encode pkg.name in
     let cudfPkg = {

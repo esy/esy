@@ -38,7 +38,7 @@ let rec eval (manifest : InstallManifest.t) (spec : t) =
 
 let rec toDepSpec (spec : t) =
   match spec with
-  | Package Self -> EsyInstall.DepSpec.(package self)
-  | Dependencies Self -> EsyInstall.DepSpec.(dependencies self)
-  | DevDependencies Self -> EsyInstall.DepSpec.(devDependencies self)
-  | Union (a, b) -> EsyInstall.DepSpec.(toDepSpec a + toDepSpec b)
+  | Package Self -> EsyInstall.Solution.DepSpec.(package self)
+  | Dependencies Self -> EsyInstall.Solution.DepSpec.(dependencies self)
+  | DevDependencies Self -> EsyInstall.Solution.DepSpec.(devDependencies self)
+  | Union (a, b) -> EsyInstall.Solution.DepSpec.(toDepSpec a + toDepSpec b)

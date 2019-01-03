@@ -79,23 +79,13 @@ module PackageInformation = struct
             let packageDependencies = StringMap.(empty |> add (PackageId.name id) version) in
             String version, pnpPath loc, packageDependencies
         in
-        let package =
-          match Solution.get id solution with
-          | Some pkg -> pkg
-          | None -> assert false
-        in
+        let package = Solution.getExn solution id in
         let packageDependencies =
           let dependencies =
-            if PackageId.compare package.Package.id rootId = 0
-            then
-              Solution.dependencies
-                ~traverse:Solution.traverseWithDevDependencies
-                package
-                solution
-            else
-              Solution.dependencies
-                package
-                solution
+            Solution.dependenciesBySpec
+              solution
+              Solution.Spec.everything
+              package
           in
           let f map pkg =
             let id = pkg.Package.id in

@@ -527,7 +527,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
   } in
 
   let universe = Universe.add ~pkg:dummyRoot solver.universe in
-  let cudfUniverse, cudfMapping = Universe.toCudf ~installed universe in
+  let cudfUniverse, cudfMapping = Universe.toCudf ~installed solver.solvespec universe in
   let cudfRoot = Universe.CudfMapping.encodePkgExn dummyRoot cudfMapping in
 
   let request = {
@@ -960,8 +960,8 @@ let solve solvespec (sandbox : Sandbox.t) =
           allDependenciesByName
       in
       return (
-        EsyInstall.Solution.empty root.EsyInstall.Package.id
-        |> EsyInstall.Solution.add root
+        let solution = EsyInstall.Solution.empty root.EsyInstall.Package.id in
+        EsyInstall.Solution.add solution root
       )
     in
 
@@ -976,7 +976,7 @@ let solve solvespec (sandbox : Sandbox.t) =
             dependencies
             allDependenciesByName
         in
-        return (EsyInstall.Solution.add pkg solution)
+        return (EsyInstall.Solution.add solution pkg)
       in
       dependenciesById
       |> PackageId.Map.bindings

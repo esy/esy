@@ -121,14 +121,4 @@ describe(`'esy build-dependencies' command`, () => {
     });
   });
 
-  it(`builds devDependencies if --devDependencies is passed`, async () => {
-    const p = await createTestSandbox();
-    await p.esy('install');
-    await p.esy('build-dependencies --devDependencies');
-    const env = await getCommandEnv(p);
-    await expect(p.run('devDep.cmd', env)).resolves.toEqual({
-      stdout: '__devDep__' + os.EOL,
-      stderr: '',
-    });
-  });
 });

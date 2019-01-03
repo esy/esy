@@ -203,7 +203,7 @@ let solutionOfLock sandbox root node =
   let f _id node solution =
     let%bind solution = solution in
     let%bind pkg = readPackage sandbox node in
-    return (Solution.add pkg solution)
+    return (Solution.add solution pkg)
   in
   PackageId.Map.fold f node (return (Solution.empty root))
 

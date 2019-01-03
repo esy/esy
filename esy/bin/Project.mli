@@ -81,7 +81,6 @@ val withPackage :
 
 val buildDependencies :
   buildLinked:bool
-  -> buildDevDependencies:bool
   -> _ fetched solved project
   -> BuildSandbox.Plan.t
   -> Package.t
@@ -99,7 +98,6 @@ val buildPackage :
 val execCommand :
   checkIfDependenciesAreBuilt:bool
   -> buildLinked:bool
-  -> buildDevDependencies:bool
   -> _ fetched solved project
   -> EnvSpec.t
   -> BuildSpec.t

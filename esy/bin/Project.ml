@@ -25,7 +25,7 @@ module TermPp = struct
     } = envspec in
     Fmt.pf fmt
       "%a%a%a%a%a%a"
-      (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
+      (ppOption "--envspec" (Fmt.quote ~mark:"'" Solution.DepSpec.pp)) augmentDeps
       (ppFlag "--build-context") buildIsInProgress
       (ppFlag "--include-current-env") includeCurrentEnv
       (ppFlag "--include-npm-bin") includeNpmBin
@@ -33,10 +33,7 @@ module TermPp = struct
       (ppFlag "--include-build-env") includeBuildEnv
 
   let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.buildDev with
-    | None -> Fmt.string fmt ""
-    | Some deps ->
-      Fmt.pf fmt "%a" (ppOption "--link-depspec" DepSpec.pp) (Some deps)
+    Fmt.pf fmt "%a" (ppOption "--dev-depspec" Solution.DepSpec.pp) (Some buildspec.BuildSpec.dev)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
@@ -450,7 +447,7 @@ let withPackage proj (pkgArg : PkgArg.t) f =
     | ByPkgSpec ByNameVersion (name, version) ->
       Solution.findByNameVersion name version solution
     | ByPkgSpec ById id ->
-      Solution.get id solution
+      Solution.get solution id
     | ByPath path ->
       let root = proj.projcfg.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
@@ -461,40 +458,33 @@ let withPackage proj (pkgArg : PkgArg.t) f =
 
 let buildDependencies
   ~buildLinked
-  ~buildDevDependencies
   (proj : _ fetched solved project)
   plan
   pkg
   =
   let open RunAsync.Syntax in
   let%bind fetched = fetched proj in
+  let%bind solved = solved proj in
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a%a@]"
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       TermPp.(ppFlag "--all") buildLinked
-      TermPp.(ppFlag "--devDependencies") buildDevDependencies
       PackageId.pp pkg.Package.id
     )
   in
   match BuildSandbox.Plan.get plan pkg.id with
   | None -> RunAsync.return ()
   | Some task ->
-    let dependencies = task.dependencies in
-    let dependencies =
-      if buildDevDependencies
-      then
-        dependencies
-        @ PackageId.Set.elements pkg.devDependencies
-      else dependencies
-    in
+    let depspec = Scope.depspec task.scope in
+    let dependencies = Solution.dependenciesByDepSpec solved.solution depspec task.pkg in
     BuildSandbox.build
       ~concurrency:EsyRuntime.concurrency
       ~buildLinked
       fetched.sandbox
       plan
-      dependencies
+      (List.map ~f:(fun pkg -> pkg.Package.id) dependencies)
 
 let buildPackage
   ~quiet
@@ -508,7 +498,7 @@ let buildPackage
     Logs.info (fun m ->
       m "running:@[<v>@;%s build-package \\@;%a%a@]"
       projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       PackageId.pp pkg.Package.id
     )
   in
@@ -580,9 +570,9 @@ let printEnv
 |}
             name
             Package.pp pkg
-            DepSpec.pp depspec
+            Solution.DepSpec.pp depspec
             BuildSpec.pp_mode mode
-            (Fmt.option DepSpec.pp)
+            (Fmt.option Solution.DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress
             envspec.includeBuildEnv
@@ -602,7 +592,6 @@ let printEnv
 let execCommand
     ~checkIfDependenciesAreBuilt
     ~buildLinked
-    ~buildDevDependencies
     (proj : _ project)
     envspec
     buildspec
@@ -625,7 +614,6 @@ let execCommand
       ) in
       buildDependencies
         ~buildLinked
-        ~buildDevDependencies
         proj
         plan
         pkg

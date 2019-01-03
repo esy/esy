@@ -553,7 +553,7 @@ let collectPackagesOfSolution installspec solution =
         seen, topo
 
     and collectDependencies (seen, topo) pkg =
-      let dependencies = InstallSpec.dependencies solution pkg installspec in
+      let dependencies = Solution.dependenciesBySpec solution installspec pkg in
       List.fold_left ~f:collect ~init:(seen, topo) dependencies
     in
 
@@ -758,7 +758,7 @@ let fetch installspec sandbox solution =
       let%bind dependencies =
         RunAsync.List.mapAndJoin
           ~f:(visit seen)
-          (InstallSpec.dependencies solution pkg installspec)
+          (Solution.dependenciesBySpec solution installspec pkg)
       in
       report "%a" PackageId.pp pkg.Package.id;%lwt
       install pkg (List.filterNone dependencies)
@@ -776,7 +776,7 @@ let fetch installspec sandbox solution =
     let%bind rootDependencies =
       RunAsync.List.mapAndJoin
         ~f:(visit PackageId.Set.empty)
-        (InstallSpec.dependencies solution root installspec)
+        (Solution.dependenciesBySpec solution installspec root)
     in
 
     let%bind () =

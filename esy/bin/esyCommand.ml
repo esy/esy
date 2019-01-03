@@ -34,7 +34,7 @@ let depspecConv =
       error (`Msg msg)
     | EsyInstall.DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
   in
-  let pp = EsyInstall.DepSpec.pp in
+  let pp = EsyInstall.Solution.DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
 let modeArg =
@@ -175,7 +175,6 @@ let resolvedPathTerm =
 
 let buildDependencies
   all
-  devDependencies
   mode
   devDepspec
   pkgspec
@@ -189,7 +188,7 @@ let buildDependencies
         | Some depspec -> depspec
         | None -> Workflow.buildDev
       in
-      {Workflow.default.buildspec with buildDev = Some deps}
+      {Workflow.default.buildspec with dev = deps}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -199,7 +198,6 @@ let buildDependencies
     ) in
     Project.buildDependencies
       ~buildLinked:all
-      ~buildDevDependencies:devDependencies
       proj
       plan
       pkg
@@ -219,7 +217,7 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     in
     {
       Workflow.default.buildspec
-      with buildDev = Some deps;
+      with dev = deps;
     }
   in
 
@@ -233,7 +231,6 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         plan
         pkg
@@ -256,7 +253,6 @@ let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         plan
         pkg
@@ -264,7 +260,6 @@ let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
       ~buildLinked:false
-      ~buildDevDependencies:false
       proj
       configured.Project.WithWorkflow.workflow.buildenvspec
       configured.workflow.buildspec
@@ -302,12 +297,11 @@ let execCommand
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildDev = Some deps;}
+    {Workflow.default.buildspec with dev = deps;}
   in
   let f pkg =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
-      ~buildDevDependencies:false
       ~buildLinked:false
       proj
       envspec
@@ -345,7 +339,7 @@ let printEnv
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildDev = Some deps;}
+    {Workflow.default.buildspec with dev = deps;}
   in
   Project.printEnv
     proj
@@ -484,7 +478,6 @@ let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:false
         proj
         configured.Project.WithWorkflow.planForDev
         pkg
@@ -517,7 +510,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       let%bind () =
         Project.buildDependencies
           ~buildLinked:true
-          ~buildDevDependencies:true
           proj
           plan
           pkg
@@ -533,7 +525,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       let%bind () =
         Project.buildDependencies
           ~buildLinked:true
-          ~buildDevDependencies:true
           proj
           plan
           pkg
@@ -541,7 +532,6 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
       Project.execCommand
         ~checkIfDependenciesAreBuilt:false
         ~buildLinked:false
-        ~buildDevDependencies:false
         proj
         configured.Project.WithWorkflow.workflow.buildenvspec
         configured.Project.WithWorkflow.workflow.buildspec
@@ -598,7 +588,6 @@ let exec mode cmd (proj : Project.WithWorkflow.t) =
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
-    ~buildDevDependencies:false
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
@@ -696,7 +685,6 @@ let devExec (proj : Project.WithWorkflow.t) cmd () =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
-      ~buildDevDependencies:true
       proj
       configured.workflow.commandenvspec
       configured.workflow.buildspec
@@ -714,7 +702,6 @@ let devShell (proj : Project.WithWorkflow.t) =
   Project.execCommand
     ~checkIfDependenciesAreBuilt:true
     ~buildLinked:false
-    ~buildDevDependencies:true
     proj
     configured.workflow.commandenvspec
     configured.workflow.buildspec
@@ -736,7 +723,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
     if PackageId.Set.mem id !seen then
       return None
     else (
-      let isRoot = Solution.isRoot pkg solved.Project.solution in
+      let isRoot = Solution.isRoot solved.Project.solution pkg in
       seen := PackageId.Set.add id !seen;
       match BuildSandbox.Plan.get plan id with
       | None -> return None
@@ -746,12 +733,8 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
             return []
           else
             let dependencies =
-              let traverse =
-                if isRoot
-                then Solution.traverseWithDevDependencies
-                else Solution.traverse
-              in
-              Solution.dependencies ~traverse pkg solved.solution
+              let spec = BuildSandbox.Plan.spec plan in
+              Solution.dependenciesBySpec solved.solution spec pkg
             in
             dependencies
             |> List.map ~f:draw
@@ -1126,7 +1109,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) =
   RunAsync.List.mapAndWait
     ~concurrency:8
     ~f:exportBuild
-    (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.solution)
+    (Solution.allDependenciesBFS solved.Project.solution (Solution.root solved.Project.solution).id)
 
 let importBuild fromPath buildPaths (projcfg : ProjectConfig.t) =
   let open RunAsync.Syntax in
@@ -1184,7 +1167,7 @@ let importDependencies fromPath (proj : Project.WithWorkflow.t) =
   RunAsync.List.mapAndWait
     ~concurrency:16
     ~f:importBuild
-    (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
+    (Solution.allDependenciesBFS solved.Project.solution (Solution.root solved.Project.solution).id)
 
 let show _asJson req (projcfg : ProjectConfig.t) =
   let open EsySolve in
@@ -1699,11 +1682,6 @@ let makeCommands projectPath =
             value
             & flag
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
-          )
-        $ Arg.(
-            value
-            & flag
-            & info ["devDependencies"] ~doc:"Build devDependencies too"
           )
         $ modeArg
         $ Arg.(

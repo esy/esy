@@ -1,5 +1,5 @@
 type t = {
-  augmentDeps : EsyInstall.DepSpec.t option;
+  augmentDeps : EsyInstall.Solution.DepSpec.t option;
   buildIsInProgress : bool;
   includeCurrentEnv : bool;
   includeBuildEnv : bool;

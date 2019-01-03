@@ -277,7 +277,7 @@ type t = {
   platform : System.Platform.t;
   pkg : Package.t;
   mode : BuildSpec.mode;
-  depspec : EsyInstall.DepSpec.t;
+  depspec : EsyInstall.Solution.DepSpec.t;
 
   children : bool PackageId.Map.t;
 

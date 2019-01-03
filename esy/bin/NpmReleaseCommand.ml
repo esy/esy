@@ -284,12 +284,12 @@ let envspec = {
   includeBuildEnv = false;
   includeNpmBin = false;
   includeEsyIntrospectionEnv = false;
-  augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
+  augmentDeps = Some Solution.DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
   BuildSpec.
-  buildAll = DepSpec.(dependencies self);
-  buildDev = Some DepSpec.(dependencies self);
+  all = Solution.DepSpec.(dependencies self);
+  dev = Solution.DepSpec.(dependencies self);
 }
 let cleanupLinksFromGlobalStore cfg tasks =
   let open RunAsync.Syntax in
@@ -605,7 +605,6 @@ let run (proj : Project.WithWorkflow.t) =
     let%bind () =
       Project.buildDependencies
         ~buildLinked:true
-        ~buildDevDependencies:true
         proj
         configured.Project.WithWorkflow.planForDev
         configured.Project.WithWorkflow.root.pkg

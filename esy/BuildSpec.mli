@@ -2,18 +2,9 @@
 
 open EsyPackageConfig
 
-type t = {
-  (**
-    Define how we build packages.
-    *)
-  buildAll : EsyInstall.DepSpec.t;
-
-  (**
-    Optionally define if we need to treat linked packages in a specific way.
-
-    (this overrides buildLink and build)
-    *)
-  buildDev : EsyInstall.DepSpec.t option;
+type t = EsyInstall.Solution.Spec.t = {
+  all : EsyInstall.Solution.DepSpec.t;
+  dev : EsyInstall.Solution.DepSpec.t;
 }
 
 type mode =
@@ -26,9 +17,6 @@ val show_mode : mode -> string
 val mode_to_yojson : mode Json.encoder
 val mode_of_yojson : mode Json.decoder
 
-val classify :
-  t
-  -> mode
-  -> EsyInstall.Package.t
-  -> BuildManifest.t
-  -> mode * EsyInstall.DepSpec.t * BuildManifest.commands
+val mode : mode -> EsyInstall.Package.t -> mode
+val depspec : t -> mode -> EsyInstall.Package.t -> EsyInstall.Solution.DepSpec.t
+val buildCommands : mode -> EsyInstall.Package.t -> BuildManifest.t -> BuildManifest.commands
