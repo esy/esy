@@ -527,7 +527,7 @@ let solveDependencies ~root ~installed ~strategy dependencies solver =
   } in
 
   let universe = Universe.add ~pkg:dummyRoot solver.universe in
-  let cudfUniverse, cudfMapping = Universe.toCudf ~installed universe in
+  let cudfUniverse, cudfMapping = Universe.toCudf ~installed solver.solvespec universe in
   let cudfRoot = Universe.CudfMapping.encodePkgExn dummyRoot cudfMapping in
 
   let request = {

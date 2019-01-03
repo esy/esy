@@ -54,5 +54,6 @@ end
  *)
 val toCudf :
   ?installed:InstallManifest.Set.t
+  -> SolveSpec.t
   -> t
   -> Cudf.universe * CudfMapping.t
