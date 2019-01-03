@@ -30,26 +30,47 @@ module DepSpec : sig
   val pp : t Fmt.t
 end
 
+module Spec : sig
+
+  type t = {
+
+    (**
+      Define how we traverse packages.
+      *)
+    all: DepSpec.t;
+
+    (**
+      Optionally define if we need to traverse packages "in-dev" in a specific way.
+
+      (this overrides all if [Some])
+      *)
+    dev : DepSpec.t option;
+  }
+
+  val everything : t
+
+end
+
 type id = PackageId.t
 type pkg = Package.t
 type traverse = pkg -> id list
 type t
 
 val empty : id -> t
-val add : pkg -> t -> t
+val add : t -> pkg -> t
 val nodes : t -> pkg list
 
 val root : t -> pkg
-val isRoot : pkg -> t -> bool
-val dependencies : ?traverse:traverse -> pkg -> t -> pkg list
-val get : id -> t -> pkg option
-val getExn : id -> t -> pkg
-val findBy : (id -> pkg -> bool) -> t -> (id * pkg) option
+val isRoot : t -> pkg -> bool
+val dependencies : t -> Spec.t -> pkg -> pkg list
+val get : t -> id -> pkg option
+val getExn : t -> id -> pkg
+val findBy : t -> (id -> pkg -> bool) -> (id * pkg) option
 val allDependenciesBFS :
   ?traverse:traverse
   -> ?dependencies:id list
-  -> id
   -> t
+  -> id
   -> (bool * pkg) list
 val fold : f:(pkg -> pkg list -> 'v -> 'v) -> init:'v -> t -> 'v
 

@@ -17,5 +17,5 @@ let eval solution self spec =
 let dependencies solution self spec =
   let ids = eval solution self spec in
   List.map
-    ~f:(fun id -> Solution.getExn id solution)
+    ~f:(fun id -> Solution.getExn solution id)
     (PackageId.Set.elements ids)

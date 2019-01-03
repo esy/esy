@@ -960,8 +960,8 @@ let solve solvespec (sandbox : Sandbox.t) =
           allDependenciesByName
       in
       return (
-        EsyInstall.Solution.empty root.EsyInstall.Package.id
-        |> EsyInstall.Solution.add root
+        let solution = EsyInstall.Solution.empty root.EsyInstall.Package.id in
+        EsyInstall.Solution.add solution root
       )
     in
 
@@ -976,7 +976,7 @@ let solve solvespec (sandbox : Sandbox.t) =
             dependencies
             allDependenciesByName
         in
-        return (EsyInstall.Solution.add pkg solution)
+        return (EsyInstall.Solution.add solution pkg)
       in
       dependenciesById
       |> PackageId.Map.bindings

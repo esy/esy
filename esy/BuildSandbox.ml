@@ -34,7 +34,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
       Installation.pp_location loc
     );%lwt
 
-    let pkg = Solution.getExn id solution in
+    let pkg = Solution.getExn solution id in
     let isRoot = Package.compare (Solution.root solution) pkg = 0 in
 
     RunAsync.contextf (
@@ -305,7 +305,7 @@ let makeScope
 
   and visit' envspec seen id buildManifest =
     let module IdS = PackageId.Set in
-    let pkg = Solution.getExn id sandbox.solution in
+    let pkg = Solution.getExn sandbox.solution id in
     let location = Installation.findExn id sandbox.installation in
 
     let mode, depspec, buildCommands =
@@ -349,7 +349,7 @@ let makeScope
             if Seen.mem (reason, id) seen
             then process (seen, reasons, dependencies)
             else
-              let node = Solution.getExn id sandbox.solution in
+              let node = Solution.getExn sandbox.solution id in
               let seen = Seen.add (reason, id) seen in
               let dependencies = (direct, node)::dependencies in
               let reasons =
@@ -523,7 +523,7 @@ module Plan = struct
     tasks : Task.t option PackageId.Map.t;
   }
 
-  let buildspec plan = plan.buildspec
+  let spec plan = plan.buildspec
 
   let get plan id =
     match PackageId.Map.find_opt id plan.tasks with
@@ -651,7 +651,7 @@ let makePlan
         begin match PackageId.Map.find_opt id tasks with
         | Some _ -> visit tasks ids
         | None ->
-          let pkg = Solution.getExn id sandbox.solution in
+          let pkg = Solution.getExn sandbox.solution id in
           let%bind task =
             Run.contextf
               (makeTask pkg)
@@ -1071,7 +1071,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
         match Plan.get plan id with
         | Some task ->
           let dependencies =
-            List.map ~f:(fun id -> Solution.getExn id sandbox.solution)
+            List.map ~f:(fun id -> Solution.getExn sandbox.solution id)
             task.dependencies
           in
           let%bind changes = processMany dependencies in
@@ -1096,7 +1096,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
   let%bind pkgs = RunAsync.ofRun (
     let open Run.Syntax in
     let f id =
-      match Solution.get id sandbox.solution with
+      match Solution.get sandbox.solution id with
       | None -> Run.errorf "no such package %a" PackageId.pp id
       | Some pkg -> return pkg
     in

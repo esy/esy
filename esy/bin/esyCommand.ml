@@ -189,7 +189,7 @@ let buildDependencies
         | Some depspec -> depspec
         | None -> Workflow.buildDev
       in
-      {Workflow.default.buildspec with buildDev = Some deps}
+      {Workflow.default.buildspec with dev = Some deps}
     in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
@@ -219,7 +219,7 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
     in
     {
       Workflow.default.buildspec
-      with buildDev = Some deps;
+      with dev = Some deps;
     }
   in
 
@@ -302,7 +302,7 @@ let execCommand
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildDev = Some deps;}
+    {Workflow.default.buildspec with dev = Some deps;}
   in
   let f pkg =
     Project.execCommand
@@ -345,7 +345,7 @@ let printEnv
       | Some depspec -> depspec
       | None -> Workflow.buildDev
     in
-    {Workflow.default.buildspec with buildDev = Some deps;}
+    {Workflow.default.buildspec with dev = Some deps;}
   in
   Project.printEnv
     proj
@@ -736,7 +736,7 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
     if PackageId.Set.mem id !seen then
       return None
     else (
-      let isRoot = Solution.isRoot pkg solved.Project.solution in
+      let isRoot = Solution.isRoot solved.Project.solution pkg in
       seen := PackageId.Set.add id !seen;
       match BuildSandbox.Plan.get plan id with
       | None -> return None
@@ -746,12 +746,8 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
             return []
           else
             let dependencies =
-              let traverse =
-                if isRoot
-                then Solution.traverseWithDevDependencies
-                else Solution.traverse
-              in
-              Solution.dependencies ~traverse pkg solved.solution
+              let spec = BuildSandbox.Plan.spec plan in
+              Solution.dependencies solved.solution spec pkg
             in
             dependencies
             |> List.map ~f:draw
@@ -1126,7 +1122,7 @@ let exportDependencies (proj : Project.WithWorkflow.t) =
   RunAsync.List.mapAndWait
     ~concurrency:8
     ~f:exportBuild
-    (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.solution)
+    (Solution.allDependenciesBFS solved.Project.solution (Solution.root solved.Project.solution).id)
 
 let importBuild fromPath buildPaths (projcfg : ProjectConfig.t) =
   let open RunAsync.Syntax in
@@ -1184,7 +1180,7 @@ let importDependencies fromPath (proj : Project.WithWorkflow.t) =
   RunAsync.List.mapAndWait
     ~concurrency:16
     ~f:importBuild
-    (Solution.allDependenciesBFS (Solution.root solved.Project.solution).id solved.Project.solution)
+    (Solution.allDependenciesBFS solved.Project.solution (Solution.root solved.Project.solution).id)
 
 let show _asJson req (projcfg : ProjectConfig.t) =
   let open EsySolve in

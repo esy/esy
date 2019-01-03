@@ -33,10 +33,10 @@ module TermPp = struct
       (ppFlag "--include-build-env") includeBuildEnv
 
   let ppBuildSpec fmt buildspec =
-    match buildspec.BuildSpec.buildDev with
+    match buildspec.BuildSpec.dev with
     | None -> Fmt.string fmt ""
     | Some deps ->
-      Fmt.pf fmt "%a" (ppOption "--link-depspec" Solution.DepSpec.pp) (Some deps)
+      Fmt.pf fmt "%a" (ppOption "--dev-depspec" Solution.DepSpec.pp) (Some deps)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
@@ -450,7 +450,7 @@ let withPackage proj (pkgArg : PkgArg.t) f =
     | ByPkgSpec ByNameVersion (name, version) ->
       Solution.findByNameVersion name version solution
     | ByPkgSpec ById id ->
-      Solution.get id solution
+      Solution.get solution id
     | ByPath path ->
       let root = proj.projcfg.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
@@ -472,7 +472,7 @@ let buildDependencies
     Logs.info (fun m ->
       m "running:@[<v>@;%s build-dependencies \\@;%a%a%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       TermPp.(ppFlag "--all") buildLinked
       TermPp.(ppFlag "--devDependencies") buildDevDependencies
       PackageId.pp pkg.Package.id
@@ -508,7 +508,7 @@ let buildPackage
     Logs.info (fun m ->
       m "running:@[<v>@;%s build-package \\@;%a%a@]"
       projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.buildspec plan)
+      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       PackageId.pp pkg.Package.id
     )
   in

@@ -2,18 +2,9 @@
 
 open EsyPackageConfig
 
-type t = {
-  (**
-    Define how we build packages.
-    *)
-  buildAll : EsyInstall.Solution.DepSpec.t;
-
-  (**
-    Optionally define if we need to treat linked packages in a specific way.
-
-    (this overrides buildLink and build)
-    *)
-  buildDev : EsyInstall.Solution.DepSpec.t option;
+type t = EsyInstall.Solution.Spec.t = {
+  all : EsyInstall.Solution.DepSpec.t;
+  dev : EsyInstall.Solution.DepSpec.t option;
 }
 
 type mode =

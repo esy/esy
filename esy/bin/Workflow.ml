@@ -30,9 +30,9 @@ let default =
   let buildspec = {
     BuildSpec.
     (* build all other packages using "build" command with dependencies in the env *)
-    buildAll = buildAll;
+    all = buildAll;
     (* build linked packages using "build" command with dependencies in the env *)
-    buildDev = Some buildDev;
+    dev = Some buildDev;
   } in
 
   (* This defines environment for "esy x CMD" invocation. *)

@@ -288,8 +288,8 @@ let envspec = {
 }
 let buildspec = {
   BuildSpec.
-  buildAll = Solution.DepSpec.(dependencies self);
-  buildDev = Some Solution.DepSpec.(dependencies self);
+  all = Solution.DepSpec.(dependencies self);
+  dev = Some Solution.DepSpec.(dependencies self);
 }
 let cleanupLinksFromGlobalStore cfg tasks =
   let open RunAsync.Syntax in

@@ -1,9 +1,9 @@
 open EsyPackageConfig
 module Package = EsyInstall.Package
 
-type t = {
-  buildAll : EsyInstall.Solution.DepSpec.t;
-  buildDev : EsyInstall.Solution.DepSpec.t option;
+type t = EsyInstall.Solution.Spec.t = {
+  all : EsyInstall.Solution.DepSpec.t;
+  dev : EsyInstall.Solution.DepSpec.t option;
 }
 
 type mode =
@@ -29,7 +29,7 @@ let mode_of_yojson = function
 let classify spec mode pkg (build : BuildManifest.t) =
   match pkg.Package.source, mode with
   | Link {kind = LinkDev; _}, BuildDev ->
-    let depspec = Option.orDefault ~default:spec.buildAll spec.buildDev in
+    let depspec = Option.orDefault ~default:spec.all spec.dev in
     let commands =
       match build.buildDev with
       | Some buildDev -> BuildManifest.EsyCommands buildDev
@@ -39,4 +39,4 @@ let classify spec mode pkg (build : BuildManifest.t) =
   | Link {kind = LinkDev; _}, Build
   | Link {kind = LinkRegular; _}, _
   | Install _, _ ->
-    Build, spec.buildAll, build.build
+    Build, spec.all, build.build

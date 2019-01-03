@@ -18,6 +18,24 @@ module DepSpec = struct
   let self = Id.Self
 end
 
+module Spec = struct
+  type t = {
+    all: DepSpec.t;
+    dev : DepSpec.t option;
+  }
+
+  let depspec spec pkg =
+    match pkg.Package.source with
+    | PackageSource.Link { kind = LinkDev; _ } ->
+      Option.orDefault ~default:spec.all spec.dev
+    | PackageSource.Link { kind = LinkRegular; _ }
+    | PackageSource.Install _ -> spec.all
+
+  let everything =
+    let all = DepSpec.(dependencies self + devDependencies self) in
+    {all = all; dev = Some all;}
+end
+
 let traverse pkg =
   PackageId.Set.elements pkg.Package.dependencies
 
@@ -29,18 +47,32 @@ let traverseWithDevDependencies pkg =
   in
   PackageId.Set.elements dependencies
 
-include Graph.Make(struct
+module Graph = Graph.Make(struct
   include Package
   let traverse = traverse
   let id pkg = pkg.id
   module Id = PackageId
 end)
 
+let fold = Graph.fold
+let allDependenciesBFS = Graph.allDependenciesBFS
+let findBy = Graph.findBy
+let getExn = Graph.getExn
+let get = Graph.get
+let isRoot = Graph.isRoot
+let root = Graph.root
+let nodes = Graph.nodes
+let add = Graph.add
+let empty = Graph.empty
+type t = Graph.t
+type traverse = Graph.traverse
+type id = Graph.id
+
 type pkg = Package.t
 
 let resolve solution self id =
   match id with
-  | DepSpec.Id.Root -> (root solution).id
+  | DepSpec.Id.Root -> (Graph.root solution).id
   | DepSpec.Id.Self -> self
 
 let eval solution self depspec =
@@ -49,10 +81,10 @@ let eval solution self depspec =
     match expr with
     | DepSpec.Package id -> PackageId.Set.singleton (resolve id)
     | DepSpec.Dependencies id ->
-      let pkg = getExn (resolve id) solution in
+      let pkg = Graph.getExn solution (resolve id) in
       pkg.dependencies
     | DepSpec.DevDependencies id ->
-      let pkg = getExn (resolve id) solution in
+      let pkg = Graph.getExn solution (resolve id) in
       pkg.devDependencies
     | DepSpec.Union (a, b) -> PackageId.Set.union (eval' a) (eval' b)
   in
@@ -70,6 +102,12 @@ let rec collect' solution depspec seen id =
 let collect solution depspec root =
   collect' solution depspec PackageId.Set.empty root
 
+let dependencies solution spec self =
+  let depspec = Spec.depspec spec self in
+  let ids = eval solution self.id depspec in
+  let ids = PackageId.Set.elements ids in
+  List.map ~f:(getExn solution) ids
+
 let findByPath p solution =
   let open Option.Syntax in
   let f _id pkg =
@@ -82,7 +120,7 @@ let findByPath p solution =
       DistPath.compare path p = 0
     | _ -> false
   in
-  let%map _id, pkg = findBy f solution in
+  let%map _id, pkg = Graph.findBy solution f in
   pkg
 
 let findByName name solution =
@@ -90,7 +128,7 @@ let findByName name solution =
   let f _id pkg =
     String.compare pkg.Package.name name = 0
   in
-  let%map _id, pkg = findBy f solution in
+  let%map _id, pkg = Graph.findBy solution f in
   pkg
 
 let findByNameVersion name version solution =
@@ -99,5 +137,5 @@ let findByNameVersion name version solution =
   let f _id pkg =
     compare (pkg.Package.name, pkg.Package.version) (name, version) = 0
   in
-  let%map _id, pkg = findBy f solution in
+  let%map _id, pkg = Graph.findBy solution f in
   pkg

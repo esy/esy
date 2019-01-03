@@ -5,22 +5,22 @@ module type GRAPH = sig
   type traverse = node -> id list
 
   val empty : id -> t
-  val add : node -> t -> t
+  val add : t -> node -> t
   val nodes : t -> node list
 
-  val mem : id -> t -> bool
-  val isRoot : node -> t -> bool
+  val mem : t -> id -> bool
+  val isRoot : t -> node -> bool
 
   val root : t -> node
-  val get : id -> t -> node option
-  val getExn : id -> t -> node
-  val findBy : (id -> node -> bool) -> t -> (id * node) option
-  val dependencies : ?traverse:traverse -> node -> t -> node list
+  val get : t -> id -> node option
+  val getExn : t -> id -> node
+  val findBy : t -> (id -> node -> bool) -> (id * node) option
+  val dependencies : ?traverse:traverse -> t -> node -> node list
   val allDependenciesBFS :
     ?traverse:traverse
     -> ?dependencies:id list
-    -> id
     -> t
+    -> id
     -> (bool * node) list
 
   val fold : f:(node -> node list -> 'v -> 'v) -> init:'v -> t -> 'v
@@ -67,34 +67,34 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
   let empty root = {nodes = Node.Id.Map.empty; root}
 
-  let add node graph =
+  let add graph node =
     let nodes = Node.Id.Map.add (Node.id node) node graph.nodes in
     {graph with nodes;}
 
-  let get id graph =
+  let get graph id =
     Node.Id.Map.find_opt id graph.nodes
 
-  let getExn id graph =
+  let getExn graph id =
     Node.Id.Map.find id graph.nodes
 
   let root graph =
-    getExn graph.root graph
+    getExn graph graph.root 
 
-  let isRoot node graph =
+  let isRoot graph node =
     Node.Id.compare (Node.id node) graph.root = 0
 
-  let mem id graph = Node.Id.Map.mem id graph.nodes
+  let mem graph id = Node.Id.Map.mem id graph.nodes
 
   let nodes graph =
     let f (_, node) = node in
     List.map ~f (Node.Id.Map.bindings graph.nodes)
 
-  let dependencies ?(traverse=Node.traverse) node graph =
+  let dependencies ?(traverse=Node.traverse) graph node =
     let dependencies = traverse node in
-    let f id = getExn id graph in
+    let f id = getExn graph id in
     List.map ~f dependencies
 
-  let allDependenciesBFS ?(traverse=Node.traverse) ?dependencies id graph =
+  let allDependenciesBFS ?(traverse=Node.traverse) ?dependencies graph id =
 
     let queue  = Queue.create () in
     let enqueue direct dependencies =
@@ -130,7 +130,7 @@ module Make (Node : GRAPH_NODE) : GRAPH
 
     List.rev dependencies
 
-  let findBy f graph =
+  let findBy graph f =
     let f (id, node) = f id node in
     let bindings = Node.Id.Map.bindings graph.nodes in
     List.find_opt ~f bindings
