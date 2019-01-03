@@ -51,7 +51,7 @@ describe('Build with optDependencies', () => {
     test('check build-plan', async () => {
       const p = await createTestSandbox();
       await p.esy('install');
-      const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+      const plan = JSON.parse((await p.esy('build-plan -p dep@path:dep')).stdout);
       expect(plan.build).toEqual([['optDep.installed', 'false']]);
     });
 
@@ -61,14 +61,14 @@ describe('Build with optDependencies', () => {
 
       {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const {stdout} = await p.esy('build-env');
         expect(p.normalizePathsForSnapshot(stdout, {id, depid})).toMatchSnapshot();
       }
 
       {
-        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const {stdout} = await p.esy('build-env dep');
+        const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const {stdout} = await p.esy('build-env -p dep');
         expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
     });
@@ -117,7 +117,7 @@ describe('Build with optDependencies', () => {
     test('check build-plan', async () => {
       const p = await createTestSandbox();
       await p.esy('install');
-      const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+      const plan = JSON.parse((await p.esy('build-plan -p dep@path:dep')).stdout);
       expect(plan.build).toEqual([['optDep.installed', 'true']]);
     });
 
@@ -126,8 +126,8 @@ describe('Build with optDependencies', () => {
       await p.esy('install');
       {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
+        const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan -p optDep')).stdout).id;
         const {stdout} = await p.esy('build-env');
         expect(
           p.normalizePathsForSnapshot(stdout, {id, depid, optdepid}),
@@ -135,9 +135,9 @@ describe('Build with optDependencies', () => {
       }
 
       {
-        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const optdepid = JSON.parse((await p.esy('build-plan optDep')).stdout).id;
-        const {stdout} = await p.esy('build-env dep');
+        const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const optdepid = JSON.parse((await p.esy('build-plan -p optDep')).stdout).id;
+        const {stdout} = await p.esy('build-env -p dep');
         expect(p.normalizePathsForSnapshot(stdout, {id, optdepid})).toMatchSnapshot();
       }
     });
@@ -191,7 +191,7 @@ describe('Build with optDependencies', () => {
     );
 
     await p.esy('install');
-    const plan = JSON.parse((await p.esy('build-plan @opam/dep@opam:1.0.0')).stdout);
+    const plan = JSON.parse((await p.esy('build-plan -p @opam/dep@opam:1.0.0')).stdout);
     expect(plan.build).toEqual([
       ['optDep:installed', 'true'],
       ['optDep:enabled', 'enable'],
@@ -245,7 +245,7 @@ describe('Build with optDependencies', () => {
     );
 
     await p.esy('install');
-    const plan = JSON.parse((await p.esy('build-plan @opam/dep@opam:1.0.0')).stdout);
+    const plan = JSON.parse((await p.esy('build-plan -p @opam/dep@opam:1.0.0')).stdout);
     expect(plan.build).toEqual([
       ['optDep:installed', 'false'],
       ['optDep:enabled', 'disable'],

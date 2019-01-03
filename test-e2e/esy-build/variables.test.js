@@ -192,7 +192,7 @@ describe('Variables available for builds', () => {
       path.join(p.projectPath, '_esy', 'default', 'store', ...segments);
 
     const rootId = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan dep@link:dep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep@link:dep')).stdout).id;
 
     const {stdout} = await p.esy('x hello.cmd');
     expect(stdout.trim()).toEqual(outdent`

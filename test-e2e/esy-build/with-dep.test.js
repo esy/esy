@@ -106,8 +106,8 @@ describe('Build with dep', () => {
       'build-env',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
 
         const {stdout} = await p.esy('build-env --json');
         const env = JSON.parse(stdout);
@@ -158,8 +158,8 @@ describe('Build with dep', () => {
       'macos || linux: build-env snapshot',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
         const {stdout} = await p.esy('build-env');
         expect(
           p.normalizePathsForSnapshot(stdout, {id, depId, depOfDepId}),
@@ -171,10 +171,10 @@ describe('Build with dep', () => {
       'build-env dep',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
 
-        const {stdout} = await p.esy('build-env --json dep');
+        const {stdout} = await p.esy('build-env --json -p dep');
         const env = JSON.parse(stdout);
         expect(env).toMatchObject({
           cur__version: '1.0.0',
@@ -210,9 +210,9 @@ describe('Build with dep', () => {
     test.enableIf(isMacos || isLinux)(
       'macos || linux: build-env dep snapshot',
       withProject(async function(p) {
-        const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
-        const {stdout} = await p.esy('build-env dep');
+        const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
+        const {stdout} = await p.esy('build-env -p dep');
         expect(p.normalizePathsForSnapshot(stdout, {id, depOfDepId})).toMatchSnapshot();
       }),
     );
@@ -221,7 +221,7 @@ describe('Build with dep', () => {
       'exec-env',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const {stdout} = await p.esy('exec-env --json');
         const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
         expect(
@@ -235,8 +235,8 @@ describe('Build with dep', () => {
       'command-env',
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-        const depOfDepId = JSON.parse((await p.esy('build-plan depOfDep')).stdout).id;
+        const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+        const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
         const {stdout} = await p.esy('command-env --json');
         const env = JSON.parse(stdout);
         expect(env).toMatchObject({

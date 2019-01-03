@@ -6,7 +6,6 @@ module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Package = EsyInstall.Package
-module PkgSpec = EsyInstall.PkgSpec
 
 let splitBy line ch =
   match String.index line ch with
@@ -16,6 +15,13 @@ let splitBy line ch =
     let val_ = String.(trim (sub line pos (length line - pos))) in
     Some (key, val_)
   | exception Not_found -> None
+
+let pkgArg =
+  Cmdliner.Arg.(
+    value
+    & opt PkgArg.conv PkgArg.root
+    & info ["p"; "package"] ~doc:"Package to work on" ~docv:"PACKAGE"
+  )
 
 let depspecConv =
   let open Cmdliner in
@@ -1360,21 +1366,6 @@ let makeCommands projectPath =
     makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
-  let makeProjectWithoutSolutionCommand ?(header=`Standard) ?docs ?doc ~name cmd =
-    let cmd =
-      let run cmd project =
-        let () =
-          match header with
-          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
-          | `No -> ()
-        in
-        cmd project
-      in
-      Cmdliner.Term.(pure run $ cmd $ project)
-    in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
-  in
-
   let defaultCommand =
     let cmdTerm =
       Cli.cmdOptionTerm
@@ -1452,11 +1443,7 @@ let makeCommands projectPath =
       Term.(
         const buildShell
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1466,15 +1453,11 @@ let makeCommands projectPath =
       Term.(
         const buildExec
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 0)
+            Cmdliner.Arg.pos_all
       );
 
     makeProjectWithWorkflowCommand
@@ -1671,11 +1654,7 @@ let makeCommands projectPath =
       Term.(
         const buildPlan
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1687,11 +1666,7 @@ let makeCommands projectPath =
         const buildEnv
         $ modeArg
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1702,11 +1677,7 @@ let makeCommands projectPath =
       Term.(
         const commandEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1717,16 +1688,12 @@ let makeCommands projectPath =
       Term.(
         const execEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-package"
       ~doc:"Build a specified package"
       ~docs:lowLevelSection
@@ -1738,14 +1705,10 @@ let makeCommands projectPath =
             & opt (some depspecConv) None
             & info ["dev-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
@@ -1769,18 +1732,15 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to build dependencies for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
       ~docs:lowLevelSection
+      ~stop_on_pos:true
       Term.(
         const execCommand
         $ Arg.(
@@ -1813,18 +1773,14 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            required
-            & pos 0 (some PkgArg.conv) None
-            & info [] ~doc:"Package in which environment execute the command" ~docv:"PACKAGE"
-          )
+        $ pkgArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 0)
+            Cmdliner.Arg.pos_all
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
@@ -1856,11 +1812,7 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            required
-            & pos 0 (some PkgArg.conv) None
-            & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithoutWorkflowCommand

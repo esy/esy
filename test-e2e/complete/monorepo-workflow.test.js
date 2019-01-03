@@ -137,7 +137,7 @@ describe('Monorepo workflow using low level commands', function() {
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --include-current-env --dev-depspec "${depspec}" root -- ${pkg}.cmd`,
+        `exec-command --include-current-env --dev-depspec "${depspec}" ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
@@ -151,7 +151,7 @@ describe('Monorepo workflow using low level commands', function() {
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --release --include-current-env root -- ${pkg}.cmd`,
+        `exec-command --release --include-current-env ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
@@ -163,7 +163,7 @@ describe('Monorepo workflow using low level commands', function() {
       // run commands in a specified package environment.
       const p = await createTestSandbox();
       const {stdout} = await p.esy(
-        `exec-command --dev-depspec "${depspec}" pkga -- echo '#{self.name}'`,
+        `exec-command --dev-depspec "${depspec}" -p pkga echo '#{self.name}'`,
       );
 
       expect(stdout.trim()).toBe('pkga');
@@ -176,7 +176,7 @@ describe('Monorepo workflow using low level commands', function() {
       // we can also refer to linked package by its manifest path
       const p = await createTestSandbox();
       const {stdout} = await p.esy(
-        `exec-command --dev-depspec "${depspec}" ./pkgb/package.json -- echo '#{self.name}'`,
+        `exec-command --dev-depspec "${depspec}" -p ./pkgb/package.json echo '#{self.name}'`,
       );
 
       expect(stdout.trim()).toBe('pkgb');

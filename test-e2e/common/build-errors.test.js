@@ -109,7 +109,7 @@ describe('build errors', function() {
 
     await p.esy('install');
 
-    const depBuildPlan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+    const depBuildPlan = JSON.parse((await p.esy('build-plan -p dep@path:dep')).stdout);
 
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(

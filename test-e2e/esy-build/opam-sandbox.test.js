@@ -299,7 +299,7 @@ describe('build opam sandbox', () => {
     const {stdout} = await p.esy('build-plan');
     const plan = JSON.parse(stdout);
 
-    const {stdout: stdoutDep} = await p.esy('build-plan @opam/dep@opam:1.0.0');
+    const {stdout: stdoutDep} = await p.esy('build-plan -p @opam/dep@opam:1.0.0');
     const depPlan = JSON.parse(stdoutDep);
 
     const expectBuild = [
