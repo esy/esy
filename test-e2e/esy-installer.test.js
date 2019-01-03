@@ -413,6 +413,184 @@ describe('esy-installer', () => {
     });
   });
 
+  it('automatically chooses the right *.install file by the package name', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {
+          build: 'true'
+        },
+      }),
+      file(
+        'root.install',
+        outdent`
+          bin: [
+            "bin/hello-bin"
+          ]
+        `,
+      ),
+      file(
+        'ignored.install',
+        outdent`
+          bin: [
+            "bin/hello-oops"
+          ]
+        `,
+      ),
+      dir('bin', file('hello-oops', 'hello-oops'), file('hello-bin', 'hello-bin')),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('install');
+    await p.esy('x ls');
+    expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
+      type: 'dir',
+      basename: 'bin',
+      nodes: [
+        {
+          type: 'file',
+          basename: 'hello-bin',
+          data: 'hello-bin',
+          perm: perm755,
+        },
+      ],
+    });
+  });
+
+  it('automatically chooses the right *.install file by the package name (explicit invocation)', async () => {
+    const fixture = [
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+          install: 'esy-installer'
+        },
+      }),
+      file(
+        'root.install',
+        outdent`
+          bin: [
+            "bin/hello-bin"
+          ]
+        `,
+      ),
+      file(
+        'ignored.install',
+        outdent`
+          bin: [
+            "bin/hello-oops"
+          ]
+        `,
+      ),
+      dir('bin', file('hello-oops', 'hello-oops'), file('hello-bin', 'hello-bin')),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('install');
+    await p.esy('x ls');
+    expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
+      type: 'dir',
+      basename: 'bin',
+      nodes: [
+        {
+          type: 'file',
+          basename: 'hello-bin',
+          data: 'hello-bin',
+          perm: perm755,
+        },
+      ],
+    });
+  });
+
+  it('automatically chooses the right *.install file by the scoped package name', async () => {
+    const fixture = [
+      packageJson({
+        name: '@scope/root',
+        version: '1.0.0',
+        esy: {
+          build: 'true'
+        },
+      }),
+      file(
+        'root.install',
+        outdent`
+          bin: [
+            "bin/hello-bin"
+          ]
+        `,
+      ),
+      file(
+        'ignored.install',
+        outdent`
+          bin: [
+            "bin/hello-oops"
+          ]
+        `,
+      ),
+      dir('bin', file('hello-oops', 'hello-oops'), file('hello-bin', 'hello-bin')),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('install');
+    await p.esy('x ls');
+    expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
+      type: 'dir',
+      basename: 'bin',
+      nodes: [
+        {
+          type: 'file',
+          basename: 'hello-bin',
+          data: 'hello-bin',
+          perm: perm755,
+        },
+      ],
+    });
+  });
+
+  it('automatically chooses the right *.install file by the scoped package name (explicit invocation)', async () => {
+    const fixture = [
+      packageJson({
+        name: '@scope/root',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+          install: 'esy-installer'
+        },
+      }),
+      file(
+        'root.install',
+        outdent`
+          bin: [
+            "bin/hello-bin"
+          ]
+        `,
+      ),
+      file(
+        'ignored.install',
+        outdent`
+          bin: [
+            "bin/hello-oops"
+          ]
+        `,
+      ),
+      dir('bin', file('hello-oops', 'hello-oops'), file('hello-bin', 'hello-bin')),
+    ];
+    const p = await createTestSandbox(...fixture);
+    await p.esy('install');
+    await p.esy('x ls');
+    expect(await crawl(path.join(await getInstallDir(p), 'bin'))).toMatchObject({
+      type: 'dir',
+      basename: 'bin',
+      nodes: [
+        {
+          type: 'file',
+          basename: 'hello-bin',
+          data: 'hello-bin',
+          perm: perm755,
+        },
+      ],
+    });
+  });
+
   it('can be invoked via esy-installer command (via path)', async () => {
     const fixture = [
       packageJson({
