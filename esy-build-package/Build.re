@@ -1,4 +1,4 @@
-open EsyPackageConfig
+open EsyPackageConfig;
 
 module EsyBash = EsyLib.EsyBash;
 module Fs = EsyLib.Fs;
@@ -349,11 +349,12 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let%bind () = rm(build.stagePath);
     /* remove buildPath only if we build into a global store, otherwise we keep
      * buildPath and thus keep incremental builds */
-    let%bind () = switch(build.plan.sourceType) {
-      | Immutable => rm(build.buildPath);
+    let%bind () =
+      switch (build.plan.sourceType) {
+      | Immutable => rm(build.buildPath)
       | ImmutableWithTransientDependencies
-      | Transient => return();
-    };
+      | Transient => return()
+      };
     let%bind () = mkdir(build.stagePath);
     let%bind () = mkdir(build.stagePath / "bin");
     let%bind () = mkdir(build.stagePath / "lib");
@@ -503,32 +504,58 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
           |> List.map(name => Path.basename(name)),
         );
       };
+      let findInstallFilenameByName = filenames => {
+        let name = PackageName.withoutScope(build.plan.name);
+        let f = filename =>
+          String.compare(Path.remExtOfFilename(filename), name) == 0;
+        List.find_opt(f, filenames);
+      };
       switch (installFilenames) {
       /* the case where esy-installer is called implicitly, ignore the case
        * we have no *.install files */
       | None =>
         switch%bind (findInstallFilenames()) {
         | [] => ok
-        | [installFilename] =>
+        | [filename] =>
           install(
             ~enableLinkingOptimization,
             ~prefixPath=build.stagePath,
-            Path.(build.rootPath / installFilename),
+            Path.(build.rootPath / filename),
           )
-        | _ => error("multiple *.install files found")
+        | filenames =>
+          switch (findInstallFilenameByName(filenames)) {
+          | Some(filename) =>
+            install(
+              ~enableLinkingOptimization,
+              ~prefixPath=build.stagePath,
+              Path.(build.rootPath / filename),
+            )
+          | None =>
+            error({|multiple *.install files found, specify "esy.install"|})
+          }
         }
       /* the case where esy-installer is called explicitly with 0 args, fail
        * on all but a single *.install file found. */
       | Some([]) =>
         switch%bind (findInstallFilenames()) {
         | [] => error("no *.install files found")
-        | [installFilename] =>
+        | [filename] =>
           install(
             ~enableLinkingOptimization,
             ~prefixPath=build.stagePath,
-            Path.(build.rootPath / installFilename),
+            Path.(build.rootPath / filename),
           )
-        | _ => error("multiple *.install files found")
+        | filenames =>
+          switch (findInstallFilenameByName(filenames)) {
+          | Some(filename) =>
+            install(
+              ~enableLinkingOptimization,
+              ~prefixPath=build.stagePath,
+              Path.(build.rootPath / filename),
+            )
+          | None =>
+            error({|multiple *.install files found, specify "esy.install"|})
+          }
         }
       | Some(installFilenames) =>
         let f = ((), installFilename) =>
@@ -575,18 +602,18 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       };
 
     switch (runBuild()) {
-      | Ok() =>
-        if (!buildOnly) {
-          runInstall();
-        } else {
-          let%bind () = rm(build.installPath);
-          let%bind () = rm(build.stagePath);
-          ok;
-        }
-      | Error(msg) =>
+    | Ok () =>
+      if (!buildOnly) {
+        runInstall();
+      } else {
         let%bind () = rm(build.installPath);
         let%bind () = rm(build.stagePath);
-        Error(msg)
+        ok;
+      }
+    | Error(msg) =>
+      let%bind () = rm(build.installPath);
+      let%bind () = rm(build.stagePath);
+      Error(msg);
     };
   };
   withBuild(~commit=!buildOnly, ~cfg, plan, runBuildAndInstall);

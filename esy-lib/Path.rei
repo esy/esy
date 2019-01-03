@@ -35,6 +35,8 @@ let hasExt: (ext, t) => bool;
 let remExt: (~multi: bool=?, t) => t;
 let getExt: (~multi: bool=?, t) => ext;
 
+let remExtOfFilename: (~multi: bool=?, string) => string;
+
 let dirSep: string;
 
 let showNormalized: t => string;
