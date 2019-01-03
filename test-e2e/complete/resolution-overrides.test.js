@@ -276,7 +276,7 @@ describe('resolutions with overrides', () => {
     }
 
     {
-      const {stdout} = await p.esy('build-env --json dep@path:dep');
+      const {stdout} = await p.esy('build-env --json -p dep@path:dep');
       const buildEnv = JSON.parse(stdout);
       expect(buildEnv.SHOULD_BE_DROPPED).toBeUndefined();
     }
@@ -341,7 +341,7 @@ describe('resolutions with overrides', () => {
     }
 
     {
-      const {stdout} = await p.esy('build-env dep@path:dep --json');
+      const {stdout} = await p.esy('build-env -p dep@path:dep --json');
       const buildEnv = JSON.parse(stdout);
       expect(buildEnv.SHOULD_BE_DROPPED).toBeUndefined();
       expect(buildEnv.SHOULD_BE_ADDED).toBe('YUP');

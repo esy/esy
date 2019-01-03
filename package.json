@@ -5,27 +5,38 @@
   "license": "MIT",
   "esy": {
     "build": [
-      [ "dune", "build", "-j", "4" ],
       [
-        "dune", "build", "esy/bin/esyCommand.exe",
+        "dune",
+        "build",
+        "-j",
+        "4"
+      ],
+      [
+        "dune",
+        "build",
+        "esy/bin/esyCommand.exe",
         "esy-build-package/bin/esyBuildPackageCommand.exe"
       ]
     ],
     "install": [
-      [ "esy-installer", "./esy-build-package.install" ],
-      [ "esy-installer", "./esy.install" ]
+      [
+        "esy-installer",
+        "./esy-build-package.install"
+      ],
+      [
+        "esy-installer",
+        "./esy.install"
+      ]
     ],
     "buildsInSource": "_build"
   },
   "scripts": {
     "bootstrap": "esy node scripts/bootstrap.js",
     "install:esy": "esy install",
-    "build":
-      "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
+    "build": "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
-    "build:postinstall-esy-solve-cudf":
-      "cd node_modules/esy-solve-cudf && npm install",
+    "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
     "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest",
     "test:e2e": "jest test-e2e",
@@ -34,7 +45,8 @@
   "resolutions": {
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
-    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0"
+    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
+    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",

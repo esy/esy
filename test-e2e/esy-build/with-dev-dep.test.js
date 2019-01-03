@@ -121,9 +121,9 @@ describe(`Project with "devDependencies"`, () => {
   test('build-env', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-    const devdepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
-    const depofdevdepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+    const devdepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
+    const depofdevdepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
 
     const {stdout} = await p.esy('build-env --json');
     const env = JSON.parse(stdout);
@@ -164,7 +164,7 @@ describe(`Project with "devDependencies"`, () => {
   test('build-env --release', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan --release')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan --release dep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan --release -p dep')).stdout).id;
 
     const {stdout} = await p.esy('build-env --json --release');
     const env = JSON.parse(stdout);
@@ -203,9 +203,9 @@ describe(`Project with "devDependencies"`, () => {
   test('command-env', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-    const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
-    const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+    const devDepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
 
     const {stdout} = await p.esy('command-env --json');
     const env = JSON.parse(stdout);
@@ -243,9 +243,9 @@ describe(`Project with "devDependencies"`, () => {
     async function() {
       const p = await createTestSandbox();
       const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-      const depid = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-      const devdepid = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
-      const depofdevdepid = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
+      const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+      const devdepid = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
+      const depofdevdepid = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
       const {stdout} = await p.esy('build-env');
       expect(
         p.normalizePathsForSnapshot(stdout, {id, depid, devdepid, depofdevdepid}),
@@ -255,9 +255,9 @@ describe(`Project with "devDependencies"`, () => {
 
   test('build-env dep', async function() {
     const p = await createTestSandbox();
-    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
 
-    const {stdout} = await p.esy('build-env --json dep');
+    const {stdout} = await p.esy('build-env --json -p dep');
     const env = JSON.parse(stdout);
     expect(env).toMatchObject({
       cur__version: '1.0.0',
@@ -285,18 +285,18 @@ describe(`Project with "devDependencies"`, () => {
     'macos || linux: build-env dep snapshot',
     async function() {
       const p = await createTestSandbox();
-      const id = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-      const {stdout} = await p.esy('build-env dep');
+      const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+      const {stdout} = await p.esy('build-env -p dep');
       expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
     },
   );
 
   test('build-env devDep', async function() {
     const p = await createTestSandbox();
-    const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
-    const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout).id;
+    const devDepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
 
-    const {stdout} = await p.esy('build-env --json devDep');
+    const {stdout} = await p.esy('build-env --json -p devDep');
     const env = JSON.parse(stdout);
     expect(env).toMatchObject({
       cur__version: '1.0.0',
@@ -330,10 +330,10 @@ describe(`Project with "devDependencies"`, () => {
     'macos || linux: build-env devDep snapshot',
     async function() {
       const p = await createTestSandbox();
-      const id = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
-      const depOfDevDepId = JSON.parse((await p.esy('build-plan depOfDevDep')).stdout)
+      const id = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
+      const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
         .id;
-      const {stdout} = await p.esy('build-env devDep');
+      const {stdout} = await p.esy('build-env -p devDep');
       expect(p.normalizePathsForSnapshot(stdout, {id, depOfDevDepId})).toMatchSnapshot();
     },
   );
@@ -341,7 +341,7 @@ describe(`Project with "devDependencies"`, () => {
   test('exec-env', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
     const {stdout} = await p.esy('exec-env --json');
     const envpath = JSON.parse(stdout).PATH.split(path.delimiter);
     expect(
@@ -353,8 +353,8 @@ describe(`Project with "devDependencies"`, () => {
   test('command-env', async function() {
     const p = await createTestSandbox();
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-    const depId = JSON.parse((await p.esy('build-plan dep')).stdout).id;
-    const devDepId = JSON.parse((await p.esy('build-plan devDep')).stdout).id;
+    const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
+    const devDepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
     const {stdout} = await p.esy('command-env --json');
     const env = JSON.parse(stdout);
     expect(env).toMatchObject({

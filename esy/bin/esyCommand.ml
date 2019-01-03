@@ -6,7 +6,6 @@ module Installation = EsyInstall.Installation
 module Solution = EsyInstall.Solution
 module SolutionLock = EsyInstall.SolutionLock
 module Package = EsyInstall.Package
-module PkgSpec = EsyInstall.PkgSpec
 
 let splitBy line ch =
   match String.index line ch with
@@ -16,6 +15,13 @@ let splitBy line ch =
     let val_ = String.(trim (sub line pos (length line - pos))) in
     Some (key, val_)
   | exception Not_found -> None
+
+let pkgArg =
+  Cmdliner.Arg.(
+    value
+    & opt PkgArg.conv PkgArg.root
+    & info ["p"; "package"] ~doc:"Package to work on" ~docv:"PACKAGE"
+  )
 
 let depspecConv =
   let open Cmdliner in
@@ -498,65 +504,53 @@ let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgspec f
 
-let build ?(buildOnly=true) ?(release=false) (proj : Project.WithWorkflow.t) cmd () =
+let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
   let%bind configured = Project.configured proj in
+  let%bind plan = Project.WithWorkflow.plan mode proj in
 
-  let%bind plan =
-    RunAsync.ofRun (
-      let open Run.Syntax in
-      if release
-      then
-        BuildSandbox.makePlan
-          Workflow.default.buildspec
-          Build
-          fetched.Project.sandbox
-      else
-        return configured.Project.WithWorkflow.planForDev
-    )
+  let f pkg =
+    begin match cmd with
+    | None ->
+      let%bind () =
+        Project.buildDependencies
+          ~buildLinked:true
+          ~buildDevDependencies:true
+          proj
+          plan
+          pkg
+      in
+      Project.buildPackage
+        ~quiet:true
+        ~buildOnly
+        proj.projcfg
+        fetched.Project.sandbox
+        plan
+        pkg
+    | Some cmd ->
+      let%bind () =
+        Project.buildDependencies
+          ~buildLinked:true
+          ~buildDevDependencies:true
+          proj
+          plan
+          pkg
+      in
+      Project.execCommand
+        ~checkIfDependenciesAreBuilt:false
+        ~buildLinked:false
+        ~buildDevDependencies:false
+        proj
+        configured.Project.WithWorkflow.workflow.buildenvspec
+        configured.Project.WithWorkflow.workflow.buildspec
+        mode
+        pkg
+        cmd
+    end
   in
-
-  begin match cmd with
-  | None ->
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        ~buildDevDependencies:true
-        proj
-        plan
-        configured.Project.WithWorkflow.root.pkg
-    in
-    Project.buildPackage
-      ~quiet:true
-      ~buildOnly
-      proj.projcfg
-      fetched.Project.sandbox
-      plan
-      configured.Project.WithWorkflow.root.pkg
-  | Some cmd ->
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        ~buildDevDependencies:true
-        proj
-        plan
-        configured.Project.WithWorkflow.root.pkg
-    in
-    Project.execCommand
-      ~checkIfDependenciesAreBuilt:false
-      ~buildLinked:false
-      ~buildDevDependencies:false
-      proj
-      configured.workflow.buildenvspec
-      configured.workflow.buildspec
-      (if release
-      then Build
-      else BuildDev)
-      configured.Project.WithWorkflow.root.pkg
-      cmd
-  end
+  Project.withPackage proj pkgspec f
 
 let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -597,10 +591,10 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     packagePath
     ()
 
-let exec release cmd (proj : Project.WithWorkflow.t) =
+let exec mode cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
-  let%bind () = build ~release ~buildOnly:false proj None () in
+  let%bind () = build ~buildOnly:false mode PkgArg.root None proj in
   Project.execCommand
     ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
     ~buildLinked:false
@@ -608,7 +602,7 @@ let exec release cmd (proj : Project.WithWorkflow.t) =
     proj
     configured.Project.WithWorkflow.workflow.execenvspec
     configured.Project.WithWorkflow.workflow.buildspec
-    (if release then Build else BuildDev)
+    mode
     configured.Project.WithWorkflow.root.pkg
     cmd
 
@@ -1262,14 +1256,14 @@ let default cmd (proj : Project.WithWorkflow.t) =
   match fetched, cmd with
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
-    build proj None ()
+    build BuildDev PkgArg.root None proj
   | Ok _, Some cmd ->
     devExec proj cmd ()
   | Error _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-    build proj None ()
+    build BuildDev PkgArg.root None proj
   | Error _ as err, Some _ ->
     Lwt.return err
 
@@ -1283,6 +1277,7 @@ let makeCommand
   ?(header=`Standard)
   ?docs
   ?doc
+  ?(stop_on_pos=false)
   ~name
   cmd =
   let info =
@@ -1290,6 +1285,7 @@ let makeCommand
       ~exits:Cmdliner.Term.default_exits
       ?docs
       ?doc
+      ~stop_on_pos
       ~version:EsyRuntime.version
       name
   in
@@ -1307,7 +1303,7 @@ let makeCommand
 
   cmd, info
 
-let makeAlias ?(docs=aliasesSection) command alias =
+let makeAlias ?(docs=aliasesSection) ?(stop_on_pos=false) command alias =
   let term, info = command in
   let name = Cmdliner.Term.name info in
   let doc = Printf.sprintf "An alias for $(b,%s) command" name in
@@ -1317,6 +1313,7 @@ let makeAlias ?(docs=aliasesSection) command alias =
       ~version:EsyRuntime.version
       ~doc
       ~docs
+      ~stop_on_pos
   in
   term, info
 
@@ -1327,7 +1324,7 @@ let makeCommands projectPath =
   let projectWithWorkflow = Project.WithWorkflow.term projectPath in
   let project = Project.WithoutWorkflow.term projectPath in
 
-  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
       let run cmd project =
         let () =
@@ -1339,10 +1336,10 @@ let makeCommands projectPath =
       in
       Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow)
     in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
+    makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
-  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ~name cmd =
+  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
       let run cmd project =
         let () =
@@ -1354,22 +1351,7 @@ let makeCommands projectPath =
       in
       Cmdliner.Term.(pure run $ cmd $ project)
     in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
-  in
-
-  let makeProjectWithoutSolutionCommand ?(header=`Standard) ?docs ?doc ~name cmd =
-    let cmd =
-      let run cmd project =
-        let () =
-          match header with
-          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
-          | `No -> ()
-        in
-        cmd project
-      in
-      Cmdliner.Term.(pure run $ cmd $ project)
-    in
-    makeCommand ~header:`No ?docs ?doc ~name cmd
+    makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
   let defaultCommand =
@@ -1383,6 +1365,7 @@ let makeCommands projectPath =
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
+      ~stop_on_pos:true
       Term.(const default $ cmdTerm)
   in
 
@@ -1390,13 +1373,13 @@ let makeCommands projectPath =
 
     let buildCommand =
 
-      let run release cmd proj =
+      let run mode pkgspec cmd proj =
         let () =
           match cmd with
           | None -> Lwt_main.run (printHeader ~spec:proj.Project.projcfg.spec "esy build")
           | Some _ -> ()
         in
-        build ~buildOnly:true ~release proj cmd ()
+        build ~buildOnly:true mode pkgspec cmd proj
       in
 
       makeProjectWithWorkflowCommand
@@ -1404,13 +1387,11 @@ let makeCommands projectPath =
         ~name:"build"
         ~doc:"Build the entire sandbox"
         ~docs:commonSection
+        ~stop_on_pos:true
         Term.(
           const run
-          $ Arg.(
-              value
-              & flag
-              & info ["release"] ~doc:"Build in release mode"
-            )
+          $ modeArg
+          $ pkgArg
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
@@ -1447,11 +1428,7 @@ let makeCommands projectPath =
       Term.(
         const buildShell
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1461,15 +1438,11 @@ let makeCommands projectPath =
       Term.(
         const buildExec
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 0)
+            Cmdliner.Arg.pos_all
       );
 
     makeProjectWithWorkflowCommand
@@ -1483,13 +1456,10 @@ let makeCommands projectPath =
       ~name:"x"
       ~doc:"Execute command as if the package is installed"
       ~docs:commonSection
+      ~stop_on_pos:true
       Term.(
         const exec
-        $ Arg.(
-            value
-            & flag
-            & info ["release"] ~doc:"Build in release mode"
-          )
+        $ modeArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
@@ -1545,7 +1515,7 @@ let makeCommands projectPath =
 
     (* ALIASES *)
 
-    makeAlias buildCommand "b";
+    makeAlias buildCommand ~stop_on_pos:true "b";
     makeAlias installCommand "i";
 
     (* OTHER COMMANDS *)
@@ -1665,11 +1635,7 @@ let makeCommands projectPath =
       Term.(
         const buildPlan
         $ modeArg
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1681,11 +1647,7 @@ let makeCommands projectPath =
         const buildEnv
         $ modeArg
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1696,11 +1658,7 @@ let makeCommands projectPath =
       Term.(
         const commandEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithWorkflowCommand
@@ -1711,16 +1669,12 @@ let makeCommands projectPath =
       Term.(
         const execEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-package"
       ~doc:"Build a specified package"
       ~docs:lowLevelSection
@@ -1732,14 +1686,10 @@ let makeCommands projectPath =
             & opt (some depspecConv) None
             & info ["dev-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to run the build for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
@@ -1763,18 +1713,15 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            value
-            & pos 0 PkgArg.conv PkgArg.root
-            & info [] ~doc:"Package to build dependencies for" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
       ~docs:lowLevelSection
+      ~stop_on_pos:true
       Term.(
         const execCommand
         $ Arg.(
@@ -1807,18 +1754,14 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            required
-            & pos 0 (some PkgArg.conv) None
-            & info [] ~doc:"Package in which environment execute the command" ~docv:"PACKAGE"
-          )
+        $ pkgArg
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
-            (Cmdliner.Arg.pos_right 0)
+            Cmdliner.Arg.pos_all
       );
 
-    makeProjectWithoutSolutionCommand
+    makeProjectWithoutWorkflowCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
@@ -1850,11 +1793,7 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ Arg.(
-            required
-            & pos 0 (some PkgArg.conv) None
-            & info [] ~doc:"Package to generate env at" ~docv:"PACKAGE"
-          )
+        $ pkgArg
       );
 
     makeProjectWithoutWorkflowCommand
@@ -1896,7 +1835,7 @@ let () =
 
   let () = checkSymlinks () in
 
-  let argv, commandName, rootPackagePath =
+  let argv, rootPackagePath =
     let argv = Array.to_list Sys.argv in
 
     let rootPackagePath, argv =
@@ -1908,82 +1847,9 @@ let () =
       | _ -> None, argv
     in
 
-    let commandName, argv =
-      match argv with
-      | [] -> None, argv
-      | _prg::elem::_rest when String.get elem 0 = '-' -> None, argv
-      | _prg::elem::_rest -> Some elem, argv
-      | _ -> None, argv
-    in
-
-    Array.of_list argv, commandName, rootPackagePath
+    Array.of_list argv, rootPackagePath
   in
 
   let defaultCommand, commands = makeCommands rootPackagePath in
 
-  let hasCommand name =
-    List.exists
-      ~f:(fun (_cmd, info) -> Cmdliner.Term.name info = name)
-      commands
-  in
-
-  let runCmdliner argv =
-    Cmdliner.Term.(exit @@ eval_choice ~argv defaultCommand commands);
-  in
-
-  match commandName with
-
-  (*
-   * Fixup invocations for commands which pass their arguments through to other
-   * executables.
-   *
-   * TODO: currently this is implemented in a way which prevents common options
-   * (like --sandbox-path or --prefix-path) from working for these commands.
-   * This should be fixed.
-   *)
-  | Some "x" ->
-    let argv =
-      match Array.to_list argv with
-      | (_prg::_command::"--help"::[]) as argv -> argv
-      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
-      | prg::command::rest -> prg::command::"--"::rest
-      | argv -> argv
-    in
-    let argv = Array.of_list argv in
-    runCmdliner argv
-
-  | Some "b"
-  | Some "build" ->
-    let argv =
-      match Array.to_list argv with
-      | (_prg::_command::"--help"::[]) as argv -> argv
-      | prg::command::"--release"::rest -> prg::command::"--release"::"--"::rest
-      | prg::command::rest -> prg::command::"--"::rest
-      | argv -> argv
-    in
-    let argv = Array.of_list argv in
-    runCmdliner argv
-
-  | Some "" ->
-    runCmdliner argv
-
-  (*
-   * Fix
-   *
-   *   esy <anycommand>
-   *
-   * for cmdliner by injecting "--" so that users are not requied to do that.
-   *)
-  | Some commandName ->
-    if hasCommand commandName
-    then runCmdliner argv
-    else
-      let argv =
-        match Array.to_list argv with
-        | prg::rest -> prg::"--"::rest
-        | argv -> argv
-      in
-      let argv = Array.of_list argv in
-      runCmdliner argv
-
-  | _ -> runCmdliner argv
+  Cmdliner.Term.(exit @@ eval_choice ~main_on_err:true ~argv defaultCommand commands);

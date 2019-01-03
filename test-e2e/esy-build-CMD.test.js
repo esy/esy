@@ -90,6 +90,22 @@ describe(`'esy build CMD' invocation`, () => {
     });
   });
 
+  it(`invokes commands in build environment of a specified package`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
+
+    await expect(p.esy('build -p linkedDep echo "#{self.name}"')).resolves.toEqual({
+      stdout: 'linkedDep' + os.EOL,
+      stderr: '',
+    });
+
+    await expect(p.esy('build --package linkedDep echo "#{self.name}"')).resolves.toEqual({
+      stdout: 'linkedDep' + os.EOL,
+      stderr: '',
+    });
+  });
+
   it(`can invoke commands defined in devDependencies`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
@@ -133,6 +149,11 @@ describe(`'esy build CMD' invocation`, () => {
 
     await expect(p.esy('b dep.cmd')).resolves.toEqual({
       stdout: '__dep__' + os.EOL,
+      stderr: '',
+    });
+
+    await expect(p.esy('b -p linkedDep echo "#{self.name}"')).resolves.toEqual({
+      stdout: 'linkedDep' + os.EOL,
       stderr: '',
     });
   });

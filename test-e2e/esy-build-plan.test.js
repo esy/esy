@@ -26,7 +26,7 @@ describe('esy build-plan', () => {
     await p.esy('install');
     await p.esy('build');
 
-    const plan = JSON.parse((await p.esy('build-plan dep')).stdout);
+    const plan = JSON.parse((await p.esy('build-plan -p dep')).stdout);
     expect(plan.name).toBe('dep');
   });
 
@@ -37,7 +37,7 @@ describe('esy build-plan', () => {
     await p.esy('install');
     await p.esy('build');
 
-    const plan = JSON.parse((await p.esy('build-plan dep@path:dep')).stdout);
+    const plan = JSON.parse((await p.esy('build-plan -p dep@path:dep')).stdout);
     expect(plan.name).toBe('dep');
   });
 });
