@@ -14,6 +14,12 @@ let addExt = Fpath.add_ext;
 let remExt = Fpath.rem_ext;
 let getExt = Fpath.get_ext;
 
+let remExtOfFilename= (~multi=?, filename) => {
+  let p = v(filename);
+  let p = remExt(~multi?, p);
+  Fpath.to_string(p)
+}
+
 let addSeg = Fpath.add_seg;
 
 let ofString = v => {
