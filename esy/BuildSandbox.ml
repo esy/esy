@@ -313,13 +313,13 @@ let makeScope
     in
 
     let matchedForBuild =
-      EsyInstall.DepSpec.eval sandbox.solution pkg.Package.id depspec
+      EsyInstall.Solution.eval sandbox.solution pkg.Package.id depspec
     in
 
     let matchedForScope =
       match envspec with
       | None -> matchedForBuild
-      | Some envspec -> EsyInstall.DepSpec.eval sandbox.solution pkg.Package.id envspec
+      | Some envspec -> EsyInstall.Solution.eval sandbox.solution pkg.Package.id envspec
     in
 
     let annotateWithReason pkgid =
@@ -754,7 +754,7 @@ let augmentEnvWithOptions (envspec : EnvSpec.t) sandbox scope =
     | None -> env
     | Some depspec ->
       let matched =
-        EsyInstall.DepSpec.collect
+        EsyInstall.Solution.collect
           sandbox.solution
           depspec
           (Scope.pkg scope).id

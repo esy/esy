@@ -4,7 +4,7 @@ type t = {
   (**
     Defines what packages we should bring into the command env.
     *)
-  augmentDeps : EsyInstall.DepSpec.t option;
+  augmentDeps : EsyInstall.Solution.DepSpec.t option;
 
   (**
     If we should init the build environment (enable sandboxing, do source

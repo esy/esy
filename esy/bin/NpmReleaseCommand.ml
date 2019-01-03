@@ -284,12 +284,12 @@ let envspec = {
   includeBuildEnv = false;
   includeNpmBin = false;
   includeEsyIntrospectionEnv = false;
-  augmentDeps = Some DepSpec.(package self + dependencies self + devDependencies self);
+  augmentDeps = Some Solution.DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
   BuildSpec.
-  buildAll = DepSpec.(dependencies self);
-  buildDev = Some DepSpec.(dependencies self);
+  buildAll = Solution.DepSpec.(dependencies self);
+  buildDev = Some Solution.DepSpec.(dependencies self);
 }
 let cleanupLinksFromGlobalStore cfg tasks =
   let open RunAsync.Syntax in

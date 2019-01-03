@@ -2,8 +2,8 @@ open EsyPackageConfig
 module Package = EsyInstall.Package
 
 type t = {
-  buildAll : EsyInstall.DepSpec.t;
-  buildDev : EsyInstall.DepSpec.t option;
+  buildAll : EsyInstall.Solution.DepSpec.t;
+  buildDev : EsyInstall.Solution.DepSpec.t option;
 }
 
 type mode =

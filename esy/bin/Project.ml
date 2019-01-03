@@ -25,7 +25,7 @@ module TermPp = struct
     } = envspec in
     Fmt.pf fmt
       "%a%a%a%a%a%a"
-      (ppOption "--envspec" (Fmt.quote ~mark:"'" DepSpec.pp)) augmentDeps
+      (ppOption "--envspec" (Fmt.quote ~mark:"'" Solution.DepSpec.pp)) augmentDeps
       (ppFlag "--build-context") buildIsInProgress
       (ppFlag "--include-current-env") includeCurrentEnv
       (ppFlag "--include-npm-bin") includeNpmBin
@@ -36,7 +36,7 @@ module TermPp = struct
     match buildspec.BuildSpec.buildDev with
     | None -> Fmt.string fmt ""
     | Some deps ->
-      Fmt.pf fmt "%a" (ppOption "--link-depspec" DepSpec.pp) (Some deps)
+      Fmt.pf fmt "%a" (ppOption "--link-depspec" Solution.DepSpec.pp) (Some deps)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
@@ -580,9 +580,9 @@ let printEnv
 |}
             name
             Package.pp pkg
-            DepSpec.pp depspec
+            Solution.DepSpec.pp depspec
             BuildSpec.pp_mode mode
-            (Fmt.option DepSpec.pp)
+            (Fmt.option Solution.DepSpec.pp)
             envspec.EnvSpec.augmentDeps
             envspec.buildIsInProgress
             envspec.includeBuildEnv

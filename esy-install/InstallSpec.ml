@@ -1,8 +1,8 @@
 open EsyPackageConfig
 
 type t = {
-  installDev : DepSpec.t;
-  installAll : DepSpec.t;
+  installDev : Solution.DepSpec.t;
+  installAll : Solution.DepSpec.t;
 } [@@deriving ord]
 
 let eval solution self spec =
@@ -12,7 +12,7 @@ let eval solution self spec =
     | Link {kind = LinkRegular; _}
     | Install _ -> spec.installAll
   in
-  DepSpec.eval solution self.id depspec
+  Solution.eval solution self.id depspec
 
 let dependencies solution self spec =
   let ids = eval solution self spec in

@@ -1,8 +1,8 @@
 open EsyPackageConfig
 
 type t = {
-  installDev : DepSpec.t;
-  installAll : DepSpec.t;
+  installDev : Solution.DepSpec.t;
+  installAll : Solution.DepSpec.t;
 }
 
 val compare : t -> t -> int

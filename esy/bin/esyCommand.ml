@@ -34,7 +34,7 @@ let depspecConv =
       error (`Msg msg)
     | EsyInstall.DepSpecParser.Error -> error (`Msg "error parsing DEPSPEC")
   in
-  let pp = EsyInstall.DepSpec.pp in
+  let pp = EsyInstall.Solution.DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
 let modeArg =
