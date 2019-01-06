@@ -675,22 +675,25 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
   | Unix.WSTOPPED n
   | Unix.WSIGNALED n -> exit n
 
-let devExec (proj : Project.WithWorkflow.t) cmd () =
+let devExec (pkgspec: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
   let%bind (configured : Project.WithWorkflow.configured) = Project.configured proj in
   match Scripts.find (Cmd.getTool cmd) configured.scripts with
   | Some script ->
     runScript proj script (Cmd.getArgs cmd) ()
   | None ->
-    Project.execCommand
-      ~checkIfDependenciesAreBuilt:true
-      ~buildLinked:false
-      proj
-      configured.workflow.commandenvspec
-      configured.workflow.buildspec
-      BuildDev
-      configured.Project.WithWorkflow.root.pkg
-      cmd
+    let f (pkg : Package.t) =
+      Project.execCommand
+        ~checkIfDependenciesAreBuilt:true
+        ~buildLinked:false
+        proj
+        configured.workflow.commandenvspec
+        configured.workflow.buildspec
+        BuildDev
+        pkg
+        cmd
+    in
+    Project.withPackage proj pkgspec f
 
 let devShell (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -1233,20 +1236,20 @@ let printHeader ?spec name =
       name EsyRuntime.version
     )
 
-let default cmd (proj : Project.WithWorkflow.t) =
+let default pkgspec cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%lwt fetched = Project.fetched proj in
   match fetched, cmd with
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
-    build BuildDev PkgArg.root None proj
+    build BuildDev pkgspec None proj
   | Ok _, Some cmd ->
-    devExec proj cmd ()
+    devExec pkgspec proj cmd ()
   | Error _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-    build BuildDev PkgArg.root None proj
+    build BuildDev pkgspec None proj
   | Error _ as err, Some _ ->
     Lwt.return err
 
@@ -1349,7 +1352,7 @@ let makeCommands projectPath =
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
       ~stop_on_pos:true
-      Term.(const default $ cmdTerm)
+      Term.(const default $ pkgArg $ cmdTerm)
   in
 
   let commands =
