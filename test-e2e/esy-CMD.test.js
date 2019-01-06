@@ -123,12 +123,22 @@ describe(`'esy CMD' invocation`, () => {
     );
   });
 
-  test(`execute commands in a specified dependency's environment`, async () => {
+  test(`-p: execute commands in a specified package's environment`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
-    await expect(p.esy('-p dep bash -c "echo #{self.name}"')).resolves.toEqual({
+    await expect(p.esy('-p dep echo "#{self.name}"')).resolves.toEqual({
       stdout: 'dep\n',
       stderr: '',
+    });
+  });
+
+  test(`-p: requires a command`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await expect(p.esy('-p dep')).rejects.toMatchObject({
+      message: expect.stringMatching(
+				"esy: missing a command to execute \\(required when '-p <name>' is passed\\)"
+			)
     });
   });
 

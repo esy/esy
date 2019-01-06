@@ -16,12 +16,36 @@ let splitBy line ch =
     Some (key, val_)
   | exception Not_found -> None
 
+
 let pkgArg =
   Cmdliner.Arg.(
     value
     & opt PkgArg.conv PkgArg.root
     & info ["p"; "package"] ~doc:"Package to work on" ~docv:"PACKAGE"
   )
+
+let cmdAndPkg =
+  let cmd =
+    Cli.cmdOptionTerm
+      ~doc:"Command to execute within the environment."
+      ~docv:"COMMAND"
+  in
+  let pkg =
+    Cmdliner.Arg.(
+      value
+      & opt (some PkgArg.conv) None
+      & info ["p"; "package"] ~doc:"Package to work on" ~docv:"PACKAGE"
+    )
+  in
+  let make pkg cmd =
+    match pkg, cmd with
+    | None, None -> `Ok None
+    | None, Some cmd -> `Ok (Some (PkgArg.root, cmd))
+    | Some pkgspec, Some cmd -> `Ok (Some (pkgspec, cmd))
+    | Some _, None ->
+      `Error (false, "missing a command to execute (required when '-p <name>' is passed)")
+  in
+  Cmdliner.Term.(ret (const make $ pkg $ cmd))
 
 let depspecConv =
   let open Cmdliner in
@@ -1236,20 +1260,20 @@ let printHeader ?spec name =
       name EsyRuntime.version
     )
 
-let default pkgspec cmd (proj : Project.WithWorkflow.t) =
+let default cmdAndPkg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%lwt fetched = Project.fetched proj in
-  match fetched, cmd with
+  match fetched, cmdAndPkg with
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
-    build BuildDev pkgspec None proj
-  | Ok _, Some cmd ->
+    build BuildDev PkgArg.root None proj
+  | Ok _, Some (pkgspec, cmd) ->
     devExec pkgspec proj cmd ()
   | Error _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
-    build BuildDev pkgspec None proj
+    build BuildDev PkgArg.root None proj
   | Error _ as err, Some _ ->
     Lwt.return err
 
@@ -1341,18 +1365,13 @@ let makeCommands projectPath =
   in
 
   let defaultCommand =
-    let cmdTerm =
-      Cli.cmdOptionTerm
-        ~doc:"Command to execute within the sandbox environment."
-        ~docv:"COMMAND"
-    in
     makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
       ~stop_on_pos:true
-      Term.(const default $ pkgArg $ cmdTerm)
+      Term.(const default $ cmdAndPkg)
   in
 
   let commands =
