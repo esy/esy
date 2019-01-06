@@ -239,6 +239,22 @@ describe(`'esy x CMD' invocation`, () => {
     });
   });
 
+  it(`-C flag sets CWD to the root`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
+
+    await fs.mkdir(path.join(p.projectPath, 'subdir'));
+
+    await fs.mkdir(path.join(p.projectPath, 'subdir2'));
+    await fs.writeFile(path.join(p.projectPath, 'subdir2', 'X'), '');
+
+    p.cd('./subdir');
+    await expect(p.esy('x -C ls -1 ./subdir2')).resolves.toMatchObject({
+      stdout: 'X' + os.EOL,
+    });
+  });
+
   it('can be passed -p/--package PKG to run a command in specified package scope', async () => {
     const p = await createTestSandbox();
     await p.esy('install');
