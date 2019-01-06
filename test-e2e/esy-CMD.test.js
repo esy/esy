@@ -123,6 +123,15 @@ describe(`'esy CMD' invocation`, () => {
     );
   });
 
+  test(`execute commands in a specified dependency's environment`, async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await expect(p.esy('-p dep bash -c "echo #{self.name}"')).resolves.toEqual({
+      stdout: 'dep\n',
+      stderr: '',
+    });
+  });
+
   test(`can be invoked from project's subdirectories`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');
