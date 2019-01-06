@@ -17,6 +17,16 @@ let splitBy = (line, ch) =>
   | exception Not_found => None
   };
 
+let chdirTerm =
+  Cmdliner.Arg.(
+    value
+    & flag
+    & info(
+        ["C", "change-directory"],
+        ~doc="Change directory to package's root before executing the command",
+      )
+  );
+
 let pkgTerm =
   Cmdliner.Arg.(
     value
@@ -232,6 +242,7 @@ let execCommand =
       includeNpmBin,
       plan,
       envspec,
+      chdir,
       pkgarg,
       cmd,
       proj: Project.t,
@@ -248,6 +259,7 @@ let execCommand =
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=false,
       ~buildLinked=false,
+      ~chdirToRoot=chdir,
       proj,
       envspec,
       plan,
@@ -535,13 +547,14 @@ let execEnv = (asJson, pkgarg, proj: Project.t) =>
     (),
   );
 
-let exec = (mode, pkgarg, cmd, proj: Project.t) => {
+let exec = (mode, chdir, pkgarg, cmd, proj: Project.t) => {
   open RunAsync.Syntax;
   let%bind () = build(~buildOnly=false, mode, PkgArg.root, None, proj);
   let f = pkg =>
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=false, /* not needed as we build an entire sandbox above */
       ~buildLinked=false,
+      ~chdirToRoot=chdir,
       proj,
       proj.workflow.execenvspec,
       mode,
@@ -645,11 +658,12 @@ let runScript = (proj: Project.t, script, args, ()) => {
   };
 };
 
-let devExec = (pkgarg: PkgArg.t, proj: Project.t, cmd, ()) => {
+let devExec = (chdir: bool, pkgarg: PkgArg.t, proj: Project.t, cmd, ()) => {
   let f = (pkg: Package.t) =>
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=true,
       ~buildLinked=false,
+      ~chdirToRoot=chdir,
       proj,
       proj.workflow.commandenvspec,
       BuildDev,
@@ -1320,7 +1334,7 @@ let printHeader = (~spec=?, name) =>
   | None => Logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
   };
 
-let default = (cmdAndPkg, proj: Project.t) => {
+let default = (chdir, cmdAndPkg, proj: Project.t) => {
   open RunAsync.Syntax;
   let%lwt fetched = Project.fetched(proj);
   switch (fetched, cmdAndPkg) {
@@ -1330,9 +1344,9 @@ let default = (cmdAndPkg, proj: Project.t) => {
   | (Ok(_), Some((PkgArg.ByPkgSpec(Root) as pkgarg, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
     | Some(script) => runScript(proj, script, Cmd.getArgs(cmd), ())
-    | None => devExec(pkgarg, proj, cmd, ())
+    | None => devExec(chdir, pkgarg, proj, cmd, ())
     }
-  | (Ok(_), Some((pkgarg, cmd))) => devExec(pkgarg, proj, cmd, ())
+  | (Ok(_), Some((pkgarg, cmd))) => devExec(chdir, pkgarg, proj, cmd, ())
   | (Error(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
     let%bind () = solveAndFetch(proj);
@@ -1430,7 +1444,7 @@ let commandsConfig = {
       ~doc="package.json workflow for native development with Reason/OCaml",
       ~docs=commonSection,
       ~stop_on_pos=true,
-      Term.(const(default) $ cmdAndPkgTerm),
+      Term.(const(default) $ chdirTerm $ cmdAndPkgTerm),
     );
 
   let commands = {
@@ -1515,6 +1529,7 @@ let commandsConfig = {
         Term.(
           const(exec)
           $ modeTerm
+          $ chdirTerm
           $ pkgTerm
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
@@ -1824,6 +1839,7 @@ let commandsConfig = {
                   ~docv="DEPSPEC",
                 )
             )
+          $ chdirTerm
           $ pkgTerm
           $ Cli.cmdTerm(
               ~doc="Command to execute within the environment.",

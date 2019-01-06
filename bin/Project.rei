@@ -80,6 +80,7 @@ let execCommand:
   (
     ~checkIfDependenciesAreBuilt: bool,
     ~buildLinked: bool,
+    ~chdirToRoot: bool=?,
     project,
     EnvSpec.t,
     BuildSpec.mode,

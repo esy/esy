@@ -67,10 +67,13 @@ let prepareEnv = env => {
   Option.map(~f, env);
 };
 
+let chdir_lock = Lwt_mutex.create();
+
 let withProcess =
     (
       ~env=CurrentEnv,
       ~resolveProgramInEnv=false,
+      ~cwd=?,
       ~stdin=?,
       ~stdout=?,
       ~stderr=?,
@@ -96,7 +99,7 @@ let withProcess =
       },
     );
 
-  try%lwt (
+  let executeCmd = () =>
     Lwt_process.with_process_none(
       ~env=?Option.map(~f=snd, env),
       ~stdin?,
@@ -104,7 +107,22 @@ let withProcess =
       ~stderr?,
       cmd,
       f,
-    )
+    );
+
+  let currentCwd = Sys.getcwd();
+
+  try%lwt (
+    switch (cwd) {
+    | Some(dir) when currentCwd != dir =>
+      Lwt_mutex.with_lock(
+        chdir_lock,
+        _ => {
+          Sys.chdir(dir);
+          executeCmd();
+        },
+      )
+    | _ => executeCmd()
+    }
   ) {
   | [@implicit_arity] Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
