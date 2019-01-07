@@ -2,6 +2,31 @@ open EsyPackageConfig
 open EsyInstall
 open Esy
 
+type project = {
+  projcfg : ProjectConfig.t;
+  scripts : Scripts.t;
+  solved : solved Run.t;
+}
+
+and solved = {
+  solution : Solution.t;
+  fetched : fetched Run.t;
+}
+
+and fetched = {
+  installation : Installation.t;
+  sandbox : BuildSandbox.t;
+  configured : configured Run.t;
+}
+
+and configured = {
+  workflow : Workflow.t;
+  planForDev : BuildSandbox.Plan.t;
+  root : BuildSandbox.Task.t;
+}
+
+type t = project
+
 module TermPp = struct
   let ppOption name pp fmt option =
     match option with
@@ -48,115 +73,7 @@ let makeCachePath prefix (projcfg : ProjectConfig.t) =
   in
   Path.(SandboxSpec.cachePath projcfg.spec / (prefix ^ "-" ^ hash))
 
-module type PROJECT = sig
-  type t
-
-  val make : ProjectConfig.t -> (t * FileInfo.t list) RunAsync.t
-  val setProjecyConfig : ProjectConfig.t -> t -> t
-  val cachePath : ProjectConfig.t -> Path.t
-  val writeAuxCache : t -> unit RunAsync.t
-end
-
-module MakeProject (P : PROJECT) : sig
-  val term : Fpath.t option -> P.t Cmdliner.Term.t
-  val promiseTerm : Fpath.t option -> P.t RunAsync.t Cmdliner.Term.t
-end = struct
-
-  let checkStaleness files =
-    let open RunAsync.Syntax in
-    let files = files in
-    let%bind checks = RunAsync.List.joinAll (
-      let f prev =
-        let%bind next = FileInfo.ofPath prev.FileInfo.path in
-        let changed = FileInfo.compare prev next <> 0 in
-        Logs_lwt.debug (fun m ->
-          m "checkStaleness %a: %b" Path.pp prev.FileInfo.path changed
-        );%lwt
-        return changed
-      in
-      List.map ~f files
-    ) in
-    return (List.exists ~f:(fun x -> x) checks)
-
-  let read' projcfg () =
-    let open RunAsync.Syntax in
-    let cachePath = P.cachePath projcfg in
-    let f ic =
-      try%lwt
-        let%lwt v, files = (Lwt_io.read_value ic : (P.t * FileInfo.t list) Lwt.t) in
-        let v = P.setProjecyConfig projcfg v in
-        if%bind checkStaleness files
-        then return None
-        else return (Some v)
-      with Failure _ -> return None
-    in
-    try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.show cachePath) f
-    with | Unix.Unix_error _ -> return None
-
-  let read projcfg =
-    Perf.measureLwt ~label:"reading project cache" (read' projcfg)
-
-  let write' projcfg v files () =
-    let open RunAsync.Syntax in
-    let cachePath = P.cachePath projcfg in
-    let%bind () =
-      let f oc =
-        let%lwt () = Lwt_io.write_value ~flags:Marshal.[Closures] oc (v, files) in
-        let%lwt () = Lwt_io.flush oc in
-        return ()
-      in
-      let%bind () = Fs.createDir (Path.parent cachePath) in
-      Lwt_io.with_file ~mode:Lwt_io.Output (Path.show cachePath) f
-    in
-    let%bind () = P.writeAuxCache v in
-    return ()
-
-  let write projcfg v files =
-    Perf.measureLwt ~label:"writing project cache" (write' projcfg v files)
-
-  let promiseTerm sandboxPath =
-    let parse projcfg =
-      let open RunAsync.Syntax in
-      let%bind projcfg = projcfg in
-      match%bind read projcfg with
-      | Some proj -> return proj
-      | None ->
-        let%bind proj, files = P.make projcfg in
-        let%bind () = write projcfg proj files in
-        return proj
-    in
-    Cmdliner.Term.(const parse $ ProjectConfig.promiseTerm sandboxPath)
-
-  let term sandboxPath =
-    Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm sandboxPath))
-end
-
-type project = {
-  projcfg : ProjectConfig.t;
-  scripts : Scripts.t;
-  solved : solved Run.t;
-}
-
-and solved = {
-  solution : Solution.t;
-  fetched : fetched Run.t;
-}
-
-and fetched = {
-  installation : Installation.t;
-  sandbox : BuildSandbox.t;
-  configured : configured Run.t;
-}
-
-and configured = {
-  workflow : Workflow.t;
-  planForDev : BuildSandbox.Plan.t;
-  root : BuildSandbox.Task.t;
-}
-
 let solved proj = Lwt.return proj.solved
-
-type t = project
 
 let fetched proj = Lwt.return (
   let open Result.Syntax in
@@ -389,13 +306,78 @@ let resolvePackage ~name (proj : project) =
 let ocamlfind = resolvePackage ~name:"@opam/ocamlfind"
 let ocaml = resolvePackage ~name:"ocaml"
 
-include MakeProject(struct
-  type nonrec t = project
-  let make = make
-  let setProjecyConfig projcfg proj = {proj with projcfg;}
-  let cachePath = makeCachePath "WithWorkflow"
-  let writeAuxCache = writeAuxCache
-end)
+module OfTerm = struct
+
+  let checkStaleness files =
+    let open RunAsync.Syntax in
+    let files = files in
+    let%bind checks = RunAsync.List.joinAll (
+      let f prev =
+        let%bind next = FileInfo.ofPath prev.FileInfo.path in
+        let changed = FileInfo.compare prev next <> 0 in
+        Logs_lwt.debug (fun m ->
+          m "checkStaleness %a: %b" Path.pp prev.FileInfo.path changed
+        );%lwt
+        return changed
+      in
+      List.map ~f files
+    ) in
+    return (List.exists ~f:(fun x -> x) checks)
+
+  let read' projcfg () =
+    let open RunAsync.Syntax in
+    let cachePath = makeCachePath "project" projcfg in
+    let f ic =
+      try%lwt
+        let%lwt v, files = (Lwt_io.read_value ic : (project * FileInfo.t list) Lwt.t) in
+        let v = {v with projcfg;} in
+        if%bind checkStaleness files
+        then return None
+        else return (Some v)
+      with Failure _ -> return None
+    in
+    try%lwt Lwt_io.with_file ~mode:Lwt_io.Input (Path.show cachePath) f
+    with | Unix.Unix_error _ -> return None
+
+  let read projcfg =
+    Perf.measureLwt ~label:"reading project cache" (read' projcfg)
+
+  let write' projcfg v files () =
+    let open RunAsync.Syntax in
+    let cachePath = makeCachePath "project" projcfg in
+    let%bind () =
+      let f oc =
+        let%lwt () = Lwt_io.write_value ~flags:Marshal.[Closures] oc (v, files) in
+        let%lwt () = Lwt_io.flush oc in
+        return ()
+      in
+      let%bind () = Fs.createDir (Path.parent cachePath) in
+      Lwt_io.with_file ~mode:Lwt_io.Output (Path.show cachePath) f
+    in
+    let%bind () = writeAuxCache v in
+    return ()
+
+  let write projcfg v files =
+    Perf.measureLwt ~label:"writing project cache" (write' projcfg v files)
+
+  let promiseTerm sandboxPath =
+    let parse projcfg =
+      let open RunAsync.Syntax in
+      let%bind projcfg = projcfg in
+      match%bind read projcfg with
+      | Some proj -> return proj
+      | None ->
+        let%bind proj, files = make projcfg in
+        let%bind () = write projcfg proj files in
+        return proj
+    in
+    Cmdliner.Term.(const parse $ ProjectConfig.promiseTerm sandboxPath)
+
+  let term sandboxPath =
+    Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm sandboxPath))
+end
+
+include OfTerm
 
 let withPackage proj (pkgArg : PkgArg.t) f =
   let open RunAsync.Syntax in
