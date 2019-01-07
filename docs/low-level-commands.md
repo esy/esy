@@ -57,9 +57,6 @@ Options:
 
 - `--all` Build all dependencies (including linked packages)
 
-- `--link-depspec=DEPSPEC` Define DEPSPEC expression for linked packages'
-  build environments.
-
 - `--release` Force to use "esy.build" commands (by default "esy.buildDev"
   commands are used)
 
@@ -96,10 +93,6 @@ Options:
 
 - `--include-npm-bin` Include npm bin in `$PATH`.
 
-- `--link-depspec=DEPSPEC` Define DEPSPEC expression for linked packages'
-  build environments. This is only applicable if the currently selected package
-  is a linked package (including the project root package).
-
 ### `esy print-env`
 
 `esy-print-env` command prints a configured environment on stdout:
@@ -123,18 +116,13 @@ Options:
 
 - `--include-npm-bin` Include npm bin in `$PATH`.
 
-- `--link-depspec=DEPSPEC` Define DEPSPEC expression for linked packages'
-  build environments. This is only applicable if the currently selected package
-  is a linked package (including the project root package).
-
 - `--json` Format output as JSON
 
 ## DEPSPEC
 
-Some commands allow to define how a build or a command environment is constructed
-for each package based on other packages in a dependency graph (see `--envspec`
-and `--link-depspec` command options described above). This is done via
-DEPSPEC expressions.
+Some commands allow to define how an environment is constructed for each package
+based on other packages in a dependency graph (see `--envspec` command option
+described above). This is done via DEPSPEC expressions.
 
 There are the following constructs available in DEPSPEC:
 
