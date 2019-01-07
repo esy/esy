@@ -269,30 +269,6 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
   in
   Project.withPackage proj pkgspec f
 
-let buildExec mode pkgspec cmd (proj : Project.WithWorkflow.t) =
-  let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
-  let f (pkg : Package.t) =
-    let%bind plan = Project.WithWorkflow.plan mode proj in
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        proj
-        plan
-        pkg
-    in
-    Project.execCommand
-      ~checkIfDependenciesAreBuilt:false
-      ~buildLinked:false
-      proj
-      configured.Project.WithWorkflow.workflow.buildenvspec
-      configured.workflow.buildspec
-      mode
-      pkg
-      cmd
-  in
-  Project.withPackage proj pkgspec f
-
 let execCommand
   buildIsInProgress
   includeBuildEnv
@@ -1434,20 +1410,6 @@ let makeCommands projectPath =
         const buildShell
         $ modeArg
         $ pkgArg
-      );
-
-    makeProjectWithWorkflowCommand
-      ~name:"build-exec"
-      ~doc:"Run a command in context of a specified package"
-      ~docs:commonSection
-      Term.(
-        const buildExec
-        $ modeArg
-        $ pkgArg
-        $ Cli.cmdTerm
-            ~doc:"Command to execute within the environment."
-            ~docv:"COMMAND"
-            Cmdliner.Arg.pos_all
       );
 
     makeProjectWithWorkflowCommand
