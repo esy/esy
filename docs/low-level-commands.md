@@ -67,32 +67,6 @@ Options:
   in their corresponding `package.json` manifests, passing `--release` makes
   build process use `"esy.build"` commands instead.
 
-### `esy build-package`
-
-`esy-build-package` command builds a specified package in a given build
-environment:
-
-```bash
-esy build-package [OPTION]... [PACKAGE]
-```
-
-Arguments:
-
-- `PACKAGE` (optional, default: `root`) Package to run the build for.
-
-Options:
-
-- `--link-depspec=DEPSPEC` Define DEPSPEC expression for linked packages'
-  build environments. This is only applicable if the currently selected package
-  is a linked package (including the project root package).
-
-- `--release` Force to use "esy.build" commands (by default "esy.buildDev"
-  commands are used)
-
-  By default linked packages are built using `"esy.buildDev"` commands defined
-  in their corresponding `package.json` manifests, passing `--release` makes
-  build process use `"esy.build"` commands instead.
-
 ### `esy command-exec`
 
 `esy-exec-command` command executes a command in a given environment:
