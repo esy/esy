@@ -580,19 +580,22 @@ let execEnv asJson pkgarg (proj : Project.WithWorkflow.t) =
     pkgarg
     ()
 
-let exec mode cmd (proj : Project.WithWorkflow.t) =
+let exec mode pkgarg cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false mode PkgArg.root None proj in
-  Project.execCommand
-    ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
-    ~buildLinked:false
-    proj
-    configured.Project.WithWorkflow.workflow.execenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
-    mode
-    configured.Project.WithWorkflow.root.pkg
-    cmd
+  let f pkg =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
+      ~buildLinked:false
+      proj
+      configured.Project.WithWorkflow.workflow.execenvspec
+      configured.Project.WithWorkflow.workflow.buildspec
+      mode
+      pkg
+      cmd
+  in
+  Project.withPackage proj pkgarg f
 
 let runScript (proj : Project.WithWorkflow.t) script args () =
   let open RunAsync.Syntax in
@@ -1442,6 +1445,7 @@ let makeCommands projectPath =
       Term.(
         const exec
         $ modeTerm
+        $ pkgTerm
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"

@@ -238,4 +238,31 @@ describe(`'esy x CMD' invocation`, () => {
       stdout: 'X' + os.EOL,
     });
   });
+
+  it('can be passed -p/--package PKG to run a command in specified package scope', async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    await p.esy('build');
+
+    await expect(p.esy('x -p linkedDep linkedDep.cmd')).resolves.toEqual({
+      stdout: '__linkedDep__' + os.EOL,
+      stderr: '',
+    });
+
+    await expect(p.esy('x -p linkedDep echo "#{self.name}"')).resolves.toEqual({
+      stdout: 'linkedDep' + os.EOL,
+      stderr: '',
+    });
+
+    await expect(p.esy('x --package linkedDep linkedDep.cmd')).resolves.toEqual({
+      stdout: '__linkedDep__' + os.EOL,
+      stderr: '',
+    });
+
+    await expect(p.esy('x --package linkedDep echo "#{self.name}"')).resolves.toEqual({
+      stdout: 'linkedDep' + os.EOL,
+      stderr: '',
+    });
+  });
+
 });
