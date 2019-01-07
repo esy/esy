@@ -5,7 +5,8 @@
 open EsyPackageConfig
 
 val ofInstallationLocation :
-  cfg:Config.t
+  Config.t
+  -> EsyInstall.Config.t
   -> EsyInstall.Package.t
   -> EsyInstall.Installation.location
   -> (BuildManifest.t option * Fpath.set) RunAsync.t

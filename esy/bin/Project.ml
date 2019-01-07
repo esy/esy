@@ -172,6 +172,7 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow solution fil
           BuildSandbox.make
             ~sandboxEnv
             projcfg.cfg
+            projcfg.installSandbox.cfg
             solution
             installation
         in

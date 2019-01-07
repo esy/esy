@@ -6,6 +6,7 @@ module Installation = EsyInstall.Installation
 
 type t = {
   cfg : Config.t;
+  installCfg : EsyInstall.Config.t;
   arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : SandboxEnv.t;
@@ -23,7 +24,7 @@ let rootPackageConfigPath sandbox =
   | Link { path = _; manifest = None; kind = _; } -> None
   | Install _ -> None
 
-let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
+let readManifests cfg installCfg (solution : Solution.t) (installation : Installation.t) =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.debug (fun m -> m "reading manifests: start") in
@@ -42,7 +43,8 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
     RunAsync.contextf (
       let%bind manifest, paths =
         ReadBuildManifest.ofInstallationLocation
-          ~cfg
+          cfg
+          installCfg
           pkg
           loc
       in
@@ -92,12 +94,14 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
 let make
   ?(sandboxEnv=SandboxEnv.empty)
   cfg
+  installCfg
   solution
   installation =
   let open RunAsync.Syntax in
-  let%bind paths, manifests = readManifests cfg solution installation in
+  let%bind paths, manifests = readManifests cfg installCfg solution installation in
   return ({
     cfg;
+    installCfg;
     platform = System.Platform.host;
     arch = System.Arch.host;
     sandboxEnv;

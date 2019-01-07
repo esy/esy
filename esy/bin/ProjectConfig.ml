@@ -202,7 +202,6 @@ let make
   let%bind cfg =
     RunAsync.ofRun (
       Config.make
-        ~installCfg
         ~spec
         ~prefixPath
         ()

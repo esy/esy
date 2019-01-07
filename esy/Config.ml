@@ -3,14 +3,12 @@ module SandboxSpec = EsyInstall.SandboxSpec
 
 type t = {
   spec : EsyInstall.SandboxSpec.t;
-  installCfg : EsyInstall.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
 }
 
 let defaultPrefixPath = Path.v "~/.esy"
 
 let make
-  ~installCfg
   ~prefixPath
   ~spec
   () =
@@ -38,7 +36,6 @@ let make
 
     return {
       spec;
-      installCfg;
       buildCfg;
     }
   in

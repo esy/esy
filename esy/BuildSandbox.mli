@@ -9,6 +9,7 @@ type t
 val make :
   ?sandboxEnv:SandboxEnv.t
   -> Config.t
+  -> EsyInstall.Config.t
   -> EsyInstall.Solution.t
   -> EsyInstall.Installation.t
   -> (t * Fpath.set) RunAsync.t
