@@ -196,23 +196,11 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let buildDependencies
-  all
-  mode
-  devDepspec
-  pkgarg
-  (proj : Project.WithoutWorkflow.t) =
+let buildDependencies all mode pkgarg (proj : Project.WithoutWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let f (pkg : Package.t) =
-    let buildspec =
-      let deps =
-        match devDepspec with
-        | Some depspec -> depspec
-        | None -> Workflow.buildDev
-      in
-      {Workflow.default.buildspec with dev = deps}
-    in
+    let buildspec = Workflow.default.buildspec in
     let%bind plan = RunAsync.ofRun (
       BuildSandbox.makePlan
         buildspec
@@ -234,7 +222,6 @@ let execCommand
   includeEsyIntrospectionEnv
   includeNpmBin
   plan
-  devDepspec
   envspec
   pkgarg
   cmd
@@ -249,14 +236,7 @@ let execCommand
     includeEsyIntrospectionEnv;
     augmentDeps = envspec;
   } in
-  let buildspec =
-    let deps =
-      match devDepspec with
-      | Some depspec -> depspec
-      | None -> Workflow.buildDev
-    in
-    {Workflow.default.buildspec with dev = deps;}
-  in
+  let buildspec = Workflow.default.buildspec in
   let f pkg =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
@@ -277,7 +257,6 @@ let printEnv
   includeEsyIntrospectionEnv
   includeNpmBin
   plan
-  devDepspec
   envspec
   pkgarg
   (proj : Project.WithoutWorkflow.t)
@@ -291,14 +270,7 @@ let printEnv
     includeNpmBin;
     augmentDeps = envspec;
   } in
-  let buildspec =
-    let deps =
-      match devDepspec with
-      | Some depspec -> depspec
-      | None -> Workflow.buildDev
-    in
-    {Workflow.default.buildspec with dev = deps;}
-  in
+  let buildspec = Workflow.default.buildspec in
   Project.printEnv
     proj
     envspec
@@ -1637,13 +1609,6 @@ let makeCommands projectPath =
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
           )
         $ modeTerm
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["dev-depspec"]
-              ~doc:"Define DEPSPEC expression for linked packages' build environments"
-              ~docv:"DEPSPEC"
-          )
         $ pkgTerm
       );
 
@@ -1671,13 +1636,6 @@ let makeCommands projectPath =
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ modeTerm
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["dev-depspec"]
-              ~doc:"Define DEPSPEC expression for linked packages' build environments"
-              ~docv:"DEPSPEC"
-          )
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1710,13 +1668,6 @@ let makeCommands projectPath =
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
         $ modeTerm
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["dev-depspec"]
-              ~doc:"Define DEPSPEC expression for linked packages' build environments"
-              ~docv:"DEPSPEC"
-          )
         $ Arg.(
             value
             & opt (some depspecConv) None
