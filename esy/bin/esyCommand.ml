@@ -16,15 +16,14 @@ let splitBy line ch =
     Some (key, val_)
   | exception Not_found -> None
 
-
-let pkgArg =
+let pkgTerm =
   Cmdliner.Arg.(
     value
     & opt PkgArg.conv PkgArg.root
     & info ["p"; "package"] ~doc:"Package to work on" ~docv:"PACKAGE"
   )
 
-let cmdAndPkg =
+let cmdAndPkgTerm =
   let cmd =
     Cli.cmdOptionTerm
       ~doc:"Command to execute within the environment."
@@ -41,7 +40,7 @@ let cmdAndPkg =
     match pkg, cmd with
     | None, None -> `Ok None
     | None, Some cmd -> `Ok (Some (PkgArg.root, cmd))
-    | Some pkgspec, Some cmd -> `Ok (Some (pkgspec, cmd))
+    | Some pkgarg, Some cmd -> `Ok (Some (pkgarg, cmd))
     | Some _, None ->
       `Error (false, "missing a command to execute (required when '-p <name>' is passed)")
   in
@@ -61,7 +60,7 @@ let depspecConv =
   let pp = EsyInstall.Solution.DepSpec.pp in
   Arg.conv ~docv:"DEPSPEC" (parse, pp)
 
-let modeArg =
+let modeTerm =
   let make release =
     if release
     then BuildSpec.Build
@@ -201,7 +200,7 @@ let buildDependencies
   all
   mode
   devDepspec
-  pkgspec
+  pkgarg
   (proj : Project.WithoutWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
@@ -226,9 +225,9 @@ let buildDependencies
       plan
       pkg
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
-let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
+let buildPackage mode devDepspec pkgarg (proj : Project.WithoutWorkflow.t)  =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -267,7 +266,7 @@ let buildPackage mode devDepspec pkgspec (proj : Project.WithoutWorkflow.t)  =
       plan
       pkg
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
 let execCommand
   buildIsInProgress
@@ -278,7 +277,7 @@ let execCommand
   plan
   devDepspec
   envspec
-  pkgspec
+  pkgarg
   cmd
   (proj : Project.WithoutWorkflow.t)
   =
@@ -310,7 +309,7 @@ let execCommand
       pkg
       cmd
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
 let printEnv
   asJson
@@ -321,7 +320,7 @@ let printEnv
   plan
   devDepspec
   envspec
-  pkgspec
+  pkgarg
   (proj : Project.WithoutWorkflow.t)
   =
   let envspec = {
@@ -347,7 +346,7 @@ let printEnv
     buildspec
     plan
     asJson
-    pkgspec
+    pkgarg
     ()
 
 module Status = struct
@@ -452,7 +451,7 @@ let status
       (Status.to_yojson status);
   return ()
 
-let buildPlan mode pkgspec (proj : Project.WithWorkflow.t) =
+let buildPlan mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind plan = Project.WithWorkflow.plan mode proj in
@@ -464,11 +463,11 @@ let buildPlan mode pkgspec (proj : Project.WithWorkflow.t) =
       let data = Yojson.Safe.pretty_to_string json in
       print_endline data;
       return ()
-    | None -> errorf "not build defined for %a" PkgArg.pp pkgspec
+    | None -> errorf "not build defined for %a" PkgArg.pp pkgarg
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
-let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
+let buildShell mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -495,9 +494,9 @@ let buildShell mode pkgspec (proj : Project.WithWorkflow.t) =
     | Unix.WSTOPPED n
     | Unix.WSIGNALED n -> exit n
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
-let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
+let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -540,9 +539,9 @@ let build ?(buildOnly=true) mode pkgspec cmd (proj : Project.WithWorkflow.t) =
         cmd
     end
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
-let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
+let buildEnv asJson mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -552,10 +551,10 @@ let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     mode
     asJson
-    packagePath
+    pkgarg
     ()
 
-let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
+let commandEnv asJson pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -565,10 +564,10 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     BuildDev
     asJson
-    packagePath
+    pkgarg
     ()
 
-let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
+let execEnv asJson pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -578,22 +577,25 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     BuildDev
     asJson
-    packagePath
+    pkgarg
     ()
 
-let exec mode cmd (proj : Project.WithWorkflow.t) =
+let exec mode pkgarg cmd (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false mode PkgArg.root None proj in
-  Project.execCommand
-    ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
-    ~buildLinked:false
-    proj
-    configured.Project.WithWorkflow.workflow.execenvspec
-    configured.Project.WithWorkflow.workflow.buildspec
-    mode
-    configured.Project.WithWorkflow.root.pkg
-    cmd
+  let f pkg =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
+      ~buildLinked:false
+      proj
+      configured.Project.WithWorkflow.workflow.execenvspec
+      configured.Project.WithWorkflow.workflow.buildspec
+      mode
+      pkg
+      cmd
+  in
+  Project.withPackage proj pkgarg f
 
 let runScript (proj : Project.WithWorkflow.t) script args () =
   let open RunAsync.Syntax in
@@ -675,7 +677,7 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
   | Unix.WSTOPPED n
   | Unix.WSIGNALED n -> exit n
 
-let devExec (pkgspec: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
+let devExec (pkgarg: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   let f (pkg : Package.t) =
@@ -689,40 +691,42 @@ let devExec (pkgspec: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
       pkg
       cmd
   in
-  Project.withPackage proj pkgspec f
+  Project.withPackage proj pkgarg f
 
-let devShell (proj : Project.WithWorkflow.t) =
+let devShell pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind (configured : Project.WithWorkflow.configured) = Project.configured proj in
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  Project.execCommand
-    ~checkIfDependenciesAreBuilt:true
-    ~buildLinked:false
-    proj
-    configured.workflow.commandenvspec
-    configured.workflow.buildspec
-    BuildDev
-    configured.Project.WithWorkflow.root.pkg
-    (Cmd.v shell)
+  let f (pkg : Package.t) =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:true
+      ~buildLinked:false
+      proj
+      configured.workflow.commandenvspec
+      configured.workflow.buildspec
+      BuildDev
+      pkg
+      (Cmd.v shell)
+  in
+  Project.withPackage proj pkgarg f
 
-let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWorkflow.t) =
+let makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg (proj: Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
   let%bind plan = Project.WithWorkflow.plan mode proj in
 
   let seen = ref PackageId.Set.empty in
-  let root = Solution.root solved.Project.solution in
 
-  let rec draw pkg =
+  let rec draw root pkg =
     let id = pkg.Package.id in
     if PackageId.Set.mem id !seen then
       return None
     else (
-      let isRoot = Solution.isRoot solved.Project.solution pkg in
+      let isRoot = Package.compare root pkg = 0 in
       seen := PackageId.Set.add id !seen;
       match BuildSandbox.Plan.get plan id with
       | None -> return None
@@ -733,19 +737,23 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
           else
             let dependencies =
               let spec = BuildSandbox.Plan.spec plan in
-              Solution.dependenciesBySpec solved.solution spec pkg
+              Solution.dependenciesBySpec solved.Project.solution spec pkg
             in
             dependencies
-            |> List.map ~f:draw
+            |> List.map ~f:(draw root)
             |> RunAsync.List.joinAll
         in
         let children = children |> List.filterNone in
         computeTermNode task children
     )
   in
-  match%bind draw root with
-  | Some tree -> return (print_endline (TermTree.render tree))
-  | None -> return ()
+
+  let f pkg =
+    match%bind draw pkg pkg with
+    | Some tree -> return (print_endline (TermTree.render tree))
+    | None -> return ()
+  in
+  Project.withPackage proj pkgarg f
 
 let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let open RunAsync.Syntax in
@@ -760,7 +768,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let line = Printf.sprintf "%s%s %s" (Scope.name task.scope) version status in
   return line
 
-let lsBuilds mode includeTransitive (proj : Project.WithWorkflow.t) =
+let lsBuilds includeTransitive mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let computeTermNode task children =
@@ -768,9 +776,9 @@ let lsBuilds mode includeTransitive (proj : Project.WithWorkflow.t) =
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg proj
 
-let lsLibs mode includeTransitive (proj : Project.WithWorkflow.t) =
+let lsLibs includeTransitive mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
 
@@ -801,9 +809,9 @@ let lsLibs mode includeTransitive (proj : Project.WithWorkflow.t) =
 
     return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg proj
 
-let lsModules mode only (proj : Project.WithWorkflow.t) =
+let lsModules only mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -893,7 +901,7 @@ let lsModules mode only (proj : Project.WithWorkflow.t) =
 
       return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive:false mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive:false mode pkgarg proj
 
 let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
   let open EsySolve in
@@ -1239,15 +1247,15 @@ let default cmdAndPkg (proj : Project.WithWorkflow.t) =
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     build BuildDev PkgArg.root None proj
-  | Ok _, Some (PkgArg.ByPkgSpec Root as pkgspec, cmd) ->
+  | Ok _, Some (PkgArg.ByPkgSpec Root as pkgarg, cmd) ->
     begin match Scripts.find (Cmd.getTool cmd) proj.scripts with
     | Some script ->
       runScript proj script (Cmd.getArgs cmd) ()
     | None ->
-      devExec pkgspec proj cmd ()
+      devExec pkgarg proj cmd ()
     end
-  | Ok _, Some (pkgspec, cmd) ->
-    devExec pkgspec proj cmd ()
+  | Ok _, Some (pkgarg, cmd) ->
+    devExec pkgarg proj cmd ()
   | Error _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     let%bind () = solveAndFetch proj in
@@ -1357,20 +1365,20 @@ let makeCommands projectPath =
       ~doc:"package.json workflow for native development with Reason/OCaml"
       ~docs:commonSection
       ~stop_on_pos:true
-      Term.(const default $ cmdAndPkg)
+      Term.(const default $ cmdAndPkgTerm)
   in
 
   let commands =
 
     let buildCommand =
 
-      let run mode pkgspec cmd proj =
+      let run mode pkgarg cmd proj =
         let () =
           match cmd with
           | None -> Lwt_main.run (printHeader ~spec:proj.Project.projcfg.spec "esy build")
           | Some _ -> ()
         in
-        build ~buildOnly:true mode pkgspec cmd proj
+        build ~buildOnly:true mode pkgarg cmd proj
       in
 
       makeProjectWithWorkflowCommand
@@ -1381,8 +1389,8 @@ let makeCommands projectPath =
         ~stop_on_pos:true
         Term.(
           const run
-          $ modeArg
-          $ pkgArg
+          $ modeTerm
+          $ pkgTerm
           $ Cli.cmdOptionTerm
               ~doc:"Command to execute within the build environment."
               ~docv:"COMMAND"
@@ -1418,15 +1426,18 @@ let makeCommands projectPath =
       ~docs:commonSection
       Term.(
         const buildShell
-        $ modeArg
-        $ pkgArg
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
       ~name:"shell"
       ~doc:"Enter esy sandbox shell"
       ~docs:commonSection
-      Term.(const devShell);
+      Term.(
+        const devShell
+        $ pkgTerm
+      );
 
     makeProjectWithWorkflowCommand
       ~header:`No
@@ -1436,7 +1447,8 @@ let makeCommands projectPath =
       ~stop_on_pos:true
       Term.(
         const exec
-        $ modeArg
+        $ modeTerm
+        $ pkgTerm
         $ Cli.cmdTerm
             ~doc:"Command to execute within the sandbox environment."
             ~docv:"COMMAND"
@@ -1559,11 +1571,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsBuilds
-        $ modeArg
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1572,11 +1585,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsLibs
-        $ modeArg
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1585,11 +1599,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsModules
-        $ modeArg
         $ Arg.(
             value
             & (pos_all string [])
             & info [] ~docv:"LIB" ~doc:"Output modules only for specified lib(s)")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeCommand
@@ -1611,8 +1626,8 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const buildPlan
-        $ modeArg
-        $ pkgArg
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1622,9 +1637,9 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const buildEnv
-        $ modeArg
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgArg
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1635,7 +1650,7 @@ let makeCommands projectPath =
       Term.(
         const commandEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgArg
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1646,7 +1661,7 @@ let makeCommands projectPath =
       Term.(
         const execEnv
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
-        $ pkgArg
+        $ pkgTerm
       );
 
     (* LOW LEVEL PLUMBING COMMANDS *)
@@ -1657,13 +1672,13 @@ let makeCommands projectPath =
       ~docs:lowLevelSection
       Term.(
         const buildPackage
-        $ modeArg
+        $ modeTerm
         $ Arg.(
             value
             & opt (some depspecConv) None
             & info ["dev-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
           )
-        $ pkgArg
+        $ pkgTerm
       );
 
     makeProjectWithoutWorkflowCommand
@@ -1677,7 +1692,7 @@ let makeCommands projectPath =
             & flag
             & info ["all"] ~doc:"Build all dependencies (including linked packages)"
           )
-        $ modeArg
+        $ modeTerm
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1685,7 +1700,7 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression for linked packages' build environments"
               ~docv:"DEPSPEC"
           )
-        $ pkgArg
+        $ pkgTerm
       );
 
     makeProjectWithoutWorkflowCommand
@@ -1711,7 +1726,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ modeArg
+        $ modeTerm
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1726,7 +1741,7 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ pkgArg
+        $ pkgTerm
         $ Cli.cmdTerm
             ~doc:"Command to execute within the environment."
             ~docv:"COMMAND"
@@ -1750,7 +1765,7 @@ let makeCommands projectPath =
               ~doc:"Include esy introspection environment"
           )
         $ Arg.(value & flag & info ["include-npm-bin"]  ~doc:"Include npm bin in PATH")
-        $ modeArg
+        $ modeTerm
         $ Arg.(
             value
             & opt (some depspecConv) None
@@ -1765,7 +1780,7 @@ let makeCommands projectPath =
               ~doc:"Define DEPSPEC expression the command execution environment"
               ~docv:"DEPSPEC"
           )
-        $ pkgArg
+        $ pkgTerm
       );
 
     makeProjectWithoutWorkflowCommand
