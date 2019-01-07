@@ -9,6 +9,7 @@ open EsyInstall
 
 type 'solved project = {
   projcfg : ProjectConfig.t;
+  scripts : Scripts.t;
   solved : 'solved Run.t;
 }
 
@@ -53,7 +54,6 @@ module WithWorkflow : sig
 
   and configured = {
     workflow : Workflow.t;
-    scripts : Scripts.t;
     planForDev : BuildSandbox.Plan.t;
     root : BuildSandbox.Task.t;
   }

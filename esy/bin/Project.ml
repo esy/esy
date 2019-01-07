@@ -133,6 +133,7 @@ end
 
 type 'solved project = {
   projcfg : ProjectConfig.t;
+  scripts : Scripts.t;
   solved : 'solved Run.t;
 }
 
@@ -169,8 +170,9 @@ let makeProject makeSolved projcfg =
     RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
   in
   let files = ref files in
+  let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
   let%lwt solved = makeSolved projcfg files in
-  return ({projcfg; solved;}, !files)
+  return ({projcfg; scripts; solved;}, !files)
 
 let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   let open RunAsync.Syntax in
@@ -280,7 +282,6 @@ module WithWorkflow = struct
 
   type configured = {
     workflow : Workflow.t;
-    scripts : Scripts.t;
     planForDev : BuildSandbox.Plan.t;
     root : BuildSandbox.Task.t;
   }
@@ -302,11 +303,9 @@ module WithWorkflow = struct
       let%bind configured = configured proj in
       return configured.planForDev
 
-  let makeConfigured projcfg solution _installation sandbox _files =
+  let makeConfigured _projcfg solution _installation sandbox _files =
     let open RunAsync.Syntax in
     let workflow = Workflow.default in
-
-    let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
 
     let%bind root, planForDev = RunAsync.ofRun (
       let open Run.Syntax in
@@ -329,7 +328,6 @@ module WithWorkflow = struct
       workflow;
       planForDev;
       root;
-      scripts;
     }
 
   let make projcfg =
