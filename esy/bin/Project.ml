@@ -60,7 +60,7 @@ end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
   let hash = [
-      Path.show projcfg.cfg.buildCfg.storePath;
+      Path.show projcfg.cfg.storePath;
       Path.show projcfg.spec.path;
       projcfg.esyVersion;
     ]
@@ -172,6 +172,7 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow solution fil
           BuildSandbox.make
             ~sandboxEnv
             projcfg.cfg
+            projcfg.spec
             projcfg.installSandbox.cfg
             solution
             installation
@@ -259,7 +260,7 @@ let writeAuxCache proj =
           fetched.sandbox
           root.Package.id
       in
-      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
+      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg commandEnv in
       Environment.renderToShellSource ~header commandEnv
     ) in
     let commandExec =
@@ -497,7 +498,7 @@ let printEnv
           fetched.sandbox
           pkg.id
       in
-      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg.buildCfg env in
+      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg env in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in

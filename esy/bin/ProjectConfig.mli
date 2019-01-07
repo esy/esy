@@ -6,12 +6,11 @@
  *)
 
 open EsyInstall
-open Esy
 
 type t = {
   mainprg : string;
   esyVersion : string;
-  cfg : Config.t;
+  cfg : EsyBuildPackage.Config.t;
   spec : SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;

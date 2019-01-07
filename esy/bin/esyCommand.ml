@@ -549,7 +549,7 @@ let runScript (proj : Project.t) script args () =
 
     let expand v =
       let%bind v = Scope.render ~env ~buildIsInProgress:envspec.buildIsInProgress scope v in
-      return (Scope.SandboxValue.render proj.projcfg.cfg.buildCfg v)
+      return (Scope.SandboxValue.render proj.projcfg.cfg v)
     in
 
     let%bind scriptArgs =
@@ -988,7 +988,7 @@ let add (reqs : string list) (proj : Project.t) =
 
 let exportBuild buildPath (proj : Project.t) =
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-  BuildSandbox.exportBuild ~outputPrefixPath ~cfg:proj.projcfg.cfg buildPath
+  BuildSandbox.exportBuild ~outputPrefixPath proj.projcfg.cfg buildPath
 
 let exportDependencies (proj : Project.t) =
   let open RunAsync.Syntax in
@@ -1005,7 +1005,7 @@ let exportDependencies (proj : Project.t) =
       if%bind Fs.exists buildPath
       then
         let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-        BuildSandbox.exportBuild ~outputPrefixPath ~cfg:proj.projcfg.cfg buildPath
+        BuildSandbox.exportBuild ~outputPrefixPath proj.projcfg.cfg buildPath
       else (
         errorf
           "%s@%a was not built, run 'esy build' first"
@@ -1035,7 +1035,7 @@ let importBuild fromPath buildPaths (projcfg : ProjectConfig.t) =
 
   RunAsync.List.mapAndWait
     ~concurrency:8
-    ~f:(fun path -> BuildSandbox.importBuild ~cfg:projcfg.cfg path)
+    ~f:(fun path -> BuildSandbox.importBuild projcfg.cfg path)
     buildPaths
 
 let importDependencies fromPath (proj : Project.t) =
@@ -1047,7 +1047,7 @@ let importDependencies fromPath (proj : Project.t) =
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
-    | None -> Path.(proj.projcfg.cfg.buildCfg.projectPath / "_export")
+    | None -> Path.(proj.projcfg.cfg.projectPath / "_export")
   in
 
   let importBuild (_direct, pkg) =
@@ -1060,9 +1060,9 @@ let importDependencies fromPath (proj : Project.t) =
         let pathDir = Path.(fromPath / BuildId.show id) in
         let pathTgz = Path.(fromPath / (BuildId.show id ^ ".tar.gz")) in
         if%bind Fs.exists pathDir
-        then BuildSandbox.importBuild ~cfg:proj.projcfg.cfg pathDir
+        then BuildSandbox.importBuild proj.projcfg.cfg pathDir
         else if%bind Fs.exists pathTgz
-        then BuildSandbox.importBuild ~cfg:proj.projcfg.cfg pathTgz
+        then BuildSandbox.importBuild proj.projcfg.cfg pathTgz
         else
           let%lwt () =
             Logs_lwt.warn (fun m -> m "no prebuilt artifact found for %a" BuildId.pp id)

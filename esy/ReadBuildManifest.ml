@@ -217,7 +217,7 @@ let ofPath ?manifest (path : Path.t) =
       "reading package metadata from %a"
       Path.ppPretty path
 
-let ofInstallationLocation cfg installCfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.Installation.location) =
+let ofInstallationLocation spec installCfg (pkg : EsyInstall.Package.t) (loc : EsyInstall.Installation.location) =
   let open RunAsync.Syntax in
   match pkg.source with
   | Link { path; manifest; kind = _; } ->
@@ -225,7 +225,7 @@ let ofInstallationLocation cfg installCfg (pkg : EsyInstall.Package.t) (loc : Es
     let%bind res =
       EsyInstall.DistResolver.resolve
         ~cfg:installCfg
-        ~sandbox:cfg.Config.spec
+        ~sandbox:spec
         dist
     in
     let overrides = Overrides.merge pkg.overrides res.EsyInstall.DistResolver.overrides in

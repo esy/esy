@@ -4,7 +4,7 @@ open Cmdliner
 type t = {
   mainprg : string;
   esyVersion : string;
-  cfg : Config.t;
+  cfg : EsyBuildPackage.Config.t;
   spec : EsyInstall.SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;
@@ -200,10 +200,17 @@ let make
   let installCfg = solveCfg.EsySolve.Config.installCfg in
 
   let%bind cfg =
-    RunAsync.ofRun (
-      Config.make
-        ~spec
-        ~prefixPath
+    let storePath =
+      match prefixPath with
+      | None -> EsyBuildPackage.Config.StorePathDefault
+      | Some prefixPath -> EsyBuildPackage.Config.StorePathOfPrefix prefixPath
+    in
+    RunAsync.ofBosError (
+      EsyBuildPackage.Config.make
+        ~storePath
+        ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
+        ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
+        ~projectPath:spec.path
         ()
     )
   in

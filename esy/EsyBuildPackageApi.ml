@@ -8,7 +8,7 @@ let run
     ?(stdin=`Null)
     ?(args=[])
     ?logPath
-    ~(cfg : Config.t)
+    (cfg : EsyBuildPackage.Config.t)
     action
     (plan : EsyBuildPackage.Plan.t) =
   let open RunAsync.Syntax in
@@ -25,10 +25,10 @@ let run
       return Cmd.(
         esyBuildPackageCmd
         % action
-        % "--store-path" % p cfg.buildCfg.storePath
-        % "--local-store-path" % p cfg.buildCfg.localStorePath
-        % "--project-path" % p cfg.buildCfg.projectPath
-        % "--build-path" % p cfg.buildCfg.buildPath
+        % "--store-path" % p cfg.storePath
+        % "--local-store-path" % p cfg.localStorePath
+        % "--project-path" % p cfg.projectPath
+        % "--build-path" % p cfg.buildPath
         % "--plan" % p buildJsonFilename
         |> addArgs args
       )
@@ -77,7 +77,7 @@ let build
     ?(buildOnly=false)
     ?(quiet=false)
     ?logPath
-    ~cfg
+    cfg
     plan
     =
   let open RunAsync.Syntax in
@@ -89,7 +89,7 @@ let build
     |> addIf buildOnly "--build-only"
     |> addIf quiet "--quiet"
   in
-  let%bind status, log = run ?logPath ~args ~cfg `Build plan in
+  let%bind status, log = run ?logPath ~args cfg `Build plan in
   match status, log with
   | Unix.WEXITED 0, Some (_, fd)  ->
     UnixLabels.close fd;
@@ -111,14 +111,14 @@ let build
   | Unix.WSTOPPED code, None ->
     errorf "build failed with exit code: %i" code
 
-let buildShell ~cfg plan =
+let buildShell cfg plan =
   let open RunAsync.Syntax in
-  let%bind status, _log = run ~stdin:`Keep ~cfg `Shell plan in
+  let%bind status, _log = run ~stdin:`Keep cfg `Shell plan in
   return status
 
-let buildExec ~cfg plan cmd =
+let buildExec cfg plan cmd =
   let open RunAsync.Syntax in
   let tool, args = Cmd.getToolAndArgs cmd in
   let args = "--"::tool::args in
-  let%bind status, _log = run ~stdin:`Keep ~args ~cfg `Exec  plan in
+  let%bind status, _log = run ~stdin:`Keep ~args cfg `Exec  plan in
   return status

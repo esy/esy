@@ -5,7 +5,7 @@
 open EsyPackageConfig
 
 val ofInstallationLocation :
-  Config.t
+  EsyInstall.SandboxSpec.t
   -> EsyInstall.Config.t
   -> EsyInstall.Package.t
   -> EsyInstall.Installation.location
