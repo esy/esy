@@ -1009,8 +1009,17 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
     let infoPath = Task.buildInfoPath sandbox.cfg task in
     let sourcePath = Task.sourcePath sandbox.cfg task in
     let%bind isBuilt = isBuilt sandbox task in
-    match Scope.sourceType task.scope with
-    | SourceType.Transient ->
+    match Scope.sourceType task.scope, Scope.buildType task.scope with
+    | SourceType.Transient, BuildType.OutOfSource ->
+      let%bind timeSpent = LwtTaskQueue.submit queue (run ~quiet:false task) in
+      let%bind () = BuildInfo.toFile infoPath {
+        BuildInfo.
+        idInfo = task.idrepr;
+        timeSpent;
+        sourceModTime = None;
+      } in
+      return Changes.Yes
+    | SourceType.Transient, _ ->
       let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
       begin match isBuilt, Changes.(changesInDependencies + changesInSources) with
       | true, Changes.No ->
@@ -1030,7 +1039,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
         } in
         return Changes.Yes
       end
-    | SourceType.ImmutableWithTransientDependencies ->
+    | SourceType.ImmutableWithTransientDependencies, _ ->
       begin match isBuilt, changesInDependencies with
       | true, Changes.No ->
         Logs_lwt.debug (fun m ->
@@ -1049,7 +1058,7 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
         } in
         return Changes.Yes
       end
-    | SourceType.Immutable ->
+    | SourceType.Immutable, _ ->
       if isBuilt
       then return Changes.No
       else
