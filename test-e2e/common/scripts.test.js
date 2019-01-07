@@ -8,7 +8,7 @@ const {skipSuiteOnWindows} = require('../test/helpers');
 
 skipSuiteOnWindows('#272');
 
-const {packageJson, file, createTestSandbox} = require('../test/helpers');
+const {packageJson, file, dir, createTestSandbox} = require('../test/helpers');
 
 const fixture = [
   packageJson({
@@ -38,6 +38,12 @@ const fixture = [
       ],
       install: ['cp $cur__target_dir/script $cur__bin/script'],
     },
+    dependencies: {
+      dep: '*'
+    },
+    resolutions: {
+      dep: 'link:./dep'
+    }
   }),
   file(
     'script.sh',
@@ -47,9 +53,18 @@ const fixture = [
     echo 'script_exec_result'
   `,
   ),
+  dir('dep',
+    packageJson({
+      name: 'dep',
+      version: '1.0.0',
+      esy: {
+        build: 'true'
+      }
+    })
+  )
 ];
 
-it('Common - scripts', async () => {
+it('executes scripts', async () => {
   const p = await createTestSandbox(...fixture);
   await p.esy('install');
   await p.esy('build');
@@ -104,4 +119,33 @@ it('Common - scripts', async () => {
   await expect(p.esy('build_cmd6')).resolves.toEqual(
     expect.objectContaining({stdout: 'simple-project' + os.EOL}),
   );
+});
+
+it('executes scripts with -p root', async () => {
+  const p = await createTestSandbox(...fixture);
+  await p.esy('install');
+  await p.esy('build');
+
+  await expect(p.esy('-p root cmd1')).resolves.toEqual(
+    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
+  );
+});
+
+it('executes scripts even if sandbox is not built', async () => {
+  const p = await createTestSandbox(...fixture);
+  await p.esy('install');
+
+  await expect(p.esy('cmd1')).resolves.toEqual(
+    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
+  );
+});
+
+it('does execute scripts in a non-root package scope', async () => {
+  const p = await createTestSandbox(...fixture);
+  await p.esy('install');
+  await p.esy('build');
+
+  await expect(p.esy('-p dep cmd1')).rejects.toMatchObject({
+    message: expect.stringMatching('error: unable to resolve command: cmd1')
+  });
 });
