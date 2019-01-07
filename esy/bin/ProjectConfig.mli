@@ -10,6 +10,7 @@ open Esy
 
 type t = {
   mainprg : string;
+  esyVersion : string;
   cfg : Config.t;
   spec : SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;

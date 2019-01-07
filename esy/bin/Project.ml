@@ -62,7 +62,7 @@ let makeCachePath prefix (projcfg : ProjectConfig.t) =
   let hash = [
       Path.show projcfg.cfg.buildCfg.storePath;
       Path.show projcfg.spec.path;
-      projcfg.cfg.esyVersion;
+      projcfg.esyVersion;
     ]
     |> String.concat "$$"
     |> Digest.string

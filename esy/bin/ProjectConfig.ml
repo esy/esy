@@ -3,6 +3,7 @@ open Cmdliner
 
 type t = {
   mainprg : string;
+  esyVersion : string;
   cfg : Config.t;
   spec : EsyInstall.SandboxSpec.t;
   solveSandbox : EsySolve.Sandbox.t;
@@ -203,7 +204,6 @@ let make
       Config.make
         ~installCfg
         ~spec
-        ~esyVersion:EsyRuntime.version
         ~prefixPath
         ()
     )
@@ -214,6 +214,7 @@ let make
 
   return {
     mainprg;
+    esyVersion = EsyRuntime.version;
     cfg;
     solveSandbox;
     installSandbox;

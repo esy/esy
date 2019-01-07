@@ -2,7 +2,6 @@ module Store = EsyLib.Store
 module SandboxSpec = EsyInstall.SandboxSpec
 
 type t = {
-  esyVersion : string;
   spec : EsyInstall.SandboxSpec.t;
   installCfg : EsyInstall.Config.t;
   buildCfg : EsyBuildPackage.Config.t;
@@ -12,7 +11,6 @@ let defaultPrefixPath = Path.v "~/.esy"
 
 let make
   ~installCfg
-  ~esyVersion
   ~prefixPath
   ~spec
   () =
@@ -39,7 +37,6 @@ let make
     in
 
     return {
-      esyVersion;
       spec;
       installCfg;
       buildCfg;
