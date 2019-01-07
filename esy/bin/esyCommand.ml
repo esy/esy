@@ -677,23 +677,19 @@ let runScript (proj : Project.WithWorkflow.t) script args () =
 
 let devExec (pkgspec: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
   let open RunAsync.Syntax in
-  let%bind (configured : Project.WithWorkflow.configured) = Project.configured proj in
-  match Scripts.find (Cmd.getTool cmd) configured.scripts with
-  | Some script ->
-    runScript proj script (Cmd.getArgs cmd) ()
-  | None ->
-    let f (pkg : Package.t) =
-      Project.execCommand
-        ~checkIfDependenciesAreBuilt:true
-        ~buildLinked:false
-        proj
-        configured.workflow.commandenvspec
-        configured.workflow.buildspec
-        BuildDev
-        pkg
-        cmd
-    in
-    Project.withPackage proj pkgspec f
+  let%bind configured = Project.configured proj in
+  let f (pkg : Package.t) =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:true
+      ~buildLinked:false
+      proj
+      configured.Project.WithWorkflow.workflow.commandenvspec
+      configured.Project.WithWorkflow.workflow.buildspec
+      BuildDev
+      pkg
+      cmd
+  in
+  Project.withPackage proj pkgspec f
 
 let devShell (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -1243,6 +1239,13 @@ let default cmdAndPkg (proj : Project.WithWorkflow.t) =
   | Ok _, None ->
     printHeader ~spec:proj.projcfg.spec "esy";%lwt
     build BuildDev PkgArg.root None proj
+  | Ok _, Some (PkgArg.ByPkgSpec Root as pkgspec, cmd) ->
+    begin match Scripts.find (Cmd.getTool cmd) proj.scripts with
+    | Some script ->
+      runScript proj script (Cmd.getArgs cmd) ()
+    | None ->
+      devExec pkgspec proj cmd ()
+    end
   | Ok _, Some (pkgspec, cmd) ->
     devExec pkgspec proj cmd ()
   | Error _, None ->
@@ -1250,6 +1253,13 @@ let default cmdAndPkg (proj : Project.WithWorkflow.t) =
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.WithWorkflow.make proj.projcfg in
     build BuildDev PkgArg.root None proj
+  | Error _ as err, Some (PkgArg.ByPkgSpec Root, cmd) ->
+    begin match Scripts.find (Cmd.getTool cmd) proj.scripts with
+    | Some script ->
+      runScript proj script (Cmd.getArgs cmd) ()
+    | None ->
+      Lwt.return err
+    end
   | Error _ as err, Some _ ->
     Lwt.return err
 
