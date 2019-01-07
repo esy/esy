@@ -1225,9 +1225,9 @@ let makeCommands projectPath =
   let open Cmdliner in
 
   let projectConfig = ProjectConfig.term projectPath in
-  let projectWithWorkflow = Project.term projectPath in
+  let project = Project.term projectPath in
 
-  let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
+  let makeProjectCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
       let run cmd project =
         let () =
@@ -1237,13 +1237,13 @@ let makeCommands projectPath =
         in
         cmd project
       in
-      Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow)
+      Cmdliner.Term.(pure run $ cmd $ project)
     in
     makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
 
   let defaultCommand =
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"esy"
       ~doc:"package.json workflow for native development with Reason/OCaml"
@@ -1265,7 +1265,7 @@ let makeCommands projectPath =
         build ~buildOnly:true mode pkgarg cmd proj
       in
 
-      makeProjectWithWorkflowCommand
+      makeProjectCommand
         ~header:`No
         ~name:"build"
         ~doc:"Build the entire sandbox"
@@ -1282,7 +1282,7 @@ let makeCommands projectPath =
     in
 
     let installCommand =
-      makeProjectWithWorkflowCommand
+      makeProjectCommand
         ~name:"install"
         ~doc:"Solve & fetch dependencies"
         ~docs:commonSection
@@ -1290,7 +1290,7 @@ let makeCommands projectPath =
     in
 
     let npmReleaseCommand =
-      makeProjectWithWorkflowCommand
+      makeProjectCommand
         ~name:"npm-release"
         ~doc:"Produce npm package with prebuilt artifacts"
         ~docs:otherSection
@@ -1304,7 +1304,7 @@ let makeCommands projectPath =
     installCommand;
     buildCommand;
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"build-shell"
       ~doc:"Enter the build shell"
       ~docs:commonSection
@@ -1314,7 +1314,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"shell"
       ~doc:"Enter esy sandbox shell"
       ~docs:commonSection
@@ -1323,7 +1323,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"x"
       ~doc:"Execute command as if the package is installed"
@@ -1339,7 +1339,7 @@ let makeCommands projectPath =
             (Cmdliner.Arg.pos_all)
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"add"
       ~doc:"Add a new dependency"
       ~docs:commonSection
@@ -1396,7 +1396,7 @@ let makeCommands projectPath =
     npmReleaseCommand;
     makeAlias ~docs:otherSection npmReleaseCommand "release";
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"export-build"
       ~doc:"Export build from the store"
       ~docs:otherSection
@@ -1428,13 +1428,13 @@ let makeCommands projectPath =
         $ projectConfig
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"export-dependencies"
       ~doc:"Export sandbox dependendencies as prebuilt artifacts"
       ~docs:otherSection
       Term.(const exportDependencies);
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"import-dependencies"
       ~doc:"Import sandbox dependencies"
       ~docs:otherSection
@@ -1449,7 +1449,7 @@ let makeCommands projectPath =
 
     (* INTROSPECTION COMMANDS *)
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"ls-builds"
       ~doc:"Output a tree of packages in the sandbox along with their status"
       ~docs:introspectionSection
@@ -1463,7 +1463,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"ls-libs"
       ~doc:"Output a tree of packages along with the set of libraries made available by each package dependency."
       ~docs:introspectionSection
@@ -1477,7 +1477,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"ls-modules"
       ~doc:"Output a tree of packages along with the set of libraries and modules made available by each package dependency."
       ~docs:introspectionSection
@@ -1503,7 +1503,7 @@ let makeCommands projectPath =
         $ Cli.setupLogTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"build-plan"
       ~doc:"Print build plan to stdout"
@@ -1514,7 +1514,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"build-env"
       ~doc:"Print build environment to stdout"
@@ -1526,7 +1526,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"command-env"
       ~doc:"Print command environment to stdout"
@@ -1537,7 +1537,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"exec-env"
       ~doc:"Print exec environment to stdout"
@@ -1550,7 +1550,7 @@ let makeCommands projectPath =
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
@@ -1565,7 +1565,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
@@ -1603,7 +1603,7 @@ let makeCommands projectPath =
             Cmdliner.Arg.pos_all
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
@@ -1631,7 +1631,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
       ~docs:lowLevelSection
@@ -1645,7 +1645,7 @@ let makeCommands projectPath =
           )
       );
 
-    makeProjectWithWorkflowCommand
+    makeProjectCommand
       ~name:"fetch"
       ~doc:"Fetch dependencies using the stored solution"
       ~docs:lowLevelSection
