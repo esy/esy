@@ -541,7 +541,7 @@ let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgarg f
 
-let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
+let buildEnv mode asJson pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -551,10 +551,10 @@ let buildEnv mode asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     mode
     asJson
-    packagePath
+    pkgarg
     ()
 
-let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
+let commandEnv asJson pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -564,10 +564,10 @@ let commandEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     BuildDev
     asJson
-    packagePath
+    pkgarg
     ()
 
-let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
+let execEnv asJson pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -577,7 +577,7 @@ let execEnv asJson packagePath (proj : Project.WithWorkflow.t) =
     configured.Project.WithWorkflow.workflow.buildspec
     BuildDev
     asJson
-    packagePath
+    pkgarg
     ()
 
 let exec mode cmd (proj : Project.WithWorkflow.t) =
