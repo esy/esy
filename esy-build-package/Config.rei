@@ -6,9 +6,14 @@ type t =
     localStorePath: Fpath.t,
   };
 
+type storePathConfig =
+  | StorePath(Fpath.t)
+  | StorePathOfPrefix(Fpath.t)
+  | StorePathDefault;
+
 let make:
   (
-    ~storePath: Fpath.t=?,
+    ~storePath: storePathConfig,
     ~projectPath: Fpath.t,
     ~buildPath: Fpath.t,
     ~localStorePath: Fpath.t,

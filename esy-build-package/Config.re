@@ -9,6 +9,11 @@ type t = {
 
 type config = t;
 
+type storePathConfig =
+  | StorePath(Fpath.t)
+  | StorePathOfPrefix(Fpath.t)
+  | StorePathDefault;
+
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
 let initStore = (path: Fpath.t) => {
@@ -19,17 +24,24 @@ let initStore = (path: Fpath.t) => {
   return();
 };
 
-let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) => {
-  open Run;
-  let%bind storePath =
-    switch (storePath) {
-    | Some(p) => return(p)
-    | None =>
+let rec configureStorePath = cfg =>
+  Run.(
+    switch (cfg) {
+    | StorePath(storePath) => return(storePath)
+    | StorePathOfPrefix(prefixPath) =>
+      let%bind padding = Store.getPadding(prefixPath);
+      let storePath = prefixPath / (Store.version ++ padding);
+      return(storePath);
+    | StorePathDefault =>
       let home = EsyLib.Path.homePath();
       let prefixPath = home / ".esy";
-      let%bind padding = Store.getPadding(prefixPath);
-      return(prefixPath / (Store.version ++ padding));
-    };
+      configureStorePath(StorePathOfPrefix(prefixPath));
+    }
+  );
+
+let make = (~storePath, ~projectPath, ~buildPath, ~localStorePath, ()) => {
+  open Run;
+  let%bind storePath = configureStorePath(storePath);
   let%bind () = initStore(storePath);
   let%bind () = {
     let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);

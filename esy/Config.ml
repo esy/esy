@@ -15,19 +15,17 @@ let make
   let value =
     let open Result.Syntax in
 
-    let%bind prefixPath =
+    let prefixPath =
       match prefixPath with
-      | Some v -> return v
+      | Some v -> v
       | None ->
         let home = Path.homePath () in
-        return Path.(home / ".esy")
+        Path.(home / ".esy")
     in
 
-    let%bind padding = Store.getPadding(prefixPath) in
-    let storePath = Path.(prefixPath / (Store.version ^ padding)) in
     let%bind buildCfg =
       EsyBuildPackage.Config.make
-        ~storePath
+        ~storePath:(StorePathOfPrefix prefixPath)
         ~projectPath:spec.SandboxSpec.path
         ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
         ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
