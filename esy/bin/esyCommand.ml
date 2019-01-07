@@ -227,47 +227,6 @@ let buildDependencies
   in
   Project.withPackage proj pkgarg f
 
-let buildPackage mode devDepspec pkgarg (proj : Project.WithoutWorkflow.t)  =
-  let open RunAsync.Syntax in
-
-  let%bind fetched = Project.fetched proj in
-
-  let buildspec =
-    let deps =
-      match devDepspec with
-      | Some depspec -> depspec
-      | None -> Workflow.buildDev
-    in
-    {
-      Workflow.default.buildspec
-      with dev = deps;
-    }
-  in
-
-  let f (pkg : Package.t) =
-    let%bind plan = RunAsync.ofRun (
-      BuildSandbox.makePlan
-        buildspec
-        mode
-        fetched.Project.sandbox
-    ) in
-    let%bind () =
-      Project.buildDependencies
-        ~buildLinked:true
-        proj
-        plan
-        pkg
-    in
-    Project.buildPackage
-      ~quiet:true
-      ~buildOnly:true
-      proj.Project.projcfg
-      fetched.Project.sandbox
-      plan
-      pkg
-  in
-  Project.withPackage proj pkgarg f
-
 let execCommand
   buildIsInProgress
   includeBuildEnv
@@ -1665,21 +1624,6 @@ let makeCommands projectPath =
       );
 
     (* LOW LEVEL PLUMBING COMMANDS *)
-
-    makeProjectWithoutWorkflowCommand
-      ~name:"build-package"
-      ~doc:"Build a specified package"
-      ~docs:lowLevelSection
-      Term.(
-        const buildPackage
-        $ modeTerm
-        $ Arg.(
-            value
-            & opt (some depspecConv) None
-            & info ["dev-depspec"] ~doc:"What to add to the env" ~docv:"DEPSPEC"
-          )
-        $ pkgTerm
-      );
 
     makeProjectWithoutWorkflowCommand
       ~name:"build-dependencies"
