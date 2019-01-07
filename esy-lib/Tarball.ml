@@ -28,10 +28,10 @@ let run cmd =
     | Unix.WEXITED 0 ->
       RunAsync.return ()
     | _ ->
-      Logs_lwt.err (fun m -> m
+      let%lwt () = Logs_lwt.err (fun m -> m
         "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]"
         Cmd.pp cmd Fmt.lines stderr Fmt.lines stdout
-      );%lwt
+      ) in
       RunAsync.error "error running command"
   in
   try%lwt

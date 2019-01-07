@@ -226,7 +226,7 @@ let lockOfSolution sandbox (solution : Solution.t) =
 let ofPath ?digest (sandbox : Sandbox.t) (path : Path.t) =
   let open RunAsync.Syntax in
   RunAsync.contextf (
-    Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path);%lwt
+    let%lwt () = Logs_lwt.debug (fun m -> m "SolutionLock.ofPath %a" Path.pp path) in
     if%bind Fs.exists path
     then
       let%lwt lock =
@@ -261,7 +261,7 @@ let ofPath ?digest (sandbox : Sandbox.t) (path : Path.t) =
 
 let toPath ~digest sandbox (solution : Solution.t) (path : Path.t) =
   let open RunAsync.Syntax in
-  Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path);%lwt
+  let%lwt () = Logs_lwt.debug (fun m -> m "SolutionLock.toPath %a" Path.pp path) in
   let%bind () = Fs.rmPath path in
   let%bind root, node = lockOfSolution sandbox solution in
   let lock = {digest = Digestv.toHex digest; node; root = root.Package.id;} in

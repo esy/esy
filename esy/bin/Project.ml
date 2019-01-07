@@ -315,9 +315,9 @@ module OfTerm = struct
       let f prev =
         let%bind next = FileInfo.ofPath prev.FileInfo.path in
         let changed = FileInfo.compare prev next <> 0 in
-        Logs_lwt.debug (fun m ->
+        let%lwt () = Logs_lwt.debug (fun m ->
           m "checkStaleness %a: %b" Path.pp prev.FileInfo.path changed
-        );%lwt
+        ) in
         return changed
       in
       List.map ~f files
@@ -386,9 +386,9 @@ let withPackage proj (pkgArg : PkgArg.t) f =
   let runWith pkg =
     match pkg with
     | Some pkg ->
-      Logs_lwt.debug (fun m ->
+      let%lwt () = Logs_lwt.debug (fun m ->
         m "PkgArg %a resolves to %a" PkgArg.pp pkgArg Package.pp pkg
-      );%lwt
+      ) in
       f pkg
     | None -> errorf "no package found: %a" PkgArg.pp pkgArg
   in

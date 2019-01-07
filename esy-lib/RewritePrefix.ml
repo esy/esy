@@ -6,12 +6,12 @@ let cmd =
   | Error (`Msg msg) -> failwith msg
 
 let rewritePrefix ~origPrefix ~destPrefix path =
-  Logs_lwt.debug (fun m ->
+  let%lwt () = Logs_lwt.debug (fun m ->
     m "rewritePrefix %a: %a -> %a"
     Path.pp path
     Path.pp origPrefix
     Path.pp destPrefix
-  );%lwt
+  ) in
   let env = EsyBash.currentEnvWithMingwInPath in
   ChildProcess.run ~env:(ChildProcess.CustomEnv env) Cmd.(
     cmd

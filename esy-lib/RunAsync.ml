@@ -70,9 +70,9 @@ let cleanup comp handler =
   let res =
     match%lwt comp with
     | Ok res -> return res
-    | Error _ as err -> handler () ;%lwt Lwt.return err
+    | Error _ as err -> let%lwt () = handler () in Lwt.return err
   in
-  try%lwt res with err -> (handler () ;%lwt raise err)
+  try%lwt res with err -> (let%lwt () = handler () in raise err)
 
 module List = struct
 

@@ -1145,7 +1145,7 @@ let default cmdAndPkg (proj : Project.t) =
   let%lwt fetched = Project.fetched proj in
   match fetched, cmdAndPkg with
   | Ok _, None ->
-    printHeader ~spec:proj.projcfg.spec "esy";%lwt
+    let%lwt () = printHeader ~spec:proj.projcfg.spec "esy" in
     build BuildDev PkgArg.root None proj
   | Ok _, Some (PkgArg.ByPkgSpec Root as pkgarg, cmd) ->
     begin match Scripts.find (Cmd.getTool cmd) proj.scripts with
@@ -1157,7 +1157,7 @@ let default cmdAndPkg (proj : Project.t) =
   | Ok _, Some (pkgarg, cmd) ->
     devExec pkgarg proj cmd ()
   | Error _, None ->
-    printHeader ~spec:proj.projcfg.spec "esy";%lwt
+    let%lwt () = printHeader ~spec:proj.projcfg.spec "esy" in
     let%bind () = solveAndFetch proj in
     let%bind proj, _ = Project.make proj.projcfg in
     build BuildDev PkgArg.root None proj

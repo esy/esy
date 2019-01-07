@@ -97,9 +97,9 @@ let ofGithub
           | Ok override -> return (Override override)
           | Error err ->
             let suggestedPackageName = suggestPackageName ~fallback:repo (kind, filename) in
-            Logs_lwt.debug (fun m ->
+            let%lwt () = Logs_lwt.debug (fun m ->
               m "not an override %s/%s:%s: %a" user repo filename Run.ppError err
-              );%lwt
+            ) in
             return (Manifest {data; filename; kind; suggestedPackageName;})
           end
         | ManifestSpec.Opam ->
@@ -137,9 +137,10 @@ let ofPath ?manifest (path : Path.t) =
         begin match Json.parseStringWith PackageOverride.of_yojson data with
         | Ok override -> return (Some (Override override))
         | Error err ->
-          Logs_lwt.debug (fun m ->
+          let%lwt () = Logs_lwt.debug (fun m ->
             m "not an override %a: %a" Path.pp path Run.ppError err
-            );%lwt
+            )
+          in
           return (Some (Manifest {data; filename; kind; suggestedPackageName;}))
         end
       | ManifestSpec.Opam ->
@@ -187,7 +188,7 @@ let resolve
   let open RunAsync.Syntax in
 
   let resolve' (dist : Dist.t) =
-    Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist);%lwt
+    let%lwt () = Logs_lwt.debug (fun m -> m "fetching metadata %a" Dist.pp dist) in
     match dist with
     | LocalPath {path; manifest} ->
       let realpath = DistPath.toPath sandbox.SandboxSpec.path path in
@@ -240,7 +241,7 @@ let resolve
     | Override {dist = nextDist; override = json;}, newPaths ->
       let override = Override.ofDist json dist in
       let%bind nextDist = RunAsync.ofRun (rebase ~base:dist nextDist) in
-      Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist);%lwt
+      let%lwt () = Logs_lwt.debug (fun m -> m "override: %a -> %a@." Dist.pp dist Dist.pp nextDist) in
       let overrides = Overrides.add override overrides in
       let paths = Path.Set.union paths newPaths in
       loop' ~overrides ~paths nextDist

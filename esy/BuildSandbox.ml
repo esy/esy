@@ -26,13 +26,15 @@ let rootPackageConfigPath sandbox =
 let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
   let open RunAsync.Syntax in
 
-  Logs_lwt.debug (fun m -> m "reading manifests: start");%lwt
+  let%lwt () = Logs_lwt.debug (fun m -> m "reading manifests: start") in
 
   let readManifest (id, loc) =
-    Logs_lwt.debug (fun m ->
-      m "reading manifest: %a %a" PackageId.pp id
-      Installation.pp_location loc
-    );%lwt
+    let%lwt () =
+      Logs_lwt.debug (fun m ->
+        m "reading manifest: %a %a" PackageId.pp id
+        Installation.pp_location loc
+      )
+    in
 
     let pkg = Solution.getExn solution id in
     let isRoot = Package.compare (Solution.root solution) pkg = 0 in
@@ -83,7 +85,7 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
     List.fold_left ~f ~init:(Path.Set.empty, PackageId.Map.empty) items
   in
 
-  Logs_lwt.debug (fun m -> m "reading manifests: done");%lwt
+  let%lwt () = Logs_lwt.debug (fun m -> m "reading manifests: done") in
 
   return (paths, manifests)
 
@@ -914,7 +916,7 @@ end
 let isBuilt sandbox task = Fs.exists (Task.installPath sandbox.cfg task)
 
 let buildTask ?quiet ?buildOnly ?logPath sandbox task =
-  Logs_lwt.debug (fun m -> m "build %a" Task.pp task);%lwt
+  let%lwt () = Logs_lwt.debug (fun m -> m "build %a" Task.pp task) in
   let plan = Task.plan task in
   let label = Fmt.strf "build %a" Task.pp task in
   Perf.measureLwt ~label (fun () ->
@@ -950,7 +952,7 @@ let buildRoot ?quiet ?buildOnly sandbox plan =
 
 let build' ~concurrency ~buildLinked sandbox plan ids =
   let open RunAsync.Syntax in
-  Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency);%lwt
+  let%lwt () = Logs_lwt.debug (fun m -> m "buildDependencies ~concurrency:%i" concurrency) in
 
   let findMaxModifyTimeMem =
     let mem = Memoize.make () in
@@ -972,17 +974,17 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
     let%bind mpath, mtime = findMaxModifyTimeMem sourcePath in
     match%bind prevmtime with
     | None ->
-      Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath);%lwt
+      let%lwt () = Logs_lwt.debug (fun m -> m "no mtime info found: %a" Path.pp mpath) in
       return (Changes.Yes, mtime)
     | Some prevmtime ->
       if not (BuildInfo.ModTime.equal mtime prevmtime)
       then (
-        Logs_lwt.debug (fun m ->
+        let%lwt () = Logs_lwt.debug (fun m ->
           m "path changed: %a %a (prev %a)"
           Path.pp mpath
           BuildInfo.ModTime.pp mtime
           BuildInfo.ModTime.pp prevmtime
-        );%lwt
+        ) in
         return (Changes.Yes, mtime)
       )
       else
@@ -993,14 +995,18 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
 
   let run ~quiet task () =
     let start = Unix.gettimeofday () in
-    if not quiet
-    then Logs_lwt.app (fun m -> m "building %a" Task.pp task)
-    else Lwt.return ();%lwt
+    let%lwt () =
+      if not quiet
+      then Logs_lwt.app (fun m -> m "building %a" Task.pp task)
+      else Lwt.return ()
+    in
     let logPath = Task.logPath sandbox.cfg task in
     let%bind () = buildTask ~logPath sandbox task in
-    if not quiet
-    then Logs_lwt.app (fun m -> m "building %a: done" Task.pp task)
-    else Lwt.return ();%lwt
+    let%lwt () =
+      if not quiet
+      then Logs_lwt.app (fun m -> m "building %a: done" Task.pp task)
+      else Lwt.return ()
+    in
     let stop = Unix.gettimeofday () in
     return (stop -. start)
   in
@@ -1014,10 +1020,10 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
       let%bind changesInSources, mtime = checkFreshModifyTime infoPath sourcePath in
       begin match isBuilt, Changes.(changesInDependencies + changesInSources) with
       | true, Changes.No ->
-        Logs_lwt.debug (fun m ->
+        let%lwt () = Logs_lwt.debug (fun m ->
           m "building %a: skipping (changesInDependencies: %a, changesInSources: %a)"
           Task.pp task Changes.pp changesInDependencies Changes.pp changesInSources
-        );%lwt
+        ) in
         return Changes.No
       | true, Changes.Yes
       | false, _ ->
@@ -1033,10 +1039,10 @@ let build' ~concurrency ~buildLinked sandbox plan ids =
     | SourceType.ImmutableWithTransientDependencies ->
       begin match isBuilt, changesInDependencies with
       | true, Changes.No ->
-        Logs_lwt.debug (fun m ->
+        let%lwt () = Logs_lwt.debug (fun m ->
           m "building %a: skipping (changesInDependencies: %a)"
           Task.pp task Changes.pp changesInDependencies
-        );%lwt
+        ) in
         return Changes.No
       | true, Changes.Yes
       | false, _ ->
