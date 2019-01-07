@@ -52,12 +52,10 @@ describe(`'esy build' command: circular dependency error`, () => {
     await p.esy('install');
     await expect(p.esy('build')).rejects.toMatchObject({
       stderr: outdent`
-        info esy build ${helpers.esyVersion} (using package.json)
         error: found circular dependency on: dep@path:dep
           processing depOfDep@path:depOfDep
           processing dep@path:dep
           processing hasCircularDeps@link-dev:./package.json
-          creating task for hasCircularDeps@link-dev:./package.json
         esy: exiting due to errors above
 
       `,

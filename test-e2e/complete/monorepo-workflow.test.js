@@ -4,8 +4,8 @@
 //
 // The project structure is the following:
 //
-//   root -depends-> pkga, pkgb, pkgc
-//   pkgb -depends-> pkgc
+//   root -links-dev-> pkga, pkgb, pkgc
+//   pkgb -links-dev-> pkgc
 //   root -devDepends-> devDep
 //
 // Also pkga, pkgb and pkgc are configured to use devDep.cmd executable from
@@ -38,6 +38,7 @@ async function createTestSandbox() {
   ];
 
   function createPackage({name, dependencies, devDependencies, resolutions}) {
+    devDependencies = devDependencies || {};
     return [
       packageJson({
         name,
@@ -48,7 +49,7 @@ async function createTestSandbox() {
             helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
           ],
           buildDev: [
-            'devDep.cmd',
+            devDependencies.devDep != null ? 'devDep.cmd' : 'true',
             'cp #{self.root / self.name}.js #{self.target_dir / self.name}.js',
             helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
           ],
@@ -73,9 +74,6 @@ async function createTestSandbox() {
         pkgb: '*',
         pkgc: '*',
       },
-      devDependencies: {
-        devDep: 'path:./devDep',
-      },
       resolutions: {
         pkga: 'link-dev:./pkga',
         pkgb: 'link-dev:./pkgb',
@@ -87,7 +85,9 @@ async function createTestSandbox() {
       ...createPackage({
         name: 'pkga',
         dependencies: {},
-        devDependencies: {},
+        devDependencies: {
+          devDep: 'path:../devDep',
+        },
         resolutions: {},
       }),
     ),
@@ -96,7 +96,9 @@ async function createTestSandbox() {
       ...createPackage({
         name: 'pkgb',
         dependencies: {pkgc: '*'},
-        devDependencies: {},
+        devDependencies: {
+          devDep: 'path:../devDep',
+        },
         resolutions: {},
       }),
     ),
@@ -105,7 +107,9 @@ async function createTestSandbox() {
       ...createPackage({
         name: 'pkgc',
         dependencies: {},
-        devDependencies: {},
+        devDependencies: {
+          devDep: 'path:../devDep',
+        },
         resolutions: {},
       }),
     ),
@@ -118,36 +122,25 @@ async function createTestSandbox() {
 
 describe('Monorepo workflow using low level commands', function() {
 
-  test('that the build is failing with default config', async function() {
-    const p = await createTestSandbox();
-
-    // simple build doesn't work as we are using devDep of the root in "buildDev"
-    await expect(p.esy('build-dependencies --all')).rejects.toThrowError(
-      'unable to resolve command: devDep.cmd',
-    );
-  });
-
-  const depspec = 'dependencies(self)+devDependencies(root)';
-
-  test('that the build is ok with custom DEPSPEC config', async function() {
+  test('building the monorepo', async function() {
     // now try to build with a custom DEPSPEC
     const p = await createTestSandbox();
 
-    await p.esy(`build-dependencies --all --dev-depspec "${depspec}"`);
+    await p.esy(`build`);
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
-        `exec-command --include-current-env --dev-depspec "${depspec}" ${pkg}.cmd`,
+        `exec-command --include-current-env ${pkg}.cmd`,
       );
       expect(stdout.trim()).toBe(`__${pkg}__`);
     }
   });
 
-  test('that the release build is ok without custom DEPSPEC config', async function() {
+  test('building the monorepo in release mode', async function() {
     // release build should work as-is as we are building using `"esy.build"`
     // commands.
     const p = await createTestSandbox();
-    await p.esy('build-dependencies --all --release');
+    await p.esy('build --release');
 
     for (const pkg of ['pkga', 'pkgb', 'pkgc']) {
       const {stdout} = await p.esy(
@@ -162,9 +155,7 @@ describe('Monorepo workflow using low level commands', function() {
     async function() {
       // run commands in a specified package environment.
       const p = await createTestSandbox();
-      const {stdout} = await p.esy(
-        `exec-command --dev-depspec "${depspec}" -p pkga echo '#{self.name}'`,
-      );
+      const {stdout} = await p.esy(`-p pkga echo '#{self.name}'`);
 
       expect(stdout.trim()).toBe('pkga');
     },
@@ -175,9 +166,7 @@ describe('Monorepo workflow using low level commands', function() {
     async function() {
       // we can also refer to linked package by its manifest path
       const p = await createTestSandbox();
-      const {stdout} = await p.esy(
-        `exec-command --dev-depspec "${depspec}" -p ./pkgb/package.json echo '#{self.name}'`,
-      );
+      const {stdout} = await p.esy(`-p ./pkgb/package.json echo '#{self.name}'`);
 
       expect(stdout.trim()).toBe('pkgb');
     },

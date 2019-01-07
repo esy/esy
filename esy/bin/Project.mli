@@ -7,81 +7,57 @@
 open Esy
 open EsyInstall
 
-type 'solved project = {
+type project = {
   projcfg : ProjectConfig.t;
+  workflow : Workflow.t;
   scripts : Scripts.t;
-  solved : 'solved Run.t;
+  solved : solved Run.t;
 }
 
-and 'fetched solved = {
+and solved = {
   solution : Solution.t;
-  fetched : 'fetched Run.t;
+  fetched : fetched Run.t;
 }
 
-and 'configured fetched = {
+and fetched = {
   installation : Installation.t;
   sandbox : BuildSandbox.t;
-  configured : 'configured Run.t;
+  configured : configured Run.t;
 }
 
-val solved : 'a project -> 'a RunAsync.t
-val fetched : 'a solved project -> 'a RunAsync.t
-val configured : 'a fetched solved project -> 'a RunAsync.t
+and configured = {
+  planForDev : BuildSandbox.Plan.t;
+  root : BuildSandbox.Task.t;
+}
 
-(**
- * Project without configured workflow.
- *
- * This kind of a project is used by low level plumbing esy commands.
- *)
-module WithoutWorkflow : sig
+type t = project
 
-  type t = unit fetched solved project
+val solved : project -> solved RunAsync.t
+val fetched : project -> fetched RunAsync.t
+val configured : project -> configured RunAsync.t
 
-  val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
+val make : ProjectConfig.t -> (project * FileInfo.t list) Run.t Lwt.t
 
-  val term : Fpath.t option -> t Cmdliner.Term.t
-  val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
-end
+val plan : BuildSpec.mode -> project -> BuildSandbox.Plan.t RunAsync.t
 
-(**
- * Project configured with a default workflow.
- *
- * Most esy commands use this kind of a project.
- *)
-module WithWorkflow : sig
+val ocaml : project -> Fpath.t RunAsync.t
+(** Built and installed ocaml package resolved in a project env. *)
 
-  type t = configured fetched solved project
+val ocamlfind : project -> Fpath.t RunAsync.t
+(** Build & installed ocamlfind package resolved in a project env. *)
 
-  and configured = {
-    workflow : Workflow.t;
-    planForDev : BuildSandbox.Plan.t;
-    root : BuildSandbox.Task.t;
-  }
-
-  val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
-
-  val plan : BuildSpec.mode -> t -> BuildSandbox.Plan.t RunAsync.t
-
-  val ocaml : t -> Fpath.t RunAsync.t
-  (** Built and installed ocaml package resolved in a project env. *)
-
-  val ocamlfind : t -> Fpath.t RunAsync.t
-  (** Build & installed ocamlfind package resolved in a project env. *)
-
-  val term : Fpath.t option -> t Cmdliner.Term.t
-  val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
-
-end
+val term : Fpath.t option -> project Cmdliner.Term.t
+val promiseTerm : Fpath.t option -> project RunAsync.t Cmdliner.Term.t
 
 val withPackage :
-  _ solved project
+  project
   -> PkgArg.t
   -> (Package.t -> 'a Run.t Lwt.t)
   -> 'a RunAsync.t
 
 val buildDependencies :
   buildLinked:bool
-  -> _ fetched solved project
+  -> project
   -> BuildSandbox.Plan.t
   -> Package.t
   -> unit RunAsync.t
@@ -98,9 +74,8 @@ val buildPackage :
 val execCommand :
   checkIfDependenciesAreBuilt:bool
   -> buildLinked:bool
-  -> _ fetched solved project
+  -> project
   -> EnvSpec.t
-  -> BuildSpec.t
   -> BuildSpec.mode
   -> Package.t
   -> Cmd.t
@@ -108,9 +83,8 @@ val execCommand :
 
 val printEnv :
   ?name:string
-  -> _ fetched solved project
+  -> project
   -> EnvSpec.t
-  -> BuildSpec.t
   -> BuildSpec.mode
   -> bool
   -> PkgArg.t
