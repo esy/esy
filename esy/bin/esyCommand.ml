@@ -541,7 +541,7 @@ let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgarg f
 
-let buildEnv mode asJson pkgarg (proj : Project.WithWorkflow.t) =
+let buildEnv asJson mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind configured = Project.configured proj in
   Project.printEnv
@@ -1637,8 +1637,8 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const buildEnv
-        $ modeTerm
         $ Arg.(value & flag & info ["json"]  ~doc:"Format output as JSON")
+        $ modeTerm
         $ pkgTerm
       );
 
