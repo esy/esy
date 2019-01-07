@@ -587,7 +587,7 @@ let make
   let%lwt () = Logs_lwt.app (fun m -> m "Done!") in
   return ()
 
-let run (proj : Project.WithWorkflow.t) =
+let run (proj : Project.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
@@ -606,10 +606,10 @@ let run (proj : Project.WithWorkflow.t) =
       Project.buildDependencies
         ~buildLinked:true
         proj
-        configured.Project.WithWorkflow.planForDev
-        configured.Project.WithWorkflow.root.pkg
+        configured.Project.planForDev
+        configured.Project.root.pkg
     in
-    let%bind p = Project.WithWorkflow.ocaml proj in
+    let%bind p = Project.ocaml proj in
     return Path.(p / "bin" / "ocamlopt")
   in
 

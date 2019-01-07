@@ -131,24 +131,32 @@ end = struct
     Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm sandboxPath))
 end
 
-type 'solved project = {
+type project = {
   projcfg : ProjectConfig.t;
   scripts : Scripts.t;
-  solved : 'solved Run.t;
+  solved : solved Run.t;
 }
 
-and 'fetched solved = {
+and solved = {
   solution : Solution.t;
-  fetched : 'fetched Run.t;
+  fetched : fetched Run.t;
 }
 
-and 'configured fetched = {
+and fetched = {
   installation : Installation.t;
   sandbox : BuildSandbox.t;
-  configured : 'configured Run.t;
+  configured : configured Run.t;
+}
+
+and configured = {
+  workflow : Workflow.t;
+  planForDev : BuildSandbox.Plan.t;
+  root : BuildSandbox.Task.t;
 }
 
 let solved proj = Lwt.return proj.solved
+
+type t = project
 
 let fetched proj = Lwt.return (
   let open Result.Syntax in
@@ -255,151 +263,139 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
       return {installation; sandbox; configured;}
     else errorf "project requires to update its installation, run `esy install`"
 
-module WithWorkflow = struct
+let plan mode proj =
+  let open RunAsync.Syntax in
+  match mode with
+  | BuildSpec.Build ->
+    let%bind fetched = fetched proj in
+    Lwt.return (
+      BuildSandbox.makePlan
+        Workflow.default.buildspec
+        Build
+        fetched.sandbox
+    )
+  | BuildSpec.BuildDev ->
+    let%bind configured = configured proj in
+    return configured.planForDev
 
-  type configured = {
-    workflow : Workflow.t;
-    planForDev : BuildSandbox.Plan.t;
-    root : BuildSandbox.Task.t;
+let makeConfigured _projcfg solution _installation sandbox _files =
+  let open RunAsync.Syntax in
+  let workflow = Workflow.default in
+
+  let%bind root, planForDev = RunAsync.ofRun (
+    let open Run.Syntax in
+    let%bind plan =
+      BuildSandbox.makePlan
+        workflow.buildspec
+        BuildDev
+        sandbox
+    in
+    let pkg = EsyInstall.Solution.root solution in
+    let root =
+      match BuildSandbox.Plan.get plan pkg.Package.id with
+      | None -> failwith "missing build for the root package"
+      | Some task -> task
+    in
+    return (root, plan)
+  ) in
+
+  return {
+    workflow;
+    planForDev;
+    root;
   }
 
-  type t = configured fetched solved project
+let make projcfg =
+  makeProject (makeSolved (makeFetched makeConfigured)) projcfg
 
-  let plan mode proj =
-    let open RunAsync.Syntax in
-    match mode with
-    | BuildSpec.Build ->
-      let%bind fetched = fetched proj in
-      Lwt.return (
-        BuildSandbox.makePlan
-          Workflow.default.buildspec
-          Build
-          fetched.sandbox
-      )
-    | BuildSpec.BuildDev ->
-      let%bind configured = configured proj in
-      return configured.planForDev
-
-  let makeConfigured _projcfg solution _installation sandbox _files =
-    let open RunAsync.Syntax in
-    let workflow = Workflow.default in
-
-    let%bind root, planForDev = RunAsync.ofRun (
-      let open Run.Syntax in
-      let%bind plan =
-        BuildSandbox.makePlan
-          workflow.buildspec
-          BuildDev
-          sandbox
-      in
-      let pkg = EsyInstall.Solution.root solution in
-      let root =
-        match BuildSandbox.Plan.get plan pkg.Package.id with
-        | None -> failwith "missing build for the root package"
-        | Some task -> task
-      in
-      return (root, plan)
-    ) in
-
-    return {
-      workflow;
-      planForDev;
-      root;
-    }
-
-  let make projcfg =
-    makeProject (makeSolved (makeFetched makeConfigured)) projcfg
-
-  let writeAuxCache proj =
-    let open RunAsync.Syntax in
-    let info =
-      let%bind solved = solved proj in
-      let%bind fetched = fetched proj in
-      let%bind configured = configured proj in
-      return (solved, fetched, configured)
-    in
-    match%lwt info with
-    | Error _ -> return ()
-    | Ok (solved, fetched, configured) ->
-      let sandboxBin = SandboxSpec.binPath proj.projcfg.spec in
-      let sandboxBinLegacyPath = Path.(
-        proj.projcfg.spec.path
-        / "node_modules"
-        / ".cache"
-        / "_esy"
-        / "build"
-        / "bin"
-      ) in
-      let root = Solution.root solved.solution in
-      let%bind () = Fs.createDir sandboxBin in
-      let%bind commandEnv = RunAsync.ofRun (
-        let open Run.Syntax in
-        let header = "# Command environment" in
-        let%bind commandEnv =
-          BuildSandbox.env
-            configured.workflow.commandenvspec
-            configured.workflow.buildspec
-            BuildDev
-            fetched.sandbox
-            root.Package.id
-        in
-        let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
-        Environment.renderToShellSource ~header commandEnv
-      ) in
-      let commandExec =
-        "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\""
-      in
-      let%bind () =
-        RunAsync.List.waitAll [
-          Fs.writeFile ~data:commandEnv Path.(sandboxBin / "command-env");
-          Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBin / "command-exec");
-        ]
-      in
-
-      let%bind () = Fs.createDir sandboxBinLegacyPath in
-      RunAsync.List.waitAll [
-        Fs.writeFile ~data:commandEnv Path.(sandboxBinLegacyPath / "command-env");
-        Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
-      ]
-
-  let resolvePackage ~name (proj : t) =
-    let open RunAsync.Syntax in
+let writeAuxCache proj =
+  let open RunAsync.Syntax in
+  let info =
     let%bind solved = solved proj in
     let%bind fetched = fetched proj in
     let%bind configured = configured proj in
+    return (solved, fetched, configured)
+  in
+  match%lwt info with
+  | Error _ -> return ()
+  | Ok (solved, fetched, configured) ->
+    let sandboxBin = SandboxSpec.binPath proj.projcfg.spec in
+    let sandboxBinLegacyPath = Path.(
+      proj.projcfg.spec.path
+      / "node_modules"
+      / ".cache"
+      / "_esy"
+      / "build"
+      / "bin"
+    ) in
+    let root = Solution.root solved.solution in
+    let%bind () = Fs.createDir sandboxBin in
+    let%bind commandEnv = RunAsync.ofRun (
+      let open Run.Syntax in
+      let header = "# Command environment" in
+      let%bind commandEnv =
+        BuildSandbox.env
+          configured.workflow.commandenvspec
+          configured.workflow.buildspec
+          BuildDev
+          fetched.sandbox
+          root.Package.id
+      in
+      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
+      Environment.renderToShellSource ~header commandEnv
+    ) in
+    let commandExec =
+      "#!/bin/bash\n" ^ commandEnv ^ "\nexec \"$@\""
+    in
+    let%bind () =
+      RunAsync.List.waitAll [
+        Fs.writeFile ~data:commandEnv Path.(sandboxBin / "command-env");
+        Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBin / "command-exec");
+      ]
+    in
 
-    match Solution.findByName name solved.solution with
-    | None -> errorf "package %s is not installed as a part of the project" name
-    | Some _ ->
-      let%bind task, sandbox = RunAsync.ofRun (
-        let open Run.Syntax in
-        let task =
-          let open Option.Syntax in
-          let%bind task = BuildSandbox.Plan.getByName configured.planForDev name in
-          return task
-        in
-        return (task, fetched.sandbox)
-      ) in
-      begin match task with
-      | None -> errorf "package %s isn't built yet, run 'esy build'" name
-      | Some task ->
-        if%bind BuildSandbox.isBuilt sandbox task
-        then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
-        else errorf "package %s isn't built yet, run 'esy build'" name
-      end
+    let%bind () = Fs.createDir sandboxBinLegacyPath in
+    RunAsync.List.waitAll [
+      Fs.writeFile ~data:commandEnv Path.(sandboxBinLegacyPath / "command-env");
+      Fs.writeFile ~perm:0o755 ~data:commandExec Path.(sandboxBinLegacyPath / "command-exec");
+    ]
 
-  let ocamlfind = resolvePackage ~name:"@opam/ocamlfind"
-  let ocaml = resolvePackage ~name:"ocaml"
+let resolvePackage ~name (proj : project) =
+  let open RunAsync.Syntax in
+  let%bind solved = solved proj in
+  let%bind fetched = fetched proj in
+  let%bind configured = configured proj in
 
-  include MakeProject(struct
-    type nonrec t = t
-    let make = make
-    let setProjecyConfig projcfg proj = {proj with projcfg;}
-    let cachePath = makeCachePath "WithWorkflow"
-    let writeAuxCache = writeAuxCache
-  end)
+  match Solution.findByName name solved.solution with
+  | None -> errorf "package %s is not installed as a part of the project" name
+  | Some _ ->
+    let%bind task, sandbox = RunAsync.ofRun (
+      let open Run.Syntax in
+      let task =
+        let open Option.Syntax in
+        let%bind task = BuildSandbox.Plan.getByName configured.planForDev name in
+        return task
+      in
+      return (task, fetched.sandbox)
+    ) in
+    begin match task with
+    | None -> errorf "package %s isn't built yet, run 'esy build'" name
+    | Some task ->
+      if%bind BuildSandbox.isBuilt sandbox task
+      then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
+      else errorf "package %s isn't built yet, run 'esy build'" name
+    end
 
-end
+let ocamlfind = resolvePackage ~name:"@opam/ocamlfind"
+let ocaml = resolvePackage ~name:"ocaml"
+
+include MakeProject(struct
+  type nonrec t = project
+  let make = make
+  let setProjecyConfig projcfg proj = {proj with projcfg;}
+  let cachePath = makeCachePath "WithWorkflow"
+  let writeAuxCache = writeAuxCache
+end)
 
 let withPackage proj (pkgArg : PkgArg.t) f =
   let open RunAsync.Syntax in
@@ -433,7 +429,7 @@ let withPackage proj (pkgArg : PkgArg.t) f =
 
 let buildDependencies
   ~buildLinked
-  (proj : _ fetched solved project)
+  (proj : project)
   plan
   pkg
   =
@@ -487,7 +483,7 @@ let buildPackage
 
 let printEnv
   ?(name="Environment")
-  (proj : _ project)
+  (proj : project)
   envspec
   buildspec
   mode
@@ -567,7 +563,7 @@ let printEnv
 let execCommand
     ~checkIfDependenciesAreBuilt
     ~buildLinked
-    (proj : _ project)
+    (proj : project)
     envspec
     buildspec
     mode

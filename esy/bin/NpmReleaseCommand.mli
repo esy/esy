@@ -1,1 +1,1 @@
-val run : Project.WithWorkflow.t -> unit RunAsync.t
+val run : Project.t -> unit RunAsync.t
