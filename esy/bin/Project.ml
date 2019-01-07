@@ -56,9 +56,6 @@ module TermPp = struct
       (ppFlag "--include-npm-bin") includeNpmBin
       (ppFlag "--include-esy-introspection-env") includeEsyIntrospectionEnv
       (ppFlag "--include-build-env") includeBuildEnv
-
-  let ppBuildSpec fmt buildspec =
-    Fmt.pf fmt "%a" (ppOption "--dev-depspec" Solution.DepSpec.pp) (Some buildspec.BuildSpec.dev)
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
@@ -420,9 +417,8 @@ let buildDependencies
   let%bind solved = solved proj in
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-dependencies \\@;%a%a%a@]"
+      m "running:@[<v>@;%s build-dependencies \\@;%a%a@]"
       proj.projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       TermPp.(ppFlag "--all") buildLinked
       PackageId.pp pkg.Package.id
     )
@@ -449,9 +445,8 @@ let buildPackage
   =
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s build-package \\@;%a%a@]"
+      m "running:@[<v>@;%s build-package \\@;%a@]"
       projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec (BuildSandbox.Plan.spec plan)
       PackageId.pp pkg.Package.id
     )
   in
@@ -575,9 +570,8 @@ let execCommand
 
   let () =
     Logs.info (fun m ->
-      m "running:@[<v>@;%s exec-command \\@;%a%a%a \\@;-- %a@]"
+      m "running:@[<v>@;%s exec-command \\@;%a%a \\@;-- %a@]"
       proj.projcfg.ProjectConfig.mainprg
-      TermPp.ppBuildSpec buildspec
       TermPp.ppEnvSpec envspec
       PackageId.pp pkg.Package.id
       Cmd.pp cmd
