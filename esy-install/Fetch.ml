@@ -240,7 +240,7 @@ end = struct
         | Error err -> fetchAny ((dist, err)::errs) rest
         end
       | [] ->
-        Logs_lwt.err (fun m ->
+        let%lwt () = Logs_lwt.err (fun m ->
           let ppErr fmt (source, err) =
             Fmt.pf fmt
               "source: %a@\nerror: %a"
@@ -250,7 +250,7 @@ end = struct
           m "unable to fetch %a:@[<v 2>@\n%a@]"
             Package.pp pkg
             Fmt.(list ~sep:(unit "@\n") ppErr) errs
-        );%lwt
+        ) in
         error "installation error"
     in
 
@@ -351,17 +351,17 @@ end = struct
           ~stderr:stderrout
           cmd
           (fun p ->
-            Lwt_unix.close fd;%lwt
+            let%lwt () = Lwt_unix.close fd in
             match%lwt p#status with
             | Unix.WEXITED 0 ->
-              Logs_lwt.debug (fun m -> m "log at %a" Path.pp logFilePath);%lwt
+              let%lwt () = Logs_lwt.debug (fun m -> m "log at %a" Path.pp logFilePath) in
               RunAsync.return ()
             | _ ->
               let%lwt output = readAndCloseFile logFilePath in
-              Logs_lwt.err (fun m -> m
+              let%lwt () = Logs_lwt.err (fun m -> m
                 "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]"
                 script output
-              );%lwt
+              ) in
               RunAsync.error "error running command"
           )
       with
@@ -510,10 +510,10 @@ module LinkBin = struct
 
   let installBinWrapper binPath (name, origPath) =
     let open RunAsync.Syntax in
-    Logs_lwt.debug (fun m ->
+    let%lwt () = Logs_lwt.debug (fun m ->
       m "Fetch:installBinWrapper: %a / %s -> %a"
       Path.pp origPath name Path.pp binPath
-    );%lwt
+    ) in
     if%bind Fs.exists origPath
     then (
       if Path.hasExt ".js" origPath
@@ -524,7 +524,7 @@ module LinkBin = struct
         | _ -> installBinWrapperAsSymlink binPath (name, origPath)
       )
     ) else (
-      Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath);%lwt
+      let%lwt () = Logs_lwt.warn (fun m -> m "missing %a defined as binary" Path.pp origPath) in
       return ()
     )
 
@@ -645,12 +645,12 @@ let fetchPackages installspec sandbox solution =
   let report, finish = Cli.createProgressReporter ~name:"fetching" () in
   let%bind items =
     let f pkg =
-      report "%a" Package.pp pkg;%lwt
+      let%lwt () = report "%a" Package.pp pkg in
       let%bind fetch = FetchPackage.fetch sandbox pkg in
       return (pkg, fetch)
     in
     let%bind items = RunAsync.List.mapAndJoin ~concurrency:40 ~f pkgs in
-    finish ();%lwt
+    let%lwt () = finish () in
     return items
   in
   let fetched =
@@ -760,7 +760,7 @@ let fetch installspec sandbox solution =
           ~f:(visit seen)
           (Solution.dependenciesBySpec solution installspec pkg)
       in
-      report "%a" PackageId.pp pkg.Package.id;%lwt
+      let%lwt () = report "%a" PackageId.pp pkg.Package.id in
       install pkg (List.filterNone dependencies)
 
     and visit seen pkg =

@@ -58,7 +58,7 @@ let createDirLwt (path : Path.t) =
   let rec create path =
     try%lwt (
       let path = Path.show path in
-      Lwt_unix.mkdir path 0o777;%lwt
+      let%lwt () = Lwt_unix.mkdir path 0o777 in
       Lwt.return `Created
     ) with
     | Unix.Unix_error (Unix.EEXIST, _, _) ->

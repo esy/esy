@@ -424,7 +424,7 @@ let add ~(dependencies : Dependencies.t) solver =
       RunAsync.List.mapAndWait ~f reqs
 
   and addDependency (req : Req.t) =
-    report "%s" req.name;%lwt
+    let%lwt () = report "%s" req.name in
     let%bind resolutions =
       RunAsync.contextf (
         Resolver.resolve ~fullMetadata:true ~name:req.name ~spec:req.spec solver.sandbox.resolver
@@ -441,8 +441,8 @@ let add ~(dependencies : Dependencies.t) solver =
         match pkg with
         | Ok pkg -> return (Some pkg)
         | Error reason ->
-          Logs_lwt.info (fun m ->
-            m "skipping package %a: %s" Resolution.pp resolution reason);%lwt
+          let%lwt () = Logs_lwt.info (fun m ->
+            m "skipping package %a: %s" Resolution.pp resolution reason) in
           return None
       in
       resolutions
@@ -644,7 +644,7 @@ let solveDependenciesNaively
   in
 
   let resolveOfOutside req =
-    report "%a" Req.pp req;%lwt
+    let%lwt () = report "%a" Req.pp req in
     let%bind resolutions = Resolver.resolve ~name:req.name ~spec:req.spec solver.sandbox.resolver in
     match findResolutionForRequest solver.sandbox.resolver req resolutions with
     | Some resolution ->
@@ -758,14 +758,14 @@ let solveDependenciesNaively
     return ()
   in
 
-  finish ();%lwt
+  let%lwt () = finish () in
   return (sealDependencies ())
 
 let solveOCamlReq (req : Req.t) resolver =
   let open RunAsync.Syntax in
 
   let make resolution =
-    Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution);%lwt
+    let%lwt () = Logs_lwt.info (fun m -> m "using %a" Resolution.pp resolution) in
     let%bind pkg = Resolver.package ~resolution resolver in
     let%bind pkg = RunAsync.ofStringError pkg in
     return (pkg.InstallManifest.originalVersion, Some pkg.version)
@@ -778,7 +778,7 @@ let solveOCamlReq (req : Req.t) resolver =
     begin match findResolutionForRequest resolver req resolutions with
     | Some resolution -> make resolution
     | None ->
-      Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req);%lwt
+      let%lwt () = Logs_lwt.warn (fun m -> m "no version found for %a" Req.pp req) in
       return (None, None)
     end
   | VersionSpec.Opam _ -> error "ocaml version should be either an npm version or source"

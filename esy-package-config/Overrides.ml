@@ -21,7 +21,7 @@ let fold' ~f ~init overrides =
 let foldWithBuildOverrides ~f ~init overrides =
   let open RunAsync.Syntax in
   let f v override =
-    Logs_lwt.debug (fun m -> m "build override: %a" Override.pp override);%lwt
+    let%lwt () = Logs_lwt.debug (fun m -> m "build override: %a" Override.pp override) in
     match%bind Override.build override with
     | Some override -> return (f v override)
     | None -> return v
@@ -31,7 +31,7 @@ let foldWithBuildOverrides ~f ~init overrides =
 let foldWithInstallOverrides ~f ~init overrides =
   let open RunAsync.Syntax in
   let f v override =
-    Logs_lwt.debug (fun m -> m "install override: %a" Override.pp override);%lwt
+    let%lwt () = Logs_lwt.debug (fun m -> m "install override: %a" Override.pp override) in
     match%bind Override.install override with
     | Some override -> return (f v override)
     | None -> return v

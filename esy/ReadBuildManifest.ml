@@ -176,11 +176,11 @@ let discoverManifest path =
   let rec tryLoad = function
     | [] -> return (None, Path.Set.empty)
     | (kind, fname)::rest ->
-      Logs_lwt.debug (fun m ->
+      let%lwt () = Logs_lwt.debug (fun m ->
         m "trying %a %a"
         Path.pp path
         ManifestSpec.pp (kind, fname)
-      );%lwt
+      ) in
       let fname = Path.(path / fname) in
       if%bind Fs.exists fname
       then
@@ -193,11 +193,11 @@ let discoverManifest path =
   tryLoad filenames
 
 let ofPath ?manifest (path : Path.t) =
-  Logs_lwt.debug (fun m ->
+  let%lwt () = Logs_lwt.debug (fun m ->
     m "BuildManifest.ofPath %a %a"
     Fmt.(option ManifestSpec.pp) manifest
     Path.pp path
-  );%lwt
+  ) in
 
   let manifest =
     match manifest with

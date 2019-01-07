@@ -48,10 +48,10 @@ end = struct
     if reporter.enabled
     then
       Lwt_mutex.with_lock reporter.statusLock begin fun () ->
-        hide reporter.status;%lwt
+        let%lwt () = hide reporter.status in
         reporter.status <- Some status;
-        show reporter.status;%lwt
-        Lwt_io.flush Lwt_io.stderr;%lwt
+        let%lwt () = show reporter.status in
+        let%lwt () = Lwt_io.flush Lwt_io.stderr in
         Lwt.return ()
       end
     else Lwt.return ()
@@ -60,8 +60,8 @@ end = struct
     if reporter.enabled
     then
       Lwt_mutex.with_lock reporter.statusLock begin fun () ->
-        hide reporter.status;%lwt
-        Lwt_io.flush Lwt_io.stderr;%lwt
+        let%lwt () = hide reporter.status in
+        let%lwt () = Lwt_io.flush Lwt_io.stderr in
         reporter.status <- None;
         Lwt.return ()
       end
@@ -174,13 +174,13 @@ let setupLogTerm =
             match level with
             | Logs.App ->
               let msg = app_flush () in
-              Lwt_io.write Lwt_io.stderr msg;%lwt
-              Lwt_io.flush Lwt_io.stderr;%lwt
+              let%lwt () = Lwt_io.write Lwt_io.stderr msg in
+              let%lwt () = Lwt_io.flush Lwt_io.stderr in
               Lwt.return ()
             | _ ->
               let msg = dst_flush () in
-              Lwt_io.write Lwt_io.stderr msg;%lwt
-              Lwt_io.flush Lwt_io.stderr;%lwt
+              let%lwt () = Lwt_io.write Lwt_io.stderr msg in
+              let%lwt () = Lwt_io.flush Lwt_io.stderr in
               Lwt.return ()
           in
           Lwt.return ()
@@ -189,12 +189,12 @@ let setupLogTerm =
           Lwt_mutex.with_lock mutex begin fun () ->
             match ProgressReporter.status () with
             | None ->
-              write ();%lwt
+              let%lwt () = write () in
               Lwt.return ()
             | Some status ->
-              ProgressReporter.clearStatus ();%lwt
-              write ();%lwt
-              ProgressReporter.setStatus status;%lwt
+              let%lwt () = ProgressReporter.clearStatus () in
+              let%lwt () = write () in
+              let%lwt () = ProgressReporter.setStatus status in
               Lwt.return ()
           end
         in
