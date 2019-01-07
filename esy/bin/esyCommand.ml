@@ -690,22 +690,25 @@ let devExec (pkgarg: PkgArg.t) (proj : Project.WithWorkflow.t) cmd () =
   in
   Project.withPackage proj pkgarg f
 
-let devShell (proj : Project.WithWorkflow.t) =
+let devShell pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind (configured : Project.WithWorkflow.configured) = Project.configured proj in
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
   in
-  Project.execCommand
-    ~checkIfDependenciesAreBuilt:true
-    ~buildLinked:false
-    proj
-    configured.workflow.commandenvspec
-    configured.workflow.buildspec
-    BuildDev
-    configured.Project.WithWorkflow.root.pkg
-    (Cmd.v shell)
+  let f (pkg : Package.t) =
+    Project.execCommand
+      ~checkIfDependenciesAreBuilt:true
+      ~buildLinked:false
+      proj
+      configured.workflow.commandenvspec
+      configured.workflow.buildspec
+      BuildDev
+      pkg
+      (Cmd.v shell)
+  in
+  Project.withPackage proj pkgarg f
 
 let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
@@ -1425,7 +1428,10 @@ let makeCommands projectPath =
       ~name:"shell"
       ~doc:"Enter esy sandbox shell"
       ~docs:commonSection
-      Term.(const devShell);
+      Term.(
+        const devShell
+        $ pkgTerm
+      );
 
     makeProjectWithWorkflowCommand
       ~header:`No
