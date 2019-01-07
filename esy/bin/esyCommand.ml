@@ -196,7 +196,7 @@ let resolvedPathTerm =
   let print = Path.pp in
   Arg.conv ~docv:"PATH" (parse, print)
 
-let buildDependencies all mode pkgarg (proj : Project.WithoutWorkflow.t) =
+let buildDependencies all mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let f (pkg : Package.t) =
@@ -225,7 +225,7 @@ let execCommand
   envspec
   pkgarg
   cmd
-  (proj : Project.WithoutWorkflow.t)
+  (proj : Project.WithWorkflow.t)
   =
   let envspec = {
     EnvSpec.
@@ -259,7 +259,7 @@ let printEnv
   plan
   envspec
   pkgarg
-  (proj : Project.WithoutWorkflow.t)
+  (proj : Project.WithWorkflow.t)
   =
   let envspec = {
     EnvSpec.
@@ -1257,7 +1257,6 @@ let makeCommands projectPath =
 
   let projectConfig = ProjectConfig.term projectPath in
   let projectWithWorkflow = Project.WithWorkflow.term projectPath in
-  let project = Project.WithoutWorkflow.term projectPath in
 
   let makeProjectWithWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
     let cmd =
@@ -1270,21 +1269,6 @@ let makeCommands projectPath =
         cmd project
       in
       Cmdliner.Term.(pure run $ cmd $ projectWithWorkflow)
-    in
-    makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
-  in
-
-  let makeProjectWithoutWorkflowCommand ?(header=`Standard) ?docs ?doc ?stop_on_pos ~name cmd =
-    let cmd =
-      let run cmd project =
-        let () =
-          match header with
-          | `Standard -> Lwt_main.run (printHeader ~spec:project.Project.projcfg.spec name)
-          | `No -> ()
-        in
-        cmd project
-      in
-      Cmdliner.Term.(pure run $ cmd $ project)
     in
     makeCommand ~header:`No ?docs ?doc ?stop_on_pos ~name cmd
   in
@@ -1597,7 +1581,7 @@ let makeCommands projectPath =
 
     (* LOW LEVEL PLUMBING COMMANDS *)
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithWorkflowCommand
       ~name:"build-dependencies"
       ~doc:"Build dependencies for a specified package"
       ~docs:lowLevelSection
@@ -1612,7 +1596,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"exec-command"
       ~doc:"Execute command in a given environment"
@@ -1650,7 +1634,7 @@ let makeCommands projectPath =
             Cmdliner.Arg.pos_all
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithWorkflowCommand
       ~header:`No
       ~name:"print-env"
       ~doc:"Print a configured environment on stdout"
@@ -1678,7 +1662,7 @@ let makeCommands projectPath =
         $ pkgTerm
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithWorkflowCommand
       ~name:"solve"
       ~doc:"Solve dependencies and store the solution"
       ~docs:lowLevelSection
@@ -1692,7 +1676,7 @@ let makeCommands projectPath =
           )
       );
 
-    makeProjectWithoutWorkflowCommand
+    makeProjectWithWorkflowCommand
       ~name:"fetch"
       ~doc:"Fetch dependencies using the stored solution"
       ~docs:lowLevelSection

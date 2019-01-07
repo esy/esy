@@ -29,21 +29,6 @@ val fetched : 'a solved project -> 'a RunAsync.t
 val configured : 'a fetched solved project -> 'a RunAsync.t
 
 (**
- * Project without configured workflow.
- *
- * This kind of a project is used by low level plumbing esy commands.
- *)
-module WithoutWorkflow : sig
-
-  type t = unit fetched solved project
-
-  val make : ProjectConfig.t -> (t * FileInfo.t list) Run.t Lwt.t
-
-  val term : Fpath.t option -> t Cmdliner.Term.t
-  val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
-end
-
-(**
  * Project configured with a default workflow.
  *
  * Most esy commands use this kind of a project.

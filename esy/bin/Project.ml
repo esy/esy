@@ -255,29 +255,6 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
       return {installation; sandbox; configured;}
     else errorf "project requires to update its installation, run `esy install`"
 
-module WithoutWorkflow = struct
-
-  type t = unit fetched solved project
-
-  let makeConfigured _copts _solution _installation _sandbox _files =
-    RunAsync.return ()
-
-  let configureSolution =
-    makeSolved (makeFetched makeConfigured)
-
-  let make projcfg =
-    makeProject configureSolution projcfg
-
-  include MakeProject(struct
-    type nonrec t = t
-    let make = make
-    let setProjecyConfig projcfg proj = {proj with projcfg;}
-    let cachePath = makeCachePath "WithoutWorkflow"
-    let writeAuxCache _ = RunAsync.return ()
-  end)
-
-end
-
 module WithWorkflow = struct
 
   type configured = {
