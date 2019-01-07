@@ -6,8 +6,6 @@ type t = {
   buildCfg : EsyBuildPackage.Config.t;
 }
 
-let defaultPrefixPath = Path.v "~/.esy"
-
 let make
   ~prefixPath
   ~spec
@@ -15,17 +13,15 @@ let make
   let value =
     let open Result.Syntax in
 
-    let prefixPath =
+    let storePath =
       match prefixPath with
-      | Some v -> v
-      | None ->
-        let home = Path.homePath () in
-        Path.(home / ".esy")
+      | Some v -> EsyBuildPackage.Config.StorePathOfPrefix v
+      | None -> EsyBuildPackage.Config.StorePathDefault
     in
 
     let%bind buildCfg =
       EsyBuildPackage.Config.make
-        ~storePath:(StorePathOfPrefix prefixPath)
+        ~storePath
         ~projectPath:spec.SandboxSpec.path
         ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
         ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
