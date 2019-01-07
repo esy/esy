@@ -9,6 +9,7 @@ open EsyInstall
 
 type project = {
   projcfg : ProjectConfig.t;
+  workflow : Workflow.t;
   scripts : Scripts.t;
   solved : solved Run.t;
 }
@@ -25,7 +26,6 @@ and fetched = {
 }
 
 and configured = {
-  workflow : Workflow.t;
   planForDev : BuildSandbox.Plan.t;
   root : BuildSandbox.Task.t;
 }
@@ -76,7 +76,6 @@ val execCommand :
   -> buildLinked:bool
   -> project
   -> EnvSpec.t
-  -> BuildSpec.t
   -> BuildSpec.mode
   -> Package.t
   -> Cmd.t
@@ -86,7 +85,6 @@ val printEnv :
   ?name:string
   -> project
   -> EnvSpec.t
-  -> BuildSpec.t
   -> BuildSpec.mode
   -> bool
   -> PkgArg.t

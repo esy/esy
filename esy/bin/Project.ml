@@ -4,6 +4,7 @@ open Esy
 
 type project = {
   projcfg : ProjectConfig.t;
+  workflow : Workflow.t;
   scripts : Scripts.t;
   solved : solved Run.t;
 }
@@ -20,7 +21,6 @@ and fetched = {
 }
 
 and configured = {
-  workflow : Workflow.t;
   planForDev : BuildSandbox.Plan.t;
   root : BuildSandbox.Task.t;
 }
@@ -87,16 +87,22 @@ let configured proj = Lwt.return (
 
 let makeProject makeSolved projcfg =
   let open RunAsync.Syntax in
+  let workflow = Workflow.default in
   let%bind files =
     let paths = SandboxSpec.manifestPaths projcfg.spec in
     RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
   in
   let files = ref files in
   let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
-  let%lwt solved = makeSolved projcfg files in
-  return ({projcfg; scripts; solved;}, !files)
+  let%lwt solved = makeSolved projcfg workflow files in
+  return ({
+    projcfg;
+    scripts;
+    solved;
+    workflow;
+  }, !files)
 
-let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
+let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow files =
   let open RunAsync.Syntax in
   let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
@@ -108,7 +114,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) files =
   in
   match%bind SolutionLock.ofPath ~digest projcfg.installSandbox path with
   | Some solution ->
-    let%lwt fetched = makeFetched projcfg solution files in
+    let%lwt fetched = makeFetched projcfg workflow solution files in
     return {solution; fetched;}
   | None -> errorf "project is missing a lock, run `esy install`"
 
@@ -136,7 +142,7 @@ let readSandboxEnv spec =
   | EsyInstall.SandboxSpec.ManifestAggregate _ ->
     return BuildEnv.empty
 
-let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
+let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow solution files =
   let open RunAsync.Syntax in
   let path = EsyInstall.SandboxSpec.installationPath projcfg.spec in
   let%bind info = FileInfo.ofPath path in
@@ -173,9 +179,34 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) solution files =
         files := !files @ filesUsedForPlan;
         return sandbox
       in
-      let%lwt configured = makeConfigured projcfg solution installation sandbox files in
+      let%lwt configured = makeConfigured projcfg workflow solution installation sandbox files in
       return {installation; sandbox; configured;}
     else errorf "project requires to update its installation, run `esy install`"
+
+let makeConfigured _projcfg workflow solution _installation sandbox _files =
+  let open RunAsync.Syntax in
+
+  let%bind root, planForDev = RunAsync.ofRun (
+    let open Run.Syntax in
+    let%bind plan =
+      BuildSandbox.makePlan
+        workflow.Workflow.buildspec
+        BuildDev
+        sandbox
+    in
+    let pkg = EsyInstall.Solution.root solution in
+    let root =
+      match BuildSandbox.Plan.get plan pkg.Package.id with
+      | None -> failwith "missing build for the root package"
+      | Some task -> task
+    in
+    return (root, plan)
+  ) in
+
+  return {
+    planForDev;
+    root;
+  }
 
 let plan mode proj =
   let open RunAsync.Syntax in
@@ -192,33 +223,6 @@ let plan mode proj =
     let%bind configured = configured proj in
     return configured.planForDev
 
-let makeConfigured _projcfg solution _installation sandbox _files =
-  let open RunAsync.Syntax in
-  let workflow = Workflow.default in
-
-  let%bind root, planForDev = RunAsync.ofRun (
-    let open Run.Syntax in
-    let%bind plan =
-      BuildSandbox.makePlan
-        workflow.buildspec
-        BuildDev
-        sandbox
-    in
-    let pkg = EsyInstall.Solution.root solution in
-    let root =
-      match BuildSandbox.Plan.get plan pkg.Package.id with
-      | None -> failwith "missing build for the root package"
-      | Some task -> task
-    in
-    return (root, plan)
-  ) in
-
-  return {
-    workflow;
-    planForDev;
-    root;
-  }
-
 let make projcfg =
   makeProject (makeSolved (makeFetched makeConfigured)) projcfg
 
@@ -227,12 +231,11 @@ let writeAuxCache proj =
   let info =
     let%bind solved = solved proj in
     let%bind fetched = fetched proj in
-    let%bind configured = configured proj in
-    return (solved, fetched, configured)
+    return (solved, fetched)
   in
   match%lwt info with
   | Error _ -> return ()
-  | Ok (solved, fetched, configured) ->
+  | Ok (solved, fetched) ->
     let sandboxBin = SandboxSpec.binPath proj.projcfg.spec in
     let sandboxBinLegacyPath = Path.(
       proj.projcfg.spec.path
@@ -249,8 +252,8 @@ let writeAuxCache proj =
       let header = "# Command environment" in
       let%bind commandEnv =
         BuildSandbox.env
-          configured.workflow.commandenvspec
-          configured.workflow.buildspec
+          proj.workflow.commandenvspec
+          proj.workflow.buildspec
           BuildDev
           fetched.sandbox
           root.Package.id
@@ -462,7 +465,6 @@ let printEnv
   ?(name="Environment")
   (proj : project)
   envspec
-  buildspec
   mode
   asJson
   pkgarg
@@ -489,7 +491,7 @@ let printEnv
       let%bind env, scope =
         BuildSandbox.configure
           envspec
-          buildspec
+          Workflow.default.buildspec
           mode
           fetched.sandbox
           pkg.id
@@ -542,7 +544,6 @@ let execCommand
     ~buildLinked
     (proj : project)
     envspec
-    buildspec
     mode
     (pkg : Package.t)
     cmd
@@ -554,12 +555,7 @@ let execCommand
   let%bind () =
     if checkIfDependenciesAreBuilt
     then
-      let%bind plan = RunAsync.ofRun (
-        BuildSandbox.makePlan
-          buildspec
-          mode
-          fetched.sandbox
-      ) in
+      let%bind plan = plan mode proj in
       buildDependencies
         ~buildLinked
         proj
@@ -581,7 +577,7 @@ let execCommand
   let%bind status =
     BuildSandbox.exec
       envspec
-      buildspec
+      Workflow.default.buildspec
       mode
       fetched.sandbox
       pkg.id

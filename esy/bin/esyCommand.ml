@@ -198,15 +198,8 @@ let resolvedPathTerm =
 
 let buildDependencies all mode pkgarg (proj : Project.t) =
   let open RunAsync.Syntax in
-  let%bind fetched = Project.fetched proj in
   let f (pkg : Package.t) =
-    let buildspec = Workflow.default.buildspec in
-    let%bind plan = RunAsync.ofRun (
-      BuildSandbox.makePlan
-        buildspec
-        mode
-        fetched.Project.sandbox
-    ) in
+    let%bind plan = Project.plan mode proj in
     Project.buildDependencies
       ~buildLinked:all
       proj
@@ -236,14 +229,12 @@ let execCommand
     includeEsyIntrospectionEnv;
     augmentDeps = envspec;
   } in
-  let buildspec = Workflow.default.buildspec in
   let f pkg =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false
       ~buildLinked:false
       proj
       envspec
-      buildspec
       plan
       pkg
       cmd
@@ -270,11 +261,9 @@ let printEnv
     includeNpmBin;
     augmentDeps = envspec;
   } in
-  let buildspec = Workflow.default.buildspec in
   Project.printEnv
     proj
     envspec
-    buildspec
     plan
     asJson
     pkgarg
@@ -414,7 +403,7 @@ let buildShell mode pkgarg (proj : Project.t) =
     in
     let p =
       BuildSandbox.buildShell
-        configured.Project.workflow.buildspec
+        proj.Project.workflow.buildspec
         mode
         fetched.Project.sandbox
         pkg.id
@@ -431,7 +420,6 @@ let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
-  let%bind configured = Project.configured proj in
   let%bind plan = Project.plan mode proj in
 
   let f pkg =
@@ -463,8 +451,7 @@ let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.t) =
         ~checkIfDependenciesAreBuilt:false
         ~buildLinked:false
         proj
-        configured.Project.workflow.buildenvspec
-        configured.Project.workflow.buildspec
+        proj.workflow.buildenvspec
         mode
         pkg
         cmd
@@ -473,39 +460,30 @@ let build ?(buildOnly=true) mode pkgarg cmd (proj : Project.t) =
   Project.withPackage proj pkgarg f
 
 let buildEnv asJson mode pkgarg (proj : Project.t) =
-  let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
   Project.printEnv
     ~name:"Build environment"
     proj
-    configured.Project.workflow.buildenvspec
-    configured.Project.workflow.buildspec
+    proj.workflow.buildenvspec
     mode
     asJson
     pkgarg
     ()
 
 let commandEnv asJson pkgarg (proj : Project.t) =
-  let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
   Project.printEnv
     ~name:"Command environment"
     proj
-    configured.Project.workflow.commandenvspec
-    configured.Project.workflow.buildspec
+    proj.workflow.commandenvspec
     BuildDev
     asJson
     pkgarg
     ()
 
 let execEnv asJson pkgarg (proj : Project.t) =
-  let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
   Project.printEnv
     ~name:"Exec environment"
     proj
-    configured.Project.workflow.execenvspec
-    configured.Project.workflow.buildspec
+    proj.workflow.execenvspec
     BuildDev
     asJson
     pkgarg
@@ -513,15 +491,13 @@ let execEnv asJson pkgarg (proj : Project.t) =
 
 let exec mode pkgarg cmd (proj : Project.t) =
   let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
   let%bind () = build ~buildOnly:false mode PkgArg.root None proj in
   let f pkg =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:false (* not needed as we build an entire sandbox above *)
       ~buildLinked:false
       proj
-      configured.Project.workflow.execenvspec
-      configured.Project.workflow.buildspec
+      proj.workflow.execenvspec
       mode
       pkg
       cmd
@@ -532,20 +508,20 @@ let runScript (proj : Project.t) script args () =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
-  let%bind (configured : Project.configured) = Project.configured proj in
+  let%bind configured = Project.configured proj in
 
   let scriptArgs, envspec =
 
     let peekArgs = function
       | ("esy"::"x"::args) ->
-        "x"::args, configured.Project.workflow.execenvspec
+        "x"::args, proj.workflow.execenvspec
       | ("esy"::"b"::args)
       | ("esy"::"build"::args) ->
-        "build"::args, configured.workflow.buildenvspec
+        "build"::args, proj.workflow.buildenvspec
       | ("esy"::args) ->
-        args, configured.workflow.commandenvspec
+        args, proj.workflow.commandenvspec
       | args ->
-        args, configured.workflow.commandenvspec
+        args, proj.workflow.commandenvspec
     in
 
     match script.Scripts.command with
@@ -560,11 +536,11 @@ let runScript (proj : Project.t) script args () =
   let%bind cmd = RunAsync.ofRun (
     let open Run.Syntax in
 
-    let id = configured.root.pkg.id in
+    let id = configured.Project.root.pkg.id in
     let%bind env, scope =
       BuildSandbox.configure
         envspec
-        configured.workflow.buildspec
+        proj.workflow.buildspec
         BuildDev
         fetched.Project.sandbox
         id
@@ -609,15 +585,12 @@ let runScript (proj : Project.t) script args () =
   | Unix.WSIGNALED n -> exit n
 
 let devExec (pkgarg: PkgArg.t) (proj : Project.t) cmd () =
-  let open RunAsync.Syntax in
-  let%bind configured = Project.configured proj in
   let f (pkg : Package.t) =
     Project.execCommand
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
       proj
-      configured.Project.workflow.commandenvspec
-      configured.Project.workflow.buildspec
+      proj.workflow.commandenvspec
       BuildDev
       pkg
       cmd
@@ -625,8 +598,6 @@ let devExec (pkgarg: PkgArg.t) (proj : Project.t) cmd () =
   Project.withPackage proj pkgarg f
 
 let devShell pkgarg (proj : Project.t) =
-  let open RunAsync.Syntax in
-  let%bind (configured : Project.configured) = Project.configured proj in
   let shell =
     try Sys.getenv "SHELL"
     with Not_found -> "/bin/bash"
@@ -636,8 +607,7 @@ let devShell pkgarg (proj : Project.t) =
       ~checkIfDependenciesAreBuilt:true
       ~buildLinked:false
       proj
-      configured.workflow.commandenvspec
-      configured.workflow.buildspec
+      proj.workflow.commandenvspec
       BuildDev
       pkg
       (Cmd.v shell)
@@ -868,13 +838,13 @@ let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
 let solve force (proj : Project.t) =
   let open RunAsync.Syntax in
   let run () =
-    let%bind _ : Solution.t = getSandboxSolution Workflow.default.solvespec proj.projcfg in
+    let%bind _ : Solution.t = getSandboxSolution proj.workflow.solvespec proj.projcfg in
     return ()
   in
   if force
   then run ()
   else
-    let%bind digest = EsySolve.Sandbox.digest Workflow.default.solvespec proj.projcfg.solveSandbox in
+    let%bind digest = EsySolve.Sandbox.digest proj.workflow.solvespec proj.projcfg.solveSandbox in
     let path = SandboxSpec.solutionLockPath proj.projcfg.solveSandbox.spec in
     match%bind EsyInstall.SolutionLock.ofPath ~digest proj.projcfg.installSandbox path with
     | Some _ -> return ()
@@ -884,17 +854,16 @@ let fetch (proj : Project.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
   match%bind SolutionLock.ofPath proj.projcfg.installSandbox lockPath with
-  | Some solution -> EsyInstall.Fetch.fetch Workflow.default.installspec proj.projcfg.installSandbox solution
+  | Some solution -> EsyInstall.Fetch.fetch proj.workflow.installspec proj.projcfg.installSandbox solution
   | None -> error "no lock found, run 'esy solve' first"
 
 let solveAndFetch (proj : Project.t) =
   let open RunAsync.Syntax in
   let lockPath = SandboxSpec.solutionLockPath proj.projcfg.spec in
-  let solvespec = Workflow.default.solvespec in
-  let%bind digest = EsySolve.Sandbox.digest solvespec proj.projcfg.solveSandbox in
+  let%bind digest = EsySolve.Sandbox.digest proj.workflow.solvespec proj.projcfg.solveSandbox in
   match%bind SolutionLock.ofPath ~digest proj.projcfg.installSandbox lockPath with
   | Some solution ->
-    if%bind EsyInstall.Fetch.isInstalled Workflow.default.installspec proj.projcfg.installSandbox solution
+    if%bind EsyInstall.Fetch.isInstalled proj.workflow.installspec proj.projcfg.installSandbox solution
     then return ()
     else fetch proj
   | None ->
@@ -930,7 +899,7 @@ let add (reqs : string list) (proj : Project.t) =
 
   let projcfg = {projcfg with solveSandbox;} in
 
-  let%bind solution = getSandboxSolution Workflow.default.solvespec projcfg in
+  let%bind solution = getSandboxSolution proj.workflow.solvespec projcfg in
   let%bind () = fetch {proj with projcfg;} in
 
   let%bind addedDependencies, configPath =
@@ -1006,7 +975,7 @@ let add (reqs : string list) (proj : Project.t) =
         let projcfg = {projcfg with solveSandbox} in
         let%bind digest =
           EsySolve.Sandbox.digest
-            Workflow.default.solvespec
+            proj.workflow.solvespec
             projcfg.solveSandbox
         in
         (* we can only do this because we keep invariant that the constraint we
