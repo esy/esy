@@ -713,21 +713,20 @@ let devShell pkgarg (proj : Project.WithWorkflow.t) =
   in
   Project.withPackage proj pkgarg f
 
-let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWorkflow.t) =
+let makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg (proj: Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind solved = Project.solved proj in
   let%bind plan = Project.WithWorkflow.plan mode proj in
 
   let seen = ref PackageId.Set.empty in
-  let root = Solution.root solved.Project.solution in
 
-  let rec draw pkg =
+  let rec draw root pkg =
     let id = pkg.Package.id in
     if PackageId.Set.mem id !seen then
       return None
     else (
-      let isRoot = Solution.isRoot solved.Project.solution pkg in
+      let isRoot = Package.compare root pkg = 0 in
       seen := PackageId.Set.add id !seen;
       match BuildSandbox.Plan.get plan id with
       | None -> return None
@@ -738,19 +737,23 @@ let makeLsCommand ~computeTermNode ~includeTransitive mode (proj: Project.WithWo
           else
             let dependencies =
               let spec = BuildSandbox.Plan.spec plan in
-              Solution.dependenciesBySpec solved.solution spec pkg
+              Solution.dependenciesBySpec solved.Project.solution spec pkg
             in
             dependencies
-            |> List.map ~f:draw
+            |> List.map ~f:(draw root)
             |> RunAsync.List.joinAll
         in
         let children = children |> List.filterNone in
         computeTermNode task children
     )
   in
-  match%bind draw root with
-  | Some tree -> return (print_endline (TermTree.render tree))
-  | None -> return ()
+
+  let f pkg =
+    match%bind draw pkg pkg with
+    | Some tree -> return (print_endline (TermTree.render tree))
+    | None -> return ()
+  in
+  Project.withPackage proj pkgarg f
 
 let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let open RunAsync.Syntax in
@@ -765,7 +768,7 @@ let formatPackageInfo ~built:(built : bool)  (task : BuildSandbox.Task.t) =
   let line = Printf.sprintf "%s%s %s" (Scope.name task.scope) version status in
   return line
 
-let lsBuilds mode includeTransitive (proj : Project.WithWorkflow.t) =
+let lsBuilds includeTransitive mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
   let computeTermNode task children =
@@ -773,9 +776,9 @@ let lsBuilds mode includeTransitive (proj : Project.WithWorkflow.t) =
     let%bind line = formatPackageInfo ~built task in
     return (Some (TermTree.Node { line; children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg proj
 
-let lsLibs mode includeTransitive (proj : Project.WithWorkflow.t) =
+let lsLibs includeTransitive mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
   let%bind fetched = Project.fetched proj in
 
@@ -806,9 +809,9 @@ let lsLibs mode includeTransitive (proj : Project.WithWorkflow.t) =
 
     return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive mode pkgarg proj
 
-let lsModules mode only (proj : Project.WithWorkflow.t) =
+let lsModules only mode pkgarg (proj : Project.WithWorkflow.t) =
   let open RunAsync.Syntax in
 
   let%bind fetched = Project.fetched proj in
@@ -898,7 +901,7 @@ let lsModules mode only (proj : Project.WithWorkflow.t) =
 
       return (Some (TermTree.Node { line; children = libs @ children; }))
   in
-  makeLsCommand ~computeTermNode ~includeTransitive:false mode proj
+  makeLsCommand ~computeTermNode ~includeTransitive:false mode pkgarg proj
 
 let getSandboxSolution solvespec (projcfg : ProjectConfig.t) =
   let open EsySolve in
@@ -1568,11 +1571,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsBuilds
-        $ modeTerm
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1581,11 +1585,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsLibs
-        $ modeTerm
         $ Arg.(
             value
             & flag
             & info ["T"; "include-transitive"] ~doc:"Include transitive dependencies")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeProjectWithWorkflowCommand
@@ -1594,11 +1599,12 @@ let makeCommands projectPath =
       ~docs:introspectionSection
       Term.(
         const lsModules
-        $ modeTerm
         $ Arg.(
             value
             & (pos_all string [])
             & info [] ~docv:"LIB" ~doc:"Output modules only for specified lib(s)")
+        $ modeTerm
+        $ pkgTerm
       );
 
     makeCommand
