@@ -1,4 +1,4 @@
-(**
+/**
 
   Shell parameter expansion.
 
@@ -10,13 +10,12 @@
     - substitution: `$VALUE` or `${VALUE}`
     - substitution with default: `${VALUE:-DEFAULT}`
 
- *)
+ */;
 
-type scope = string -> string option
+type scope = string => option(string);
 
-val render :
-  ?fallback:string option
-  -> scope:scope
-  -> string
-  -> (string, string) result
-(** Render string by expanding all shell parameters found. *)
+/** Render string by expanding all shell parameters found. */
+
+let render:
+  (~fallback: option(string)=?, ~scope: scope, string) =>
+  result(string, string);
