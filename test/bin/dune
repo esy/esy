@@ -1,0 +1,18 @@
+(executable
+  (name test_runner)
+  (modules test_runner)
+  (libraries Test ppx_inline_test.runner.lib))
+
+(alias
+  (name    runtest)
+  (deps    test_runner.exe)
+  (action  (setenv ESY__ESY_BASH %{read-strings:esy-bash.path} (run %{deps} inline-test-runner Test))))
+
+(executable
+  (name discover)
+  (modules Discover)
+  (libraries bos dune.configurator))
+
+(rule
+  (targets esy-bash.path)
+  (action (run ./discover.exe)))
