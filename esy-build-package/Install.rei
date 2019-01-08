@@ -1,4 +1,4 @@
-(**
+/**
 
   This implements "esy-installer" command.
 
@@ -6,13 +6,9 @@
 
   [1]: https://opam.ocaml.org/doc/Manual.html#lt-pkgname-gt-install
 
- *)
+ */;
 
-val install :
-  enableLinkingOptimization:bool
-  -> prefixPath:Fpath.t
-  -> Fpath.t -> (unit, _) Run.t
-(**
+/**
 
   [install ~prefixPath installFilename] executes installation as described in an
   *.install file [installFilename] to [prefixPath] path.
@@ -23,4 +19,8 @@ val install :
 
   Note that this is designed so it the prefix path doesn't contain any files.
 
- *)
+ */
+
+let install:
+  (~enableLinkingOptimization: bool, ~prefixPath: Fpath.t, Fpath.t) =>
+  Run.t(unit, _);
