@@ -6,9 +6,9 @@ type checkoutCfg = [
   | `RemoteLocal(string, Path.t)
 ];
 
-let checkoutCfg_to_yojson : Json.encoder(checkoutCfg);
-let pp_checkoutCfg : Fmt.t(checkoutCfg);
-let show_checkoutCfg : checkoutCfg => string;
+let checkoutCfg_to_yojson: Json.encoder(checkoutCfg);
+let pp_checkoutCfg: Fmt.t(checkoutCfg);
+let show_checkoutCfg: checkoutCfg => string;
 
 type t =
   pri {
@@ -23,7 +23,7 @@ type t =
 /** This described how a reposoitory should be used */
 and checkout =
   | Local(Path.t)
-  | Remote(string, Path.t)
+  | Remote(string, Path.t);
 
 let make:
   (

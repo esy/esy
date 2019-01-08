@@ -8,16 +8,17 @@ type pattern =
   | Subpath(string)
   | Regex(string);
 
-type config = {
-  allowWrite: list(pattern)
-};
+type config = {allowWrite: list(pattern)};
 
-type sandbox
+type sandbox;
 
 /* Init sandbox */
-let init : config => Run.t(sandbox, _);
+let init: config => Run.t(sandbox, _);
 
 /* Exec command in the sandbox. */
-let exec : (~env : Bos.OS.Env.t, sandbox, Cmd.t) => 
-  Run.t((~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out, 'err);
-
+let exec:
+  (~env: Bos.OS.Env.t, sandbox, Cmd.t) =>
+  Run.t(
+    (~err: Bos.OS.Cmd.run_err, Bos.OS.Cmd.run_in) => Bos.OS.Cmd.run_out,
+    'err,
+  );
