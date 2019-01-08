@@ -1,4 +1,4 @@
-(**
+/**
  * Command expression language
  *
  * This is a small language which allows to define build commands which use
@@ -37,29 +37,31 @@
  *
  * - #{"--" (@opam/lwt.installed ? "enable" : "disable") "-lwt"}
  *
- *)
+ */;
 
-module Value : sig
+module Value: {
   type t =
-    | String of string
-    | Bool of bool
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val show : t -> string
-  val pp : Format.formatter -> t -> unit
-end
+    | String(string)
+    | Bool(bool);
+  let equal: (t, t) => bool;
+  let compare: (t, t) => int;
+  let show: t => string;
+  let pp: (Format.formatter, t) => unit;
+};
 
+let bool: bool => Value.t;
+let string: string => Value.t;
 
-val bool : bool -> Value.t
-val string : string -> Value.t
+type scope = ((option(string), string)) => option(Value.t);
 
-type scope = string option * string -> Value.t option
+/** Render command expression into a string given the [scope]. */
 
-(** Render command expression into a string given the [scope]. *)
-val render :
-  ?envVar:(string -> (Value.t, string) result)
-  -> ?pathSep:string
-  -> ?colon:string
-  -> scope:scope
-  -> string
-  -> (string, string) result
+let render:
+  (
+    ~envVar: string => result(Value.t, string)=?,
+    ~pathSep: string=?,
+    ~colon: string=?,
+    ~scope: scope,
+    string
+  ) =>
+  result(string, string);
