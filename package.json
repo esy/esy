@@ -4,30 +4,8 @@
   "description": "Package builder for esy",
   "license": "MIT",
   "esy": {
-    "build": [
-      [
-        "dune",
-        "build",
-        "-j",
-        "4"
-      ],
-      [
-        "dune",
-        "build",
-        "esy/bin/esyCommand.exe",
-        "esy-build-package/bin/esyBuildPackageCommand.exe"
-      ]
-    ],
-    "install": [
-      [
-        "esy-installer",
-        "./esy-build-package.install"
-      ],
-      [
-        "esy-installer",
-        "./esy.install"
-      ]
-    ],
+    "build": "dune build -p esy,esy-build-package",
+    "install": "esy-installer esy.install esy-build-package.install",
     "buildsInSource": "_build"
   },
   "scripts": {

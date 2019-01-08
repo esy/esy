@@ -45,7 +45,7 @@ fs.copyFileSync(
 );
 
 const filesToTouch = [
-  '_build/default/esy/bin/esyCommand.exe',
+  '_build/default/bin/esy.exe',
   '_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
   '_build/default/esy-build-package/bin/fastreplacestring.exe'
 ];
@@ -70,7 +70,7 @@ const pkgJson = {
     postinstall: 'node ./postinstall.js'
   },
   bin: {
-    esy: '_build/default/esy/bin/esyCommand.exe'
+    esy: '_build/default/bin/esy.exe'
   },
   files: [
     'bin/',

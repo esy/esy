@@ -22,7 +22,7 @@ console.log(
         postinstall: 'node ./postinstall.js'
       },
       bin: {
-        esy: '_build/default/esy/bin/esyCommand.exe'
+        esy: '_build/default/bin/esy.exe'
       },
       files: [
         'bin/',

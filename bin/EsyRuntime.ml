@@ -14,7 +14,7 @@ module EsyPackageJson = struct
   let read () =
     let pkgJson =
       let open RunAsync.Syntax in
-      let filename = resolve "../../../../package.json" in
+      let filename = resolve "../../../package.json" in
       let%bind data = Fs.readFile filename in
       Lwt.return (Json.parseStringWith of_yojson data)
     in Lwt_main.run pkgJson

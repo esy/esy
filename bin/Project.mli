@@ -4,7 +4,7 @@
  * Project can be in multiple states and in multiple configurations.
  *)
 
-open Esy
+open EsyBuild
 open EsyInstall
 
 type project = {
@@ -13,7 +13,7 @@ type project = {
   workflow : Workflow.t;
   buildCfg : EsyBuildPackage.Config.t;
   solveSandbox : EsySolve.Sandbox.t;
-  installSandbox : EsyInstall.Sandbox.t;
+  installSandbox : Sandbox.t;
   scripts : Scripts.t;
   solved : solved Run.t;
 }
@@ -40,7 +40,7 @@ val solved : project -> solved RunAsync.t
 val fetched : project -> fetched RunAsync.t
 val configured : project -> configured RunAsync.t
 
-val make : ProjectConfig.t -> EsyInstall.SandboxSpec.t -> (project * FileInfo.t list) Run.t Lwt.t
+val make : ProjectConfig.t -> SandboxSpec.t -> (project * FileInfo.t list) Run.t Lwt.t
 
 val plan : BuildSpec.mode -> project -> BuildSandbox.Plan.t RunAsync.t
 

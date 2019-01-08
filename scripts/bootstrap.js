@@ -39,7 +39,7 @@ if (isWindows) {
     @SETLOCAL
     @SET ESY__SOLVE_CUDF_COMMAND=${esySolveCudf}
     @SET ESY__ESY_BASH=${esyBashPath}
-    "${root}/_build/default/esy/bin/esyCommand.exe" %*
+    "${root}/_build/default/bin/esy/exe" %*
     `
   );
 } else {
@@ -50,7 +50,7 @@ if (isWindows) {
     #!/bin/bash
     export ESY__SOLVE_CUDF_COMMAND="${esySolveCudf}"
     export ESY__ESY_BASH="${esyBashPath}"
-    exec "${root}/_build/default/esy/bin/esyCommand.exe" "$@"
+    exec "${root}/_build/default/bin/esy.exe" "$@"
     `
   );
   fs.chmodSync(esy, 0o755);

@@ -16,7 +16,7 @@ var os = require('os');
 var platform = process.platform;
 
 const binariesToCopy = [
-  path.join('_build', 'default', 'esy', 'bin', 'esyCommand.exe'),
+  path.join('_build', 'default', 'bin', 'esy.exe'),
   path.join(
     '_build',
     'default',

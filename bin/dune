@@ -1,7 +1,5 @@
 (executable
-  (name esyCommand)
-  (public_name esy)
-  (package esy)
+  (name esy)
   (preprocess (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries
@@ -18,8 +16,16 @@
             str
             astring
             ppx_deriving_yojson.runtime
-            Esy
+            EsyBuild
             EsyInstall
             EsySolve
             )
   )
+
+(install
+  (package esy)
+  (section bin)
+   (files
+     (esy.exe as esy)
+     (esyInstallRelease.js as esyInstallRelease.js)
+     ))

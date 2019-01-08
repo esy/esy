@@ -1,15 +1,9 @@
 open EsyPackageConfig
-
-module Scope = Esy.Scope
-module BuildId = Esy.BuildId
-module BuildSandbox = Esy.BuildSandbox
-module Solution = EsyInstall.Solution
-module Package = EsyInstall.Package
-module PkgSpec = EsyInstall.PkgSpec
+open EsyInstall
+open EsyBuild
 
 let esyInstallReleaseJs =
-  let req = "../../../../bin/esyInstallRelease.js" in
-  match NodeResolution.resolve req with
+  match NodeResolution.resolve "./esyInstallRelease.js" with
   | Ok path -> path
   | Error (`Msg msg) -> failwith msg
 
@@ -283,7 +277,7 @@ let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
   |} environmentString bin (Path.show destPrefix)
 
 let envspec = {
-  Esy.EnvSpec.
+  EnvSpec.
   buildIsInProgress = false;
   includeCurrentEnv = false;
   includeBuildEnv = false;
@@ -292,7 +286,7 @@ let envspec = {
   augmentDeps = Some Solution.DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
-  Esy.BuildSpec.
+  BuildSpec.
   all = Solution.DepSpec.(dependencies self);
   dev = Solution.DepSpec.(dependencies self);
 }
