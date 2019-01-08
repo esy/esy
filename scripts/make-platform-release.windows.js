@@ -47,8 +47,8 @@ const pack = async () => {
   console.log('Deleting cygwin from release folder...');
 
   await copy(
-    path.join(buildFolder, 'default', 'esy', 'bin', 'esyCommand.exe'),
-    path.join(destFolder, '_build', 'default', 'esy', 'bin', 'esyCommand.exe')
+    path.join(buildFolder, 'default', 'bin', 'esy.exe'),
+    path.join(destFolder, '_build', 'default', 'bin', 'esy.exe')
   );
   await copy(
     path.join(

@@ -1,5 +1,5 @@
 (library
-  (name Esy)
+  (name EsyBuild)
   (preprocess (pps ppx_inline_test lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
   (flags (:standard (-w -39) "-open" "EsyLib"))
   (libraries

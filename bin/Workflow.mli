@@ -1,15 +1,16 @@
-open Esy
+open EsyInstall
+open EsyBuild
 
 type t = {
   solvespec : EsySolve.SolveSpec.t;
-  installspec : EsyInstall.Solution.Spec.t;
+  installspec : Solution.Spec.t;
   buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;
 }
 
-val buildAll : EsyInstall.Solution.DepSpec.t
-val buildDev : EsyInstall.Solution.DepSpec.t
+val buildAll : Solution.DepSpec.t
+val buildDev : Solution.DepSpec.t
 
 val default : t

@@ -1,16 +1,17 @@
-open Esy
+open EsyInstall
+open EsyBuild
 
 type t = {
   solvespec : EsySolve.SolveSpec.t;
-  installspec : EsyInstall.Solution.Spec.t;
+  installspec : Solution.Spec.t;
   buildspec : BuildSpec.t;
   execenvspec : EnvSpec.t;
   commandenvspec : EnvSpec.t;
   buildenvspec : EnvSpec.t;
 }
 
-let buildAll = EsyInstall.Solution.DepSpec.(dependencies self)
-let buildDev = EsyInstall.Solution.DepSpec.(dependencies self + devDependencies self)
+let buildAll = Solution.DepSpec.(dependencies self)
+let buildDev = Solution.DepSpec.(dependencies self + devDependencies self)
 
 let default =
 
@@ -20,7 +21,7 @@ let default =
     solveAll = DepSpec.(dependencies self);
   } in
 
-  let installspec = EsyInstall.{
+  let installspec = {
     Solution.Spec.
     dev = Solution.DepSpec.(dependencies self + devDependencies self);
     all = Solution.DepSpec.(dependencies self);
@@ -44,7 +45,7 @@ let default =
     includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies, devDependencies and package itself. *)
-    augmentDeps = Some EsyInstall.Solution.DepSpec.(package self + dependencies self + devDependencies self);
+    augmentDeps = Some Solution.DepSpec.(package self + dependencies self + devDependencies self);
   } in
 
   (* This defines environment for "esy CMD" invocation. *)
@@ -56,7 +57,7 @@ let default =
     includeEsyIntrospectionEnv = true;
     includeNpmBin = true;
     (* Environment contains dependencies and devDependencies. *)
-    augmentDeps = Some EsyInstall.Solution.DepSpec.(dependencies self + devDependencies self);
+    augmentDeps = Some Solution.DepSpec.(dependencies self + devDependencies self);
   } in
 
   (* This defines environment for "esy build CMD" invocation. *)

@@ -1,4 +1,4 @@
-open Esy
+open EsyBuild
 open Cmdliner
 
 type t = {

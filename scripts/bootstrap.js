@@ -22,13 +22,8 @@ function which(cmd) {
 }
 
 const esyBashPath = path.dirname(require.resolve('esy-bash/package.json'));
-
-const unitTestBinPath = path.join(__dirname, "..", "test", "bin");
-const esyBashPathFile = path.join(unitTestBinPath, ".esy-bash-path")
-
-fs.writeFileSync(esyBashPathFile, esyBashPath.split("\\").join("/"));
-
-const esySolveCudf = which('esy-solve-cudf');
+const esySolveCudf = path.dirname(require.resolve('esy-solve-cudf/package.json'));
+const esySolveCudfExe = path.join(esySolveCudf, 'esySolveCudfCommand.exe');
 
 if (isWindows) {
   const esy = path.join(bin, 'esy.cmd');
@@ -37,9 +32,9 @@ if (isWindows) {
     outdent`
     @ECHO off
     @SETLOCAL
-    @SET ESY__SOLVE_CUDF_COMMAND=${esySolveCudf}
+    @SET ESY__SOLVE_CUDF_COMMAND=${esySolveCudfExe}
     @SET ESY__ESY_BASH=${esyBashPath}
-    "${root}/_build/default/esy/bin/esyCommand.exe" %*
+    "${root}/_build/default/bin/esy.exe" %*
     `
   );
 } else {
@@ -48,9 +43,9 @@ if (isWindows) {
     esy,
     outdent`
     #!/bin/bash
-    export ESY__SOLVE_CUDF_COMMAND="${esySolveCudf}"
+    export ESY__SOLVE_CUDF_COMMAND="${esySolveCudfExe}"
     export ESY__ESY_BASH="${esyBashPath}"
-    exec "${root}/_build/default/esy/bin/esyCommand.exe" "$@"
+    exec "${root}/_build/default/bin/esy.exe" "$@"
     `
   );
   fs.chmodSync(esy, 0o755);

@@ -1,6 +1,6 @@
 open EsyPackageConfig
 open EsyInstall
-open Esy
+open EsyBuild
 
 type project = {
   projcfg : ProjectConfig.t;

@@ -1,5 +1,5 @@
 let esyBuildPackageCmd =
-  let req =  "../../esy-build-package/bin/esyBuildPackageCommand.exe" in
+  let req =  "../esy-build-package/bin/esyBuildPackageCommand.exe" in
   match NodeResolution.resolve req with
   | Ok cmd -> Cmd.ofPath cmd
   | Error (`Msg msg) -> failwith msg
