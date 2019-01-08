@@ -5,7 +5,7 @@ ESY_VERSION := $(shell esy version)
 ESY_VERSION_MINOR :=$(word 2, $(subst ., ,$(ESY_VERSION)))
 
 BIN = $(PWD)/node_modules/.bin
-PROJECTS = esy esy-build-package esyi
+PROJECTS = esy esy-build-package
 VERSION = $(shell esy node -p "require('./package.json').version")
 PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
 NPM_RELEASE_TAG ?= latest
@@ -83,9 +83,6 @@ build:
 esy::
 	@esy b dune build -j 4 _build/default/esy/Esy.cmxa
 
-esyi::
-	@esy b dune build -j 4 _build/default/esyi/EsyInstall.cmxa
-
 esy-build-package::
 	@esy b dune build -j 4 _build/default/esy-build-package/EsyBuildPackage.cmxa
 
@@ -128,6 +125,13 @@ test::
 ci::
 	@$(MAKE) test
 	@$(MAKE) test-e2e-slow
+
+bin/esyInstallRelease.js: \
+		esy-install-npm-release/esyInstallNpmRelease.build.js \
+		esy-install-npm-release/esyInstallNpmRelease.js \
+		esy-install-npm-release/Makefile
+	@make -C esy-install-npm-release install build
+	@cp $(<) $(@)
 
 #
 # Release workflow.
