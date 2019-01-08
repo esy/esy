@@ -9,6 +9,7 @@ and manifest =
   | Manifest of ManifestSpec.t
   | ManifestAggregate of ManifestSpec.t list
 
+include S.JSONABLE with type t := t
 include S.PRINTABLE with type t := t
 include S.COMPARABLE with type t := t
 

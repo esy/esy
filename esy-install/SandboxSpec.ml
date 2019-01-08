@@ -3,7 +3,7 @@ open EsyPackageConfig
 type t = {
   path : Path.t;
   manifest : manifest;
-} [@@deriving ord]
+} [@@deriving ord, yojson]
 
 and manifest =
   | Manifest of ManifestSpec.t
