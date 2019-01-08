@@ -6,6 +6,7 @@ type project = {
   projcfg : ProjectConfig.t;
   spec : SandboxSpec.t;
   workflow : Workflow.t;
+  buildCfg : EsyBuildPackage.Config.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;
   scripts : Scripts.t;
@@ -119,10 +120,27 @@ let makeProject makeSolved projcfg spec =
   let%bind solveSandbox = EsySolve.Sandbox.make ~cfg:solveCfg spec in
   let installSandbox = EsyInstall.Sandbox.make installCfg spec in
 
+  let%bind buildCfg =
+    let storePath =
+      match projcfg.prefixPath with
+      | None -> EsyBuildPackage.Config.StorePathDefault
+      | Some prefixPath -> EsyBuildPackage.Config.StorePathOfPrefix prefixPath
+    in
+    RunAsync.ofBosError (
+      EsyBuildPackage.Config.make
+        ~storePath
+        ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
+        ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
+        ~projectPath:spec.path
+        ()
+    )
+  in
+
   let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
-  let%lwt solved = makeSolved projcfg workflow solveSandbox installSandbox files in
+  let%lwt solved = makeSolved projcfg workflow buildCfg solveSandbox installSandbox files in
   return ({
     projcfg;
+    buildCfg;
     spec;
     scripts;
     solved;
@@ -131,7 +149,7 @@ let makeProject makeSolved projcfg spec =
     installSandbox;
   }, !files)
 
-let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow solver installer files =
+let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow buildCfg solver installer files =
   let open RunAsync.Syntax in
   let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
@@ -143,7 +161,7 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow solver installer
   in
   match%bind SolutionLock.ofPath ~digest installer path with
   | Some solution ->
-    let%lwt fetched = makeFetched projcfg workflow solver installer solution files in
+    let%lwt fetched = makeFetched projcfg workflow buildCfg solver installer solution files in
     return {solution; fetched;}
   | None -> errorf "project is missing a lock, run `esy install`"
 
@@ -171,7 +189,7 @@ let readSandboxEnv spec =
   | EsyInstall.SandboxSpec.ManifestAggregate _ ->
     return BuildEnv.empty
 
-let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow _solver installer solution files =
+let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow buildCfg _solver installer solution files =
   let open RunAsync.Syntax in
   let path = EsyInstall.SandboxSpec.installationPath projcfg.spec in
   let%bind info = FileInfo.ofPath path in
@@ -200,7 +218,7 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow _solver inst
         let%bind sandbox, filesUsedForPlan =
           BuildSandbox.make
             ~sandboxEnv
-            projcfg.cfg
+            buildCfg
             projcfg.spec
             installer.EsyInstall.Sandbox.cfg
             solution
@@ -289,7 +307,7 @@ let writeAuxCache proj =
           fetched.sandbox
           root.Package.id
       in
-      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg commandEnv in
+      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.buildCfg commandEnv in
       Environment.renderToShellSource ~header commandEnv
     ) in
     let commandExec =
@@ -330,7 +348,7 @@ let resolvePackage ~name (proj : project) =
     | None -> errorf "package %s isn't built yet, run 'esy build'" name
     | Some task ->
       if%bind BuildSandbox.isBuilt sandbox task
-      then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
+      then return (BuildSandbox.Task.installPath proj.buildCfg task)
       else errorf "package %s isn't built yet, run 'esy build'" name
     end
 
@@ -588,7 +606,7 @@ let printEnv
           fetched.sandbox
           pkg.id
       in
-      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg env in
+      let env = Scope.SandboxEnvironment.Bindings.render proj.buildCfg env in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in

@@ -1151,7 +1151,7 @@ let exportBuild cfg ~outputPrefixPath buildPath =
   let%bind () = Fs.rmPath stagePath in
   return ()
 
-let importBuild cfg buildPath =
+let importBuild storePath buildPath =
   let open RunAsync.Syntax in
   let buildId, kind =
     if Path.hasExt "tar.gz" buildPath
@@ -1161,7 +1161,7 @@ let importBuild cfg buildPath =
       (buildPath |> Path.basename, `Dir)
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
-  let outputPath = Path.(cfg.EsyBuildPackage.Config.storePath / Store.installTree / buildId) in
+  let outputPath = Path.(storePath / Store.installTree / buildId) in
   if%bind Fs.exists outputPath
   then (
     let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
@@ -1175,7 +1175,7 @@ let importBuild cfg buildPath =
       let%bind () =
         RewritePrefix.rewritePrefix
           ~origPrefix
-          ~destPrefix:cfg.EsyBuildPackage.Config.storePath
+          ~destPrefix:storePath
           buildPath
       in
       let%bind () = Fs.rename ~src:buildPath outputPath in
@@ -1185,14 +1185,14 @@ let importBuild cfg buildPath =
     match kind with
     | `Dir ->
       let%bind stagePath =
-        let path = Path.(cfg.EsyBuildPackage.Config.storePath / "s" / buildId) in
+        let path = Path.(storePath / "s" / buildId) in
         let%bind () = Fs.rmPath path in
         let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
         return path
       in
       importFromDir stagePath
     | `Archive ->
-      let stagePath = Path.(cfg.EsyBuildPackage.Config.storePath / Store.stageTree / buildId) in
+      let stagePath = Path.(storePath / Store.stageTree / buildId) in
       let%bind () =
         let cmd = Cmd.(
           v "tar"

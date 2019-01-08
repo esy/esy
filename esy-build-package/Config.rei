@@ -15,6 +15,8 @@ type storePathConfig =
   | StorePathOfPrefix(Fpath.t)
   | StorePathDefault;
 
+let configureStorePath : storePathConfig => Run.t(Fpath.t, _);
+
 let make:
   (
     ~storePath: storePathConfig,

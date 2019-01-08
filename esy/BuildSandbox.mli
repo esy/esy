@@ -131,6 +131,6 @@ val exportBuild :
   -> unit RunAsync.t
 
 val importBuild :
-  EsyBuildPackage.Config.t
-  -> Fpath.t
+  Path.t
+  -> Path.t
   -> unit RunAsync.t

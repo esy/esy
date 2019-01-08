@@ -31,9 +31,9 @@ let createConfig = (copts: commonOpts) => {
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
-    switch(storePath) {
-      | None => Config.StorePathDefault
-      | Some(storePath) => Config.StorePath(storePath)
+    switch (storePath) {
+    | None => Config.StorePathDefault
+    | Some(storePath) => Config.StorePath(storePath)
     };
   Config.make(
     ~storePath,

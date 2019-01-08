@@ -4,7 +4,6 @@ open Cmdliner
 type t = {
   mainprg : string;
   esyVersion : string;
-  cfg : EsyBuildPackage.Config.t;
   spec : EsyInstall.SandboxSpec.t;
 
   prefixPath : Path.t option;
@@ -17,6 +16,14 @@ type t = {
   skipRepositoryUpdate : bool;
   solveCudfCommand : Cmd.t option;
 } [@@deriving show, to_yojson]
+
+let storePath cfg =
+  let storePath =
+    match cfg.prefixPath with
+    | None -> EsyBuildPackage.Config.StorePathDefault
+    | Some path -> EsyBuildPackage.Config.StorePathOfPrefix path
+  in
+  Run.ofBosError (EsyBuildPackage.Config.(configureStorePath storePath))
 
 let findProjectPathFrom currentPath =
   let open Run.Syntax in
@@ -184,26 +191,9 @@ let make
       return rc.EsyRc.prefixPath
   in
 
-  let%bind cfg =
-    let storePath =
-      match prefixPath with
-      | None -> EsyBuildPackage.Config.StorePathDefault
-      | Some prefixPath -> EsyBuildPackage.Config.StorePathOfPrefix prefixPath
-    in
-    RunAsync.ofBosError (
-      EsyBuildPackage.Config.make
-        ~storePath
-        ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
-        ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
-        ~projectPath:spec.path
-        ()
-    )
-  in
-
   return {
     mainprg;
     esyVersion = EsyRuntime.version;
-    cfg;
     spec;
     prefixPath;
     cachePath;

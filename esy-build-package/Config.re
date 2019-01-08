@@ -25,8 +25,9 @@ let initStore = (path: Fpath.t) => {
   return();
 };
 
-let rec configureStorePath = cfg =>
-  Run.(
+let rec configureStorePath = cfg => {
+  open Run;
+  let%bind path =
     switch (cfg) {
     | StorePath(storePath) => return(storePath)
     | StorePathOfPrefix(prefixPath) =>
@@ -37,13 +38,14 @@ let rec configureStorePath = cfg =>
       let home = EsyLib.Path.homePath();
       let prefixPath = home / ".esy";
       configureStorePath(StorePathOfPrefix(prefixPath));
-    }
-  );
+    };
+  let%bind () = initStore(path);
+  return(path);
+};
 
 let make = (~storePath, ~projectPath, ~buildPath, ~localStorePath, ()) => {
   open Run;
   let%bind storePath = configureStorePath(storePath);
-  let%bind () = initStore(storePath);
   let%bind () = {
     let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
     if%bind (exists(shortcutPath)) {

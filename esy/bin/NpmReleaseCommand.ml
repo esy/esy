@@ -602,7 +602,7 @@ let run (proj : Project.t) =
 
   let%bind outputPath =
     let outputDir = "_release" in
-    let outputPath = Path.(proj.projcfg.cfg.EsyBuildPackage.Config.projectPath / outputDir) in
+    let outputPath = Path.(proj.buildCfg.projectPath / outputDir) in
     let%bind () = Fs.rmPath outputPath in
     return outputPath
   in
@@ -623,7 +623,7 @@ let run (proj : Project.t) =
     ~ocamlopt
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
-    proj.projcfg.ProjectConfig.cfg
+    proj.buildCfg
     proj.projcfg.ProjectConfig.spec
     fetched.Project.sandbox
     (Solution.root solved.Project.solution)

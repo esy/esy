@@ -8,7 +8,6 @@
 type t = {
   mainprg : string;
   esyVersion : string;
-  cfg : EsyBuildPackage.Config.t;
   spec : EsyInstall.SandboxSpec.t;
 
   prefixPath : Path.t option;
@@ -21,6 +20,8 @@ type t = {
   skipRepositoryUpdate : bool;
   solveCudfCommand : Cmd.t option;
 }
+
+val storePath : t -> Path.t Run.t
 
 val show : t -> string
 val pp : t Fmt.t

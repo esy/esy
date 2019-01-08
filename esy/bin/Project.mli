@@ -11,6 +11,7 @@ type project = {
   projcfg : ProjectConfig.t;
   spec : SandboxSpec.t;
   workflow : Workflow.t;
+  buildCfg : EsyBuildPackage.Config.t;
   solveSandbox : EsySolve.Sandbox.t;
   installSandbox : EsyInstall.Sandbox.t;
   scripts : Scripts.t;

@@ -85,10 +85,10 @@ module Findlib = struct
     location : string;
   }
 
-  let query ~ocamlfind ~task projcfg lib =
+  let query ~ocamlfind ~task proj lib =
     let open RunAsync.Syntax in
     let ocamlpath =
-      Path.(BuildSandbox.Task.installPath projcfg.ProjectConfig.cfg task / "lib")
+      Path.(BuildSandbox.Task.installPath proj.Project.buildCfg task / "lib")
     in
     let env =
       ChildProcess.CustomEnv Astring.String.Map.(
@@ -129,12 +129,12 @@ module Findlib = struct
       location = findField ~name:"location";
     }
 
-  let libraries ~ocamlfind ?builtIns ?task projcfg =
+  let libraries ~ocamlfind ?builtIns ?task proj =
     let open RunAsync.Syntax in
     let ocamlpath =
       match task with
       | Some task ->
-        Path.(BuildSandbox.Task.installPath projcfg.ProjectConfig.cfg task / "lib" |> show)
+        Path.(BuildSandbox.Task.installPath proj.Project.buildCfg task / "lib" |> show)
       | None -> ""
     in
     let env =
@@ -341,13 +341,13 @@ let status
         let open RunAsync.Syntax in
         let%bind configured = Project.configured proj in
         let root = configured.Project.root in
-        return (Some (BuildSandbox.Task.buildPath proj.projcfg.ProjectConfig.cfg root))
+        return (Some (BuildSandbox.Task.buildPath proj.Project.buildCfg root))
         in
       let%lwt rootInstallPath =
         let open RunAsync.Syntax in
         let%bind configured = Project.configured proj in
         let root = configured.Project.root in
-        return (Some (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg root))
+        return (Some (BuildSandbox.Task.installPath proj.Project.buildCfg root))
       in
       let%lwt rootPackageConfigPath =
         let open RunAsync.Syntax in
@@ -549,7 +549,7 @@ let runScript (proj : Project.t) script args () =
 
     let expand v =
       let%bind v = Scope.render ~env ~buildIsInProgress:envspec.buildIsInProgress scope v in
-      return (Scope.SandboxValue.render proj.projcfg.cfg v)
+      return (Scope.SandboxValue.render proj.buildCfg v)
     in
 
     let%bind scriptArgs =
@@ -687,7 +687,7 @@ let lsLibs includeTransitive mode pkgarg (proj : Project.t) =
     let%bind p = Project.ocamlfind proj in
     return Path.(p / "bin" / "ocamlfind")
   in
-  let%bind builtIns = Findlib.libraries ~ocamlfind proj.projcfg in
+  let%bind builtIns = Findlib.libraries ~ocamlfind proj in
 
   let computeTermNode (task: BuildSandbox.Task.t) children =
     let%bind built = BuildSandbox.isBuilt fetched.Project.sandbox task in
@@ -695,7 +695,7 @@ let lsLibs includeTransitive mode pkgarg (proj : Project.t) =
 
     let%bind libs =
       if built then
-        Findlib.libraries ~ocamlfind ~builtIns ~task proj.projcfg
+        Findlib.libraries ~ocamlfind ~builtIns ~task proj
       else
         return []
     in
@@ -726,10 +726,10 @@ let lsModules only mode pkgarg (proj : Project.t) =
     let%bind p = Project.ocaml proj in
     return Path.(p / "bin" / "ocamlobjinfo")
   in
-  let%bind builtIns = Findlib.libraries ~ocamlfind proj.projcfg in
+  let%bind builtIns = Findlib.libraries ~ocamlfind proj in
 
   let formatLibraryModules ~task lib =
-    let%bind meta = Findlib.query ~ocamlfind ~task proj.projcfg lib in
+    let%bind meta = Findlib.query ~ocamlfind ~task proj lib in
     let open Findlib in
 
     if String.length(meta.archive) == 0 then
@@ -770,7 +770,7 @@ let lsModules only mode pkgarg (proj : Project.t) =
 
     let%bind libs =
       if built then
-        Findlib.libraries ~ocamlfind ~builtIns ~task proj.projcfg
+        Findlib.libraries ~ocamlfind ~builtIns ~task proj
       else
         return []
     in
@@ -987,7 +987,7 @@ let add (reqs : string list) (proj : Project.t) =
 
 let exportBuild buildPath (proj : Project.t) =
   let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-  BuildSandbox.exportBuild ~outputPrefixPath proj.projcfg.cfg buildPath
+  BuildSandbox.exportBuild ~outputPrefixPath proj.buildCfg buildPath
 
 let exportDependencies (proj : Project.t) =
   let open RunAsync.Syntax in
@@ -1000,11 +1000,11 @@ let exportDependencies (proj : Project.t) =
     | None -> return ()
     | Some task ->
       let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s@%a" pkg.name Version.pp pkg.version) in
-      let buildPath = BuildSandbox.Task.installPath proj.projcfg.cfg task in
+      let buildPath = BuildSandbox.Task.installPath proj.buildCfg task in
       if%bind Fs.exists buildPath
       then
         let outputPrefixPath = Path.(EsyRuntime.currentWorkingDir / "_export") in
-        BuildSandbox.exportBuild ~outputPrefixPath proj.projcfg.cfg buildPath
+        BuildSandbox.exportBuild ~outputPrefixPath proj.buildCfg buildPath
       else (
         errorf
           "%s@%a was not built, run 'esy build' first"
@@ -1032,9 +1032,11 @@ let importBuild fromPath buildPaths (projcfg : ProjectConfig.t) =
   | None -> return buildPaths
   in
 
+  let%bind storePath = RunAsync.ofRun (ProjectConfig.storePath projcfg) in
+
   RunAsync.List.mapAndWait
     ~concurrency:8
-    ~f:(fun path -> BuildSandbox.importBuild projcfg.cfg path)
+    ~f:(fun path -> BuildSandbox.importBuild storePath path)
     buildPaths
 
 let importDependencies fromPath (proj : Project.t) =
@@ -1046,7 +1048,7 @@ let importDependencies fromPath (proj : Project.t) =
 
   let fromPath = match fromPath with
     | Some fromPath -> fromPath
-    | None -> Path.(proj.projcfg.cfg.projectPath / "_export")
+    | None -> Path.(proj.buildCfg.projectPath / "_export")
   in
 
   let importBuild (_direct, pkg) =
@@ -1059,9 +1061,9 @@ let importDependencies fromPath (proj : Project.t) =
         let pathDir = Path.(fromPath / BuildId.show id) in
         let pathTgz = Path.(fromPath / (BuildId.show id ^ ".tar.gz")) in
         if%bind Fs.exists pathDir
-        then BuildSandbox.importBuild proj.projcfg.cfg pathDir
+        then BuildSandbox.importBuild proj.buildCfg.storePath pathDir
         else if%bind Fs.exists pathTgz
-        then BuildSandbox.importBuild proj.projcfg.cfg pathTgz
+        then BuildSandbox.importBuild proj.buildCfg.storePath pathTgz
         else
           let%lwt () =
             Logs_lwt.warn (fun m -> m "no prebuilt artifact found for %a" BuildId.pp id)
