@@ -9,7 +9,10 @@ open EsyInstall
 
 type project = {
   projcfg : ProjectConfig.t;
+  spec : SandboxSpec.t;
   workflow : Workflow.t;
+  solveSandbox : EsySolve.Sandbox.t;
+  installSandbox : EsyInstall.Sandbox.t;
   scripts : Scripts.t;
   solved : solved Run.t;
 }
@@ -36,7 +39,7 @@ val solved : project -> solved RunAsync.t
 val fetched : project -> fetched RunAsync.t
 val configured : project -> configured RunAsync.t
 
-val make : ProjectConfig.t -> (project * FileInfo.t list) Run.t Lwt.t
+val make : ProjectConfig.t -> EsyInstall.SandboxSpec.t -> (project * FileInfo.t list) Run.t Lwt.t
 
 val plan : BuildSpec.mode -> project -> BuildSandbox.Plan.t RunAsync.t
 

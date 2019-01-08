@@ -6,9 +6,17 @@ type t = {
   esyVersion : string;
   cfg : EsyBuildPackage.Config.t;
   spec : EsyInstall.SandboxSpec.t;
-  solveSandbox : EsySolve.Sandbox.t;
-  installSandbox : EsyInstall.Sandbox.t;
-}
+
+  prefixPath : Path.t option;
+  cachePath : Path.t option;
+  cacheTarballsPath : Path.t option;
+  opamRepository : EsySolve.Config.checkoutCfg option;
+  esyOpamOverride : EsySolve.Config.checkoutCfg option;
+  npmRegistry : string option;
+  solveTimeout : float option;
+  skipRepositoryUpdate : bool;
+  solveCudfCommand : Cmd.t option;
+} [@@deriving show, to_yojson]
 
 let findProjectPathFrom currentPath =
   let open Run.Syntax in
@@ -176,29 +184,6 @@ let make
       return rc.EsyRc.prefixPath
   in
 
-  let%bind esySolveCmd =
-    match solveCudfCommand with
-    | Some cmd -> return cmd
-    | None ->
-      let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
-      return Cmd.(v (p cmd))
-  in
-
-  let%bind solveCfg =
-    EsySolve.Config.make
-      ~esySolveCmd
-      ~skipRepositoryUpdate
-      ?cachePath
-      ?cacheTarballsPath
-      ?npmRegistry
-      ?opamRepository
-      ?esyOpamOverride
-      ?solveTimeout
-      ()
-  in
-
-  let installCfg = solveCfg.EsySolve.Config.installCfg in
-
   let%bind cfg =
     let storePath =
       match prefixPath with
@@ -215,16 +200,20 @@ let make
     )
   in
 
-  let%bind solveSandbox = EsySolve.Sandbox.make ~cfg:solveCfg spec in
-  let installSandbox = EsyInstall.Sandbox.make installCfg spec in
-
   return {
     mainprg;
     esyVersion = EsyRuntime.version;
     cfg;
-    solveSandbox;
-    installSandbox;
     spec;
+    prefixPath;
+    cachePath;
+    cacheTarballsPath;
+    opamRepository;
+    esyOpamOverride;
+    npmRegistry;
+    solveTimeout;
+    skipRepositoryUpdate;
+    solveCudfCommand;
   }
 
 let promiseTerm projectPath =
