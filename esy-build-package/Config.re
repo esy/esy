@@ -1,10 +1,11 @@
 module Store = EsyLib.Store;
 
+[@deriving (show, to_yojson)]
 type t = {
-  projectPath: Fpath.t,
-  buildPath: Fpath.t,
-  storePath: Fpath.t,
-  localStorePath: Fpath.t,
+  projectPath: EsyLib.Path.t,
+  buildPath: EsyLib.Path.t,
+  storePath: EsyLib.Path.t,
+  localStorePath: EsyLib.Path.t,
 };
 
 type config = t;

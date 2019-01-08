@@ -6,6 +6,10 @@ type t =
     localStorePath: Fpath.t,
   };
 
+let pp : Fmt.t(t);
+let show : t => string;
+let to_yojson : EsyLib.Json.encoder(t);
+
 type storePathConfig =
   | StorePath(Fpath.t)
   | StorePathOfPrefix(Fpath.t)
