@@ -5,16 +5,27 @@
  * project.
  *)
 
-open EsyInstall
-open Esy
-
 type t = {
   mainprg : string;
-  cfg : Config.t;
-  spec : SandboxSpec.t;
-  solveSandbox : EsySolve.Sandbox.t;
-  installSandbox : EsyInstall.Sandbox.t;
+  esyVersion : string;
+  spec : EsyInstall.SandboxSpec.t;
+
+  prefixPath : Path.t option;
+  cachePath : Path.t option;
+  cacheTarballsPath : Path.t option;
+  opamRepository : EsySolve.Config.checkoutCfg option;
+  esyOpamOverride : EsySolve.Config.checkoutCfg option;
+  npmRegistry : string option;
+  solveTimeout : float option;
+  skipRepositoryUpdate : bool;
+  solveCudfCommand : Cmd.t option;
 }
+
+val storePath : t -> Path.t Run.t
+
+val show : t -> string
+val pp : t Fmt.t
+val to_yojson : t -> Json.t
 
 val promiseTerm : Fpath.t option -> t RunAsync.t Cmdliner.Term.t
 

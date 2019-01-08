@@ -95,7 +95,7 @@ let writeOverride sandbox pkg override =
   | Override.OfDist {dist = Dist.LocalPath local; json = _;} ->
     return (OfPath local)
   | Override.OfDist {dist; json = _;} ->
-    let%bind distPath = DistStorage.fetchIntoCache ~cfg:sandbox.cfg ~sandbox:sandbox.spec dist in
+    let%bind distPath = DistStorage.fetchIntoCache sandbox.cfg sandbox.spec dist in
     let digest = Digestv.ofString (Dist.show dist) in
     let lockPath = Path.(
       SandboxSpec.solutionLockPath sandbox.Sandbox.spec

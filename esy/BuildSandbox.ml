@@ -5,7 +5,9 @@ module Package = EsyInstall.Package
 module Installation = EsyInstall.Installation
 
 type t = {
-  cfg : Config.t;
+  cfg : EsyBuildPackage.Config.t;
+  spec : EsyInstall.SandboxSpec.t;
+  installCfg : EsyInstall.Config.t;
   arch : System.Arch.t;
   platform : System.Platform.t;
   sandboxEnv : SandboxEnv.t;
@@ -18,12 +20,12 @@ let rootPackageConfigPath sandbox =
   let root = Solution.root sandbox.solution in
   match root.source with
   | Link { path; manifest = Some (_kind, filename); kind = _; } ->
-    let path = DistPath.toPath sandbox.cfg.spec.path path in
+    let path = DistPath.toPath sandbox.spec.path path in
     Some Path.(path / filename)
   | Link { path = _; manifest = None; kind = _; } -> None
   | Install _ -> None
 
-let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
+let readManifests cfg installCfg (solution : Solution.t) (installation : Installation.t) =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.debug (fun m -> m "reading manifests: start") in
@@ -42,7 +44,8 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
     RunAsync.contextf (
       let%bind manifest, paths =
         ReadBuildManifest.ofInstallationLocation
-          ~cfg
+          cfg
+          installCfg
           pkg
           loc
       in
@@ -92,12 +95,16 @@ let readManifests cfg (solution : Solution.t) (installation : Installation.t) =
 let make
   ?(sandboxEnv=SandboxEnv.empty)
   cfg
+  spec
+  installCfg
   solution
   installation =
   let open RunAsync.Syntax in
-  let%bind paths, manifests = readManifests cfg solution installation in
+  let%bind paths, manifests = readManifests spec installCfg solution installation in
   return ({
     cfg;
+    spec;
+    installCfg;
     platform = System.Platform.host;
     arch = System.Arch.host;
     sandboxEnv;
@@ -110,7 +117,7 @@ let make
 let renderExpression sandbox scope expr =
   let open Run.Syntax in
   let%bind expr = Scope.render ~buildIsInProgress:false scope expr in
-  return (Scope.SandboxValue.render sandbox.cfg.buildCfg expr)
+  return (Scope.SandboxValue.render sandbox.cfg expr)
 
 module Task = struct
   type t = {
@@ -163,7 +170,7 @@ module Task = struct
   let to_yojson t = EsyBuildPackage.Plan.to_yojson (plan t)
 
   let toPathWith cfg t make =
-    Scope.SandboxPath.toPath cfg.Config.buildCfg (make t.scope)
+    Scope.SandboxPath.toPath cfg (make t.scope)
 
   let sourcePath cfg t = toPathWith cfg t Scope.sourcePath
   let buildPath cfg t = toPathWith cfg t Scope.buildPath
@@ -470,7 +477,7 @@ let makeScope
         ()
     in
 
-    let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg.buildCfg location in
+    let sourcePath = Scope.SandboxPath.ofPath sandbox.cfg location in
 
     let sandboxEnv =
       let f {BuildEnv. name; value} =
@@ -689,7 +696,7 @@ let buildShell buildspec mode sandbox id =
   let open RunAsync.Syntax in
   let%bind task = task buildspec mode sandbox id in
   let plan = Task.plan task in
-  EsyBuildPackageApi.buildShell ~cfg:sandbox.cfg plan
+  EsyBuildPackageApi.buildShell sandbox.cfg plan
 
 module EsyIntrospectionEnv = struct
   let rootPackageConfigPath = "ESY__ROOT_PACKAGE_CONFIG_PATH"
@@ -727,7 +734,7 @@ let augmentEnvWithOptions (envspec : EnvSpec.t) sandbox scope =
   let env =
     if includeNpmBin
     then
-      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.cfg.spec) in
+      let npmBin = Path.show (EsyInstall.SandboxSpec.binPath sandbox.spec) in
       Env.prefixValue "PATH" (Val.v npmBin)
       ::env
     else env
@@ -833,7 +840,7 @@ let exec
 
     let expand v =
       let%bind v = Scope.render ~env ~buildIsInProgress:envspec.EnvSpec.buildIsInProgress scope v in
-      return (Scope.SandboxValue.render sandbox.cfg.buildCfg v)
+      return (Scope.SandboxValue.render sandbox.cfg v)
     in
     let tool, args = Cmd.getToolAndArgs cmd in
     let%bind tool = expand tool in
@@ -845,13 +852,13 @@ let exec
   then
     let%bind task = task buildspec mode sandbox id in
     let plan = Task.plan ~env task in
-    EsyBuildPackageApi.buildExec ~cfg:sandbox.cfg plan cmd
+    EsyBuildPackageApi.buildExec sandbox.cfg plan cmd
   else
     let waitForProcess process =
       let%lwt status = process#status in
       return status
     in
-    let env = Scope.SandboxEnvironment.render sandbox.cfg.buildCfg env in
+    let env = Scope.SandboxEnvironment.render sandbox.cfg env in
     (* TODO: make sure we resolve 'esy' to the current executable, needed nested
      * invokations *)
     ChildProcess.withProcess
@@ -920,7 +927,7 @@ let buildTask ?quiet ?buildOnly ?logPath sandbox task =
   let plan = Task.plan task in
   let label = Fmt.strf "build %a" Task.pp task in
   Perf.measureLwt ~label (fun () ->
-    EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath ~cfg:sandbox.cfg plan)
+    EsyBuildPackageApi.build ?quiet ?buildOnly ?logPath sandbox.cfg plan)
 
 let buildOnly ~force ?quiet ?buildOnly ?logPath sandbox plan id =
   let open RunAsync.Syntax in
@@ -942,7 +949,7 @@ let buildRoot ?quiet ?buildOnly sandbox plan =
     let%bind () = buildTask ?quiet ?buildOnly sandbox task in
     let%bind () =
       let buildPath = Task.buildPath sandbox.cfg task in
-      let buildPathLink = EsyInstall.SandboxSpec.buildPath sandbox.cfg.Config.spec in
+      let buildPathLink = EsyInstall.SandboxSpec.buildPath sandbox.spec in
       match System.Platform.host with
       | Windows -> return ()
       | _ -> Fs.symlink ~force:true ~src:buildPath buildPathLink
@@ -1119,7 +1126,7 @@ let build ?(concurrency=1) ~buildLinked sandbox plan ids =
     ~label:"build"
     (fun () -> build' ~concurrency ~buildLinked sandbox plan ids)
 
-let exportBuild ~cfg ~outputPrefixPath buildPath =
+let exportBuild cfg ~outputPrefixPath buildPath =
   let open RunAsync.Syntax in
   let buildId = Path.basename buildPath in
   let%lwt () = Logs_lwt.app (fun m -> m "Exporting %s" buildId) in
@@ -1130,7 +1137,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
     return (Path.v prevStorePrefix, Path.v nextStorePrefix)
   in
   let%bind stagePath =
-    let path = Path.(cfg.Config.buildCfg.storePath / "s" / buildId) in
+    let path = Path.(cfg.EsyBuildPackage.Config.storePath / "s" / buildId) in
     let%bind () = Fs.rmPath path in
     let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
     return path
@@ -1144,7 +1151,7 @@ let exportBuild ~cfg ~outputPrefixPath buildPath =
   let%bind () = Fs.rmPath stagePath in
   return ()
 
-let importBuild ~cfg buildPath =
+let importBuild storePath buildPath =
   let open RunAsync.Syntax in
   let buildId, kind =
     if Path.hasExt "tar.gz" buildPath
@@ -1154,7 +1161,7 @@ let importBuild ~cfg buildPath =
       (buildPath |> Path.basename, `Dir)
   in
   let%lwt () = Logs_lwt.app (fun m -> m "Import %s" buildId) in
-  let outputPath = Path.(cfg.Config.buildCfg.storePath / Store.installTree / buildId) in
+  let outputPath = Path.(storePath / Store.installTree / buildId) in
   if%bind Fs.exists outputPath
   then (
     let%lwt () = Logs_lwt.app (fun m -> m "Import %s: already in store, skipping..." buildId) in
@@ -1165,7 +1172,12 @@ let importBuild ~cfg buildPath =
         let%bind v = Fs.readFile Path.(buildPath / "_esy" / "storePrefix") in
         return (Path.v v)
       in
-      let%bind () = RewritePrefix.rewritePrefix ~origPrefix ~destPrefix:cfg.buildCfg.storePath buildPath in
+      let%bind () =
+        RewritePrefix.rewritePrefix
+          ~origPrefix
+          ~destPrefix:storePath
+          buildPath
+      in
       let%bind () = Fs.rename ~src:buildPath outputPath in
       let%lwt () = Logs_lwt.app (fun m -> m "Import %s: done" buildId) in
       return ()
@@ -1173,14 +1185,14 @@ let importBuild ~cfg buildPath =
     match kind with
     | `Dir ->
       let%bind stagePath =
-        let path = Path.(cfg.buildCfg.storePath / "s" / buildId) in
+        let path = Path.(storePath / "s" / buildId) in
         let%bind () = Fs.rmPath path in
         let%bind () = Fs.copyPath ~src:buildPath ~dst:path in
         return path
       in
       importFromDir stagePath
     | `Archive ->
-      let stagePath = Path.(cfg.buildCfg.storePath / Store.stageTree / buildId) in
+      let stagePath = Path.(storePath / Store.stageTree / buildId) in
       let%bind () =
         let cmd = Cmd.(
           v "tar"

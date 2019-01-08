@@ -7,7 +7,7 @@
  * reversed argument order.
  *)
 type t = string * string list
-  [@@deriving ord]
+  [@@deriving ord, yojson]
 
 let v tool = tool, []
 

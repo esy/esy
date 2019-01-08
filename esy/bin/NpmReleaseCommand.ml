@@ -1,6 +1,11 @@
 open EsyPackageConfig
-open EsyInstall
-open Esy
+
+module Scope = Esy.Scope
+module BuildId = Esy.BuildId
+module BuildSandbox = Esy.BuildSandbox
+module Solution = EsyInstall.Solution
+module Package = EsyInstall.Package
+module PkgSpec = EsyInstall.PkgSpec
 
 let esyInstallReleaseJs =
   let req = "../../../../bin/esyInstallRelease.js" in
@@ -69,15 +74,15 @@ module OfPackageJson = struct
 
 end
 
-let configure (cfg : Config.t) () =
+let configure (spec : EsyInstall.SandboxSpec.t) () =
   let open RunAsync.Syntax in
   let docs = "https://esy.sh/docs/release.html" in
-  match cfg.spec.manifest with
+  match spec.manifest with
   | EsyInstall.SandboxSpec.ManifestAggregate _
   | EsyInstall.SandboxSpec.Manifest (Opam, _) ->
     errorf "could not create releases without package.json, see %s for details" docs
   | EsyInstall.SandboxSpec.Manifest (Esy, filename) ->
-    let%bind json = Fs.readJsonFile Path.(cfg.spec.path / filename) in
+    let%bind json = Fs.readJsonFile Path.(spec.path / filename) in
     let%bind pkgJson = RunAsync.ofStringError (OfPackageJson.of_yojson json) in
     match pkgJson.OfPackageJson.esy.release with
     | None -> errorf "no release config found in package.json, see %s for details" docs
@@ -278,7 +283,7 @@ let makeBinWrapper ~destPrefix ~bin ~(environment : Environment.Bindings.t) =
   |} environmentString bin (Path.show destPrefix)
 
 let envspec = {
-  EnvSpec.
+  Esy.EnvSpec.
   buildIsInProgress = false;
   includeCurrentEnv = false;
   includeBuildEnv = false;
@@ -287,7 +292,7 @@ let envspec = {
   augmentDeps = Some Solution.DepSpec.(package self + dependencies self + devDependencies self);
 }
 let buildspec = {
-  BuildSpec.
+  Esy.BuildSpec.
   all = Solution.DepSpec.(dependencies self);
   dev = Solution.DepSpec.(dependencies self);
 }
@@ -306,13 +311,14 @@ let make
   ~ocamlopt
   ~outputPath
   ~concurrency
-  (cfg : Config.t)
+  (cfg : EsyBuildPackage.Config.t)
+  (spec : EsyInstall.SandboxSpec.t)
   (sandbox : BuildSandbox.t)
   root =
   let open RunAsync.Syntax in
 
   let%lwt () = Logs_lwt.app (fun m -> m "Creating npm release") in
-  let%bind releaseCfg = configure cfg () in
+  let%bind releaseCfg = configure spec () in
 
   (*
     * Construct a task tree with all tasks marked as immutable. This will make
@@ -409,7 +415,7 @@ let make
       else
         let buildPath = BuildSandbox.Task.installPath cfg task in
         let outputPrefixPath = Path.(outputPath / "_export") in
-        BuildSandbox.exportBuild ~cfg ~outputPrefixPath buildPath
+        BuildSandbox.exportBuild cfg ~outputPrefixPath buildPath
     in
     RunAsync.List.mapAndWait
       ~concurrency:8
@@ -436,7 +442,7 @@ let make
       ) in
       let bindings =
         Scope.SandboxEnvironment.Bindings.render
-          cfg.buildCfg
+          cfg
           bindings
       in
       let bindings =
@@ -493,9 +499,9 @@ let make
       in
       let origPrefix, destPrefix =
         let destPrefix =
-          String.make (String.length (Path.show cfg.buildCfg.storePath)) '_'
+          String.make (String.length (Path.show cfg.EsyBuildPackage.Config.storePath)) '_'
         in
-        cfg.buildCfg.storePath, Path.v destPrefix
+        cfg.storePath, Path.v destPrefix
       in
       let%bind () =
         Fs.withTempDir (fun stagePath ->
@@ -563,7 +569,7 @@ let make
     let%bind () = Fs.copyFile ~src:esyInstallReleaseJs ~dst:Path.(outputPath / "esyInstallRelease.js") in
     let%bind () =
       let f filename =
-        let src = Path.(cfg.spec.path / filename) in
+        let src = Path.(spec.path / filename) in
         if%bind Fs.exists src
         then Fs.copyFile ~src ~dst:Path.(outputPath / filename)
         else return ()
@@ -596,7 +602,7 @@ let run (proj : Project.t) =
 
   let%bind outputPath =
     let outputDir = "_release" in
-    let outputPath = Path.(proj.projcfg.cfg.buildCfg.projectPath / outputDir) in
+    let outputPath = Path.(proj.buildCfg.projectPath / outputDir) in
     let%bind () = Fs.rmPath outputPath in
     return outputPath
   in
@@ -617,6 +623,7 @@ let run (proj : Project.t) =
     ~ocamlopt
     ~outputPath
     ~concurrency:EsyRuntime.concurrency
-    proj.projcfg.ProjectConfig.cfg
+    proj.buildCfg
+    proj.projcfg.ProjectConfig.spec
     fetched.Project.sandbox
     (Solution.root solved.Project.solution)

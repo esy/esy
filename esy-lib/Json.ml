@@ -115,24 +115,6 @@ module Decode = struct
       in
       List.fold_left ~f ~init:(Ok StringMap.empty) items
     | _ -> Error errorMsg
-
-  let cmd ?(errorMsg="expected a string or an array of strings") (json : t) =
-    let ofList = function
-    | [] -> Error "a command cannot be empty"
-    | cmd::args -> Ok (Cmd.(v cmd |> addArgs args))
-    in
-    match json with
-    | `List cmd ->
-      begin match list string (`List cmd) with
-      | Ok cmd -> ofList cmd
-      | Error _ -> Error errorMsg
-      end
-    | `String cmd ->
-      begin match ShellSplit.split cmd with
-      | Ok argv -> ofList argv
-      | Error _ -> Error errorMsg
-      end
-    | _ -> Error errorMsg
 end
 
 module Encode = struct

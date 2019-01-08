@@ -8,7 +8,9 @@ type t
 
 val make :
   ?sandboxEnv:SandboxEnv.t
-  -> Config.t
+  -> EsyBuildPackage.Config.t
+  -> EsyInstall.SandboxSpec.t
+  -> EsyInstall.Config.t
   -> EsyInstall.Solution.t
   -> EsyInstall.Installation.t
   -> (t * Fpath.set) RunAsync.t
@@ -54,9 +56,9 @@ module Task : sig
     install : Scope.SandboxValue.t list list option;
   }
 
-  val installPath : Config.t -> t -> Path.t
-  val buildPath : Config.t -> t -> Path.t
-  val sourcePath : Config.t -> t -> Path.t
+  val installPath : EsyBuildPackage.Config.t -> t -> Path.t
+  val buildPath : EsyBuildPackage.Config.t -> t -> Path.t
+  val sourcePath : EsyBuildPackage.Config.t -> t -> Path.t
 
   val to_yojson : t Json.encoder
 end
@@ -123,12 +125,12 @@ val isBuilt :
   -> bool RunAsync.t
 
 val exportBuild :
-  cfg:Config.t
+  EsyBuildPackage.Config.t
   -> outputPrefixPath:Fpath.t
   -> Fpath.t
   -> unit RunAsync.t
 
 val importBuild :
-  cfg:Config.t
-  -> Fpath.t
+  Path.t
+  -> Path.t
   -> unit RunAsync.t

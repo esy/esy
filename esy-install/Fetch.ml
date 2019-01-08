@@ -8,7 +8,7 @@ let fetchOverrideFiles cfg sandbox (override : EsyPackageConfig.Override.t) =
   match override with
   | OfJson _ -> return []
   | OfDist info ->
-    let%bind path = DistStorage.fetchIntoCache ~cfg ~sandbox info.dist in
+    let%bind path = DistStorage.fetchIntoCache cfg sandbox info.dist in
     File.ofDir Path.(path / "files")
   | OfOpamOverride info ->
     File.ofDir Path.(info.path / "files")
@@ -229,12 +229,7 @@ end = struct
     let rec fetchAny errs alternatives =
       match alternatives with
       | dist::rest ->
-        let fetched =
-          DistStorage.fetch
-            ~cfg:sandbox.Sandbox.cfg
-            ~sandbox:sandbox.spec
-            dist
-        in
+        let fetched = DistStorage.fetch sandbox.Sandbox.cfg sandbox.spec dist in
         begin match%lwt fetched with
         | Ok fetched -> return fetched
         | Error err -> fetchAny ((dist, err)::errs) rest

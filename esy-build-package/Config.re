@@ -1,13 +1,19 @@
 module Store = EsyLib.Store;
 
+[@deriving (show, to_yojson)]
 type t = {
-  projectPath: Fpath.t,
-  buildPath: Fpath.t,
-  storePath: Fpath.t,
-  localStorePath: Fpath.t,
+  projectPath: EsyLib.Path.t,
+  buildPath: EsyLib.Path.t,
+  storePath: EsyLib.Path.t,
+  localStorePath: EsyLib.Path.t,
 };
 
 type config = t;
+
+type storePathConfig =
+  | StorePath(Fpath.t)
+  | StorePathOfPrefix(Fpath.t)
+  | StorePathDefault;
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
@@ -19,18 +25,27 @@ let initStore = (path: Fpath.t) => {
   return();
 };
 
-let make = (~storePath=?, ~projectPath, ~buildPath, ~localStorePath, ()) => {
+let rec configureStorePath = cfg => {
   open Run;
-  let%bind storePath =
-    switch (storePath) {
-    | Some(p) => return(p)
-    | None =>
+  let%bind path =
+    switch (cfg) {
+    | StorePath(storePath) => return(storePath)
+    | StorePathOfPrefix(prefixPath) =>
+      let%bind padding = Store.getPadding(prefixPath);
+      let storePath = prefixPath / (Store.version ++ padding);
+      return(storePath);
+    | StorePathDefault =>
       let home = EsyLib.Path.homePath();
       let prefixPath = home / ".esy";
-      let%bind padding = Store.getPadding(prefixPath);
-      return(prefixPath / (Store.version ++ padding));
+      configureStorePath(StorePathOfPrefix(prefixPath));
     };
-  let%bind () = initStore(storePath);
+  let%bind () = initStore(path);
+  return(path);
+};
+
+let make = (~storePath, ~projectPath, ~buildPath, ~localStorePath, ()) => {
+  open Run;
+  let%bind storePath = configureStorePath(storePath);
   let%bind () = {
     let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
     if%bind (exists(shortcutPath)) {

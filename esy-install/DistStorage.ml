@@ -109,7 +109,7 @@ let fetch' sandbox dist =
       return (Path path)
     )
 
-let fetch ~cfg:_ ~sandbox dist =
+let fetch _cfg sandbox dist =
   RunAsync.contextf
     (fetch' sandbox dist)
     "fetching dist: %a" Dist.pp dist
@@ -134,12 +134,12 @@ let unpack fetched path =
   | Tarball {tarballPath; stripComponents;} ->
     Tarball.unpack ~stripComponents ~dst:path tarballPath
 
-let fetchIntoCache ~cfg ~sandbox (dist : Dist.t) =
+let fetchIntoCache cfg sandbox (dist : Dist.t) =
   let open RunAsync.Syntax in
   let path = CachePaths.cachedDist cfg dist in
   if%bind Fs.exists path
   then return path
   else
-    let%bind fetched = fetch ~cfg ~sandbox dist in
+    let%bind fetched = fetch cfg sandbox dist in
     let%bind () = unpack fetched path in
     return path

@@ -1,3 +1,10 @@
+[@deriving (show, to_yojson)]
+type checkoutCfg = [
+  | `Local(Path.t)
+  | `Remote(string)
+  | `RemoteLocal(string, Path.t)
+];
+
 type t = {
   installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
@@ -9,12 +16,7 @@ type t = {
 }
 and checkout =
   | Local(Path.t)
-  | Remote(string, Path.t)
-and checkoutCfg = [
-  | `Local(Path.t)
-  | `Remote(string)
-  | `RemoteLocal(string, Path.t)
-];
+  | Remote(string, Path.t);
 
 let esyOpamOverrideVersion = "6";
 

@@ -209,12 +209,7 @@ let resolve
       let%bind pkg = ofGithub ?manifest user repo commit in
       return (pkg, Path.Set.empty)
     | Archive _ ->
-      let%bind path =
-        DistStorage.fetchIntoCache
-          ~cfg
-          ~sandbox
-          dist
-      in
+      let%bind path = DistStorage.fetchIntoCache cfg sandbox dist in
       let%bind _, pkg = ofPath path in
       return (pkg, Path.Set.empty)
 

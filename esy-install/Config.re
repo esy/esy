@@ -1,3 +1,4 @@
+[@deriving show]
 type t = {
   sourceArchivePath: option(Path.t),
   sourceFetchPath: Path.t,

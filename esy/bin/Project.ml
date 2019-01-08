@@ -4,7 +4,11 @@ open Esy
 
 type project = {
   projcfg : ProjectConfig.t;
+  spec : SandboxSpec.t;
   workflow : Workflow.t;
+  buildCfg : EsyBuildPackage.Config.t;
+  solveSandbox : EsySolve.Sandbox.t;
+  installSandbox : EsyInstall.Sandbox.t;
   scripts : Scripts.t;
   solved : solved Run.t;
 }
@@ -59,12 +63,9 @@ module TermPp = struct
 end
 
 let makeCachePath prefix (projcfg : ProjectConfig.t) =
-  let hash = [
-      Path.show projcfg.cfg.buildCfg.storePath;
-      Path.show projcfg.spec.path;
-      projcfg.cfg.esyVersion;
-    ]
-    |> String.concat "$$"
+  let json = ProjectConfig.to_yojson projcfg in
+  let hash =
+    Yojson.Safe.to_string json
     |> Digest.string
     |> Digest.to_hex
   in
@@ -85,7 +86,7 @@ let configured proj = Lwt.return (
   fetched.configured
 )
 
-let makeProject makeSolved projcfg =
+let makeProject makeSolved projcfg spec =
   let open RunAsync.Syntax in
   let workflow = Workflow.default in
   let%bind files =
@@ -93,16 +94,62 @@ let makeProject makeSolved projcfg =
     RunAsync.List.mapAndJoin ~f:FileInfo.ofPath paths
   in
   let files = ref files in
+
+  let%bind esySolveCmd =
+    match projcfg.solveCudfCommand with
+    | Some cmd -> return cmd
+    | None ->
+      let cmd = EsyRuntime.resolve "esy-solve-cudf/esySolveCudfCommand.exe" in
+      return Cmd.(v (p cmd))
+  in
+
+  let%bind solveCfg =
+    EsySolve.Config.make
+      ~esySolveCmd
+      ~skipRepositoryUpdate:projcfg.skipRepositoryUpdate
+      ?cachePath:projcfg.cachePath
+      ?cacheTarballsPath:projcfg.cacheTarballsPath
+      ?npmRegistry:projcfg.npmRegistry
+      ?opamRepository:projcfg.opamRepository
+      ?esyOpamOverride:projcfg.esyOpamOverride
+      ?solveTimeout:projcfg.solveTimeout
+      ()
+  in
+
+  let installCfg = solveCfg.EsySolve.Config.installCfg in
+  let%bind solveSandbox = EsySolve.Sandbox.make ~cfg:solveCfg spec in
+  let installSandbox = EsyInstall.Sandbox.make installCfg spec in
+
+  let%bind buildCfg =
+    let storePath =
+      match projcfg.prefixPath with
+      | None -> EsyBuildPackage.Config.StorePathDefault
+      | Some prefixPath -> EsyBuildPackage.Config.StorePathOfPrefix prefixPath
+    in
+    RunAsync.ofBosError (
+      EsyBuildPackage.Config.make
+        ~storePath
+        ~localStorePath:(EsyInstall.SandboxSpec.storePath spec)
+        ~buildPath:(EsyInstall.SandboxSpec.buildPath spec)
+        ~projectPath:spec.path
+        ()
+    )
+  in
+
   let%bind scripts = Scripts.ofSandbox projcfg.ProjectConfig.spec in
-  let%lwt solved = makeSolved projcfg workflow files in
+  let%lwt solved = makeSolved projcfg workflow buildCfg solveSandbox installSandbox files in
   return ({
     projcfg;
+    buildCfg;
+    spec;
     scripts;
     solved;
     workflow;
+    solveSandbox;
+    installSandbox;
   }, !files)
 
-let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow files =
+let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow buildCfg solver installer files =
   let open RunAsync.Syntax in
   let path = SandboxSpec.solutionLockPath projcfg.spec in
   let%bind info = FileInfo.ofPath Path.(path / "index.json") in
@@ -110,11 +157,11 @@ let makeSolved makeFetched (projcfg : ProjectConfig.t) workflow files =
   let%bind digest =
     EsySolve.Sandbox.digest
       Workflow.default.solvespec
-      projcfg.solveSandbox
+      solver
   in
-  match%bind SolutionLock.ofPath ~digest projcfg.installSandbox path with
+  match%bind SolutionLock.ofPath ~digest installer path with
   | Some solution ->
-    let%lwt fetched = makeFetched projcfg workflow solution files in
+    let%lwt fetched = makeFetched projcfg workflow buildCfg solver installer solution files in
     return {solution; fetched;}
   | None -> errorf "project is missing a lock, run `esy install`"
 
@@ -142,7 +189,7 @@ let readSandboxEnv spec =
   | EsyInstall.SandboxSpec.ManifestAggregate _ ->
     return BuildEnv.empty
 
-let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow solution files =
+let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow buildCfg _solver installer solution files =
   let open RunAsync.Syntax in
   let path = EsyInstall.SandboxSpec.installationPath projcfg.spec in
   let%bind info = FileInfo.ofPath path in
@@ -171,7 +218,9 @@ let makeFetched makeConfigured (projcfg : ProjectConfig.t) workflow solution fil
         let%bind sandbox, filesUsedForPlan =
           BuildSandbox.make
             ~sandboxEnv
-            projcfg.cfg
+            buildCfg
+            projcfg.spec
+            installer.EsyInstall.Sandbox.cfg
             solution
             installation
         in
@@ -258,7 +307,7 @@ let writeAuxCache proj =
           fetched.sandbox
           root.Package.id
       in
-      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.projcfg.cfg.buildCfg commandEnv in
+      let commandEnv = Scope.SandboxEnvironment.Bindings.render proj.buildCfg commandEnv in
       Environment.renderToShellSource ~header commandEnv
     ) in
     let commandExec =
@@ -299,7 +348,7 @@ let resolvePackage ~name (proj : project) =
     | None -> errorf "package %s isn't built yet, run 'esy build'" name
     | Some task ->
       if%bind BuildSandbox.isBuilt sandbox task
-      then return (BuildSandbox.Task.installPath proj.projcfg.ProjectConfig.cfg task)
+      then return (BuildSandbox.Task.installPath proj.buildCfg task)
       else errorf "package %s isn't built yet, run 'esy build'" name
     end
 
@@ -307,6 +356,65 @@ let ocamlfind = resolvePackage ~name:"@opam/ocamlfind"
 let ocaml = resolvePackage ~name:"ocaml"
 
 module OfTerm = struct
+
+  let findProjectPathFrom currentPath =
+    let open Run.Syntax in
+    let isProject path =
+      let items = Sys.readdir (Path.show path) in
+      let f name =
+        match name with
+        | "package.json"
+        | "esy.json" -> true
+        | "opam" ->
+          (* opam could easily by a directory name *)
+          let p = Path.(path / name) in
+          not (Sys.is_directory Path.(show p))
+        | name ->
+          let p = Path.(path / name) in
+          Path.hasExt ".opam" p && not (Sys.is_directory Path.(show p))
+      in
+      Array.exists f items
+    in
+    let rec climb path =
+      if isProject path
+      then return path
+      else
+        let parent = Path.parent path in
+        if not (Path.compare path parent = 0)
+        then climb (Path.parent path)
+        else
+          errorf
+            "No esy project found (was looking from %a and up)"
+            Path.ppPretty currentPath
+    in
+    climb currentPath
+
+  let findProjectPath projectPath =
+    let open Run.Syntax in
+
+    (* check if we can get projectPath from env *)
+    let projectPath =
+      match projectPath with
+      | Some _ -> projectPath
+      | None ->
+        let open Option.Syntax in
+        let%map v =
+          StringMap.find_opt
+            BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath
+            System.Environment.current
+        in
+        Path.v v
+    in
+
+    let%bind projectPath =
+      match projectPath with
+      | Some path -> return path
+      | None -> findProjectPathFrom (Path.currentPath ())
+    in
+
+    if Path.isAbs projectPath
+    then return projectPath
+    else return Path.(EsyRuntime.currentWorkingDir // projectPath)
 
   let checkStaleness files =
     let open RunAsync.Syntax in
@@ -360,18 +468,20 @@ module OfTerm = struct
   let write projcfg v files =
     Perf.measureLwt ~label:"writing project cache" (write' projcfg v files)
 
-  let promiseTerm sandboxPath =
+  let promiseTerm projectPath =
     let parse projcfg =
       let open RunAsync.Syntax in
       let%bind projcfg = projcfg in
       match%bind read projcfg with
       | Some proj -> return proj
       | None ->
-        let%bind proj, files = make projcfg in
+        let%bind projectPath = RunAsync.ofRun (findProjectPath projectPath) in
+        let%bind spec = SandboxSpec.ofPath projectPath in
+        let%bind proj, files = make projcfg spec in
         let%bind () = write projcfg proj files in
         return proj
     in
-    Cmdliner.Term.(const parse $ ProjectConfig.promiseTerm sandboxPath)
+    Cmdliner.Term.(const parse $ ProjectConfig.promiseTerm projectPath)
 
   let term sandboxPath =
     Cmdliner.Term.(ret (const Cli.runAsyncToCmdlinerRet $ promiseTerm sandboxPath))
@@ -402,7 +512,7 @@ let withPackage proj (pkgArg : PkgArg.t) f =
     | ByPkgSpec ById id ->
       Solution.get solution id
     | ByPath path ->
-      let root = proj.projcfg.installSandbox.spec.path in
+      let root = proj.installSandbox.spec.path in
       let path = Path.(EsyRuntime.currentWorkingDir // path) in
       let path = DistPath.ofPath (Path.tryRelativize ~root path) in
       Solution.findByPath path solution
@@ -496,7 +606,7 @@ let printEnv
           fetched.sandbox
           pkg.id
       in
-      let env = Scope.SandboxEnvironment.Bindings.render proj.projcfg.ProjectConfig.cfg.buildCfg env in
+      let env = Scope.SandboxEnvironment.Bindings.render proj.buildCfg env in
       if asJson
       then
         let%bind env = Run.ofStringError (Environment.Bindings.eval env) in

@@ -7,8 +7,8 @@ open EsyPackageConfig
  *)
 
 val fetchIntoCache :
-  cfg : Config.t
-  -> sandbox:SandboxSpec.t
+  Config.t
+  -> SandboxSpec.t
   -> Dist.t
   -> Path.t RunAsync.t
 
@@ -18,8 +18,8 @@ val ofCachedTarball : Path.t -> fetchedDist
 val ofDir : Path.t -> fetchedDist
 
 val fetch :
-  cfg : Config.t
-  -> sandbox:SandboxSpec.t
+  Config.t
+  -> SandboxSpec.t
   -> Dist.t
   -> fetchedDist RunAsync.t
 

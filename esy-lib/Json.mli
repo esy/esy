@@ -31,8 +31,6 @@ module Decode : sig
 
   val list : ?errorMsg:string -> 'a decoder -> 'a list decoder
   val stringMap : ?errorMsg:string -> 'a decoder -> 'a StringMap.t decoder
-
-  val cmd : ?errorMsg:string -> Cmd.t decoder
 end
 
 module Encode : sig

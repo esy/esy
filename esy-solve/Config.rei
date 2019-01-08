@@ -1,5 +1,15 @@
 /** Configuration for esy installer */
 
+type checkoutCfg = [
+  | `Local(Path.t)
+  | `Remote(string)
+  | `RemoteLocal(string, Path.t)
+];
+
+let checkoutCfg_to_yojson : Json.encoder(checkoutCfg);
+let pp_checkoutCfg : Fmt.t(checkoutCfg);
+let show_checkoutCfg : checkoutCfg => string;
+
 type t =
   pri {
     installCfg: EsyInstall.Config.t,
@@ -14,11 +24,6 @@ type t =
 and checkout =
   | Local(Path.t)
   | Remote(string, Path.t)
-and checkoutCfg = [
-  | `Local(Path.t)
-  | `Remote(string)
-  | `RemoteLocal(string, Path.t)
-];
 
 let make:
   (
