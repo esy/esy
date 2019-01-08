@@ -32,7 +32,13 @@ obvious items) with further explanations:
     ├── Makefile
     │   Common tasks and workflows for esy development.
     │
-    ├── bin
+    ├── bin/esy
+    │   symlink (wrapper on Windows) for esy command, used for running tests
+    │
+    ├── bin/esyInstallRelease.js
+    │   postinstall step for npm releases produced with `esy npm-release`
+    │   command. This is a built JS file which is developed in a separate flow
+    │   inside `esy-install-npm-release/` subdirectory (see below).
     │
     ├── docs
     │   esy end user documentation in markdown format.
@@ -63,6 +69,9 @@ obvious items) with further explanations:
     ├── esy-installer
     │   Implementation of installation procedure defined with *.install files.
     │   This re-implements opam-installer.
+    │
+    ├── esy-install-npm-release
+    │   Sources for `bin/esyInstallRelease.js`.
     │
     ├── esy-command-expression
     │   Parser for #{...} syntax used in esy manifests.
@@ -104,6 +113,19 @@ To make changes to `esy` and test them locally:
 % esy
 % esy bootstrap
 ```
+
+### Updaating `bin/esyInstallRelease.js`
+
+`bin/esyInstallRelease.js` is developed separately within the `esy-install-npm-release/` directory.
+
+Run:
+
+```
+% make bin/esyInstallRelease.js
+```
+
+to update the `bin/esyInstallRelease.js` file with the latest changed, don't
+forget to commit it.
 
 ### Running Tests
 
