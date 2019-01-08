@@ -44,6 +44,9 @@ describe('lock invalidation', () => {
       },
     });
 
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // add dep & install
 
     await writeJson(path.join(p.projectPath, 'package.json'), {
@@ -61,6 +64,9 @@ describe('lock invalidation', () => {
         b: {name: 'b', version: '1.0.0', dependencies: {}},
       },
     });
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // remove dep & install
 
@@ -126,6 +132,9 @@ describe('lock invalidation', () => {
       },
     });
 
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // add dep & install
 
     await writeJson(path.join(p.projectPath, 'dep', 'package.json'), {
@@ -149,6 +158,9 @@ describe('lock invalidation', () => {
         },
       },
     });
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // remove dep & install
 
@@ -224,6 +236,9 @@ describe('lock invalidation', () => {
       },
     });
 
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // add dep & install
 
     await writeJson(path.join(p.projectPath, 'dep', 'package.json'), {
@@ -247,6 +262,9 @@ describe('lock invalidation', () => {
         },
       },
     });
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // remove dep & install
 
