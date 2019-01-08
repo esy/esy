@@ -34,7 +34,7 @@ if (isWindows) {
     @SETLOCAL
     @SET ESY__SOLVE_CUDF_COMMAND=${esySolveCudfExe}
     @SET ESY__ESY_BASH=${esyBashPath}
-    "${root}/_build/default/bin/esy/exe" %*
+    "${root}/_build/default/bin/esy.exe" %*
     `
   );
 } else {
