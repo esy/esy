@@ -6,6 +6,9 @@
 
 type t
 
+val to_yojson : t Json.encoder
+val of_yojson : t Json.decoder
+
 (** Produce a command supplying a tool. *)
 val v : string -> t
 
