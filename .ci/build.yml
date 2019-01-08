@@ -8,6 +8,9 @@ steps:
   - script: 'esy build'
     displayName: 'esy build'
 
+  - script: 'esy dune build @fmt'
+    displayName: 'Check code formatting'
+
   - script: 'esy bootstrap'
     displayName: 'esy bootstrap'
 
