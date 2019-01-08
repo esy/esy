@@ -1,182 +1,237 @@
-open EsyPackageConfig
+open EsyPackageConfig;
 
-let jsppString = Fmt.(quote string)
+let jsppString = Fmt.(quote(string));
 
-let pnpPath path =
-  Path.(path |> remEmptySeg |> show |> normalizePathSlashes) ^ "/"
+let pnpPath = path =>
+  Path.(path |> remEmptySeg |> show |> normalizePathSlashes) ++ "/";
 
-let pnpRelativePath basePath  path =
-  let path = Path.v (Path.show path ^ "/") in
-  path |> Path.tryRelativize ~root:basePath |> pnpPath
+let pnpRelativePath = (basePath, path) => {
+  let path = Path.v(Path.show(path) ++ "/");
+  path |> Path.tryRelativize(~root=basePath) |> pnpPath;
+};
 
-let jsppStringMap jsppKey jsppValue fmt bindings =
-  let jsppItem fmt (key, value) =
-    Fmt.pf fmt "@[<hv>[%a,@ %a]@]" jsppKey key jsppValue value
-  in
-  Fmt.pf
-    fmt "new Map([@[<v 2>%a@]])"
-    Fmt.(list ~sep:(unit ",@,") jsppItem)
-    bindings
+let jsppStringMap = (jsppKey, jsppValue, fmt, bindings) => {
+  let jsppItem = (fmt, (key, value)) =>
+    Fmt.pf(fmt, "@[<hv>[%a,@ %a]@]", jsppKey, key, jsppValue, value);
 
-module PackageInformation = struct
+  Fmt.pf(
+    fmt,
+    "new Map([@[<v 2>%a@]])",
+    Fmt.(list(~sep=unit(",@,"), jsppItem)),
+    bindings,
+  );
+};
+
+module PackageInformation = {
+  [@deriving ord]
   type stringOrNull =
-    | String of string
-    | Null
-    [@@deriving ord]
+    | String(string)
+    | Null;
 
-  let jsppStringOrNull fmt v =
-    match v with
-    | String s -> jsppString fmt s
-    | Null -> Fmt.unit "null" fmt ()
+  let jsppStringOrNull = (fmt, v) =>
+    switch (v) {
+    | String(s) => jsppString(fmt, s)
+    | Null => Fmt.unit("null", fmt, ())
+    };
 
-  module StringOrNullMap = Map.Make(struct
-    type t = stringOrNull
-    let compare = compare_stringOrNull
-  end)
+  module StringOrNullMap =
+    Map.Make({
+      type t = stringOrNull;
+      let compare = compare_stringOrNull;
+    });
 
-  type t = versions StringOrNullMap.t
-  and versions = info StringOrNullMap.t
+  type t = StringOrNullMap.t(versions)
+  and versions = StringOrNullMap.t(info)
   and info = {
-    packageLocation: string;
-    packageDependencies: string StringMap.t;
-  }
+    packageLocation: string,
+    packageDependencies: StringMap.t(string),
+  };
 
-  let jsppInfo fmt info =
-    Fmt.pf
-      fmt "@[<v 2>{@;packageLocation: %a,@;packageDependencies: %a}@]"
-      jsppString info.packageLocation
-      (jsppStringMap jsppString jsppString) (StringMap.bindings info.packageDependencies)
+  let jsppInfo = (fmt, info) =>
+    Fmt.pf(
+      fmt,
+      "@[<v 2>{@;packageLocation: %a,@;packageDependencies: %a}@]",
+      jsppString,
+      info.packageLocation,
+      jsppStringMap(jsppString, jsppString),
+      StringMap.bindings(info.packageDependencies),
+    );
 
-  let jsppVersions : versions Fmt.t = fun fmt map ->
-    let bindings = StringOrNullMap.bindings map in
-    jsppStringMap jsppStringOrNull jsppInfo fmt bindings
+  let jsppVersions: Fmt.t(versions) = (
+    (fmt, map) => {
+      let bindings = StringOrNullMap.bindings(map);
+      jsppStringMap(jsppStringOrNull, jsppInfo, fmt, bindings);
+    }:
+      Fmt.t(versions)
+  );
 
-  let jspp : t Fmt.t = fun fmt map ->
-    let bindings = StringOrNullMap.bindings map in
-    jsppStringMap jsppStringOrNull jsppVersions fmt bindings
+  let jspp: Fmt.t(t) = (
+    (fmt, map) => {
+      let bindings = StringOrNullMap.bindings(map);
+      jsppStringMap(jsppStringOrNull, jsppVersions, fmt, bindings);
+    }:
+      Fmt.t(t)
+  );
 
-  let ofInstallation ~basePath:_ ~rootPath ~rootId ~solution ~installation () =
-    (* let rootId = Solution.Package.id (Solution.root solution) in *)
-    let f byName (id, loc) =
-      let isRoot = PackageId.compare id rootId = 0 in
+  let ofInstallation =
+      (~basePath as _, ~rootPath, ~rootId, ~solution, ~installation, ()) => {
+    /* let rootId = Solution.Package.id (Solution.root solution) in */
+    let f = (byName, (id, loc)) => {
+      let isRoot = PackageId.compare(id, rootId) == 0;
       let name =
-        if isRoot
-        then Null
-        else String (PackageId.name id)
-      in
+        if (isRoot) {
+          Null;
+        } else {
+          String(PackageId.name(id));
+        };
+
       let versions =
-        match StringOrNullMap.find_opt name byName with
-        | None -> StringOrNullMap.empty
-        | Some versions -> versions
-      in
-      let versions =
-        let version, packageLocation, packageDependencies =
-          if isRoot
-          then
-            Null, pnpPath rootPath, StringMap.empty
-          else
-            let version = (Version.show (PackageId.version id)) in
-            let packageDependencies = StringMap.(empty |> add (PackageId.name id) version) in
-            String version, pnpPath loc, packageDependencies
-        in
-        let package = Solution.getExn solution id in
-        let packageDependencies =
+        switch (StringOrNullMap.find_opt(name, byName)) {
+        | None => StringOrNullMap.empty
+        | Some(versions) => versions
+        };
+
+      let versions = {
+        let (version, packageLocation, packageDependencies) =
+          if (isRoot) {
+            (Null, pnpPath(rootPath), StringMap.empty);
+          } else {
+            let version = Version.show(PackageId.version(id));
+            let packageDependencies =
+              StringMap.(empty |> add(PackageId.name(id), version));
+            (String(version), pnpPath(loc), packageDependencies);
+          };
+
+        let package = Solution.getExn(solution, id);
+        let packageDependencies = {
           let dependencies =
-            Solution.dependenciesBySpec
-              solution
-              Solution.Spec.everything
-              package
-          in
-          let f map pkg =
-            let id = pkg.Package.id in
-            let name = PackageId.name id in
-            let version = Version.show (PackageId.version id) in
-            StringMap.add name version map
-          in
-          List.fold_left ~f ~init:packageDependencies dependencies
-        in
-        StringOrNullMap.add version {packageLocation; packageDependencies;} versions
-      in
-      StringOrNullMap.add name versions byName
-    in
-    List.fold_left ~f ~init:StringOrNullMap.empty (Installation.entries installation)
-end
+            Solution.dependenciesBySpec(
+              solution,
+              Solution.Spec.everything,
+              package,
+            );
 
-module LocatorsByLocations = struct
+          let f = (map, pkg) => {
+            let id = pkg.Package.id;
+            let name = PackageId.name(id);
+            let version = Version.show(PackageId.version(id));
+            StringMap.add(name, version, map);
+          };
 
-  type t = info StringMap.t
+          List.fold_left(~f, ~init=packageDependencies, dependencies);
+        };
+
+        StringOrNullMap.add(
+          version,
+          {packageLocation, packageDependencies},
+          versions,
+        );
+      };
+
+      StringOrNullMap.add(name, versions, byName);
+    };
+
+    List.fold_left(
+      ~f,
+      ~init=StringOrNullMap.empty,
+      Installation.entries(installation),
+    );
+  };
+};
+
+module LocatorsByLocations = {
+  type t = StringMap.t(info)
   and info =
-    | Pkg of {name : string; reference : string}
-    | TopLevel
+    | Pkg{
+        name: string,
+        reference: string,
+      }
+    | TopLevel;
 
-  let jsppInfo fmt info =
-    match info with
-    | Pkg info ->
-      Fmt.pf
-        fmt "@[<v 2>{@;name: %a,@;reference: %a}@]"
-        jsppString info.name
-        jsppString info.reference
-    | TopLevel ->
-      Fmt.pf fmt "topLevelLocator"
+  let jsppInfo = (fmt, info) =>
+    switch (info) {
+    | Pkg(info) =>
+      Fmt.pf(
+        fmt,
+        "@[<v 2>{@;name: %a,@;reference: %a}@]",
+        jsppString,
+        info.name,
+        jsppString,
+        info.reference,
+      )
+    | TopLevel => Fmt.pf(fmt, "topLevelLocator")
+    };
 
-  let jspp : t Fmt.t = fun fmt map ->
-    let bindings = StringMap.bindings map in
-    jsppStringMap jsppString jsppInfo fmt bindings
+  let jspp: Fmt.t(t) = (
+    (fmt, map) => {
+      let bindings = StringMap.bindings(map);
+      jsppStringMap(jsppString, jsppInfo, fmt, bindings);
+    }:
+      Fmt.t(t)
+  );
 
-  let ofInstallation ~basePath ~rootPath ~rootId ~solution:_ ~installation () =
-    (* let rootId = Solution.Package.id (Solution.root solution) in *)
-    let f map (id, loc) =
-      if PackageId.compare rootId id = 0
-      then map
-      else
-        let path = pnpRelativePath basePath loc in
-        let name = PackageId.name id in
-        let reference = Version.show (PackageId.version id) in
-        StringMap.add path (Pkg {name; reference;}) map
-    in
+  let ofInstallation =
+      (~basePath, ~rootPath, ~rootId, ~solution as _, ~installation, ()) => {
+    /* let rootId = Solution.Package.id (Solution.root solution) in */
+    let f = (map, (id, loc)) =>
+      if (PackageId.compare(rootId, id) == 0) {
+        map;
+      } else {
+        let path = pnpRelativePath(basePath, loc);
+        let name = PackageId.name(id);
+        let reference = Version.show(PackageId.version(id));
+        StringMap.add(path, Pkg({name, reference}), map);
+      };
+
     let init =
       StringMap.(
-        empty
-        |> add (pnpRelativePath basePath rootPath) TopLevel
-      )
-    in
-    List.fold_left ~f ~init (Installation.entries installation)
-end
+        empty |> add(pnpRelativePath(basePath, rootPath), TopLevel)
+      );
 
-module IntSet = Set.Make(struct
-  type t = int
-  let compare a b = b - a
-end)
+    List.fold_left(~f, ~init, Installation.entries(installation));
+  };
+};
 
-let generatePackageLocator ~basePath (store : PackageInformation.t) =
-  let lengths =
-    let f _name versions lengths =
-      let f _version {PackageInformation. packageLocation; _} lengths =
+module IntSet =
+  Set.Make({
+    type t = int;
+    let compare = (a, b) => b - a;
+  });
+
+let generatePackageLocator = (~basePath, store: PackageInformation.t) => {
+  let lengths = {
+    let f = (_name, versions, lengths) => {
+      let f = (_version, {PackageInformation.packageLocation, _}, lengths) => {
         let len =
           packageLocation
           |> Path.v
-          |> pnpRelativePath basePath
-          |> String.length
-        in
-        IntSet.add len lengths
-      in
-      PackageInformation.StringOrNullMap.fold f versions lengths
-    in
-    PackageInformation.StringOrNullMap.fold f store IntSet.empty
-  in
+          |> pnpRelativePath(basePath)
+          |> String.length;
 
-  let locators =
-    let f length =
-      Printf.sprintf {|
+        IntSet.add(len, lengths);
+      };
+
+      PackageInformation.StringOrNullMap.fold(f, versions, lengths);
+    };
+
+    PackageInformation.StringOrNullMap.fold(f, store, IntSet.empty);
+  };
+
+  let locators = {
+    let f = length =>
+      Printf.sprintf(
+        {|
       if (relativeLocation.length >= %i && relativeLocation[%i] === '/')
         if (match = locatorsByLocations.get(relativeLocation.substr(0, %i)))
           return blacklistCheck(match);
-      |} length (length - 1) length
-    in
-    IntSet.elements lengths
-    |> List.map ~f
-    |> String.concat "\n"
-  in
+      |},
+        length,
+        length - 1,
+        length,
+      );
+
+    IntSet.elements(lengths) |> List.map(~f) |> String.concat("\n");
+  };
 
   {|
   exports.findPackageLocator = function findPackageLocator(location) {
@@ -190,44 +245,41 @@ let generatePackageLocator ~basePath (store : PackageInformation.t) =
 
     let match;
 
-  |} ^ locators ^ {|
+  |}
+  ++ locators
+  ++ {|
 
     return null;
   };
-  |}
+  |};
+};
 
-let render
-  ~basePath
-  ~rootPath
-  ~rootId
-  ~solution
-  ~installation
-  () =
-  (* let basePath = sandbox |> SandboxSpec.pnpJsPath |> Path.parent in *)
+let render = (~basePath, ~rootPath, ~rootId, ~solution, ~installation, ()) => {
+  /* let basePath = sandbox |> SandboxSpec.pnpJsPath |> Path.parent in */
   let packageInformation =
-    PackageInformation.ofInstallation
-      ~basePath
-      ~rootPath
-      ~rootId
-      ~solution
-      ~installation
-      ()
-  in
+    PackageInformation.ofInstallation(
+      ~basePath,
+      ~rootPath,
+      ~rootId,
+      ~solution,
+      ~installation,
+      (),
+    );
+
   let locatorsByLocations =
-    LocatorsByLocations.ofInstallation
-      ~basePath
-      ~rootPath
-      ~rootId
-      ~solution
-      ~installation
-      ()
-  in
-  let packageLocator =
-    generatePackageLocator
-      ~basePath
-      packageInformation
-  in
-  Format.asprintf {|#!/usr/bin/env node
+    LocatorsByLocations.ofInstallation(
+      ~basePath,
+      ~rootPath,
+      ~rootId,
+      ~solution,
+      ~installation,
+      (),
+    );
+
+  let packageLocator = generatePackageLocator(~basePath, packageInformation);
+
+  Format.asprintf(
+    {|#!/usr/bin/env node
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
 
@@ -1087,7 +1139,11 @@ if (process.mainModule === module) {
     });
   }
 }
-|}
-  PackageInformation.jspp packageInformation
-  LocatorsByLocations.jspp locatorsByLocations
-  packageLocator
+|},
+    PackageInformation.jspp,
+    packageInformation,
+    LocatorsByLocations.jspp,
+    locatorsByLocations,
+    packageLocator,
+  );
+};
