@@ -6,9 +6,7 @@ let getEsyBashRootPath = () =>
   | Some(path) => Path.v(path)
   | None =>
     let resolution =
-      NodeResolution.resolve(
-        "../../../../node_modules/esy-bash/package.json",
-      );
+      NodeResolution.resolve("../../../node_modules/esy-bash/package.json");
     switch (resolution) {
     | Ok(path) => Path.parent(path)
     | Error(`Msg(msg)) => Exn.fail(msg)
