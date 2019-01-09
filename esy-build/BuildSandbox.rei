@@ -41,7 +41,7 @@ let env:
 
 let exec:
   (
-    ~chdirToRoot: bool=?,
+    ~changeDirectoryToPackageRoot: bool=?,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,

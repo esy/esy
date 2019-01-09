@@ -919,7 +919,16 @@ let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
   env;
 };
 
-let exec = (~chdirToRoot=false, envspec, buildspec, mode, sandbox, id, cmd) => {
+let exec =
+    (
+      ~changeDirectoryToPackageRoot=false,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+      cmd,
+    ) => {
   open RunAsync.Syntax;
   let%bind (env, scope) =
     RunAsync.ofRun(
@@ -967,7 +976,7 @@ let exec = (~chdirToRoot=false, envspec, buildspec, mode, sandbox, id, cmd) => {
     };
 
     let cwd =
-      chdirToRoot ?
+      changeDirectoryToPackageRoot ?
         Some(
           Scope.(
             rootPath(scope)

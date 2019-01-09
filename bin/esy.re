@@ -259,7 +259,7 @@ let execCommand =
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=false,
       ~buildLinked=false,
-      ~chdirToRoot=chdir,
+      ~changeDirectoryToPackageRoot=chdir,
       proj,
       envspec,
       plan,
@@ -554,7 +554,7 @@ let exec = (mode, chdir, pkgarg, cmd, proj: Project.t) => {
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=false, /* not needed as we build an entire sandbox above */
       ~buildLinked=false,
-      ~chdirToRoot=chdir,
+      ~changeDirectoryToPackageRoot=chdir,
       proj,
       proj.workflow.execenvspec,
       mode,
@@ -663,7 +663,7 @@ let devExec = (chdir: bool, pkgarg: PkgArg.t, proj: Project.t, cmd, ()) => {
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=true,
       ~buildLinked=false,
-      ~chdirToRoot=chdir,
+      ~changeDirectoryToPackageRoot=chdir,
       proj,
       proj.workflow.commandenvspec,
       BuildDev,
