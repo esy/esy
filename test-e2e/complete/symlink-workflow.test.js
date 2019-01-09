@@ -105,6 +105,14 @@ describe('Symlink workflow', () => {
       expect(stderr).not.toContain('info building dep@link:../dep');
     }
 
+    {
+      // builds again if we pass --skip-staleness-check
+      const {stderr} = await p.esy('build --skip-staleness-check');
+
+      expect(stderr).toContain('info building anotherDep@link:../anotherDep');
+      expect(stderr).toContain('info building dep@link:../dep');
+    }
+
     const dep = await p.esy('dep.cmd');
     expect(dep.stdout.trim()).toEqual('__dep__');
     const anotherDep = await p.esy('anotherDep.cmd');

@@ -681,7 +681,8 @@ let withPackage = (proj, pkgArg: PkgArg.t, f) => {
   runWith(pkg);
 };
 
-let buildDependencies = (~buildLinked, proj: project, plan, pkg) => {
+let buildDependencies =
+    (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
   open RunAsync.Syntax;
   let%bind fetched = fetched(proj);
   let%bind solved = solved(proj);
@@ -704,6 +705,7 @@ let buildDependencies = (~buildLinked, proj: project, plan, pkg) => {
     let dependencies =
       Solution.dependenciesByDepSpec(solved.solution, depspec, task.pkg);
     BuildSandbox.build(
+      ~skipStalenessCheck,
       ~concurrency=EsyRuntime.concurrency,
       ~buildLinked,
       fetched.sandbox,

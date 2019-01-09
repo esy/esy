@@ -101,7 +101,14 @@ let buildOnly:
   RunAsync.t(unit);
 
 let build:
-  (~concurrency: int=?, ~buildLinked: bool, t, Plan.t, list(PackageId.t)) =>
+  (
+    ~skipStalenessCheck: bool,
+    ~concurrency: int=?,
+    ~buildLinked: bool,
+    t,
+    Plan.t,
+    list(PackageId.t)
+  ) =>
   RunAsync.t(unit);
 
 let buildRoot:

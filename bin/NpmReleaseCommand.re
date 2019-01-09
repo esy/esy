@@ -427,6 +427,7 @@ let make =
     let%lwt () = Logs_lwt.app(m => m("Building packages"));
     BuildSandbox.build(
       ~buildLinked=true,
+      ~skipStalenessCheck=true,
       ~concurrency,
       sandbox,
       plan,
