@@ -5,7 +5,7 @@ const outdent = require('outdent');
 const fs = require('fs-extra');
 const helpers = require('../test/helpers');
 
-const {file, dir, packageJson, dummyExecutable} = helpers;
+const {symlink, file, dir, packageJson, dummyExecutable} = helpers;
 
 helpers.skipSuiteOnWindows('Needs investigation');
 
@@ -310,4 +310,86 @@ describe('Symlink workflow', () => {
       expect(dep.stdout.trim()).toEqual('MODIFIED!');
     }
   });
+
+  test('staleness check: symlink outside the package root', async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      packageJson({
+        name: 'app',
+        version: '1.0.0',
+        esy: {
+          build: 'true',
+        },
+        dependencies: {
+          dep: '*'
+        },
+        resolutions: {
+          dep: 'link:./dep'
+        },
+      }),
+      dir(
+        'dep',
+        packageJson({
+          name: 'dep',
+          version: '1.0.0',
+          esy: {
+            build: [
+              [
+                'cp',
+                "#{self.original_root / self.name}.js",
+                '#{self.target_dir / self.name}.js',
+              ],
+              helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
+            ],
+            install: [
+              ['cp', '#{self.target_dir / self.name}.js', '#{self.bin / self.name}.js'],
+              ['cp', '#{self.target_dir / self.name}.cmd', '#{self.bin / self.name}.cmd'],
+            ],
+          },
+        }),
+        symlink('dep.js', '../dep.js'),
+      ),
+      dummyExecutable('dep'),
+    );
+
+    await p.esy('install');
+
+    {
+      // initial build builds everything
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).toContain('info building dep@link:dep');
+    }
+
+    {
+      // second build builds nothing
+      const {stderr} = await p.esy('build');
+
+      expect(stderr).not.toContain('info building dep@link:dep');
+    }
+
+    {
+      const dep = await p.esy('dep.cmd');
+      expect(dep.stdout.trim()).toEqual('__dep__');
+    }
+
+    // wait, on macOS sometimes it doesn't pick up changes
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await fs.writeFile(
+      path.join(p.projectPath, 'dep.js'),
+      outdent`
+        console.log('MODIFIED!');
+      `,
+    );
+
+    {
+      // check that it rebuilds
+      const {stderr} = await p.esy('build');
+      expect(stderr).toContain('info building dep@link:dep');
+      const dep = await p.esy('dep.cmd');
+      expect(dep.stdout.trim()).toEqual('MODIFIED!');
+    }
+  });
+
 });

@@ -39,6 +39,8 @@ let realpath: Path.t => RunAsync.t(Path.t);
 
 let stat: Path.t => RunAsync.t(Unix.stats);
 
+let lstat: Path.t => RunAsync.t(Unix.stats);
+
 /** List directory and return a list of names excluding . and .. */
 
 let listDir: Path.t => RunAsync.t(list(string));
