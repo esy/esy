@@ -40,7 +40,15 @@ let env:
   Run.t(Scope.SandboxEnvironment.Bindings.t);
 
 let exec:
-  (EnvSpec.t, BuildSpec.t, BuildSpec.mode, t, PackageId.t, Cmd.t) =>
+  (
+    ~changeDirectoryToPackageRoot: bool=?,
+    EnvSpec.t,
+    BuildSpec.t,
+    BuildSpec.mode,
+    t,
+    PackageId.t,
+    Cmd.t
+  ) =>
   RunAsync.t(Unix.process_status);
 
 module Task: {

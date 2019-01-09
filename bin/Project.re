@@ -746,6 +746,7 @@ let execCommand =
     (
       ~checkIfDependenciesAreBuilt,
       ~buildLinked,
+      ~changeDirectoryToPackageRoot=false,
       proj: project,
       envspec,
       mode,
@@ -780,6 +781,7 @@ let execCommand =
 
   let%bind status =
     BuildSandbox.exec(
+      ~changeDirectoryToPackageRoot,
       envspec,
       Workflow.default.buildspec,
       mode,

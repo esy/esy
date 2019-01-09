@@ -142,6 +142,19 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
+  it(`-p: -C flag sets CWD to a specified dependency's root`, async () => {
+    const p = await createTestSandbox();
+
+    await fs.mkdir(path.join(p.projectPath, 'dep', 'subdir'));
+    await fs.writeFile(path.join(p.projectPath, 'dep', 'subdir', 'X'), '');
+
+    await p.esy('install');
+
+    await expect(p.esy('-C -p dep ls -1 ./subdir')).resolves.toMatchObject({
+      stdout: 'X' + os.EOL,
+    });
+  });
+
   test(`can be invoked from project's subdirectories`, async () => {
     const p = await createTestSandbox();
     await p.esy('install');

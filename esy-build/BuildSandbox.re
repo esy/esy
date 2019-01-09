@@ -919,7 +919,16 @@ let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
   env;
 };
 
-let exec = (envspec, buildspec, mode, sandbox, id, cmd) => {
+let exec =
+    (
+      ~changeDirectoryToPackageRoot=false,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+      cmd,
+    ) => {
   open RunAsync.Syntax;
   let%bind (env, scope) =
     RunAsync.ofRun(
@@ -966,12 +975,25 @@ let exec = (envspec, buildspec, mode, sandbox, id, cmd) => {
       return(status);
     };
 
+    let cwd =
+      changeDirectoryToPackageRoot ?
+        Some(
+          Scope.(
+            rootPath(scope)
+            |> SandboxPath.toValue
+            |> SandboxValue.render(sandbox.cfg)
+          ),
+        ) :
+        None;
+
     let env = Scope.SandboxEnvironment.render(sandbox.cfg, env);
+
     /* TODO: make sure we resolve 'esy' to the current executable, needed nested
      * invokations */
     ChildProcess.withProcess(
       ~env=CustomEnv(env),
       ~resolveProgramInEnv=true,
+      ~cwd?,
       ~stderr=`FD_copy(Unix.stderr),
       ~stdout=`FD_copy(Unix.stdout),
       ~stdin=`FD_copy(Unix.stdin),
