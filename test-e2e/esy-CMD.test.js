@@ -142,13 +142,16 @@ describe(`'esy CMD' invocation`, () => {
     });
   });
 
-  test(`-p: -C flag sets CWD to a specified dependency's root`, async () => {
+  it(`-p: -C flag sets CWD to a specified dependency's root`, async () => {
     const p = await createTestSandbox();
+
+    await fs.mkdir(path.join(p.projectPath, 'dep', 'subdir'));
+    await fs.writeFile(path.join(p.projectPath, 'dep', 'subdir', 'X'), '');
+
     await p.esy('install');
-    const cwd = path.join(p.rootPath, 'dep');
-    await expect(p.esy(`-C -p dep bash -c 'diff <(pwd) <(echo "#{self.root}")'`)).resolves.toEqual({
-      stdout: '',
-      stderr: '',
+
+    await expect(p.esy('-C -p dep ls -1 ./subdir')).resolves.toMatchObject({
+      stdout: 'X' + os.EOL,
     });
   });
 
