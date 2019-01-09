@@ -28,43 +28,91 @@ let storePath = cfg => {
 };
 
 module FindProject = {
-  let climbFrom = currentPath => {
-    open Run.Syntax;
-    let isProject = path => {
-      let items = Sys.readdir(Path.show(path));
-      let f = name =>
+  module Kind = {
+    type t =
+      | ProjectForced
+      | Project
+      | NoProject;
+
+    let (+) = (a, b) =>
+      switch (a, b) {
+      | (ProjectForced, _)
+      | (_, ProjectForced) => ProjectForced
+      | (Project, _)
+      | (_, Project) => Project
+      | _ => NoProject
+      };
+  };
+
+  let isProjectPath = path => {
+    let rec check = items =>
+      switch (items) {
+      | [] => Kind.NoProject
+      | [name, ...rest] =>
         switch (name) {
+        | ".esyproject" => ProjectForced
         | "package.json"
-        | "esy.json" => true
+        | "esy.json" => Kind.(Project + check(rest))
         | "opam" =>
           /* opam could easily by a directory name */
           let p = Path.(path / name);
-          !Sys.is_directory(Path.(show(p)));
+          if (!Sys.is_directory(Path.(show(p)))) {
+            Kind.(Project + check(rest));
+          } else {
+            check(rest);
+          };
         | name =>
           let p = Path.(path / name);
-          Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)));
-        };
-
-      Array.exists(f, items);
-    };
-
-    let rec climb = path =>
-      if (isProject(path)) {
-        return(path);
-      } else {
-        let parent = Path.parent(path);
-        if (!(Path.compare(path, parent) == 0)) {
-          climb(Path.parent(path));
-        } else {
-          errorf(
-            "No esy project found (was looking from %a and up)",
-            Path.ppPretty,
-            currentPath,
-          );
-        };
+          if (Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)))) {
+            Kind.(Project + check(rest));
+          } else {
+            check(rest);
+          };
+        }
       };
 
-    climb(currentPath);
+    check(Array.to_list(Sys.readdir(Path.show(path))));
+  };
+
+  let climbFrom = currentPath => {
+    open Run.Syntax;
+
+    let parentPath = path => {
+      let parent = Path.parent(path);
+      if (!(Path.compare(path, parent) == 0)) {
+        return(Path.parent(path));
+      } else {
+        errorf(
+          "No esy project found (was looking from %a and up)",
+          Path.ppPretty,
+          currentPath,
+        );
+      };
+    };
+
+    let rec climb = path => {
+      let kind = isProjectPath(path);
+      switch (kind) {
+      | NoProject =>
+        let%bind parent = parentPath(path);
+        climb(parent);
+      | Project =>
+        let next = {
+          let%bind parent = parentPath(path);
+          climb(parent);
+        };
+        switch (next) {
+        | Error(_) => return((kind, path))
+        | Ok((Kind.Project | NoProject, _)) => return((kind, path))
+        | Ok((ProjectForced, path)) => return((Kind.ProjectForced, path))
+        };
+      | ProjectForced =>
+        return((kind, path));
+      };
+    };
+
+    let%bind (_kind, path) = climb(currentPath);
+    return(path);
   };
 
   let ofPath = projectPath => {
