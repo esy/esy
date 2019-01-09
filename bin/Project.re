@@ -98,7 +98,7 @@ let configured = proj =>
     },
   );
 
-let makeProject = (makeSolved, projcfg, spec) => {
+let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   open RunAsync.Syntax;
   let workflow = Workflow.default;
   let%bind files = {
@@ -130,8 +130,8 @@ let makeProject = (makeSolved, projcfg, spec) => {
     );
 
   let installCfg = solveCfg.EsySolve.Config.installCfg;
-  let%bind solveSandbox = EsySolve.Sandbox.make(~cfg=solveCfg, spec);
-  let installSandbox = EsyInstall.Sandbox.make(installCfg, spec);
+  let%bind solveSandbox = EsySolve.Sandbox.make(~cfg=solveCfg, projcfg.spec);
+  let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
 
   let%bind buildCfg = {
     let storePath =
@@ -144,9 +144,9 @@ let makeProject = (makeSolved, projcfg, spec) => {
     RunAsync.ofBosError(
       EsyBuildPackage.Config.make(
         ~storePath,
-        ~localStorePath=EsyInstall.SandboxSpec.storePath(spec),
-        ~buildPath=EsyInstall.SandboxSpec.buildPath(spec),
-        ~projectPath=spec.path,
+        ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
+        ~buildPath=EsyInstall.SandboxSpec.buildPath(projcfg.spec),
+        ~projectPath=projcfg.spec.path,
         (),
       ),
     );
@@ -166,7 +166,7 @@ let makeProject = (makeSolved, projcfg, spec) => {
     {
       projcfg,
       buildCfg,
-      spec,
+      spec: projcfg.spec,
       scripts,
       solved,
       workflow,
@@ -473,76 +473,6 @@ let ocamlfind = resolvePackage(~name="@opam/ocamlfind");
 let ocaml = resolvePackage(~name="ocaml");
 
 module OfTerm = {
-  let findProjectPathFrom = currentPath => {
-    open Run.Syntax;
-    let isProject = path => {
-      let items = Sys.readdir(Path.show(path));
-      let f = name =>
-        switch (name) {
-        | "package.json"
-        | "esy.json" => true
-        | "opam" =>
-          /* opam could easily by a directory name */
-          let p = Path.(path / name);
-          !Sys.is_directory(Path.(show(p)));
-        | name =>
-          let p = Path.(path / name);
-          Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)));
-        };
-
-      Array.exists(f, items);
-    };
-
-    let rec climb = path =>
-      if (isProject(path)) {
-        return(path);
-      } else {
-        let parent = Path.parent(path);
-        if (!(Path.compare(path, parent) == 0)) {
-          climb(Path.parent(path));
-        } else {
-          errorf(
-            "No esy project found (was looking from %a and up)",
-            Path.ppPretty,
-            currentPath,
-          );
-        };
-      };
-
-    climb(currentPath);
-  };
-
-  let findProjectPath = projectPath => {
-    open Run.Syntax;
-
-    /* check if we can get projectPath from env */
-    let projectPath =
-      switch (projectPath) {
-      | Some(_) => projectPath
-      | None =>
-        open Option.Syntax;
-        let%map v =
-          StringMap.find_opt(
-            BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath,
-            System.Environment.current,
-          );
-
-        Path.v(v);
-      };
-
-    let%bind projectPath =
-      switch (projectPath) {
-      | Some(path) => return(path)
-      | None => findProjectPathFrom(Path.currentPath())
-      };
-
-    if (Path.isAbs(projectPath)) {
-      return(projectPath);
-    } else {
-      return(Path.(EsyRuntime.currentWorkingDir /\/ projectPath));
-    };
-  };
-
   let checkStaleness = files => {
     open RunAsync.Syntax;
     let files = files;
@@ -630,9 +560,7 @@ module OfTerm = {
       switch%bind (read(projcfg)) {
       | Some(proj) => return(proj)
       | None =>
-        let%bind projectPath = RunAsync.ofRun(findProjectPath(projectPath));
-        let%bind spec = SandboxSpec.ofPath(projectPath);
-        let%bind (proj, files) = make(projcfg, spec);
+        let%bind (proj, files) = make(projcfg);
         let%bind () = write(projcfg, proj, files);
         return(proj);
       };

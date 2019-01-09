@@ -38,7 +38,7 @@ let fetched: project => RunAsync.t(fetched);
 let configured: project => RunAsync.t(configured);
 
 let make:
-  (ProjectConfig.t, SandboxSpec.t) =>
+  (ProjectConfig.t) =>
   Lwt.t(Run.t((project, list(FileInfo.t))));
 
 let plan: (BuildSpec.mode, project) => RunAsync.t(BuildSandbox.Plan.t);
