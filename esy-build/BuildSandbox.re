@@ -1003,24 +1003,36 @@ let findMaxModifyTime = path => {
       }
     };
 
-  let f = ((prevpath, prevmtime), path, stat) =>
-    return(
-      {
-        let mtime = stat.Unix.st_mtime;
-        if (mtime > prevmtime) {
-          (path, mtime);
-        } else {
-          (prevpath, prevmtime);
-        };
-      },
-    );
+  let reduce = ((prevpath, prevmtime), filepath, stat) => {
+    let mtime = stat.Unix.st_mtime;
+    if (mtime > prevmtime) {
+      (filepath, mtime);
+    } else {
+      (prevpath, prevmtime);
+    };
+  };
+
+  let rec f = (value, filepath, stat) =>
+    switch (stat.Unix.st_kind) {
+    | Unix.S_LNK =>
+      let%bind targetpath = Fs.readlink(filepath);
+      let targetpath =
+        Path.(normalize(append(parent(filepath), targetpath)));
+      /* check first if link itself has modified mtime, if not - traverse it */
+      let value = reduce(value, filepath, stat);
+      let%bind targetstat = Fs.lstat(targetpath);
+      f(value, targetpath, targetstat);
+    | _ =>
+      let value = reduce(value, filepath, stat);
+      return(value);
+    };
 
   let label = Printf.sprintf("computing mtime for %s", Path.show(path));
   Perf.measureLwt(
     ~label,
     () => {
-      let%bind (path, mtime) =
-        Fs.fold(~skipTraverse, ~f, ~init=(path, 0.0), path);
+      let value = (path, 0.0);
+      let%bind (path, mtime) = Fs.fold(~skipTraverse, ~f, ~init=value, path);
       return((path, BuildInfo.ModTime.v(mtime)));
     },
   );
