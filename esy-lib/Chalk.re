@@ -23,7 +23,7 @@ module Ansi = {
     stop: string,
     stopCode: int,
   };
-  let createStyle = (start: int, stop: int) : style => {
+  let createStyle = (start: int, stop: int): style => {
     start: "\027[" ++ string_of_int(start) ++ "m",
     startCode: start,
     stop: "\027[" ++ string_of_int(stop) ++ "m",
@@ -267,7 +267,7 @@ let escapeCodeRegex = {
 
 let nonDigitRegex = Str.regexp("[^0-9]");
 
-let parseString = (s: string) : list(part) => {
+let parseString = (s: string): list(part) => {
   let parts = Str.full_split(escapeCodeRegex, s);
   let (parts, _) =
     parts
@@ -288,7 +288,7 @@ let parseString = (s: string) : list(part) => {
                  } else if (IntSet.mem(code, Ansi.stops)) {
                    let startsToRemove = IntMap.find(code, Ansi.stopToStarts);
                    IntSet.filter(
-                     code => ! IntSet.mem(code, startsToRemove),
+                     code => !IntSet.mem(code, startsToRemove),
                      modifiers,
                    );
                  } else {
@@ -304,7 +304,7 @@ let parseString = (s: string) : list(part) => {
   parts;
 };
 
-let createChalker = (style: Ansi.style) : chalker => {
+let createChalker = (style: Ansi.style): chalker => {
   let chalker = (s: string) => {
     let parts = parseString(s);
     /* Now we apply the style to all parts with non-conflicting modifiers */

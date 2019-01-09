@@ -100,8 +100,7 @@ build-dev:
 	@esy b dune build -j 4 $(TARGETS)
 
 refmt::
-	@find $(PROJECTS) -name '*.re' \
-		| xargs -n1 esy refmt --in-place --print-width 80
+	@esy dune build @fmt --auto-promote
 
 #
 # Test

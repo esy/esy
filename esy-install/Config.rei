@@ -8,8 +8,8 @@ type t =
     sourceInstallPath: Path.t,
   };
 
-let pp : Fmt.t(t);
-let show : t => string;
+let pp: Fmt.t(t);
+let show: t => string;
 
 let make:
   (

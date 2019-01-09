@@ -1,4 +1,4 @@
-open EsyPackageConfig
+open EsyPackageConfig;
 
 type t;
 
