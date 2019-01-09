@@ -27,73 +27,76 @@ let storePath = cfg => {
   Run.ofBosError(EsyBuildPackage.Config.(configureStorePath(storePath)));
 };
 
-let findProjectPathFrom = currentPath => {
-  open Run.Syntax;
-  let isProject = path => {
-    let items = Sys.readdir(Path.show(path));
-    let f = name =>
-      switch (name) {
-      | "package.json"
-      | "esy.json" => true
-      | "opam" =>
-        /* opam could easily by a directory name */
-        let p = Path.(path / name);
-        !Sys.is_directory(Path.(show(p)));
-      | name =>
-        let p = Path.(path / name);
-        Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)));
+module FindProject = {
+  let climbFrom = currentPath => {
+    open Run.Syntax;
+    let isProject = path => {
+      let items = Sys.readdir(Path.show(path));
+      let f = name =>
+        switch (name) {
+        | "package.json"
+        | "esy.json" => true
+        | "opam" =>
+          /* opam could easily by a directory name */
+          let p = Path.(path / name);
+          !Sys.is_directory(Path.(show(p)));
+        | name =>
+          let p = Path.(path / name);
+          Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)));
+        };
+
+      Array.exists(f, items);
+    };
+
+    let rec climb = path =>
+      if (isProject(path)) {
+        return(path);
+      } else {
+        let parent = Path.parent(path);
+        if (!(Path.compare(path, parent) == 0)) {
+          climb(Path.parent(path));
+        } else {
+          errorf(
+            "No esy project found (was looking from %a and up)",
+            Path.ppPretty,
+            currentPath,
+          );
+        };
       };
 
-    Array.exists(f, items);
+    climb(currentPath);
   };
 
-  let rec climb = path =>
-    if (isProject(path)) {
-      return(path);
-    } else {
-      let parent = Path.parent(path);
-      if (!(Path.compare(path, parent) == 0)) {
-        climb(Path.parent(path));
-      } else {
-        errorf(
-          "No esy project found (was looking from %a and up)",
-          Path.ppPretty,
-          currentPath,
-        );
+  let ofPath = projectPath => {
+    open Run.Syntax;
+
+    /* check if we can get projectPath from env */
+    let projectPath =
+      switch (projectPath) {
+      | Some(_) => projectPath
+      | None =>
+        let v =
+          StringMap.find_opt(
+            BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath,
+            System.Environment.current,
+          );
+        switch (v) {
+        | None => None
+        | Some(v) => Some(Path.v(v))
+        };
       };
+
+    let%bind projectPath =
+      switch (projectPath) {
+      | Some(path) => return(path)
+      | None => climbFrom(Path.currentPath())
+      };
+
+    if (Path.isAbs(projectPath)) {
+      return(Path.normalize(projectPath));
+    } else {
+      return(Path.(normalize(currentPath() /\/ projectPath)));
     };
-
-  climb(currentPath);
-};
-
-let findProjectPath = projectPath => {
-  open Run.Syntax;
-
-  /* check if we can get projectPath from env */
-  let projectPath =
-    switch (projectPath) {
-    | Some(_) => projectPath
-    | None =>
-      open Option.Syntax;
-      let%map v =
-        StringMap.find_opt(
-          BuildSandbox.EsyIntrospectionEnv.rootPackageConfigPath,
-          System.Environment.current,
-        );
-
-      Path.v(v);
-    };
-
-  let%bind projectPath =
-    switch (projectPath) {
-    | Some(path) => return(path)
-    | None => findProjectPathFrom(Path.currentPath())
-    };
-
-  if (Path.isAbs(projectPath)) {
-    return(projectPath);
-  } else {
-    return(Path.(EsyRuntime.currentWorkingDir /\/ projectPath));
   };
 };
 
@@ -216,7 +219,7 @@ let make =
     ) => {
   open RunAsync.Syntax;
 
-  let%bind projectPath = RunAsync.ofRun(findProjectPath(projectPath));
+  let%bind projectPath = RunAsync.ofRun(FindProject.ofPath(projectPath));
   let%bind spec = EsyInstall.SandboxSpec.ofPath(projectPath);
 
   let%bind prefixPath =
