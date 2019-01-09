@@ -44,6 +44,7 @@ jobs:
       demands: node.js
 
     variables:
+        HOMEBREW_NO_AUTO_UPDATE: yes
         STAGING_DIRECTORY: /Users/vsts/STAGING
         STAGING_DIRECTORY_UNIX: /Users/vsts/STAGING
         ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i
