@@ -41,11 +41,15 @@ let localPrefixPath = spec => {
   Path.(spec.path / "_esy" / name);
 };
 
+let manifestPath = spec =>
+  switch (spec.manifest) {
+  | Manifest((_kind, filename)) => Some(Path.(spec.path / filename))
+  | ManifestAggregate(_) => None
+  };
+
 let manifestPaths = spec =>
   switch (spec.manifest) {
-  | [@implicit_arity] Manifest(_kind, filename) => [
-      Path.(spec.path / filename),
-    ]
+  | Manifest((_kind, filename)) => [Path.(spec.path / filename)]
   | ManifestAggregate(filenames) =>
     List.map(
       ~f=((_kind, filename)) => Path.(spec.path / filename),

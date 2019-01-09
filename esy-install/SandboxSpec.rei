@@ -19,6 +19,7 @@ let isDefault: t => bool;
 let projectName: t => string;
 
 let manifestPaths: t => list(Path.t);
+let manifestPath: t => option(Path.t);
 let distPath: t => Path.t;
 let tempPath: t => Path.t;
 let cachePath: t => Path.t;

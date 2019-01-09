@@ -26,6 +26,5 @@ let show: t => string;
 let pp: Fmt.t(t);
 let to_yojson: t => Json.t;
 
-let promiseTerm: option(Fpath.t) => Cmdliner.Term.t(RunAsync.t(t));
-
-let term: option(Fpath.t) => Cmdliner.Term.t(t);
+let promiseTerm: Cmdliner.Term.t(RunAsync.t(t));
+let term: Cmdliner.Term.t(t);
