@@ -7,7 +7,8 @@ let util = require('util');
 let files = [
   '_build/default/esy-build-package/bin/esyRewritePrefixCommand.exe',
   '_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
-  '_build/default/bin/esy.exe'
+  '_build/default/bin/esy.exe',
+  '_build/default/bin/esyInstallRelease.js'
 ];
 
 let sourceRoot = process.cwd();

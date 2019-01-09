@@ -17,6 +17,7 @@ var platform = process.platform;
 
 const binariesToCopy = [
   path.join('_build', 'default', 'bin', 'esy.exe'),
+  path.join('_build', 'default', 'bin', 'esyInstallRelease.js'),
   path.join(
     '_build',
     'default',
