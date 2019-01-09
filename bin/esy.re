@@ -447,7 +447,15 @@ let buildShell = (mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let build = (~buildOnly=true, mode, pkgarg, cmd, proj: Project.t) => {
+let build =
+    (
+      ~buildOnly=true,
+      ~skipStalenessCheck=false,
+      mode,
+      pkgarg,
+      cmd,
+      proj: Project.t,
+    ) => {
   open RunAsync.Syntax;
 
   let%bind fetched = Project.fetched(proj);
@@ -457,7 +465,13 @@ let build = (~buildOnly=true, mode, pkgarg, cmd, proj: Project.t) => {
     switch (cmd) {
     | None =>
       let%bind () =
-        Project.buildDependencies(~buildLinked=true, proj, plan, pkg);
+        Project.buildDependencies(
+          ~buildLinked=true,
+          ~skipStalenessCheck,
+          proj,
+          plan,
+          pkg,
+        );
 
       Project.buildPackage(
         ~quiet=true,
@@ -469,7 +483,13 @@ let build = (~buildOnly=true, mode, pkgarg, cmd, proj: Project.t) => {
       );
     | Some(cmd) =>
       let%bind () =
-        Project.buildDependencies(~buildLinked=true, proj, plan, pkg);
+        Project.buildDependencies(
+          ~buildLinked=true,
+          ~skipStalenessCheck,
+          proj,
+          plan,
+          pkg,
+        );
 
       Project.execCommand(
         ~checkIfDependenciesAreBuilt=false,
@@ -1421,7 +1441,7 @@ let makeCommands = projectPath => {
 
   let commands = {
     let buildCommand = {
-      let run = (mode, pkgarg, cmd, proj) => {
+      let run = (mode, pkgarg, skipStalenessCheck, cmd, proj) => {
         let () =
           switch (cmd) {
           | None =>
@@ -1431,7 +1451,7 @@ let makeCommands = projectPath => {
           | Some(_) => ()
           };
 
-        build(~buildOnly=true, mode, pkgarg, cmd, proj);
+        build(~buildOnly=true, ~skipStalenessCheck, mode, pkgarg, cmd, proj);
       };
 
       makeProjectCommand(
@@ -1444,6 +1464,14 @@ let makeCommands = projectPath => {
           const(run)
           $ modeTerm
           $ pkgTerm
+          $ Arg.(
+              value
+              & flag
+              & info(
+                  ["skip-staleness-check"],
+                  ~doc="Skip staleness check for link-dev: packages",
+                )
+            )
           $ Cli.cmdOptionTerm(
               ~doc="Command to execute within the build environment.",
               ~docv="COMMAND",

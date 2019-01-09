@@ -58,7 +58,13 @@ let withPackage:
   (project, PkgArg.t, Package.t => Lwt.t(Run.t('a))) => RunAsync.t('a);
 
 let buildDependencies:
-  (~buildLinked: bool, project, BuildSandbox.Plan.t, Package.t) =>
+  (
+    ~skipStalenessCheck: bool=?,
+    ~buildLinked: bool,
+    project,
+    BuildSandbox.Plan.t,
+    Package.t
+  ) =>
   RunAsync.t(unit);
 
 let buildPackage:

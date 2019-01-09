@@ -1099,7 +1099,8 @@ let buildRoot = (~quiet=?, ~buildOnly=?, sandbox, plan) => {
   };
 };
 
-let build' = (~concurrency, ~buildLinked, sandbox, plan, ids) => {
+let build' =
+    (~skipStalenessCheck, ~concurrency, ~buildLinked, sandbox, plan, ids) => {
   open RunAsync.Syntax;
   let%lwt () =
     Logs_lwt.debug(m => m("buildDependencies ~concurrency:%i", concurrency));
@@ -1177,40 +1178,47 @@ let build' = (~concurrency, ~buildLinked, sandbox, plan, ids) => {
     let infoPath = Task.buildInfoPath(sandbox.cfg, task);
     let sourcePath = Task.sourcePath(sandbox.cfg, task);
     let%bind isBuilt = isBuilt(sandbox, task);
+
+    let runAndRecordSourceModTime = sourceModTime => {
+      let%bind timeSpent =
+        LwtTaskQueue.submit(queue, run(~quiet=false, task));
+      let%bind () =
+        BuildInfo.toFile(
+          infoPath,
+          {BuildInfo.idInfo: task.idrepr, timeSpent, sourceModTime},
+        );
+      return();
+    };
+
     switch (Scope.sourceType(task.scope)) {
     | SourceType.Transient =>
-      let%bind (changesInSources, mtime) =
-        checkFreshModifyTime(infoPath, sourcePath);
-      switch (isBuilt, Changes.(changesInDependencies + changesInSources)) {
-      | (true, Changes.No) =>
-        let%lwt () =
-          Logs_lwt.debug(m =>
-            m(
-              "building %a: skipping (changesInDependencies: %a, changesInSources: %a)",
-              Task.pp,
-              task,
-              Changes.pp,
-              changesInDependencies,
-              Changes.pp,
-              changesInSources,
-            )
-          );
-        return(Changes.No);
-      | (true, Changes.Yes)
-      | (false, _) =>
-        let%bind timeSpent =
-          LwtTaskQueue.submit(queue, run(~quiet=false, task));
-        let%bind () =
-          BuildInfo.toFile(
-            infoPath,
-            {
-              BuildInfo.idInfo: task.idrepr,
-              timeSpent,
-              sourceModTime: Some(mtime),
-            },
-          );
+      if (skipStalenessCheck) {
+        let%bind () = runAndRecordSourceModTime(None);
         return(Changes.Yes);
-      };
+      } else {
+        let%bind (changesInSources, mtime) =
+          checkFreshModifyTime(infoPath, sourcePath);
+        switch (isBuilt, Changes.(changesInDependencies + changesInSources)) {
+        | (true, Changes.No) =>
+          let%lwt () =
+            Logs_lwt.debug(m =>
+              m(
+                "building %a: skipping (changesInDependencies: %a, changesInSources: %a)",
+                Task.pp,
+                task,
+                Changes.pp,
+                changesInDependencies,
+                Changes.pp,
+                changesInSources,
+              )
+            );
+          return(Changes.No);
+        | (true, Changes.Yes)
+        | (false, _) =>
+          let%bind () = runAndRecordSourceModTime(Some(mtime));
+          return(Changes.Yes);
+        };
+      }
     | SourceType.ImmutableWithTransientDependencies =>
       switch (isBuilt, changesInDependencies) {
       | (true, Changes.No) =>
@@ -1227,26 +1235,14 @@ let build' = (~concurrency, ~buildLinked, sandbox, plan, ids) => {
         return(Changes.No);
       | (true, Changes.Yes)
       | (false, _) =>
-        let%bind timeSpent =
-          LwtTaskQueue.submit(queue, run(~quiet=false, task));
-        let%bind () =
-          BuildInfo.toFile(
-            infoPath,
-            {BuildInfo.idInfo: task.idrepr, timeSpent, sourceModTime: None},
-          );
+        let%bind () = runAndRecordSourceModTime(None);
         return(Changes.Yes);
       }
     | SourceType.Immutable =>
       if (isBuilt) {
         return(Changes.No);
       } else {
-        let%bind timeSpent =
-          LwtTaskQueue.submit(queue, run(~quiet=false, task));
-        let%bind () =
-          BuildInfo.toFile(
-            infoPath,
-            {BuildInfo.idInfo: task.idrepr, timeSpent, sourceModTime: None},
-          );
+        let%bind () = runAndRecordSourceModTime(None);
         return(Changes.No);
       }
     };
@@ -1313,9 +1309,17 @@ let build' = (~concurrency, ~buildLinked, sandbox, plan, ids) => {
   return();
 };
 
-let build = (~concurrency=1, ~buildLinked, sandbox, plan, ids) =>
+let build =
+    (~skipStalenessCheck, ~concurrency=1, ~buildLinked, sandbox, plan, ids) =>
   Perf.measureLwt(~label="build", () =>
-    build'(~concurrency, ~buildLinked, sandbox, plan, ids)
+    build'(
+      ~skipStalenessCheck,
+      ~concurrency,
+      ~buildLinked,
+      sandbox,
+      plan,
+      ids,
+    )
   );
 
 let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
