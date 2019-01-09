@@ -1398,11 +1398,8 @@ let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
   (term, info);
 };
 
-let makeCommands = projectPath => {
+let commandsConfig = {
   open Cmdliner;
-
-  let projectConfig = ProjectConfig.term(projectPath);
-  let project = Project.term(projectPath);
 
   let makeProjectCommand =
       (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=?, ~name, cmd) => {
@@ -1420,7 +1417,7 @@ let makeCommands = projectPath => {
         cmd(project);
       };
 
-      Cmdliner.Term.(pure(run) $ cmd $ project);
+      Cmdliner.Term.(pure(run) $ cmd $ Project.term);
     };
 
     makeCommand(~header=`No, ~docs?, ~doc?, ~stop_on_pos?, ~name, cmd);
@@ -1558,7 +1555,7 @@ let makeCommands = projectPath => {
                   ~doc="Package to display information about",
                 )
             )
-          $ project
+          $ Project.term
         ),
       ),
       makeCommand(
@@ -1612,7 +1609,7 @@ let makeCommands = projectPath => {
           $ Arg.(
               value & pos_all(resolvedPathTerm, []) & info([], ~docv="BUILD")
             )
-          $ projectConfig
+          $ ProjectConfig.term
         ),
       ),
       makeProjectCommand(
@@ -1700,7 +1697,7 @@ let makeCommands = projectPath => {
         ~docs=introspectionSection,
         Term.(
           const(status)
-          $ Project.promiseTerm(projectPath)
+          $ Project.promiseTerm
           $ Arg.(
               value & flag & info(["json"], ~doc="Format output as JSON")
             )
@@ -1934,22 +1931,48 @@ let checkSymlinks = () =>
 let () = {
   let () = checkSymlinks();
 
-  let (argv, rootPackagePath) = {
+  let (defaultCommand, commands) = commandsConfig;
+
+  /*
+      Preparse command line arguments to expand syntax:
+
+        esy @projectPath
+
+      into
+
+        esy --project-path projectPath
+
+     which we can't parse with cmdliner
+   */
+  let argv = {
+    let commandNames = {
+      let f = (names, (_term, info)) => {
+        let name = Cmdliner.Term.name(info);
+        StringSet.add(name, names);
+      };
+      List.fold_left(~f, ~init=StringSet.empty, commands);
+    };
+
     let argv = Array.to_list(Sys.argv);
 
-    let (rootPackagePath, argv) =
+    let argv =
       switch (argv) {
-      | [] => (None, argv)
-      | [prg, elem, ...rest] when elem.[0] == '@' =>
+      | [] => argv
+      | [prg, elem, maybeCommandName, ...rest] when elem.[0] == '@' =>
         let sandbox = String.sub(elem, 1, String.length(elem) - 1);
-        (Some(Path.v(sandbox)), [prg, ...rest]);
-      | _ => (None, argv)
+        if (StringSet.mem(maybeCommandName, commandNames)) {
+          [prg, maybeCommandName, "--project-path", sandbox, ...rest];
+        } else {
+          [prg, "--project-path", sandbox, maybeCommandName, ...rest];
+        };
+      | [prg, elem] when elem.[0] == '@' =>
+        let sandbox = String.sub(elem, 1, String.length(elem) - 1);
+        [prg, "--project-path", sandbox];
+      | _ => argv
       };
 
-    (Array.of_list(argv), rootPackagePath);
+    Array.of_list(argv);
   };
-
-  let (defaultCommand, commands) = makeCommands(rootPackagePath);
 
   Cmdliner.Term.(
     exit @@ eval_choice(~main_on_err=true, ~argv, defaultCommand, commands)

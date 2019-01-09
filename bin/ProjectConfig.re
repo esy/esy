@@ -106,8 +106,7 @@ module FindProject = {
         | Ok((Kind.Project | NoProject, _)) => return((kind, path))
         | Ok((ProjectForced, path)) => return((Kind.ProjectForced, path))
         };
-      | ProjectForced =>
-        return((kind, path));
+      | ProjectForced => return((kind, path))
       };
     };
 
@@ -149,6 +148,16 @@ module FindProject = {
 };
 
 let commonOptionsSection = Manpage.s_common_options;
+
+let projectPath = {
+  let doc = "Specifies esy project path.";
+  let env = Arg.env_var("ESY__PROJECT", ~doc);
+  Arg.(
+    value
+    & opt(some(Cli.pathConv), None)
+    & info(["P", "project-path"], ~env, ~docs=commonOptionsSection, ~doc)
+  );
+};
 
 let prefixPath = {
   let doc = "Specifies esy prefix path.";
@@ -294,10 +303,11 @@ let make =
   });
 };
 
-let promiseTerm = projectPath => {
+let promiseTerm = {
   let parse =
       (
         mainprg,
+        projectPath,
         prefixPath,
         cachePath,
         cacheTarballsPath,
@@ -326,6 +336,7 @@ let promiseTerm = projectPath => {
   Cmdliner.Term.(
     const(parse)
     $ main_name
+    $ projectPath
     $ prefixPath
     $ cachePathArg
     $ cacheTarballsPath
@@ -339,7 +350,5 @@ let promiseTerm = projectPath => {
   );
 };
 
-let term = projectPath =>
-  Cmdliner.Term.(
-    ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm(projectPath))
-  );
+let term =
+  Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));

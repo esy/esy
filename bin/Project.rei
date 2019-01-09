@@ -37,9 +37,7 @@ let solved: project => RunAsync.t(solved);
 let fetched: project => RunAsync.t(fetched);
 let configured: project => RunAsync.t(configured);
 
-let make:
-  (ProjectConfig.t) =>
-  Lwt.t(Run.t((project, list(FileInfo.t))));
+let make: ProjectConfig.t => Lwt.t(Run.t((project, list(FileInfo.t))));
 
 let plan: (BuildSpec.mode, project) => RunAsync.t(BuildSandbox.Plan.t);
 
@@ -51,8 +49,8 @@ let ocaml: project => RunAsync.t(Fpath.t);
 
 let ocamlfind: project => RunAsync.t(Fpath.t);
 
-let term: option(Fpath.t) => Cmdliner.Term.t(project);
-let promiseTerm: option(Fpath.t) => Cmdliner.Term.t(RunAsync.t(project));
+let term: Cmdliner.Term.t(project);
+let promiseTerm: Cmdliner.Term.t(RunAsync.t(project));
 
 let withPackage:
   (project, PkgArg.t, Package.t => Lwt.t(Run.t('a))) => RunAsync.t('a);

@@ -553,7 +553,7 @@ module OfTerm = {
       write'(projcfg, v, files),
     );
 
-  let promiseTerm = projectPath => {
+  let promiseTerm = {
     let parse = projcfg => {
       open RunAsync.Syntax;
       let%bind projcfg = projcfg;
@@ -566,13 +566,11 @@ module OfTerm = {
       };
     };
 
-    Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm(projectPath));
+    Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
   };
 
-  let term = sandboxPath =>
-    Cmdliner.Term.(
-      ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm(sandboxPath))
-    );
+  let term =
+    Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
 };
 
 include OfTerm;
