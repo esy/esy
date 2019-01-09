@@ -62,6 +62,8 @@ let run =
           | _ => Lwt.return()
           };
 
+        let%bind () = Fs.createDir(Path.parent(logPath));
+
         let%lwt fd =
           Lwt_unix.openfile(
             Path.show(logPath),
