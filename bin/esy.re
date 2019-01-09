@@ -369,11 +369,8 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
         );
       };
 
-      let%lwt rootPackageConfigPath = {
-        open RunAsync.Syntax;
-        let%bind fetched = Project.fetched(proj);
-        return(BuildSandbox.rootPackageConfigPath(fetched.Project.sandbox));
-      };
+      let rootPackageConfigPath =
+        EsyInstall.SandboxSpec.manifestPath(proj.projcfg.spec);
 
       return({
         isProject: true,
@@ -382,7 +379,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
         isProjectReadyForDev: Result.getOr(false, built),
         rootBuildPath: Result.getOr(None, rootBuildPath),
         rootInstallPath: Result.getOr(None, rootInstallPath),
-        rootPackageConfigPath: Result.getOr(None, rootPackageConfigPath),
+        rootPackageConfigPath,
       });
     };
 

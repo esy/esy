@@ -17,8 +17,6 @@ let make:
 
 let renderExpression: (t, Scope.t, string) => Run.t(string);
 
-let rootPackageConfigPath: t => option(Fpath.t);
-
 let configure:
   (
     ~forceImmutable: bool=?,
