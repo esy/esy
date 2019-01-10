@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if command -v esy >/dev/null 2>&1; then
+  echo "[INFO] Running source code formatting"
+  make fmt-no-promote
+
+  echo "[INFO] Running build"
+  make build
+
+  exit 0
+else
+  >&2 echo "[WARN] Skipping precommit validation: esy isn't available"
+  exit 0
+fi
+
