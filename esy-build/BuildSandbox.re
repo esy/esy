@@ -1084,6 +1084,28 @@ module Changes = {
 let isBuilt = (sandbox, task) =>
   Fs.exists(Task.installPath(sandbox.cfg, task));
 
+let makeSymlinksToStore = (sandbox, task) => {
+  open RunAsync.Syntax;
+  let addSuffix = p =>
+    switch (Scope.mode(task.Task.scope)) {
+    | BuildDev => p
+    | Build => Path.v(Path.show(p) ++ "-release")
+    };
+  let%bind () =
+    Fs.symlink(
+      ~force=true,
+      ~src=Task.buildPath(sandbox.cfg, task),
+      addSuffix(EsyInstall.SandboxSpec.buildPath(sandbox.spec)),
+    );
+  let%bind () =
+    Fs.symlink(
+      ~force=true,
+      ~src=Task.installPath(sandbox.cfg, task),
+      addSuffix(EsyInstall.SandboxSpec.installPath(sandbox.spec)),
+    );
+  return();
+};
+
 let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
   open RunAsync.Syntax;
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
@@ -1105,20 +1127,7 @@ let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
       System.Platform.host,
     ) {
     | (_, System.Platform.Windows) => return()
-    | (true, _) =>
-      let%bind () =
-        Fs.symlink(
-          ~force=true,
-          ~src=Task.buildPath(sandbox.cfg, task),
-          EsyInstall.SandboxSpec.buildPath(sandbox.spec),
-        );
-      let%bind () =
-        Fs.symlink(
-          ~force=true,
-          ~src=Task.installPath(sandbox.cfg, task),
-          EsyInstall.SandboxSpec.installPath(sandbox.spec),
-        );
-      return();
+    | (true, _) => makeSymlinksToStore(sandbox, task)
     | (false, _) => return()
     };
   return();
