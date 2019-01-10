@@ -44,6 +44,12 @@ describe(`'esy build': simple executable with no deps`, () => {
       expect(stdout.trim()).toEqual('__no-deps__');
     }));
 
+    test('passing --install installs built artifacts', withProject(async (p) => {
+      await p.esy('build --install');
+      const {stdout} = await p.esy("'#{self.bin}/no-deps.cmd'");
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
+
     test(
       'build-env',
       withProject(async function(p) {

@@ -1449,7 +1449,7 @@ let commandsConfig = {
 
   let commands = {
     let buildCommand = {
-      let run = (mode, pkgarg, skipStalenessCheck, cmd, proj) => {
+      let run = (mode, pkgarg, install, skipStalenessCheck, cmd, proj) => {
         let () =
           switch (cmd) {
           | None =>
@@ -1459,7 +1459,14 @@ let commandsConfig = {
           | Some(_) => ()
           };
 
-        build(~buildOnly=true, ~skipStalenessCheck, mode, pkgarg, cmd, proj);
+        build(
+          ~buildOnly=!install,
+          ~skipStalenessCheck,
+          mode,
+          pkgarg,
+          cmd,
+          proj,
+        );
       };
 
       makeProjectCommand(
@@ -1472,6 +1479,11 @@ let commandsConfig = {
           const(run)
           $ modeTerm
           $ pkgTerm
+          $ Arg.(
+              value
+              & flag
+              & info(["install"], ~doc="Install built artifacts")
+            )
           $ Arg.(
               value
               & flag
