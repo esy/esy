@@ -59,17 +59,26 @@ export HELP
 help:
 	@echo "$$HELP"
 
-bootstrap:
+bootstrap: install-githooks
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy@0.4.x'")
 endif
 ifeq ($(ESY_VERSION_MINOR),4)
 	@esy install
-	@esy build
+	@make build
 	@esy bootstrap
 else
 	$(error "esy requires version 0.2.x installed to bootstrap, run 'npm install -g esy@0.2'")
 endif
+
+GITHOOKS = $(shell git rev-parse --git-dir)/hooks
+GITHOOKS_TO_INSTALL = $(shell ls -1 githooks)
+
+install-githooks: $(GITHOOKS_TO_INSTALL:%=$(GITHOOKS)/%)
+
+$(GITHOOKS)/%: githooks/%
+	@cp $(<) $(@)
+	@chmod +x $(@)
 
 doctoc:
 	@$(BIN)/doctoc --notitle ./README.md
@@ -99,8 +108,11 @@ b: build-dev
 build-dev:
 	@esy b dune build -j 4 $(TARGETS)
 
-refmt::
+fmt refmt::
 	@esy dune build @fmt --auto-promote
+
+fmt-no-promote refmt-no-promote::
+	@esy dune build @fmt
 
 #
 # Test

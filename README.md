@@ -114,6 +114,14 @@ To make changes to `esy` and test them locally:
 % esy bootstrap
 ```
 
+On Linux/macOS (soon on Windows too) you can run:
+
+```
+% make install-githooks
+```
+
+which will install git hooks which will do pre commit validation.
+
 ### Updaating `bin/esyInstallRelease.js`
 
 `bin/esyInstallRelease.js` is developed separately within the `esy-install-npm-release/` directory.
