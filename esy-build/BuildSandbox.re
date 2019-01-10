@@ -492,7 +492,11 @@ let makeScope =
           let f = ((_direct, reason, scope)) =>
             switch (reason) {
             | Reason.ForBuild =>
-              Scope.sourceType(scope) == SourceType.Transient
+              switch (Scope.sourceType(scope)) {
+              | SourceType.Transient
+              | SourceType.ImmutableWithTransientDependencies => true
+              | SourceType.Immutable => false
+              }
             | Reason.ForScope => false
             };
 
