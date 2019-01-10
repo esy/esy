@@ -1117,26 +1117,6 @@ let buildOnly =
     }
   );
 
-let buildRoot = (~quiet=?, ~buildOnly=?, sandbox, plan) => {
-  open RunAsync.Syntax;
-  let root = Solution.root(sandbox.solution);
-  switch (Plan.get(plan, root.id)) {
-  | Some(task) =>
-    let%bind () = buildTask(~quiet?, ~buildOnly?, sandbox, task);
-    let%bind () = {
-      let buildPath = Task.buildPath(sandbox.cfg, task);
-      let buildPathLink = EsyInstall.SandboxSpec.buildPath(sandbox.spec);
-      switch (System.Platform.host) {
-      | Windows => return()
-      | _ => Fs.symlink(~force=true, ~src=buildPath, buildPathLink)
-      };
-    };
-
-    return();
-  | None => RunAsync.return()
-  };
-};
-
 let build' =
     (~skipStalenessCheck, ~concurrency, ~buildLinked, sandbox, plan, ids) => {
   open RunAsync.Syntax;
