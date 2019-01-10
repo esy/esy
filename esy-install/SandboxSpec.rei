@@ -25,6 +25,7 @@ let tempPath: t => Path.t;
 let cachePath: t => Path.t;
 let storePath: t => Path.t;
 let buildPath: t => Path.t;
+let installPath: t => Path.t;
 let installationPath: t => Path.t;
 let pnpJsPath: t => Path.t;
 let solutionLockPath: t => Path.t;

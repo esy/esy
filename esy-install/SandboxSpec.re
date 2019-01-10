@@ -63,6 +63,7 @@ let pnpJsPath = spec => Path.(localPrefixPath(spec) / "pnp.js");
 let cachePath = spec => Path.(localPrefixPath(spec) / "cache");
 let storePath = spec => Path.(localPrefixPath(spec) / "store");
 let buildPath = spec => Path.(localPrefixPath(spec) / "build");
+let installPath = spec => Path.(localPrefixPath(spec) / "install");
 let binPath = spec => Path.(localPrefixPath(spec) / "bin");
 let distPath = spec => Path.(localPrefixPath(spec) / "dist");
 let tempPath = spec => Path.(localPrefixPath(spec) / "tmp");

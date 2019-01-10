@@ -1085,18 +1085,43 @@ let isBuilt = (sandbox, task) =>
   Fs.exists(Task.installPath(sandbox.cfg, task));
 
 let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
+  open RunAsync.Syntax;
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
   let label = Fmt.strf("build %a", Task.pp, task);
-  Perf.measureLwt(~label, () =>
-    EsyBuildPackageApi.build(
-      ~quiet?,
-      ~buildOnly?,
-      ~logPath?,
-      sandbox.cfg,
-      plan,
-    )
-  );
+  let%bind () =
+    Perf.measureLwt(~label, () =>
+      EsyBuildPackageApi.build(
+        ~quiet?,
+        ~buildOnly?,
+        ~logPath?,
+        sandbox.cfg,
+        plan,
+      )
+    );
+  let%bind () =
+    switch (
+      Solution.isRoot(sandbox.solution, task.pkg),
+      System.Platform.host,
+    ) {
+    | (_, System.Platform.Windows) => return()
+    | (true, _) =>
+      let%bind () =
+        Fs.symlink(
+          ~force=true,
+          ~src=Task.buildPath(sandbox.cfg, task),
+          EsyInstall.SandboxSpec.buildPath(sandbox.spec),
+        );
+      let%bind () =
+        Fs.symlink(
+          ~force=true,
+          ~src=Task.installPath(sandbox.cfg, task),
+          EsyInstall.SandboxSpec.installPath(sandbox.spec),
+        );
+      return();
+    | (false, _) => return()
+    };
+  return();
 };
 
 let buildOnly =
