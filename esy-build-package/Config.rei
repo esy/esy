@@ -1,7 +1,6 @@
 type t =
   pri {
     projectPath: Fpath.t,
-    buildPath: Fpath.t,
     storePath: Fpath.t,
     localStorePath: Fpath.t,
   };
@@ -21,7 +20,6 @@ let make:
   (
     ~storePath: storePathConfig,
     ~projectPath: Fpath.t,
-    ~buildPath: Fpath.t,
     ~localStorePath: Fpath.t,
     unit
   ) =>

@@ -10,7 +10,6 @@ type verb =
 
 type commonOpts = {
   planPath: option(Fpath.t),
-  buildPath: option(Fpath.t),
   storePath: option(Fpath.t),
   localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
@@ -27,7 +26,7 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {storePath, buildPath, localStorePath, projectPath, _} = copts;
+  let {storePath, localStorePath, projectPath, _} = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
@@ -37,7 +36,6 @@ let createConfig = (copts: commonOpts) => {
     };
   Config.make(
     ~storePath,
-    ~buildPath=Option.orDefault(~default=projectPath / "_build", buildPath),
     ~localStorePath=
       Option.orDefault(~default=projectPath / "_store", localStorePath),
     ~projectPath,
@@ -229,15 +227,6 @@ let () = {
         & info(["local-store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let buildPath = {
-      let doc = "Specifies esy build path.";
-      let env = Arg.env_var("ESY__BUILD_PATH", ~doc);
-      Arg.(
-        value
-        & opt(some(path), None)
-        & info(["build-path"], ~env, ~docs, ~docv="PATH", ~doc)
-      );
-    };
     let planPath = {
       let doc = "Specifies path to build plan.";
       let env = Arg.env_var("ESY__PLAN", ~doc);
@@ -253,19 +242,10 @@ let () = {
         $ Fmt_cli.style_renderer()
         $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
       );
-    let parse =
-        (
-          projectPath,
-          storePath,
-          localStorePath,
-          buildPath,
-          planPath,
-          logLevel,
-        ) => {
+    let parse = (projectPath, storePath, localStorePath, planPath, logLevel) => {
       projectPath,
       storePath,
       localStorePath,
-      buildPath,
       planPath,
       logLevel,
     };
@@ -274,7 +254,6 @@ let () = {
       $ projectPath
       $ storePath
       $ localStorePath
-      $ buildPath
       $ planPath
       $ setupLogT
     );

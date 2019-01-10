@@ -50,6 +50,18 @@ describe(`'esy build': simple executable with no deps`, () => {
       expect(stdout.trim()).toEqual('__no-deps__');
     }));
 
+    test.disableIf(isWindows)('prodices _esy/*/build link to #{self.target_dir} for root', withProject(async (p) => {
+      await p.esy('build');
+      const {stdout} = await p.run("./_esy/default/build/no-deps.cmd");
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
+
+    test.disableIf(isWindows)('prodices _esy/*/install link to #{self.install} for root', withProject(async (p) => {
+      await p.esy('build --install');
+      const {stdout} = await p.run("./_esy/default/install/bin/no-deps.cmd");
+      expect(stdout.trim()).toEqual('__no-deps__');
+    }));
+
     test(
       'build-env',
       withProject(async function(p) {

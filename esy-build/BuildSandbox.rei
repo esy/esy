@@ -117,9 +117,6 @@ let build:
   ) =>
   RunAsync.t(unit);
 
-let buildRoot:
-  (~quiet: bool=?, ~buildOnly: bool=?, t, Plan.t) => RunAsync.t(unit);
-
 let isBuilt: (t, Task.t) => RunAsync.t(bool);
 
 let exportBuild:
