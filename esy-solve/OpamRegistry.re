@@ -45,7 +45,7 @@ let make = (~cfg, ()) => {
     let%bind repoPath =
       switch (cfg.Config.opamRepository) {
       | Config.Local(local) => return(local)
-      | [@implicit_arity] Config.Remote(remote, local) =>
+      | Config.Remote(remote, local) =>
         let update = () => {
           let%lwt () =
             Logs_lwt.app(m => m("checking %s for updates...", remote));

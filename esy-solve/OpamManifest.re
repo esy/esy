@@ -205,7 +205,7 @@ let convertOpamUrl = (manifest: t) => {
   | Some(url) => sourceOfOpamUrl(url)
   | None =>
     let main = Dist.NoSource;
-    [@implicit_arity] Ok(main, []);
+    Ok((main, []));
   };
 };
 
@@ -312,8 +312,7 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
 
   switch (converted) {
   | Error(err) => return(Error(err))
-  | [@implicit_arity]
-    Ok(sourceFromOpam, dependencies, devDependencies, optDependencies) =>
+  | Ok((sourceFromOpam, dependencies, devDependencies, optDependencies)) =>
     let opam =
       switch (manifest.opamRepositoryPath) {
       | Some(path) =>

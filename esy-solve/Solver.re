@@ -102,9 +102,9 @@ module Reason: {
 
   let conflict = (left, right) =>
     if (compare_chain(left, right) <= 0) {
-      [@implicit_arity] Conflict(left, right);
+      Conflict(left, right);
     } else {
-      [@implicit_arity] Conflict(right, left);
+      Conflict(right, left);
     };
 
   let missing = (~available=[], chain) => Missing({chain, available});
@@ -140,7 +140,7 @@ module Reason: {
         Fmt.list(Resolution.pp),
         available,
       )
-    | [@implicit_arity] Conflict(left, right) =>
+    | Conflict(left, right) =>
       Fmt.pf(
         fmt,
         "@[<v 2>Conflicting constraints:@;%a@;%a@]",
@@ -182,9 +182,9 @@ module Explanation = {
       let map = {
         let f = map =>
           fun
-          | [@implicit_arity] Algo.Diagnostic.Dependency(pkg, _, _)
+          | Algo.Diagnostic.Dependency((pkg, _, _))
               when pkg.Cudf.package == "dose-dummy-request" => map
-          | [@implicit_arity] Algo.Diagnostic.Dependency(pkg, _, deplist) => {
+          | Algo.Diagnostic.Dependency((pkg, _, deplist)) => {
               let pkg = Universe.CudfMapping.decodePkgExn(pkg, cudfMapping);
               let f = (map, dep) => {
                 let dep = Universe.CudfMapping.decodePkgExn(dep, cudfMapping);
@@ -234,7 +234,7 @@ module Explanation = {
     let%bind reasons = {
       let f = reasons =>
         fun
-        | [@implicit_arity] Algo.Diagnostic.Conflict(left, right, _) => {
+        | Algo.Diagnostic.Conflict((left, right, _)) => {
             let left = {
               let pkg = Universe.CudfMapping.decodePkgExn(left, cudfMapping);
               let (requestor, path) = resolveReqViaDepChain(pkg);
@@ -266,7 +266,7 @@ module Explanation = {
               return(reasons);
             };
           }
-        | [@implicit_arity] Algo.Diagnostic.Missing(pkg, vpkglist) => {
+        | Algo.Diagnostic.Missing((pkg, vpkglist)) => {
             let pkg = Universe.CudfMapping.decodePkgExn(pkg, cudfMapping);
             let (requestor, path) = resolveDepChain(pkg);
             let trace =
@@ -594,7 +594,7 @@ let solveDependencies = (~root, ~installed, ~strategy, dependencies, solver) => 
         ChildProcess.run(~env, cmd);
       }
     ) {
-    | [@implicit_arity] Unix.Unix_error(err, _, _) =>
+    | Unix.Unix_error(err, _, _) =>
       let msg = Unix.error_message(err);
       RunAsync.error(msg);
     | _ => RunAsync.error("error running cudf solver")

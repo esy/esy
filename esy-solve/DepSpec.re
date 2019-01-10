@@ -21,7 +21,7 @@ let rec eval = (manifest: InstallManifest.t, spec: t) => {
     | Package(Self) => return(D.NpmFormula(NpmFormula.empty))
     | Dependencies(Self) => return(manifest.dependencies)
     | DevDependencies(Self) => return(manifest.devDependencies)
-    | [@implicit_arity] Union(a, b) =>
+    | Union(a, b) =>
       let%bind adeps = eval(manifest, a);
       let%bind bdeps = eval(manifest, b);
       switch (adeps, bdeps) {
@@ -50,6 +50,5 @@ let rec toDepSpec = (spec: t) =>
   | Dependencies(Self) => EsyInstall.Solution.DepSpec.(dependencies(self))
   | DevDependencies(Self) =>
     EsyInstall.Solution.DepSpec.(devDependencies(self))
-  | [@implicit_arity] Union(a, b) =>
-    EsyInstall.Solution.DepSpec.(toDepSpec(a) + toDepSpec(b))
+  | Union(a, b) => EsyInstall.Solution.DepSpec.(toDepSpec(a) + toDepSpec(b))
   };
