@@ -38,8 +38,6 @@ let run =
               % p(cfg.localStorePath)
               % "--project-path"
               % p(cfg.projectPath)
-              % "--build-path"
-              % p(cfg.buildPath)
               % "--plan"
               % p(buildJsonFilename)
               |> addArgs(args)

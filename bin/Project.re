@@ -145,7 +145,6 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       EsyBuildPackage.Config.make(
         ~storePath,
         ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
-        ~buildPath=EsyInstall.SandboxSpec.buildPath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
         (),
       ),

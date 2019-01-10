@@ -3,7 +3,6 @@ module Store = EsyLib.Store;
 [@deriving (show, to_yojson)]
 type t = {
   projectPath: EsyLib.Path.t,
-  buildPath: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
   localStorePath: EsyLib.Path.t,
 };
@@ -43,7 +42,7 @@ let rec configureStorePath = cfg => {
   return(path);
 };
 
-let make = (~storePath, ~projectPath, ~buildPath, ~localStorePath, ()) => {
+let make = (~storePath, ~projectPath, ~localStorePath, ()) => {
   open Run;
   let%bind storePath = configureStorePath(storePath);
   let%bind () = {
@@ -58,7 +57,7 @@ let make = (~storePath, ~projectPath, ~buildPath, ~localStorePath, ()) => {
     };
   };
   let%bind () = initStore(localStorePath);
-  return({projectPath, storePath, localStorePath, buildPath});
+  return({projectPath, storePath, localStorePath});
 };
 
 let render = (cfg, v) => {
