@@ -122,7 +122,7 @@ On Linux/macOS (soon on Windows too) you can run:
 
 which will install git hooks which will do pre commit validation.
 
-### Updaating `bin/esyInstallRelease.js`
+### Updating `bin/esyInstallRelease.js`
 
 `bin/esyInstallRelease.js` is developed separately within the `esy-install-npm-release/` directory.
 
