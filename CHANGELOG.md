@@ -1,5 +1,193 @@
 # CHANGELOG
 
+## 0.5.0 @ next
+
+- esy now uses Reason syntax exclusively!
+
+  - CI checks for formatting by running `refmt` on the entire esy codebase
+
+  - git hooks are available (`make install-githooks` to activate them) for
+    contributors to check their changes for code formatting (Linux/macOS only
+    for now).
+
+- New dependency type `link-dev:/path/to/package` is added. esy handles such
+  dependencies as it handles the root package in a project, more specifically:
+
+  - `"devDependencies"` are being installed for `link-dev:`-packages.
+
+  - Build environment of `link-dev:`-packages includes packages defined in
+    `"devDependencies"`. This is also a new feature in 0.5.0.
+
+  The root package is now modelled as `link-dev:./package.json` dependency too.
+
+  This is a **breaking change** as lock format is changed: when running `esy
+  install` previous lock will be discarded and solution will be regenerated from
+  scratch.
+
+- `link-dev:`-packages (including root package in a project) can optionally
+  define `"esy.buildDev"` command which will be used instead of `"esy.build"`
+  command.
+
+  `"esy.build"` command is still used for release mode builds (see below on
+  `--release` command line option).
+
+- esy now maintains two separate build environments for *development* and for
+  *release* mode builds.
+
+  By default development mode is used. To active release mode one should pass
+  `--release` command line option to commands which perform builds (or operate
+  within the project environment).
+
+  In release mode:
+
+  - `"esy.build"` command is chosen over `"esy.buildDev"` for `link-dev:`-
+    packages.
+
+  - Build commands don't have access to `"devDependencies"`.
+
+  Examples:
+
+  - Build the project:
+    ```
+    % esy build --release
+    ```
+
+  - Run the command in release mode build environment:
+    ```
+    % esy build --release dune build
+    ```
+  Other commands which have `--release` are:
+
+  - `esy build-env --release`
+  - `esy build-plan --release`
+  - `esy x --release`
+
+  Consult `esy help` for more info.
+
+- On Linux/macOS esy now creates symlinks for build and install directories of
+  the root package in a project:
+
+  - `_esy/default/build` points to build directory
+  - `_esy/default/build-release` points to build directory (release mode)
+  - `_esy/default/install` points to install directory
+  - `_esy/default/install-release` points to install directory (release mode)
+
+  Note that those symlinks are not available on all platforms (specifically on
+  Windows) and thus it is not recommended to use them in core development
+  workflow. The suggested way to access build and install directories instead is
+  to use `#{...}` syntax in `esy CMD` invocation:
+
+  ```
+  % esy cp '#{self.target_dir}/main.exe' ./main.exe
+  ```
+
+- esy commands now can operate on a specified package in a project by supplying
+  `-p/--package PKG` option.
+
+  The `PKG` can be either a package name or a path to its config (`package.json`
+  file) for linked packages.
+
+  For example:
+
+  - Build the specified package:
+    ```
+    % esy build -p @opam/dune
+    ```
+
+  - Execute command in a specified package environment:
+    ```
+    % esy -p ./rely.json ls
+    ```
+
+  See `esy help` for more commands which support `-p/--package PKG` option.
+
+- `esy CMD` invocation now support `-C/--change-directory` option which makes
+  esy to change directory to the package root before executing the `CMD`
+  command.
+
+  This will change directory to the root's package dir before running the `ls`:
+  ```
+  % esy -C ls
+  ```
+
+  It also works with `-p/--package PKG`:
+
+  ```
+  % esy -C -p ./core dune runtest
+  ```
+
+  Implemented by @rauanmayemir.
+
+- `esy build` command now supports `--install` option which makes esy install
+  built artifacts after running build process:
+
+  ```
+  % esy build -p @opam/dune --install
+  ```
+
+  The command above will rebuild the only `@opam/dune` package and install its
+  artifacts into corresponding to the package installation directory.
+
+- esy now checks for `.esyproject` file as a marker for project root.
+
+  Directory which contains `.esyproject` takes precedence over directories with
+  `package.json` when esy climbs filesystem to find the project root.
+
+  This is made so projects with multiple linked packages (which also can contain
+  `package.json` files) can still rely on `esy status` to find the right project
+  root when executed from project subdirectories.
+
+- `.esyrc` is now in JSON format.
+
+  This is a **breaking change** as previously esy used yarn lockfile syntax.
+
+  The migration is simple though:
+
+  Before 0.5.0:
+
+  ```
+  esy-prefix-path: "./somepath"
+  ```
+
+  Since 0.5.0:
+  ```
+  {
+    "prefixPath": "./somepath"
+  }
+  ```
+
+- Fix a bug with packages depending transitively on linked packages being built
+  into global store. This didn't cause store corruption (as they had
+  different build ids) but could have caused stale build artifacts and
+  unnecessary build store pollution.
+
+- esy now automatically chooses the `*.install` file based on a package name.
+
+  For package with scope `@scope/name` it discards `@scope/` part and tries to
+  find `name.install`.
+
+- esy now correctly traverses symlinks which performing staleness check for
+  linked packages.
+
+- Supporting subdirectories when copying files from opam repository.
+
+  Implemented by @jaredly.
+
+- `esy npm-release` installation script now uses JavaScript implementation of
+  `tar` and `gzip` to unpack prebuilt artifacts on installation side. That makes
+  installation procedure more robust as it doesn't depend on installed version
+  of `tar` program anymore.
+
+- `esy status` command is improved, now it reports the project package config
+  file it uses for the project.
+
+- esy now supports nested invocations `esy esy` and they are being configured to
+  point to the same project config so `esy @name esy` works as expected - nested
+  `esy` also works on project configured with `name.json`.
+
+- esy now prints project path it found if it's different than current working
+  dir.
+
 ## 0.4.9 @ latest
 
 - Fix a bug which caused esy to reuse build directories whem building package to
