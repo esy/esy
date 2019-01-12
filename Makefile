@@ -61,14 +61,14 @@ help:
 
 bootstrap: install-githooks
 ifndef ESY_EXT
-	$(error "esy command is not avaialble, run 'npm install -g esy@0.4.x'")
+	$(error "esy command is not avaialble, run 'npm install -g esy@0.5.x'")
 endif
-ifeq ($(ESY_VERSION_MINOR),4)
+ifeq ($(ESY_VERSION_MINOR),5)
 	@esy install
 	@make build
 	@esy bootstrap
 else
-	$(error "esy requires version 0.2.x installed to bootstrap, run 'npm install -g esy@0.2'")
+	$(error "esy requires version 0.$(ESY_VERSION_MINOR).x installed to bootstrap, run 'npm install -g esy@0.$(ESY_VERSION_MINOR)'")
 endif
 
 GITHOOKS = $(shell git rev-parse --git-dir)/hooks
