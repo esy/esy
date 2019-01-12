@@ -196,6 +196,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       }
 
       const execCommand = args != null ? `${ESY} ${args}` : ESY;
+      // this is required so esy won't "attach" to the outer esy project (esy
+      // itself)
+      delete env.ESY__ROOT_PACKAGE_CONFIG_PATH
       return promiseExec(execCommand, {cwd, env});
     });
     return p.catch(err => {
@@ -216,6 +219,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     if (env == null) {
       env = process.env;
     }
+    // this is required so esy won't "attach" to the outer esy project (esy
+    // itself)
+    delete env.ESY__ROOT_PACKAGE_CONFIG_PATH
     return promiseExec(line, {cwd, env});
   }
 
