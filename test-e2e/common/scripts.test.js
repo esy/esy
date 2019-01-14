@@ -121,16 +121,6 @@ it('executes scripts', async () => {
   );
 });
 
-it('executes scripts with -p root', async () => {
-  const p = await createTestSandbox(...fixture);
-  await p.esy('install');
-  await p.esy('build');
-
-  await expect(p.esy('-p root cmd1')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
-  );
-});
-
 it('executes scripts even if sandbox is not built', async () => {
   const p = await createTestSandbox(...fixture);
   await p.esy('install');

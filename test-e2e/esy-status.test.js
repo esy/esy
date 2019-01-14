@@ -134,25 +134,4 @@ describe(`'esy status' command`, function() {
     expect(status.rootInstallPath).not.toBe(null);
   });
 
-  test('finding root with .esyproject', async function() {
-    const p = await helpers.createTestSandbox();
-    await p.fixture(
-      helpers.file('.esyproject', ''),
-      helpers.packageJson({
-        name: 'root',
-      }),
-      helpers.dir('subpackage',
-        helpers.packageJson({
-          name: 'subpackage',
-        }),
-      )
-    );
-    p.cd('./subpackage');
-
-    const {stdout} = await p.esy('status --json');
-    const status = JSON.parse(stdout);
-    expect(status).toMatchObject({
-      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
-    });
-  });
 });

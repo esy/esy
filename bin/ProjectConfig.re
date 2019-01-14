@@ -1,33 +1,39 @@
 open EsyBuild;
 open Cmdliner;
 
-[@deriving (show, to_yojson)]
-type t = {
-  mainprg: string,
-  esyVersion: string,
-  spec: EsyInstall.SandboxSpec.t,
-  prefixPath: option(Path.t),
-  cachePath: option(Path.t),
-  cacheTarballsPath: option(Path.t),
-  opamRepository: option(EsySolve.Config.checkoutCfg),
-  esyOpamOverride: option(EsySolve.Config.checkoutCfg),
-  npmRegistry: option(string),
-  solveTimeout: option(float),
-  skipRepositoryUpdate: bool,
-  solveCudfCommand: option(Cmd.t),
-};
+module ProjectArg = {
+  type t =
+    | ByName(string)
+    | ByPath(Path.t);
 
-let storePath = cfg => {
-  let storePath =
-    switch (cfg.prefixPath) {
-    | None => EsyBuildPackage.Config.StorePathDefault
-    | Some(path) => EsyBuildPackage.Config.StorePathOfPrefix(path)
-    };
+  let pp = fmt =>
+    fun
+    | ByPath(path) => Path.pp(fmt, path)
+    | ByName(name) => Fmt.string(fmt, name);
 
-  Run.ofBosError(EsyBuildPackage.Config.(configureStorePath(storePath)));
-};
+  let isPathLike = v =>
+    v.[0] == '.'
+    || v.[0] == '/'
+    || String.contains(v, '/')
+    || String.contains(v, '\\');
 
-module FindProject = {
+  let parse = v =>
+    Result.Syntax.(
+      if (String.length(v) == 0) {
+        error("empty project argument");
+      } else if (isPathLike(v)) {
+        return(ByPath(Path.v(v)));
+      } else {
+        return(ByName(v));
+      }
+    );
+
+  let conv = {
+    open Cmdliner;
+    let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
+    Arg.conv(~docv="PROJECT", (parse, pp));
+  };
+
   module Kind = {
     type t =
       | ProjectForced
@@ -44,7 +50,7 @@ module FindProject = {
       };
   };
 
-  let isProjectPath = path => {
+  let classifyPath = path => {
     let rec check = items =>
       switch (items) {
       | [] => Kind.NoProject
@@ -74,12 +80,34 @@ module FindProject = {
     check(Array.to_list(Sys.readdir(Path.show(path))));
   };
 
-  let climbFrom = currentPath => {
+  let checkPathByProjectName = (path, projectName) => {
+    let rec check = items =>
+      switch (items) {
+      | [] => None
+      | [name, ...rest] =>
+        let p = Path.(path / name);
+        if (!Path.hasExt(".json", p)) {
+          check(rest);
+        } else if (String.compare(name, projectName) == 0
+                   || String.compare(name, projectName ++ ".json") == 0) {
+          Some(p);
+        } else {
+          check(rest);
+        };
+      };
+    check(Array.to_list(Sys.readdir(Path.show(path))));
+  };
+
+  let climbFrom = (currentPath, projectName) => {
     open Run.Syntax;
+
+    let homePath = Path.homePath();
 
     let parentPath = path => {
       let parent = Path.parent(path);
-      if (!(Path.compare(path, parent) == 0)) {
+      /* do not climb further than root or home path */
+      if (Path.compare(path, parent) != 0
+          && Path.compare(path, homePath) != 0) {
         return(Path.parent(path));
       } else {
         errorf(
@@ -90,37 +118,46 @@ module FindProject = {
       };
     };
 
-    let rec climb = path => {
-      let kind = isProjectPath(path);
-      switch (kind) {
-      | NoProject =>
-        let%bind parent = parentPath(path);
-        climb(parent);
-      | Project =>
-        let next = {
+    let rec climb = path =>
+      switch (projectName) {
+      | None =>
+        let kind = classifyPath(path);
+        switch (kind) {
+        | NoProject =>
           let%bind parent = parentPath(path);
           climb(parent);
+        | Project =>
+          let next = {
+            let%bind parent = parentPath(path);
+            climb(parent);
+          };
+          switch (next) {
+          | Error(_) => return((kind, path))
+          | Ok((Kind.Project | NoProject, _)) => return((kind, path))
+          | Ok((ProjectForced, path)) => return((Kind.ProjectForced, path))
+          };
+        | ProjectForced => return((kind, path))
         };
-        switch (next) {
-        | Error(_) => return((kind, path))
-        | Ok((Kind.Project | NoProject, _)) => return((kind, path))
-        | Ok((ProjectForced, path)) => return((Kind.ProjectForced, path))
-        };
-      | ProjectForced => return((kind, path))
+      | Some(projectName) =>
+        switch (checkPathByProjectName(path, projectName)) {
+        | None =>
+          let%bind parent = parentPath(path);
+          climb(parent);
+        | Some(path) => return((Kind.ProjectForced, path))
+        }
       };
-    };
 
     let%bind (_kind, path) = climb(currentPath);
     return(path);
   };
 
-  let ofPath = projectPath => {
+  let resolve = (project: option(t)) => {
     open Run.Syntax;
 
     /* check if we can get projectPath from env */
-    let projectPath =
-      switch (projectPath) {
-      | Some(_) => projectPath
+    let project =
+      switch (project) {
+      | Some(_) => project
       | None =>
         let v =
           StringMap.find_opt(
@@ -129,14 +166,15 @@ module FindProject = {
           );
         switch (v) {
         | None => None
-        | Some(v) => Some(Path.v(v))
+        | Some(v) => Some(ByPath(Path.v(v)))
         };
       };
 
     let%bind projectPath =
-      switch (projectPath) {
-      | Some(path) => return(path)
-      | None => climbFrom(Path.currentPath())
+      switch (project) {
+      | Some(ByPath(path)) => return(path)
+      | Some(ByName(name)) => climbFrom(Path.currentPath(), Some(name))
+      | None => climbFrom(Path.currentPath(), None)
       };
 
     if (Path.isAbs(projectPath)) {
@@ -147,15 +185,43 @@ module FindProject = {
   };
 };
 
+[@deriving (show, to_yojson)]
+type t = {
+  mainprg: string,
+  esyVersion: string,
+  spec: EsyInstall.SandboxSpec.t,
+  prefixPath: option(Path.t),
+  cachePath: option(Path.t),
+  cacheTarballsPath: option(Path.t),
+  opamRepository: option(EsySolve.Config.checkoutCfg),
+  esyOpamOverride: option(EsySolve.Config.checkoutCfg),
+  npmRegistry: option(string),
+  solveTimeout: option(float),
+  skipRepositoryUpdate: bool,
+  solveCudfCommand: option(Cmd.t),
+};
+
+let storePath = cfg => {
+  let storePath =
+    switch (cfg.prefixPath) {
+    | None => EsyBuildPackage.Config.StorePathDefault
+    | Some(path) => EsyBuildPackage.Config.StorePathOfPrefix(path)
+    };
+
+  Run.ofBosError(EsyBuildPackage.Config.(configureStorePath(storePath)));
+};
+
+module FindProject = {};
+
 let commonOptionsSection = Manpage.s_common_options;
 
 let projectPath = {
-  let doc = "Specifies esy project path.";
+  let doc = "Specifies esy project.";
   let env = Arg.env_var("ESY__PROJECT", ~doc);
   Arg.(
     value
-    & opt(some(Cli.pathConv), None)
-    & info(["P", "project-path"], ~env, ~docs=commonOptionsSection, ~doc)
+    & opt(some(ProjectArg.conv), None)
+    & info(["P", "project"], ~env, ~docs=commonOptionsSection, ~doc)
   );
 };
 
@@ -262,7 +328,7 @@ let solveCudfCommandArg = {
 
 let make =
     (
-      projectPath,
+      project,
       mainprg,
       prefixPath,
       cachePath,
@@ -276,7 +342,7 @@ let make =
     ) => {
   open RunAsync.Syntax;
 
-  let%bind projectPath = RunAsync.ofRun(FindProject.ofPath(projectPath));
+  let%bind projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
   let%bind spec = EsyInstall.SandboxSpec.ofPath(projectPath);
 
   let%bind prefixPath =
