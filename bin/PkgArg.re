@@ -2,12 +2,14 @@ open EsyInstall;
 
 type t =
   | ByPkgSpec(PkgSpec.t)
-  | ByPath(Path.t);
+  | ByPath(Path.t)
+  | ByDirectoryPath(Path.t);
 
 let pp = fmt =>
   fun
   | ByPkgSpec(spec) => PkgSpec.pp(fmt, spec)
-  | ByPath(path) => Path.pp(fmt, path);
+  | ByPath(path) => Path.pp(fmt, path)
+  | ByDirectoryPath(path) => Fmt.pf(fmt, "from:%a", Path.pp, path);
 
 let parse = v =>
   Result.Syntax.(

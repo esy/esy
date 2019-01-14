@@ -227,13 +227,13 @@ module OfPackageJson = {
 let readSandboxEnv = spec =>
   RunAsync.Syntax.(
     switch (spec.EsyInstall.SandboxSpec.manifest) {
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+    | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
       let%bind json = Fs.readJsonFile(Path.(spec.path / filename));
       let%bind pkgJson =
         RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
       return(pkgJson.OfPackageJson.esy.sandboxEnv);
 
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _)
+    | EsyInstall.SandboxSpec.Manifest((Opam, _))
     | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(BuildEnv.empty)
     }
   );
@@ -370,7 +370,7 @@ let writeAuxCache = proj => {
 
   switch%lwt (info) {
   | Error(_) => return()
-  | [@implicit_arity] Ok(solved, fetched) =>
+  | Ok((solved, fetched)) =>
     let sandboxBin = SandboxSpec.binPath(proj.projcfg.spec);
     let sandboxBinLegacyPath =
       Path.(
@@ -593,14 +593,56 @@ let withPackage = (proj, pkgArg: PkgArg.t, f) => {
     switch (pkgArg) {
     | ByPkgSpec(Root) => Some(Solution.root(solution))
     | ByPkgSpec(ByName(name)) => Solution.findByName(name, solution)
-    | ByPkgSpec([@implicit_arity] ByNameVersion(name, version)) =>
+    | ByPkgSpec(ByNameVersion((name, version))) =>
       Solution.findByNameVersion(name, version, solution)
     | ByPkgSpec(ById(id)) => Solution.get(solution, id)
     | ByPath(path) =>
-      let root = proj.installSandbox.spec.path;
       let path = Path.(EsyRuntime.currentWorkingDir /\/ path);
-      let path = DistPath.ofPath(Path.tryRelativize(~root, path));
+      let path =
+        DistPath.ofPath(Path.tryRelativize(~root=proj.spec.path, path));
       Solution.findByPath(path, solution);
+    | ByDirectoryPath(path) =>
+      let rootPath = Path.normalizeAndRemoveEmptySeg(proj.spec.path);
+      let rec climb = path =>
+        if (Path.compare(path, rootPath) == 0) {
+          Some(Solution.root(solution));
+        } else {
+          let distpath =
+            DistPath.ofPath(Path.tryRelativize(~root=rootPath, path));
+          switch (
+            Solution.findByPath(
+              DistPath.(distpath / "package.json"),
+              solution,
+            )
+          ) {
+          | Some(pkg) => Some(pkg)
+          | None =>
+            switch (
+              Solution.findByPath(
+                DistPath.(distpath / "package.json"),
+                solution,
+              )
+            ) {
+            | Some(pkg) => Some(pkg)
+            | None =>
+              let parent = Path.(normalizeAndRemoveEmptySeg(parent(path)));
+              /* do not climb further than project root path */
+              if (Path.compare(parent, rootPath) == 0) {
+                Some(Solution.root(solution));
+              } else {
+                climb(parent);
+              };
+            }
+          };
+        };
+      let path = Path.normalizeAndRemoveEmptySeg(path);
+      if (Path.compare(rootPath, path) == 0) {
+        Some(Solution.root(solution));
+      } else if (Path.isPrefix(rootPath, path)) {
+        climb(path);
+      } else {
+        Some(Solution.root(solution));
+      };
     };
 
   runWith(pkg);

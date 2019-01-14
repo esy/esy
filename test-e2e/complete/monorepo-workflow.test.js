@@ -16,7 +16,7 @@
 //
 
 const helpers = require('../test/helpers.js');
-const {test, isWindows, packageJson, dir, dummyExecutable} = helpers;
+const {test, isWindows, packageJson, file, dir, dummyExecutable} = helpers;
 
 async function createTestSandbox() {
   const p = await helpers.createTestSandbox();
@@ -80,6 +80,7 @@ async function createTestSandbox() {
         pkgc: 'link-dev:./pkgc',
       },
     }),
+    file('.esyproject', ''),
     dir(
       'pkga',
       ...createPackage({
@@ -156,6 +157,19 @@ describe('Monorepo workflow using low level commands', function() {
       // run commands in a specified package environment.
       const p = await createTestSandbox();
       const {stdout} = await p.esy(`-p pkga echo '#{self.name}'`);
+
+      expect(stdout.trim()).toBe('pkga');
+    },
+  );
+
+  test.disableIf(isWindows)(
+    'running command in monorepo package env (referring to a package by changing cwd)',
+    async function() {
+      // run commands in a specified package environment.
+      const p = await createTestSandbox();
+      p.cd('./pkga');
+      const {stdout} = await p.esy(`echo '#{self.name}'`);
+      p.cd('../');
 
       expect(stdout.trim()).toBe('pkga');
     },

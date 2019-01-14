@@ -2,7 +2,8 @@ open EsyInstall;
 
 type t =
   | ByPkgSpec(PkgSpec.t)
-  | ByPath(Path.t);
+  | ByPath(Path.t)
+  | ByDirectoryPath(Path.t);
 
 let root: t;
 

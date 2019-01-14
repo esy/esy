@@ -30,7 +30,7 @@ let chdirTerm =
 let pkgTerm =
   Cmdliner.Arg.(
     value
-    & opt(PkgArg.conv, PkgArg.root)
+    & opt(PkgArg.conv, PkgArg.ByDirectoryPath(Path.currentPath()))
     & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
   );
 
@@ -51,8 +51,8 @@ let cmdAndPkgTerm = {
   let make = (pkg, cmd) =>
     switch (pkg, cmd) {
     | (None, None) => `Ok(None)
-    | (None, Some(cmd)) => `Ok(Some((PkgArg.root, cmd)))
-    | (Some(pkgarg), Some(cmd)) => `Ok(Some((pkgarg, cmd)))
+    | (None, Some(cmd)) => `Ok(Some((None, cmd)))
+    | (Some(pkgarg), Some(cmd)) => `Ok(Some((Some(pkgarg), cmd)))
     | (Some(_), None) =>
       `Error((
         false,
@@ -1341,18 +1341,21 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
   | (Ok(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
     build(BuildDev, PkgArg.root, None, proj);
-  | (Ok(_), Some((PkgArg.ByPkgSpec(Root) as pkgarg, cmd))) =>
+  | (Ok(_), Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
     | Some(script) => runScript(proj, script, Cmd.getArgs(cmd), ())
-    | None => devExec(chdir, pkgarg, proj, cmd, ())
+    | None =>
+      let pkgarg = PkgArg.ByDirectoryPath(Path.currentPath());
+      devExec(chdir, pkgarg, proj, cmd, ());
     }
-  | (Ok(_), Some((pkgarg, cmd))) => devExec(chdir, pkgarg, proj, cmd, ())
+  | (Ok(_), Some((Some(pkgarg), cmd))) =>
+    devExec(chdir, pkgarg, proj, cmd, ())
   | (Error(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
     let%bind () = solveAndFetch(proj);
     let%bind (proj, _) = Project.make(proj.projcfg);
     build(BuildDev, PkgArg.root, None, proj);
-  | (Error(_) as err, Some((PkgArg.ByPkgSpec(Root), cmd))) =>
+  | (Error(_) as err, Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
     | Some(script) => runScript(proj, script, Cmd.getArgs(cmd), ())
     | None => Lwt.return(err)
