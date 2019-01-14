@@ -3,6 +3,10 @@
 const {execSync} = require('child_process');
 const os = require('os');
 
+// this is required so esy won't "attach" to the outer esy project (esy
+// itself)
+delete env.ESY__ROOT_PACKAGE_CONFIG_PATH
+
 const isTaggedCommit = () => {
   const TRAVIS_TAG = process.env['TRAVIS_TAG'];
   const APPVEYOR_REPO_TAG = process.env['APPVEYOR_REPO_TAG'];

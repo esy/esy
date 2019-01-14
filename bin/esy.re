@@ -1968,7 +1968,7 @@ let () = {
 
       into
 
-        esy --project-path projectPath
+        esy --project projectPath
 
      which we can't parse with cmdliner
    */
@@ -1989,13 +1989,13 @@ let () = {
       | [prg, elem, maybeCommandName, ...rest] when elem.[0] == '@' =>
         let sandbox = String.sub(elem, 1, String.length(elem) - 1);
         if (StringSet.mem(maybeCommandName, commandNames)) {
-          [prg, maybeCommandName, "--project-path", sandbox, ...rest];
+          [prg, maybeCommandName, "--project", sandbox, ...rest];
         } else {
-          [prg, "--project-path", sandbox, maybeCommandName, ...rest];
+          [prg, "--project", sandbox, maybeCommandName, ...rest];
         };
       | [prg, elem] when elem.[0] == '@' =>
         let sandbox = String.sub(elem, 1, String.length(elem) - 1);
-        [prg, "--project-path", sandbox];
+        [prg, "--project", sandbox];
       | _ => argv
       };
 
