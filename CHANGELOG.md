@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 0.5.1 @ next
+
+- Fix `esy @name` to climb the filesystem until it finds `name.json` config.
+
+- Defer check for symlinks support until we actually run builds #817.
+
+- Make esy commands which accept `-p/--package PKG` option automatically
+  configure it (if it's not passed) to the closest package found between the cwd
+  and project root. This has effect only if `.esyproject` is found as otherwise
+  esy will use the package found as the project root.
+
+  This is useful for monorepo workflows as invocations like this:
+  ```
+  % touch .esyproject
+  % cd ./src/pkg && esy buildj
+  ```
+  will build only the package at `src/pkg` inside the project found at `./`.
+
 ## 0.5.0 @ next
 
 - esy now uses Reason syntax exclusively!
