@@ -606,9 +606,28 @@ let withPackage = (proj, pkgArg: PkgArg.t, f) => {
   runWith(pkg);
 };
 
+let checkSymlinksMessage =
+  String.trim(
+    {|
+ERROR: Unable to create symlinks. Missing SeCreateSymbolicLinkPrivilege.
+
+Esy must be ran as an administrator on Windows, because it uses symbolic links.
+Open an elevated command shell by right-clicking and selecting 'Run as administrator', and try esy again.
+
+For more info, see https://github.com/esy/esy/issues/389
+|},
+  );
+
+let checkSymlinks = () =>
+  if (Unix.has_symlink() === false) {
+    print_endline(checkSymlinksMessage);
+    exit(1);
+  };
+
 let buildDependencies =
     (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
   open RunAsync.Syntax;
+  checkSymlinks();
   let%bind fetched = fetched(proj);
   let%bind solved = solved(proj);
   let () =
@@ -641,6 +660,7 @@ let buildDependencies =
 };
 
 let buildPackage = (~quiet, ~buildOnly, projcfg, sandbox, plan, pkg) => {
+  checkSymlinks();
   let () =
     Logs.info(m =>
       m(
