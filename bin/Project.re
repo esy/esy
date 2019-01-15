@@ -415,7 +415,7 @@ let writeAuxCache = proj => {
         switch (System.Platform.host) {
         | Windows =>
           Format.asprintf(
-            {|@ECHO OFF\n@SETLOCAL\n"%a" --project "%a" %%*\n|},
+            "@ECHO OFF\r\n@SETLOCAL\r\n\"%a\" --project \"%a\" %%*\r\n",
             Path.pp,
             EsyRuntime.currentExecutable,
             Path.pp,
