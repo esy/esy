@@ -37,7 +37,8 @@ let solved: project => RunAsync.t(solved);
 let fetched: project => RunAsync.t(fetched);
 let configured: project => RunAsync.t(configured);
 
-let make: ProjectConfig.t => Lwt.t(Run.t((project, list(FileInfo.t))));
+let make: ProjectConfig.t => RunAsync.t((project, list(FileInfo.t)));
+let write: (project, list(FileInfo.t)) => RunAsync.t(unit);
 
 let plan: (BuildSpec.mode, project) => RunAsync.t(BuildSandbox.Plan.t);
 

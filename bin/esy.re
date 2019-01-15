@@ -1353,7 +1353,8 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
   | (Error(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
     let%bind () = solveAndFetch(proj);
-    let%bind (proj, _) = Project.make(proj.projcfg);
+    let%bind (proj, files) = Project.make(proj.projcfg);
+    let%bind () = Project.write(proj, files);
     build(BuildDev, PkgArg.root, None, proj);
   | (Error(_) as err, Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {

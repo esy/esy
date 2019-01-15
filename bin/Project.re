@@ -539,13 +539,13 @@ module OfTerm = {
   let read = projcfg =>
     Perf.measureLwt(~label="reading project cache", read'(projcfg));
 
-  let write' = (projcfg, v, files, ()) => {
+  let write' = (proj, files, ()) => {
     open RunAsync.Syntax;
-    let cachePath = makeCachePath("project", projcfg);
+    let cachePath = makeCachePath("project", proj.projcfg);
     let%bind () = {
       let f = oc => {
         let%lwt () =
-          Lwt_io.write_value(~flags=Marshal.[Closures], oc, (v, files));
+          Lwt_io.write_value(~flags=Marshal.[Closures], oc, (proj, files));
         let%lwt () = Lwt_io.flush(oc);
         return();
       };
@@ -554,15 +554,12 @@ module OfTerm = {
       Lwt_io.with_file(~mode=Lwt_io.Output, Path.show(cachePath), f);
     };
 
-    let%bind () = writeAuxCache(v);
+    let%bind () = writeAuxCache(proj);
     return();
   };
 
-  let write = (projcfg, v, files) =>
-    Perf.measureLwt(
-      ~label="writing project cache",
-      write'(projcfg, v, files),
-    );
+  let write = (proj, files) =>
+    Perf.measureLwt(~label="writing project cache", write'(proj, files));
 
   let promiseTerm = {
     let parse = projcfg => {
@@ -572,7 +569,7 @@ module OfTerm = {
       | Some(proj) => return(proj)
       | None =>
         let%bind (proj, files) = make(projcfg);
-        let%bind () = write(projcfg, proj, files);
+        let%bind () = write(proj, files);
         return(proj);
       };
     };
