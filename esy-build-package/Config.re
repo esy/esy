@@ -45,17 +45,21 @@ let rec configureStorePath = cfg => {
 let make = (~storePath, ~projectPath, ~localStorePath, ()) => {
   open Run;
   let%bind storePath = configureStorePath(storePath);
-  let%bind () = {
-    let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
-    if%bind (exists(shortcutPath)) {
-      return();
-    } else {
-      symlink(
-        ~target=storePath,
-        EsyLib.Path.(parent(storePath) / Store.version),
-      );
+  let%bind () =
+    switch (EsyLib.System.Platform.host) {
+    | Windows => return()
+    | _ =>
+      let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
+
+      if%bind (exists(shortcutPath)) {
+        return();
+      } else {
+        symlink(
+          ~target=storePath,
+          EsyLib.Path.(parent(storePath) / Store.version),
+        );
+      };
     };
-  };
   let%bind () = initStore(localStorePath);
   return({projectPath, storePath, localStorePath});
 };
