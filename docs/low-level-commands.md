@@ -110,7 +110,9 @@ Options:
 - `--envspec=DEPSPEC` Define DEPSPEC expression which is used to construct the
   environment for the command invocation.
 
-- `--include-build-env` Include build environment.
+- `--include-build-env` Include build environment. This includes some special
+  `$cur__*` envirironment variables, as well as environment variables configured
+  in the `esy.buildEnv` section of the package config.
 
 - `--include-current-env` Include current environment.
 
