@@ -382,7 +382,6 @@ let writeAuxCache = proj => {
         / "bin"
       );
     let root = Solution.root(solved.solution);
-    let%bind () = Fs.createDir(sandboxBin);
     let%bind commandEnv =
       RunAsync.ofRun(
         {
@@ -405,29 +404,42 @@ let writeAuxCache = proj => {
           Environment.renderToShellSource(~header, commandEnv);
         },
       );
-    let commandExec = "#!/bin/bash\n" ++ commandEnv ++ "\nexec \"$@\"";
 
+    let writeCommandExec = binPath => {
+      let filename =
+        switch (System.Platform.host) {
+        | Windows => "command-exec.bat"
+        | _ => "command-exec"
+        };
+      let data =
+        switch (System.Platform.host) {
+        | Windows =>
+          Format.asprintf(
+            "@ECHO OFF\r\n@SETLOCAL\r\n\"%a\" --project \"%a\" %%*\r\n",
+            Path.pp,
+            EsyRuntime.currentExecutable,
+            Path.pp,
+            proj.spec.path,
+          )
+        | _ => "#!/bin/bash\n" ++ commandEnv ++ "\nexec \"$@\""
+        };
+      Fs.writeFile(~perm=0o755, ~data, Path.(binPath / filename));
+    };
+
+    let writeSandboxEnv = binPath =>
+      Fs.writeFile(~data=commandEnv, Path.(binPath / "command-env"));
+
+    let%bind () = Fs.createDir(sandboxBin);
     let%bind () =
       RunAsync.List.waitAll([
-        Fs.writeFile(~data=commandEnv, Path.(sandboxBin / "command-env")),
-        Fs.writeFile(
-          ~perm=0o755,
-          ~data=commandExec,
-          Path.(sandboxBin / "command-exec"),
-        ),
+        writeSandboxEnv(sandboxBin),
+        writeCommandExec(sandboxBin),
       ]);
 
     let%bind () = Fs.createDir(sandboxBinLegacyPath);
     RunAsync.List.waitAll([
-      Fs.writeFile(
-        ~data=commandEnv,
-        Path.(sandboxBinLegacyPath / "command-env"),
-      ),
-      Fs.writeFile(
-        ~perm=0o755,
-        ~data=commandExec,
-        Path.(sandboxBinLegacyPath / "command-exec"),
-      ),
+      writeSandboxEnv(sandboxBinLegacyPath),
+      writeCommandExec(sandboxBinLegacyPath),
     ]);
   };
 };
