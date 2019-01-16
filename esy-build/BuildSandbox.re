@@ -980,15 +980,15 @@ let exec =
     };
 
     let cwd =
-      changeDirectoryToPackageRoot ?
-        Some(
-          Scope.(
-            rootPath(scope)
-            |> SandboxPath.toValue
-            |> SandboxValue.render(sandbox.cfg)
-          ),
-        ) :
-        None;
+      changeDirectoryToPackageRoot
+        ? Some(
+            Scope.(
+              rootPath(scope)
+              |> SandboxPath.toValue
+              |> SandboxValue.render(sandbox.cfg)
+            ),
+          )
+        : None;
 
     let env = Scope.SandboxEnvironment.render(sandbox.cfg, env);
 

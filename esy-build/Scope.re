@@ -798,8 +798,8 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
       let installed = StringMap.mem(namespace, scope.directDependencies);
       Some(bool(installed));
     | "enabled" =>
-      StringMap.mem(namespace, scope.directDependencies) ?
-        Some(string("enable")) : Some(string("disable"))
+      StringMap.mem(namespace, scope.directDependencies)
+        ? Some(string("enable")) : Some(string("disable"))
     | name =>
       if (namespace == ensurehasOpamScope(scope.pkg.name)) {
         opamPackageScope(~buildIsInProgress, ~namespace, scope.self, name);

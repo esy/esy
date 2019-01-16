@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
-    "@esy-ocaml/reason": "~3.3.7",
+    "@esy-ocaml/reason": "^3.4.0",
     "@opam/angstrom": "*",
     "@opam/bos": "^0.2.0",
     "@opam/cmdliner": "^1.0.2",

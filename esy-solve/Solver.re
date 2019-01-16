@@ -853,9 +853,9 @@ let solveDependenciesNaively =
   let rec loop = (trace, seen) =>
     fun
     | [pkg, ...rest] =>
-      InstallManifest.Set.mem(pkg, seen) ?
-        loop(trace, seen, rest) :
-        {
+      InstallManifest.Set.mem(pkg, seen)
+        ? loop(trace, seen, rest)
+        : {
           let seen = InstallManifest.Set.add(pkg, seen);
           let%bind dependencies =
             RunAsync.ofRun(evalDependencies(solver, pkg));
