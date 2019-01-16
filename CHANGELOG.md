@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.5.2 @ next
+
+- Produce `node_modules/.cache/_esy/build/bin/command-exec.bat` on Windows so
+  ocaml-langauge-server can find merlin.
+
+- Fix bug with not caching project on `esy` invocation.
+
+- Do not create symlink to a global store on Windows.
+
 ## 0.5.1 @ next
 
 - Fix `esy @name` to climb the filesystem until it finds `name.json` config.
