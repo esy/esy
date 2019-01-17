@@ -14,10 +14,19 @@ module OpamVersion = struct
     | _ -> Error "expected string"
 end
 
+module NormalizedPath = struct
+  type t = Path.t
+  let of_yojson = Path.of_yojson
+  let to_yojson p =
+    let p = Path.show p in
+    let p = Path.normalizePathSlashes p in
+    `String p
+end
+
 type opam = {
   name : OpamName.t;
   version : OpamVersion.t;
-  path : Path.t;
+  path : NormalizedPath.t;
 } [@@deriving yojson]
 
 let opamfiles opam =
