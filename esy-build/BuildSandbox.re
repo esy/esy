@@ -1046,8 +1046,10 @@ let findMaxModifyTime = path => {
         Path.(normalize(append(parent(filepath), targetpath)));
       /* check first if link itself has modified mtime, if not - traverse it */
       let value = reduce(value, filepath, stat);
-      let%bind targetstat = Fs.lstat(targetpath);
-      f(value, targetpath, targetstat);
+      switch%lwt (Fs.lstat(targetpath)) {
+      | Ok(targetstat) => f(value, targetpath, targetstat)
+      | Error(_) => return(value)
+      };
     | _ =>
       let value = reduce(value, filepath, stat);
       return(value);
