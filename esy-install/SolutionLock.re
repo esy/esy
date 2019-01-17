@@ -178,10 +178,14 @@ let writeOpam = (sandbox, opam: PackageSource.opam) => {
   };
 
   if (Path.isPrefix(sandboxPath, opampath)) {
-    return(opam);
+    let path = opam.path;
+    let path = Path.normalizePathSep(path);
+    return({...opam, path});
   } else {
     let%bind () = Fs.copyPath(~src=opam.path, ~dst);
-    return({...opam, path: Path.tryRelativize(~root=sandboxPath, dst)});
+    let path = Path.tryRelativize(~root=sandboxPath, dst);
+    let path = Path.normalizePathSep(path);
+    return({...opam, path});
   };
 };
 
