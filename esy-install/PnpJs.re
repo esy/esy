@@ -3,7 +3,7 @@ open EsyPackageConfig;
 let jsppString = Fmt.(quote(string));
 
 let pnpPath = path =>
-  Path.(path |> remEmptySeg |> show |> normalizePathSlashes) ++ "/";
+  Path.(path |> remEmptySeg |> show |> normalizePathSepOfFilename) ++ "/";
 
 let pnpRelativePath = (basePath, path) => {
   let path = Path.v(Path.show(path) ++ "/");

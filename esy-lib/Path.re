@@ -76,10 +76,10 @@ let tryRelativizeToCurrent = p => {
   };
 };
 
-let normalizePathSlashes = {
-  let backSlashRegex = Str.regexp("\\\\");
-  p => Str.global_replace(backSlashRegex, "/", p);
-};
+let backSlashRegex = Str.regexp("\\\\");
+
+let normalizePathSepOfFilename = p =>
+  Str.global_replace(backSlashRegex, "/", p);
 
 let remEmptySeg = Fpath.rem_empty_seg;
 let normalize = Fpath.normalize;
@@ -97,7 +97,7 @@ let pp = Fpath.pp;
 
 let showNormalized = p => {
   let p = show(p);
-  normalizePathSlashes(p);
+  normalizePathSepOfFilename(p);
 };
 
 let showPretty = p => {

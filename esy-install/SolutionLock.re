@@ -181,7 +181,8 @@ let writeOpam = (sandbox, opam: PackageSource.opam) => {
     return(opam);
   } else {
     let%bind () = Fs.copyPath(~src=opam.path, ~dst);
-    return({...opam, path: Path.tryRelativize(~root=sandboxPath, dst)});
+    let path = Path.tryRelativize(~root=sandboxPath, dst);
+    return({...opam, path});
   };
 };
 

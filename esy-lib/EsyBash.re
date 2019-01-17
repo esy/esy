@@ -94,7 +94,7 @@ let normalizePathForWindows = (path: Fpath.t) =>
       let commandToRun =
         String.trim(Fpath.to_string(rootPath))
         ++ " -w "
-        ++ Path.normalizePathSlashes(Fpath.to_string(path));
+        ++ Path.normalizePathSepOfFilename(Fpath.to_string(path));
       let ic = Unix.open_process_in(commandToRun);
       let result = Fpath.v(String.trim(input_line(ic)));
       let () = close_in(ic);
