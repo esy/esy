@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.5.4 @ next
+
+- Fix `esy.lock` to be generated with normalize paths with `/` as path
+  separators on Windows.
+
+- Fix staleness check not to fail on orphaned symlinks.
+
 ## 0.5.3 @ next
 
 - Produce `node_modules/.cache/_esy/build/bin/command-exec.bat` on Windows so
