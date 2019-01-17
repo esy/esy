@@ -16,17 +16,6 @@ type t = {
   manifests: PackageId.Map.t(BuildManifest.t),
 };
 
-let rootPackageConfigPath = sandbox => {
-  let root = Solution.root(sandbox.solution);
-  switch (root.source) {
-  | Link({path, manifest: Some((_kind, filename)), kind: _}) =>
-    let path = DistPath.toPath(sandbox.spec.path, path);
-    Some(Path.(path / filename));
-  | Link({path: _, manifest: None, kind: _}) => None
-  | Install(_) => None
-  };
-};
-
 let readManifests =
     (cfg, installCfg, solution: Solution.t, installation: Installation.t) => {
   open RunAsync.Syntax;
@@ -846,7 +835,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
 
   let env =
     if (includeEsyIntrospectionEnv) {
-      switch (rootPackageConfigPath(sandbox)) {
+      switch (EsyInstall.SandboxSpec.manifestPath(sandbox.spec)) {
       | None => env
       | Some(path) => [
           Env.value(
