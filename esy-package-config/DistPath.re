@@ -16,12 +16,12 @@ let make = (~base, p) => {
 
 let rebase = (~base, p) => normalizeAndRemoveEmptySeg(base /\/ p);
 
-let render = path => normalizePathSlashes(show(path));
+let render = path => normalizePathSepOfFilename(show(path));
 
 let (/) = (path, seg) => normalizeAndRemoveEmptySeg(path / seg);
 
 let show = render;
-let showPretty = path => Path.(normalizePathSlashes(showPretty(path)));
+let showPretty = path => Path.(normalizePathSepOfFilename(showPretty(path)));
 
 let to_yojson = path => `String(render(path));
 

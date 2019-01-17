@@ -56,5 +56,6 @@ let safePath: string => string;
 
 let remEmptySeg: t => t;
 let normalize: t => t;
-let normalizePathSlashes: string => string;
+let normalizePathSep: t => t;
+let normalizePathSepOfFilename: string => string;
 let normalizeAndRemoveEmptySeg: t => t;

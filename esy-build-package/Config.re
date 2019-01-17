@@ -65,7 +65,8 @@ let make = (~storePath, ~projectPath, ~localStorePath, ()) => {
 };
 
 let render = (cfg, v) => {
-  let path = v => v |> EsyLib.Path.show |> EsyLib.Path.normalizePathSlashes;
+  let path = v =>
+    v |> EsyLib.Path.show |> EsyLib.Path.normalizePathSepOfFilename;
   let projectPath = path(cfg.projectPath);
   let storePath = path(cfg.storePath);
   let localStorePath = path(cfg.localStorePath);
@@ -104,7 +105,7 @@ module Path: {
   let localStore = v("%{localStore}%");
 
   let toValue = path =>
-    path |> show |> EsyLib.Path.normalizePathSlashes |> Value.v;
+    path |> show |> EsyLib.Path.normalizePathSepOfFilename |> Value.v;
 
   let toPath = (cfg, path) => path |> show |> render(cfg) |> v;
 

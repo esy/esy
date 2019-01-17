@@ -90,7 +90,7 @@ module Windows = {
       /* Normalize slashes in the command we send to esy-bash */
       let normalizedCommands =
         Cmd.of_list(
-          List.map(EsyLib.Path.normalizePathSlashes, commandAsList),
+          List.map(EsyLib.Path.normalizePathSepOfFilename, commandAsList),
         );
       let augmentedEsyCommand =
         EsyLib.EsyBash.toEsyBashCommand(

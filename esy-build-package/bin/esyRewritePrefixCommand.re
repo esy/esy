@@ -22,8 +22,10 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
         path,
       );
 
-    let normalizedOrigPrefix = Path.normalizePathSlashes(origPrefixString);
-    let normalizedDestPrefix = Path.normalizePathSlashes(destPrefixString);
+    let normalizedOrigPrefix =
+      Path.normalizePathSepOfFilename(origPrefixString);
+    let normalizedDestPrefix =
+      Path.normalizePathSepOfFilename(destPrefixString);
     let%bind () =
       rewritePrefixInFile'(
         ~origPrefix=normalizedOrigPrefix,

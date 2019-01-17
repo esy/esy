@@ -170,7 +170,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
          "{|"
          ++ name
          ++ "|}, {|"
-         ++ EsyLib.Path.normalizePathSlashes(value)
+         ++ EsyLib.Path.normalizePathSepOfFilename(value)
          ++ "|}"
        )
     |> String.concat(";");
@@ -528,7 +528,7 @@ let make =
           makeBinWrapper(
             ~destPrefix,
             ~environment=bindings,
-            ~bin=EsyLib.Path.normalizePathSlashes(namePath),
+            ~bin=EsyLib.Path.normalizePathSepOfFilename(namePath),
           );
 
         let mlPath = Path.(stagePath / (innerName ++ ".ml"));
@@ -536,14 +536,14 @@ let make =
         /* Compile the wrapper to a binary */
         let compile =
           Cmd.(
-            v(EsyLib.Path.normalizePathSlashes(p(ocamlopt)))
+            v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
             % "-o"
-            % EsyLib.Path.normalizePathSlashes(
+            % EsyLib.Path.normalizePathSepOfFilename(
                 p(Path.(binPath / publicName)),
               )
             % "unix.cmxa"
             % "str.cmxa"
-            % EsyLib.Path.normalizePathSlashes(p(mlPath))
+            % EsyLib.Path.normalizePathSepOfFilename(p(mlPath))
           );
         /* Needs to have ocaml in environment */
         let%bind env =

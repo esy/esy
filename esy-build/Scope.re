@@ -353,7 +353,7 @@ let make =
         switch (platform) {
         | Windows =>
           let windir = Sys.getenv("WINDIR") ++ "/System32";
-          let windir = Path.normalizePathSlashes(windir);
+          let windir = Path.normalizePathSepOfFilename(windir);
           "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ++ windir;
         | _ => "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         };
