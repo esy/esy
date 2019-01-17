@@ -16,11 +16,20 @@ module OpamVersion = {
     | _ => Error("expected string");
 };
 
+module NormalizedPath = {
+  type t = Path.t;
+
+  let to_yojson = p =>
+    `String(Path.normalizePathSepOfFilename(Path.show(p)));
+
+  let of_yojson = Path.of_yojson;
+};
+
 [@deriving yojson]
 type opam = {
   name: OpamName.t,
   version: OpamVersion.t,
-  path: Path.t,
+  path: NormalizedPath.t,
 };
 
 let opamfiles = opam => File.ofDir(Path.(opam.path / "files"));

@@ -81,12 +81,6 @@ let backSlashRegex = Str.regexp("\\\\");
 let normalizePathSepOfFilename = p =>
   Str.global_replace(backSlashRegex, "/", p);
 
-let normalizePathSep = p => {
-  let p = Fpath.to_string(p);
-  let p = Str.global_replace(backSlashRegex, "/", p);
-  Fpath.v(p);
-};
-
 let remEmptySeg = Fpath.rem_empty_seg;
 let normalize = Fpath.normalize;
 let normalizeAndRemoveEmptySeg = p =>
