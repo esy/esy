@@ -21,6 +21,7 @@ let initStore = (path: Fpath.t) => {
   let%bind () = mkdir(Fpath.(path / "i"));
   let%bind () = mkdir(Fpath.(path / "b"));
   let%bind () = mkdir(Fpath.(path / "s"));
+  let%bind () = mkdir(Fpath.(path / "p"));
   return();
 };
 
