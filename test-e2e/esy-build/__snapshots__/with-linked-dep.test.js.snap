@@ -31,7 +31,7 @@ export cur__root=\\"%projectPath%/dep\\"
 export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
-export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/b/%id%/_esy/findlib.conf\\"
+export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/p/%id%/etc/findlib.conf\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
@@ -80,7 +80,7 @@ export PATH=\\"%projectPath%/_esy/default/store/i/%depid%/bin:$PATH\\"
 #
 # Built-in
 #
-export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/b/%id%/_esy/findlib.conf\\"
+export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/p/%id%/etc/findlib.conf\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""

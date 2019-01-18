@@ -155,7 +155,7 @@ describe(`Project with "devDependencies"`, () => {
         `/usr/sbin`,
         `/sbin`,
       ].join(path.delimiter),
-      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/b/${id}/_esy/findlib.conf`,
+      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/p/${id}/etc/findlib.conf`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
     });
   });
@@ -193,7 +193,7 @@ describe(`Project with "devDependencies"`, () => {
         `/usr/sbin`,
         `/sbin`,
       ].join(path.delimiter),
-      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/b/${id}/_esy/findlib.conf`,
+      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/p/${id}/etc/findlib.conf`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
     });
   });
@@ -230,7 +230,7 @@ describe(`Project with "devDependencies"`, () => {
       cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
       cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/b/${id}/_esy/findlib.conf`,
+      OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/p/${id}/etc/findlib.conf`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
     });
   });
