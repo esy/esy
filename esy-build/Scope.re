@@ -30,6 +30,7 @@ module PackageScope: {
   let rootPath: t => SandboxPath.t;
   let sourcePath: t => SandboxPath.t;
   let buildPath: t => SandboxPath.t;
+  let prefixPath: t => SandboxPath.t;
   let buildInfoPath: t => SandboxPath.t;
   let stagePath: t => SandboxPath.t;
   let installPath: t => SandboxPath.t;
@@ -150,6 +151,11 @@ module PackageScope: {
   let buildPath = scope => {
     let storePath = buildStorePath(scope);
     SandboxPath.(storePath / Store.buildTree / BuildId.show(scope.id));
+  };
+
+  let prefixPath = scope => {
+    let storePath = storePath(scope);
+    SandboxPath.(storePath / Store.prefixTree / BuildId.show(scope.id));
   };
 
   let buildInfoPath = scope => {
@@ -282,7 +288,7 @@ module PackageScope: {
     let env = [
       (
         "OCAMLFIND_CONF",
-        p(SandboxPath.(buildPath(scope) / "_esy" / "findlib.conf")),
+        p(SandboxPath.(prefixPath(scope) / "etc" / "findlib.conf")),
       ),
     ];
 
@@ -328,11 +334,11 @@ module Findlib = {
   type t =
     | Host(config)
   and config = {
-    path: string,
-    destdir: string,
-    stdlib: string,
-    ldconf: string,
-    commands: list((string, string)),
+    path: SandboxValue.t,
+    destdir: SandboxValue.t,
+    stdlib: SandboxValue.t,
+    ldconf: SandboxValue.t,
+    commands: list((string, SandboxValue.t)),
   };
 
   let isCompiler = (pkg: Package.t) => {
@@ -351,13 +357,13 @@ module Findlib = {
       "ocamldep",
       "ocamllex",
     ];
-    let f = cmd => (cmd, SandboxPath.(show(sysroot / "bin" / cmd)));
+    let f = cmd => (cmd, SandboxPath.(sysroot / "bin" / cmd |> toValue));
     List.map(~f, commands);
   };
 
   let name = (~prefix) =>
     fun
-    | Host(_) => SandboxPath.(show(prefix / "_esy" / "findlib.conf"));
+    | Host(_) => SandboxPath.(prefix / "etc" / "findlib.conf" |> toValue);
 
   let content = t => {
     let toConfigVar = (findlib, name, value) => {
@@ -366,7 +372,7 @@ module Findlib = {
         | Host(_) => name
         };
 
-      Printf.sprintf("%s = \"%s\"", field, value);
+      Printf.sprintf("%s = \"%s\"", field, SandboxValue.show(value));
     };
 
     switch (t) {
@@ -384,6 +390,7 @@ module Findlib = {
             findlib.commands,
           ),
       )
+      |> SandboxValue.v
     };
   };
 };
@@ -503,6 +510,7 @@ let storePath = scope => PackageScope.storePath(scope.self);
 let rootPath = scope => PackageScope.rootPath(scope.self);
 let sourcePath = scope => PackageScope.sourcePath(scope.self);
 let buildPath = scope => PackageScope.buildPath(scope.self);
+let prefixPath = scope => PackageScope.prefixPath(scope.self);
 let buildInfoPath = scope => PackageScope.buildInfoPath(scope.self);
 let stagePath = scope => PackageScope.stagePath(scope.self);
 let installPath = scope => PackageScope.installPath(scope.self);
@@ -708,16 +716,22 @@ let env = (~includeBuildEnv, ~buildIsInProgress, scope) => {
 let findlib = (~sysroot: SandboxPath.t, scope: t) => {
   open SandboxPath;
   let path = {
-    let f = depscope => show(installPath(depscope) / "lib");
+    let f = depscope => installPath(depscope) / "lib" |> toValue;
     let libPaths = List.map(~f, scope.dependencies);
     let sep = System.Environment.sep(~name="OCAMLPATH", ());
-    String.concat(sep, libPaths);
+    SandboxValue.concat(sep, libPaths);
   };
 
-  let destdir = show(stagePath(scope) / "lib");
-  let stdlib = show(sysroot / "lib" / "ocaml");
+  let destdir = stagePath(scope) / "lib" |> toValue;
+  let stdlib = sysroot / "lib" / "ocaml" |> toValue;
   let commands = Findlib.commands(sysroot);
-  {Findlib.path, destdir, stdlib, ldconf: "ignore", commands};
+  {
+    Findlib.path,
+    destdir,
+    stdlib,
+    ldconf: SandboxValue.v("ignore"),
+    commands,
+  };
 };
 
 let toFindlibConfig = scope =>

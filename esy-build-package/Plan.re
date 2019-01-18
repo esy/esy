@@ -18,10 +18,15 @@ type t = {
   buildPath: Config.Value.t,
   stagePath: Config.Value.t,
   installPath: Config.Value.t,
+  prefixPath: Config.Value.t,
   env: Env.t,
-  files: list((string, string)),
+  files: list(file),
   jbuilderHackEnabled: bool,
   depspec: string,
+}
+and file = {
+  path: Config.Value.t,
+  content: Config.Value.t,
 };
 
 let ofFile = (path: Path.t) => {

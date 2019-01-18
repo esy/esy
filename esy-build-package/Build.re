@@ -16,12 +16,17 @@ type t = {
   installPath: Path.t,
   stagePath: Path.t,
   buildPath: Path.t,
+  prefixPath: Path.t,
   lockPath: Path.t,
   env: Bos.OS.Env.t,
-  files: list((string, string)),
+  files: list(file),
   build: list(Cmd.t),
   install: option(list(Cmd.t)),
   sandbox: Sandbox.sandbox,
+}
+and file = {
+  path: EsyLib.Path.t,
+  content: string,
 };
 
 type build = t;
@@ -141,12 +146,12 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   };
 
   let%bind files = {
-    let f = ((name, content)) => {
+    let f = ({Plan.path, content}) => {
       open Config.Value;
-      let name = render(cfg, v(name));
-      let content = render(cfg, v(content));
+      let path = Path.v(render(cfg, path));
+      let content = render(cfg, content);
 
-      Ok((name, content));
+      Ok({path, content});
     };
     Result.List.map(~f, plan.files);
   };
@@ -175,6 +180,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     };
 
   let p = path => Path.v(Config.Value.render(cfg, path));
+  let prefixPath = p(plan.prefixPath);
   let sourcePath = p(plan.sourcePath);
   let installPath = p(plan.installPath);
   let buildPath = p(plan.buildPath);
@@ -236,6 +242,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     rootPath,
     storePath,
     installPath,
+    prefixPath,
     stagePath,
     buildPath,
     lockPath,
@@ -342,13 +349,28 @@ let commitBuildToStore = (config: Config.t, build: build) => {
   ok;
 };
 
-let emitFile = ((name, content)) => {
-  let path = v(name);
+let makePrefixOfBuild = (~cfg as _: Config.t, build) => {
+  Logs.debug(m => m("preparing prefix %s", build.plan.id));
 
-  let%bind () = mkdir(Path.parent(path));
-  let%bind () = write(~data=content, path);
+  let%bind prefixExists = exists(build.prefixPath);
+  if (!prefixExists) {
+    let emitFile = ({path, content}) => {
+      let%bind () = mkdir(Path.parent(path));
+      let%bind () = write(~data=content, path);
 
-  ok;
+      ok;
+    };
+
+    let%bind () = Result.List.iter(~f=emitFile, build.files);
+    return();
+  } else {
+    return();
+  };
+};
+
+let makePrefix = (~cfg: Config.t, plan: Plan.t) => {
+  let%bind build = configureBuild(~cfg, plan);
+  makePrefixOfBuild(~cfg, build);
 };
 
 let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
@@ -396,7 +418,7 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
         relocateSourcePath(build.sourcePath, build.rootPath);
       };
 
-    let%bind () = Result.List.iter(~f=emitFile, build.files);
+    let%bind () = makePrefixOfBuild(~cfg, build);
 
     let%bind () =
       switch (withCwd(build.rootPath, ~f=() => f(build))) {

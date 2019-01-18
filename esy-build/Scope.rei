@@ -7,8 +7,8 @@ module SandboxEnvironment: (module type of EsyBuildPackage.Config.Environment);
 module Findlib: {
   type t;
 
-  let name: (~prefix: SandboxPath.t, t) => string;
-  let content: t => string;
+  let name: (~prefix: SandboxPath.t, t) => SandboxValue.t;
+  let content: t => SandboxValue.t;
 };
 
 type t;
@@ -51,6 +51,7 @@ let buildPath: t => SandboxPath.t;
 let buildInfoPath: t => SandboxPath.t;
 let stagePath: t => SandboxPath.t;
 let installPath: t => SandboxPath.t;
+let prefixPath: t => SandboxPath.t;
 let logPath: t => SandboxPath.t;
 
 let pp: Fmt.t(t);
