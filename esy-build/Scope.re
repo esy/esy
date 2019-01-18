@@ -279,10 +279,7 @@ module PackageScope: {
 
     /* add builtins */
     let env = [
-      (
-        "OCAMLFIND_CONF",
-        p(SandboxPath.(prefixPath(scope) / "etc" / "findlib.conf")),
-      ),
+      ("OCAMLFIND_CONF", p(FindlibConf.path(prefixPath(scope)))),
     ];
 
     let env = {
@@ -300,71 +297,6 @@ module PackageScope: {
       };
 
     env;
-  };
-};
-
-module Findlib = {
-  type t =
-    | Host(config)
-  and config = {
-    path: SandboxValue.t,
-    destdir: SandboxValue.t,
-    stdlib: SandboxValue.t,
-    ldconf: SandboxValue.t,
-    commands: list((string, SandboxValue.t)),
-  };
-
-  let isCompiler = (pkg: Package.t) => {
-    let compilers = ["ocaml"];
-    List.mem(pkg.name, ~set=compilers);
-  };
-
-  let commands = (sysroot: SandboxPath.t) => {
-    let commands = [
-      "ocamlc",
-      "ocamlopt",
-      "ocamlcp",
-      "ocamlmklib",
-      "ocamlmktop",
-      "ocamldoc",
-      "ocamldep",
-      "ocamllex",
-    ];
-    let f = cmd => (cmd, SandboxPath.(sysroot / "bin" / cmd |> toValue));
-    List.map(~f, commands);
-  };
-
-  let name = (~prefix) =>
-    fun
-    | Host(_) => SandboxPath.(prefix / "etc" / "findlib.conf" |> toValue);
-
-  let content = t => {
-    let toConfigVar = (findlib, name, value) => {
-      let field =
-        switch (findlib) {
-        | Host(_) => name
-        };
-
-      Printf.sprintf("%s = \"%s\"", field, SandboxValue.show(value));
-    };
-
-    switch (t) {
-    | Host(findlib) =>
-      String.concat(
-        "\n",
-        [
-          toConfigVar(t, "path", findlib.path),
-          toConfigVar(t, "destdir", findlib.destdir),
-          toConfigVar(t, "stdlib", findlib.stdlib),
-          toConfigVar(t, "ldconf", findlib.ldconf),
-        ]
-        @ List.map(
-            ~f=((name, cmd)) => toConfigVar(t, name, cmd),
-            findlib.commands,
-          ),
-      )
-      |> SandboxValue.v
-    };
   };
 };
 
@@ -679,37 +611,34 @@ let env = (~includeBuildEnv, ~buildIsInProgress, scope) => {
   );
 };
 
-let findlib = (~sysroot: SandboxPath.t, scope: t) => {
+let makeFindlibConfig = (~sysroot: SandboxPath.t, scope) => {
   open SandboxPath;
+
   let path = {
-    let f = depscope => installPath(depscope) / "lib" |> toValue;
+    let f = depscope => toValue(installPath(depscope) / "lib");
     let libPaths = List.map(~f, scope.dependencies);
     let sep = System.Environment.sep(~name="OCAMLPATH", ());
     SandboxValue.concat(sep, libPaths);
   };
 
-  let destdir = stagePath(scope) / "lib" |> toValue;
-  let stdlib = sysroot / "lib" / "ocaml" |> toValue;
-  let commands = Findlib.commands(sysroot);
-  {
-    Findlib.path,
-    destdir,
-    stdlib,
-    ldconf: SandboxValue.v("ignore"),
-    commands,
-  };
+  let destdir = toValue(stagePath(scope) / "lib");
+  let stdlib = toValue(sysroot / "lib" / "ocaml");
+  let commands = FindlibConf.commands(sysroot);
+  let ldconf = SandboxValue.v("ignore");
+
+  {FindlibConf.path, destdir, stdlib, ldconf, commands};
 };
 
-let toFindlibConfig = scope =>
+let findlibConf = scope =>
   /* We only support host ocaml compiler for now */
-  if (Findlib.isCompiler(scope.pkg)) {
+  if (FindlibConf.isCompiler(scope.pkg)) {
     [];
   } else {
     switch (find(scope, "ocaml")) {
     | Some(ocaml) =>
       let sysroot = installPath(ocaml);
-      let host = findlib(~sysroot, scope);
-      [Findlib.Host(host)];
+      let host = makeFindlibConfig(~sysroot, scope);
+      [FindlibConf.Host(host)];
     | None => []
     };
   };
