@@ -165,13 +165,8 @@ module Task = {
       );
 
     let files = {
-      let f = config => {
-        let path = Scope.Findlib.name(~prefix=prefixPath, config);
-        let content = Scope.Findlib.content(config);
-        {EsyBuildPackage.Plan.path, content};
-      };
-
-      let configs = Scope.toFindlibConfig(t.scope);
+      let configs = Scope.findlibConf(t.scope);
+      let f = FindlibConf.renderConfig(~prefix=prefixPath);
       List.map(~f, configs);
     };
 
