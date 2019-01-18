@@ -150,7 +150,7 @@ describe('Build with dep', () => {
             `/sbin`,
             ...winsysDir,
           ].join(path.delimiter),
-          OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/b/${id}/_esy/findlib.conf`,
+          OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/p/${id}/etc/findlib.conf`,
           DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
         });
       }),
@@ -202,7 +202,7 @@ describe('Build with dep', () => {
             `/sbin`,
             ...winsysDir,
           ].join(path.delimiter),
-          OCAMLFIND_CONF: `${p.esyStorePath}/b/${depId}/_esy/findlib.conf`,
+          OCAMLFIND_CONF: `${p.esyStorePath}/p/${depId}/etc/findlib.conf`,
           DUNE_BUILD_DIR: `${p.esyPrefixPath}/3/b/${depId}`,
         });
       }),
@@ -256,7 +256,7 @@ describe('Build with dep', () => {
           cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
           cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
           cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-          OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/b/${id}/_esy/findlib.conf`,
+          OCAMLFIND_CONF: `${p.projectPath}/_esy/default/store/p/${id}/etc/findlib.conf`,
           DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
         });
         const envpath = env.PATH.split(path.delimiter);

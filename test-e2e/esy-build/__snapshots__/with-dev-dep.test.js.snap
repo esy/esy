@@ -31,7 +31,7 @@ export cur__root=\\"%esyPrefixPath%/3/b/%id%\\"
 export cur__dev=\\"false\\"
 export cur__version=\\"1.0.0\\"
 export cur__name=\\"dep\\"
-export OCAMLFIND_CONF=\\"%esyStorePath%/b/%id%/_esy/findlib.conf\\"
+export OCAMLFIND_CONF=\\"%esyStorePath%/p/%id%/etc/findlib.conf\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -79,7 +79,7 @@ export PATH=\\"%esyStorePath%/i/%depOfDevDepId%/bin:$PATH\\"
 #
 # Built-in
 #
-export OCAMLFIND_CONF=\\"%esyStorePath%/b/%id%/_esy/findlib.conf\\"
+export OCAMLFIND_CONF=\\"%esyStorePath%/p/%id%/etc/findlib.conf\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
 export PATH=\\"$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin\\""
 `;
@@ -143,7 +143,7 @@ export PATH=\\"%esyStorePath%/i/%depid%/bin:$PATH\\"
 #
 # Built-in
 #
-export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/b/%id%/_esy/findlib.conf\\"
+export OCAMLFIND_CONF=\\"%projectPath%/_esy/default/store/p/%id%/etc/findlib.conf\\"
 export DUNE_BUILD_DIR=\\"%projectPath%/_esy/default/store/b/%id%\\"
 export DUNE_STORE_ORIG_SOURCE_DIR=\\"true\\"
 export SHELL=\\"env -i /bin/bash --norc --noprofile\\"
