@@ -9,7 +9,7 @@
 
 const siteConfig = {
   title: 'esy',
-  tagline: 'Simple workflow for native Reason and OCaml',
+  tagline: 'Easy package management for native Reason, OCaml and more',
   url: 'https://esy.github.io',
   editUrl: 'https://github.com/esy/esy/tree/master/docs/',
   translationRecruitingLink: 'https://crowdin.com/project/esy-website',

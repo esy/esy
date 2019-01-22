@@ -3,7 +3,7 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "Simple workflow for native Reason and OCaml",
+    "tagline": "Easy package management for native Reason, OCaml and more",
     "docs": {
       "c-workflow": {
         "title": "Workflow for C/C++ Packages"
@@ -276,6 +276,18 @@
         "title": "Getting started"
       },
       "version-0.4.8-what-why": {
+        "title": "What & Why"
+      },
+      "version-0.5.2-commands": {
+        "title": "Commands"
+      },
+      "version-0.5.2-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.5.2-low-level-commands": {
+        "title": "Low Level Commands"
+      },
+      "version-0.5.2-what-why": {
         "title": "What & Why"
       }
     },
