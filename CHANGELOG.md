@@ -2,6 +2,10 @@
 
 ## unreleased
 
+- Configure dune to store original source location for linked packages. That
+  makes merlin see original sources of linked packages and thus make "go to
+  definition" (and others) behave correctly in esy monorepo workflow.
+
 - Fix nested esy invocations in case root package is an override.
 
 ## 0.5.4 @ next

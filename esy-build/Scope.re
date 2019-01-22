@@ -291,9 +291,29 @@ module PackageScope: {
       StringMap.fold(f, scope.build.buildEnv, env);
     };
 
+    // This makes dune build into $cur__target_dir location instead of
+    // $cur__root/_build and thus implementing out of source builds.
+    //
+    // We do this only for packages marked as "esy.buildsInSource": false (the
+    // default if absent).
     let env =
       switch (scope.build.buildType) {
       | OutOfSource => [("DUNE_BUILD_DIR", p(buildPath(scope))), ...env]
+      | InSource
+      | JbuilderLike
+      | Unsafe => env
+      };
+
+    // This makes dune store original source location in dune-package metadata
+    // which is then used to generate .merlin files. Thus this enable merlin to
+    // see original source locations when working with a set of linked packages
+    // in esy.
+    let env =
+      switch (scope.sourceType, scope.build.buildType) {
+      | (Transient, OutOfSource) => [
+          ("DUNE_STORE_ORIG_SOURCE_DIR", "true"),
+          ...env,
+        ]
       | _ => env
       };
 
