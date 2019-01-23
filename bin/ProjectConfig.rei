@@ -10,7 +10,6 @@ type t = {
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
-  cachePath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),

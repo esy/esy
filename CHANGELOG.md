@@ -8,6 +8,13 @@
 
 - Fix nested esy invocations in case root package is an override.
 
+- Remove `--cache-path` (`ESY__CACHE` env) configuration which controlled the
+  location for cached sources. Instead make it controlled by `--prefix-path`
+  (`ESY__PREFIX` env) which is already used to control the location of cached
+  builds.
+
+- Fix bug with unpacking cached tarballs (#830).
+
 ## 0.5.4 @ next
 
 - Fix `esy.lock` to be generated with normalize paths with `/` as path

@@ -6,13 +6,13 @@ type t = {
   sourceInstallPath: Path.t,
 };
 
-let make = (~cachePath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
+let make = (~prefixPath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
   open RunAsync.Syntax;
-  let%bind cachePath =
+  let%bind prefixPath =
     RunAsync.ofRun(
       Run.Syntax.(
-        switch (cachePath) {
-        | Some(cachePath) => return(cachePath)
+        switch (prefixPath) {
+        | Some(prefixPath) => return(prefixPath)
         | None =>
           let userDir = Path.homePath();
           return(Path.(userDir / ".esy"));
@@ -23,7 +23,7 @@ let make = (~cachePath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
   let sourcePath =
     switch (cacheSourcesPath) {
     | Some(path) => path
-    | None => Path.(cachePath / "source")
+    | None => Path.(prefixPath / "source")
     };
   let%bind () = Fs.createDir(sourcePath);
 

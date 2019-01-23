@@ -120,7 +120,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     EsySolve.Config.make(
       ~esySolveCmd,
       ~skipRepositoryUpdate=projcfg.skipRepositoryUpdate,
-      ~cachePath=?projcfg.cachePath,
+      ~prefixPath=?projcfg.prefixPath,
       ~cacheTarballsPath=?projcfg.cacheTarballsPath,
       ~npmRegistry=?projcfg.npmRegistry,
       ~opamRepository=?projcfg.opamRepository,
@@ -132,6 +132,14 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   let installCfg = solveCfg.EsySolve.Config.installCfg;
   let%bind solveSandbox = EsySolve.Sandbox.make(~cfg=solveCfg, projcfg.spec);
   let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
+
+  let%lwt () =
+    Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
+
+  let%lwt () =
+    Logs_lwt.debug(m =>
+      m("install config: %a", EsyInstall.Config.pp, installCfg)
+    );
 
   let%bind buildCfg = {
     let storePath =

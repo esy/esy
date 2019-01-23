@@ -294,9 +294,17 @@ module FetchPackage: {
             | None => return(None)
             | Some(cachedTarballPath) =>
               if%bind (Fs.exists(cachedTarballPath)) {
+                let%lwt () =
+                  Logs_lwt.debug(m =>
+                    m("fetching %a: found cached tarball", Package.pp, pkg)
+                  );
                 let dist = DistStorage.ofCachedTarball(cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               } else {
+                let%lwt () =
+                  Logs_lwt.debug(m =>
+                    m("fetching %a: making cached tarball", Package.pp, pkg)
+                  );
                 let dists = [main, ...mirrors];
                 let%bind dist = fetch'(sandbox, pkg, dists);
                 let%bind dist = DistStorage.cache(dist, cachedTarballPath);
@@ -306,11 +314,19 @@ module FetchPackage: {
 
           let path = PackagePaths.installPath(sandbox, pkg);
           if%bind (Fs.exists(path)) {
+            let%lwt () =
+              Logs_lwt.debug(m =>
+                m("fetching %a: installed", Package.pp, pkg)
+              );
             return((pkg, Installed(path)));
           } else {
             switch (cached) {
             | Some(cached) => return(cached)
             | None =>
+              let%lwt () =
+                Logs_lwt.debug(m =>
+                  m("fetching %a: fetching", Package.pp, pkg)
+                );
               let dists = [main, ...mirrors];
               let%bind dist = fetch'(sandbox, pkg, dists);
               return((pkg, Fetched(dist)));

@@ -25,10 +25,14 @@ and checkout =
   | Local(Path.t)
   | Remote(string, Path.t);
 
+let pp: Fmt.t(t);
+let show: t => string;
+let show_checkout: checkout => string;
+
 let make:
   (
     ~npmRegistry: string=?,
-    ~cachePath: Fpath.t=?,
+    ~prefixPath: Fpath.t=?,
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,

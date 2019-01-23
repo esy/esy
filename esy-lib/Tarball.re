@@ -22,6 +22,7 @@ let stripComponentFrom = (~stripComponents=?, out) => {
 let copyAll = (~src, ~dst, ()) => {
   open RunAsync.Syntax;
   let%bind items = Fs.listDir(src);
+  let%bind () = Fs.createDir(dst);
   let f = item => Fs.copyPath(~src=Path.(src / item), ~dst=Path.(dst / item));
   RunAsync.List.processSeq(~f, items);
 };
