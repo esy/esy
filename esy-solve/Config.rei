@@ -28,7 +28,7 @@ and checkout =
 let make:
   (
     ~npmRegistry: string=?,
-    ~cachePath: Fpath.t=?,
+    ~prefixPath: Fpath.t=?,
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
     ~opamRepository: checkoutCfg=?,

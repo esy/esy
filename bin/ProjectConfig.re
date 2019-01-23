@@ -191,7 +191,6 @@ type t = {
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
-  cachePath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
@@ -306,16 +305,6 @@ let skipRepositoryUpdateArg = {
   );
 };
 
-let cachePathArg = {
-  let doc = "Specifies cache directory..";
-  let env = Arg.env_var("ESYI__CACHE", ~doc);
-  Arg.(
-    value
-    & opt(some(Cli.pathConv), None)
-    & info(["cache-path"], ~env, ~doc, ~docs=commonOptionsSection)
-  );
-};
-
 let solveCudfCommandArg = {
   let doc = "Set command which is used for solving CUDF problems.";
   let env = Arg.env_var("ESY__SOLVE_CUDF_COMMAND", ~doc);
@@ -331,7 +320,6 @@ let make =
       project,
       mainprg,
       prefixPath,
-      cachePath,
       cacheTarballsPath,
       opamRepository,
       esyOpamOverride,
@@ -358,7 +346,6 @@ let make =
     esyVersion: EsyRuntime.version,
     spec,
     prefixPath,
-    cachePath,
     cacheTarballsPath,
     opamRepository,
     esyOpamOverride,
@@ -375,7 +362,6 @@ let promiseTerm = {
         mainprg,
         projectPath,
         prefixPath,
-        cachePath,
         cacheTarballsPath,
         opamRepository,
         esyOpamOverride,
@@ -389,7 +375,6 @@ let promiseTerm = {
       projectPath,
       mainprg,
       prefixPath,
-      cachePath,
       cacheTarballsPath,
       opamRepository,
       esyOpamOverride,
@@ -404,7 +389,6 @@ let promiseTerm = {
     $ main_name
     $ projectPath
     $ prefixPath
-    $ cachePathArg
     $ cacheTarballsPath
     $ opamRepositoryArg
     $ esyOpamOverrideArg

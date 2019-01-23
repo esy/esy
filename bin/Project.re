@@ -120,7 +120,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     EsySolve.Config.make(
       ~esySolveCmd,
       ~skipRepositoryUpdate=projcfg.skipRepositoryUpdate,
-      ~cachePath=?projcfg.cachePath,
+      ~prefixPath=?projcfg.prefixPath,
       ~cacheTarballsPath=?projcfg.cacheTarballsPath,
       ~npmRegistry=?projcfg.npmRegistry,
       ~opamRepository=?projcfg.opamRepository,

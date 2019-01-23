@@ -13,7 +13,7 @@ let show: t => string;
 
 let make:
   (
-    ~cachePath: Fpath.t=?,
+    ~prefixPath: Fpath.t=?,
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
     unit

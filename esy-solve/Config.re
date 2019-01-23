@@ -30,7 +30,7 @@ let configureCheckout = (~defaultRemote, ~defaultLocal) =>
 let make =
     (
       ~npmRegistry=?,
-      ~cachePath=?,
+      ~prefixPath=?,
       ~cacheTarballsPath=?,
       ~cacheSourcesPath=?,
       ~opamRepository=?,
@@ -41,11 +41,11 @@ let make =
       (),
     ) => {
   open RunAsync.Syntax;
-  let%bind cachePath =
+  let%bind prefixPath =
     RunAsync.ofRun(
       Run.Syntax.(
-        switch (cachePath) {
-        | Some(cachePath) => return(cachePath)
+        switch (prefixPath) {
+        | Some(prefixPath) => return(prefixPath)
         | None =>
           let userDir = Path.homePath();
           return(Path.(userDir / ".esy"));
@@ -55,13 +55,13 @@ let make =
 
   let opamRepository = {
     let defaultRemote = "https://github.com/ocaml/opam-repository";
-    let defaultLocal = Path.(cachePath / "opam-repository");
+    let defaultLocal = Path.(prefixPath / "opam-repository");
     configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
   };
 
   let esyOpamOverride = {
     let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
-    let defaultLocal = Path.(cachePath / "esy-opam-override");
+    let defaultLocal = Path.(prefixPath / "esy-opam-override");
     configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
   };
 
@@ -70,7 +70,7 @@ let make =
 
   let%bind installCfg =
     EsyInstall.Config.make(
-      ~cachePath,
+      ~prefixPath,
       ~cacheTarballsPath?,
       ~cacheSourcesPath?,
       (),
