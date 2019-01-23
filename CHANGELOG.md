@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## unreleased
+## 0.5.5 @ next
 
 - Configure dune to store original source location for linked packages. That
   makes merlin see original sources of linked packages and thus make "go to
