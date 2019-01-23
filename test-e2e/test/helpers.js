@@ -164,6 +164,24 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   const npmRegistry = await NpmRegistryMock.initialize();
   const opamRegistry = await OpamRegistryMock.initialize();
 
+  const envForTests = {
+    ESY__PREFIX: esyPrefixPath,
+    ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
+    ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
+    NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+  };
+
+  // put this into project root for debug
+  const envSource = [];
+  for (const key in envForTests) {
+    const value = envForTests[key];
+    envSource.push(`export ${key}='${value}'`);
+  }
+  await fs.writeFile(
+    path.join(projectPath, 'test-env'),
+    envSource.join('\n') + '\n'
+  );
+
   async function runJavaScriptInNodeAndReturnJson(script) {
     const pnpJs = path.join(projectPath, '_esy', 'default', 'pnp.js');
     const command = `node -r ${pnpJs} -p "JSON.stringify(${script.replace(
@@ -187,11 +205,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       if (!options.noEsyPrefix) {
         env = {
           ...env,
-          ESY__PREFIX: esyPrefixPath,
-          ESYI__CACHE: path.join(esyPrefixPath, 'esyi'),
-          ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
-          ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
-          NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
+          ...envForTests,
         };
       }
 
