@@ -133,6 +133,14 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   let%bind solveSandbox = EsySolve.Sandbox.make(~cfg=solveCfg, projcfg.spec);
   let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
 
+  let%lwt () =
+    Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
+
+  let%lwt () =
+    Logs_lwt.debug(m =>
+      m("install config: %a", EsyInstall.Config.pp, installCfg)
+    );
+
   let%bind buildCfg = {
     let storePath =
       switch (projcfg.prefixPath) {

@@ -25,6 +25,10 @@ and checkout =
   | Local(Path.t)
   | Remote(string, Path.t);
 
+let pp: Fmt.t(t);
+let show: t => string;
+let show_checkout: checkout => string;
+
 let make:
   (
     ~npmRegistry: string=?,

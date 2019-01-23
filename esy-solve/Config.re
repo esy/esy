@@ -5,6 +5,7 @@ type checkoutCfg = [
   | `RemoteLocal(string, Path.t)
 ];
 
+[@deriving show]
 type t = {
   installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
