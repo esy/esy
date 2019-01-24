@@ -530,17 +530,25 @@ module OfTerm = {
           );
           let v = {...v, projcfg};
           if%bind (checkStaleness(files)) {
+            let%lwt () = Logs_lwt.debug(m => m("cache is stale, discarding"));
             return(None);
           } else {
+            let%lwt () = Logs_lwt.debug(m => m("using cache"));
             return(Some(v));
           };
         }
       ) {
-      | Failure(_) => return(None)
+      | Failure(_) =>
+        let%lwt () =
+          Logs_lwt.debug(m => m("unable to read the cache, skipping..."));
+        return(None);
       };
 
     try%lwt (Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(cachePath), f)) {
-    | Unix.Unix_error(_) => return(None)
+    | Unix.Unix_error(_) =>
+      let%lwt () =
+        Logs_lwt.debug(m => m("unable to find the cache, skipping..."));
+      return(None);
     };
   };
 
