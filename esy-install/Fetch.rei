@@ -15,7 +15,9 @@ let fetch: (Solution.Spec.t, Sandbox.t, Solution.t) => RunAsync.t(unit);
 
 /** Check if the solution is installed. */
 
-let isInstalled: (Solution.Spec.t, Sandbox.t, Solution.t) => RunAsync.t(bool);
+let maybeInstallationOfSolution:
+  (Solution.Spec.t, Sandbox.t, Solution.t) =>
+  RunAsync.t(option(Installation.t));
 
 let fetchOverrideFiles:
   (Config.t, SandboxSpec.t, Override.t) => RunAsync.t(list(File.t));

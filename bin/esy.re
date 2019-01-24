@@ -986,14 +986,15 @@ let solveAndFetch = (proj: Project.t) => {
     EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
   switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
   | Some(solution) =>
-    if%bind (EsyInstall.Fetch.isInstalled(
-               proj.workflow.installspec,
-               proj.installSandbox,
-               solution,
-             )) {
-      return();
-    } else {
-      fetch(proj);
+    switch%bind (
+      EsyInstall.Fetch.maybeInstallationOfSolution(
+        proj.workflow.installspec,
+        proj.installSandbox,
+        solution,
+      )
+    ) {
+    | Some(_installation) => return()
+    | None => fetch(proj)
     }
   | None =>
     let%bind () = solve(false, proj);

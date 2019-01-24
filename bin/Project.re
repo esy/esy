@@ -261,60 +261,43 @@ let makeFetched =
   let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
   let%bind info = FileInfo.ofPath(path);
   files := [info, ...files^];
-  switch%bind (Installation.ofPath(path)) {
+  switch%bind (
+    EsyInstall.Fetch.maybeInstallationOfSolution(
+      workflow.Workflow.installspec,
+      installer,
+      solution,
+    )
+  ) {
   | None => errorf("project is not installed, run `esy install`")
   | Some(installation) =>
-    let isActual = {
-      let nodes = Solution.nodes(solution);
-      let checkPackageIsInInstallation = (isActual, pkg) =>
-        if (!isActual) {
-          isActual;
-        } else {
-          let check = Installation.mem(pkg.Package.id, installation);
-          if (!check) {
-            Logs.debug(m =>
-              m("missing from installation %a", PackageId.pp, pkg.Package.id)
-            );
-          };
-          check;
-        };
-
-      List.fold_left(~f=checkPackageIsInInstallation, ~init=true, nodes);
-    };
-
-    if (isActual) {
-      let%bind sandbox = {
-        let%bind sandboxEnv = readSandboxEnv(projcfg.spec);
-        let%bind (sandbox, filesUsedForPlan) =
-          BuildSandbox.make(
-            ~sandboxEnv,
-            buildCfg,
-            projcfg.spec,
-            installer.EsyInstall.Sandbox.cfg,
-            solution,
-            installation,
-          );
-
-        let%bind filesUsedForPlan = FileInfo.ofPathSet(filesUsedForPlan);
-        files := files^ @ filesUsedForPlan;
-        return(sandbox);
-      };
-
-      let%lwt configured =
-        makeConfigured(
-          projcfg,
-          workflow,
+    let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
+    let%bind sandbox = {
+      let%bind sandboxEnv = readSandboxEnv(projcfg.spec);
+      let%bind (sandbox, filesUsedForPlan) =
+        BuildSandbox.make(
+          ~sandboxEnv,
+          buildCfg,
+          projcfg.spec,
+          installer.EsyInstall.Sandbox.cfg,
           solution,
           installation,
-          sandbox,
-          files,
         );
-      return({installation, sandbox, configured});
-    } else {
-      errorf(
-        "project requires to update its installation, run `esy install`",
-      );
+
+      let%bind filesUsedForPlan = FileInfo.ofPathSet(filesUsedForPlan);
+      files := files^ @ filesUsedForPlan;
+      return(sandbox);
     };
+
+    let%lwt configured =
+      makeConfigured(
+        projcfg,
+        workflow,
+        solution,
+        installation,
+        sandbox,
+        files,
+      );
+    return({installation, sandbox, configured});
   };
 };
 

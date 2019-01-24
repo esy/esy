@@ -734,49 +734,77 @@ exec "%s" -r "%a" "$@"
     }
   );
 
-let isInstalled = (installspec, sandbox: Sandbox.t, solution: Solution.t) => {
+let isInstalledWithInstallation =
+    (installspec, sandbox: Sandbox.t, solution: Solution.t, installation) => {
+  open RunAsync.Syntax;
+  let rec checkSourcePaths =
+    fun
+    | [] => return(true)
+    | [pkg, ...pkgs] =>
+      switch (Installation.find(pkg.Package.id, installation)) {
+      | None => return(false)
+      | Some(path) =>
+        if%bind (Fs.exists(path)) {
+          checkSourcePaths(pkgs);
+        } else {
+          return(false);
+        }
+      };
+
+  let rec checkCachedTarballPaths =
+    fun
+    | [] => return(true)
+    | [pkg, ...pkgs] =>
+      switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
+      | None => checkCachedTarballPaths(pkgs)
+      | Some(cachedTarballPath) =>
+        if%bind (Fs.exists(cachedTarballPath)) {
+          checkCachedTarballPaths(pkgs);
+        } else {
+          return(false);
+        }
+      };
+
+  let rec checkInstallationEntry =
+    fun
+    | [] => true
+    | [(pkgid, _path), ...rest] =>
+      if (Solution.mem(solution, pkgid)) {
+        checkInstallationEntry(rest);
+      } else {
+        false;
+      };
+
+  let (pkgs, _root) = collectPackagesOfSolution(installspec, solution);
+  if%bind (checkSourcePaths(pkgs)) {
+    if%bind (checkCachedTarballPaths(pkgs)) {
+      return(checkInstallationEntry(Installation.entries(installation)));
+    } else {
+      return(false);
+    };
+  } else {
+    return(false);
+  };
+};
+
+let maybeInstallationOfSolution =
+    (installspec, sandbox: Sandbox.t, solution: Solution.t) => {
   open RunAsync.Syntax;
   let installationPath = SandboxSpec.installationPath(sandbox.spec);
   switch%lwt (Installation.ofPath(installationPath)) {
   | Error(_)
-  | Ok(None) => return(false)
+  | Ok(None) => return(None)
   | Ok(Some(installation)) =>
-    let rec checkSourcePaths = (
-      fun
-      | [] => return(true)
-      | [pkg, ...pkgs] =>
-        switch (Installation.find(pkg.Package.id, installation)) {
-        | None => return(false)
-        | Some(path) =>
-          if%bind (Fs.exists(path)) {
-            checkSourcePaths(pkgs);
-          } else {
-            return(false);
-          }
-        }
-    );
-
-    let rec checkCachedTarballPaths = (
-      fun
-      | [] => return(true)
-      | [pkg, ...pkgs] =>
-        switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
-        | None => checkCachedTarballPaths(pkgs)
-        | Some(cachedTarballPath) =>
-          if%bind (Fs.exists(cachedTarballPath)) {
-            checkCachedTarballPaths(pkgs);
-          } else {
-            return(false);
-          }
-        }
-    );
-
-    let (pkgs, _root) = collectPackagesOfSolution(installspec, solution);
-    if%bind (checkSourcePaths(pkgs)) {
-      checkCachedTarballPaths(pkgs);
+    if%bind (isInstalledWithInstallation(
+               installspec,
+               sandbox,
+               solution,
+               installation,
+             )) {
+      return(Some(installation));
     } else {
-      return(false);
-    };
+      return(None);
+    }
   };
 };
 
