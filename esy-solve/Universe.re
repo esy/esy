@@ -228,7 +228,7 @@ module CudfMapping = {
 
     switch (versionsMatched) {
     | [] => [
-        (CudfName.show(CudfName.encode(name)), Some((`Eq, 10000000000))),
+        (CudfName.show(CudfName.encode(name)), Some((`Eq, 100000000))),
       ]
     | versionsMatched =>
       let pkgToConstraint = pkg => {
