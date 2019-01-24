@@ -202,7 +202,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
   let%lwt () =
     Logs_lwt.debug(m =>
       m(
-        "BuildManifest.ofPath %a %a",
+        "ReadBuildManifest.ofPath %a %a",
         Fmt.(option(ManifestSpec.pp)),
         manifest,
         Path.pp,
