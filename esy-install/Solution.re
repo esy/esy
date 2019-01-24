@@ -53,6 +53,7 @@ let allDependenciesBFS = Graph.allDependenciesBFS;
 let findBy = Graph.findBy;
 let getExn = Graph.getExn;
 let get = Graph.get;
+let mem = Graph.mem;
 let isRoot = Graph.isRoot;
 let root = Graph.root;
 let nodes = Graph.nodes;
