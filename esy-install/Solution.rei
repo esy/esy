@@ -66,6 +66,7 @@ let isRoot: (t, pkg) => bool;
 let dependenciesBySpec: (t, Spec.t, pkg) => list(pkg);
 let dependenciesByDepSpec: (t, DepSpec.t, pkg) => list(pkg);
 
+let mem: (t, id) => bool;
 let get: (t, id) => option(pkg);
 let getExn: (t, id) => pkg;
 let findBy: (t, (id, pkg) => bool) => option((id, pkg));
