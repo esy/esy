@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.5.6 @ next
+
+- Fix project installation invalidation to account for packages removed from
+  solution. Fixes a runtime failure (see #834).
+
+- Fix using esy on 32bit architectures (see #833, thanks @dysinger)
+
 ## 0.5.5 @ next
 
 - Configure dune to store original source location for linked packages. That
