@@ -45,3 +45,42 @@ it('Common - esy prefix via esyrc', async () => {
 
   process.env = prevEnv;
 });
+
+it('Common - esy prefix via esyrc in HOME', async () => {
+  const tmp = process.platform === 'win32' ? os.tmpdir() : '/tmp';
+  const tmpPath = await fs.mkdtemp(path.join(tmp, 'XXXX'));
+  const customEsyPrefix = path.join(tmpPath, 'prefix');
+
+  const p = await createTestSandbox();
+  await p.fixture(...fixture.makeSimpleProject(p));
+
+  const homePath = path.join(p.projectPath, 'homePath');
+
+  await fs.mkdir(homePath);
+  await fs.writeFile(
+    path.join(homePath, '.esyrc'),
+    `
+      {
+        "prefixPath": "${customEsyPrefix}"
+      }
+    `
+  );
+
+  const prevEnv = process.env;
+  process.env = Object.assign({}, process.env, {OCAMLRUNPARAM: 'b', HOME: homePath});
+
+  await p.esy('install', {noEsyPrefix: true});
+  await p.esy('build', {noEsyPrefix: true});
+
+  await expect(p.esy('dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
+    stdout: '__dep__\n',
+    stderr: '',
+  });
+
+  await expect(p.esy('which dep.cmd', {noEsyPrefix: true})).resolves.toEqual({
+    stdout: expect.stringMatching(customEsyPrefix),
+    stderr: '',
+  });
+
+  process.env = prevEnv;
+});

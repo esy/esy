@@ -34,10 +34,15 @@ let ofPath = path => {
   };
 
   let filename = Path.(path / ".esyrc");
+  let filenameInHome = Path.(Path.homePath() / ".esyrc");
 
   if%bind (Fs.exists(filename)) {
     ofFile(filename);
   } else {
-    return(empty);
+    if%bind (Fs.exists(filenameInHome)) {
+      ofFile(filenameInHome);
+    } else {
+      return(empty);
+    };
   };
 };
