@@ -184,7 +184,7 @@ function getStorePathForPrefix(prefix) {
   var p = path.join(prefix, String(ESY_STORE_VERSION));
 
   while (p.length < ESY_STORE_PADDING_LENGTH) {
-    p = p + '_';
+    p = p + '/';
   }
 
   return p;
