@@ -82,7 +82,14 @@ let rec realpath = (p: Fpath.t) => {
       };
     };
   };
-  _realpath(p);
+  let%bind p = _realpath(p);
+  let p = Path.show(p);
+  let len = String.length(p);
+  if (len >= 4 && String.sub(p, 0, 4) == "\\??\\") {
+    Ok(Path.v(String.sub(p, 4, len - 4)));
+  } else {
+    Ok(Path.v(p));
+  };
 };
 
 /** Try to resolve an absolute path */
