@@ -26,7 +26,12 @@ let maxStorePaddingLength = {
     );
 };
 
-let getPadding = (~system=System.Platform.host, ~longPaths=System.supportsLongPaths(), prefixPath) =>
+let getPadding =
+    (
+      ~system=System.Platform.host,
+      ~longPaths=System.supportsLongPaths(),
+      prefixPath,
+    ) =>
   switch (system, longPaths) {
   | (Windows, false) => Ok("_")
   | _ =>

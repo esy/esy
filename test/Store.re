@@ -4,7 +4,8 @@ module System = EsyLib.System;
 
 let%test "Validate padding length on Windows is always 1, if long paths aren't supported" = {
   let prefixPath = Fpath.v("test");
-  let padding = getPadding(~system=System.Platform.Windows, ~longPaths=false, prefixPath);
+  let padding =
+    getPadding(~system=System.Platform.Windows, ~longPaths=false, prefixPath);
   switch (padding) {
   | Ok("_") => true
   | _ => false
@@ -13,7 +14,8 @@ let%test "Validate padding length on Windows is always 1, if long paths aren't s
 
 let%test "Validate padding length on Windows is not 1, if long paths are supported" = {
   let prefixPath = Fpath.v("test");
-  let padding = getPadding(~system=System.Platform.Windows, ~longPaths=true, prefixPath);
+  let padding =
+    getPadding(~system=System.Platform.Windows, ~longPaths=true, prefixPath);
   switch (padding) {
   | Ok("_") => false
   | Error(_) => false

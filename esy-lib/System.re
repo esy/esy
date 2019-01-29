@@ -118,7 +118,8 @@ module Arch = {
   };
 };
 
-external checkLongPathRegistryKey: unit => bool = "esy_win32_check_long_path_regkey";
+external checkLongPathRegistryKey: unit => bool =
+  "esy_win32_check_long_path_regkey";
 
 let supportsLongPaths = () =>
   switch (Sys.win32) {
