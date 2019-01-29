@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## unreleased
+
+- Make esy read `.esyrc` in `$HOME` if no `.esyrc` is found in project
+  directory (@ulrikstrid).
+
 ## 0.5.6 @ next
 
 - Fix project installation invalidation to account for packages removed from
