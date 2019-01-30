@@ -1,0 +1,8 @@
+(library
+  (name EsyConf)
+  (inline_tests)
+  (preprocess (pps ppx_inline_test ppx_expect ppx_deriving.std))
+
+  (flags (:standard (-w -39) "-open" "EsyLib"))
+  (libraries EsyLib)
+  )
