@@ -85,6 +85,12 @@ jobs:
       - template: build.yml
       - template: publish-build-cache.yml
 
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Platform Release'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: platform-win32
+
   - job: buildWindowsLongPath
     displayName: Build Windows with long paths
     condition: succeeded()
@@ -109,6 +115,12 @@ jobs:
       - script: esy b where ocamlc
         displayName: Check OCaml path
       - template: publish-build-cache.yml
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Platform Release'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: platform-win32-long
 
   - job: buildRelease
     displayName: Build Release
