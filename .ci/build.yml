@@ -17,16 +17,7 @@ steps:
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
-  - script: 'node --version'
-    displayName: 'Check if node is available'
-
-  - script: 'esy node --version'
-    displayName: 'Check if node is available in esy'
-
-  - script: 'esy env node --version'
-    displayName: 'esy env node --version'
-
-  - script: 'esy jest test-e2e'
+  - script: 'esy test:e2e'
     displayName: 'esy test:e2e'
 
   - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'

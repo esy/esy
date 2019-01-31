@@ -81,9 +81,7 @@ jobs:
 
     steps:
       - template: use-node.yml
-      - template: restore-build-cache.yml
       - template: build.yml
-      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
@@ -110,11 +108,9 @@ jobs:
     steps:
       - template: windows-enable-long-paths.yml
       - template: use-node.yml
-      - template: restore-build-cache.yml
       - template: build.yml
       - script: esy b where ocamlc
         displayName: Check OCaml path
-      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
