@@ -17,6 +17,12 @@ steps:
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
+  - script: 'node --version'
+    displayName: 'Check if node is available'
+
+  - script: 'esy node --version'
+    displayName: 'Check if node is available in esy'
+
   - script: 'esy test:e2e'
     displayName: 'esy test:e2e'
 
