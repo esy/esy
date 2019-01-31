@@ -23,6 +23,9 @@ steps:
   - script: 'esy node --version'
     displayName: 'Check if node is available in esy'
 
+  - script: 'esy env node --version'
+    displayName: 'esy env node --version'
+
   - script: 'esy jest test-e2e'
     displayName: 'esy test:e2e'
 
