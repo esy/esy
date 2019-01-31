@@ -23,7 +23,7 @@ steps:
   - script: 'esy node --version'
     displayName: 'Check if node is available in esy'
 
-  - script: 'esy test:e2e'
+  - script: 'esy jest test-e2e'
     displayName: 'esy test:e2e'
 
   - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
