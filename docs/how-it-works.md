@@ -19,7 +19,7 @@ point where all artifacts are built consists of the following steps:
 
 - **Solve Dependencies**
 
-  Produces `esy.lock` solutuon lock out of `package.json`.  This step is
+  Produces `esy.lock` solution lock out of `package.json`.  This step is
   optional as `esy.lock` can be already present in a fresh checkout.
 
 - **Fetch Dependencies**
