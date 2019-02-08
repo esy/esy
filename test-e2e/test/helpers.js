@@ -124,7 +124,7 @@ var ESY_STORE_PADDING_LENGTH =
   ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 
 function getStorePathForPrefix(prefix) {
-  if (isWindows) {
+  if (isWindows && !process.env['ESY__WINDOWS_LONG_PATHS']) {
     return path.join(prefix, '3_');
   } else {
     var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;

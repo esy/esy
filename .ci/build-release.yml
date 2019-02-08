@@ -65,7 +65,7 @@ jobs:
           ArtifactName: platform-darwin
 
   - job: buildWindows
-    displayName: Windows
+    displayName: Build Windows
     condition: succeeded()
     timeoutInMinutes: 0
     pool:
@@ -81,15 +81,42 @@ jobs:
 
     steps:
       - template: use-node.yml
-      - template: restore-build-cache.yml
       - template: build.yml
-      - template: publish-build-cache.yml
 
       - task: PublishBuildArtifacts@1
-        displayName: 'Publish Artifact: Windows'
+        displayName: 'Publish Platform Release'
         inputs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-win32
+
+  - job: buildWindowsLongPath
+    displayName: Build Windows with long paths
+    condition: succeeded()
+    timeoutInMinutes: 0
+    pool:
+      vmImage: vs2017-win2016
+      demands: npm
+
+    variables:
+        ESY__WINDOWS_LONG_PATHS: 1
+        STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
+        STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
+        ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3____________________________________________________________________/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
+        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
+
+    steps:
+      - template: windows-enable-long-paths.yml
+      - template: use-node.yml
+      - template: build.yml
+      - script: esy b where ocamlc
+        displayName: Check OCaml path
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Platform Release'
+        inputs:
+          PathtoPublish: '_platformrelease'
+          ArtifactName: platform-win32-long
 
   - job: buildRelease
     displayName: Build Release

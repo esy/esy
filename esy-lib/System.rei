@@ -44,6 +44,8 @@ module Arch: {
   include S.COMPARABLE with type t := t;
 };
 
+let supportsLongPaths: unit => bool;
+
 module Environment: {
   /** Environment variable separator which is used for $PATH and etc */
 
