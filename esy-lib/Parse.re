@@ -5,11 +5,21 @@ module Let_syntax = {
   let bind = (~f, p) => p >>= f;
 };
 
+let (>>) = (a, b) => a >>= (() => b);
+
 let ignore = p => p >>| (_ => ());
 
 let const = (v, _) => return(v);
 
 let maybe = p => option(None, p >>| (v => Some(v)));
+
+let failIf = (msg, p) => {
+  if%bind (option(false, p >> return(true))) {
+    fail(msg);
+  } else {
+    return();
+  };
+};
 
 let till = (c, p) => {
   let%bind input = take_while1(c);

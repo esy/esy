@@ -110,7 +110,7 @@ module Parse = {
     };
   };
 
-  let link = kind => {
+  let makeLink = kind => {
     let make = (path, manifest) => Link({path, manifest, kind});
 
     pathLike(make);
@@ -121,19 +121,17 @@ module Parse = {
     Dist(dist);
   };
 
-  let parser =
-    withPrefix("link:", link(LinkRegular, ~requirePathSep=false))
-    <|> withPrefix("link-dev:", link(LinkDev, ~requirePathSep=false))
-    <|> dist;
-
-  let parserRelaxed = {
-    let distRelaxed = {
-      let%map dist = Dist.parserRelaxed;
-      Dist(dist);
-    };
-
-    parser <|> distRelaxed;
+  let distRelaxed = {
+    let%map dist = Dist.parserRelaxed;
+    Dist(dist);
   };
+
+  let link =
+    withPrefix("link:", makeLink(LinkRegular, ~requirePathSep=false))
+    <|> withPrefix("link-dev:", makeLink(LinkDev, ~requirePathSep=false));
+
+  let parser = link <|> dist;
+  let parserRelaxed = link <|> distRelaxed;
 };
 
 let parser = Parse.parser;

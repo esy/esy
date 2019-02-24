@@ -82,7 +82,7 @@ module Parse = {
 
   let manifestFilenameBeforeSharp = till(c => c != '#', ManifestSpec.parser);
 
-  let commitsha = {
+  let commitSHA = {
     let err = fail("missing or incorrect <commit>");
     let%bind () = ignore(char('#')) <|> err;
     let%bind () = commit;
@@ -118,13 +118,69 @@ module Parse = {
         <|> fail("missing or incorrect <author>/<repo>");
 
       let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitsha;
+      let%bind commit = commitSHA;
       return(Github({user, repo, commit, manifest}));
     }
     <?> "<author>/<repo>(:<manifest>)?#<commit>";
 
+  let gitViaSSH = {
+    let%bind parts =
+      sep_by1(char(':'), take_while1(c => c != ':' && c != '#'));
+
+    switch (parts) {
+    | [] => fail("missing or incorrect <remote>")
+    | [remote] =>
+      let%bind commit = commitSHA;
+      return(Git({remote, commit, manifest: None}));
+    | [remote, path] =>
+      let%bind commit = commitSHA;
+      return(Git({remote: remote ++ ":" ++ path, commit, manifest: None}));
+    | [remote, path, manifest] =>
+      let%bind commit = commitSHA;
+      let%bind manifest =
+        switch (ManifestSpec.ofString(manifest)) {
+        | Ok(manifest) => return(manifest)
+        | Error(err) => fail("invalid manifest: " ++ err)
+        };
+      return(
+        Git({
+          remote: remote ++ ":" ++ path,
+          commit,
+          manifest: Some(manifest),
+        }),
+      );
+    | _ => fail("invalid remote")
+    };
+  };
+
+  let gitRelaxed = {
+    let viaURL = {
+      let%bind proto = {
+        let gitproto = string("git://") *> return("git://");
+        let httpproto = string("git+http://") *> return("http://");
+        let httpsproto = string("git+https://") *> return("https://");
+        gitproto <|> httpproto <|> httpsproto;
+      };
+      let%bind () = commit;
+      let%bind remote =
+        take_while1(c => c != '#' && c != ':')
+        <|> fail("missing on incorrect <remote>");
+      let%bind manifest = gitOrGithubManifest;
+      let%bind commit = commitSHA;
+      return(Git({remote: proto ++ remote, commit, manifest}));
+    };
+
+    let viaSSH = string("git+ssh://") *> commit *> gitViaSSH;
+
+    viaURL <|> viaSSH;
+  };
+
   let git =
     {
+      let%bind () =
+        ignore(string("git+ssh://"))
+        <|> ignore(string("git+"))
+        <|> return();
       let%bind proto =
         take_while1(c => c != ':')
         <* char(':')
@@ -135,7 +191,7 @@ module Parse = {
         <|> fail("missing on incorrect <remote>");
 
       let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitsha;
+      let%bind commit = commitSHA;
       return(Git({remote: proto ++ ":" ++ remote, commit, manifest}));
     }
     <?> "<remote>(:<manifest>)?#<commit>";
@@ -195,19 +251,24 @@ module Parse = {
     LocalPath(local);
   };
 
-  let proto =
-    string("git:")
-    >>= const(`Git)
+  let schema = {
+    let git =
+      ignore(string("git:"))
+      *> failIf("invalid dependency schema", ignore(string("//")))
+      *> return(`Git);
+
+    git
     <|> (string("github:") >>= const(`GitHub))
     <|> (string("gh:") >>= const(`GitHub))
     <|> (string("archive:") >>= const(`Archive))
     <|> (string("path:") >>= const(`Path))
     <|> (string("no-source:") >>= const(`NoSource));
+  };
 
   let parser = {
-    let%bind proto = proto;
+    let%bind schema = schema;
     let%bind () = commit;
-    switch (proto) {
+    switch (schema) {
     | `Git => git
     | `GitHub => github
     | `Archive => archive
@@ -217,14 +278,272 @@ module Parse = {
   };
 
   let parserRelaxed =
-    parser <|> archive <|> github <|> path(~requirePathSep=true);
+    parser
+    <|> gitRelaxed
+    <|> archive
+    <|> github
+    <|> path(~requirePathSep=true);
 
   let%test_module "Parse tests" =
     (module
      {
        let test = Test.parse(~sexp_of=sexp_of_t, parse(parser));
+
        let testRelaxed =
          Test.parse(~sexp_of=sexp_of_t, parse(parserRelaxed));
+
+       let%expect_test "no-source:" = {
+         test("no-source:");
+         %expect
+         {|
+           NoSource
+         |};
+       };
+
+       let%expect_test "path:/some/path" = {
+         test("path:/some/path");
+         %expect
+         {|
+           (LocalPath ((path /some/path) (manifest ())))
+         |};
+       };
+
+       let%expect_test "path:./some/path" = {
+         test("path:./some/path");
+         %expect
+         {|
+           (LocalPath ((path some/path) (manifest ())))
+         |};
+       };
+
+       let%expect_test "path:some" = {
+         test("path:some");
+         %expect
+         {|
+           (LocalPath ((path some) (manifest ())))
+         |};
+       };
+
+       let%expect_test "archive:http://example.com/pkg.tgz#abcdef" = {
+         test("archive:http://example.com/pkg.tgz#abdcdef");
+         %expect
+         {|
+           (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
+         |};
+       };
+
+       let%expect_test "archive:https://example.com/pkg.tgz#abcdef" = {
+         test("archive:https://example.com/pkg.tgz#abdcdef");
+         %expect
+         {|
+           (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
+         |};
+       };
+
+       let%expect_test "github:user/repo#abcdef" = {
+         test("github:user/repo#abcdef");
+         %expect
+         {|
+           (Github (user user) (repo repo) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "github:user/repo:manifest.opam#abcdef" = {
+         test("github:user/repo:manifest.opam#abcdef");
+         %expect
+         {|
+           (Github (user user) (repo repo) (commit abcdef)
+            (manifest ((Opam manifest.opam))))
+         |};
+       };
+
+       let%expect_test "git:https://github.com/esy/esy.git#abcdef" = {
+         test("git:https://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:https://github.com/esy/esy.git:esy.opam#abcdef" = {
+         test("git:https://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git+https://github.com/esy/esy.git#abcdef" = {
+         test("git:git+https://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+https://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:esy/esy.git#abcdef" = {
+         test("git:git+ssh://git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
+         test("git:git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         test("git:git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
+         test("git:git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         test("git:git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       /* relaxed parser */
+
+       let%expect_test "http://example.com/pkg.tgz#abcdef" = {
+         testRelaxed("http://example.com/pkg.tgz#abdcdef");
+         %expect
+         {|
+           (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
+         |};
+       };
+
+       let%expect_test "https://example.com/pkg.tgz#abcdef" = {
+         testRelaxed("https://example.com/pkg.tgz#abdcdef");
+         %expect
+         {|
+           (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
+         |};
+       };
+
+       let%expect_test "user/repo#abcdef" = {
+         testRelaxed("user/repo#abcdef");
+         %expect
+         {|
+           (Github (user user) (repo repo) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "user/repo:manifest.opam#abcdef" = {
+         testRelaxed("user/repo:manifest.opam#abcdef");
+         %expect
+         {|
+           (Github (user user) (repo repo) (commit abcdef)
+            (manifest ((Opam manifest.opam))))
+         |};
+       };
+
+       let%expect_test "git+https://github.com/esy/esy.git#abcdef" = {
+         testRelaxed("git+https://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed("git+https://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git+http://github.com/esy/esy.git#abcdef" = {
+         testRelaxed("git+http://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote http://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git+http://github.com/esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed("git+http://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote http://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git://github.com/esy/esy.git#abcdef" = {
+         testRelaxed("git://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git://github.com/esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed("git://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git+ssh://git@github.com:esy/esy.git#abcdef" = {
+         testRelaxed("git+ssh://git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed("git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
 
        /* Testing parser: errors */
 
