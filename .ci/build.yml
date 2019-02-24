@@ -18,9 +18,11 @@ steps:
     displayName: 'esy b dune runtest test'
 
   - script: 'esy test:e2e'
+    continueOnError: true
     displayName: 'esy test:e2e'
 
   - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
+    continueOnError: true
     displayName: 'esy test:e2e-slow'
 
   - task: PublishTestResults@2
@@ -38,4 +40,5 @@ steps:
       summaryFileLocation: '**/coverage/cobertura-coverage.xml'
 
   - script: 'esy release:platform-release'
+    condition: succeededOrFailed()
     displayName: 'esy platform-release'
