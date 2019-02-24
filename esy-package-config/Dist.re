@@ -123,8 +123,64 @@ module Parse = {
     }
     <?> "<author>/<repo>(:<manifest>)?#<commit>";
 
+  let gitViaSSH = {
+    let%bind parts =
+      sep_by1(char(':'), take_while1(c => c != ':' && c != '#'));
+
+    switch (parts) {
+    | [] => fail("missing or incorrect <remote>")
+    | [remote] =>
+      let%bind commit = commitSHA;
+      return(Git({remote, commit, manifest: None}));
+    | [remote, path] =>
+      let%bind commit = commitSHA;
+      return(Git({remote: remote ++ ":" ++ path, commit, manifest: None}));
+    | [remote, path, manifest] =>
+      let%bind commit = commitSHA;
+      let%bind manifest =
+        switch (ManifestSpec.ofString(manifest)) {
+        | Ok(manifest) => return(manifest)
+        | Error(err) => fail("invalid manifest: " ++ err)
+        };
+      return(
+        Git({
+          remote: remote ++ ":" ++ path,
+          commit,
+          manifest: Some(manifest),
+        }),
+      );
+    | _ => fail("invalid remote")
+    };
+  };
+
+  let gitRelaxed = {
+    let viaURL = {
+      let%bind proto = {
+        let gitproto = string("git://") *> return("git://");
+        let httpproto = string("git+http://") *> return("http://");
+        let httpsproto = string("git+https://") *> return("https://");
+        gitproto <|> httpproto <|> httpsproto;
+      };
+      let%bind () = commit;
+      let%bind remote =
+        take_while1(c => c != '#' && c != ':')
+        <|> fail("missing on incorrect <remote>");
+      let%bind manifest = gitOrGithubManifest;
+      let%bind commit = commitSHA;
+      return(Git({remote: proto ++ remote, commit, manifest}));
+    };
+
+    let viaSSH = string("git+ssh://") *> commit *> gitViaSSH;
+
+    viaURL <|> viaSSH;
+  };
+
   let git =
     {
+      let%bind () =
+        ignore(string("git+ssh://"))
+        <|> ignore(string("git+"))
+        <|> return();
       let%bind proto =
         take_while1(c => c != ':')
         <* char(':')
@@ -139,60 +195,6 @@ module Parse = {
       return(Git({remote: proto ++ ":" ++ remote, commit, manifest}));
     }
     <?> "<remote>(:<manifest>)?#<commit>";
-
-  let gitRelaxed = {
-    let viaURL = {
-      let%bind proto = {
-        let gitproto = ignore(string("git://")) >> return("git://");
-        let httpproto = ignore(string("git+http://")) >> return("http://");
-        let httpsproto =
-          ignore(string("git+https://")) >> return("https://");
-        gitproto <|> httpproto <|> httpsproto;
-      };
-      let%bind () = commit;
-      let%bind remote =
-        take_while1(c => c != '#' && c != ':')
-        <|> fail("missing on incorrect <remote>");
-      let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitSHA;
-      return(Git({remote: proto ++ remote, commit, manifest}));
-    };
-
-    let viaSSH = {
-      let%bind () = ignore(string("git+ssh://"));
-      let%bind () = commit;
-
-      let%bind parts =
-        sep_by1(char(':'), take_while1(c => c != ':' && c != '#'));
-
-      switch (parts) {
-      | [] => fail("missing or incorrect <remote>")
-      | [remote] =>
-        let%bind commit = commitSHA;
-        return(Git({remote, commit, manifest: None}));
-      | [remote, path] =>
-        let%bind commit = commitSHA;
-        return(Git({remote: remote ++ ":" ++ path, commit, manifest: None}));
-      | [remote, path, manifest] =>
-        let%bind commit = commitSHA;
-        let%bind manifest =
-          switch (ManifestSpec.ofString(manifest)) {
-          | Ok(manifest) => return(manifest)
-          | Error(err) => fail("invalid manifest: " ++ err)
-          };
-        return(
-          Git({
-            remote: remote ++ ":" ++ path,
-            commit,
-            manifest: Some(manifest),
-          }),
-        );
-      | _ => fail("invalid remote")
-      };
-    };
-
-    viaURL <|> viaSSH;
-  };
 
   let archive =
     {
@@ -252,8 +254,8 @@ module Parse = {
   let schema = {
     let git =
       ignore(string("git:"))
-      >> failIf("invalid dependency schema", ignore(string("//")))
-      >> return(`Git);
+      *> failIf("invalid dependency schema", ignore(string("//")))
+      *> return(`Git);
 
     git
     <|> (string("github:") >>= const(`GitHub))
@@ -368,6 +370,57 @@ module Parse = {
          %expect
          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git+https://github.com/esy/esy.git#abcdef" = {
+         test("git:git+https://github.com/esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+https://github.com/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote https://github.com/esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:esy/esy.git#abcdef" = {
+         test("git:git+ssh://git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam esy.opam))))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
+         test("git:git@github.com:esy/esy.git#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
+         |};
+       };
+
+       let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
+         test("git:git@github.com:esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
          |};
        };
