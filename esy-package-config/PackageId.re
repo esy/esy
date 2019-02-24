@@ -20,6 +20,20 @@ let make = (name, version, digest) => {
 let name = ({name, _}) => name;
 let version = ({version, _}) => version;
 
+let findatinv = Str.regexp("__AT__");
+let findat = Str.regexp("@");
+
+let showVersion = v => {
+  let v = Version.show(v);
+  let v = Str.global_replace(findat, "__AT__", v);
+  v;
+};
+
+let parseVersion = s => {
+  let s = Str.global_replace(findatinv, "@", s);
+  Version.parse(s);
+};
+
 let parse = v => {
   open Result.Syntax;
   let split = v => Astring.String.cut(~sep="@", v);
@@ -37,19 +51,21 @@ let parse = v => {
   let%bind (name, v) = parseName(v);
   switch (split(v)) {
   | Some((version, digest)) =>
-    let%bind version = Version.parse(version);
+    let%bind version = parseVersion(version);
     return({name, version, digest: Some(digest)});
   | None =>
-    let%bind version = Version.parse(v);
+    let%bind version = parseVersion(v);
     return({name, version, digest: None});
   };
 };
 
-let show = ({name, version, digest}) =>
+let show = ({name, version, digest}) => {
+  let version = showVersion(version);
   switch (digest) {
-  | Some(digest) => name ++ "@" ++ Version.show(version) ++ "@" ++ digest
-  | None => name ++ "@" ++ Version.show(version)
+  | Some(digest) => name ++ "@" ++ version ++ "@" ++ digest
+  | None => name ++ "@" ++ version
   };
+};
 
 let pp = (fmt, id) => Fmt.pf(fmt, "%s", show(id));
 
