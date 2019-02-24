@@ -1,11 +1,16 @@
 # CHANGELOG
 
-## unreleased
+## 0.5.7 @ latest
 
 - Make esy read `.esyrc` in `$HOME` if no `.esyrc` is found in project
   directory (@ulrikstrid).
 
-## 0.5.6 @ next
+- Build with long paths on Windows if supported (requires registry tweak)
+  (@bryphe and @ulrikstrid).
+
+- Fix parsing git dependencies, (#864, @andreypopp)
+
+## 0.5.6 @ latest
 
 - Fix project installation invalidation to account for packages removed from
   solution. Fixes a runtime failure (see #834).
