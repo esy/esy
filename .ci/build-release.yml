@@ -32,6 +32,7 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
+        condition: succeededOrFailed()
         inputs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-linux
@@ -60,6 +61,7 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
+        condition: succeededOrFailed()
         inputs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-darwin
@@ -85,6 +87,7 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
+        condition: succeededOrFailed()
         inputs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-win32
@@ -114,6 +117,7 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         displayName: 'Publish Platform Release'
+        condition: succeededOrFailed()
         inputs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-win32-long
