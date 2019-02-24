@@ -124,7 +124,6 @@ jobs:
       - buildLinux
       - buildMacos
       - buildWindows
-    condition: succeeded()
     pool:
       vmImage: ubuntu-16.04
 
