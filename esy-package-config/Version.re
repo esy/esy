@@ -33,12 +33,7 @@ module Parse = {
     Opam(v);
   };
 
-  let opamWithPrefix = string("opam:") *> opam;
-
-  let source = {
-    let%map source = Source.parser;
-    Source(source);
-  };
+  let opamWithPrefix = string("opam:") *> commit >> opam;
 
   let sourceRelaxed = {
     let%map source = Source.parserRelaxed;
@@ -46,15 +41,14 @@ module Parse = {
   };
 };
 
-let parse = (~tryAsOpam=false) => {
+let parse = (~tryAsOpam=false, v) => {
   let parser =
     if (tryAsOpam) {
-      Parse.(source <|> opamWithPrefix <|> opam <|> sourceRelaxed);
+      Parse.(opamWithPrefix <|> opam <|> sourceRelaxed);
     } else {
-      Parse.(source <|> opamWithPrefix <|> npm <|> sourceRelaxed);
+      Parse.(opamWithPrefix <|> npm <|> sourceRelaxed);
     };
-
-  Parse.parse(parser);
+  Parse.parse(parser, v);
 };
 
 let%test_module "parsing" =
