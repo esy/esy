@@ -1,6 +1,9 @@
 /* @flow */
 
 const helpers = require('../test/helpers.js');
+const isCi = require("is-ci");
+
+const {test} = helpers;
 
 async function assertLayoutCorrect(path) {
   await expect(helpers.readInstalledPackages(path)).resolves.toMatchObject({
@@ -247,7 +250,7 @@ describe(`Tests for installations from custom sources`, () => {
 });
 
 describe('resolutions', function() {
-  test('github ssh URL', async () => {
+  test.disableIf(isCi)('github ssh URL', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -270,7 +273,7 @@ describe('resolutions', function() {
     await assertLayoutCorrect(p.projectPath);
   });
 
-  test('github ssh URL (via git:)', async () => {
+  test.disableIf(isCi)('github ssh URL (via git:)', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -293,7 +296,7 @@ describe('resolutions', function() {
     await assertLayoutCorrect(p.projectPath);
   });
 
-  test('github ssh (via git:)', async () => {
+  test.disableIf(isCi)('github ssh (via git:)', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -317,7 +320,7 @@ describe('resolutions', function() {
   });
 
 
-  test('github ssh URL with manifest', async () => {
+  test.disableIf(isCi)('github ssh URL with manifest', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -340,7 +343,7 @@ describe('resolutions', function() {
     await assertLayoutCorrect(p.projectPath);
   });
 
-  test('github ssh URL (via git:) with manifest', async () => {
+  test.disableIf(isCi)('github ssh URL (via git:) with manifest', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
@@ -363,7 +366,7 @@ describe('resolutions', function() {
     await assertLayoutCorrect(p.projectPath);
   });
 
-  test('github ssh (via git:) with manifest', async () => {
+  test.disableIf(isCi)('github ssh (via git:) with manifest', async () => {
     const fixture = [
       helpers.packageJson({
         name: 'root',
