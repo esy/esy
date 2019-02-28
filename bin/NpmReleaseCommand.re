@@ -623,7 +623,12 @@ let make =
                 let f = ((publicName, _innerName)) => {
                   let binName =
                     switch (System.Platform.host) {
-                    | Windows => publicName ++ ".exe"
+                    | Windows =>
+                      if (Path.hasExt("exe", Path.v(publicName))) {
+                        publicName;
+                      } else {
+                        publicName ++ ".exe";
+                      }
                     | _ => publicName
                     };
 
