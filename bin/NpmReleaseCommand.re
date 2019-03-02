@@ -163,6 +163,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
          switch (name) {
          | "cur__original_root"
          | "cur__root" => false
+         | "PATH" => false
          | _ => true
          }
        )
@@ -177,7 +178,6 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
 
   Printf.sprintf(
     {|
-
     let windows = Sys.os_type = "Win32";;
     let cwd = Sys.getcwd ();;
     let path_sep = if windows then '\\' else '/';;
