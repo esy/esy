@@ -1,8 +1,9 @@
-open EsyPackageConfig;
-
 /**
- * Package universe holds information about available packages.
- */;
+ * Package universe holds information about available packages needed to solve
+ * project dependencies.
+ */
+
+open EsyPackageConfig;
 
 /** Package universe. */
 
@@ -10,28 +11,25 @@ type t;
 type univ = t;
 
 /** Empty package universe. */
-
 let empty: Resolver.t => t;
 
 /** Add package to the package universe. */
-
 let add: (~pkg: InstallManifest.t, t) => t;
 
 /** Check if the package is a member of the package universe. */
-
 let mem: (~pkg: InstallManifest.t, t) => bool;
 
 /** Find all versions of a package specified by name. */
-
 let findVersions: (~name: string, t) => list(InstallManifest.t);
 
 /** Find a specific version of a package. */
-
 let findVersion:
   (~name: string, ~version: Version.t, t) => option(InstallManifest.t);
+
 let findVersionExn:
   (~name: string, ~version: Version.t, t) => InstallManifest.t;
 
+/** Name of the package encoded in CUDF */
 module CudfName: {
   type t;
   let show: t => string;
@@ -41,7 +39,6 @@ module CudfName: {
 /**
  * Mapping from universe to CUDF.
  */
-
 module CudfMapping: {
   type t;
 
@@ -59,9 +56,8 @@ module CudfMapping: {
 };
 
 /**
- * Encode universe as CUDF>
+ * Encode universe as CUDF universe.
  */
-
 let toCudf:
   (~installed: InstallManifest.Set.t=?, SolveSpec.t, t) =>
   (Cudf.universe, CudfMapping.t);
