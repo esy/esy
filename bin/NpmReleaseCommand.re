@@ -275,8 +275,8 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
       let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
       let replace v =
         let name = Str.matched_group 1 v in
-        let values = EnvHashtbl.find_all curEnvMap name in
-        String.concat ";" values
+        try EnvHashtbl.find curEnvMap name
+        with Not_found -> ""
       in
       let f (name, value) =
         let value = Str.global_substitute findVarRe replace value in
