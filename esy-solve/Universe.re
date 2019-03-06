@@ -83,24 +83,52 @@ module CudfVersionMap: {
   type t;
 
   let make: (~size: int=?, unit) => t;
-  let update: (t, string, Version.t, int) => unit;
+  let addPackageVersions: (list(InstallManifest.t), t) => unit;
+
   let findVersion:
     (~cudfName: CudfName.t, ~cudfVersion: int, t) => option(Version.t);
   let findVersionExn:
     (~cudfName: CudfName.t, ~cudfVersion: int, t) => Version.t;
+
   let findCudfVersion: (~name: string, ~version: Version.t, t) => option(int);
   let findCudfVersionExn: (~name: string, ~version: Version.t, t) => int;
+
+  let findCudfNeighborhood:
+    (string, Version.t, t) => (option(int), option(int), option(int));
 } = {
+  module IntMap =
+    Map.Make({
+      type t = int;
+      let compare = (a, b) => a - b;
+    });
+
+  type mapping = {
+    mutable toCudf: Version.Map.t(int),
+    mutable ofCudf: IntMap.t(Version.t),
+  };
+
   type t = {
+    packages: Hashtbl.t(string, mapping),
     cudfVersionToVersion: Hashtbl.t((CudfName.t, int), Version.t),
     versionToCudfVersion: Hashtbl.t((string, Version.t), int),
     versions: Hashtbl.t(string, Version.Set.t),
   };
 
   let make = (~size=100, ()) => {
+    packages: Hashtbl.create(size),
     cudfVersionToVersion: Hashtbl.create(size),
     versionToCudfVersion: Hashtbl.create(size),
     versions: Hashtbl.create(size),
+  };
+
+  let getMapping = (name, vmap) => {
+    switch (Hashtbl.find_opt(vmap.packages, name)) {
+    | Some(mapping) => mapping
+    | None =>
+      let mapping = {toCudf: Version.Map.empty, ofCudf: IntMap.empty};
+      Hashtbl.replace(vmap.packages, name, mapping);
+      mapping;
+    };
   };
 
   let update = (map, name, version, cudfVersion) => {
@@ -120,7 +148,36 @@ module CudfVersionMap: {
       Hashtbl.replace(map.versions, name, versions);
     };
 
+    let () = {
+      let mapping = getMapping(name, map);
+      mapping.toCudf = Version.Map.add(version, cudfVersion, mapping.toCudf);
+      mapping.ofCudf = IntMap.add(cudfVersion, version, mapping.ofCudf);
+    };
+
     ();
+  };
+
+  let maxVersionsPerPackage = 10000000;
+
+  let addPackageVersions = (pkgVersions: list(InstallManifest.t), map) => {
+    // sort versions first
+    let pkgVersions = {
+      let cmp = (a, b) => {
+        Version.compare(a.InstallManifest.version, b.InstallManifest.version);
+      };
+      List.sort(~cmp, pkgVersions);
+    };
+    let f = (index, pkg: InstallManifest.t) => {
+      let cudfVersion =
+        switch (pkg.version) {
+        | Npm(_)
+        | Opam(_) => index + 1
+        | Source(_) => index + maxVersionsPerPackage + 1
+        };
+      update(map, pkg.name, pkg.version, cudfVersion);
+    };
+
+    List.iteri(~f, pkgVersions);
   };
 
   let findVersion = (~cudfName, ~cudfVersion, map) =>
@@ -163,66 +220,106 @@ module CudfVersionMap: {
 
       failwith(msg);
     };
+
+  let findCudfNeighborhood = (name, version, vmap) => {
+    let mapping = getMapping(name, vmap);
+    let (prev, this, next) = Version.Map.split(version, mapping.toCudf);
+    let prev =
+      switch (Version.Map.max_binding_opt(prev)) {
+      | None => None
+      | Some((_, v)) => Some(v)
+      };
+    let next =
+      switch (Version.Map.min_binding_opt(next)) {
+      | None => None
+      | Some((_, v)) =>
+        if (v < maxVersionsPerPackage) {
+          Some(v);
+        } else {
+          None;
+        }
+      };
+    (prev, this, next);
+  };
 };
 
 module CudfMapping = {
-  type t = (univ, Cudf.universe, CudfVersionMap.t);
+  type t = {
+    univ,
+    cudfUniv: Cudf.universe,
+    versionMap: CudfVersionMap.t,
+  };
 
   let encodePkgName = CudfName.encode;
   let decodePkgName = CudfName.decode;
 
-  let decodePkg = (cudf: Cudf.package, (univ, _cudfUniv, vmap)) => {
+  let decodePkg = (cudf: Cudf.package, mapping) => {
     let cudfName = CudfName.make(cudf.package);
     let name = CudfName.decode(cudfName);
     switch (
-      CudfVersionMap.findVersion(~cudfName, ~cudfVersion=cudf.version, vmap)
+      CudfVersionMap.findVersion(
+        ~cudfName,
+        ~cudfVersion=cudf.version,
+        mapping.versionMap,
+      )
     ) {
-    | Some(version) => findVersion(~name, ~version, univ)
+    | Some(version) => findVersion(~name, ~version, mapping.univ)
     | None => None
     };
   };
 
-  let decodePkgExn = (cudf: Cudf.package, (univ, _cudfUniv, vmap)) => {
+  let decodePkgExn = (cudf: Cudf.package, mapping) => {
     let cudfName = CudfName.make(cudf.package);
     let name = CudfName.decode(cudfName);
     let version =
       CudfVersionMap.findVersionExn(
         ~cudfName,
         ~cudfVersion=cudf.version,
-        vmap,
+        mapping.versionMap,
       );
-    findVersionExn(~name, ~version, univ);
+    findVersionExn(~name, ~version, mapping.univ);
   };
 
-  let encodePkg = (pkg: InstallManifest.t, (_univ, cudfUniv, vmap)) => {
+  let encodePkg = (pkg: InstallManifest.t, mapping) => {
     let name = pkg.name;
     let cudfName = CudfName.encode(pkg.name);
-    switch (CudfVersionMap.findCudfVersion(~name, ~version=pkg.version, vmap)) {
-    | Some(cudfVersion) =>
-      try (
+    try (
+      {
+        let cudfVersion =
+          CudfVersionMap.findCudfVersionExn(
+            ~name,
+            ~version=pkg.version,
+            mapping.versionMap,
+          );
         Some(
           Cudf.lookup_package(
-            cudfUniv,
+            mapping.cudfUniv,
             (CudfName.show(cudfName), cudfVersion),
           ),
-        )
-      ) {
-      | Not_found => None
+        );
       }
-    | None => None
+    ) {
+    | Not_found => None
     };
   };
 
-  let encodePkgExn = (pkg: InstallManifest.t, (_univ, cudfUniv, vmap)) => {
+  let encodePkgExn = (pkg: InstallManifest.t, mapping) => {
     let name = pkg.name;
     let cudfName = CudfName.encode(pkg.name);
     let cudfVersion =
-      CudfVersionMap.findCudfVersionExn(~name, ~version=pkg.version, vmap);
-    Cudf.lookup_package(cudfUniv, (CudfName.show(cudfName), cudfVersion));
+      CudfVersionMap.findCudfVersionExn(
+        ~name,
+        ~version=pkg.version,
+        mapping.versionMap,
+      );
+    Cudf.lookup_package(
+      mapping.cudfUniv,
+      (CudfName.show(cudfName), cudfVersion),
+    );
   };
 
-  let encodeDepExn = (~name, ~matches, (univ, _cudfUniv, vmap)) => {
-    let versions = findVersions(~name, univ);
+  let encodeDepExn = (~name, ~matches, mapping) => {
+    let versions = findVersions(~name, mapping.univ);
 
     let versionsMatched = List.filter(~f=matches, versions);
 
@@ -236,7 +333,7 @@ module CudfMapping = {
           CudfVersionMap.findCudfVersionExn(
             ~name=pkg.InstallManifest.name,
             ~version=pkg.InstallManifest.version,
-            vmap,
+            mapping.versionMap,
           );
 
         (
@@ -249,13 +346,172 @@ module CudfMapping = {
     };
   };
 
-  let univ = ((univ, _, _)) => univ;
-  let cudfUniv = ((_, cudfUniv, _)) => cudfUniv;
+  let encodeOpamDep = (~matchExactly, dep: InstallManifest.Dep.t, mapping) => {
+    let versions = findVersions(~name=dep.name, mapping.univ);
+    let toCudfName = name => CudfName.show(CudfName.encode(name));
+
+    let findCudfNeighborhood = v =>
+      CudfVersionMap.findCudfNeighborhood(dep.name, v, mapping.versionMap);
+
+    // TODO: think of something better here
+    let forceConflict = [(toCudfName(dep.name), Some((`Eq, 100000000)))];
+
+    switch (dep.req) {
+    // opam constraints
+    | Opam(OpamPackageVersion.Constraint.ANY) => [
+        (toCudfName(dep.name), None),
+      ]
+    | Opam(OpamPackageVersion.Constraint.NONE) => [
+        (toCudfName(dep.name), None),
+      ]
+    | Opam(OpamPackageVersion.Constraint.EQ(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Eq, v)))]
+      | (_, None, _) => forceConflict
+      }
+    | Opam(OpamPackageVersion.Constraint.NEQ(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Neq, v)))]
+      | (_, None, _) => []
+      }
+    | Opam(OpamPackageVersion.Constraint.LT(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, Some(v)) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, None) => forceConflict
+      }
+    | Opam(OpamPackageVersion.Constraint.LTE(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Lte, v)))]
+      | (_, None, Some(v)) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, None) => forceConflict
+      }
+    | Opam(OpamPackageVersion.Constraint.GT(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (Some(v), None, _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (None, None, _) => forceConflict
+      }
+    | Opam(OpamPackageVersion.Constraint.GTE(v)) =>
+      switch (findCudfNeighborhood(Version.Opam(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Gte, v)))]
+      | (Some(v), None, _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (None, None, _) => forceConflict
+      }
+    // npm constraints
+    | Npm(SemverVersion.Constraint.ANY) => [(toCudfName(dep.name), None)]
+    | Npm(SemverVersion.Constraint.NONE) => [(toCudfName(dep.name), None)]
+    | Npm(SemverVersion.Constraint.EQ(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Eq, v)))]
+      | (_, None, _) => forceConflict
+      }
+    | Npm(SemverVersion.Constraint.NEQ(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Neq, v)))]
+      | (_, None, _) => []
+      }
+    | Npm(SemverVersion.Constraint.LT(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, Some(v)) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, None) => forceConflict
+      }
+    | Npm(SemverVersion.Constraint.LTE(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Lte, v)))]
+      | (_, None, Some(v)) => [(toCudfName(dep.name), Some((`Lt, v)))]
+      | (_, None, None) => forceConflict
+      }
+    | Npm(SemverVersion.Constraint.GT(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (Some(v), None, _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (None, None, _) => forceConflict
+      }
+    | Npm(SemverVersion.Constraint.GTE(v)) =>
+      switch (findCudfNeighborhood(Version.Npm(v))) {
+      | (_, Some(v), _) => [(toCudfName(dep.name), Some((`Gte, v)))]
+      | (Some(v), None, _) => [(toCudfName(dep.name), Some((`Gt, v)))]
+      | (None, None, _) => forceConflict
+      }
+    // we compare those exactly
+    | NpmDistTag(_)
+    | Source(_) =>
+      let versionsMatched = List.filter(~f=matchExactly(dep), versions);
+
+      switch (versionsMatched) {
+      | [] => forceConflict
+      | versionsMatched =>
+        let pkgToConstraint = pkg => {
+          let cudfVersion =
+            CudfVersionMap.findCudfVersionExn(
+              ~name=pkg.InstallManifest.name,
+              ~version=pkg.InstallManifest.version,
+              mapping.versionMap,
+            );
+
+          (
+            CudfName.show(CudfName.encode(pkg.InstallManifest.name)),
+            Some((`Eq, cudfVersion)),
+          );
+        };
+
+        List.map(~f=pkgToConstraint, versionsMatched);
+      };
+    };
+  };
+
+  let encodeNpmReq = (~matchExactly, req: Req.t, mapping) => {
+    let versions = findVersions(~name=req.name, mapping.univ);
+    let toCudfName = name => CudfName.show(CudfName.encode(name));
+
+    let findCudfNeighborhood = v =>
+      CudfVersionMap.findCudfNeighborhood(req.name, v, mapping.versionMap);
+
+    // TODO: think of something better here
+    let forceConflict = [(toCudfName(req.name), Some((`Eq, 100000000)))];
+
+    switch (req.spec) {
+    // opam constraints
+    | Opam(formula) => []
+    | Npm(formula) =>
+      let formula = SemverVersion.Formula.ofDnfToCnf(formula);
+      [];
+    // we compare those exactly
+    | NpmDistTag(_)
+    | Source(_) =>
+      let versionsMatched = List.filter(~f=matchExactly(req), versions);
+
+      switch (versionsMatched) {
+      | [] => forceConflict
+      | versionsMatched =>
+        let pkgToConstraint = pkg => {
+          let cudfVersion =
+            CudfVersionMap.findCudfVersionExn(
+              ~name=pkg.InstallManifest.name,
+              ~version=pkg.InstallManifest.version,
+              mapping.versionMap,
+            );
+
+          (
+            CudfName.show(CudfName.encode(pkg.InstallManifest.name)),
+            Some((`Eq, cudfVersion)),
+          );
+        };
+
+        List.map(~f=pkgToConstraint, versionsMatched);
+      };
+    };
+  };
+
+  let univ = mapping => mapping.univ;
+  let cudfUniv = mapping => mapping.cudfUniv;
 };
 
 let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   let cudfUniv = Cudf.empty_universe();
-  let cudfVersionMap = CudfVersionMap.make();
+  let versionMap = CudfVersionMap.make();
 
   /* We add packages in batch by name so this "set of package names" is
    * enough to check if we have handled a pkg already.
@@ -267,23 +523,11 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     (seen, markAsSeen);
   };
 
-  let updateVersionMap = pkgs => {
-    let f = (cudfVersion, pkg: InstallManifest.t) =>
-      CudfVersionMap.update(
-        cudfVersionMap,
-        pkg.name,
-        pkg.version,
-        cudfVersion + 1,
-      );
-
-    List.iteri(~f, pkgs);
-  };
-
   let encodeOpamDep = (dep: InstallManifest.Dep.t) => {
     let versions = findVersions(~name=dep.name, univ);
     if (!seen(dep.name)) {
       markAsSeen(dep.name);
-      updateVersionMap(versions);
+      CudfVersionMap.addPackageVersions(versions, versionMap);
     };
     let matches = pkg =>
       Resolver.versionMatchesDep(
@@ -296,7 +540,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     CudfMapping.encodeDepExn(
       ~name=dep.name,
       ~matches,
-      (univ, cudfUniv, cudfVersionMap),
+      {univ, cudfUniv, versionMap},
     );
   };
 
@@ -304,7 +548,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     let versions = findVersions(~name=req.name, univ);
     if (!seen(req.name)) {
       markAsSeen(req.name);
-      updateVersionMap(versions);
+      CudfVersionMap.addPackageVersions(versions, versionMap);
     };
     let matches = pkg =>
       Resolver.versionMatchesReq(
@@ -317,7 +561,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     CudfMapping.encodeDepExn(
       ~name=req.name,
       ~matches,
-      (univ, cudfUniv, cudfVersionMap),
+      {univ, cudfUniv, versionMap},
     );
   };
 
@@ -344,7 +588,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       CudfVersionMap.findCudfVersionExn(
         ~name=pkg.name,
         ~version=pkg.version,
-        cudfVersionMap,
+        versionMap,
       );
 
     let dependencies =
@@ -375,12 +619,12 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   StringMap.iter(
     (name, _) => {
       let versions = findVersions(~name, univ);
-      updateVersionMap(versions);
+      CudfVersionMap.addPackageVersions(versions, versionMap);
       let size = List.length(versions);
       List.iter(~f=encodePkg(size), versions);
     },
     univ.pkgs,
   );
 
-  (cudfUniv, (univ, cudfUniv, cudfVersionMap));
+  (cudfUniv, {CudfMapping.univ, cudfUniv, versionMap});
 };

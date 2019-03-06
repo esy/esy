@@ -6,7 +6,7 @@
 type t =
   | Npm(SemverVersion.Formula.DNF.t)
   | NpmDistTag(string)
-  | Opam(OpamPackageVersion.Formula.DNF.t)
+  | Opam(OpamPackageVersion.Formula.CNF.t)
   | Source(SourceSpec.t);
 
 include S.COMPARABLE with type t := t;
