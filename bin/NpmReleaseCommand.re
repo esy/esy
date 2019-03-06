@@ -177,20 +177,28 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
 
   Printf.sprintf(
     {|
-    module EnvHash =
-      struct
-        type t = string
-
-        let equal i j = String.lowercase_ascii i = String.lowercase_ascii j
-        let hash k = Hashtbl.hash (String.lowercase_ascii k)
-      end
-    
-    module EnvHashtbl = Hashtbl.Make(EnvHash)
-
     let windows = Sys.os_type = "Win32";;
     let cwd = Sys.getcwd ();;
     let path_sep = if windows then '\\' else '/';;
     let path_sep_str = String.make 1 path_sep
+
+    let caseInsensitiveEqual i j = String.lowercase_ascii i = String.lowercase_ascii j;; 
+    let caseInsensitiveHash k = Hashtbl.hash (String.lowercase_ascii k)
+
+    module EnvHash =
+      struct
+        type t = string
+
+        let equal = if (windows)
+        then caseInsensitiveEqual
+        else (=);;
+
+        let hash = if windows
+        then caseInsensitiveHash
+        else Hashtbl.hash;;
+      end
+
+    module EnvHashtbl = Hashtbl.Make(EnvHash)
 
     let is_root p =
       if windows
