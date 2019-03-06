@@ -163,7 +163,6 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
          switch (name) {
          | "cur__original_root"
          | "cur__root" => false
-         | "PATH" => false
          | _ => true
          }
        )
@@ -263,7 +262,11 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
     ;;
 
     let expandEnv env =
-      let findVarRe = Str.regexp "\\$\\([a-zA-Z0-9_]+\\)" in
+      let regexpString = "\\$\\([a-zA-Z0-9_]+\\)" in
+      let findVarRe = if windows
+      then Str.regexp_case_fold regexpString
+      else Str.regexp regexpString
+      in
       let replace v =
         let name = Str.matched_group 1 v in
         try Hashtbl.find curEnvMap name
