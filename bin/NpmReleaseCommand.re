@@ -180,10 +180,10 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
     let windows = Sys.os_type = "Win32";;
     let cwd = Sys.getcwd ();;
     let path_sep = if windows then '\\' else '/';;
-    let path_sep_str = String.make 1 path_sep
+    let path_sep_str = String.make 1 path_sep;;
 
-    let caseInsensitiveEqual i j = String.lowercase_ascii i = String.lowercase_ascii j;; 
-    let caseInsensitiveHash k = Hashtbl.hash (String.lowercase_ascii k)
+    let caseInsensitiveEqual i j = String.lowercase_ascii i = String.lowercase_ascii j;;
+    let caseInsensitiveHash k = Hashtbl.hash (String.lowercase_ascii k);;
 
     module EnvHash =
       struct
