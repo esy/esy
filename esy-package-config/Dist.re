@@ -545,6 +545,15 @@ module Parse = {
          |};
        };
 
+       let%expect_test "git+ssh://git@github.com:esy/esy.git:path/to/opam#abcdef" = {
+         testRelaxed("git+ssh://git@github.com:esy/esy.git:path/to/opam#abcdef");
+         %expect
+         {|
+           (Git (remote git@github.com:esy/esy.git) (commit abcdef)
+            (manifest ((Opam opam))))
+         |};
+       };
+
        /* Testing parser: errors */
 
        let%expect_test "github:user/repo#ref" = {

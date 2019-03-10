@@ -12,7 +12,7 @@ let pp = (fmt, (_, fname)) => Fmt.string(fmt, fname);
 
 let ofString = fname =>
   Result.Syntax.(
-    switch (fname) {
+    switch (Path.(basename(v(fname)))) {
     | "" => errorf("empty filename")
     | "opam" => return((Opam, "opam"))
     | fname =>

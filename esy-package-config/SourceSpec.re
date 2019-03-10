@@ -277,6 +277,22 @@ let%test_module "parsing" =
        (manifest ((Opam lwt.opam)))) |};
      };
 
+     let%expect_test "git+https://example.com/repo.git:path/to/lwt.opam#ref" = {
+       parse("git+https://example.com/repo.git:path/to/lwt.opam#ref");
+       %expect
+       {|
+      (Git (remote https://example.com/repo.git) (ref (ref))
+       (manifest ((Opam lwt.opam)))) |};
+     };
+
+     let%expect_test "git+https://example.com/repo.git:path/to/opam#ref" = {
+       parse("git+https://example.com/repo.git:path/to/opam#ref");
+       %expect
+       {|
+      (Git (remote https://example.com/repo.git) (ref (ref))
+       (manifest ((Opam opam)))) |};
+     };
+
      let%expect_test "git+https://example.com/repo.git:lwt.opam" = {
        parse("git+https://example.com/repo.git:lwt.opam");
        %expect
