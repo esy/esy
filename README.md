@@ -122,6 +122,8 @@ On Linux/macOS (soon on Windows too) you can run:
 
 which will install git hooks which will do pre commit validation.
 
+To test the `esy` executable in development you can use `bin/esy`.
+
 ### Updating `bin/esyInstallRelease.js`
 
 `bin/esyInstallRelease.js` is developed separately within the `esy-install-npm-release/` directory.
