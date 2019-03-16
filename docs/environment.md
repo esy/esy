@@ -114,40 +114,43 @@ manipulation in a cross platform manner.
 
 Those variables refer to the values defined for the current package:
 
-* `self.bin`
-* `self.sbin`
-* `self.lib`
-* `self.man`
-* `self.doc`
-* `self.stublibs`
-* `self.toplevel`
-* `self.share`
-* `self.etc`
-* `self.install`: install directory for the package (`self.lib`, `self.bin`, etc. are subdirectories of `self.install`)
-* `self.target_dir`: build directory for the package
-* `self.root`: package source root
-* `self.name`
-* `self.version`
-* `self.depends`
+* `self.name` represents the name of the package
+* `self.version` represents the version of the package (as defined in its
+  `package.json`)
+* `self.root` is the package source root
+* `self.target_dir` is the package build directory
+* `self.install` is the package installation directory, there are also
+  variables defined which refer to common subdirectories of `self.install`:
+  * `self.bin`
+  * `self.sbin`
+  * `self.lib`
+  * `self.man`
+  * `self.doc`
+  * `self.stublibs`
+  * `self.toplevel`
+  * `self.share`
+  * `self.etc`
 
-You can refer to the values defined for other packages by using the respective
-`package-name` prefix:
+Note that for packages which have `buildsInSource: true` esy copies sources into `self.target_dir` and therefore values of `self.root` and `self.target_dir` are the same.
 
-* `package-name.bin`
-* `package-name.sbin`
-* `package-name.lib`
-* `package-name.man`
-* `package-name.doc`
-* `package-name.stublibs`
-* `package-name.toplevel`
-* `package-name.share`
-* `package-name.etc`
-* `package-name.install`
-* `package-name.target_dir`
-* `package-name.root`
+You can refer to the values defined for other packages which are direct
+dependencies by using the respective `package-name.` prefix. Set the set of
+available variables is the same:
+
 * `package-name.name`
 * `package-name.version`
-* `package-name.depends`
+* `package-name.root`
+* `package-name.target_dir`
+* `package-name.install`
+  * `package-name.bin`
+  * `package-name.sbin`
+  * `package-name.lib`
+  * `package-name.man`
+  * `package-name.doc`
+  * `package-name.stublibs`
+  * `package-name.toplevel`
+  * `package-name.share`
+  * `package-name.etc`
 
 The following constructs are also allowed inside "interpolation" regions:
 
