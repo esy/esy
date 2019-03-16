@@ -123,9 +123,9 @@ Those variables refer to the values defined for the current package:
 * `self.toplevel`
 * `self.share`
 * `self.etc`
-* `self.install`
-* `self.target_dir`
-* `self.root`
+* `self.install`: install directory for the package (`self.lib`, `self.bin`, etc. are subdirectories of `self.install`)
+* `self.target_dir`: build directory for the package
+* `self.root`: package source root
 * `self.name`
 * `self.version`
 * `self.depends`
