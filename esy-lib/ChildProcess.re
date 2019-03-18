@@ -155,7 +155,7 @@ let run =
 };
 
 let runToStatus =
-    (~env=?, ~resolveProgramInEnv=?, ~stdin=?, ~stdout=?, ~stderr=?, cmd) => {
+    (~env=?, ~resolveProgramInEnv=?, ~cwd=?, ~stdin=?, ~stdout=?, ~stderr=?, cmd) => {
   open RunAsync.Syntax;
   let f = process => {
     let%lwt status = process#status;
@@ -165,6 +165,7 @@ let runToStatus =
   withProcess(
     ~env?,
     ~resolveProgramInEnv?,
+    ~cwd?,
     ~stdin?,
     ~stdout?,
     ~stderr?,
