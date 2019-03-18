@@ -279,6 +279,4 @@ Import from a build store:
 When using `esy CMD` or `esy SCRIPT`, the command or script is run from the current directory.
 However, when using `npm run SCRIPT` or `yarn SCRIPT`, the script will be executed from the package's root.
 
-One can use the `-C` option in order to obtain the same behavior in `esy` as follow : `esy -C CMD` or `esy -C SCRIPT`.
-
-One can use the `esy -C CMD` or `esy -C SCRIPT` in order to obtain the same behavior in `esy`.
+One can use `esy -C CMD` or `esy -C SCRIPT` in order to obtain the same behavior in `esy`.
