@@ -271,3 +271,10 @@ Import from a build store:
 ```bash
 % esy import-build /path/to/build/store/3/i/ocaml-4.6.0-abcdef90
 ```
+
+## Options
+
+### `-C`, `--change-directory`
+
+When using `esy CMD` , the command or script is run from the current directory.
+One can use `esy -C CMD` in order to execute `CMD` in the project's root directory (where the `package.json` is).
