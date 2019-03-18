@@ -593,7 +593,7 @@ let runScript = (proj: Project.t, script, args, ()) => {
     };
   };
 
-  let%bind cmd =
+  let%bind (cmd, cwd) =
     RunAsync.ofRun(
       {
         open Run.Syntax;
@@ -638,13 +638,24 @@ let runScript = (proj: Project.t, script, args, ()) => {
             |> addArgs(scriptArgs)
             |> addArgs(args)
           );
-        return(cmd);
+
+        let cwd =
+          Some(
+            Scope.(
+              rootPath(scope)
+              |> SandboxPath.toValue
+              |> SandboxValue.render(proj.buildCfg)
+            ),
+          );
+
+        return((cmd, cwd));
       },
     );
 
   let%bind status =
     ChildProcess.runToStatus(
       ~resolveProgramInEnv=true,
+      ~cwd?,
       ~stderr=`FD_copy(Unix.stderr),
       ~stdout=`FD_copy(Unix.stdout),
       ~stdin=`FD_copy(Unix.stdin),

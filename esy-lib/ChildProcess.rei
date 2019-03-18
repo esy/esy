@@ -42,6 +42,7 @@ let runToStatus:
   (
     ~env: env=?,
     ~resolveProgramInEnv: bool=?,
+    ~cwd: string=?,
     ~stdin: Lwt_process.redirection=?,
     ~stdout: Lwt_process.redirection=?,
     ~stderr: Lwt_process.redirection=?,
