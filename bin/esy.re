@@ -639,14 +639,15 @@ let runScript = (proj: Project.t, script, args, ()) => {
             |> addArgs(args)
           );
 
-          let cwd = Some(
+        let cwd =
+          Some(
             Scope.(
               rootPath(scope)
               |> SandboxPath.toValue
               |> SandboxValue.render(proj.buildCfg)
-            )
+            ),
           );
-        
+
         return((cmd, cwd));
       },
     );
