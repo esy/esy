@@ -30,6 +30,7 @@ const fixture = [
       build_cmd4: "esy build bash -c 'echo 'build_cmd_result''",
       build_cmd5: 'esy build echo #{self.name}',
       build_cmd6: [['esy', 'build', 'echo', '#{self.name}']],
+      printpwd: "pwd",
     },
     esy: {
       build: [
@@ -61,7 +62,8 @@ const fixture = [
         build: 'true'
       }
     })
-  )
+  ),
+  dir('foo')
 ];
 
 it('executes scripts', async () => {
@@ -139,3 +141,14 @@ it('does execute scripts in a non-root package scope', async () => {
     message: expect.stringMatching('error: unable to resolve command: cmd1')
   });
 });
+
+it('executes script in the package\'s root', async () => {
+  const p = await createTestSandbox(...fixture);
+  await p.esy('install');
+  await p.esy('build');
+  p.cd("foo");
+  const cmd = await p.esy('printpwd');
+  const splitPath = cmd.stdout.split("/");
+  const folderName = splitPath[splitPath.length - 1];
+  expect(folderName).toEqual(expect.not.stringMatching(/foo/));
+})
