@@ -271,3 +271,14 @@ Import from a build store:
 ```bash
 % esy import-build /path/to/build/store/3/i/ocaml-4.6.0-abcdef90
 ```
+
+## Options
+
+### `-C`, `--change-directory`
+
+When using `esy CMD` or `esy SCRIPT`, the command or script is run from the current directory.
+However, when using `npm run SCRIPT` or `yarn SCRIPT`, the script will be executed from the package's root.
+
+One can use the `-C` option in order to obtain the same behavior in `esy` as follow : `esy -C CMD` or `esy -C SCRIPT`.
+
+One can use the `esy -C CMD` or `esy -C SCRIPT` in order to obtain the same behavior in `esy`.
