@@ -54,7 +54,7 @@ let indexFilename = "index.json";
 
 let gitAttributesContents = {|
 # Set eol to LF so files aren't converted to CRLF-eol on Windows.
-* text eol=lf
+* text eol=lf linguist-generated
 |};
 
 let gitIgnoreContents = {|
