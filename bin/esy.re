@@ -669,7 +669,7 @@ let runScript = (script, args, proj: Project.t) => {
   };
 };
 
-let runScriptCli = (cmd, proj: Project.t) => {
+let runScriptCommand = (cmd, proj: Project.t) => {
   open RunAsync.Syntax;
   let%bind _ = Project.fetched(proj);
   let script = Cmd.getTool(cmd);
@@ -1579,13 +1579,13 @@ let commandsConfig = {
       makeProjectCommand(
         ~header=`No,
         ~name="run-script",
-        ~doc="Execute package script",
+        ~doc="Execute project script",
         ~docs=commonSection,
         ~stop_on_pos=true,
         Term.(
-          const(runScriptCli)
+          const(runScriptCommand)
           $ Cli.cmdTerm(
-              ~doc="Script to execute within the sandbox environment.",
+              ~doc="Script to execute within the project environment.",
               ~docv="SCRIPT",
               Cmdliner.Arg.pos_all,
             )
