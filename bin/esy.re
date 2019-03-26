@@ -565,7 +565,7 @@ let exec = (mode, chdir, pkgarg, cmd, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let runScript = (proj: Project.t, script, args, ()) => {
+let runScript = (script, args, proj: Project.t) => {
   open RunAsync.Syntax;
 
   let%bind fetched = Project.fetched(proj);
@@ -666,6 +666,16 @@ let runScript = (proj: Project.t, script, args, ()) => {
   | Unix.WEXITED(n)
   | Unix.WSTOPPED(n)
   | Unix.WSIGNALED(n) => exit(n)
+  };
+};
+
+let runScriptCommand = (cmd, proj: Project.t) => {
+  open RunAsync.Syntax;
+  let%bind _ = Project.fetched(proj);
+  let script = Cmd.getTool(cmd);
+  switch (Scripts.find(script, proj.scripts)) {
+  | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
+  | None => errorf("Script '%s' not found", script)
   };
 };
 
@@ -1355,7 +1365,7 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
     build(BuildDev, PkgArg.root, None, proj);
   | (Ok(_), Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
-    | Some(script) => runScript(proj, script, Cmd.getArgs(cmd), ())
+    | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
     | None =>
       let pkgarg = PkgArg.ByDirectoryPath(Path.currentPath());
       devExec(chdir, pkgarg, proj, cmd, ());
@@ -1370,7 +1380,7 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
     build(BuildDev, PkgArg.root, None, proj);
   | (Error(_) as err, Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
-    | Some(script) => runScript(proj, script, Cmd.getArgs(cmd), ())
+    | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
     | None => Lwt.return(err)
     }
   | (Error(_) as err, Some(_)) => Lwt.return(err)
@@ -1562,6 +1572,21 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
               ~docv="COMMAND",
+              Cmdliner.Arg.pos_all,
+            )
+        ),
+      ),
+      makeProjectCommand(
+        ~header=`No,
+        ~name="run-script",
+        ~doc="Execute project script",
+        ~docs=commonSection,
+        ~stop_on_pos=true,
+        Term.(
+          const(runScriptCommand)
+          $ Cli.cmdTerm(
+              ~doc="Script to execute within the project environment.",
+              ~docv="SCRIPT",
               Cmdliner.Arg.pos_all,
             )
         ),
