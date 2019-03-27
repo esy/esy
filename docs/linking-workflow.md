@@ -24,6 +24,18 @@ To link a package to the project add a special `link:` resolution to project's
 }
 ```
 
+If you are linking to a folder with many esy packages in it, use the path to the
+`json` file that will be use to resolve the dependency, for example:
+
+```json
+"dependencies": {
+  "refmterr": "*",
+},
+"resolutions": {
+  "refmterr": "link:../reason-native/refmterr.json"
+}
+```
+
 > Why `resolutions`?
 >
 > This is because in case any other package in the project's sandbox depends on
