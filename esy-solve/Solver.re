@@ -575,7 +575,16 @@ let parseCudfSolution = (~cudfUniverse, data) => {
   solution;
 };
 
-let solveDependencies = (~root, ~installed, ~strategy, dependencies, solver) => {
+let solveDependencies =
+    (
+      ~root,
+      ~installed,
+      ~strategy,
+      ~dumpCudfInput,
+      ~dumpCudfOutput,
+      dependencies,
+      solver,
+    ) => {
   open RunAsync.Syntax;
 
   let runSolver = (filenameIn, filenameOut) => {
@@ -642,15 +651,28 @@ let solveDependencies = (~root, ~installed, ~strategy, dependencies, solver) => 
 
   /* The solution has CRLF on Windows, which breaks the parser */
   let normalizeSolutionData = s =>
-    Str.global_replace(Str.regexp_string("\r\n"), "\n", s);
+    Str.global_replace(Str.regexp_string("\r\n"), "\n", String.trim(s))
+    ++ "\n";
+  let emptySolution = "\n";
 
   let solution = {
-    let cudf = (Some(preamble), Cudf.get_packages(cudfUniverse), request);
+    let cudf = (
+      Some(preamble),
+      Cudf.(
+        get_packages(cudfUniverse) |> List.sort(~cmp=(p1, p2) => p1 <% p2)
+      ),
+      request,
+    );
+    let cudfData = printCudfDoc(cudf);
+    let%bind () =
+      switch (dumpCudfInput) {
+      | None => return()
+      | Some(filename) => EsyLib.DumpToFile.dump(filename, cudfData)
+      };
 
     Fs.withTempDir(path => {
       let%bind filenameIn = {
         let filename = Path.(path / "in.cudf");
-        let cudfData = printCudfDoc(cudf);
         let%bind () = Fs.writeFile(~data=cudfData, filename);
         return(filename);
       };
@@ -663,12 +685,17 @@ let solveDependencies = (~root, ~installed, ~strategy, dependencies, solver) => 
       let%lwt () = finish();
       let%bind result = {
         let%bind dataOut = Fs.readFile(filenameOut);
-        let dataOut = String.trim(dataOut);
-        if (String.length(dataOut) == 0) {
+        let dataOut = normalizeSolutionData(dataOut);
+        let%bind () =
+          switch (dumpCudfOutput) {
+          | None => return()
+          | Some(filename) => EsyLib.DumpToFile.dump(filename, dataOut)
+          };
+
+        if (dataOut == emptySolution) {
           return(None);
         } else {
-          let dataOut = normalizeSolutionData(dataOut);
-          let solution = parseCudfSolution(~cudfUniverse, dataOut ++ "\n");
+          let solution = parseCudfSolution(~cudfUniverse, dataOut);
           return(Some(solution));
         };
       };
@@ -915,7 +942,8 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   };
 };
 
-let solve = (solvespec, sandbox: Sandbox.t) => {
+let solve =
+    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, sandbox: Sandbox.t) => {
   open RunAsync.Syntax;
 
   let getResultOrExplain =
@@ -1000,6 +1028,8 @@ let solve = (solvespec, sandbox: Sandbox.t) => {
         ~root=sandbox.root,
         ~installed=InstallManifest.Set.empty,
         ~strategy=Strategy.trendy,
+        ~dumpCudfInput,
+        ~dumpCudfOutput,
         dependencies,
         solver,
       );
