@@ -21,7 +21,7 @@ describe('esy solve', function() {
     );
 
     const res = await p.esy(
-      'solve --dump-cudf-input=- --dump-cudf-output=- --skip-repository-update',
+      'solve --dump-cudf-request=- --dump-cudf-solution=- --skip-repository-update',
     );
     expect(res.stdout.trim()).toEqual(outdent`
     preamble: 
@@ -60,7 +60,7 @@ describe('esy solve', function() {
     );
 
     const res = await p.esy(
-      'solve --dump-cudf-input=cudf.in --dump-cudf-output=cudf.out --skip-repository-update',
+      'solve --dump-cudf-request=cudf.in --dump-cudf-solution=cudf.out --skip-repository-update',
     );
 
     const cudfIn = fs
