@@ -928,10 +928,17 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
   );
 };
 
-let getSandboxSolution = (solvespec, proj: Project.t) => {
+let getSandboxSolution =
+    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
-  let%bind solution = Solver.solve(solvespec, proj.solveSandbox);
+  let%bind solution =
+    Solver.solve(
+      ~dumpCudfInput,
+      ~dumpCudfOutput,
+      solvespec,
+      proj.solveSandbox,
+    );
   let lockPath = SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
   let%bind () = {
     let%bind digest = Sandbox.digest(solvespec, proj.solveSandbox);
@@ -963,11 +970,16 @@ let getSandboxSolution = (solvespec, proj: Project.t) => {
   return(solution);
 };
 
-let solve = (force, proj: Project.t) => {
+let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
   open RunAsync.Syntax;
   let run = () => {
     let%bind _: Solution.t =
-      getSandboxSolution(proj.workflow.solvespec, proj);
+      getSandboxSolution(
+        ~dumpCudfInput,
+        ~dumpCudfOutput,
+        proj.workflow.solvespec,
+        proj,
+      );
     return();
   };
 
@@ -1018,7 +1030,7 @@ let solveAndFetch = (proj: Project.t) => {
     | None => fetch(proj)
     }
   | None =>
-    let%bind () = solve(false, proj);
+    let%bind () = solve(false, None, None, proj);
     let%bind () = fetch(proj);
     return();
   };
@@ -1964,6 +1976,24 @@ let commandsConfig = {
                   ["force"],
                   ~doc=
                     "Do not check if solution exist, run solver and produce new one",
+                )
+            )
+          $ Arg.(
+              value
+              & opt(some(EsyLib.DumpToFile.conv), None)
+              & info(
+                  ["dump-cudf-request"],
+                  ~doc="File to dump CUDF request ('-' for stdout)",
+                  ~docv="FILENAME",
+                )
+            )
+          $ Arg.(
+              value
+              & opt(some(EsyLib.DumpToFile.conv), None)
+              & info(
+                  ["dump-cudf-solution"],
+                  ~doc="File to dump CUDF solution ('-' for stdout)",
+                  ~docv="FILENAME",
                 )
             )
         ),
