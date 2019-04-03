@@ -6,7 +6,7 @@ const {version} = require('../../package.json');
 helpers.skipSuiteOnWindows('needs fixes for path pretty printing');
 
 describe('esy solve', function() {
-  it('dumps CUDF input & output', async () => {
+  it('dumps CUDF input & output to stdout', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -19,7 +19,7 @@ describe('esy solve', function() {
     );
 
     const res = await p.esy(
-      'solve --dump-cudf-input=_ --dump-cudf-output=_ --skip-repository-update',
+      'solve --dump-cudf-input=- --dump-cudf-output=- --skip-repository-update',
     );
     expect(res.stdout.trim()).toEqual(outdent`
     preamble: 

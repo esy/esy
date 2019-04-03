@@ -1,5 +1,5 @@
 /*
- * Dumps string to file or stdout if filename == '_'
+ * Dumps string to file or stdout if filename == '-'
  */
 
 open RunAsync.Syntax;
@@ -12,7 +12,7 @@ let conv = {
   open Cmdliner;
   let parse = v =>
     switch (v) {
-    | "_" => Ok(Stdout)
+    | "-" => Ok(Stdout)
     | _ =>
       switch (Path.ofString(v)) {
       | Ok(path) =>
@@ -27,7 +27,7 @@ let conv = {
 
   let print = (ppf, p) =>
     switch (p) {
-    | Stdout => Format.fprintf(ppf, "_")
+    | Stdout => Format.fprintf(ppf, "-")
     | File(path) => Path.pp(ppf, path)
     };
   Arg.conv(~docv="PATH", (parse, print));

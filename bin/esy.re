@@ -1983,7 +1983,7 @@ let commandsConfig = {
               & opt(some(EsyLib.DumpToFile.conv), None)
               & info(
                   ["dump-cudf-input"],
-                  ~doc="File to dump CUDF input ('_' for stdout)",
+                  ~doc="File to dump CUDF input ('-' for stdout)",
                   ~docv="FILENAME",
                 )
             )
@@ -1992,7 +1992,7 @@ let commandsConfig = {
               & opt(some(EsyLib.DumpToFile.conv), None)
               & info(
                   ["dump-cudf-output"],
-                  ~doc="File to dump CUDF output ('_' for stdout)",
+                  ~doc="File to dump CUDF output ('-' for stdout)",
                   ~docv="FILENAME",
                 )
             )
