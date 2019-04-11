@@ -95,18 +95,16 @@ let fetch' = (sandbox, dist) => {
       ~tempPath,
       stagePath => {
         let%bind () = Fs.createDir(stagePath);
-        let tarballPath = Path.(stagePath / "archive.tgz");
-        let url =
+        let remote =
           Printf.sprintf(
-            "https://api.github.com/repos/%s/%s/tarball/%s",
+            "https://github.com/%s/%s.git",
             github.user,
             github.repo,
-            github.commit,
           );
-
-        let%bind () = Curl.download(~output=tarballPath, url);
-        let%bind () = Fs.rename(~src=tarballPath, path);
-        return(Tarball({tarballPath: path, stripComponents: 1}));
+        let%bind () = Git.clone(~dst=stagePath, ~remote, ());
+        let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
+        let%bind () = Fs.rename(~src=stagePath, path);
+        return(Path(path));
       },
     );
 
