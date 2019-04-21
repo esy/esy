@@ -35,7 +35,6 @@ module type CONSTRAINT = {
     | GTE(version)
     | LT(version)
     | LTE(version)
-    | NONE
     | ANY;
 
   include S.COMMON with type t := t;

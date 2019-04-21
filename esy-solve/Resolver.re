@@ -165,6 +165,15 @@ let sourceMatchesSpec = (resolver, spec, source) =>
   | None => false
   };
 
+let versionByNpmDistTag = (resolver: t, package: string, tag: string) =>
+  switch (Hashtbl.find_opt(resolver.npmDistTags, package)) {
+  | None => None
+  | Some(tags) => StringMap.find_opt(tag, tags)
+  };
+
+let sourceBySpec = (resolver: t, spec: SourceSpec.t) =>
+  Hashtbl.find_opt(resolver.sourceSpecToSource, spec);
+
 let versionMatchesReq = (resolver: t, req: Req.t, name, version: Version.t) => {
   let checkVersion = () =>
     switch (req.spec, version) {

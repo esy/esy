@@ -32,5 +32,9 @@ let package:
   (~resolution: Resolution.t, t) =>
   RunAsync.t(result(InstallManifest.t, string));
 
+let versionByNpmDistTag:
+  (t, string, string) => option(SemverVersion.Version.t);
+let sourceBySpec: (t, SourceSpec.t) => option(Source.t);
+
 let versionMatchesReq: (t, Req.t, string, Version.t) => bool;
 let versionMatchesDep: (t, InstallManifest.Dep.t, string, Version.t) => bool;

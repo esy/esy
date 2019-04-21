@@ -22,7 +22,6 @@ module type CONSTRAINT = {
     | GTE(version)
     | LT(version)
     | LTE(version)
-    | NONE
     | ANY;
 
   include S.COMMON with type t := t;
@@ -91,7 +90,6 @@ module Constraint = {
       | GTE(Version.t)
       | LT(Version.t)
       | LTE(Version.t)
-      | NONE
       | ANY;
 
     let pp = fmt =>
@@ -102,7 +100,6 @@ module Constraint = {
       | GTE(v) => Fmt.pf(fmt, ">=%a", Version.pp, v)
       | LT(v) => Fmt.pf(fmt, "<%a", Version.pp, v)
       | LTE(v) => Fmt.pf(fmt, "<=%a", Version.pp, v)
-      | NONE => Fmt.pf(fmt, "NONE")
       | ANY => Fmt.pf(fmt, "*");
 
     let matchesSimple = (~version, constr) =>
@@ -110,7 +107,6 @@ module Constraint = {
       | EQ(a) => Version.compare(a, version) == 0
       | NEQ(a) => Version.compare(a, version) !== 0
       | ANY => true
-      | NONE => false
 
       | GT(a) => Version.compare(a, version) < 0
       | GTE(a) => Version.compare(a, version) <= 0
@@ -122,7 +118,6 @@ module Constraint = {
       switch (Version.prerelease(version), constr) {
       | (_, EQ(_))
       | (_, NEQ(_))
-      | (_, NONE)
       | (false, ANY)
       | (false, GT(_))
       | (false, GTE(_))
@@ -148,7 +143,6 @@ module Constraint = {
       | EQ(a) => EQ(f(a))
       | NEQ(a) => NEQ(f(a))
       | ANY => ANY
-      | NONE => NONE
       | GT(a) => GT(f(a))
       | GTE(a) => GTE(f(a))
       | LT(a) => LT(f(a))
@@ -199,7 +193,6 @@ module Formula = {
           let matchPrerelease = {
             let f = vs =>
               fun
-              | Constraint.NONE
               | Constraint.ANY => vs
               | Constraint.EQ(v)
               | Constraint.NEQ(v)
@@ -308,7 +301,6 @@ module Formula = {
           let matchPrerelease = {
             let f = vs =>
               fun
-              | Constraint.NONE
               | Constraint.ANY => vs
               | Constraint.EQ(v)
               | Constraint.NEQ(v)

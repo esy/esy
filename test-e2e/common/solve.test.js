@@ -22,9 +22,13 @@ async function createSandbox(config) {
       `,
     url: null,
   };
-
-  for (let i = 0, l = config.opam.length; i < l; i++) {
+  for (let i = 0, l = (config.opam || []).length; i < l; i++) {
     await p.defineOpamPackage({...opamTemplate, ...config.opam[i]});
+  }
+
+  let npmTemplate = {esy: {}};
+  for (let i = 0, l = (config.npm || []).length; i < l; i++) {
+    await p.defineNpmPackage({...npmTemplate, ...config.npm[i]});
   }
 
   await p.fixture(
@@ -39,8 +43,8 @@ async function createSandbox(config) {
   return Promise.resolve(p);
 }
 
-describe('esy solve', function() {
-  it('dumps CUDF input & output to stdout', async () => {
+describe('Dumps CUDF', function() {
+  it('...to stdout', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -58,7 +62,7 @@ describe('esy solve', function() {
     expect(res.stdout.trim()).toMatchSnapshot();
   });
 
-  it('dumps CUDF input & output to files on disk', async () => {
+  it('...to files on disk', async () => {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -86,60 +90,122 @@ describe('esy solve', function() {
       .trim();
     expect(cudfOut).toMatchSnapshot();
   });
+});
 
-  describe('LE', function() {
-    it('"<2.0.0" for: 1.0.0, 1.5.0', async () => {
-      const p = await createSandbox({
-        opam: [{name: 'pkg', version: '1.0.0'}, {name: 'pkg', version: '1.5.0'}],
-        root: {
-          dependencies: {
-            '@opam/pkg': '<2.0.0',
-          },
+describe('NPM depends on OPAM', function() {
+  it('"<3" for: 1, 2', async () => {
+    const p = await createSandbox({
+      opam: [{name: 'pkg', version: '1.0.0'}, {name: 'pkg', version: '2.0.0'}],
+      root: {
+        dependencies: {
+          '@opam/pkg': '<3.0.0',
         },
-      });
-
-      const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
-      expect(res.stdout.trim()).toMatchSnapshot();
-      // console.log(res.stdout.trim())
+      },
     });
 
-    it('"<1.5.0" for: 1.0.0, 1.5.0', async () => {
-      const p = await createSandbox({
-        opam: [{name: 'pkg', version: '1.0.0'}, {name: 'pkg', version: '1.5.0'}],
-        root: {
-          dependencies: {
-            '@opam/pkg': '<1.5.0',
-          },
-        },
-      });
+    const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    expect(res.stdout.trim()).toMatchSnapshot();
+    // console.log(res.stdout.trim())
+  });
 
-      const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
-      expect(res.stdout.trim()).toMatchSnapshot();
+  it('"<2" for: 1, 2', async () => {
+    const p = await createSandbox({
+      opam: [{name: 'pkg', version: '1.0.0'}, {name: 'pkg', version: '1.5.0'}],
+      root: {
+        dependencies: {
+          '@opam/pkg': '<1.5.0',
+        },
+      },
     });
 
-    it('"1-3 || 6 - 9"', async () => {
-      const p = await createSandbox({
-        opam: [
-          {name: 'pkg', version: '1.0.0'},
-          {name: 'pkg', version: '2.0.0'},
-          {name: 'pkg', version: '3.0.0'},
-          {name: 'pkg', version: '4.0.0'},
-          {name: 'pkg', version: '5.0.0'},
-          {name: 'pkg', version: '6.0.0'},
-          {name: 'pkg', version: '7.0.0'},
-          {name: 'pkg', version: '8.0.0'},
-          {name: 'pkg', version: '9.0.0'},
-          {name: 'pkg', version: '10.0.0'},
-        ],
-        root: {
-          dependencies: {
-            '@opam/pkg': '>=1.0.0 <=3.0.0 || >5.0.0 <10.0.0',
-          },
-        },
-      });
+    const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    expect(res.stdout.trim()).toMatchSnapshot();
+  });
 
-      const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
-      expect(res.stdout.trim()).toMatchSnapshot();
+  it('"1 - 3 || 6 - 9" for 1 - 10', async () => {
+    const p = await createSandbox({
+      opam: [
+        {name: 'pkg', version: '1.0.0'},
+        {name: 'pkg', version: '2.0.0'},
+        {name: 'pkg', version: '3.0.0'},
+        {name: 'pkg', version: '4.0.0'},
+        {name: 'pkg', version: '5.0.0'},
+        {name: 'pkg', version: '6.0.0'},
+        {name: 'pkg', version: '7.0.0'},
+        {name: 'pkg', version: '8.0.0'},
+        {name: 'pkg', version: '9.0.0'},
+        {name: 'pkg', version: '10.0.0'},
+      ],
+      root: {
+        dependencies: {
+          '@opam/pkg': '>=1.0.0 <=3.0.0 || >5.0.0 <10.0.0',
+        },
+      },
     });
+
+    const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    expect(res.stdout.trim()).toMatchSnapshot();
+  });
+});
+
+describe('NPM depends on NPM', function() {
+  it('"1 - 3 || 6 - 9" for 1 - 10', async () => {
+    const p = await createSandbox({
+      npm: [
+        {name: 'pkg', version: '1.0.0'},
+        {name: 'pkg', version: '2.0.0'},
+        {name: 'pkg', version: '3.0.0'},
+        {name: 'pkg', version: '4.0.0'},
+        {name: 'pkg', version: '5.0.0'},
+        {name: 'pkg', version: '6.0.0'},
+        {name: 'pkg', version: '7.0.0'},
+        {name: 'pkg', version: '8.0.0'},
+        {name: 'pkg', version: '9.0.0'},
+        {name: 'pkg', version: '10.0.0'},
+      ],
+      root: {
+        dependencies: {
+          pkg: '1.0.0 - 3.0.0 || >5.0.0 <10.0.0',
+        },
+      },
+    });
+
+    const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    expect(res.stdout.trim()).toMatchSnapshot();
+  });
+});
+
+describe('OPAM depends on OPAM', function() {
+  it('2 - 8 for 1 - 10', async () => {
+    const p = await createSandbox({
+      opam: [
+        {name: 'pkg', version: '1.0.0'},
+        {name: 'pkg', version: '2.0.0'},
+        {name: 'pkg', version: '3.0.0'},
+        {name: 'pkg', version: '4.0.0'},
+        {name: 'pkg', version: '5.0.0'},
+        {name: 'pkg', version: '6.0.0'},
+        {name: 'pkg', version: '7.0.0'},
+        {name: 'pkg', version: '8.0.0'},
+        {name: 'pkg', version: '9.0.0'},
+        {name: 'pkg', version: '10.0.0'},
+        {
+          name: 'x',
+          version: '1.0.0',
+          opam: outdent`
+        opam-version: "2.0"
+        depends: ["pkg" { >= "2.0" & <= "8.0"}]
+      `,
+        },
+      ],
+      root: {
+        dependencies: {
+          '@opam/x': '*',
+        },
+      },
+    });
+
+    const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    expect(res.stdout.trim()).toMatchSnapshot();
   });
 });
