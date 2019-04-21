@@ -265,29 +265,13 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     let allVersions = ref(StringMap.empty);
     let sourceVersions = ref(StringMap.empty);
 
-    let addVersion = (name, version) => {
-      let versions =
-        switch (StringMap.find_opt(name, allVersions^)) {
-        | Some(versions) => versions
-        | None => Version.Set.empty
-        };
-      switch (StringMap.find_opt(name, sourceVersions^)) {
-      | Some(_) =>
-        failwith("Conflict: source & normal version. TODO: better reporting")
-      | None =>
-        allVersions :=
-          StringMap.add(
-            name,
-            Version.Set.add(version, versions),
-            allVersions^,
-          )
-      };
-    };
-
     let addSourceVersion = (name, source: Source.t) =>
       switch (StringMap.find_opt(name, allVersions^)) {
       | Some(_) =>
-        failwith("Conflict: source & normal version. TODO: better reporting")
+        failwith(
+          "Conflict: source & normal version. TODO: better reporting -- "
+          ++ name,
+        )
       | None =>
         switch (StringMap.find_opt(name, sourceVersions^)) {
         | Some(source') =>
@@ -300,6 +284,34 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
           sourceVersions := StringMap.add(name, source, sourceVersions^)
         }
       };
+
+    let addVersion = (name, version) => {
+      switch (version) {
+      | Version.Source(source) => addSourceVersion(name, source)
+      | _ =>
+        let versions =
+          switch (StringMap.find_opt(name, allVersions^)) {
+          | Some(versions) => versions
+          | None => Version.Set.empty
+          };
+        switch (StringMap.find_opt(name, sourceVersions^)) {
+        | Some(_) =>
+          failwith(
+            "Conflict: source & normal version. TODO: better reporting :: "
+            ++ name
+            ++ " v. "
+            ++ Version.show(version),
+          )
+        | None =>
+          allVersions :=
+            StringMap.add(
+              name,
+              Version.Set.add(version, versions),
+              allVersions^,
+            )
+        };
+      };
+    };
 
     let addNpmConstraint = (name, constr: SemverVersion.Constraint.t) =>
       switch (constr) {
@@ -412,8 +424,9 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   };
 
   let encodeOpamDep = (dep: InstallManifest.Dep.t) => {
+    let e = n => CudfName.(n |> encode |> show);
     let v = (constr, version) => (
-      dep.name,
+      e(dep.name),
       Some((
         constr,
         CudfVersionMap.findCudfVersionExn(
@@ -432,7 +445,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | GTE(version) => v(`Geq, Npm(version))
       | LT(version) => v(`Lt, Npm(version))
       | LTE(version) => v(`Leq, Npm(version))
-      | ANY => (dep.name, None)
+      | ANY => (e(dep.name), None)
       }
     | NpmDistTag(tag) =>
       switch (Resolver.versionByNpmDistTag(univ.resolver, dep.name, tag)) {
@@ -448,7 +461,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | GTE(version) => v(`Geq, Opam(version))
       | LT(version) => v(`Lt, Opam(version))
       | LTE(version) => v(`Leq, Opam(version))
-      | ANY => (dep.name, None)
+      | ANY => (e(dep.name), None)
       }
     | Source(spec) =>
       switch (Resolver.sourceBySpec(univ.resolver, spec)) {
@@ -460,28 +473,29 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   };
 
   let encodeNpmReq = (req: Req.t) => {
+    let e = n => CudfName.(n |> encode |> show);
+    let v = (constr, version) => (
+      e(req.name),
+      Some((
+        constr,
+        CudfVersionMap.findCudfVersionExn(
+          ~name=req.name,
+          ~version,
+          cudfVersionMap,
+        ),
+      )),
+    );
     switch (req.spec) {
     | Npm(dep) =>
-      let v = (constr, version) => (
-        req.name,
-        Some((
-          constr,
-          CudfVersionMap.findCudfVersionExn(
-            ~name=req.name,
-            ~version=Version.Npm(version),
-            cudfVersionMap,
-          ),
-        )),
-      );
       let encConstr = (constr: SemverVersion.Constraint.t) =>
         switch (constr) {
-        | EQ(version) => v(`Eq, version)
-        | NEQ(version) => v(`Neq, version)
-        | GT(version) => v(`Gt, version)
-        | GTE(version) => v(`Geq, version)
-        | LT(version) => v(`Lt, version)
-        | LTE(version) => v(`Leq, version)
-        | ANY => (req.name, None)
+        | EQ(version) => v(`Eq, Npm(version))
+        | NEQ(version) => v(`Neq, Npm(version))
+        | GT(version) => v(`Gt, Npm(version))
+        | GTE(version) => v(`Geq, Npm(version))
+        | LT(version) => v(`Lt, Npm(version))
+        | LTE(version) => v(`Leq, Npm(version))
+        | ANY => (e(req.name), None)
         };
       let rec encOr = ands =>
         switch (ands) {
@@ -504,37 +518,19 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       switch (Resolver.versionByNpmDistTag(univ.resolver, req.name, tag)) {
       | None =>
         failwith("cannot resolve npm-dist-tag, TODO: better reporting")
-      | Some(version) =>
-        let version =
-          CudfVersionMap.findCudfVersionExn(
-            ~name=req.name,
-            ~version=Version.Npm(version),
-            cudfVersionMap,
-          );
-        [[(req.name, Some((`Eq, version)))]];
+      | Some(version) => [[v(`Eq, Npm(version))]]
       }
 
     | Opam(dep) =>
-      let v = (constr, version) => (
-        req.name,
-        Some((
-          constr,
-          CudfVersionMap.findCudfVersionExn(
-            ~name=req.name,
-            ~version=Version.Opam(version),
-            cudfVersionMap,
-          ),
-        )),
-      );
       let encConstr = (constr: OpamPackageVersion.Constraint.t) =>
         switch (constr) {
-        | EQ(version) => v(`Eq, version)
-        | NEQ(version) => v(`Neq, version)
-        | GT(version) => v(`Gt, version)
-        | GTE(version) => v(`Geq, version)
-        | LT(version) => v(`Lt, version)
-        | LTE(version) => v(`Leq, version)
-        | ANY => (req.name, None)
+        | EQ(version) => v(`Eq, Opam(version))
+        | NEQ(version) => v(`Neq, Opam(version))
+        | GT(version) => v(`Gt, Opam(version))
+        | GTE(version) => v(`Geq, Opam(version))
+        | LT(version) => v(`Lt, Opam(version))
+        | LTE(version) => v(`Leq, Opam(version))
+        | ANY => (e(req.name), None)
         };
       let rec encOr = ands =>
         switch (ands) {
@@ -556,14 +552,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       switch (Resolver.sourceBySpec(univ.resolver, spec)) {
       | None =>
         failwith("Cannot locate source by spec, TODO: better reporting")
-      | Some(source) =>
-        let version =
-          CudfVersionMap.findCudfVersionExn(
-            ~name=req.name,
-            ~version=Version.Source(source),
-            cudfVersionMap,
-          );
-        [[(req.name, Some((`Eq, version)))]];
+      | Some(source) => [[v(`Eq, Source(source))]]
       }
     };
   };
