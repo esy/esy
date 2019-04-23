@@ -3,7 +3,7 @@ id: how-it-works
 title: How esy works
 ---
 
-This document describe esy internals.
+This document describes esy internals.
 
 ## Overview
 
@@ -14,7 +14,7 @@ supported).
 
 ## Pipeline
 
-The typical pipeline from having a clean checkout of an esy project till the
+The typical pipeline from having a clean checkout of an esy project to the
 point where all artifacts are built consists of the following steps:
 
 - **Solve Dependencies**
@@ -44,21 +44,21 @@ point where all artifacts are built consists of the following steps:
 ### Solve Dependencies
 
 This step produces a [solution](concepts.md#solution) out of dependency
-declarations found in project's root [manifest](concepts.md#manifest) and all
+declarations found in a project's root [manifest](concepts.md#manifest) and all
 transitively dependent packages' manifests.
 
 First, a package universe (a transitive closure of all dependencies' versions)
 is constructed by consulting package registries (npm and opam currently) and
 other sources (remote URLs, local paths and various git repositories hostings).
 
-Constructed package universe is then encoded as [CUDF](concepts.md#CUDF) and
-then is being fed to a CUDF solver (provided by the `esy-solve-cudf` npm package
+The constructed package universe is then encoded as [CUDF](concepts.md#CUDF) and
+is fed to a CUDF solver (provided by the `esy-solve-cudf` npm package
 which uses [mccs][] solver underneath).
 
-The result of the solver is then decoded and serialized on disk as `esy.lock`
-directory. It is advised to commit such file to a project's VCS as it captures
-the current state of the project's dependencies thus allowing to reproduce the
-exact same environment on other hosts at other points in time.
+The result of the solver is then decoded and serialized on disk as `esy.lock`.
+It is advised to commit this file to version control as it captures the current
+state of the project's dependencies. This allows us to reproduce the
+exact same environment anywhere.
 
 [mccs]: http://www.i3s.unice.fr/~cpjm/misc/mccs.html
 
@@ -93,8 +93,8 @@ Modules of interest:
 This step crawls the sandbox's lockfile and linked packages and read them into
 `BuildManifest.t`.
 
-This graph has package metadata at nodes and edges are instances of dependency
-relations between packages. The dependency relation is defined by the following
+Node of this graph are package metadata. Edges are instances of dependency
+relations between packages. The dependency relations are defined by the following
 fields in a package's manifest:
 
 - `"dependencies"`
@@ -112,7 +112,7 @@ Modules of interest:
 
 ### Produce Task Graph
 
-This step consumes a `BuildManifest.t` structures and produces a `Plan.Task.t`
+This step consumes `BuildManifest.t` structures and produces `Plan.Task.t`
 structures.
 
 The resulted graph is topologically isomorphic to the original
@@ -128,10 +128,10 @@ Modules of interest:
 
 ### Build Task Graph
 
-After `Task.t` is constructed it's time to build it.
+After `Task.t` is constructed, it's time to build it.
 
-Each `Task.t` is serialized into JSON format called [Build
-Plan](concepts.md#build-plan) which is then used to invoke `esy-build-package`
+Each `Task.t` is serialized into a JSON format called [Build
+Plan](concepts.md#build-plan) which is then used to invoke the `esy-build-package`
 executable.
 
 Modules of interest:
@@ -145,7 +145,7 @@ Modules of interest:
 There are multiple levels of caches used by esy.
 
 > There's no garbage collection mechanism provided at the moment. This can be a
-> problem for hosts with little free disk space available.
+> problem for hosts low on free disk space.
 
 ### Global Installation Cache
 
@@ -183,7 +183,7 @@ This cache stores built artifacts of esy packages and related metadata.
 The default location for the cache is `~/.esy/3<prefix>` and can be
 indirectly controlled by the `--store-path` option of `esy` executable.
 
-The `<prefix>` part of the path is consist of a number of underscore characters
+The `<prefix>` part of the path consists of a number of underscore characters
 `_` which pads the store path so that the length of the path to the `ocamlrun`
 executable in the store is exactly 128 characters.
 
@@ -238,16 +238,16 @@ The cache key used for the cache consists of:
 
 Local Build Store follows exactly the same layout and cache key as the Global
 Build Store but it is local to a sandbox and located at
-`<sandboxPath>/_esy/deafult/store` path.
+`<sandboxPath>/_esy/deafult/store`.
 
 It is used to store artifacts of packages which don't have a stable build
-identity (unreleased software which changes often and doesn't warrant sroting
+identity (unreleased software which changes often and doesn't warrant sorting
 its artifacts in a Global Build Store).
 
 ### Local Sandbox Cache
 
 Local Sandbox Cache stores a computed package and build task graph. It is
-located at `<sandboxPath>/_esy/default/cache/sandbox-<hash>` where `<hash>` part
+located at `<sandboxPath>/_esy/default/cache/sandbox-<hash>`, where `<hash>`
 is a hash of:
 
 - Store Path
@@ -255,7 +255,7 @@ is a hash of:
 - Local Store Path
 - Version of esy
 
-The cache is stored in a format readable by OCaml [Marshal][] module.
+The cache is stored in a format readable by the OCaml [Marshal][] module.
 
 > Reading the cache file with a version of esy which has different
 > `SandboxInfo.t` layout than the one with which the cache was produced with
