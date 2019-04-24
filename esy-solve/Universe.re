@@ -261,29 +261,23 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   let cudfUniv = Cudf.empty_universe();
   let cudfVersionMap = CudfVersionMap.make();
 
-  let buildVersionMap = () => {
-    let allVersions = ref(StringMap.empty);
-    let sourceVersions = ref(StringMap.empty);
+  let sourceThreshold = 10_000_000;
+  let allVersions = ref(StringMap.empty);
+  let sourceVersions = ref(StringMap.empty);
 
-    let addSourceVersion = (name, source: Source.t) =>
-      switch (StringMap.find_opt(name, allVersions^)) {
-      | Some(_) =>
-        failwith(
-          "Conflict: source & normal version. TODO: better reporting -- "
-          ++ name,
-        )
-      | None =>
+  let isSourcePackage = pkg => StringMap.mem(pkg, sourceVersions^);
+
+  let buildVersionMap = () => {
+    let addSourceVersion = (name, source: Source.t) => {
+      let sources =
         switch (StringMap.find_opt(name, sourceVersions^)) {
-        | Some(source') =>
-          if (Source.compare(source, source') != 0) {
-            failwith(
-              "different source versions for one package. TODO: better reporting",
-            );
-          }
-        | None =>
-          sourceVersions := StringMap.add(name, source, sourceVersions^)
-        }
-      };
+        | Some(sources) => sources
+        | None => Source.Set.empty
+        };
+
+      sourceVersions :=
+        StringMap.add(name, Source.Set.add(source, sources), sourceVersions^);
+    };
 
     let addVersion = (name, version) => {
       switch (version) {
@@ -294,22 +288,12 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
           | Some(versions) => versions
           | None => Version.Set.empty
           };
-        switch (StringMap.find_opt(name, sourceVersions^)) {
-        | Some(_) =>
-          failwith(
-            "Conflict: source & normal version. TODO: better reporting :: "
-            ++ name
-            ++ " v. "
-            ++ Version.show(version),
-          )
-        | None =>
-          allVersions :=
-            StringMap.add(
-              name,
-              Version.Set.add(version, versions),
-              allVersions^,
-            )
-        };
+        allVersions :=
+          StringMap.add(
+            name,
+            Version.Set.add(version, versions),
+            allVersions^,
+          );
       };
     };
 
@@ -344,7 +328,10 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     let addSourcePackage = (name, spec: SourceSpec.t) =>
       switch (Resolver.sourceBySpec(univ.resolver, spec)) {
       | None =>
-        failwith("cannot find source by spec, TODO: better error reporting")
+        failwith(
+          "1 cannot find source by spec, TODO: better error reporting :: "
+          ++ name,
+        )
       | Some(source) => addSourceVersion(name, source)
       };
 
@@ -367,7 +354,16 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
                    | Npm(constr) => addNpmConstraint(dep.name, constr)
                    | NpmDistTag(tag) => addNpmDistTag(dep.name, tag)
                    | Opam(constr) => addOpamConstraint(dep.name, constr)
-                   | Source(spec) => addSourcePackage(dep.name, spec)
+                   | Source(spec) =>
+                     switch (
+                       Resolver.getVersionByResolutions(
+                         univ.resolver,
+                         dep.name,
+                       )
+                     ) {
+                     | Some(version) => addVersion(dep.name, version)
+                     | None => addSourcePackage(dep.name, spec)
+                     }
                    }
                  )
             | Dependencies.NpmFormula(reqs) =>
@@ -384,7 +380,15 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
                       List.flatten(dep)
                       |> List.iter(~f=addOpamConstraint(req.name))
                     | VersionSpec.Source(spec) =>
-                      addSourcePackage(req.name, spec)
+                      switch (
+                        Resolver.getVersionByResolutions(
+                          univ.resolver,
+                          req.name,
+                        )
+                      ) {
+                      | Some(version) => addVersion(req.name, version)
+                      | None => addSourcePackage(req.name, spec)
+                      }
                     },
                 reqs,
               )
@@ -412,13 +416,17 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     );
 
     StringMap.iter(
-      (name, source) =>
-        CudfVersionMap.update(
-          cudfVersionMap,
-          name,
-          Version.Source(source),
-          1,
-        ),
+      (name, sources) => {
+        let f = (i, source) =>
+          CudfVersionMap.update(
+            cudfVersionMap,
+            name,
+            Version.Source(source),
+            sourceThreshold + i,
+          );
+
+        List.iteri(~f, Source.Set.elements(sources));
+      },
       sourceVersions^,
     );
   };
@@ -464,10 +472,14 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | ANY => (e(dep.name), None)
       }
     | Source(spec) =>
-      switch (Resolver.sourceBySpec(univ.resolver, spec)) {
+      switch (Resolver.getVersionByResolutions(univ.resolver, dep.name)) {
+      | Some(version) => v(`Eq, version)
       | None =>
-        failwith("Cannot locate source by spec, TODO: better reporting")
-      | Some(source) => v(`Eq, Source(source))
+        switch (Resolver.sourceBySpec(univ.resolver, spec)) {
+        | None =>
+          failwith("2 Cannot locate source by spec, TODO: better reporting")
+        | Some(source) => v(`Eq, Source(source))
+        }
       }
     };
   };
@@ -549,10 +561,15 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
         };
       encOr(dep);
     | Source(spec) =>
-      switch (Resolver.sourceBySpec(univ.resolver, spec)) {
+      // TODO: should getVersionByResolutions call Resolver.sourceToSource ?
+      switch (Resolver.getVersionByResolutions(univ.resolver, req.name)) {
+      | Some(version) => [[v(`Eq, version)]]
       | None =>
-        failwith("Cannot locate source by spec, TODO: better reporting")
-      | Some(source) => [[v(`Eq, Source(source))]]
+        switch (Resolver.sourceBySpec(univ.resolver, spec)) {
+        | None =>
+          failwith("3 Cannot locate source by spec, TODO: better reporting")
+        | Some(source) => [[v(`Eq, Source(source))]]
+        }
       }
     };
   };
@@ -583,6 +600,56 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       );
     };
 
+  // list(list((string, option(([> `Eq | `Geq | `Gt | `Leq | `Lt | `Neq ], int)))))
+  let addMaxSourceConstraint = cnf => {
+    // pkg > 3
+    // pkg = source
+    // TODO: fix disjunction case
+    let sourceConstraints =
+      cnf
+      |> List.flatten
+      |> List.filter_map(~f=constr =>
+           switch (constr) {
+           | (pkg, Some((_, version)))
+               when isSourcePackage(pkg) && version < sourceThreshold =>
+             Some(pkg)
+           | _ => None
+           }
+         )
+      |> StringSet.of_list
+      |> StringSet.elements
+      |> List.map(~f=pkg => [(pkg, Some((`Lt, sourceThreshold)))]);
+
+    sourceConstraints @ cnf;
+  };
+
+  let applyResolutions = cnf => {
+    List.map(
+      ~f=
+        constrs =>
+          List.map(
+            ~f=
+              ((pkg, _) as constr) =>
+                switch (Resolver.getVersionByResolutions(univ.resolver, pkg)) {
+                | Some(version) => (
+                    pkg,
+                    Some((
+                      `Eq,
+                      CudfVersionMap.findCudfVersionExn(
+                        ~name=pkg,
+                        ~version,
+                        cudfVersionMap,
+                      ),
+                    )),
+                  )
+                | None => constr
+                },
+            constrs,
+          ),
+      cnf,
+    );
+  };
+
   let encodePkg = (pkg: InstallManifest.t) => {
     let cudfVersion =
       CudfVersionMap.findCudfVersionExn(
@@ -599,7 +666,8 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | Ok(dependencies) => dependencies
       };
 
-    let depends = encodeDeps(dependencies);
+    let depends =
+      dependencies |> encodeDeps |> applyResolutions |> addMaxSourceConstraint;
     let staleness = pkgSize - cudfVersion;
     let cudfName = CudfName.encode(pkg.name);
     let cudfPkg = {

@@ -35,6 +35,8 @@ let package:
 let versionByNpmDistTag:
   (t, string, string) => option(SemverVersion.Version.t);
 let sourceBySpec: (t, SourceSpec.t) => option(Source.t);
+let getResolutions: t => Resolutions.t;
+let getVersionByResolutions: (t, string) => option(Version.t);
 
 let versionMatchesReq: (t, Req.t, string, Version.t) => bool;
 let versionMatchesDep: (t, InstallManifest.Dep.t, string, Version.t) => bool;

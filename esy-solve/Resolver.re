@@ -172,7 +172,14 @@ let versionByNpmDistTag = (resolver: t, package: string, tag: string) =>
   };
 
 let sourceBySpec = (resolver: t, spec: SourceSpec.t) =>
-  Hashtbl.find_opt(resolver.sourceSpecToSource, spec);
+  switch (Hashtbl.find_opt(resolver.sourceSpecToSource, spec)) {
+  | None => None
+  | Some(source) =>
+    switch (Hashtbl.find_opt(resolver.sourceToSource, source)) {
+    | None => Some(source)
+    | Some(source) => Some(source)
+    }
+  };
 
 let versionMatchesReq = (resolver: t, req: Req.t, name, version: Version.t) => {
   let checkVersion = () =>
@@ -754,3 +761,12 @@ let resolve =
       resolve'(~fullMetadata, ~name, ~spec, resolver);
     }
   );
+
+let getResolutions = (resolver: t) => resolver.resolutions;
+let getVersionByResolutions = (resolver: t, name) =>
+  switch (Resolutions.find(resolver.resolutions, name)) {
+  | Some({resolution: Version(version), _}) => Some(version)
+  | Some({resolution: SourceOverride({source, _}), _}) =>
+    Some(Version.Source(source))
+  | None => None
+  };
