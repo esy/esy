@@ -1,0 +1,338 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dumps CUDF ...to files on disk 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: root
+version: 1
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
+
+exports[`Dumps CUDF ...to files on disk 2`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: root
+version: 1
+conflicts: root
+installed: true
+original-version: 0.0.0
+staleness: 0"
+`;
+
+exports[`Dumps CUDF ...to stdout 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: root
+version: 1
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1
+preamble: 
+property: staleness: int, original-version: string
+
+package: root
+version: 1
+conflicts: root
+installed: true
+original-version: 0.0.0
+staleness: 0"
+`;
+
+exports[`NPM depends on NPM "1 - 3 || 6 - 9" for 1 - 10 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: pkg
+version: 1
+conflicts: pkg
+staleness: 8
+original-version: 1.0.0
+
+package: pkg
+version: 2
+conflicts: pkg
+staleness: 7
+original-version: 2.0.0
+
+package: pkg
+version: 3
+conflicts: pkg
+staleness: 6
+original-version: 3.0.0
+
+package: pkg
+version: 5
+conflicts: pkg
+staleness: 4
+original-version: 6.0.0
+
+package: pkg
+version: 6
+conflicts: pkg
+staleness: 3
+original-version: 7.0.0
+
+package: pkg
+version: 7
+conflicts: pkg
+staleness: 2
+original-version: 8.0.0
+
+package: pkg
+version: 8
+conflicts: pkg
+staleness: 1
+original-version: 9.0.0
+
+package: root
+version: 1
+depends: pkg >= 1 | pkg > 4 , pkg >= 1 | pkg < 9 , pkg <= 3 | pkg > 4 , pkg <= 3 | pkg < 9
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
+
+exports[`NPM depends on OPAM "<2" for: 1, 2 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: @esy-ocaml/substs
+version: 1
+conflicts: @esy-ocaml/substs
+staleness: 0
+original-version: 1.0.0
+
+package: @opam/pkg
+version: 1
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 1
+original-version: opam:1.0.0
+
+package: root
+version: 1
+depends: @opam/pkg < 2
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
+
+exports[`NPM depends on OPAM "<3" for: 1, 2 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: @esy-ocaml/substs
+version: 1
+conflicts: @esy-ocaml/substs
+staleness: 0
+original-version: 1.0.0
+
+package: @opam/pkg
+version: 1
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 2
+original-version: opam:1.0.0
+
+package: @opam/pkg
+version: 2
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 1
+original-version: opam:2.0.0
+
+package: root
+version: 1
+depends: @opam/pkg < 3
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
+
+exports[`NPM depends on OPAM "1 - 3 || 6 - 9" for 1 - 10 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: @esy-ocaml/substs
+version: 1
+conflicts: @esy-ocaml/substs
+staleness: 0
+original-version: 1.0.0
+
+package: @opam/pkg
+version: 1
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 8
+original-version: opam:1.0.0
+
+package: @opam/pkg
+version: 2
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 7
+original-version: opam:2.0.0
+
+package: @opam/pkg
+version: 3
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 6
+original-version: opam:3.0.0
+
+package: @opam/pkg
+version: 5
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 4
+original-version: opam:6.0.0
+
+package: @opam/pkg
+version: 6
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 3
+original-version: opam:7.0.0
+
+package: @opam/pkg
+version: 7
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 2
+original-version: opam:8.0.0
+
+package: @opam/pkg
+version: 8
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 1
+original-version: opam:9.0.0
+
+package: root
+version: 1
+depends: @opam/pkg >= 1 | @opam/pkg > 4 , @opam/pkg >= 1 | @opam/pkg < 9 , @opam/pkg <= 3 | @opam/pkg > 4 , @opam/pkg <= 3 | @opam/pkg < 9
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
+
+exports[`OPAM depends on OPAM 2 - 8 for 1 - 10 1`] = `
+"preamble: 
+property: staleness: int, original-version: string
+
+package: @esy-ocaml/substs
+version: 1
+conflicts: @esy-ocaml/substs
+staleness: 0
+original-version: 1.0.0
+
+package: @opam/pkg
+version: 1
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 11
+original-version: opam:1.0.0
+
+package: @opam/pkg
+version: 3
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 9
+original-version: opam:2.0.0
+
+package: @opam/pkg
+version: 4
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 8
+original-version: opam:3.0.0
+
+package: @opam/pkg
+version: 5
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 7
+original-version: opam:4.0.0
+
+package: @opam/pkg
+version: 6
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 6
+original-version: opam:5.0.0
+
+package: @opam/pkg
+version: 7
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 5
+original-version: opam:6.0.0
+
+package: @opam/pkg
+version: 8
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 4
+original-version: opam:7.0.0
+
+package: @opam/pkg
+version: 10
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 2
+original-version: opam:8.0.0
+
+package: @opam/pkg
+version: 11
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 1
+original-version: opam:9.0.0
+
+package: @opam/pkg
+version: 12
+depends: @esy-ocaml/substs
+conflicts: @opam/pkg
+staleness: 0
+original-version: opam:10.0.0
+
+package: @opam/x
+version: 1
+depends: @opam/pkg >= 2 , @opam/pkg <= 9 , @esy-ocaml/substs
+conflicts: @opam/x
+staleness: 0
+original-version: opam:1.0.0
+
+package: root
+version: 1
+depends: @opam/x
+conflicts: root
+staleness: 0
+original-version: 0.0.0
+
+request: 
+install: root = 1"
+`;
