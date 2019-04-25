@@ -209,3 +209,67 @@ describe('OPAM depends on OPAM', function() {
     expect(res.stdout.trim()).toMatchSnapshot();
   });
 });
+
+describe('Source & regular package dependency requests together', function() {
+  it('adds the upper boundary constraint', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.defineNpmPackage({
+      name: 'src',
+      version: '1.0.0',
+      esy: {},
+    });
+    await p.defineNpmPackage({
+      name: 'src',
+      version: '2.0.0',
+      esy: {},
+    });
+    await p.defineNpmPackage({
+      name: 'src',
+      version: '3.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'other',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {
+        src: '>1 || <3',
+      },
+    });
+
+    await p.fixture(
+      packageJson({
+        name: 'root',
+        version: '1.0.0',
+        dependencies: {
+          src: 'path:./src',
+          other: '*',
+        },
+      }),
+      dir(
+        'src',
+        packageJson({
+          name: 'dep',
+          version: '6.0.0',
+          esy: {},
+        }),
+      ),
+    );
+
+    let stdout = '';
+    let stderr = '';
+    try {
+      const res = await p.esy('solve --dump-cudf-request=- --skip-repository-update');
+    } catch (err) {
+      stdout = err.stdout;
+      stderr = err.stderr;
+    }
+
+    expect(stdout).toContain('depends: src > 1 | src < 3 , src < 10000000 | src < 3');
+    expect(stderr).toContain('Conflicting constraints:');
+    expect(stderr).toContain('root -> other -> src@>1.0.0 || <3.0.0');
+    expect(stderr).toContain('root -> src@path:src');
+  });
+});

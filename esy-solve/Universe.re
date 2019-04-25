@@ -321,7 +321,10 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
 
     let addNpmDistTag = (name, tag) =>
       switch (Resolver.versionByNpmDistTag(univ.resolver, name, tag)) {
-      | None => failwith("invalid npm-dist-tag, TODO: better error reporting")
+      | None =>
+        failwith(
+          "invalid npm-dist-tag, TODO: better error reporting :: " ++ tag,
+        )
       | Some(version) => addNpmConstraint(name, EQ(version))
       };
 
@@ -600,30 +603,55 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       );
     };
 
-  // list(list((string, option(([> `Eq | `Geq | `Gt | `Leq | `Lt | `Neq ], int)))))
   let addMaxSourceConstraint = cnf => {
-    // pkg > 3
-    // pkg = source
-    // TODO: fix disjunction case
-    let sourceConstraints =
-      cnf
-      |> List.flatten
-      |> List.filter_map(~f=constr =>
-           switch (constr) {
-           | (pkg, Some((_, version)))
-               when isSourcePackage(pkg) && version < sourceThreshold =>
-             Some(pkg)
-           | _ => None
-           }
-         )
-      |> StringSet.of_list
-      |> StringSet.elements
-      |> List.map(~f=pkg => [(pkg, Some((`Lt, sourceThreshold)))]);
+    /* This function takes the dependency formula in the CNF form and adds
+          the required constraint for packages previously seen as 'source'.
 
-    sourceConstraints @ cnf;
+          Source packages are those defined as 'github:user/repo' or 'path:./dir'.
+
+          We encode source package versions in CUDF as following:
+            CUDF version := sourceThreshold + order number in the version set
+          While the regular package version are encoded as:
+            CUDF version := order number in the version set
+
+         sourceThreshold in the formula above is a big number (10_000_000)
+
+         That said, we can have the case when the dependency was specified in
+         several places of the graph in both forms, source & regular. This may
+         end up in 2 following rules:
+
+         (1) pkg = 10_000_001 # source package request
+         (2) pkg > 1 | otherpkg = 2 # regular package request
+
+         Obviously we need to fix the (2) by adding the upper boundary for the `pkg`
+         and this is what this function does specifically. In particular the
+         example above would be converted into the following CNF formula:
+
+           (pkg > 1 | otherpkg = 2) & (pkg < 10_000_000 | otherpkg = 2)
+       */
+    let rec addConstraint = (~prefix=[], rest) =>
+      switch (rest) {
+      | [] => [prefix]
+      | [(pkg, Some((op, version))) as constr, ...rest]
+          when
+            isSourcePackage(pkg)
+            && version < sourceThreshold
+            && (op == `Gt || op == `Geq) =>
+        addConstraint(~prefix=prefix @ [constr], rest)
+        @ addConstraint(
+            ~prefix=prefix @ [(pkg, Some((`Lt, sourceThreshold)))],
+            rest,
+          )
+      | [constr, ...rest] => addConstraint(~prefix=prefix @ [constr], rest)
+      };
+    List.fold_left(
+      ~f=(acc, constrs) => acc @ addConstraint(constrs),
+      ~init=[],
+      cnf,
+    );
   };
 
-  let applyResolutions = cnf => {
+  let applyResolutions = cnf =>
     List.map(
       ~f=
         constrs =>
@@ -648,7 +676,6 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
           ),
       cnf,
     );
-  };
 
   let encodePkg = (pkg: InstallManifest.t) => {
     let cudfVersion =
