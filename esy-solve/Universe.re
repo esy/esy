@@ -225,34 +225,6 @@ module CudfMapping = {
     Cudf.lookup_package(cudfUniv, (CudfName.show(cudfName), cudfVersion));
   };
 
-  let _encodeDepExn = (~name, ~matches, (univ, _cudfUniv, vmap)) => {
-    let versions = findVersions(~name, univ);
-
-    let versionsMatched = List.filter(~f=matches, versions);
-
-    switch (versionsMatched) {
-    | [] => [
-        (CudfName.show(CudfName.encode(name)), Some((`Eq, 100000000))),
-      ]
-    | versionsMatched =>
-      let pkgToConstraint = pkg => {
-        let cudfVersion =
-          CudfVersionMap.findCudfVersionExn(
-            ~name=pkg.InstallManifest.name,
-            ~version=pkg.InstallManifest.version,
-            vmap,
-          );
-
-        (
-          CudfName.show(CudfName.encode(pkg.InstallManifest.name)),
-          Some((`Eq, cudfVersion)),
-        );
-      };
-
-      List.map(~f=pkgToConstraint, versionsMatched);
-    };
-  };
-
   let univ = ((univ, _, _)) => univ;
   let cudfUniv = ((_, cudfUniv, _)) => cudfUniv;
 };
