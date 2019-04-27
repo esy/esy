@@ -55,7 +55,7 @@ Use `esy x COMMAND` invocation to run project's built executable as if they are
 installed:
 
 ```shell
-esy x Hello.exe
+esy x Hello
 ```
 
 ## Rebuild the project
