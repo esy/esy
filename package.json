@@ -24,7 +24,8 @@
     "@esy-ocaml/esy-installer": "0.0.1",
     "@opam/merlin-extend": "0.3",
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
-    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a"
+    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a",
+    "@opam/utop": "github:ocaml-community/utop:utop.opam#5637c67"
   },
   "dependencies": {
     "@esy-ocaml/esy-installer": "^0.0.0",
