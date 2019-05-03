@@ -1,5 +1,5 @@
 {
-  "checksum": "9dd9334710c26f1e952de667e2d8bbe7",
+  "checksum": "0236906c9412c997217f9fd3fbd8c5de",
   "root": "esy@link-dev:./package.json",
   "node": {
     "yargs-parser@9.0.2@d41d8cd9": {
@@ -6263,7 +6263,8 @@
         "invariant@2.2.4@d41d8cd9", "fs-extra@7.0.1@d41d8cd9",
         "flow-bin@0.77.0@d41d8cd9", "esy-bash@0.3.18@d41d8cd9",
         "del@3.0.0@d41d8cd9", "babel-preset-flow@6.23.0@d41d8cd9",
-        "babel-preset-env@1.7.0@d41d8cd9", "@opam/utop@opam:2.3.0@cbe87d0c",
+        "babel-preset-env@1.7.0@d41d8cd9",
+        "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9",
         "@opam/merlin@opam:3.2.2@829ee6dd"
       ]
     },
@@ -6418,14 +6419,14 @@
       "dependencies": [ "once@1.4.0@d41d8cd9" ],
       "devDependencies": []
     },
-    "electron-to-chromium@1.3.129@d41d8cd9": {
-      "id": "electron-to-chromium@1.3.129@d41d8cd9",
+    "electron-to-chromium@1.3.130@d41d8cd9": {
+      "id": "electron-to-chromium@1.3.130@d41d8cd9",
       "name": "electron-to-chromium",
-      "version": "1.3.129",
+      "version": "1.3.130",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.129.tgz#sha1:bff32e1840775554aafa301e9dc5002d565aae80"
+          "archive:https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.130.tgz#sha1:27f84e823bd80a5090e2baeca4fefbaf476cf7af"
         ]
       },
       "overrides": [],
@@ -7133,14 +7134,14 @@
       "dependencies": [ "rsvp@3.6.2@d41d8cd9" ],
       "devDependencies": []
     },
-    "caniuse-lite@1.0.30000963@d41d8cd9": {
-      "id": "caniuse-lite@1.0.30000963@d41d8cd9",
+    "caniuse-lite@1.0.30000966@d41d8cd9": {
+      "id": "caniuse-lite@1.0.30000966@d41d8cd9",
       "name": "caniuse-lite",
-      "version": "1.0.30000963",
+      "version": "1.0.30000966",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000963.tgz#sha1:5be481d5292f22aff5ee0db4a6c049b65b5798b1"
+          "archive:https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30000966.tgz#sha1:f3c6fefacfbfbfb981df6dfa68f2aae7bff41b64"
         ]
       },
       "overrides": [],
@@ -7279,8 +7280,8 @@
       },
       "overrides": [],
       "dependencies": [
-        "electron-to-chromium@1.3.129@d41d8cd9",
-        "caniuse-lite@1.0.30000963@d41d8cd9"
+        "electron-to-chromium@1.3.130@d41d8cd9",
+        "caniuse-lite@1.0.30000966@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -9108,21 +9109,14 @@
         "@opam/base@opam:v0.11.1@6ff71eb3"
       ]
     },
-    "@opam/utop@opam:2.3.0@cbe87d0c": {
-      "id": "@opam/utop@opam:2.3.0@cbe87d0c",
+    "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9": {
+      "id":
+        "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9",
       "name": "@opam/utop",
-      "version": "opam:2.3.0",
+      "version": "github:ocaml-community/utop:utop.opam#5637c67",
       "source": {
         "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/5c/5c9e6d4ca1bea263efb9967b7ad51393#md5:5c9e6d4ca1bea263efb9967b7ad51393",
-          "archive:https://github.com/ocaml-community/utop/releases/download/2.3.0/utop-2.3.0.tbz#md5:5c9e6d4ca1bea263efb9967b7ad51393"
-        ],
-        "opam": {
-          "name": "utop",
-          "version": "2.3.0",
-          "path": "esy.lock/opam/utop.2.3.0"
-        }
+        "source": [ "github:ocaml-community/utop:utop.opam#5637c67" ]
       },
       "overrides": [],
       "dependencies": [
