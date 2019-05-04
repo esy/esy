@@ -10,7 +10,7 @@ depexts: [
   ["perl"] {os-distribution = "ubuntu"}
   ["perl"] {os-distribution = "alpine"}
   ["perl"] {os-distribution = "nixos"}
-  ["perl"] {os-distribution = "archlinux"}
+  ["perl"] {os-distribution = "arch"}
   ["perl-Pod-Html"] {os-distribution = "fedora"}
 ]
 synopsis: "Virtual package relying on perl"
