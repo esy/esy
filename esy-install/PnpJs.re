@@ -362,7 +362,7 @@ function blacklistCheck(locator) {
         `A package has been resolved through a blacklisted path - this is usually caused by one of your tools calling`,
         `"realpath" on the return value of "require.resolve". Since the returned values use symlinks to disambiguate`,
         `peer dependencies, they must be passed untransformed to "require".`,
-      ].join(` `),
+      ].join(` `)
     );
   }
 
@@ -400,7 +400,7 @@ function getPackageInformationSafe(packageLocator) {
   if (!packageInformation) {
     throw makeError(
       `INTERNAL`,
-      `Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)`,
+      `Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)`
     );
   }
 
@@ -617,8 +617,8 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
         `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitely ignored by the regexp "$$BLACKLIST")`,
         {
           request,
-          issuer,
-        },
+          issuer
+        }
       );
     }
 
@@ -661,7 +661,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer doesn't seem to be part of the Yarn-managed dependency tree)`,
           {
             request,
-            issuer,
+            issuer
           },
         );
       }
@@ -819,7 +819,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
           {
             request,
             issuer,
-            realIssuer,
+            realIssuer
           },
         );
       }
@@ -1071,8 +1071,8 @@ exports.setupCompatibilityLayer = () => {
         },
         isCore: request => {
           return realResolve.isCore(request);
-        },
-      },
+        }
+      }
     );
   });
 };
