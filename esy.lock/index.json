@@ -1,5 +1,5 @@
 {
-  "checksum": "8abc25b09dba6a72c7cd4e638f681763",
+  "checksum": "7c2e146714a0e9668e81ac341d4d9e8b",
   "root": "esy@link-dev:./package.json",
   "node": {
     "yargs-parser@9.0.2@d41d8cd9": {
@@ -6263,7 +6263,8 @@
         "invariant@2.2.4@d41d8cd9", "fs-extra@7.0.1@d41d8cd9",
         "flow-bin@0.77.0@d41d8cd9", "esy-bash@0.3.16@d41d8cd9",
         "del@3.0.0@d41d8cd9", "babel-preset-flow@6.23.0@d41d8cd9",
-        "babel-preset-env@1.7.0@d41d8cd9", "@opam/utop@opam:2.3.0@cbe87d0c",
+        "babel-preset-env@1.7.0@d41d8cd9",
+        "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9",
         "@opam/merlin@opam:3.2.2@829ee6dd"
       ]
     },
@@ -9108,21 +9109,14 @@
         "@opam/base@opam:v0.11.1@6ff71eb3"
       ]
     },
-    "@opam/utop@opam:2.3.0@cbe87d0c": {
-      "id": "@opam/utop@opam:2.3.0@cbe87d0c",
+    "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9": {
+      "id":
+        "@opam/utop@github:ocaml-community/utop:utop.opam#5637c67@d41d8cd9",
       "name": "@opam/utop",
-      "version": "opam:2.3.0",
+      "version": "github:ocaml-community/utop:utop.opam#5637c67",
       "source": {
         "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/md5/5c/5c9e6d4ca1bea263efb9967b7ad51393#md5:5c9e6d4ca1bea263efb9967b7ad51393",
-          "archive:https://github.com/ocaml-community/utop/releases/download/2.3.0/utop-2.3.0.tbz#md5:5c9e6d4ca1bea263efb9967b7ad51393"
-        ],
-        "opam": {
-          "name": "utop",
-          "version": "2.3.0",
-          "path": "esy.lock/opam/utop.2.3.0"
-        }
+        "source": [ "github:ocaml-community/utop:utop.opam#5637c67" ]
       },
       "overrides": [],
       "dependencies": [
