@@ -64,7 +64,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "del": "^3.0.0",
-    "esy-bash": "0.3.16",
+    "esy-bash": "0.3.19",
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",
