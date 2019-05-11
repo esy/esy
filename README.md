@@ -238,14 +238,14 @@ The release workflow is the following:
     % make NPM_RELEASE_TAG=next release-publish
     ```
 
-    To publish release under `next` tag (so users won't get it automatically but
+    to publish the release under `next` tag (so users won't get it automatically but
     only explicitly requested).
 
 6.  Bump version in `package.json` to the next patch version.
 
-    We expect next version to be patch version most of the time. In case you
+    We expect the next version to be mostly a patch version. In case you
     want to release new minor or major version you need to bump it before the
-    reelase.
+    release.
 
 [hello-ocaml]: https://github.com/esy-ocaml/hello-ocaml
 [hello-reason]: https://github.com/esy-ocaml/hello-reason
