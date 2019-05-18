@@ -28,7 +28,6 @@
     "@opam/utop": "github:ocaml-community/utop:utop.opam#5637c67"
   },
   "dependencies": {
-    "@esy-ocaml/esy-installer": "^0.0.0",
     "@esy-ocaml/reason": "^3.4.0",
     "@opam/angstrom": "*",
     "@opam/bos": "^0.2.0",
