@@ -103,34 +103,39 @@ let initRegistry = (registry: t) => {
 
 let getPackageVersionIndex = (registry: registry, ~name: OpamPackage.Name.t) => {
   open RunAsync.Syntax;
-  let f = () => {
-    let path =
-      Path.(
-        registry.repoPath / "packages" / OpamPackage.Name.to_string(name)
-      );
-    if%bind (Fs.exists(path)) {
+  let read = () => {
+    let name = OpamPackage.Name.to_string(name);
+    let path = Path.(registry.repoPath / "packages" / name);
+    if%bind (Fs.isDir(path)) {
       let%bind entries = Fs.listDir(path);
       let f = (index, entry) => {
-        let version =
-          switch (String.cut(~sep=".", entry)) {
-          | None => OpamPackage.Version.of_string("")
-          | Some((_name, version)) => OpamPackage.Version.of_string(version)
-          };
-
-        OpamPackage.Version.Map.add(version, Path.(path / entry), index);
+        let versionPath = Path.(path / entry);
+        if%bind (Fs.isDir(versionPath)) {
+          let version =
+            switch (String.cut(~sep=".", entry)) {
+            | None => OpamPackage.Version.of_string("")
+            | Some((_name, version)) =>
+              OpamPackage.Version.of_string(version)
+            };
+          return(OpamPackage.Version.Map.add(version, versionPath, index));
+        } else {
+          return(index);
+        };
       };
 
-      return(
-        Some(
-          List.fold_left(~init=OpamPackage.Version.Map.empty, ~f, entries),
-        ),
-      );
+      let%bind index =
+        RunAsync.List.foldLeft(
+          ~init=OpamPackage.Version.Map.empty,
+          ~f,
+          entries,
+        );
+      return(Some(index));
     } else {
       return(None);
     };
   };
 
-  OpamPathsByVersion.compute(registry.pathsCache, name, f);
+  OpamPathsByVersion.compute(registry.pathsCache, name, read);
 };
 
 let findPackagePath = ((name, version), registry) => {

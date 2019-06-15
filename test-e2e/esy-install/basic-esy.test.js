@@ -444,4 +444,57 @@ describe(`Basic tests`, () => {
       },
     });
   });
+
+  test(`it should not fail if opam-repo/packages/NAME is not a dir #936`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {'@opam/dep': '1.0.0'},
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+
+    // add ocaml package, required by opam sandboxes implicitly
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    // add @esy-ocaml/substs package, required by opam sandboxes implicitly
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '1.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackage({
+      name: 'dep',
+      version: '1.0.0',
+      opam: outdent`
+        opam-version: "2.0"
+        name: "dep"
+        version: "1.0.0"
+        build: [
+          ["true"]
+        ]
+        depends: [
+          "ocaml"
+        ]
+      `,
+      url: null,
+    });
+
+    // This adds a file where esy expected esy before
+    await fs.writeFile(
+      path.join(p.opamRegistry.registryPath, 'packages', 'dep', 'FILE'),
+      'something'
+    );
+
+    await p.esy(`install`);
+    await p.esy(`build`);
+    expect(await fs.exists(path.join(p.projectPath, 'esy.lock'))).toBeTruthy();
+  });
 });
