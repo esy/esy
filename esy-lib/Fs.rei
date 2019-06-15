@@ -15,21 +15,17 @@ let openFile:
   RunAsync.t(Lwt_unix.file_descr);
 
 /** Check if the path exists */
-
 let exists: Path.t => RunAsync.t(bool);
 
 /** Check if the path exists and is a directory */
-
 let isDir: Path.t => RunAsync.t(bool);
 
 let unlink: Path.t => RunAsync.t(unit);
 
 /** readlink */
-
 let readlink: Path.t => RunAsync.t(Path.t);
 
 /** Link readlink but returns [None] if path doesn't not exist. */
-
 let readlinkOpt: Path.t => RunAsync.t(option(Path.t));
 
 let symlink: (~force: bool=?, ~src: Path.t, Path.t) => RunAsync.t(unit);
@@ -42,7 +38,6 @@ let stat: Path.t => RunAsync.t(Unix.stats);
 let lstat: Path.t => RunAsync.t(Unix.stats);
 
 /** List directory and return a list of names excluding . and .. */
-
 let listDir: Path.t => RunAsync.t(list(string));
 
 let createDir: Path.t => RunAsync.t(unit);
