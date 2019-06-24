@@ -64,7 +64,7 @@ let findVersionExn = (~name, ~version, univ: t) =>
   | None =>
     let msg =
       Printf.sprintf(
-        "inconsistent state: package not in the universr %s@%s",
+        "3 inconsistent state: package not in the universr %s@%s",
         name,
         Version.show(version),
       );
@@ -145,7 +145,7 @@ module CudfVersionMap: {
     | None =>
       let msg =
         Format.asprintf(
-          "inconsistent state: found a package not in the cudf version map %a@cudf:%i\n",
+          "1 inconsistent state: found a package not in the cudf version map %a@cudf:%i\n",
           CudfName.pp,
           cudfName,
           cudfVersion,
@@ -160,7 +160,7 @@ module CudfVersionMap: {
     | None =>
       let msg =
         Printf.sprintf(
-          "inconsistent state: found a package not in the cudf version map %s@%s",
+          "2 inconsistent state: found a package not in the cudf version map %s@%s",
           name,
           Version.show(version),
         );

@@ -763,10 +763,15 @@ let resolve =
   );
 
 let getResolutions = (resolver: t) => resolver.resolutions;
-let getVersionByResolutions = (resolver: t, name) =>
+let getVersionByResolutions = (resolver: t, name) => {
   switch (Resolutions.find(resolver.resolutions, name)) {
-  | Some({resolution: Version(version), _}) => Some(version)
+  | Some({resolution: Version(Version.Source(source)), _})
   | Some({resolution: SourceOverride({source, _}), _}) =>
-    Some(Version.Source(source))
+    switch (Hashtbl.find_opt(resolver.sourceToSource, source)) {
+    | Some(source) => Some(Version.Source(source))
+    | None => Some(Version.Source(source))
+    }
+  | Some({resolution: Version(version), _}) => Some(version)
   | None => None
   };
+};
