@@ -39,7 +39,7 @@ point where all artifacts are built consists of the following steps:
 
 - **Build Task Graph**
 
-  For each `Plan.Task.t` exeute build commands in the corresponding environment
+  For each `Plan.Task.t` execute build commands in the corresponding environment
   using `esy-build-package` command.
 
 ### Solve Dependencies
