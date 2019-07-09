@@ -1694,10 +1694,7 @@ let commandsConfig = {
         ~name="export-dependencies",
         ~doc="Export sandbox dependendencies as prebuilt artifacts",
         ~docs=otherSection,
-        Term.(
-          const(exportDependencies)
-          $ modeTerm
-        ),
+        Term.(const(exportDependencies) $ modeTerm),
       ),
       makeProjectCommand(
         ~name="import-dependencies",
