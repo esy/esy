@@ -1,0 +1,11 @@
+storage: ./storage
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+packages:
+  '**':
+    access: $anonymous
+    publish: $all
+    # proxy: npmjs
+logs:
+  - {type: stdout, format: pretty, level: http}

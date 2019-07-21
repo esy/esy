@@ -1,6 +1,6 @@
 /bin/esy
 /bin/esy.cmd
-/node_modules
+node_modules
 /coverage
 /lib
 /_export
@@ -14,3 +14,4 @@ npm-debug.log
 yarn-error.log
 *.install
 .esy-bash-path
+test-e2e-re/lib/verdaccio/storage
