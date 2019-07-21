@@ -1,0 +1,37 @@
+;; dune file
+(library
+   (name TestE2E)
+   (ocamlopt_flags -linkall -g)
+   (libraries
+      EsyLib
+      EsyPackageConfig
+      rely.lib
+      logs
+      logs.cli
+      cmdliner
+      bos
+      fmt
+      fmt.cli
+      fmt.tty
+      rresult
+   )
+  (preprocess (pps
+                  lwt_ppx
+                  ppx_let
+                  ppx_deriving.std
+                  ppx_deriving_yojson
+                  ppxlib
+                  ppx_expect
+                  ppx_inline_test
+                  ppx_sexp_conv
+                  ))
+
+   (modules (:standard \ RunTests))
+)
+(executable
+  (package esy)
+  (name RunTests)
+  (public_name RunTests.exe)
+  (libraries TestE2E)
+  (modules RunTests)
+)

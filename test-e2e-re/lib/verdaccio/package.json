@@ -1,0 +1,13 @@
+{
+  "name": "verdaccio-dependency",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "verdaccio": "verdaccio --config ./config.yml"
+  },
+  "dependencies": {
+    "kleur": "^3.0.3",
+    "verdaccio": "^4.0.1"
+  }
+}
