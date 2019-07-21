@@ -7,22 +7,22 @@ module File = Bos.OS.File;
 module BPath = Bos.OS.Path;
 
 type t =
-  | FixtureSymlink(fixtureCopy)
-  | FixtureFileCopy(fixtureCopy)
-  | FixtureFile(fixtureFile)
-  | FixtureDir(fixtureDir)
-and fixtureDir = {
-  name: string,
-  items: list(t),
-}
-and fixtureCopy = {
-  name: string,
-  path: string,
-}
-and fixtureFile = {
-  name: string,
-  data: string,
-};
+  | FixtureSymlink{
+      name: string,
+      path: string,
+    }
+  | FixtureFileCopy{
+      name: string,
+      path: string,
+    }
+  | FixtureFile{
+      name: string,
+      data: string,
+    }
+  | FixtureDir{
+      name: string,
+      items: list(t),
+    };
 
 let transfer = (ic, oc, ()) => {
   let chunkSize = 1024 * 1024; /* 1mb */
@@ -58,8 +58,8 @@ let copyFile = (iFile, oFile) => {
 
 let rec layout = p =>
   fun
-  | FixtureSymlink(spec) =>
-    BPath.symlink(Path.v(spec.path), Path.addSeg(p, spec.name))
+  | FixtureSymlink({name, path}) =>
+    BPath.symlink(~target=Path.v(path), Path.addSeg(p, name))
   | FixtureFileCopy(spec) =>
     copyFile(Path.v(spec.path), Path.addSeg(p, spec.name))
   | FixtureFile(spec) => File.write(Path.addSeg(p, spec.name), spec.data)
