@@ -39,6 +39,13 @@ module Syntax = {
   let error = error;
   let errorf = errorf;
 
+  let (>>) = (v, f) => {
+    switch (v) {
+    | Ok () => f()
+    | Error(err) => Error(err)
+    };
+  };
+
   module Let_syntax = {
     let map = map;
     let bind = (~f, v) =>
