@@ -58,7 +58,7 @@ let createSandbox = (~fixture=[], npmMock) => {
   let%bind _ = Dir.create(binPath);
   let%bind _ = Dir.create(projectPath);
   let%bind _ = Dir.create(npmPrefixPath);
-  let%bind () = BPath.symlink(esyLocalPath, esyExePath);
+  let%bind () = BPath.symlink(~target=esyLocalPath, esyExePath);
   /* Initialize mock handlers */
   let%bind () = Fixture.layoutMany(projectPath, fixture);
   let%bind opamMockR = OpamMock.initialize();

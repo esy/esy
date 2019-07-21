@@ -24,7 +24,7 @@ let verdaccioExe =
 let cleanPath = {
   let env = Env.current() |> Shared.rExn;
   let path = StringMap.get("PATH", env);
-  let parts = String.cuts(":", path);
+  let parts = String.cuts(~sep=":", path);
   let path =
     List.fold_left(
       (acc, item) =>
