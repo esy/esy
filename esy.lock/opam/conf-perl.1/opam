@@ -6,8 +6,7 @@ license: "GPL-1+"
 authors: "Larry Wall"
 build: [["perl" "--version"]]
 depexts: [
-  ["perl"] {os-distribution = "debian"}
-  ["perl"] {os-distribution = "ubuntu"}
+  ["perl"] {os-family = "debian"}
   ["perl"] {os-distribution = "alpine"}
   ["perl"] {os-distribution = "nixos"}
   ["perl"] {os-distribution = "arch"}
