@@ -21,6 +21,15 @@ steps:
     continueOnError: true
     displayName: 'esy test:e2e'
 
+  - script: 'npm install'
+    workingDirectory: './test-e2e-re/lib/verdaccio/'
+    continueOnError: true
+    displayName: 'esy test:e2e-re: npm install'
+
+  - script: 'esy test:e2e-re'
+    continueOnError: true
+    displayName: 'esy test:e2e-re'
+
   - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
     continueOnError: true
     displayName: 'esy test:e2e-slow'
