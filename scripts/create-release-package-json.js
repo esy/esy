@@ -1,4 +1,5 @@
-let esyJson = require('../package.json');
+let esyJson = require('../esy.json');
+let packageJson = require('../package.json');
 
 let version = esyJson.version;
 
@@ -15,8 +16,7 @@ console.log(
       description: esyJson.description,
       repository: esyJson.repository,
       dependencies: {
-        '@esy-ocaml/esy-opam': '0.0.15',
-        'esy-solve-cudf': esyJson.dependencies['esy-solve-cudf']
+        'esy-solve-cudf': packageJson.devDependencies['esy-solve-cudf']
       },
       scripts: {
         postinstall: 'node ./postinstall.js'
