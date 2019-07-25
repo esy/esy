@@ -1,6 +1,14 @@
+# Some notes:
+#
+# - Make sure we have either `node`, `npm` or `esy` invocations here as they
+#   work both on linux/macos and windows.
+
 steps:
   - script: 'npm install -g esy@0.5.0 --unsafe-perm'
     displayName: 'npm install -g esy'
+
+  - script: 'npm install'
+    displayName: 'npm install'
 
   - script: 'esy install'
     displayName: 'esy install'
@@ -11,13 +19,13 @@ steps:
   - script: 'esy dune build @fmt'
     displayName: 'Check code formatting'
 
-  - script: 'esy bootstrap'
+  - script: 'node scripts/bootstrap.js'
     displayName: 'esy bootstrap'
 
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
 
-  - script: 'esy test:e2e'
+  - script: 'node ./node_modules/jest-cli/bin/jest.js'
     continueOnError: true
     displayName: 'esy test:e2e'
 
@@ -34,20 +42,6 @@ steps:
     continueOnError: true
     displayName: 'esy test:e2e-slow'
 
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    condition: succeededOrFailed()
-    inputs:
-      testResultsFiles: '**junit*.xml'
-      testRunTitle: TestRun ${{ parameters.name }} $(node_version)
-
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage results'
-    condition: succeededOrFailed()
-    inputs:
-      codeCoverageTool: 'cobertura'
-      summaryFileLocation: '**/coverage/cobertura-coverage.xml'
-
-  - script: 'esy release:platform-release'
+  - script: 'node ./scripts/make-platform-release.js'
     condition: succeededOrFailed()
     displayName: 'esy platform-release'

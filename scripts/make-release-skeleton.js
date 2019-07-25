@@ -3,7 +3,8 @@
 const {execSync} = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const esyJson = require('../package.json');
+const esyJson = require('../esy.json');
+const packageJson = require('../package.json');
 
 function exec(cmd) {
   console.log(`exec: ${cmd}`);
@@ -63,8 +64,7 @@ const pkgJson = {
   description: esyJson.description,
   repository: esyJson.repository,
   dependencies: {
-    '@esy-ocaml/esy-opam': '0.0.15',
-    'esy-solve-cudf': esyJson.dependencies['esy-solve-cudf']
+    'esy-solve-cudf': packageJson.devDependencies['esy-solve-cudf']
   },
   scripts: {
     postinstall: 'node ./postinstall.js'
