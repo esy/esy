@@ -25,7 +25,7 @@ let makePath = (~from=currentPath, toPath) => {
 
 /* TODO check if using current path is the best */
 let esyLocalPath = makePath(isWindows ? "./bin/esy.cmd" : "./bin/esy");
-let testDir = makePath("./test-e2e-re/lib/");
+let testDir = makePath("./test-e2e-re/");
 
 let exe = name => {
   let name = isWindows ? name ++ ".exe" : name;
