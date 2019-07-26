@@ -1,15 +1,8 @@
 var isCi = require('is-ci');
+var cp = require('child_process');
 
-var reporters = ['default'];
-
-// Perhaps a bug in Jest - but resolution fails if
-// we give it ["jest-junit"], so we'll resolve
-// the complete path directly and pass it in.
-let junitPath  = require.resolve("jest-junit");
-
-if (isCi) {
-  reporters = reporters.concat([junitPath]);
-}
+var __ESY__ = cp.execSync('esy x which esy').toString().trim();
+console.log(__ESY__);
 
 module.exports = {
   displayName: 'e2e:fast',
@@ -21,6 +14,7 @@ module.exports = {
     '<rootDir>/test-e2e/build/fixtures/',
   ],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
-  reporters: reporters,
+  reporters: ['default'],
   collectCoverage: isCi,
+  globals: {__ESY__: __ESY__},
 };

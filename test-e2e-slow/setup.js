@@ -11,10 +11,7 @@ const isCi = require("is-ci");
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.9';
 
-const esyCommand =
-  process.platform === 'win32'
-    ? require.resolve('../bin/esy.cmd')
-    : require.resolve('../bin/esy');
+const esyCommand = childProcess.execSync('esy x which esy').toString().trim();
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -

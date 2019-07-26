@@ -35,9 +35,6 @@ obvious items) with further explanations:
     ├── Makefile
     │   Common tasks and workflows for esy development.
     │
-    ├── bin/esy
-    │   symlink (wrapper on Windows) for esy command, used for running tests
-    │
     ├── bin/esyInstallRelease.js
     │   postinstall step for npm releases produced with `esy npm-release`
     │   command. This is a built JS file which is developed in a separate flow
@@ -114,7 +111,6 @@ To make changes to `esy` and test them locally:
 % git clone git://github.com/esy/esy.git
 % cd esy
 % esy
-% esy bootstrap
 ```
 
 On Linux/macOS (soon on Windows too) you can run:
@@ -125,7 +121,7 @@ On Linux/macOS (soon on Windows too) you can run:
 
 which will install git hooks which will do pre commit validation.
 
-To test the `esy` executable in development you can use `bin/esy`.
+To test the `esy` executable in development you can use `$(esy x which esy)`.
 
 ### Updating `bin/esyInstallRelease.js`
 
