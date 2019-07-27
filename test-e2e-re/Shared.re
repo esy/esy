@@ -24,7 +24,7 @@ let makePath = (~from=currentPath, toPath) => {
 };
 
 let esyLocalPath = {
-  let cmd = Bos.Cmd.(v("esy") % "x" % "which" % "esy");
+  let cmd = Bos.Cmd.(v("esy") % "dune" % "exec" % "which" % "esy");
   let res = Bos.OS.Cmd.(run_out(cmd) |> to_string(~trim=true));
   Fpath.v(Rresult.R.failwith_error_msg(res));
 };

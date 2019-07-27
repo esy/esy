@@ -6,17 +6,20 @@ const os = require('os');
 const path = require('path');
 const childProcess = require('child_process');
 const rmSync = require('rimraf').sync;
-const isCi = require("is-ci");
+const isCi = require('is-ci');
 
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.9';
 
-const esyCommand = childProcess.execSync('esy x which esy').toString().trim();
+const esyCommand = childProcess
+  .execSync('esy dune exec which esy')
+  .toString()
+  .trim();
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -
   // so in that environment, we'll run these tests from a root folder.
-  const appVeyorTempFolder = "C:/esy-ci-temp";
+  const appVeyorTempFolder = 'C:/esy-ci-temp';
   return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';
 }
 
@@ -57,26 +60,26 @@ function mkdirTemp() {
 // - https://github.com/esy/esy/issues/414
 // - https://github.com/esy/esy/issues/413
 function retry(fn) {
-    if (os.platform() !== "win32") {
-        return fn();
+  if (os.platform() !== 'win32') {
+    return fn();
+  }
+
+  let iterations = 1;
+  let lastException = null;
+  while (iterations <= 3) {
+    try {
+      console.log(' ** Iteration: ' + iterations.toString());
+      let ret = fn();
+      return ret;
+    } catch (ex) {
+      console.warn('Exception: ' + ex.toString());
+      lastException = ex;
     }
 
-    let iterations = 1;
-    let lastException = null;
-    while (iterations <= 3) {
-        try {
-            console.log(" ** Iteration: " + iterations.toString());
-            let ret = fn();
-            return ret;
-        } catch (ex) {
-            console.warn("Exception: " + ex.toString());
-            lastException = ex;
-        }
+    iterations++;
+  }
 
-        iterations++;
-    }
-
-    throw(lastException);
+  throw lastException;
 }
 
 function createSandbox() /* : TestSandbox */ {
@@ -85,8 +88,8 @@ function createSandbox() /* : TestSandbox */ {
   let cwd = sandboxPath;
 
   function exec(...args /* : Array<string> */) {
-    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
-    const cmd = normalizedArgs.join(" ");
+    const normalizedArgs = args.map(arg => arg.split('\\').join('/'));
+    const cmd = normalizedArgs.join(' ');
     console.log(`EXEC: ${cmd}`);
     childProcess.execSync(cmd, {
       cwd: cwd,
