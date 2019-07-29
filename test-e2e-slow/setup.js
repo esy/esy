@@ -11,10 +11,10 @@ const isCi = require('is-ci');
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.9';
 
-const esyCommand = childProcess
-  .execSync('esy dune exec which esy')
-  .toString()
-  .trim();
+var __ESY__ = path.join(__dirname, '_build', 'install', 'default', 'bin', 'esy');
+if (isWindows) {
+  __ESY__ = __ESY__ + '.exe';
+}
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -
@@ -115,7 +115,7 @@ function createSandbox() /* : TestSandbox */ {
     cd,
     rm,
     esy(...args /* : Array<string> */) {
-      return retry(() => exec(esyCommand, ...args));
+      return retry(() => exec(__ESY__, ...args));
     },
     dispose: () => {
       rmSync(sandboxPath);
@@ -154,7 +154,7 @@ function setup(_globalConfig /* : any */) {
 
 module.exports.setup = setup;
 module.exports.esyPrefixPath = esyPrefixPath;
-module.exports.esyCommand = esyCommand;
+module.exports.esyCommand = __ESY__;
 module.exports.isWindows = isWindows;
 module.exports.mkdirTemp = mkdirTemp;
 module.exports.ocamlVersion = ocamlVersion;
