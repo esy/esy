@@ -13,7 +13,7 @@ let of_yojson: Json.decoder(t);
 
 let v: string => t;
 
-let ofPath: Path.t => t;
+let ofPath: Fpath.t => t;
 
 /** Add a new argument to the command. */
 
@@ -21,7 +21,7 @@ let (%): (t, string) => t;
 
 /** Convert path to a string suitable to use with (%). */
 
-let p: Path.t => string;
+let p: Fpath.t => string;
 
 /**
  * Add a new argument to the command.
@@ -58,6 +58,10 @@ let mapTool: (string => string, t) => t;
 include S.PRINTABLE with type t := t;
 include S.COMPARABLE with type t := t;
 
+/** Checks if path is a command (exists and is an executable). */
+let checkIfCommandIsAvailable:
+  Fpath.t => result(option(Fpath.t), [> Rresult.R.msg]);
+
 /** TODO: remove away, use resolveInvocation instead */
 
 let resolveInvocation: (list(string), t) => result(t, [> | `Msg(string)]);
@@ -76,3 +80,6 @@ let toBosCmd: t => Bos.Cmd.t;
 let ofBosCmd: Bos.Cmd.t => result(t, [> | `Msg(string)]);
 
 let ofListExn: list(string) => t;
+
+/** Find an executable which ships as a part of esy package. */
+let findEsyExecutable: string => t;
