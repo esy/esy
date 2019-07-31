@@ -11,6 +11,7 @@ let build:
     ~buildOnly: bool=?,
     ~quiet: bool=?,
     ~logPath: Path.t=?,
+    ~disableSandbox: bool=?,
     EsyBuildPackage.Config.t,
     EsyBuildPackage.Plan.t
   ) =>

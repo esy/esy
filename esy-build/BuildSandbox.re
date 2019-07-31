@@ -1097,7 +1097,8 @@ let makeSymlinksToStore = (sandbox, task) => {
   return();
 };
 
-let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
+let buildTask =
+    (~quiet=?, ~buildOnly=?, ~logPath=?, ~disableSandbox=?, sandbox, task) => {
   open RunAsync.Syntax;
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
@@ -1108,6 +1109,7 @@ let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
         ~quiet?,
         ~buildOnly?,
         ~logPath?,
+        ~disableSandbox?,
         sandbox.cfg,
         plan,
       )
@@ -1125,7 +1127,16 @@ let buildTask = (~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, task) => {
 };
 
 let buildOnly =
-    (~force, ~quiet=?, ~buildOnly=?, ~logPath=?, sandbox, plan, id) =>
+    (
+      ~force,
+      ~quiet=?,
+      ~buildOnly=?,
+      ~logPath=?,
+      ~disableSandbox=?,
+      sandbox,
+      plan,
+      id,
+    ) =>
   RunAsync.Syntax.(
     switch (Plan.get(plan, id)) {
     | Some(task) =>
@@ -1133,10 +1144,24 @@ let buildOnly =
         if%bind (isBuilt(sandbox, task)) {
           return();
         } else {
-          buildTask(~quiet?, ~buildOnly?, ~logPath?, sandbox, task);
+          buildTask(
+            ~quiet?,
+            ~buildOnly?,
+            ~logPath?,
+            ~disableSandbox?,
+            sandbox,
+            task,
+          );
         };
       } else {
-        buildTask(~quiet?, ~buildOnly?, ~logPath?, sandbox, task);
+        buildTask(
+          ~quiet?,
+          ~buildOnly?,
+          ~logPath?,
+          ~disableSandbox?,
+          sandbox,
+          task,
+        );
       }
     | None => RunAsync.return()
     }
