@@ -115,14 +115,21 @@ module NoSandbox = {
   };
 };
 
-let init = (config: config) =>
-  switch (EsyLib.System.Platform.host) {
-  | Windows => Windows.sandboxExec(config)
-  | Darwin => Darwin.sandboxExec(config)
-  | _ => NoSandbox.sandboxExec(config)
+let init = (config: config, ~noSandbox) =>
+  if (noSandbox) {
+    NoSandbox.sandboxExec(config);
+  } else {
+    switch (EsyLib.System.Platform.host) {
+    | Windows => Windows.sandboxExec(config)
+    | Darwin => Darwin.sandboxExec(config)
+    | _ => NoSandbox.sandboxExec(config)
+    };
   };
 
 let exec = (~env, sandbox: sandbox, cmd) => {
+  /* print_endline(Astring.String.Map.get("PATH", env)); */
+  /* print_endline(Astring.String.Map.get("LD_LIBRARY_PATH", env)); */
+  /* print_endline(Astring.String.Map.get("PKG_CONFIG_PATH", env)); */
   let result = sandbox(~env, cmd);
   (result: result(_, err) :> Run.t(_, _));
 };

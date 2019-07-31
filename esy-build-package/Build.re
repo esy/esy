@@ -211,7 +211,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
         };
       Ok({Sandbox.allowWrite: allowWrite});
     };
-    Sandbox.init(config);
+    Sandbox.init(config, ~noSandbox=cfg.disableSandbox);
   };
 
   return({
