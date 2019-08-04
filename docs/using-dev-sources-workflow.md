@@ -54,8 +54,8 @@ Other options are:
 
 The same workflow is supported for opam packages.
 
-One can use an unreleased opam packages by specifying its development
-repository. The only different is that one should also specify an opam package
+One can use an unreleased opam package by specifying its development
+repository. The only difference is that one should also specify an opam package
 name.
 
 Example:
