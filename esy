@@ -1,0 +1,3 @@
+#!/bin/bash
+ESY_COMMAND=$(esy dune exec which esy)
+exec "$ESY_COMMAND" "$@"

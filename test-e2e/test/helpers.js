@@ -4,7 +4,7 @@ jest.setTimeout(120000);
 
 import type {Fixture} from './FixtureUtils.js';
 import type {PackageRegistry} from './NpmRegistryMock.js';
-import type {OpamRegistry} from './OpamRegistryMock.js.js';
+import type {OpamRegistry} from './OpamRegistryMock.js';
 const path = require('path');
 const fs = require('fs-extra');
 const fsUtils = require('./fs.js');
@@ -25,15 +25,20 @@ const isLinux = process.platform === 'linux';
 const isMacos = process.platform === 'darwin';
 
 const getWindowsSystemDirectory = () => {
+  let windir = process.env['windir'];
+  if (windir == null) {
+    throw new Error('Environment variable "windir" is not set');
+  }
   return path
-    .join(process.env['windir'], 'System32')
+    .join(windir, 'System32')
     .split('\\')
     .join('/');
 };
 
-const ESY = isWindows
-  ? require.resolve('../../bin/esy.cmd')
-  : require.resolve('../../bin/esy');
+// This is set in jest.config.js
+declare var __ESY__: string;
+
+const ESY = __ESY__;
 
 var regexpRe = /[|\\{}()[\]^$+*?.]/g;
 

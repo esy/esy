@@ -23,9 +23,13 @@ let makePath = (~from=currentPath, toPath) => {
   Path.v(toPath) |> Path.append(from) |> Path.normalize;
 };
 
-/* TODO check if using current path is the best */
-let esyLocalPath = makePath(isWindows ? "./bin/esy.cmd" : "./bin/esy");
-let testDir = makePath("./test-e2e-re/lib/");
+let esyLocalPath = {
+  let cmd = Bos.Cmd.(v("esy") % "dune" % "exec" % "which" % "esy");
+  let res = Bos.OS.Cmd.(run_out(cmd) |> to_string(~trim=true));
+  Fpath.v(Rresult.R.failwith_error_msg(res));
+};
+
+let testDir = makePath("./test-e2e-re/");
 
 let exe = name => {
   let name = isWindows ? name ++ ".exe" : name;

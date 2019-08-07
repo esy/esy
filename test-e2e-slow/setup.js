@@ -6,20 +6,20 @@ const os = require('os');
 const path = require('path');
 const childProcess = require('child_process');
 const rmSync = require('rimraf').sync;
-const isCi = require("is-ci");
+const isCi = require('is-ci');
 
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.6.9';
 
-const esyCommand =
-  process.platform === 'win32'
-    ? require.resolve('../bin/esy.cmd')
-    : require.resolve('../bin/esy');
+var __ESY__ = path.join(__dirname, '_build', 'install', 'default', 'bin', 'esy');
+if (isWindows) {
+  __ESY__ = __ESY__ + '.exe';
+}
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -
   // so in that environment, we'll run these tests from a root folder.
-  const appVeyorTempFolder = "C:/esy-ci-temp";
+  const appVeyorTempFolder = 'C:/esy-ci-temp';
   return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';
 }
 
@@ -60,26 +60,26 @@ function mkdirTemp() {
 // - https://github.com/esy/esy/issues/414
 // - https://github.com/esy/esy/issues/413
 function retry(fn) {
-    if (os.platform() !== "win32") {
-        return fn();
+  if (os.platform() !== 'win32') {
+    return fn();
+  }
+
+  let iterations = 1;
+  let lastException = null;
+  while (iterations <= 3) {
+    try {
+      console.log(' ** Iteration: ' + iterations.toString());
+      let ret = fn();
+      return ret;
+    } catch (ex) {
+      console.warn('Exception: ' + ex.toString());
+      lastException = ex;
     }
 
-    let iterations = 1;
-    let lastException = null;
-    while (iterations <= 3) {
-        try {
-            console.log(" ** Iteration: " + iterations.toString());
-            let ret = fn();
-            return ret;
-        } catch (ex) {
-            console.warn("Exception: " + ex.toString());
-            lastException = ex;
-        }
+    iterations++;
+  }
 
-        iterations++;
-    }
-
-    throw(lastException);
+  throw lastException;
 }
 
 function createSandbox() /* : TestSandbox */ {
@@ -88,8 +88,8 @@ function createSandbox() /* : TestSandbox */ {
   let cwd = sandboxPath;
 
   function exec(...args /* : Array<string> */) {
-    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
-    const cmd = normalizedArgs.join(" ");
+    const normalizedArgs = args.map(arg => arg.split('\\').join('/'));
+    const cmd = normalizedArgs.join(' ');
     console.log(`EXEC: ${cmd}`);
     childProcess.execSync(cmd, {
       cwd: cwd,
@@ -115,7 +115,7 @@ function createSandbox() /* : TestSandbox */ {
     cd,
     rm,
     esy(...args /* : Array<string> */) {
-      return retry(() => exec(esyCommand, ...args));
+      return retry(() => exec(__ESY__, ...args));
     },
     dispose: () => {
       rmSync(sandboxPath);
@@ -154,7 +154,7 @@ function setup(_globalConfig /* : any */) {
 
 module.exports.setup = setup;
 module.exports.esyPrefixPath = esyPrefixPath;
-module.exports.esyCommand = esyCommand;
+module.exports.esyCommand = __ESY__;
 module.exports.isWindows = isWindows;
 module.exports.mkdirTemp = mkdirTemp;
 module.exports.ocamlVersion = ocamlVersion;

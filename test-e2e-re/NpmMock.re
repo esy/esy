@@ -5,15 +5,14 @@ module String = Astring.String;
 module StringMap = String.Map;
 
 /* ATM we use custom config to avoid use of auth module */
-let verdaccioDir = Shared.makePath(~from=Shared.testDir, "./verdaccio");
-let verdaccioStorage = Shared.makePath(~from=verdaccioDir, "./storage");
-let verdaccioCfg = Shared.makePath(~from=verdaccioDir, "./config.yml");
+let verdaccioStorage = Shared.makePath(~from=Shared.testDir, "./storage");
+let verdaccioCfg = Shared.makePath(~from=Shared.testDir, "./verdaccio.yml");
 /*
   Needs to be started from executable
   Otherwise, we might get problems with ports being left open
  */
 let verdaccioExe =
-  Shared.makePath(~from=verdaccioDir, "./node_modules/.bin/verdaccio");
+  Shared.makePath(~from=Shared.testDir, "../node_modules/.bin/verdaccio");
 
 /*
   Need to remove any _esy variables from PATH,
@@ -114,7 +113,7 @@ let runWith = run => {
     runCmd(
       Path.show(verdaccioExe),
       ["--config", Path.show(verdaccioCfg)],
-      Path.show(verdaccioDir),
+      Path.show(Shared.testDir),
     );
   waitTillStarted(inc);
 

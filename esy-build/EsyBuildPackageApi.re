@@ -1,10 +1,4 @@
-let esyBuildPackageCmd = {
-  let req = "../esy-build-package/bin/esyBuildPackageCommand.exe";
-  switch (NodeResolution.resolve(req)) {
-  | Ok(cmd) => Cmd.ofPath(cmd)
-  | Error(`Msg(msg)) => failwith(msg)
-  };
-};
+let esyBuildPackageCmd = lazy (Cmd.findEsyExecutable("esy-build-package"));
 
 let run =
     (
@@ -30,7 +24,7 @@ let run =
         Run.Syntax.(
           return(
             Cmd.(
-              esyBuildPackageCmd
+              Lazy.force(esyBuildPackageCmd)
               % action
               % "--store-path"
               % p(cfg.storePath)

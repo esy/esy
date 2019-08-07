@@ -1,14 +1,12 @@
 var isCi = require('is-ci');
+var cp = require('child_process');
+var path = require('path');
+var isWindows = process.platform === 'win32';
 
-var reporters = ['default'];
+var __ESY__ = path.join(__dirname, '_build', 'install', 'default', 'bin', 'esy');
 
-// Perhaps a bug in Jest - but resolution fails if
-// we give it ["jest-junit"], so we'll resolve
-// the complete path directly and pass it in.
-let junitPath  = require.resolve("jest-junit");
-
-if (isCi) {
-  reporters = reporters.concat([junitPath]);
+if (isWindows) {
+  __ESY__ = __ESY__ + '.exe';
 }
 
 module.exports = {
@@ -21,6 +19,7 @@ module.exports = {
     '<rootDir>/test-e2e/build/fixtures/',
   ],
   coverageReporters: ['text-summary', 'json', 'html', 'cobertura'],
-  reporters: reporters,
+  reporters: ['default'],
   collectCoverage: isCi,
+  globals: {__ESY__: __ESY__},
 };

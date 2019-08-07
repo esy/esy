@@ -23,99 +23,18 @@ documentation refer to [esy.sh][] documentation site.
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Repository structure
-
-The following snippet lists esy repository structured (omitting irrelevant or
-obvious items) with further explanations:
-
-    ├── CHANGELOG.md
-    ├── LICENSE
-    ├── README.md
-    │
-    ├── Makefile
-    │   Common tasks and workflows for esy development.
-    │
-    ├── bin/esy
-    │   symlink (wrapper on Windows) for esy command, used for running tests
-    │
-    ├── bin/esyInstallRelease.js
-    │   postinstall step for npm releases produced with `esy npm-release`
-    │   command. This is a built JS file which is developed in a separate flow
-    │   inside `esy-install-npm-release/` subdirectory (see below).
-    │
-    ├── docs
-    │   esy end user documentation in markdown format.
-    │
-    ├── dune
-    ├── dune-project
-    │
-    ├── esy
-    │   This dune library implements sandbox builder - a routine which builds
-    │   the enture dependency graph and provides other introspection APIs.
-    │
-    ├── esy/bin
-    │   This dune executable implements "esy" command.
-    │
-    ├── esy-solve
-    │   This dune library implements solver.
-    │
-    ├── esy-install
-    │   This dune library implements installer.
-    │
-    ├── esy-build-package
-    │   This dune library implements package builder. esy library uses this to
-    │   build each package.
-    │
-    ├── esy-build-package/bin
-    │   This dune executable implements "esy-build-package" command.
-    │
-    ├── esy-installer
-    │   Implementation of installation procedure defined with *.install files.
-    │   This re-implements opam-installer.
-    │
-    ├── esy-install-npm-release
-    │   Sources for `bin/esyInstallRelease.js`.
-    │
-    ├── esy-command-expression
-    │   Parser for #{...} syntax used in esy manifests.
-    │
-    ├── esy-shell-expansion
-    │   A simple shell expansion.
-    │
-    ├── esy-yarn-lockfile
-    │   Parser for a subset of yarn lockfile format.
-    │
-    ├── esy-lib
-    │   A collection of utility modules shared between other libraries.
-    │
-    ├── site
-    │   Sources for https://esy.sh
-    │
-    ├── esy.lock
-    ├── package.json
-    │
-    ├── scripts
-    │
-    ├── test
-    │   Unit tests.
-    │
-    ├── test-e2e-slow
-    │   End-to-end test suite which takes a significiant amount of time.
-    │   We execute it on CI by placing `@slowtest` token in commit messages.
-    │
-    └── test-e2e
-        End-to-end test suite.
-
 ## Workflow
 
-To make changes to `esy` and test them locally:
+To start hacking on esy:
 
 ```
 % git clone git://github.com/esy/esy.git
 % cd esy
 % esy
-% esy bootstrap
 ```
+
+To test esy in development you can use `./esy` wrapper which runs the `esy`
+command.
 
 On Linux/macOS (soon on Windows too) you can run:
 
@@ -124,8 +43,6 @@ On Linux/macOS (soon on Windows too) you can run:
 ```
 
 which will install git hooks which will do pre commit validation.
-
-To test the `esy` executable in development you can use `bin/esy`.
 
 ### Updating `bin/esyInstallRelease.js`
 

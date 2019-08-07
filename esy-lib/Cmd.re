@@ -11,9 +11,9 @@ type t = (string, list(string));
 
 let v = tool => (tool, []);
 
-let ofPath = path => v(Path.show(path));
+let ofPath = path => v(Fpath.to_string(path));
 
-let p = Path.show;
+let p = Fpath.to_string;
 
 let addArg = (arg, (tool, args)) => {
   let args = [arg, ...args];
@@ -140,7 +140,7 @@ let resolveCmd = (path, cmd) => {
   open Result.Syntax;
   let allPaths = getAdditionalResolvePaths(path);
   let find = p => {
-    let p = Path.(v(p) / cmd);
+    let p = Fpath.(v(p) / cmd);
     let p = EsyBash.normalizePathForWindows(p);
     checkIfCommandIsAvailable(p);
   };
@@ -151,7 +151,7 @@ let resolveCmd = (path, cmd) => {
     | ["", ...xs] => resolve(xs)
     | [x, ...xs] =>
       switch (find(x)) {
-      | Ok(Some(x)) => Ok(Path.show(x))
+      | Ok(Some(x)) => Ok(Fpath.to_string(x))
       | Ok(None)
       | Error(_) => resolve(xs)
       };
@@ -196,3 +196,33 @@ let ofListExn =
   fun
   | [] => raise(Invalid_argument("empty command"))
   | [tool, ...args] => v(tool) |> addArgs(args);
+
+let findEsyExecutable = name => {
+  open Result.Syntax;
+  let program = {
+    let program = Fpath.v(Sys.executable_name);
+    if (Fpath.is_abs(program)) {
+      program;
+    } else {
+      Fpath.(normalize(Path.currentPath() /\/ program));
+    };
+  };
+  let found = {
+    let findAt = path => {
+      let basedir = Fpath.parent(path);
+      checkIfCommandIsAvailable(Fpath.(basedir / name));
+    };
+    switch%bind (findAt(program)) {
+    | Some(p) => return(Some(p))
+    | None =>
+      let%bind program = NodeResolution.realpath(program);
+      findAt(program);
+    };
+  };
+  switch (found) {
+  | Ok(Some(path)) => ofPath(path)
+  | Ok(None) => Exn.failf("unable to find esy executable: %s", name)
+  | Error(`Msg(msg)) =>
+    Exn.failf("unable to find esy executable: %s: %s", name, msg)
+  };
+};
