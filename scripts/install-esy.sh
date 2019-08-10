@@ -3,13 +3,13 @@
 ESY_SHA256="f2cec5e6556172141bb399d1dcef7db4b9d881b0bed9c9749c0eebd95584b739"
 ESY_SOLVE_CUDF_SHA256="3cfb233e5536fe555ff1318bcff241481c8dcbe1edc30b5f97e2366134d3f234"
 
-PREFIX=~/esy
+PREFIX=/usr/local/lib/esy
 
 ESY_DOWNLOAD_DIR=/tmp/esy-release
 ESY_SOLVE_CUDF_DOWNLOAD_DIR=/tmp/esy-solve-cudf-release
 
 echo "Removing old install"
-rm -rf ~/esy
+rm -rf $PREFIX
 rm /usr/local/bin/esy
 
 set -e
@@ -63,7 +63,7 @@ if [[ $ESY_MATCHES && $ESY_SOLVE_CUDF_MATCHES ]]; then
     chmod 0555 $PREFIX/lib/default/bin/esy.exe
 
     mkdir -p $PREFIX/lib/node_modules/esy-solve-cudf
-gi
+
     cp $ESY_SOLVE_CUDF_DOWNLOAD_DIR/package/package.json $PREFIX/lib/node_modules/esy-solve-cudf
     cp $ESY_SOLVE_CUDF_DOWNLOAD_DIR/package/platform-$PLATFORM/esySolveCudfCommand.exe $PREFIX/lib/node_modules/esy-solve-cudf
 fi
