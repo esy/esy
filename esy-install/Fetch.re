@@ -692,6 +692,9 @@ let installNodeWrapper = (~binPath, ~pnpJsPath, ()) =>
         return(binPath);
       };
 
+      let%bind nodeCmd = Fs.realpath(Path.v(nodeCmd));
+      let nodeCmd = Path.show(nodeCmd);
+
       let (data, path) =
         switch (System.Platform.host) {
         | Windows =>
