@@ -63,7 +63,7 @@ to call `dune build` command.
       "refmterr dune build --root . --only-packages #{self.name}",
     ]
   },
-  "dependencies": {
+  "devDependencies": {
     "refmterr": "*",
     ...
   }
