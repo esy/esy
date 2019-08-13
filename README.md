@@ -114,7 +114,7 @@ To make changes to `esy` and test them locally:
 % git clone git://github.com/esy/esy.git
 % cd esy
 % esy
-% esy bootstrap
+% node scripts/bootstrap.js
 ```
 
 On Linux/macOS (soon on Windows too) you can run:

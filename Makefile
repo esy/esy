@@ -66,7 +66,7 @@ endif
 ifeq ($(ESY_VERSION_MINOR),5)
 	@esy install
 	@make build
-	@esy bootstrap
+	@node scripts/bootstrap.js
 else
 	$(error "esy requires version 0.$(ESY_VERSION_MINOR).x installed to bootstrap, run 'npm install -g esy@0.$(ESY_VERSION_MINOR).x'")
 endif
