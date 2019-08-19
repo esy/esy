@@ -375,7 +375,7 @@ let make =
           let windir = Sys.getenv("WINDIR") ++ "/System32";
           let windir = Path.normalizePathSepOfFilename(windir);
           "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ++ windir;
-        | _ => "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        | _ => Sys.getenv("PATH") ++ ":/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         };
 
       SandboxEnvironment.[
