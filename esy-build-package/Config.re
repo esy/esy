@@ -16,16 +16,18 @@ type storePathConfig =
 
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
-let initStore = (path: Fpath.t) => {
+let initStore = (path: Fpath.t, buildPath: Fpath.t) => {
   open Run;
   let%bind () = mkdir(Fpath.(path / "i"));
-  let%bind () = mkdir(Fpath.(path / "b"));
+  let%bind () = mkdir(Fpath.(buildPath / "b"));
   let%bind () = mkdir(Fpath.(path / "s"));
   return();
 };
 
 let rec configureStorePath = cfg => {
   open Run;
+  let home = EsyLib.Path.homePath();
+  let prefixPath = home / ".esy";
   let%bind path =
     switch (cfg) {
     | StorePath(storePath) => return(storePath)
@@ -33,12 +35,9 @@ let rec configureStorePath = cfg => {
       let%bind padding = Store.getPadding(prefixPath);
       let storePath = prefixPath / (Store.version ++ padding);
       return(storePath);
-    | StorePathDefault =>
-      let home = EsyLib.Path.homePath();
-      let prefixPath = home / ".esy";
-      configureStorePath(StorePathOfPrefix(prefixPath));
+    | StorePathDefault => configureStorePath(StorePathOfPrefix(prefixPath))
     };
-  let%bind () = initStore(path);
+  let%bind () = initStore(path, prefixPath / Store.version);
   return(path);
 };
 
@@ -60,7 +59,7 @@ let make = (~storePath, ~projectPath, ~localStorePath, ()) => {
         );
       };
     };
-  let%bind () = initStore(localStorePath);
+  // let%bind () = initStore(localStorePath);
   return({projectPath, storePath, localStorePath});
 };
 
