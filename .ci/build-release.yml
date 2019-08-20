@@ -84,6 +84,7 @@ jobs:
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
     steps:
+      - template: windows-disable-long-paths.yml
       - template: use-node.yml
       - template: build.yml
 
@@ -103,7 +104,6 @@ jobs:
       demands: npm
 
     variables:
-        ESY__WINDOWS_LONG_PATHS: 1
         STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
         STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
         ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3____________________________________________________________________/i
@@ -111,7 +111,6 @@ jobs:
         # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
     steps:
-      - template: windows-enable-long-paths.yml
       - template: use-node.yml
       - template: build.yml
       - script: esy b where ocamlc
