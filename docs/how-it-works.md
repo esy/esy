@@ -238,7 +238,7 @@ The cache key used for the cache consists of:
 
 Local Build Store follows exactly the same layout and cache key as the Global
 Build Store but it is local to a sandbox and located at
-`<sandboxPath>/_esy/deafult/store`.
+`<sandboxPath>/_esy/default/store`.
 
 It is used to store artifacts of packages which don't have a stable build
 identity (unreleased software which changes often and doesn't warrant sorting
