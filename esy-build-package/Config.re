@@ -3,6 +3,7 @@ module Store = EsyLib.Store;
 [@deriving (show, to_yojson)]
 type t = {
   projectPath: EsyLib.Path.t,
+  globalStorePrefix: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
   localStorePath: EsyLib.Path.t,
   disableSandbox: bool,
@@ -15,6 +16,7 @@ type storePathConfig =
   | StorePathOfPrefix(Fpath.t)
   | StorePathDefault;
 
+let storePrefixDefault = EsyLib.Path.(homePath() / ".esy");
 let cwd = EsyLib.Path.v(Sys.getcwd());
 
 let initStore = (path: Fpath.t) => {
@@ -25,7 +27,7 @@ let initStore = (path: Fpath.t) => {
   return();
 };
 
-let rec configureStorePath = cfg => {
+let rec configureStorePath = (cfg, globalStorePrefix) => {
   open Run;
   let%bind path =
     switch (cfg) {
@@ -35,17 +37,27 @@ let rec configureStorePath = cfg => {
       let storePath = prefixPath / (Store.version ++ padding);
       return(storePath);
     | StorePathDefault =>
-      let home = EsyLib.Path.homePath();
-      let prefixPath = home / ".esy";
-      configureStorePath(StorePathOfPrefix(prefixPath));
+      configureStorePath(
+        StorePathOfPrefix(storePrefixDefault),
+        globalStorePrefix,
+      )
     };
   let%bind () = initStore(path);
+  let%bind () = mkdir(Fpath.(globalStorePrefix / Store.version / "b"));
   return(path);
 };
 
-let make = (~storePath, ~projectPath, ~localStorePath, ~disableSandbox, ()) => {
+let make =
+    (
+      ~globalStorePrefix,
+      ~storePath,
+      ~projectPath,
+      ~localStorePath,
+      ~disableSandbox,
+      (),
+    ) => {
   open Run;
-  let%bind storePath = configureStorePath(storePath);
+  let%bind storePath = configureStorePath(storePath, globalStorePrefix);
   let%bind () =
     switch (EsyLib.System.Platform.host) {
     | Windows => return()
@@ -62,7 +74,13 @@ let make = (~storePath, ~projectPath, ~localStorePath, ~disableSandbox, ()) => {
       };
     };
   let%bind () = initStore(localStorePath);
-  return({projectPath, storePath, localStorePath, disableSandbox});
+  return({
+    projectPath,
+    globalStorePrefix,
+    storePath,
+    localStorePath,
+    disableSandbox,
+  });
 };
 
 let render = (cfg, v) => {
@@ -70,9 +88,11 @@ let render = (cfg, v) => {
     v |> EsyLib.Path.show |> EsyLib.Path.normalizePathSepOfFilename;
   let projectPath = path(cfg.projectPath);
   let storePath = path(cfg.storePath);
+  let globalStorePrefix = path(cfg.globalStorePrefix);
   let localStorePath = path(cfg.localStorePath);
   let lookupVar =
     fun
+    | "globalStorePrefix" => Some(globalStorePrefix)
     | "project" => Some(projectPath)
     | "store" => Some(storePath)
     | "localStore" => Some(localStorePath)
@@ -86,6 +106,7 @@ module Value = {
     let render = render;
   });
 
+  let globalStorePrefix = v("%{globalStorePrefix}%");
   let project = v("%{project}%");
   let store = v("%{store}%");
   let localStore = v("%{localStore}%");
@@ -94,6 +115,7 @@ module Value = {
 module Path: {
   include EsyLib.Abstract.PATH with type ctx = config;
   let toValue: t => Value.t;
+  let globalStorePrefix: t;
   let store: t;
   let localStore: t;
   let project: t;
@@ -101,6 +123,7 @@ module Path: {
   include EsyLib.Path;
   type ctx = config;
 
+  let globalStorePrefix = v("%{globalStorePrefix}%");
   let project = v("%{project}%");
   let store = v("%{store}%");
   let localStore = v("%{localStore}%");

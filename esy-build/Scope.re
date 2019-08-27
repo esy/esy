@@ -139,13 +139,22 @@ module PackageScope: {
     | Transient => SandboxPath.localStore
     };
 
+  let buildStorePath = scope =>
+    switch (scope.sourceType) {
+    | Immutable => SandboxPath.globalStorePrefix
+    | ImmutableWithTransientDependencies
+    | Transient => SandboxPath.localStore
+    };
+
   let buildPath = scope => {
-    let storePath = storePath(scope);
-    SandboxPath.(storePath / Store.buildTree / BuildId.show(scope.id));
+    let storePath = buildStorePath(scope);
+    SandboxPath.(
+      storePath / Store.version / Store.buildTree / BuildId.show(scope.id)
+    );
   };
 
   let buildInfoPath = scope => {
-    let storePath = storePath(scope);
+    let storePath = buildStorePath(scope);
     let name = BuildId.show(scope.id) ++ ".info";
     SandboxPath.(storePath / Store.buildTree / name);
   };
@@ -166,7 +175,7 @@ module PackageScope: {
   };
 
   let logPath = scope => {
-    let storePath = storePath(scope);
+    let storePath = buildStorePath(scope);
     let basename = BuildId.show(scope.id) ++ ".log";
     SandboxPath.(storePath / Store.buildTree / basename);
   };

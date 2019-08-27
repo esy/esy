@@ -10,6 +10,7 @@ type verb =
 
 type commonOpts = {
   planPath: option(Fpath.t),
+  globalStorePrefix: option(Fpath.t),
   storePath: option(Fpath.t),
   localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
@@ -27,7 +28,14 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {storePath, localStorePath, projectPath, disableSandbox, _} = copts;
+  let {
+    globalStorePrefix,
+    storePath,
+    localStorePath,
+    projectPath,
+    disableSandbox,
+    _,
+  } = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
@@ -35,7 +43,13 @@ let createConfig = (copts: commonOpts) => {
     | None => Config.StorePathDefault
     | Some(storePath) => Config.StorePath(storePath)
     };
+  let globalStorePrefix =
+    switch (globalStorePrefix) {
+    | None => Config.storePrefixDefault
+    | Some(storePrefix) => storePrefix
+    };
   Config.make(
+    ~globalStorePrefix,
     ~storePath,
     ~localStorePath=
       Option.orDefault(~default=projectPath / "_store", localStorePath),
@@ -220,6 +234,15 @@ let () = {
         & info(["store-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
+    let globalStorePrefix = {
+      let doc = "Specifies esy global store prefix.";
+      let env = Arg.env_var("ESY__GLOBAL_STORE_PREFIX", ~doc);
+      Arg.(
+        value
+        & opt(some(path), None)
+        & info(["global-store-prefix"], ~env, ~docs, ~docv="PATH", ~doc)
+      );
+    };
     let localStorePath = {
       let doc = "Specifies esy sandbox path.";
       let env = Arg.env_var("ESY__LOCAL_STORE_PATH", ~doc);
@@ -251,6 +274,7 @@ let () = {
     let parse =
         (
           projectPath,
+          globalStorePrefix,
           storePath,
           localStorePath,
           planPath,
@@ -259,6 +283,7 @@ let () = {
         ) => {
       {
         projectPath,
+        globalStorePrefix,
         storePath,
         localStorePath,
         planPath,
@@ -269,6 +294,7 @@ let () = {
     Term.(
       const(parse)
       $ projectPath
+      $ globalStorePrefix
       $ storePath
       $ localStorePath
       $ planPath
