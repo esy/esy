@@ -1,6 +1,7 @@
 type t =
   pri {
     projectPath: Fpath.t,
+    globalStorePrefix: Fpath.t,
     storePath: Fpath.t,
     localStorePath: Fpath.t,
     disableSandbox: bool,
@@ -15,10 +16,12 @@ type storePathConfig =
   | StorePathOfPrefix(Fpath.t)
   | StorePathDefault;
 
-let configureStorePath: storePathConfig => Run.t(Fpath.t, _);
+let storePrefixDefault: Fpath.t;
+let configureStorePath: (storePathConfig, Fpath.t) => Run.t(Fpath.t, _);
 
 let make:
   (
+    ~globalStorePrefix: Fpath.t,
     ~storePath: storePathConfig,
     ~projectPath: Fpath.t,
     ~localStorePath: Fpath.t,
@@ -33,6 +36,7 @@ type config = t;
 module Value: {
   include EsyLib.Abstract.STRING with type ctx = config;
   let store: t;
+  let globalStorePrefix: t;
   let localStore: t;
   let project: t;
 };
@@ -40,6 +44,7 @@ module Value: {
 module Path: {
   include EsyLib.Abstract.PATH with type ctx = config;
   let toValue: t => Value.t;
+  let globalStorePrefix: t;
   let store: t;
   let localStore: t;
   let project: t;

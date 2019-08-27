@@ -207,7 +207,15 @@ let storePath = cfg => {
     | Some(path) => EsyBuildPackage.Config.StorePathOfPrefix(path)
     };
 
-  Run.ofBosError(EsyBuildPackage.Config.(configureStorePath(storePath)));
+  let globalStorePrefix =
+    switch (cfg.prefixPath) {
+    | None => EsyBuildPackage.Config.storePrefixDefault
+    | Some(prefixPath) => prefixPath
+    };
+
+  Run.ofBosError(
+    EsyBuildPackage.Config.(configureStorePath(storePath, globalStorePrefix)),
+  );
 };
 
 module FindProject = {};

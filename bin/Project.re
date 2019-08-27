@@ -149,8 +149,15 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         EsyBuildPackage.Config.StorePathOfPrefix(prefixPath)
       };
 
+    let globalStorePrefix =
+      switch (projcfg.prefixPath) {
+      | None => EsyBuildPackage.Config.storePrefixDefault
+      | Some(prefixPath) => prefixPath
+      };
+
     RunAsync.ofBosError(
       EsyBuildPackage.Config.make(
+        ~globalStorePrefix,
         ~disableSandbox=false,
         ~storePath,
         ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),

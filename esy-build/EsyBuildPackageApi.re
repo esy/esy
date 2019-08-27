@@ -32,6 +32,8 @@ let run =
             Cmd.(
               esyBuildPackageCmd
               % action
+              % "--global-store-prefix"
+              % p(cfg.globalStorePrefix)
               % "--store-path"
               % p(cfg.storePath)
               % "--local-store-path"
