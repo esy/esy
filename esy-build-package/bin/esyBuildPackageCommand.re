@@ -11,7 +11,6 @@ type verb =
 type commonOpts = {
   planPath: option(Fpath.t),
   globalStorePrefix: option(Fpath.t),
-  storePath: option(Fpath.t),
   localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
@@ -28,20 +27,13 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {
-    globalStorePrefix,
-    storePath,
-    localStorePath,
-    projectPath,
-    disableSandbox,
-    _,
-  } = copts;
+  let {globalStorePrefix, localStorePath, projectPath, disableSandbox, _} = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
-    switch (storePath) {
+    switch (globalStorePrefix) {
     | None => Config.StorePathDefault
-    | Some(storePath) => Config.StorePath(storePath)
+    | Some(storePrefix) => Config.StorePathOfPrefix(storePrefix)
     };
   let globalStorePrefix =
     switch (globalStorePrefix) {
@@ -225,15 +217,6 @@ let () = {
         & info(["project-path"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let storePath = {
-      let doc = "Specifies esy store path.";
-      let env = Arg.env_var("ESY__STORE_PATH", ~doc);
-      Arg.(
-        value
-        & opt(some(path), None)
-        & info(["store-path"], ~env, ~docs, ~docv="PATH", ~doc)
-      );
-    };
     let globalStorePrefix = {
       let doc = "Specifies esy global store prefix.";
       let env = Arg.env_var("ESY__GLOBAL_STORE_PREFIX", ~doc);
@@ -275,7 +258,6 @@ let () = {
         (
           projectPath,
           globalStorePrefix,
-          storePath,
           localStorePath,
           planPath,
           logLevel,
@@ -284,7 +266,6 @@ let () = {
       {
         projectPath,
         globalStorePrefix,
-        storePath,
         localStorePath,
         planPath,
         logLevel,
@@ -295,7 +276,6 @@ let () = {
       const(parse)
       $ projectPath
       $ globalStorePrefix
-      $ storePath
       $ localStorePath
       $ planPath
       $ setupLogT

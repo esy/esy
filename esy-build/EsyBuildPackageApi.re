@@ -34,8 +34,6 @@ let run =
               % action
               % "--global-store-prefix"
               % p(cfg.globalStorePrefix)
-              % "--store-path"
-              % p(cfg.storePath)
               % "--local-store-path"
               % p(cfg.localStorePath)
               % "--project-path"
