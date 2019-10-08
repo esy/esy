@@ -201,4 +201,58 @@ describe('adding dependencies', function() {
       expect(stderr).not.toContain('info solving esy constraints: done');
     }
   });
+
+  test(`adding a dependency with dev-flag passed`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+        dependencies: {},
+        devDependencies: {},
+      }),
+    ];
+
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'new-dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {},
+    });
+    await p.defineNpmPackage({
+      name: 'another-new-dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {},
+    });
+
+    await p.esy(`add -D new-dep another-new-dep`);
+
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
+      devDependencies: {
+        'new-dep': {
+          name: 'new-dep',
+          version: '1.0.0',
+        },
+        'another-new-dep': {
+          name: 'another-new-dep',
+          version: '1.0.0',
+        },
+      },
+    });
+
+    const packageJsonData = await helpers.readFile(
+      path.join(p.projectPath, 'package.json'),
+      'utf8',
+    );
+    const packageJson = JSON.parse(packageJsonData);
+    expect(packageJson.devDependencies['new-dep']).toEqual('^1.0.0');
+    expect(packageJson.devDependencies['another-new-dep']).toEqual('^1.0.0');
+
+    {
+      const {stderr, stdout} = await p.esy(`install`);
+      expect(stderr).not.toContain('info solving esy constraints: done');
+    }
+  });
 });
