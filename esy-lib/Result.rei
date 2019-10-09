@@ -18,6 +18,7 @@ module List: {
     (~f: 'a => result(bool, 'b), list('a)) => result(list('a), 'b);
   let foldLeft:
     (~f: ('a, 'b) => t('a, 'err), ~init: 'a, list('b)) => t('a, 'err);
+  let appendItem: (~item: 'a, list('a)) => t(list('a), 'b);
 };
 
 module Syntax: {

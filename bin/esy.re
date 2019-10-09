@@ -1117,7 +1117,7 @@ let add = (reqs: list(string), proj: Project.t) => {
           open Result.Syntax;
           let%bind items = Json.Decode.assoc(json);
           let%bind items = {
-            let f = ((key, json)) =>
+            let mergeWithExisting = ((key, json)) =>
               if (key == keyToUpdate) {
                 let%bind dependencies = Json.Decode.assoc(json);
                 let dependencies =
@@ -1127,7 +1127,17 @@ let add = (reqs: list(string), proj: Project.t) => {
                 return((key, json));
               };
 
-            Result.List.map(~f, items);
+            let hasDependencies =
+              items |> List.exists(~f=((key, _json)) => key == keyToUpdate);
+
+            if (hasDependencies) {
+              Result.List.map(~f=mergeWithExisting, items);
+            } else {
+              Result.List.appendItem(
+                ~item=(keyToUpdate, `Assoc(addedDependencies)),
+                items,
+              );
+            };
           };
 
           let json = `Assoc(items);

@@ -101,6 +101,55 @@ describe('adding dependencies', function() {
     }
   });
 
+  test(`add a new dep when there are no existing deps`, async () => {
+    const fixture = [
+      helpers.packageJson({
+        name: 'root',
+        version: '1.0.0',
+        esy: {},
+      }),
+    ];
+    const p = await helpers.createTestSandbox(...fixture);
+    await p.defineNpmPackage({
+      name: 'new-dep',
+      version: '1.0.0',
+      esy: {},
+      dependencies: {},
+    });
+    await p.defineNpmPackage({
+      name: 'new-dep',
+      version: '2.0.0',
+      esy: {},
+      dependencies: {},
+    });
+
+    {
+      const {stderr} = await p.esy(`add new-dep`);
+      expect(stderr).toContain('info solving esy constraints: done');
+    }
+
+    await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
+      dependencies: {
+        'new-dep': {
+          name: 'new-dep',
+          version: '2.0.0',
+        },
+      },
+    });
+
+    const packageJsonData = await helpers.readFile(
+      path.join(p.projectPath, 'package.json'),
+      'utf8',
+    );
+    const packageJson = JSON.parse(packageJsonData);
+    expect(packageJson.dependencies['new-dep']).toEqual('^2.0.0');
+
+    {
+      const {stderr, stdout} = await p.esy(`install`);
+      expect(stderr).not.toContain('info solving esy constraints: done');
+    }
+  });
+
   test(`adding multiple deps`, async () => {
     const fixture = [
       helpers.packageJson({
