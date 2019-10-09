@@ -1113,8 +1113,16 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
         }
       );
 
-    let%bind combinedDeps = addReqs(solveSandbox.root.dependencies);
-    let root = {...solveSandbox.root, dependencies: combinedDeps};
+    let%bind combinedDeps =
+      devDependency
+        ? addReqs(solveSandbox.root.devDependencies)
+        : addReqs(solveSandbox.root.dependencies);
+
+    let root =
+      devDependency
+        ? {...solveSandbox.root, devDependencies: combinedDeps}
+        : {...solveSandbox.root, dependencies: combinedDeps};
+
     return({...solveSandbox, root});
   };
 
