@@ -93,4 +93,8 @@ module List = {
     let%bind xs = foldLeft(~f, ~init=[], xs);
     return(List.rev(xs));
   };
+
+  let appendItem = (~item, xs) => {
+    Syntax.(return(List.append(xs, [item])));
+  };
 };
