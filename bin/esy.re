@@ -1133,9 +1133,11 @@ let add = (reqs: list(string), proj: Project.t) => {
             if (hasDependencies) {
               Result.List.map(~f=mergeWithExisting, items);
             } else {
-              Result.List.appendItem(
-                ~item=(keyToUpdate, `Assoc(addedDependencies)),
-                items,
+              Ok(
+                List.append(
+                  items,
+                  [(keyToUpdate, `Assoc(addedDependencies))],
+                ),
               );
             };
           };
