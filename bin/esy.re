@@ -1415,7 +1415,16 @@ let initCommand = shouldForce => {
       |> Yojson.Safe.to_string
       |> Yojson.Safe.prettify;
 
-    Fs.writeFile(~data=manifestScaffold, manifestTarget);
+    let%bind _ignore = Fs.writeFile(~data=manifestScaffold, manifestTarget);
+
+    let succesfulMessage =
+      "Wrote to "
+      ++ Path.show(manifestTarget)
+      ++ " with the following content: \n\n"
+      ++ manifestScaffold;
+
+    print_endline(succesfulMessage);
+    RunAsync.return();
   };
 
   let esyManifestTarget =
@@ -1432,9 +1441,8 @@ let initCommand = shouldForce => {
       ~manifestTarget=esyManifestTarget,
     )
   | (false, true) =>
-    print_endline(
-      "An esy-manifest already exists. Use with `-f` to overwrite it.",
-    );
+    let manifestExistsMessage = "An esy-manifest already exists. Use with `-f` or `--force` to overwrite it.";
+    print_endline(manifestExistsMessage);
     RunAsync.return();
   };
 };
