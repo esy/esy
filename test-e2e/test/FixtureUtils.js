@@ -62,8 +62,8 @@ function symlink(name /*: string*/, path /*: string*/) /*: FixtureSymlink*/ {
   return {type: 'symlink', name, path};
 }
 
-function packageJson(json /*: Object*/) {
-  return file('package.json', JSON.stringify(json, null, 2));
+function packageJson(json /*: Object*/, manifestName = 'package.json') {
+  return file(manifestName, JSON.stringify(json, null, 2));
 }
 
 async function layout(p /*: string*/, fixture /*: FixtureItem*/) {

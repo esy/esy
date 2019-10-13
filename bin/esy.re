@@ -1399,6 +1399,46 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
   };
 };
 
+let initCommand = shouldForce => {
+  open RunAsync.Syntax;
+
+  let createEsyManifest = (~projectName, ~manifestTarget) => {
+    let manifestScaffold =
+      `Assoc([
+        ("name", `String(projectName)),
+        ("version", `String("0.1.0")),
+        ("esy", `Assoc([])),
+        ("scripts", `Assoc([])),
+        ("dependencies", `Assoc([])),
+        ("devDependencies", `Assoc([])),
+      ])
+      |> Yojson.Safe.to_string
+      |> Yojson.Safe.prettify;
+
+    Fs.writeFile(~data=manifestScaffold, manifestTarget);
+  };
+
+  let esyManifestTarget =
+    Path.append(Path.currentPath(), Path.v("esy.json"));
+  let currentDirName = Path.currentPath() |> Path.basename;
+
+  let%bind manifestAlreadyExists = Fs.exists(esyManifestTarget);
+
+  switch (shouldForce, manifestAlreadyExists) {
+  | (false, false)
+  | (true, _) =>
+    createEsyManifest(
+      ~projectName=currentDirName,
+      ~manifestTarget=esyManifestTarget,
+    )
+  | (false, true) =>
+    print_endline(
+      "An esy-manifest already exists. Use with `-f` to overwrite it.",
+    );
+    RunAsync.return();
+  };
+};
+
 let commonSection = "COMMON COMMANDS";
 let aliasesSection = "ALIASES";
 let introspectionSection = "INTROSPECTION COMMANDS";
@@ -1654,6 +1694,19 @@ let commandsConfig = {
             RunAsync.return();
           })
           $ const()
+        ),
+      ),
+      makeCommand(
+        ~name="init",
+        ~doc="Create an esy.json-file in the current directory",
+        ~docs=commonSection,
+        Term.(
+          const(initCommand)
+          $ Arg.(
+              value
+              & flag
+              & info(["force", "f"], ~doc="Overwrite existing esy.json")
+            )
         ),
       ),
       /* ALIASES */
