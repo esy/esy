@@ -158,7 +158,6 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     RunAsync.ofBosError(
       EsyBuildPackage.Config.make(
         ~globalStorePrefix,
-        ~disableSandbox=false,
         ~storePath,
         ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
@@ -717,15 +716,13 @@ let buildDependencies =
   };
 };
 
-let buildPackage =
-    (~quiet, ~disableSandbox, ~buildOnly, projcfg, sandbox, plan, pkg) => {
+let buildPackage = (~quiet, ~buildOnly, projcfg, sandbox, plan, pkg) => {
   checkSymlinks();
   let () =
     Logs.info(m =>
       m(
-        "running:@[<v>@;%s build-package (disable-sandbox: %s)\\@;%a@]",
+        "running:@[<v>@;%s build-package \\@;%a@]",
         projcfg.ProjectConfig.mainprg,
-        string_of_bool(disableSandbox),
         PackageId.pp,
         pkg.Package.id,
       )
@@ -735,7 +732,6 @@ let buildPackage =
     ~force=true,
     ~quiet,
     ~buildOnly,
-    ~disableSandbox,
     sandbox,
     plan,
     pkg.id,

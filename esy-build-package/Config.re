@@ -6,7 +6,6 @@ type t = {
   globalStorePrefix: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
   localStorePath: EsyLib.Path.t,
-  disableSandbox: bool,
 };
 
 type config = t;
@@ -47,15 +46,7 @@ let rec configureStorePath = (cfg, globalStorePrefix) => {
   return(path);
 };
 
-let make =
-    (
-      ~globalStorePrefix,
-      ~storePath,
-      ~projectPath,
-      ~localStorePath,
-      ~disableSandbox,
-      (),
-    ) => {
+let make = (~globalStorePrefix, ~storePath, ~projectPath, ~localStorePath, ()) => {
   open Run;
   let%bind storePath = configureStorePath(storePath, globalStorePrefix);
   let%bind () =
@@ -74,13 +65,7 @@ let make =
       };
     };
   let%bind () = initStore(localStorePath);
-  return({
-    projectPath,
-    globalStorePrefix,
-    storePath,
-    localStorePath,
-    disableSandbox,
-  });
+  return({projectPath, globalStorePrefix, storePath, localStorePath});
 };
 
 let render = (cfg, v) => {
