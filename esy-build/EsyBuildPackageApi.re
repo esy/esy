@@ -96,8 +96,7 @@ let run =
   Fs.withTempFile(~data=buildJson, runProcess);
 };
 
-let build =
-    (~buildOnly=false, ~quiet=false, ~logPath=?, ~disableSandbox=?, cfg, plan) => {
+let build = (~buildOnly=false, ~quiet=false, ~logPath=?, cfg, plan) => {
   open RunAsync.Syntax;
   let args = {
     let addIf = (cond, arg, args) =>
@@ -107,16 +106,7 @@ let build =
         args;
       };
 
-    []
-    |> addIf(buildOnly, "--build-only")
-    |> addIf(quiet, "--quiet")
-    |> addIf(
-         switch (disableSandbox) {
-         | Some(x) => x
-         | None => false
-         },
-         "--disable-sandbox",
-       );
+    [] |> addIf(buildOnly, "--build-only") |> addIf(quiet, "--quiet");
   };
 
   let%bind (status, log) = run(~logPath?, ~args, cfg, `Build, plan);

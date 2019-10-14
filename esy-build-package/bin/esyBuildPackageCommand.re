@@ -14,7 +14,6 @@ type commonOpts = {
   localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
-  disableSandbox: bool,
 };
 
 let setupLog = (style_renderer, level) => {
@@ -27,7 +26,7 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {globalStorePrefix, localStorePath, projectPath, disableSandbox, _} = copts;
+  let {globalStorePrefix, localStorePath, projectPath, _} = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
@@ -46,7 +45,6 @@ let createConfig = (copts: commonOpts) => {
     ~localStorePath=
       Option.orDefault(~default=projectPath / "_store", localStorePath),
     ~projectPath,
-    ~disableSandbox,
     (),
   );
 };
@@ -244,10 +242,6 @@ let () = {
         & info(["plan", "p"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
-    let disableSandbox = {
-      let doc = "Disables sandboxing and builds the package without. CAUTION: this can be dangerous";
-      Arg.(value & flag & info(["disable-sandbox"], ~docs, ~doc));
-    };
     let setupLogT =
       Term.(
         const(setupLog)
@@ -255,22 +249,8 @@ let () = {
         $ Logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
       );
     let parse =
-        (
-          projectPath,
-          globalStorePrefix,
-          localStorePath,
-          planPath,
-          logLevel,
-          disableSandbox,
-        ) => {
-      {
-        projectPath,
-        globalStorePrefix,
-        localStorePath,
-        planPath,
-        logLevel,
-        disableSandbox,
-      };
+        (projectPath, globalStorePrefix, localStorePath, planPath, logLevel) => {
+      {projectPath, globalStorePrefix, localStorePath, planPath, logLevel};
     };
     Term.(
       const(parse)
@@ -279,7 +259,6 @@ let () = {
       $ localStorePath
       $ planPath
       $ setupLogT
-      $ disableSandbox
     );
   };
   /* Command terms */
