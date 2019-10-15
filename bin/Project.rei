@@ -69,6 +69,7 @@ let buildDependencies:
 let buildPackage:
   (
     ~quiet: bool,
+    ~disableSandbox: bool,
     ~buildOnly: bool,
     ProjectConfig.t,
     BuildSandbox.t,

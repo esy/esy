@@ -13,7 +13,7 @@ type config = {allowWrite: list(pattern)};
 type sandbox;
 
 /* Init sandbox */
-let init: config => Run.t(sandbox, _);
+let init: (config, ~noSandbox: bool) => Run.t(sandbox, _);
 
 /* Exec command in the sandbox. */
 let exec:

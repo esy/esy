@@ -462,6 +462,7 @@ let build =
       ~skipStalenessCheck=false,
       mode,
       pkgarg,
+      disableSandbox,
       cmd,
       proj: Project.t,
     ) => {
@@ -485,6 +486,7 @@ let build =
       Project.buildPackage(
         ~quiet=true,
         ~buildOnly,
+        ~disableSandbox,
         proj.projcfg,
         fetched.Project.sandbox,
         plan,
@@ -547,9 +549,10 @@ let execEnv = (asJson, pkgarg, proj: Project.t) =>
     (),
   );
 
-let exec = (mode, chdir, pkgarg, cmd, proj: Project.t) => {
+let exec = (mode, chdir, pkgarg, disableSandbox, cmd, proj: Project.t) => {
   open RunAsync.Syntax;
-  let%bind () = build(~buildOnly=false, mode, PkgArg.root, None, proj);
+  let%bind () =
+    build(~buildOnly=false, mode, PkgArg.root, disableSandbox, None, proj);
   let f = pkg =>
     Project.execCommand(
       ~checkIfDependenciesAreBuilt=false, /* not needed as we build an entire sandbox above */
@@ -1382,11 +1385,12 @@ let printHeader = (~spec=?, name) =>
 
 let default = (chdir, cmdAndPkg, proj: Project.t) => {
   open RunAsync.Syntax;
+  let disableSandbox = false;
   let%lwt fetched = Project.fetched(proj);
   switch (fetched, cmdAndPkg) {
   | (Ok(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
-    build(BuildDev, PkgArg.root, None, proj);
+    build(BuildDev, PkgArg.root, disableSandbox, None, proj);
   | (Ok(_), Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
     | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
@@ -1401,7 +1405,7 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
     let%bind () = solveAndFetch(proj);
     let%bind (proj, files) = Project.make(proj.projcfg);
     let%bind () = Project.write(proj, files);
-    build(BuildDev, PkgArg.root, None, proj);
+    build(BuildDev, PkgArg.root, disableSandbox, None, proj);
   | (Error(_) as err, Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
     | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
@@ -1499,7 +1503,16 @@ let commandsConfig = {
 
   let commands = {
     let buildCommand = {
-      let run = (mode, pkgarg, install, skipStalenessCheck, cmd, proj) => {
+      let run =
+          (
+            mode,
+            pkgarg,
+            disableSandbox,
+            install,
+            skipStalenessCheck,
+            cmd,
+            proj,
+          ) => {
         let () =
           switch (cmd) {
           | None =>
@@ -1514,6 +1527,7 @@ let commandsConfig = {
           ~skipStalenessCheck,
           mode,
           pkgarg,
+          disableSandbox,
           cmd,
           proj,
         );
@@ -1529,6 +1543,11 @@ let commandsConfig = {
           const(run)
           $ modeTerm
           $ pkgTerm
+          $ Arg.(
+              value
+              & flag
+              & info(["disable-sandbox"], ~doc="Disables sandbox")
+            )
           $ Arg.(
               value
               & flag
@@ -1593,6 +1612,11 @@ let commandsConfig = {
           $ modeTerm
           $ chdirTerm
           $ pkgTerm
+          $ Arg.(
+              value
+              & flag
+              & info(["disable-sandbox"], ~doc="Disables sandbox")
+            )
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
               ~docv="COMMAND",
