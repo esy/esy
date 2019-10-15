@@ -4,6 +4,7 @@ type t =
     globalStorePrefix: Fpath.t,
     storePath: Fpath.t,
     localStorePath: Fpath.t,
+    disableSandbox: bool,
   };
 
 let pp: Fmt.t(t);
@@ -21,6 +22,7 @@ let configureStorePath: (storePathConfig, Fpath.t) => Run.t(Fpath.t, _);
 let make:
   (
     ~globalStorePrefix: Fpath.t,
+    ~disableSandbox: bool,
     ~storePath: storePathConfig,
     ~projectPath: Fpath.t,
     ~localStorePath: Fpath.t,

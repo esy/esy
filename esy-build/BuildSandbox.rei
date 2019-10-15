@@ -100,6 +100,7 @@ let buildOnly:
     ~quiet: bool=?,
     ~buildOnly: bool=?,
     ~logPath: Path.t=?,
+    ~disableSandbox: bool=?,
     t,
     Plan.t,
     PackageId.t
