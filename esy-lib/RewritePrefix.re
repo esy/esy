@@ -1,7 +1,13 @@
+let isWindows =
+switch (System.Platform.host) {
+| Windows => true
+| _ => false
+};
+
 let cmd = {
   open Result.Syntax;
   /* TODO: this is too specific for a library function. */
-  let req = "../esy-build-package/bin/esyRewritePrefixCommand.exe";
+  let req = isWindows ? "../esy-rewrite-prefix.exe" : "../esyRewritePrefixCommand.exe"
   let%bind cmd = NodeResolution.resolve(req);
   return(Cmd.ofPath(cmd));
 };

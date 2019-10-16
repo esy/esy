@@ -7,6 +7,12 @@ let resolve = req =>
   | Error(`Msg(err)) => failwith(err)
   };
 
+let isWindows =
+  switch (System.Platform.host) {
+  | Windows => true
+  | _ => false
+  };
+
 module EsyPackageJson = {
   [@deriving of_yojson({strict: false})]
   type t = {version: string};
@@ -14,7 +20,8 @@ module EsyPackageJson = {
   let read = () => {
     let pkgJson = {
       open RunAsync.Syntax;
-      let filename = resolve("../../../package.json");
+      let relativePackagePath = isWindows ? "../../../../package.json" : "../../../package.json";
+      let filename = resolve(relativePackagePath);
       let%bind data = Fs.readFile(filename);
       Lwt.return(Json.parseStringWith(of_yojson, data));
     };
