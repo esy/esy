@@ -51,7 +51,11 @@ module Darwin = {
     let prepare = (~env, command) => {
       open Bos.OS.Cmd;
       let sandboxCommand =
-        Cmd.of_list(["sandbox-exec", "-f", Path.show(configFilename)]);
+        Cmd.of_list([
+          "/usr/bin/sandbox-exec",
+          "-f",
+          Path.show(configFilename),
+        ]);
       let command = Cmd.(sandboxCommand %% command);
 
       let exec = (~err) => run_io(~env, ~err, command);
