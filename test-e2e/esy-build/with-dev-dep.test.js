@@ -43,7 +43,6 @@ function makePackage(
 }
 
 describe(`Project with "devDependencies"`, () => {
-
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     await p.fixture(
@@ -73,7 +72,7 @@ describe(`Project with "devDependencies"`, () => {
       makePackage(p, {
         name: 'depOfDevDep',
       }),
-    )
+    );
     await p.esy('install');
     await p.esy('build');
     return p;
@@ -123,7 +122,8 @@ describe(`Project with "devDependencies"`, () => {
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
     const devdepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
-    const depofdevdepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
+    const depofdevdepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
+      .id;
 
     const {stdout} = await p.esy('build-env --json');
     const env = JSON.parse(stdout);
@@ -205,7 +205,8 @@ describe(`Project with "devDependencies"`, () => {
     const id = JSON.parse((await p.esy('build-plan')).stdout).id;
     const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
     const devDepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
-    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
+      .id;
 
     const {stdout} = await p.esy('command-env --json');
     const env = JSON.parse(stdout);
@@ -245,7 +246,8 @@ describe(`Project with "devDependencies"`, () => {
       const id = JSON.parse((await p.esy('build-plan')).stdout).id;
       const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
       const devdepid = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
-      const depofdevdepid = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
+      const depofdevdepid = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
+        .id;
       const {stdout} = await p.esy('build-env');
       expect(
         p.normalizePathsForSnapshot(stdout, {id, depid, devdepid, depofdevdepid}),
@@ -262,7 +264,7 @@ describe(`Project with "devDependencies"`, () => {
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${depId}/toplevel`,
-      cur__target_dir: `${p.esyStorePath}/b/${depId}`,
+      cur__target_dir: `${p.esyPrefixPath}/3/b/${depId}`,
       cur__stublibs: `${p.esyStorePath}/s/${depId}/stublibs`,
       cur__share: `${p.esyStorePath}/s/${depId}/share`,
       cur__sbin: `${p.esyStorePath}/s/${depId}/sbin`,
@@ -294,14 +296,15 @@ describe(`Project with "devDependencies"`, () => {
   test('build-env devDep', async function() {
     const p = await createTestSandbox();
     const devDepId = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
-    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout).id;
+    const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
+      .id;
 
     const {stdout} = await p.esy('build-env --json -p devDep');
     const env = JSON.parse(stdout);
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${devDepId}/toplevel`,
-      cur__target_dir: `${p.esyStorePath}/b/${devDepId}`,
+      cur__target_dir: `${p.esyPrefixPath}/3/b/${devDepId}`,
       cur__stublibs: `${p.esyStorePath}/s/${devDepId}/stublibs`,
       cur__share: `${p.esyStorePath}/s/${devDepId}/share`,
       cur__sbin: `${p.esyStorePath}/s/${devDepId}/sbin`,
@@ -384,7 +387,6 @@ describe(`Project with "devDependencies"`, () => {
 });
 
 describe('Project with "devDependencies" (with "buildDev" config at the root)', () => {
-
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();
     const name = 'withDevDep';
@@ -395,13 +397,13 @@ describe('Project with "devDependencies" (with "buildDev" config at the root)', 
         esy: {
           build: [
             'cp #{self.name}.js #{self.target_dir / self.name}.js',
-            helpers.buildCommand(p, '#{self.target_dir / self.name}.js')
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
           ],
           // run commands from "devDependencies" here
           buildDev: [
             'devDep.cmd',
             'cp #{self.name}-dev.js #{self.target_dir / self.name}.js',
-            helpers.buildCommand(p, '#{self.target_dir / self.name}.js')
+            helpers.buildCommand(p, '#{self.target_dir / self.name}.js'),
           ],
           install: [
             `cp #{self.target_dir / self.name}.cmd #{self.bin / self.name}.cmd`,
@@ -430,7 +432,7 @@ describe('Project with "devDependencies" (with "buildDev" config at the root)', 
       makePackage(p, {
         name: 'depOfDevDep',
       }),
-    )
+    );
     await p.esy('install');
     return p;
   }
