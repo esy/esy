@@ -85,22 +85,25 @@ describe('Build with dep', () => {
       };
     }
 
-    it('makes dep available in envs', withProject(async p => {
-      {
-        const {stdout} = await p.esy('dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+    it(
+      'makes dep available in envs',
+      withProject(async p => {
+        {
+          const {stdout} = await p.esy('dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('b dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+        {
+          const {stdout} = await p.esy('b dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('x dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
-    }));
+        {
+          const {stdout} = await p.esy('x dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
+      }),
+    );
 
     test(
       'build-env',
@@ -179,7 +182,7 @@ describe('Build with dep', () => {
         expect(env).toMatchObject({
           cur__version: '1.0.0',
           cur__toplevel: `${p.esyStorePath}/s/${depId}/toplevel`,
-          cur__target_dir: `${p.esyStorePath}/b/${depId}`,
+          cur__target_dir: `${p.esyPrefixPath}/3/b/${depId}`,
           cur__stublibs: `${p.esyStorePath}/s/${depId}/stublibs`,
           cur__share: `${p.esyStorePath}/s/${depId}/share`,
           cur__sbin: `${p.esyStorePath}/s/${depId}/sbin`,
@@ -202,7 +205,7 @@ describe('Build with dep', () => {
           ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${depId}/lib`,
-          DUNE_BUILD_DIR: `${p.esyStorePath}/b/${depId}`,
+          DUNE_BUILD_DIR: `${p.esyPrefixPath}/3/b/${depId}`,
         });
       }),
     );
@@ -286,22 +289,25 @@ describe('Build with dep', () => {
       };
     }
 
-    it('makes dep available in envs', withProject(async p => {
-      {
-        const {stdout} = await p.esy('dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+    it(
+      'makes dep available in envs',
+      withProject(async p => {
+        {
+          const {stdout} = await p.esy('dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('b dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+        {
+          const {stdout} = await p.esy('b dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('x dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
-    }));
+        {
+          const {stdout} = await p.esy('x dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
+      }),
+    );
   });
 
   describe('_build build', () => {
@@ -327,22 +333,25 @@ describe('Build with dep', () => {
         await assertions(p);
       };
     }
-    it('makes dep available in envs', withProject(async p => {
-      {
-        const {stdout} = await p.esy('dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+    it(
+      'makes dep available in envs',
+      withProject(async p => {
+        {
+          const {stdout} = await p.esy('dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('b dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+        {
+          const {stdout} = await p.esy('b dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('x dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
-    }));
+        {
+          const {stdout} = await p.esy('x dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
+      }),
+    );
   });
 
   describe('out of source build with buildDev in deps', () => {
@@ -370,22 +379,24 @@ describe('Build with dep', () => {
       };
     }
 
-    it('makes dep available in envs', withProject(async p => {
-      {
-        const {stdout} = await p.esy('dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+    it(
+      'makes dep available in envs',
+      withProject(async p => {
+        {
+          const {stdout} = await p.esy('dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('b dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
+        {
+          const {stdout} = await p.esy('b dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
 
-      {
-        const {stdout} = await p.esy('x dep.cmd');
-        expect(stdout.trim()).toEqual('__dep__');
-      }
-    }));
+        {
+          const {stdout} = await p.esy('x dep.cmd');
+          expect(stdout.trim()).toEqual('__dep__');
+        }
+      }),
+    );
   });
-
 });
