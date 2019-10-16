@@ -141,16 +141,14 @@ module PackageScope: {
 
   let buildStorePath = scope =>
     switch (scope.sourceType) {
-    | Immutable => SandboxPath.globalStorePrefix
+    | Immutable => SandboxPath.(globalStorePrefix / Store.version)
     | ImmutableWithTransientDependencies
     | Transient => SandboxPath.localStore
     };
 
   let buildPath = scope => {
     let storePath = buildStorePath(scope);
-    SandboxPath.(
-      storePath / Store.version / Store.buildTree / BuildId.show(scope.id)
-    );
+    SandboxPath.(storePath / Store.buildTree / BuildId.show(scope.id));
   };
 
   let buildInfoPath = scope => {
