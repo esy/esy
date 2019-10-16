@@ -279,6 +279,12 @@ let withLock = (lockPath: Path.t, f) => {
   res;
 };
 
+let isWindows =
+  switch (System.Platform.host) {
+  | Windows => true
+  | _ => false
+  };
+
 let commitBuildToStore = (config: Config.t, build: build) => {
   let%bind () =
     write(
@@ -302,8 +308,9 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         )
       );
       let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
+      let esyRewritePrefixPath = isWindows ? "./esy-rewrite-prefix.exe" : "./esyRewritePrefixCommand.exe"
       let%bind cmd =
-        EsyLib.NodeResolution.resolve("./esyRewritePrefixCommand.exe");
+        EsyLib.NodeResolution.resolve(esyRewritePrefixPath);
       let%bind () =
         Bos.OS.Cmd.run(
           ~env,
