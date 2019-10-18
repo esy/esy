@@ -79,7 +79,7 @@ it('export import build - from list', async () => {
 
   await p.esy('import-build --from ./list.txt');
 
-  const ls = await fs.readdir(path.join(p.esyPrefixPath, '/3/i'));
+  const ls = await fs.readdir(path.join(p.esyStorePath, 'i'));
   expect(ls).toEqual(expect.arrayContaining(expected));
 
   {
