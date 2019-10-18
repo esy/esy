@@ -26,7 +26,6 @@ steps:
     displayName: 'esy b dune runtest test'
 
   - script: 'node ./node_modules/jest-cli/bin/jest.js'
-    continueOnError: true
     displayName: 'esy test:e2e'
 
   - script: 'npm install'
