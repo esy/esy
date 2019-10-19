@@ -58,21 +58,12 @@ let make =
     ) => {
   open Run;
   let%bind storePath = configureStorePath(storePath, globalStorePrefix);
-  let%bind () =
-    switch (EsyLib.System.Platform.host) {
-    | Windows => return()
-    | _ =>
-      let shortcutPath = EsyLib.Path.(parent(storePath) / Store.version);
-
-      if%bind (exists(shortcutPath)) {
-        return();
-      } else {
-        symlink(
-          ~target=storePath,
-          EsyLib.Path.(parent(storePath) / Store.version),
-        );
-      };
-    };
+  let storeSymlinkPath = EsyLib.Path.(parent(storePath) / Store.version);
+  switch (Bos.OS.Path.symlink_stat(storeSymlinkPath)) {
+  | Ok({Unix.st_kind: Unix.S_LNK, _}) =>
+    Unix.unlink(Fpath.to_string(storeSymlinkPath))
+  | _ => ()
+  };
   let%bind () = initStore(localStorePath);
   return({
     projectPath,
