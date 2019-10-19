@@ -124,7 +124,7 @@ var ESY_STORE_PADDING_LENGTH =
   ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 
 function getStorePathForPrefix(prefix) {
-  if (isWindows && !process.env['ESY__WINDOWS_LONG_PATHS']) {
+  if (isWindows && process.env['ESY__WINDOWS_SHORT_PATHS']) {
     return path.join(prefix, '3_');
   } else {
     var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;
@@ -177,10 +177,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     const value = envForTests[key];
     envSource.push(`export ${key}='${value}'`);
   }
-  await fs.writeFile(
-    path.join(projectPath, 'test-env'),
-    envSource.join('\n') + '\n'
-  );
+  await fs.writeFile(path.join(projectPath, 'test-env'), envSource.join('\n') + '\n');
 
   async function runJavaScriptInNodeAndReturnJson(script) {
     const pnpJs = path.join(projectPath, '_esy', 'default', 'pnp.js');
@@ -212,7 +209,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       const execCommand = args != null ? `${ESY} ${args}` : ESY;
       // this is required so esy won't "attach" to the outer esy project (esy
       // itself)
-      delete env.ESY__ROOT_PACKAGE_CONFIG_PATH
+      delete env.ESY__ROOT_PACKAGE_CONFIG_PATH;
       return promiseExec(execCommand, {cwd, env});
     });
     return p.catch(err => {
@@ -235,7 +232,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
     // this is required so esy won't "attach" to the outer esy project (esy
     // itself)
-    delete env.ESY__ROOT_PACKAGE_CONFIG_PATH
+    delete env.ESY__ROOT_PACKAGE_CONFIG_PATH;
     return promiseExec(line, {cwd, env});
   }
 
