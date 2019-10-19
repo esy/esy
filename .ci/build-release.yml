@@ -77,6 +77,7 @@ jobs:
       demands: npm
 
     variables:
+        ESY__WINDOWS_SHORT_PATHS: 1
         STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
         STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
         ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
