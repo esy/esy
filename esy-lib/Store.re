@@ -26,21 +26,13 @@ let maxStorePaddingLength = {
     );
 };
 
-let getPadding =
-    (
-      ~system=System.Platform.host,
-      ~longPaths=System.supportsLongPaths(),
-      prefixPath,
-    ) =>
-  switch (system, longPaths) {
-  | (Windows, false) => Ok("_")
-  | _ =>
-    let prefixPathLength = String.length(Fpath.to_string(prefixPath));
-    let paddingLength = maxStorePaddingLength - prefixPathLength;
+let getPadding = prefixPath => {
+  let prefixPathLength = String.length(Fpath.to_string(prefixPath));
+  let paddingLength = maxStorePaddingLength - prefixPathLength;
 
-    if (paddingLength < 0) {
-      Error(`Msg("prefixPath is too deep in the filesystem"));
-    } else {
-      Ok(String.make(paddingLength, '_'));
-    };
+  if (paddingLength < 0) {
+    Error(`Msg("prefixPath is too deep in the filesystem"));
+  } else {
+    Ok(String.make(paddingLength, '_'));
   };
+};
