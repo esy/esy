@@ -1,0 +1,24 @@
+diff --git a/Makefile.config.in b/Makefile.config.in
+index 155a77a..a9b8bc2 100644
+--- a/Makefile.config.in
++++ b/Makefile.config.in
+@@ -29,8 +29,8 @@ ifneq ($(DESTDIR),)
+   LIBDIR = $(DESTDIR)@libdir@/ocaml
+ endif
+
+-INSTALL=$(OCAMLFIND) install -destdir $(LIBDIR)
+-UNINSTALL=$(OCAMLFIND) remove -destdir $(LIBDIR)
++INSTALL=$(OCAMLFIND) install -destdir $(OCAMLFIND_DESTDIR)
++UNINSTALL=$(OCAMLFIND) remove -destdir $(OCAMLFIND_DESTDIR)
+
+ printconf:
+ 	@echo
+@@ -41,7 +41,7 @@ printconf:
+ 	@echo "DESTDIR: $(DESTDIR)"
+ 	@echo "OCAMLFIND_DESTDIR: $(OCAMLFIND_DESTDIR)"
+ 	@echo "Prefix: @prefix@"
+-	@echo "Libdir: $(LIBDIR)"
++	@echo "Libdir: $(OCAMLFIND_DESTDIR)"
+ 	@echo "Bindir: $(BINDIR)"
+ 	@echo "OCAML_OS_TYPE: @OCAML_OS_TYPE@"
+ 	@echo "OCAML_SYSTEM: @OCAML_SYSTEM@"
