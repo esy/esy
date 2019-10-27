@@ -1399,7 +1399,17 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
   let%bind (origPrefix, destPrefix) = {
     let%bind prevStorePrefix =
       Fs.readFile(Path.(buildPath / "_esy" / "storePrefix"));
-    let nextStorePrefix = String.make(String.length(prevStorePrefix), '_');
+    let nextStorePrefix =
+      switch (System.Platform.host) {
+      | Windows =>
+        /* Keep the slashes segments in the path.  It's important for doing
+         * replacement of double backslashes in artifacts.  */
+        String.split_on_char('\\', prevStorePrefix)
+        |> List.map(~f=(seg => String.make(String.length(seg), '_')))
+        |> String.concat("\\");
+      | _ =>
+        String.make(String.length(prevStorePrefix), '_');
+      };
     return((Path.v(prevStorePrefix), Path.v(nextStorePrefix)));
   };
 
