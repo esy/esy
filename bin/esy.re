@@ -233,6 +233,31 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
+let gc = (mode, pkgarg, projCfg: ProjectConfig.t, proj: Project.t) => {
+  open RunAsync.Syntax;
+  let f = (pkg: Package.t) => {
+    let%bind plan = Project.plan(mode, proj);
+    let%bind installedBuilds = Project.scanDependencies(proj, plan, pkg);
+    let%bind storePath = RunAsync.ofRun(ProjectConfig.storePath(projCfg));
+    let%bind allCachedBuilds' =
+      Fs.listDir(Path.(storePath / Store.installTree));
+    let allCachedBuilds =
+      allCachedBuilds'
+      |> List.map(~f=x => Path.(storePath / Store.installTree / x |> show));
+    allCachedBuilds
+    |> List.iter(~f=x =>
+         if (StringSet.mem(x, installedBuilds)) {
+           print_endline("[KEEP] " ++ x);
+         } else {
+           print_endline("[REMOVE] " ++ x);
+         }
+       );
+    RunAsync.return();
+  };
+
+  Project.withPackage(proj, pkgarg, f);
+};
+
 let execCommand =
     (
       buildIsInProgress,
@@ -1866,6 +1891,12 @@ let commandsConfig = {
             )
           $ pkgTerm
         ),
+      ),
+      makeProjectCommand(
+        ~name="gc",
+        ~doc="Purge unused builds from global cache",
+        ~docs="TODO TODO TODO",
+        Term.(const(gc) $ modeTerm $ pkgTerm $ ProjectConfig.term),
       ),
       /* LOW LEVEL PLUMBING COMMANDS */
       makeProjectCommand(

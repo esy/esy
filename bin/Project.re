@@ -682,6 +682,38 @@ let checkSymlinks = () =>
     exit(1);
   };
 
+let scanDependencies = (proj: project, plan, pkg) => {
+  open RunAsync.Syntax;
+  let%bind solved = solved(proj);
+  let rec findAllDeps = (pkgId, count, keep) => {
+    switch (BuildSandbox.Plan.get(plan, pkgId)) {
+    | None => keep
+    | Some(task) =>
+      let depspec = Scope.depspec(task.scope);
+      let dependencies =
+        Solution.dependenciesByDepSpec(solved.solution, depspec, task.pkg);
+      List.fold_right(
+        ~f=
+          (pkg, keep) =>
+            findAllDeps(
+              pkg.Package.id,
+              count + 1,
+              StringSet.add(
+                Path.show(
+                  BuildSandbox.Task.installPath(proj.buildCfg, task),
+                ),
+                keep,
+              ),
+            ),
+        dependencies,
+        ~init=keep,
+      );
+    };
+  };
+
+  findAllDeps(pkg.Package.id, 0, StringSet.empty) |> RunAsync.return;
+};
+
 let buildDependencies =
     (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
   open RunAsync.Syntax;

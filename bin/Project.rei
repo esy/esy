@@ -66,6 +66,9 @@ let buildDependencies:
   ) =>
   RunAsync.t(unit);
 
+let scanDependencies:
+  (project, BuildSandbox.Plan.t, Package.t) => RunAsync.t(StringSet.t);
+
 let buildPackage:
   (
     ~quiet: bool,
