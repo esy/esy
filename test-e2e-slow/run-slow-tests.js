@@ -5,7 +5,7 @@ const os = require('os');
 
 // this is required so esy won't "attach" to the outer esy project (esy
 // itself)
-delete process.env.ESY__ROOT_PACKAGE_CONFIG_PATH
+delete process.env.ESY__ROOT_PACKAGE_CONFIG_PATH;
 
 const isTaggedCommit = () => {
   const TRAVIS_TAG = process.env['TRAVIS_TAG'];
@@ -19,11 +19,14 @@ const isTaggedCommit = () => {
 const getCommitMessage = () => {
   const TRAVIS_COMMIT_MESSAGE = process.env['TRAVIS_COMMIT_MESSAGE'];
   const APPVEYOR_REPO_COMMIT_MESSAGE = process.env['APPVEYOR_REPO_COMMIT_MESSAGE'];
+  const AZURE_COMMIT_MESSAGE = process.env['Build.SourceVersionMessage'];
 
   if (TRAVIS_COMMIT_MESSAGE) {
     return TRAVIS_COMMIT_MESSAGE;
   } else if (APPVEYOR_REPO_COMMIT_MESSAGE) {
     return APPVEYOR_REPO_COMMIT_MESSAGE;
+  } else if (AZURE_COMMIT_MESSAGE) {
+    return AZURE_COMMIT_MESSAGE;
   } else {
     return execSync('git log -n1').toString('utf8');
   }
@@ -66,4 +69,3 @@ if (!isWindows) {
   require('./esy-npm-release/legacy.test.js');
 }
 require('./esy-npm-release/no-rewrite.test.js');
-
