@@ -129,8 +129,15 @@ let write = (~perm=?, ~data, path) =>
 let read = path => Bos.OS.File.read(path);
 
 let copyFile = (~perm=?, srcPath, dstPath) => {
-  let%bind data = read(srcPath);
-  write(~data, ~perm?, dstPath);
+  let () =
+    Lwt_io.chars_of_file(Fpath.to_string(srcPath))
+    |> Lwt_io.chars_to_file(Fpath.to_string(dstPath))
+    |> Lwt_main.run;
+
+  switch (perm) {
+  | Some(perm) => Bos.OS.Path.Mode.set(dstPath, perm)
+  | None => Ok()
+  };
 };
 
 let mv = Bos.OS.Path.move;
