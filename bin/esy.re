@@ -233,7 +233,7 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let gc = (projCfgs: list(ProjectConfig.t), _proj: Project.t) => {
+let gc = (projCfgs: list(ProjectConfig.t)) => {
   open RunAsync.Syntax;
   let mode = BuildSpec.BuildDev;
   let%bind (installedBuilds, allCachedBuilds) =
@@ -1910,7 +1910,7 @@ let commandsConfig = {
           $ pkgTerm
         ),
       ),
-      makeProjectCommand(
+      makeCommand(
         ~name="gc",
         ~doc="Purge unused builds from global cache",
         ~docs="COMMON COMMANDS",
