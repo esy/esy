@@ -233,7 +233,7 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let gc = (projCfgs: list(ProjectConfig.t), dryRun) => {
+let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
   let mode = BuildSpec.BuildDev;
   let%bind (dirsToKeep, allDirs) =
@@ -1924,11 +1924,11 @@ let commandsConfig = {
         ),
       ),
       makeCommand(
-        ~name="gc",
+        ~name="cleanup",
         ~doc="Purge unused builds from global cache",
         ~docs="COMMON COMMANDS",
         Term.(
-          const(gc)
+          const(cleanup)
           $ ProjectConfig.multipleProjectConfigsTerm(resolvedPathTerm)
           $ Arg.(
               value
