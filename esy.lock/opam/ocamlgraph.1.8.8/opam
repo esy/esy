@@ -6,7 +6,7 @@ authors: [
   "Julien Signoles"
 ]
 homepage: "http://ocamlgraph.lri.fr/"
-license: "GNU Library General Public License version 2.1"
+license: "LGPL-2.1-only"
 doc: ["http://ocamlgraph.lri.fr/doc"]
 dev-repo: "git+https://github.com/backtracking/ocamlgraph.git"
 bug-reports: "https://github.com/backtracking/ocamlgraph/issues"

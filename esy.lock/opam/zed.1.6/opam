@@ -4,10 +4,10 @@ authors: ["Jérémie Dimino"]
 homepage: "https://github.com/diml/zed"
 bug-reports: "https://github.com/diml/zed/issues"
 dev-repo: "git://github.com/diml/zed.git"
-license: "BSD3"
+license: "BSD-3-Clause"
 depends: [
   "ocaml" {>= "4.02.3"}
-  "jbuilder" {build & >= "1.0+beta9"}
+  "jbuilder" {>= "1.0+beta9"}
   "base-bytes"
   "camomile" {>= "0.8"}
   "react"

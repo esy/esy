@@ -13,7 +13,7 @@ build: [
 depends: [
   "dune"
   "alcotest" {with-test}
-  "base-bigarray"
+  "bigarray-compat"
   "ocaml" {>= "4.03.0"}
 ]
 depopts: [
@@ -37,6 +37,6 @@ Bigstrings and other string-like types.
 So here they are. Go crazy.
 """
 url {
-  src: "https://github.com/inhabitedtype/bigstringaf/archive/0.5.2.tar.gz"
-  checksum: "md5=c71ad263558e0d8d3f2052de29e43074"
+  src: "https://github.com/inhabitedtype/bigstringaf/archive/0.6.0.tar.gz"
+  checksum: "md5=390382a1ac34e129f7b7f49540d94c9a"
 }
