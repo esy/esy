@@ -687,9 +687,8 @@ let scanDependencies = (proj: project, plan) => {
   |> List.map(~f=task =>
        Scope.installPath(task.BuildSandbox.Task.scope)
        |> EsyBuild.Scope.SandboxPath.toPath(proj.buildCfg)
-       |> Path.show
      )
-  |> StringSet.of_list
+  |> PathSet.of_list
   |> RunAsync.return;
 };
 

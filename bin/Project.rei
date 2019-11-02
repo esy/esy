@@ -66,8 +66,7 @@ let buildDependencies:
   ) =>
   RunAsync.t(unit);
 
-let scanDependencies:
-  (project, BuildSandbox.Plan.t) => RunAsync.t(StringSet.t);
+let scanDependencies: (project, BuildSandbox.Plan.t) => RunAsync.t(PathSet.t);
 
 let buildPackage:
   (

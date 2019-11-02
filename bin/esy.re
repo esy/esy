@@ -233,12 +233,12 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let gc = (projCfgs: list(ProjectConfig.t)) => {
+let gc = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
   let mode = BuildSpec.BuildDev;
   let%bind (installedBuilds, allCachedBuilds) =
     RunAsync.List.foldLeft(
-      ~init=(StringSet.empty, StringSet.empty),
+      ~init=(PathSet.empty, PathSet.empty),
       ~f=
         (acc, projCfg) => {
           let (installedBuilds, allCachedBuilds) = acc;
@@ -250,30 +250,36 @@ let gc = (projCfgs: list(ProjectConfig.t)) => {
           let%bind allCachedBuilds' =
             Fs.listDir(Path.(storePath / Store.installTree));
           RunAsync.return((
-            StringSet.union(installedBuilds, ibs),
-            StringSet.union(
+            PathSet.union(installedBuilds, ibs),
+            PathSet.union(
               allCachedBuilds,
-              StringSet.of_list(
-                allCachedBuilds'
-                |> List.map(~f=x =>
-                     Path.(storePath / Store.installTree / x |> show)
-                   ),
-              ),
+              PathSet.of_list([
+                Path.(storePath / Store.buildTree),
+                Path.(storePath / Store.stageTree),
+                ...allCachedBuilds'
+                   |> List.map(~f=x =>
+                        Path.(storePath / Store.installTree / x)
+                      ),
+              ]),
             ),
           ));
         },
       projCfgs,
     );
 
-  allCachedBuilds
-  |> StringSet.iter(x =>
-       if (StringSet.mem(x, installedBuilds)) {
-         print_endline("[KEEP] " ++ x);
-       } else {
-         print_endline("[REMOVE] " ++ x);
-       }
-     );
-  RunAsync.return();
+  let buildsToBePurged =
+    allCachedBuilds |> PathSet.filter(x => !PathSet.mem(x, installedBuilds));
+
+  if (dryRun) {
+    print_endline("Will be purging the following");
+    PathSet.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
+    RunAsync.return();
+  } else {
+    let queue = LwtTaskQueue.create(~concurrency=40, ());
+    PathSet.elements(buildsToBePurged)
+    |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
+    |> RunAsync.List.waitAll;
+  };
 };
 
 let execCommand =
@@ -1917,6 +1923,15 @@ let commandsConfig = {
         Term.(
           const(gc)
           $ ProjectConfig.multipleProjectConfigsTerm(resolvedPathTerm)
+          $ Arg.(
+              value
+              & flag
+              & info(
+                  ["dry-run"],
+                  ~doc=
+                    "Only print directories/files to which should be removed.",
+                )
+            )
         ),
       ),
       /* LOW LEVEL PLUMBING COMMANDS */
