@@ -5,6 +5,7 @@
  */;
 
 open EsyBuild;
+open EsyBuild.Scope;
 open EsyInstall;
 
 type project = {
@@ -66,7 +67,7 @@ let buildDependencies:
   ) =>
   RunAsync.t(unit);
 
-let scanDependencies: (project, BuildSandbox.Plan.t) => RunAsync.t(PathSet.t);
+let renderSandboxPath: (SandboxPath.ctx, SandboxPath.t) => Path.t;
 
 let buildPackage:
   (

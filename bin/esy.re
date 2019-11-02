@@ -236,27 +236,35 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
 let gc = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
   let mode = BuildSpec.BuildDev;
-  let%bind (installedBuilds, allCachedBuilds) =
+  let%bind (dirsToKeep, allDirs) =
     RunAsync.List.foldLeft(
-      ~init=(PathSet.empty, PathSet.empty),
+      ~init=(Path.Set.empty, Path.Set.empty),
       ~f=
         (acc, projCfg) => {
-          let (installedBuilds, allCachedBuilds) = acc;
+          let (dirsToKeep, allDirs) = acc;
           let%bind (proj, _) = Project.make(projCfg);
           let%bind plan = Project.plan(mode, proj);
-          let%bind ibs = Project.scanDependencies(proj, plan);
+          let%bind allProjectDependencies = {
+            BuildSandbox.Plan.all(plan)
+            |> List.map(~f=task =>
+                 Scope.installPath(task.BuildSandbox.Task.scope)
+                 |> Project.renderSandboxPath(proj.Project.buildCfg)
+               )
+            |> Path.Set.of_list
+            |> RunAsync.return;
+          };
           let%bind storePath =
             RunAsync.ofRun(ProjectConfig.storePath(projCfg));
-          let%bind allCachedBuilds' =
+          let%bind allDirs' =
             Fs.listDir(Path.(storePath / Store.installTree));
           RunAsync.return((
-            PathSet.union(installedBuilds, ibs),
-            PathSet.union(
-              allCachedBuilds,
-              PathSet.of_list([
+            Path.Set.union(dirsToKeep, allProjectDependencies),
+            Path.Set.union(
+              allDirs,
+              Path.Set.of_list([
                 Path.(storePath / Store.buildTree),
                 Path.(storePath / Store.stageTree),
-                ...allCachedBuilds'
+                ...allDirs'
                    |> List.map(~f=x =>
                         Path.(storePath / Store.installTree / x)
                       ),
@@ -267,16 +275,15 @@ let gc = (projCfgs: list(ProjectConfig.t), dryRun) => {
       projCfgs,
     );
 
-  let buildsToBePurged =
-    allCachedBuilds |> PathSet.filter(x => !PathSet.mem(x, installedBuilds));
+  let buildsToBePurged = Path.Set.diff(allDirs, dirsToKeep);
 
   if (dryRun) {
     print_endline("Will be purging the following");
-    PathSet.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
+    Path.Set.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
     RunAsync.return();
   } else {
     let queue = LwtTaskQueue.create(~concurrency=40, ());
-    PathSet.elements(buildsToBePurged)
+    Path.Set.elements(buildsToBePurged)
     |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
     |> RunAsync.List.waitAll;
   };

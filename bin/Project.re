@@ -682,15 +682,7 @@ let checkSymlinks = () =>
     exit(1);
   };
 
-let scanDependencies = (proj: project, plan) => {
-  BuildSandbox.Plan.all(plan)
-  |> List.map(~f=task =>
-       Scope.installPath(task.BuildSandbox.Task.scope)
-       |> EsyBuild.Scope.SandboxPath.toPath(proj.buildCfg)
-     )
-  |> PathSet.of_list
-  |> RunAsync.return;
-};
+let renderSandboxPath = EsyBuild.Scope.SandboxPath.toPath;
 
 let buildDependencies =
     (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
