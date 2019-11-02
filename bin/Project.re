@@ -682,6 +682,8 @@ let checkSymlinks = () =>
     exit(1);
   };
 
+let renderSandboxPath = EsyBuild.Scope.SandboxPath.toPath;
+
 let buildDependencies =
     (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
   open RunAsync.Syntax;

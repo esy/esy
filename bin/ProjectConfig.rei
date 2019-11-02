@@ -7,6 +7,7 @@
 
 type t = {
   mainprg: string,
+  path: Path.t,
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
@@ -27,3 +28,5 @@ let to_yojson: t => Json.t;
 
 let promiseTerm: Cmdliner.Term.t(RunAsync.t(t));
 let term: Cmdliner.Term.t(t);
+let multipleProjectConfigsTerm:
+  Cmdliner.Arg.conv(EsyLib.Path.t) => Cmdliner.Term.t(list(t));

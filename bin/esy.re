@@ -233,6 +233,62 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
+let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
+  open RunAsync.Syntax;
+  let mode = BuildSpec.BuildDev;
+  let%bind (dirsToKeep, allDirs) =
+    RunAsync.List.foldLeft(
+      ~init=(Path.Set.empty, Path.Set.empty),
+      ~f=
+        (acc, projCfg) => {
+          let (dirsToKeep, allDirs) = acc;
+          let%bind (proj, _) = Project.make(projCfg);
+          let%bind plan = Project.plan(mode, proj);
+          let%bind allProjectDependencies = {
+            BuildSandbox.Plan.all(plan)
+            |> List.map(~f=task =>
+                 Scope.installPath(task.BuildSandbox.Task.scope)
+                 |> Project.renderSandboxPath(proj.Project.buildCfg)
+               )
+            |> Path.Set.of_list
+            |> RunAsync.return;
+          };
+          let%bind storePath =
+            RunAsync.ofRun(ProjectConfig.storePath(projCfg));
+          let%bind allDirs' =
+            Fs.listDir(Path.(storePath / Store.installTree));
+          RunAsync.return((
+            Path.Set.union(dirsToKeep, allProjectDependencies),
+            Path.Set.union(
+              allDirs,
+              Path.Set.of_list([
+                Path.(storePath / Store.buildTree),
+                Path.(storePath / Store.stageTree),
+                ...allDirs'
+                   |> List.map(~f=x =>
+                        Path.(storePath / Store.installTree / x)
+                      ),
+              ]),
+            ),
+          ));
+        },
+      projCfgs,
+    );
+
+  let buildsToBePurged = Path.Set.diff(allDirs, dirsToKeep);
+
+  if (dryRun) {
+    print_endline("Will be purging the following");
+    Path.Set.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
+    RunAsync.return();
+  } else {
+    let queue = LwtTaskQueue.create(~concurrency=40, ());
+    Path.Set.elements(buildsToBePurged)
+    |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
+    |> RunAsync.List.waitAll;
+  };
+};
+
 let execCommand =
     (
       buildIsInProgress,
@@ -1865,6 +1921,24 @@ let commandsConfig = {
               value & flag & info(["json"], ~doc="Format output as JSON")
             )
           $ pkgTerm
+        ),
+      ),
+      makeCommand(
+        ~name="cleanup",
+        ~doc="Purge unused builds from global cache",
+        ~docs="COMMON COMMANDS",
+        Term.(
+          const(cleanup)
+          $ ProjectConfig.multipleProjectConfigsTerm(resolvedPathTerm)
+          $ Arg.(
+              value
+              & flag
+              & info(
+                  ["dry-run"],
+                  ~doc=
+                    "Only print directories/files to which should be removed.",
+                )
+            )
         ),
       ),
       /* LOW LEVEL PLUMBING COMMANDS */

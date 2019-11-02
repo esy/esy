@@ -28,6 +28,8 @@ module ProjectArg = {
       }
     );
 
+  let ofPath = p => ByPath(p);
+
   let conv = {
     open Cmdliner;
     let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
@@ -188,6 +190,7 @@ module ProjectArg = {
 [@deriving (show, to_yojson)]
 type t = {
   mainprg: string,
+  path: Path.t,
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
@@ -351,6 +354,7 @@ let make =
 
   return({
     mainprg,
+    path: projectPath,
     esyVersion: EsyRuntime.version,
     spec,
     prefixPath,
@@ -410,3 +414,66 @@ let promiseTerm = {
 
 let term =
   Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+
+let promiseTermForMultiplePaths = resolvedPathTerm => {
+  let parse =
+      (
+        mainprg,
+        paths,
+        prefixPath,
+        cacheTarballsPath,
+        opamRepository,
+        esyOpamOverride,
+        npmRegistry,
+        solveTimeout,
+        skipRepositoryUpdate,
+        solveCudfCommand,
+        (),
+      ) =>
+    paths
+    |> List.map(~f=path =>
+         make(
+           Some(ProjectArg.ofPath(path)),
+           mainprg,
+           prefixPath,
+           cacheTarballsPath,
+           opamRepository,
+           esyOpamOverride,
+           npmRegistry,
+           solveTimeout,
+           skipRepositoryUpdate,
+           solveCudfCommand,
+         )
+       )
+    |> RunAsync.List.joinAll;
+
+  Cmdliner.Term.(
+    const(parse)
+    $ main_name
+    $ Arg.(
+        non_empty
+        & pos_all(resolvedPathTerm, [])
+        & info(
+            [],
+            ~docv="ROOT",
+            ~doc="Project roots for which built artifacts must be kept",
+          )
+      )
+    $ prefixPath
+    $ cacheTarballsPath
+    $ opamRepositoryArg
+    $ esyOpamOverrideArg
+    $ npmRegistryArg
+    $ solveTimeoutArg
+    $ skipRepositoryUpdateArg
+    $ solveCudfCommandArg
+    $ Cli.setupLogTerm
+  );
+};
+
+let multipleProjectConfigsTerm = paths =>
+  Cmdliner.Term.(
+    ret(
+      const(Cli.runAsyncToCmdlinerRet) $ promiseTermForMultiplePaths(paths),
+    )
+  );
