@@ -48,10 +48,10 @@ jobs:
 
     variables:
         HOMEBREW_NO_AUTO_UPDATE: yes
-        STAGING_DIRECTORY: /Users/vsts/STAGING
-        STAGING_DIRECTORY_UNIX: /Users/vsts/STAGING
-        ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i
-        ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
+        STAGING_DIRECTORY: $(Build.StagingDirectory)
+        STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
+        ESY__CACHE_INSTALL_PATH: $(Agent.HomeDirectory)/.esy/3____________________________________________________________________/i
+        ESY__CACHE_SOURCE_TARBALL_PATH: $(Agent.HomeDirectory)/.esy/source/i
         # ESY__NPM_ROOT: /usr/local/lib/node_modules/esy
 
     steps:
