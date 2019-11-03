@@ -1,5 +1,5 @@
 steps:
-    - bash: |
+  - bash: |
         # COMPUTE THE ESY INSTALL CACHE LOCATION AHEAD OF TIME
         DESIRED_LEN="86"
         # Note: This will need to change when upgrading esy version
@@ -28,5 +28,5 @@ steps:
     #   displayName: "Find esy binary"
     # - bash: echo ${ESY_BIN_LOCATION}
     # displayName: "Print esy bin location"
-    - bash: env
+  - bash: env
     displayName: "Print environment"
