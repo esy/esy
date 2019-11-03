@@ -157,8 +157,8 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await fs.mkdir(binPath);
   await fs.mkdir(projectPath);
   await fs.mkdir(npmPrefixPath);
-  await fs.symlink(ESY, path.join(binPath, exe('esy')));
-  await fs.symlink(process.execPath, path.join(binPath, exe('node')));
+  await fs.copy(ESY, path.join(binPath, exe('esy')));
+  await fs.copy(process.execPath, path.join(binPath, exe('node')));
 
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
