@@ -22,24 +22,24 @@ steps:
   - script: 'node scripts/bootstrap.js'
     displayName: 'esy bootstrap'
 
-  - script: 'esy b dune runtest test'
-    displayName: 'esy b dune runtest test'
+  # - script: 'esy b dune runtest test'
+  #   displayName: 'esy b dune runtest test'
 
-  - script: 'node ./node_modules/jest-cli/bin/jest.js'
-    displayName: 'esy test:e2e'
+  # - script: 'node ./node_modules/jest-cli/bin/jest.js'
+  #   displayName: 'esy test:e2e'
 
-  - script: 'npm install'
-    workingDirectory: './test-e2e-re/lib/verdaccio/'
-    continueOnError: true
-    displayName: 'esy test:e2e-re: npm install'
+  # - script: 'npm install'
+  #   workingDirectory: './test-e2e-re/lib/verdaccio/'
+  #   continueOnError: true
+  #   displayName: 'esy test:e2e-re: npm install'
 
-  - script: 'esy test:e2e-re'
-    continueOnError: true
-    displayName: 'esy test:e2e-re'
+  # - script: 'esy test:e2e-re'
+  #   continueOnError: true
+  #   displayName: 'esy test:e2e-re'
 
-  - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
-    continueOnError: true
-    displayName: 'esy test:e2e-slow'
+  # - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
+  #   continueOnError: true
+  #   displayName: 'esy test:e2e-slow'
 
   - script: 'node ./scripts/make-platform-release.js'
     condition: succeededOrFailed()

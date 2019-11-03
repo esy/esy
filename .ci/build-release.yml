@@ -11,33 +11,32 @@ trigger:
   - prometheansacrifice/*
 
 jobs:
-  - job: buildLinux
-    displayName: Build Linux
-    condition: succeeded()
-    pool:
-        vmImage: ubuntu-16.04
+  # - job: buildLinux
+  #   displayName: Build Linux
+  #   condition: succeeded()
+  #   pool:
+  #       vmImage: ubuntu-16.04
 
-    variables:
-        STAGING_DIRECTORY: /home/vsts/STAGING
-        STAGING_DIRECTORY_UNIX: /home/vsts/STAGING
-        ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i
-        ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
-        # ESY__NPM_ROOT: /opt/hostedtoolcache/node/8.14.0/x64/lib/node_modules/esy
+  #   variables:
+  #       STAGING_DIRECTORY: /home/vsts/STAGING
+  #       STAGING_DIRECTORY_UNIX: /home/vsts/STAGING
+  #       ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i
+  #       # ESY__NPM_ROOT: /opt/hostedtoolcache/node/8.14.0/x64/lib/node_modules/esy
 
-    steps:
-      - script: sudo apt-get update
-      - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
-      - template: use-node.yml
-      - template: restore-build-cache.yml
-      - template: build.yml
-      - template: publish-build-cache.yml
+  #   steps:
+  #     - script: sudo apt-get update
+  #     - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
+  #     - template: use-node.yml
+  #     - template: restore-build-cache.yml
+  #     - template: build.yml
+  #     - template: publish-build-cache.yml
 
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-linux
+  #     - task: PublishBuildArtifacts@1
+  #       displayName: 'Publish Platform Release'
+  #       condition: succeededOrFailed()
+  #       inputs:
+  #         PathtoPublish: '_platformrelease'
+  #         ArtifactName: platform-linux
 
   - job: buildMacos
     displayName: Build macOS
@@ -50,12 +49,41 @@ jobs:
         HOMEBREW_NO_AUTO_UPDATE: yes
         STAGING_DIRECTORY: $(Build.StagingDirectory)
         STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
-        ESY__CACHE_INSTALL_PATH: $(Agent.HomeDirectory)/.esy/3____________________________________________________________________/i
-        ESY__CACHE_SOURCE_TARBALL_PATH: $(Agent.HomeDirectory)/.esy/source/i
         # ESY__NPM_ROOT: /usr/local/lib/node_modules/esy
 
     steps:
       - script: brew install gmp
+      - bash: |
+          # COMPUTE THE ESY INSTALL CACHE LOCATION AHEAD OF TIME
+          DESIRED_LEN="86"
+          # Note: This will need to change when upgrading esy version
+          # that reenables long paths on windows.
+          if [ "$AGENT_OS" == "Windows_NT" ]; then
+            DESIRED_LEN="33"
+          fi
+          HOME_ESY3="$HOME/.esy/3"
+          HOME_ESY3_LEN=${#HOME_ESY3}
+          NUM_UNDERS=$(echo "$(($DESIRED_LEN-$HOME_ESY3_LEN))")
+          UNDERS=$(printf "%-${NUM_UNDERS}s" "_")
+          UNDERS="${UNDERS// /_}"
+          ESY__CACHE_INSTALL_PATH=${HOME_ESY3}${UNDERS}/i
+          if [ "$AGENT_OS" == "Windows_NT" ]; then
+            ESY__CACHE_INSTALL_PATH=$( cygpath --mixed --absolute "$ESY__CACHE_INSTALL_PATH")
+          fi
+          echo "ESY__CACHE_INSTALL_PATH: $ESY__CACHE_INSTALL_PATH"
+          # This will be exposed as an env var ESY__CACHE_INSTALL_PATH, or an
+          # Azure var esy__cache_install_path
+          echo "##vso[task.setvariable variable=esy__cache_install_path]$ESY__CACHE_INSTALL_PATH"
+        displayName: "Task.setvariable ESY__CACHE_INSTALL_PATH"
+      # - bash: |
+      #     which esy
+      #     echo "$( which esy )"
+      #     echo "##vso[task.setvariable variable=esy_bin_location]$(which esy)"
+      #   displayName: "Find esy binary"
+      # - bash: echo ${ESY_BIN_LOCATION}
+      # displayName: "Print esy bin location"
+      - bash: env
+        displayName: "Print environment"
       - template: use-node.yml
       - template: restore-build-cache.yml
       - template: build.yml
@@ -68,68 +96,66 @@ jobs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-darwin
 
-  - job: buildWindows
-    displayName: Build Windows
-    condition: succeeded()
-    timeoutInMinutes: 0
-    pool:
-      vmImage: vs2017-win2016
-      demands: npm
+  # - job: buildWindows
+  #   displayName: Build Windows
+  #   condition: succeeded()
+  #   timeoutInMinutes: 0
+  #   pool:
+  #     vmImage: vs2017-win2016
+  #     demands: npm
 
-    variables:
-        ESY__WINDOWS_SHORT_PATHS: 1
-        STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
-        STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
-        ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
-        ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
-        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
+  #   variables:
+  #       ESY__WINDOWS_SHORT_PATHS: 1
+  #       STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
+  #       STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
+  #       ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3_/i
+  #       # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
-    steps:
-      - template: windows-disable-long-paths.yml
-      - template: use-node.yml
-      - template: build.yml
+  #   steps:
+  #     - template: windows-disable-long-paths.yml
+  #     - template: use-node.yml
+  #     - template: build.yml
 
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-win32
+  #     - task: PublishBuildArtifacts@1
+  #       displayName: 'Publish Platform Release'
+  #       condition: succeededOrFailed()
+  #       inputs:
+  #         PathtoPublish: '_platformrelease'
+  #         ArtifactName: platform-win32
 
-  - job: buildWindowsLongPath
-    displayName: Build Windows with long paths
-    condition: succeeded()
-    timeoutInMinutes: 0
-    pool:
-      vmImage: vs2017-win2016
-      demands: npm
+  # - job: buildWindowsLongPath
+  #   displayName: Build Windows with long paths
+  #   condition: succeeded()
+  #   timeoutInMinutes: 0
+  #   pool:
+  #     vmImage: vs2017-win2016
+  #     demands: npm
 
-    variables:
-        STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
-        STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
-        ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3____________________________________________________________________/i
-        ESY__CACHE_SOURCE_TARBALL_PATH: /C/Users/VssAdministrator/.esy/source/i
-        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
+  #   variables:
+  #       STAGING_DIRECTORY: C:\Users\VssAdministrator\STAGING
+  #       STAGING_DIRECTORY_UNIX: /C/Users/VssAdministrator/STAGING
+  #       ESY__CACHE_INSTALL_PATH: /C/Users/VssAdministrator/.esy/3____________________________________________________________________/i
+  #       # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
 
-    steps:
-      - template: use-node.yml
-      - template: build.yml
-      - script: esy b where ocamlc
-        displayName: Check OCaml path
+  #   steps:
+  #     - template: use-node.yml
+  #     - template: build.yml
+  #     - script: esy b where ocamlc
+  #       displayName: Check OCaml path
 
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-win32-long
+  #     - task: PublishBuildArtifacts@1
+  #       displayName: 'Publish Platform Release'
+  #       condition: succeededOrFailed()
+  #       inputs:
+  #         PathtoPublish: '_platformrelease'
+  #         ArtifactName: platform-win32-long
 
   - job: buildRelease
     displayName: Build Release
     dependsOn:
-      - buildLinux
+      # - buildLinux
       - buildMacos
-      - buildWindows
+      # - buildWindows
     pool:
       vmImage: ubuntu-16.04
 
@@ -139,11 +165,11 @@ jobs:
         node scripts/make-release-skeleton.js
       displayName: 'Prepare release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Linux Artifacts'
-      inputs:
-        artifactName: platform-linux
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Linux Artifacts'
+    #   inputs:
+    #     artifactName: platform-linux
+    #     downloadPath: '_release'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download macOS Artifacts'
@@ -151,11 +177,11 @@ jobs:
         artifactName: platform-darwin
         downloadPath: '_release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Windows Artifacts'
-      inputs:
-        artifactName: platform-win32
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Windows Artifacts'
+    #   inputs:
+    #     artifactName: platform-win32
+    #     downloadPath: '_release'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: Release'
