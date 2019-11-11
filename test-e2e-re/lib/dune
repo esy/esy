@@ -29,9 +29,6 @@
    (modules (:standard \ RunTests))
 )
 (executable
-  (package esy)
-  (name RunTests)
-  (public_name RunTests.exe)
-  (libraries TestE2E)
-  (modules RunTests)
-)
+ (name RunTests)
+ (libraries TestE2E)
+ (modules RunTests))
