@@ -352,6 +352,7 @@ let make =
       ~depspec,
       ~sourceType,
       ~sourcePath,
+      ~globalPathVariable,
       pkg,
       buildManifest,
     ) => {
@@ -382,7 +383,13 @@ let make =
           let windir = Sys.getenv("WINDIR") ++ "/System32";
           let windir = Path.normalizePathSepOfFilename(windir);
           "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ++ windir;
-        | _ => "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        | _ =>
+          let esyGlobalPath =
+            switch (globalPathVariable) {
+            | Some(path) => path
+            | None => "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+            };
+          "$PATH:" ++ esyGlobalPath;
         };
 
       SandboxEnvironment.[

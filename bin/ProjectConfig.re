@@ -201,6 +201,7 @@ type t = {
   solveTimeout: option(float),
   skipRepositoryUpdate: bool,
   solveCudfCommand: option(Cmd.t),
+  globalPathVariable: option(string),
 };
 
 let storePath = cfg => {
@@ -279,6 +280,16 @@ let esyOpamOverrideArg = {
   );
 };
 
+let globalPathVariableArg = {
+  let doc = "Specifies the PATH variable to look for global utils in the build env.";
+  let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
+  Arg.(
+    value
+    & opt(some(string), None)
+    & info(["global-path"], ~env, ~docs=commonOptionsSection, ~doc)
+  );
+};
+
 let cacheTarballsPath = {
   let doc = "Specifies tarballs cache directory.";
   Arg.(
@@ -338,6 +349,7 @@ let make =
       solveTimeout,
       skipRepositoryUpdate,
       solveCudfCommand,
+      globalPathVariable,
     ) => {
   open RunAsync.Syntax;
 
@@ -365,6 +377,7 @@ let make =
     solveTimeout,
     skipRepositoryUpdate,
     solveCudfCommand,
+    globalPathVariable,
   });
 };
 
@@ -381,6 +394,7 @@ let promiseTerm = {
         solveTimeout,
         skipRepositoryUpdate,
         solveCudfCommand,
+        globalPathVariable,
         (),
       ) =>
     make(
@@ -394,6 +408,7 @@ let promiseTerm = {
       solveTimeout,
       skipRepositoryUpdate,
       solveCudfCommand,
+      globalPathVariable,
     );
 
   Cmdliner.Term.(
@@ -408,6 +423,7 @@ let promiseTerm = {
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg
     $ solveCudfCommandArg
+    $ globalPathVariableArg
     $ Cli.setupLogTerm
   );
 };
@@ -428,6 +444,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         solveTimeout,
         skipRepositoryUpdate,
         solveCudfCommand,
+        globalPathVariable,
         (),
       ) =>
     paths
@@ -443,6 +460,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            solveTimeout,
            skipRepositoryUpdate,
            solveCudfCommand,
+           globalPathVariable,
          )
        )
     |> RunAsync.List.joinAll;
@@ -467,6 +485,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg
     $ solveCudfCommandArg
+    $ globalPathVariableArg
     $ Cli.setupLogTerm
   );
 };

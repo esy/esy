@@ -162,6 +162,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         ~storePath,
         ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
+        ~globalPathVariable=projcfg.globalPathVariable,
         (),
       ),
     );

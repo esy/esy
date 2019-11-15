@@ -554,6 +554,7 @@ let makeScope =
         ~sourcePath,
         ~mode,
         ~depspec,
+        ~globalPathVariable=sandbox.cfg.globalPathVariable,
         pkg,
         buildManifest,
       );
