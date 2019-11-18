@@ -37,8 +37,7 @@ steps:
     continueOnError: true
     displayName: 'esy test:e2e-re'
 
-  - script: 'node -r ./_esy/default/pnp.js ./test-e2e-slow/run-slow-tests.js'
-    continueOnError: true
+  - script: 'node ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
 
   - script: 'node ./scripts/make-platform-release.js'
