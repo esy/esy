@@ -5,7 +5,7 @@ const os = require('os');
 
 // this is required so esy won't "attach" to the outer esy project (esy
 // itself)
-delete process.env.ESY__ROOT_PACKAGE_CONFIG_PATH
+delete process.env.ESY__ROOT_PACKAGE_CONFIG_PATH;
 
 const isTaggedCommit = () => {
   const TRAVIS_TAG = process.env['TRAVIS_TAG'];
@@ -66,4 +66,3 @@ if (!isWindows) {
   require('./esy-npm-release/legacy.test.js');
 }
 require('./esy-npm-release/no-rewrite.test.js');
-
