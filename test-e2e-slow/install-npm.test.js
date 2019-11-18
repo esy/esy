@@ -12,36 +12,36 @@ const cases = [
       require('react');
     `,
   },
-  {
-    name: 'bs-platform',
-  },
-  {
-    name: 'webpack',
-    test: `
-      require('webpack');
-    `,
-  },
-  {
-    name: 'jest-cli',
-    test: `
-      require('jest-cli');
-    `,
-  },
+  // {
+  //   name: 'bs-platform',
+  // },
+  // {
+  //   name: 'webpack',
+  //   test: `
+  //     require('webpack');
+  //   `,
+  // },
+  // {
+  //   name: 'jest-cli',
+  //   test: `
+  //     require('jest-cli');
+  //   `,
+  // },
   {
     name: 'flow-bin',
     test: `
       require('flow-bin');
     `,
   },
-  {
-    name: 'babel-cli',
-  },
-  {
-    name: 'react-scripts',
-    test: `
-      require('react-scripts/bin/react-scripts.js');
-    `,
-  },
+  // {
+  //   name: 'babel-cli',
+  // },
+  // {
+  //   name: 'react-scripts',
+  //   test: `
+  //     require('react-scripts/bin/react-scripts.js');
+  //   `,
+  // },
 ];
 
 // All of these tests are blocked by issue #506 on Windows
