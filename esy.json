@@ -1,7 +1,7 @@
 {
   "name": "esy",
   "version": "0.6.0",
-  "description": "Package builder for esy",
+  "description": "Package builder for esy.",
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy,esy-build-package",
