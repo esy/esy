@@ -56,7 +56,7 @@ let run =
       switch (logPath) {
       | Some(logPath) =>
         let%lwt () =
-          try%lwt (Fs.rmPathLwt(logPath)) {
+          try%lwt(Fs.rmPathLwt(logPath)) {
           | _ => Lwt.return()
           };
 

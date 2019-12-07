@@ -13,7 +13,7 @@ let parseStdout = stdout =>
     switch (String.cut(~rev=true, ~sep="\n", stdout)) {
     | Some((stdout, httpcode)) =>
       let%bind httpcode =
-        try (return(int_of_string(httpcode))) {
+        try(return(int_of_string(httpcode))) {
         | Failure(_) => errorf("unable to parse HTTP code: %s", httpcode)
         };
 
@@ -63,7 +63,7 @@ let runCurl = cmd => {
     };
   };
 
-  try%lwt (EsyBashLwt.with_process_full(cmd, f)) {
+  try%lwt(EsyBashLwt.with_process_full(cmd, f)) {
   | [@implicit_arity] Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
     RunAsync.error(msg);

@@ -1,10 +1,10 @@
 type t =
   | Dist(Dist.t)
-  | Link{
+  | Link({
       path: DistPath.t,
       manifest: option(ManifestSpec.t),
       kind: linkKind,
-    }
+    })
 and linkKind =
   | LinkRegular
   | LinkDev;

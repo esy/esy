@@ -7,22 +7,22 @@ module File = Bos.OS.File;
 module BPath = Bos.OS.Path;
 
 type t =
-  | FixtureSymlink{
+  | FixtureSymlink({
       name: string,
       path: string,
-    }
-  | FixtureFileCopy{
+    })
+  | FixtureFileCopy({
       name: string,
       path: string,
-    }
-  | FixtureFile{
+    })
+  | FixtureFile({
       name: string,
       data: string,
-    }
-  | FixtureDir{
+    })
+  | FixtureDir({
       name: string,
       items: list(t),
-    };
+    });
 
 let transfer = (ic, oc, ()) => {
   let chunkSize = 1024 * 1024; /* 1mb */

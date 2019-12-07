@@ -113,7 +113,7 @@ module CudfVersionMap: {
     );
     let () = {
       let versions =
-        try (Hashtbl.find(map.versions, name)) {
+        try(Hashtbl.find(map.versions, name)) {
         | _ => Version.Set.empty
         };
 
@@ -203,7 +203,7 @@ module CudfMapping = {
     let cudfName = CudfName.encode(pkg.name);
     switch (CudfVersionMap.findCudfVersion(~name, ~version=pkg.version, vmap)) {
     | Some(cudfVersion) =>
-      try (
+      try(
         Some(
           Cudf.lookup_package(
             cudfUniv,

@@ -131,7 +131,7 @@ module Version = {
     v
     |> String.split_on_char('.')
     |> List.map(~f=v =>
-         try (N(int_of_string(v))) {
+         try(N(int_of_string(v))) {
          | _ => W(v)
          }
        );
@@ -520,7 +520,7 @@ module Formula = {
       String.sub(text, num, String.length(text) - num);
 
     let isint = v =>
-      try (
+      try(
         {
           ignore(int_of_string(v));
           true;
@@ -766,7 +766,7 @@ module Formula = {
   };
 
   let parse = formula =>
-    try (Ok(Parser.parse(formula))) {
+    try(Ok(Parser.parse(formula))) {
     | Failure(message) =>
       Error("Failed with message: " ++ message ++ " : " ++ formula)
     | e =>

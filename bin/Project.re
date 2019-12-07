@@ -514,7 +514,7 @@ module OfTerm = {
     open RunAsync.Syntax;
     let cachePath = makeCachePath("project", projcfg);
     let f = ic =>
-      try%lwt (
+      try%lwt(
         {
           let%lwt (v, files) = (
             Lwt_io.read_value(ic): Lwt.t((project, list(FileInfo.t)))
@@ -535,7 +535,7 @@ module OfTerm = {
         return(None);
       };
 
-    try%lwt (Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(cachePath), f)) {
+    try%lwt(Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(cachePath), f)) {
     | Unix.Unix_error(_) =>
       let%lwt () =
         Logs_lwt.debug(m => m("unable to find the cache, skipping..."));

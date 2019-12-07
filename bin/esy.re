@@ -68,7 +68,7 @@ let depspecConv = {
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
-    try (
+    try(
       return(
         EsyInstall.DepSpecParser.start(EsyInstall.DepSpecLexer.read, lexbuf),
       )
@@ -377,7 +377,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
   open Status;
 
   let protectRunAsync = v =>
-    try%lwt (v) {
+    try%lwt(v) {
     | _ => RunAsync.error("fatal error which is ignored by status command")
     };
 
@@ -756,7 +756,7 @@ let devExec = (chdir: bool, pkgarg: PkgArg.t, proj: Project.t, cmd, ()) => {
 
 let devShell = (pkgarg, proj: Project.t) => {
   let shell =
-    try (Sys.getenv("SHELL")) {
+    try(Sys.getenv("SHELL")) {
     | Not_found => "/bin/bash"
     };
 

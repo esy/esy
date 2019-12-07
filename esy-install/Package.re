@@ -32,7 +32,7 @@ let opam = pkg =>
         let%bind data = Fs.readFile(path);
         let filename =
           OpamFile.make(OpamFilename.of_string(Path.show(path)));
-        try (return(OpamFile.OPAM.read_from_string(~filename, data))) {
+        try(return(OpamFile.OPAM.read_from_string(~filename, data))) {
         | Failure(msg) =>
           errorf("error parsing opam metadata %a: %s", Path.pp, path, msg)
         | _ => error("error parsing opam metadata")

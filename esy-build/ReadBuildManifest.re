@@ -79,7 +79,7 @@ let parseOpam = data =>
       return(None);
     } else {
       let%bind opam =
-        try (return(OpamFile.OPAM.read_from_string(data))) {
+        try(return(OpamFile.OPAM.read_from_string(data))) {
         | Failure(msg) => errorf("error parsing opam: %s", msg)
         | _ => errorf(" error parsing opam")
         };
@@ -142,12 +142,12 @@ module OpamBuild = {
     | None => return(None)
     | Some(opam) =>
       let name =
-        try (Some(OpamPackage.Name.to_string(OpamFile.OPAM.name(opam)))) {
+        try(Some(OpamPackage.Name.to_string(OpamFile.OPAM.name(opam)))) {
         | _ => nameFallback
         };
 
       let version =
-        try (Some(Version.Opam(OpamFile.OPAM.version(opam)))) {
+        try(Some(Version.Opam(OpamFile.OPAM.version(opam)))) {
         | _ => None
         };
 

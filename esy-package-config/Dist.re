@@ -8,21 +8,21 @@ type local = {
 
 [@deriving (ord, sexp_of)]
 type t =
-  | Archive{
+  | Archive({
       url: string,
       checksum: Checksum.t,
-    }
-  | Git{
+    })
+  | Git({
       remote: string,
       commit: string,
       manifest: option(ManifestSpec.t),
-    }
-  | Github{
+    })
+  | Github({
       user: string,
       repo: string,
       commit: string,
       manifest: option(ManifestSpec.t),
-    }
+    })
   | LocalPath(local)
   | NoSource;
 

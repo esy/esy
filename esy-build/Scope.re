@@ -637,7 +637,7 @@ let toOCamlVersion = version => {
   | [major, minor, patch] =>
     let patch = {
       let v =
-        try (int_of_string(patch)) {
+        try(int_of_string(patch)) {
         | _ => 0
         };
       if (v < 1000) {

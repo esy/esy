@@ -265,13 +265,11 @@ let withLock = (lockPath: Path.t, f) => {
   };
   UnixLabels.(lockf(fd, ~mode=F_TLOCK, ~len=0));
   let res =
-    try (
-      {
-        let res = f();
-        release();
-        res;
-      }
-    ) {
+    try({
+      let res = f();
+      release();
+      res;
+    }) {
     | e =>
       release();
       raise(e);

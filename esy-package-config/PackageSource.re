@@ -35,15 +35,15 @@ type opam = {
 let opamfiles = opam => File.ofDir(Path.(opam.path / "files"));
 
 type t =
-  | Link{
+  | Link({
       path: DistPath.t,
       manifest: option(ManifestSpec.t),
       kind: Source.linkKind,
-    }
-  | Install{
+    })
+  | Install({
       source: (Dist.t, list(Dist.t)),
       opam: option(opam),
-    };
+    });
 
 let to_yojson = source =>
   Json.Encode.(

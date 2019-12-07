@@ -19,10 +19,10 @@ type fetchedDist =
   /* source path from some local package, should be retained */
   | SourcePath(Path.t)
   /* downloaded tarball */
-  | Tarball{
+  | Tarball({
       tarballPath: Path.t,
       stripComponents: int,
-    };
+    });
 
 let cache = (fetched, tarballPath) =>
   RunAsync.Syntax.(

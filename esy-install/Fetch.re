@@ -358,78 +358,76 @@ module FetchPackage: {
       };
 
       /* We don't need to wrap the install path on Windows in quotes */
-      try%lwt (
-        {
-          let installationPath =
-            switch (System.Platform.host) {
-            | Windows => Path.show(sourcePath)
-            | _ => Filename.quote(Path.show(sourcePath))
-            };
-
-          /* On Windows, cd by itself won't switch between drives */
-          /* We'll add the /d flag to allow switching drives - */
-          let changeDirCommand =
-            switch (System.Platform.host) {
-            | Windows => "/d"
-            | _ => ""
-            };
-
-          let script =
-            Printf.sprintf(
-              "cd %s %s && %s",
-              changeDirCommand,
-              installationPath,
-              script,
-            );
-
-          let cmd =
-            switch (System.Platform.host) {
-            | Windows => ("", [|"cmd.exe", "/c " ++ script|])
-            | _ => ("/bin/bash", [|"/bin/bash", "-c", script|])
-            };
-
-          let env = {
-            open Option.Syntax;
-            let%bind env = env;
-            let%bind (_, env) = ChildProcess.prepareEnv(env);
-            return(env);
+      try%lwt({
+        let installationPath =
+          switch (System.Platform.host) {
+          | Windows => Path.show(sourcePath)
+          | _ => Filename.quote(Path.show(sourcePath))
           };
 
-          let logFilePath =
-            Path.(sourcePath / "_esy" / (lifecycleName ++ ".log"));
-          let%lwt fd =
-            Lwt_unix.(
-              openfile(Path.show(logFilePath), [O_RDWR, O_CREAT], 0o660)
-            );
-          let stderrout = `FD_copy(Lwt_unix.unix_file_descr(fd));
-          Lwt_process.with_process_out(
-            ~env?,
-            ~stdout=stderrout,
-            ~stderr=stderrout,
-            cmd,
-            p => {
-              let%lwt () = Lwt_unix.close(fd);
-              switch%lwt (p#status) {
-              | Unix.WEXITED(0) =>
-                let%lwt () =
-                  Logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
-                RunAsync.return();
-              | _ =>
-                let%lwt output = readAndCloseFile(logFilePath);
-                let%lwt () =
-                  Logs_lwt.err(m =>
-                    m(
-                      "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]",
-                      script,
-                      output,
-                    )
-                  );
-                RunAsync.error("error running command");
-              };
-            },
+        /* On Windows, cd by itself won't switch between drives */
+        /* We'll add the /d flag to allow switching drives - */
+        let changeDirCommand =
+          switch (System.Platform.host) {
+          | Windows => "/d"
+          | _ => ""
+          };
+
+        let script =
+          Printf.sprintf(
+            "cd %s %s && %s",
+            changeDirCommand,
+            installationPath,
+            script,
           );
-        }
-      ) {
+
+        let cmd =
+          switch (System.Platform.host) {
+          | Windows => ("", [|"cmd.exe", "/c " ++ script|])
+          | _ => ("/bin/bash", [|"/bin/bash", "-c", script|])
+          };
+
+        let env = {
+          open Option.Syntax;
+          let%bind env = env;
+          let%bind (_, env) = ChildProcess.prepareEnv(env);
+          return(env);
+        };
+
+        let logFilePath =
+          Path.(sourcePath / "_esy" / (lifecycleName ++ ".log"));
+        let%lwt fd =
+          Lwt_unix.(
+            openfile(Path.show(logFilePath), [O_RDWR, O_CREAT], 0o660)
+          );
+        let stderrout = `FD_copy(Lwt_unix.unix_file_descr(fd));
+        Lwt_process.with_process_out(
+          ~env?,
+          ~stdout=stderrout,
+          ~stderr=stderrout,
+          cmd,
+          p => {
+            let%lwt () = Lwt_unix.close(fd);
+            switch%lwt (p#status) {
+            | Unix.WEXITED(0) =>
+              let%lwt () =
+                Logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
+              RunAsync.return();
+            | _ =>
+              let%lwt output = readAndCloseFile(logFilePath);
+              let%lwt () =
+                Logs_lwt.err(m =>
+                  m(
+                    "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]",
+                    script,
+                    output,
+                  )
+                );
+              RunAsync.error("error running command");
+            };
+          },
+        );
+      }) {
       | [@implicit_arity] Unix.Unix_error(err, _, _) =>
         let msg = Unix.error_message(err);
         RunAsync.error(msg);

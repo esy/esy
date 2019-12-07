@@ -9,21 +9,21 @@ let local_of_yojson: Json.decoder(local);
 let local_to_yojson: Json.encoder(local);
 
 type t =
-  | Archive{
+  | Archive({
       url: string,
       checksum: Checksum.t,
-    }
-  | Git{
+    })
+  | Git({
       remote: string,
       commit: string,
       manifest: option(ManifestSpec.t),
-    }
-  | Github{
+    })
+  | Github({
       user: string,
       repo: string,
       commit: string,
       manifest: option(ManifestSpec.t),
-    }
+    })
   | LocalPath(local)
   | NoSource;
 

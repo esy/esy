@@ -90,10 +90,10 @@ module Reason: {
   [@deriving ord]
   type t =
     | Conflict(chain, chain)
-    | Missing{
+    | Missing({
         chain,
         available: list(Resolution.t),
-      }
+      })
   and chain = {
     constr: Dependencies.t,
     trace,
@@ -597,12 +597,10 @@ let solveDependencies =
         % p(filenameOut)
       );
 
-    try%lwt (
-      {
-        let env = ChildProcess.CustomEnv(EsyBash.currentEnvWithMingwInPath);
-        ChildProcess.run(~env, cmd);
-      }
-    ) {
+    try%lwt({
+      let env = ChildProcess.CustomEnv(EsyBash.currentEnvWithMingwInPath);
+      ChildProcess.run(~env, cmd);
+    }) {
     | Unix.Unix_error(err, _, _) =>
       let msg = Unix.error_message(err);
       RunAsync.error(msg);
