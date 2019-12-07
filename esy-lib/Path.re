@@ -114,7 +114,7 @@ let ppPretty = (fmt, p) => Fmt.string(fmt, showPretty(p));
 
 /* JSONABLE */
 
-let of_yojson = (json: Yojson.Safe.json) =>
+let of_yojson = (json: Yojson.Safe.t) =>
   switch (json) {
   | `String(v) =>
     switch (Fpath.of_string(v)) {

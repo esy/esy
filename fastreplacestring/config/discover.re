@@ -20,7 +20,7 @@ let () =
       | Some("mingw64") => ["-static", "-static-libgcc", "-static-libstdc++"]
       | Some("macosx") => ["-lstdc++", "-x", "c++"]
       | Some(_)
-      | None => ["-lstdc++"]
+      | None => ["-lstdc++", "-fPIC"]
       };
 
     C.Flags.write_sexp("dune.cxx_flags", cxx_flags);

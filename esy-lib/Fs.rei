@@ -6,9 +6,9 @@ let readFile: Path.t => RunAsync.t(string);
 
 let writeFile: (~perm: int=?, ~data: string, Path.t) => RunAsync.t(unit);
 
-let readJsonFile: Path.t => RunAsync.t(Yojson.Safe.json);
+let readJsonFile: Path.t => RunAsync.t(Yojson.Safe.t);
 
-let writeJsonFile: (~json: Yojson.Safe.json, Path.t) => RunAsync.t(unit);
+let writeJsonFile: (~json: Yojson.Safe.t, Path.t) => RunAsync.t(unit);
 
 let openFile:
   (~mode: list(Lwt_unix.open_flag), ~perm: int, Path.t) =>

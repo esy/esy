@@ -1,4 +1,4 @@
-type t = Yojson.Safe.json;
+type t = Yojson.Safe.t;
 
 type encoder('a) = 'a => t;
 type decoder('a) = t => result('a, string);
@@ -13,19 +13,17 @@ let compare = (a, b) =>
   String.compare(Yojson.Safe.to_string(a), Yojson.Safe.to_string(b));
 
 let parse = data =>
-  try (Run.return(Yojson.Safe.from_string(data))) {
+  try(Run.return(Yojson.Safe.from_string(data))) {
   | Yojson.Json_error(msg) => Run.errorf("error parsing JSON: %s", msg)
   };
 
 let parseJsonWith = (parser, json) => Run.ofStringError(parser(json));
 
 let parseStringWith = (parser, data) =>
-  try (
-    {
-      let json = Yojson.Safe.from_string(data);
-      parseJsonWith(parser, json);
-    }
-  ) {
+  try({
+    let json = Yojson.Safe.from_string(data);
+    parseJsonWith(parser, json);
+  }) {
   | Yojson.Json_error(msg) => Run.errorf("error parsing JSON: %s", msg)
   };
 
