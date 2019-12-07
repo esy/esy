@@ -27,7 +27,7 @@ let parseExn = v => {
 };
 
 let parse = src =>
-  try (Ok(parseExn(src))) {
+  try(Ok(parseExn(src))) {
   | [@implicit_arity] UnmatchedChar(pos, _) =>
     let cnum = pos.Lexing.pos_cnum - 1;
     let msg = formatParseError(~src, ~cnum, "unknown character");

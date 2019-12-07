@@ -4,10 +4,10 @@ type t = {
 }
 and resolution =
   | Version(Version.t)
-  | SourceOverride{
+  | SourceOverride({
       source: Source.t,
       override: Json.t,
-    };
+    });
 
 let resolution_of_yojson: Json.decoder(resolution);
 let resolution_to_yojson: Json.encoder(resolution);

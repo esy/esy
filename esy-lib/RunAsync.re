@@ -87,7 +87,7 @@ let cleanup = (comp, handler) => {
       Lwt.return(err);
     };
 
-  try%lwt (res) {
+  try%lwt(res) {
   | err =>
     let%lwt () = handler();
     raise(err);

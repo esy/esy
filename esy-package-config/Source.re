@@ -3,11 +3,11 @@ open Sexplib0.Sexp_conv;
 [@deriving (ord, sexp_of)]
 type t =
   | Dist(Dist.t)
-  | Link{
+  | Link({
       path: DistPath.t,
       manifest: option(ManifestSpec.t),
       kind: linkKind,
-    }
+    })
 and linkKind =
   | LinkRegular
   | LinkDev;

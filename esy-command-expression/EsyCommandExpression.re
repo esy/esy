@@ -48,7 +48,7 @@ let parse = src => {
 
   let lexbuf = Lexing.from_string(src);
   Result.Syntax.(
-    try (return(Parser.start(getToken, lexbuf))) {
+    try(return(Parser.start(getToken, lexbuf))) {
     | Failure(v) => error(v)
     | Parser.Error => error("Syntax error")
     | [@implicit_arity] Lexer.Error(pos, msg) =>

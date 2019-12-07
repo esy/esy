@@ -6,10 +6,10 @@ type t = {
 }
 and resolution =
   | Version(Version.t)
-  | SourceOverride{
+  | SourceOverride({
       source: Source.t,
       override: Json.t,
-    };
+    });
 [@ocaml.warning "+32"];
 
 let source = r =>

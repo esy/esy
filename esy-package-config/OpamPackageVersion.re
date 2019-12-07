@@ -12,7 +12,7 @@ module Version = {
   let parser = {
     open Parse;
     let%bind input = take_while1(_ => true);
-    try (return(OpamPackage.Version.of_string(input))) {
+    try(return(OpamPackage.Version.of_string(input))) {
     | _ => fail("cannot parse opam version")
     };
   };
@@ -163,7 +163,7 @@ module Formula = {
   };
 
   let parse = v =>
-    try (Ok(parseExn(v))) {
+    try(Ok(parseExn(v))) {
     | _ =>
       let msg = "unable to parse formula: " ++ v;
       Error(msg);

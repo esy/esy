@@ -4,21 +4,21 @@
  */;
 
 type t =
-  | Archive{
+  | Archive({
       url: string,
       checksum: option(Checksum.t),
-    }
-  | Git{
+    })
+  | Git({
       remote: string,
       ref: option(string),
       manifest: option(ManifestSpec.t),
-    }
-  | Github{
+    })
+  | Github({
       user: string,
       repo: string,
       ref: option(string),
       manifest: option(ManifestSpec.t),
-    }
+    })
   | LocalPath(Dist.local)
   | NoSource;
 

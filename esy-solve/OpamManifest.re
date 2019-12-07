@@ -224,7 +224,7 @@ let convertDependencies = manifest => {
       OpamFilter.partial_filter_formula(env, f);
     };
 
-    try (
+    try(
       return(
         OpamFilter.filter_deps(
           ~default=true,

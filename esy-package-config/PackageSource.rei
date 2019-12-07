@@ -1,13 +1,13 @@
 type t =
-  | Link{
+  | Link({
       path: DistPath.t,
       manifest: option(ManifestSpec.t),
       kind: Source.linkKind,
-    }
-  | Install{
+    })
+  | Install({
       source: (Dist.t, list(Dist.t)),
       opam: option(opam),
-    }
+    })
 and opam = {
   name: OpamPackage.Name.t,
   version: OpamPackage.Version.t,

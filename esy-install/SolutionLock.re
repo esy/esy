@@ -1,9 +1,9 @@
 open EsyPackageConfig;
 
 type override =
-  | OfJson{json: Json.t}
+  | OfJson({json: Json.t})
   | OfPath(Dist.local)
-  | OfOpamOverride{path: DistPath.t};
+  | OfOpamOverride({path: DistPath.t});
 
 let override_to_yojson = override =>
   switch (override) {

@@ -50,7 +50,7 @@ let run = cmd => {
     };
   };
 
-  try%lwt (EsyBashLwt.with_process_full(cmd, f)) {
+  try%lwt(EsyBashLwt.with_process_full(cmd, f)) {
   | [@implicit_arity] Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
     RunAsync.error(msg);
@@ -115,14 +115,12 @@ let checkIfZip = filename => {
     Lwt.return(Int32.compare(v, zipHeader) == 0);
   };
 
-  try%lwt (
-    {
-      let buffer = Lwt_bytes.create(16);
-      Lwt_io.(
-        with_file(~buffer, ~mode=Input, Path.show(filename), checkZipHeader)
-      );
-    }
-  ) {
+  try%lwt({
+    let buffer = Lwt_bytes.create(16);
+    Lwt_io.(
+      with_file(~buffer, ~mode=Input, Path.show(filename), checkZipHeader)
+    );
+  }) {
   | _ => Lwt.return(false)
   };
 };

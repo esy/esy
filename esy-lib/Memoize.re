@@ -25,7 +25,7 @@ module Impl = {
 
   let compute = (cache, k, compute) => {
     let thunk =
-      try (Hashtbl.find(cache, k)) {
+      try(Hashtbl.find(cache, k)) {
       | Not_found =>
         let v = Lazy.from_fun(compute);
         Hashtbl.add(cache, k, v);

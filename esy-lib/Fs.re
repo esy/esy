@@ -1,6 +1,6 @@
 let toRunAsync = (~desc="I/O failed", promise) => {
   open RunAsync.Syntax;
-  try%lwt (
+  try%lwt(
     {
       let%lwt v = promise();
       return(v);
@@ -42,7 +42,7 @@ let openFile = (~mode, ~perm, path) =>
 let readJsonFile = (path: Path.t) => {
   open RunAsync.Syntax;
   let%bind data = readFile(path);
-  try (return(Yojson.Safe.from_string(data))) {
+  try(return(Yojson.Safe.from_string(data))) {
   | Yojson.Json_error(msg) =>
     errorf("error reading JSON file: %a@\n%s", Path.pp, path, msg)
   };
@@ -61,13 +61,11 @@ let exists = (path: Path.t) => {
 
 let chmod = (permission, path: Path.t) =>
   RunAsync.contextf(
-    try%lwt (
-      {
-        let path = Path.show(path);
-        let%lwt () = Lwt_unix.chmod(path, permission);
-        RunAsync.return();
-      }
-    ) {
+    try%lwt({
+      let path = Path.show(path);
+      let%lwt () = Lwt_unix.chmod(path, permission);
+      RunAsync.return();
+    }) {
     | [@implicit_arity] Unix.Unix_error(errno, _, _) =>
       let msg = Unix.error_message(errno);
       RunAsync.error(msg);
@@ -79,13 +77,11 @@ let chmod = (permission, path: Path.t) =>
 
 let createDirLwt = (path: Path.t) => {
   let rec create = path =>
-    try%lwt (
-      {
-        let path = Path.show(path);
-        let%lwt () = Lwt_unix.mkdir(path, 0o777);
-        Lwt.return(`Created);
-      }
-    ) {
+    try%lwt({
+      let path = Path.show(path);
+      let%lwt () = Lwt_unix.mkdir(path, 0o777);
+      Lwt.return(`Created);
+    }) {
     | [@implicit_arity] Unix.Unix_error(Unix.EEXIST, _, _) =>
       Lwt.return(`AlreadyExists)
     | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, _, _) =>
@@ -98,12 +94,10 @@ let createDirLwt = (path: Path.t) => {
 
 let createDir = (path: Path.t) => {
   let rec create = path =>
-    try%lwt (
-      {
-        let path = Path.show(path);
-        Lwt_unix.mkdir(path, 0o777);
-      }
-    ) {
+    try%lwt({
+      let path = Path.show(path);
+      Lwt_unix.mkdir(path, 0o777);
+    }) {
     | [@implicit_arity] Unix.Unix_error(Unix.EEXIST, _, _) => Lwt.return()
     | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, _, _) =>
       let%lwt () = create(Path.parent(path));
@@ -128,7 +122,7 @@ let stat = (path: Path.t) => {
 
 let lstat = (path: Path.t) => {
   let path = Path.show(path);
-  try%lwt (
+  try%lwt(
     {
       let%lwt stats = Lwt_unix.lstat(path);
       RunAsync.return(stats);
@@ -155,7 +149,7 @@ let unlink = (path: Path.t) => {
 let rename = (~src, target) => {
   let src = Path.show(src);
   let target = Path.show(target);
-  try%lwt (
+  try%lwt(
     {
       let%lwt () = Lwt_unix.rename(src, target);
       RunAsync.return();
@@ -240,7 +234,7 @@ let copyStatLwt = (~stat, path) =>
       Lwt_unix.utimes(path, stat.Unix.st_atime, stat.Unix.st_mtime);
     let%lwt () = Lwt_unix.chmod(path, stat.Unix.st_perm);
     let%lwt () =
-      try%lwt (Lwt_unix.chown(path, stat.Unix.st_uid, stat.Unix.st_gid)) {
+      try%lwt(Lwt_unix.chown(path, stat.Unix.st_uid, stat.Unix.st_gid)) {
       | [@implicit_arity] Unix.Unix_error(Unix.EPERM, _, _) => Lwt.return()
       };
     Lwt.return();
@@ -283,7 +277,7 @@ let copyFileLwt = (~src, ~dst) => {
 };
 
 let copyFile = (~src, ~dst) =>
-  try%lwt (
+  try%lwt(
     {
       let%lwt () = copyFileLwt(~src, ~dst);
       let%lwt stat = Lwt_unix.stat(Path.show(src));
@@ -337,7 +331,7 @@ let rec copyPathLwt = (~src, ~dst) => {
 let copyPath = (~src, ~dst) => {
   open RunAsync.Syntax;
   let%bind () = createDir(Path.parent(dst));
-  try%lwt (
+  try%lwt(
     {
       let%lwt () = copyPathLwt(~src, ~dst);
       RunAsync.return();
@@ -376,7 +370,7 @@ let rec rmPathLwt = path => {
 };
 
 let rmPath = path =>
-  try%lwt (
+  try%lwt(
     {
       let%lwt () = rmPathLwt(path);
       RunAsync.return();
@@ -387,7 +381,7 @@ let rmPath = path =>
     RunAsync.error(Unix.error_message(error))
   };
 
-let randGen = lazy (Random.State.make_self_init());
+let randGen = lazy(Random.State.make_self_init());
 
 let randPath = (dir, pat) => {
   let rand = Random.State.bits(Lazy.force(randGen)) land 0xFFFFFF;
@@ -472,7 +466,7 @@ let withTempFile = (~data, f) => {
     () => f(Path.v(path)),
     () =>
       /* never fail on removing a temp file. */
-      try%lwt (Lwt_unix.unlink(path)) {
+      try%lwt(Lwt_unix.unlink(path)) {
       | Unix.Unix_error(_) => Lwt.return()
       },
   );
@@ -481,7 +475,7 @@ let withTempFile = (~data, f) => {
 let readlink = (path: Path.t) => {
   open RunAsync.Syntax;
   let path = Path.show(path);
-  try%lwt (
+  try%lwt(
     {
       let%lwt link = Lwt_unix.readlink(path);
       return(Path.v(link));
@@ -495,7 +489,7 @@ let readlink = (path: Path.t) => {
 let readlinkOpt = (path: Path.t) => {
   open RunAsync.Syntax;
   let path = Path.show(path);
-  try%lwt (
+  try%lwt(
     {
       let%lwt link = Lwt_unix.readlink(path);
       return(Some(Path.v(link)));
@@ -513,7 +507,7 @@ let symlink = (~force=false, ~src, dst) => {
   let symlink' = (src, dst) => {
     let src = Path.show(src);
     let dst = Path.show(dst);
-    try%lwt (
+    try%lwt(
       {
         let%lwt () = Lwt_unix.symlink(src, dst);
         Lwt.return(Ok());

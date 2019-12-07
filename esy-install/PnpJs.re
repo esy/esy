@@ -142,10 +142,10 @@ module PackageInformation = {
 module LocatorsByLocations = {
   type t = StringMap.t(info)
   and info =
-    | Pkg{
+    | Pkg({
         name: string,
         reference: string,
-      }
+      })
     | TopLevel;
 
   let jsppInfo = (fmt, info) =>

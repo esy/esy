@@ -1,13 +1,13 @@
 type t =
-  | OfJson{json: Json.t}
-  | OfDist{
+  | OfJson({json: Json.t})
+  | OfDist({
       dist: Dist.t,
       json: Json.t,
-    }
-  | OfOpamOverride{
+    })
+  | OfOpamOverride({
       path: Path.t,
       json: Json.t,
-    };
+    });
 
 let pp: Fmt.t(t);
 

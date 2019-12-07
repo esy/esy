@@ -77,7 +77,7 @@ let rm = path =>
 let stat = Bos.OS.Path.stat;
 
 let rec statOrError = p =>
-  try (Ok(Unix.stat(Fpath.to_string(p)))) {
+  try(Ok(Unix.stat(Fpath.to_string(p)))) {
   | Unix.Unix_error(Unix.EINTR, _, _) => statOrError(p)
   | Unix.Unix_error(errno, call, msg) => Error((errno, call, msg))
   };
@@ -93,7 +93,7 @@ let statIfExists = path =>
 let lstat = Bos.OS.Path.symlink_stat;
 
 let rec lstatOrError = p =>
-  try (Ok(Unix.lstat(Fpath.to_string(p)))) {
+  try(Ok(Unix.lstat(Fpath.to_string(p)))) {
   | Unix.Unix_error(Unix.EINTR, _, _) => statOrError(p)
   | Unix.Unix_error(errno, call, msg) => Error((errno, call, msg))
   };

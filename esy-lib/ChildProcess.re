@@ -111,7 +111,7 @@ let withProcess =
 
   let currentCwd = Sys.getcwd();
 
-  try%lwt (
+  try%lwt(
     switch (cwd) {
     | Some(dir) when currentCwd != dir =>
       Lwt_mutex.with_lock(
@@ -243,7 +243,7 @@ let runOut =
     };
   };
 
-  try%lwt (Lwt_process.with_process_in(~env?, ~stdin?, ~stderr?, cmdLwt, f)) {
+  try%lwt(Lwt_process.with_process_in(~env?, ~stdin?, ~stderr?, cmdLwt, f)) {
   | [@implicit_arity] Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
     error(msg);

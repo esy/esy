@@ -79,7 +79,7 @@ let rExn =
 
 let matchesRe = (s1, re) => {
   let res =
-    try (Str.search_forward(re, s1, 0)) {
+    try(Str.search_forward(re, s1, 0)) {
     | Not_found => (-1)
     };
   res != (-1);

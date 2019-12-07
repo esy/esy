@@ -3,10 +3,10 @@
 */;
 
 type t =
-  | Node{
+  | Node({
       line: string,
       children: list(t),
-    };
+    });
 
 let render = (node: t) => {
   let rec nodeToLines = (~indent, ~lines, Node({line, children})) => {

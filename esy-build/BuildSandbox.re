@@ -234,14 +234,12 @@ let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
 
 let renderOpamCommands = (opamEnv, commands) =>
   Run.Syntax.(
-    try (
-      {
-        let commands = OpamFilter.commands(opamEnv, commands);
-        let commands =
-          List.map(~f=List.map(~f=Scope.SandboxValue.v), commands);
-        return(commands);
-      }
-    ) {
+    try({
+      let commands = OpamFilter.commands(opamEnv, commands);
+      let commands =
+        List.map(~f=List.map(~f=Scope.SandboxValue.v), commands);
+      return(commands);
+    }) {
     | Failure(msg) => error(msg)
     }
   );
@@ -272,7 +270,7 @@ let renderOpamPatchesToCommands = (opamEnv, patches) =>
           | (path, None) => return((path, true))
           | (path, Some(filter)) => {
               let%bind filter =
-                try (return(OpamFilter.eval_to_bool(opamEnv, filter))) {
+                try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
                 | Failure(msg) => error(msg)
                 };
               return((path, filter));

@@ -22,7 +22,7 @@ let runPatch = cmd => {
     };
   };
 
-  try%lwt (EsyBashLwt.with_process_full(cmd, f)) {
+  try%lwt(EsyBashLwt.with_process_full(cmd, f)) {
   | [@implicit_arity] Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
     RunAsync.error(msg);

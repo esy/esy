@@ -97,7 +97,7 @@ let clearStorage = () =>
 let waitTillStarted = channel => {
   let rec loop = () => {
     let line =
-      try (Some(input_line(channel))) {
+      try(Some(input_line(channel))) {
       | End_of_file => None
       };
     switch (line) {
