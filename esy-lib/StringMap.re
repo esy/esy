@@ -59,10 +59,10 @@ module Override: {
   let compare: (('a, 'a) => int, t('a), t('a)) => int;
 
   let of_yojson:
-    ((string, Yojson.Safe.json) => result('a, string), Yojson.Safe.json) =>
+    ((string, Yojson.Safe.t) => result('a, string), Yojson.Safe.t) =>
     result(t('a), string);
 
-  let to_yojson: ('a => Yojson.Safe.json, t('a)) => Yojson.Safe.json;
+  let to_yojson: ('a => Yojson.Safe.t, t('a)) => Yojson.Safe.t;
 
   let pp: Fmt.t('a) => Fmt.t(t('a));
 } = {

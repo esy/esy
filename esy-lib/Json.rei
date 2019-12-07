@@ -1,4 +1,4 @@
-type t = Yojson.Safe.json;
+type t = Yojson.Safe.t;
 
 type encoder('a) = 'a => t;
 type decoder('a) = t => result('a, string);

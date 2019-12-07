@@ -3,7 +3,7 @@ maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
 authors: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
 homepage: "https://opam.ocaml.org"
 bug-reports: "https://github.com/ocaml/opam-file-format/issues"
-license: "LGPL-2.1 with OCaml linking exception"
+license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
 dev-repo: "git+https://github.com/ocaml/opam-file-format"
 build: [
   make

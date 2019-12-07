@@ -5,7 +5,7 @@ type t =
   | OutOfSource
   | Unsafe;
 
-let of_yojson = (json: Yojson.Safe.json) =>
+let of_yojson = (json: Yojson.Safe.t) =>
   switch (json) {
   | `String("in-source") => Ok(InSource)
   | `String("out-of-source") => Ok(OutOfSource)

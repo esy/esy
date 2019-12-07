@@ -8,8 +8,8 @@ module type PRINTABLE = {
 module type JSONABLE = {
   type t;
 
-  let to_yojson: t => Yojson.Safe.json;
-  let of_yojson: Yojson.Safe.json => result(t, string);
+  let to_yojson: t => Yojson.Safe.t;
+  let of_yojson: Yojson.Safe.t => result(t, string);
 };
 
 module type COMPARABLE = {

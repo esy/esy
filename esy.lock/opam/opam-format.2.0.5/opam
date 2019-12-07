@@ -18,7 +18,7 @@ depends: [
   "ocaml" {>= "4.02.3"}
   "opam-core" {= "2.0.5"}
   "opam-file-format" {>= "2.0.0~rc2"}
-  "dune" {build & >= "1.2.1"}
+  "dune" {>= "1.2.1"}
 ]
 build: [
   ["./configure" "--disable-checks" "--prefix" prefix]
