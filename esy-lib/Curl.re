@@ -82,6 +82,10 @@ let getOrNotFound = (~accept=?, url) => {
       % "--silent"
       % "--connect-timeout"
       % "60"
+      % "--retry"
+      % "3"
+      % "--retry-delay"
+      % "5"
       % "--fail"
       % "--location"
       % url
@@ -121,6 +125,10 @@ let head = url => {
       % "--silent"
       % "--connect-timeout"
       % "60"
+      % "--retry"
+      % "3"
+      % "--retry-delay"
+      % "5"
       % "--fail"
       % "--location"
       % url
@@ -148,6 +156,10 @@ let download = (~output, url) => {
       % "--silent"
       % "--connect-timeout"
       % "60"
+      % "--retry"
+      % "3"
+      % "--retry-delay"
+      % "5"
       % "--fail"
       % "--location"
       % url
