@@ -37,7 +37,7 @@ let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
         open Cmd;
         open Result.Syntax;
         let dest = EsyBash.normalizePathForCygwin(Path.show(dst));
-        let cmd = v("git") % "clone";
+        let cmd = v("git") % "clone" % "--recursive";
         let cmd =
           switch (branch) {
           | Some(branch) => cmd % "--branch" % branch
