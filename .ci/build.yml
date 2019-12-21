@@ -39,6 +39,7 @@ steps:
 
   - script: 'node ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
+    continueOnError: true
 
   - script: 'node ./scripts/make-platform-release.js'
     condition: succeededOrFailed()
