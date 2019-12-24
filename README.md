@@ -111,6 +111,7 @@ To make changes to `esy` and test them locally:
 % git clone git://github.com/esy/esy.git
 % cd esy
 % esy
+% yarn
 % node scripts/bootstrap.js
 ```
 

@@ -83,7 +83,35 @@ let ofString = (~name, ~version, data: string) => {
 
 let ocamlOpamVersionToOcamlNpmVersion = v => {
   let v = OpamPackage.Version.to_string(v);
-  SemverVersion.Version.parse(v);
+  let parsed =
+    Astring.(
+      String.cuts(
+        ~sep=".",
+        String.trim(
+          ~drop=
+            fun
+            | '~' =>
+              /* Note: also drop `~~` from versions:
+               * https://opam.ocaml.org/doc/Manual.html
+               */
+              true
+            | c => Char.Ascii.is_white(c),
+          v,
+        ),
+      )
+    );
+  let npmVersion =
+    switch (parsed) {
+    | [major, minor, patch] =>
+      try({
+        let int_patch = int_of_string(patch);
+        String.concat(".", [major, minor, string_of_int(int_patch * 1000)]);
+      }) {
+      | _ => String.concat(".", parsed)
+      }
+    | other => String.concat(".", other)
+    };
+  SemverVersion.Version.parse(npmVersion);
 };
 
 let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
