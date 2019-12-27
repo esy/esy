@@ -1,42 +1,27 @@
 (executable
-  (name esyBuildPackageCommand)
-  (modules esyBuildPackageCommand)
-  (flags (:standard (-w -39)))
-  (preprocess (pps ppx_let))
-  (libraries
-            EsyBuildPackage
-            cmdliner
-            yojson
-            bos
-            logs
-            logs.fmt
-            logs.cli
-            re
-            fmt
-            fmt.cli
-            fmt.tty
-            ppx_deriving_yojson.runtime
-            rresult
-            )
-  )
+ (name esyBuildPackageCommand)
+ (modules esyBuildPackageCommand)
+ (flags
+  (:standard
+   (-w -39)))
+ (preprocess
+  (pps ppx_let))
+ (libraries EsyBuildPackage cmdliner yojson bos logs logs.fmt logs.cli re fmt
+   fmt.cli fmt.tty ppx_deriving_yojson.runtime rresult))
 
 (executable
-  (name esyRewritePrefixCommand)
-  (modules esyRewritePrefixCommand)
-  (flags (:standard (-w -39)))
-  (preprocess (pps ppx_let))
-  (libraries
-            EsyBuildPackage
-            fastreplacestring
-            cmdliner
-            bos
-            )
-  )
+ (name esyRewritePrefixCommand)
+ (modules esyRewritePrefixCommand)
+ (flags
+  (:standard
+   (-w -39)))
+ (preprocess
+  (pps ppx_let))
+ (libraries EsyBuildPackage fastreplacestring cmdliner bos))
 
 (install
-  (package esy-build-package)
-  (section bin)
-   (files
-     (esyBuildPackageCommand.exe as esy-build-package)
-     (esyRewritePrefixCommand.exe as esy-rewrite-prefix)
-     ))
+ (package esy-build-package)
+ (section bin)
+ (files
+  (esyBuildPackageCommand.exe as esy-build-package)
+  (esyRewritePrefixCommand.exe as esy-rewrite-prefix)))
