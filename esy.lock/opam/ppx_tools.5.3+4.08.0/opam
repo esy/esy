@@ -10,7 +10,7 @@ tags: [ "syntax" ]
 build: [[make "all"]]
 install: [[make "install"]]
 depends: [
-  "ocaml" {>= "4.08.0"}
+  "ocaml" {>= "4.08.0" & < "4.10"}
   "ocamlfind" {build & >= "1.5.0"}
 ]
 url {
