@@ -4,7 +4,7 @@
   "description": "Package builder for esy.",
   "license": "MIT",
   "esy": {
-    "build": "dune build -p esy,esy-build-package",
+    "build": "dune build -p esy,esy-build-package --profile release",
     "install": "esy-installer esy.install esy-build-package.install",
     "buildsInSource": "_build"
   },
