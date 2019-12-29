@@ -11,7 +11,6 @@ if command -v esy >/dev/null 2>&1; then
 
   exit 0
 else
-  >&2 echo "[WARN] Skipping precommit validation: esy isn't available"
+  echo >&2 "[WARN] Skipping precommit validation: esy isn't available"
   exit 0
 fi
-
