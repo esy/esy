@@ -1,9 +1,14 @@
 (library
-  (name fastreplacestring)
-  (modules fastreplacestring)
-  (flags (:include config/dune.flags))
-  (cxx_names fastreplacestring)
-  (cxx_flags (:include config/dune.cxx_flags))
-  (library_flags (:include config/dune.flags))
-  (c_library_flags (:include config/dune.cflags))
-  )
+ (name fastreplacestring)
+ (modules fastreplacestring)
+ (flags
+  (:include config/dune.flags))
+ (foreign_stubs
+  (language cxx)
+  (names fastreplacestring)
+  (flags
+   (:include config/dune.cxx_flags)))
+ (library_flags
+  (:include config/dune.flags))
+ (c_library_flags
+  (:include config/dune.cflags)))

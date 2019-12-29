@@ -1,8 +1,9 @@
 (executable
-  (name discover)
-  (modules Discover)
-  (libraries dune.configurator))
+ (name discover)
+ (modules Discover)
+ (libraries dune.configurator))
 
 (rule
-  (targets dune.flags dune.cflags dune.cxx_flags)
-  (action (run ./discover.exe)))
+ (targets dune.flags dune.cflags dune.cxx_flags)
+ (action
+  (run ./discover.exe)))

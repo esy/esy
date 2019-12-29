@@ -1,9 +1,11 @@
 (library
-  (name EsyShellExpansion)
-  (preprocess (pps ppx_inline_test ppx_let ppx_deriving.std))
-  (flags (:standard (-w -39)))
-  (libraries ppx_deriving.std)
-)
+ (name EsyShellExpansion)
+ (preprocess
+  (pps ppx_inline_test ppx_let ppx_deriving.std))
+ (flags
+  (:standard
+   (-w -39)))
+ (libraries ppx_deriving.std))
 
-(ocamllex (modules Lexer))
-
+(ocamllex
+ (modules Lexer))

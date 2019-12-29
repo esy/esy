@@ -1,1 +1,2 @@
-(ignored_subdirs (node_modules flow-typed scripts test-e2e site))
+(dirs
+ (:standard \ _esy \ node_modules \ flow-typed \ scripts \ test-e2e \ site))
