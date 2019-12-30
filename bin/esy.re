@@ -244,7 +244,7 @@ let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
           let (dirsToKeep, allDirs) = acc;
           let%bind (proj, _) = Project.make(projCfg);
           let%bind plan = Project.plan(mode, proj);
-          let%bind allProjectDependencies = {
+          let%bind allProjectDependencies =
             BuildSandbox.Plan.all(plan)
             |> List.map(~f=task =>
                  Scope.installPath(task.BuildSandbox.Task.scope)
@@ -252,7 +252,6 @@ let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
                )
             |> Path.Set.of_list
             |> RunAsync.return;
-          };
           let%bind storePath =
             RunAsync.ofRun(ProjectConfig.storePath(projCfg));
           let%bind allDirs' =

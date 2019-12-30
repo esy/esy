@@ -294,6 +294,7 @@ const StringDecoder = require('string_decoder');
 const $$BLACKLIST = null;
 const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
+const pnpFile = path.resolve(__dirname, __filename);
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
 const topLevelLocator = {name: null, reference: null};
@@ -460,8 +461,11 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       // If the "main" field changed the path, we start again from this new location
 
       if (nextUnqualifiedPath && nextUnqualifiedPath !== unqualifiedPath) {
-        unqualifiedPath = nextUnqualifiedPath;
-        continue;
+        const resolution = applyNodeExtensionResolution(nextUnqualifiedPath, {extensions});
+
+        if (resolution !== null) {
+          return resolution;
+        }
       }
     }
 
@@ -523,7 +527,13 @@ function makeFakeModule(path) {
 
 // eslint-disable-next-line no-unused-vars
 function normalizePath(fsPath) {
-  return process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath;
+  fsPath = path.normalize(fsPath);
+
+  if (process.platform === 'win32') {
+    fsPath = fsPath.replace(backwardSlashRegExp, '/');
+  }
+
+  return fsPath;
 }
 
 /**
@@ -598,6 +608,12 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  */
 
 exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {considerBuiltins = true} = {}) {
+  // The 'pnpapi' request is reserved and will always return the path to the PnP file, from everywhere
+
+  if (request === `pnpapi`) {
+    return pnpFile;
+  }
+
   // Bailout if the request is a native module
 
   if (considerBuiltins && builtinModules.has(request)) {
@@ -608,7 +624,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
   // contain multiple levels of dependencies (ie. a yarn.lock inside a subfolder of a yarn.lock). This is
   // typically solved using workspaces, but not all of them have been converted already.
 
-  if (ignorePattern && ignorePattern.test(issuer)) {
+  if (ignorePattern && ignorePattern.test(normalizePath(issuer))) {
     const result = callNativeResolution(request, issuer);
 
     if (result === false) {
