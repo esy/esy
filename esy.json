@@ -23,7 +23,7 @@
   },
   "resolutions": {
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
-    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a"
+    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
   },
   "dependencies": {
     "@opam/angstrom": "*",
@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@opam/merlin": "3.3.3",
+    "@opam/ocaml-lsp-server": "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/utop": "2.4.2",
     "ocaml": "4.08.1000"
   }
