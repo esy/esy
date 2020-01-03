@@ -1,0 +1,6 @@
+(library
+  (name Semver)
+  (inline_tests)
+  )
+
+(ocamllex (modules Lexer))
