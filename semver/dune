@@ -1,6 +1,16 @@
 (library
   (name Semver)
   (inline_tests)
+  (preprocess (pps
+                  ppxlib
+                  ppx_expect
+                  ppx_inline_test
+                  ppx_sexp_conv
+                  ))
   )
 
 (ocamllex (modules Lexer))
+(menhir
+  (flags "--explain" "--dump")
+  (modules Parser)
+  )

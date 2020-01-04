@@ -2,9 +2,13 @@ type t = {
   major : int;
   minor : int;
   patch : int;
-  prerelease : [`Alphanumeric of string | `Numeric of int ] list;
+  prerelease : prerelease_id list;
   build : string list;
 }
+
+and prerelease_id =
+  | N of int
+  | A of string
 
 val compare : t -> t -> int
 (** Compare two versions. *)
