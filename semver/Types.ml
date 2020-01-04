@@ -1,32 +1,43 @@
-type version = {
-  major : int;
-  minor : int;
-  patch : int;
-  prerelease : prerelease_id list;
-  build : string list;
-}
+module Version = struct
+  type t = {
+    major : int;
+    minor : int;
+    patch : int;
+    prerelease : prerelease_id list;
+    build : string list;
+  }
 
-and prerelease_id =
-  | N of int
-  | A of string
+  and prerelease_id =
+    | N of int
+    | A of string
+end
 
-type version_pattern =
-  | Any
-  | Major of {major : int;}
-  | Minor of {major : int; minor : int;}
-  | Version of version
+module Formula = struct
+  type patt =
+    | Any
+    | Major of int
+    | Minor of int * int
+    | Version of Version.t
 
-type op =
- | GT
- | GTE
- | LT
- | LTE
- | EQ
+  type clause =
+    | Patt of patt
+    | Expr of op * patt
+    | Spec of spec * patt
 
-type 'v conj = 'v list
-type 'v disj = 'v list
-type 'v dnf = (op * 'v) conj disj
+  and op =
+  | GT
+  | GTE
+  | LT
+  | LTE
+  | EQ
 
-type formula = version_pattern dnf
+  and spec =
+    | Tilda
+    | Caret
 
-type simple_formula = version dnf
+  type range =
+    | Hyphen of patt * patt
+    | Conj of clause list
+
+  type t = range list
+end

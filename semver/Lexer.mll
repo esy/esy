@@ -12,12 +12,26 @@
 let n = ['0' - '9']
 let a = ['a' - 'z'] | ['A'-'Z']
 let an = a | n
+let ws = ' '*
 
-rule version = parse
-  | n+ as v { NUM v }
-  | an+ as v { ALNUM v }
+rule tokenize = parse
+  | '^' { CARET }
+  | '~' { TILDA }
   | '.' { DOT }
   | '-' { MINUS }
+  | ws+ '-' ws+ { DASH }
   | '+' { PLUS }
+  | '*' { STAR }
+  | 'x' { X "x" }
+  | 'X' { X "X" }
+  | '>' { GT }
+  | '<' { LT }
+  | '>' '=' { GTE }
+  | '<' '=' { LTE }
+  | '=' { EQ }
+  | '|' '|' { OR }
+  | n+ as v { NUM v }
+  | an+ as v { ALNUM v }
+  | ws { WS }
   | eof { EOF }
   | _ { unexpected lexbuf }
