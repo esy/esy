@@ -1,5 +1,7 @@
 %token <string> NUM
-%token <string> ALNUM
+%token <string> WORD
+%token <string> X
+%token <string> V
 %token DOT
 %token PLUS
 %token MINUS
@@ -7,7 +9,6 @@
 %token AND
 %token DASH
 %token STAR
-%token <string> X
 %token TILDA
 %token CARET
 %token LT LTE GT GTE EQ
@@ -55,15 +56,16 @@ clause:
 version_pattern:
     v = version { Version v }
   | star { Any }
-  | major = num; DOT; minor = num { Minor (major, minor) }
-  | major = num; DOT; minor = num; DOT; star { Minor (major, minor) }
-  | major = num { Major major }
-  | major = num; DOT; star { Major major }
-  | major = num; DOT; star; DOT; star { Major major }
+  | ioption(V); major = num; DOT; minor = num { Minor (major, minor) }
+  | ioption(V); major = num; DOT; minor = num; DOT; star { Minor (major, minor) }
+  | ioption(V); major = num { Major major }
+  | ioption(V); major = num; DOT; star { Major major }
+  | ioption(V); major = num; DOT; star; DOT; star { Major major }
 
 star:
     STAR { () }
   | X { () }
+
 
 version:
   v = version_exact; p = loption(prerelease); b = loption(build) {
@@ -72,7 +74,7 @@ version:
   }
 
 version_exact:
-  major = num; DOT; minor = num; DOT; patch = num {
+  ioption(V); major = num; DOT; minor = num; DOT; patch = num {
     major, minor, patch
   }
 
@@ -95,8 +97,9 @@ word:
 
 al:
     MINUS { "-" }
+  | v = V { v }
   | v = X { v }
-  | v = ALNUM { v }
+  | v = WORD { v }
 
 alnum:
     v = al { v }

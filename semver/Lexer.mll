@@ -10,28 +10,29 @@
 }
 
 let n = ['0' - '9']+
-let a = ['a' - 'z'] | ['A'-'Z']
+let a = ['a' - 'u'] | ['w' - 'z'] | ['A'-'Z'] (* exclude 'v' from here *)
 let an = a | n
-let ws = ' '*
+let ws = ' '
 
 rule tokenize = parse
   | '^' { CARET }
   | '~' { TILDA }
   | '.' { DOT }
   | '-' { MINUS }
-  | ws '-' ws { DASH }
   | '+' { PLUS }
   | '*' { STAR }
+  | 'v' { V "v" }
   | 'x' { X "x" }
   | 'X' { X "X" }
-  | '>' ws { GT }
-  | '<' ws { LT }
-  | '>' '=' ws { GTE }
-  | '<' '=' ws { LTE }
-  | '=' ws { EQ }
-  | ws '|' '|' ws { OR }
-  | ws { AND }
+  | '>' ws* { GT }
+  | '<' ws* { LT }
+  | '>' '=' ws* { GTE }
+  | '<' '=' ws* { LTE }
+  | '=' ws* { EQ }
+  | ws+ '-' ws+ { DASH }
+  | ws* '|' '|' ws* { OR }
+  | ws+ { AND }
   | n+ as v { NUM v }
-  | an+ as v { ALNUM v }
+  | an+ as v { WORD v }
   | eof { EOF }
   | _ { unexpected lexbuf }

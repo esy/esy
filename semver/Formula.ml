@@ -91,7 +91,15 @@ let%expect_test _ =
   [%expect {| 1.1.1 |}]
 
 let%expect_test _ =
+  parse_and_print "v1.1.1";
+  [%expect {| 1.1.1 |}]
+
+let%expect_test _ =
   parse_and_print ">1.1.1";
+  [%expect {| >1.1.1 |}]
+
+let%expect_test _ =
+  parse_and_print ">v1.1.1";
   [%expect {| >1.1.1 |}]
 
 let%expect_test _ =
@@ -119,8 +127,24 @@ let%expect_test _ =
   [%expect {| ~1.1.1 |}]
 
 let%expect_test _ =
+  parse_and_print ">1.1";
+  [%expect {| >1.1.x |}]
+
+let%expect_test _ =
+  parse_and_print ">v1.1";
+  [%expect {| >1.1.x |}]
+
+let%expect_test _ =
   parse_and_print "^1.1";
   [%expect {| ^1.1.x |}]
+
+let%expect_test _ =
+  parse_and_print ">1";
+  [%expect {| >1.x.x |}]
+
+let%expect_test _ =
+  parse_and_print ">v1";
+  [%expect {| >1.x.x |}]
 
 let%expect_test _ =
   parse_and_print "^1";
@@ -132,6 +156,10 @@ let%expect_test _ =
 
 let%expect_test _ =
   parse_and_print "1 || 2";
+  [%expect {| 1.x.x || 2.x.x |}]
+
+let%expect_test _ =
+  parse_and_print "v1 || 2";
   [%expect {| 1.x.x || 2.x.x |}]
 
 let%expect_test _ =

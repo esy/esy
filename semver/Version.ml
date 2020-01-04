@@ -121,6 +121,10 @@ let%expect_test _ =
   [%expect {| 1.1.1 [] [] |}]
 
 let%expect_test _ =
+  parse_and_print "v1.1.1";
+  [%expect {| 1.1.1 [] [] |}]
+
+let%expect_test _ =
   parse_and_print "1.1.1-1";
   [%expect {| 1.1.1 [1] [] |}]
 
@@ -155,6 +159,14 @@ let%expect_test _ =
 let%expect_test _ =
   parse_and_print "1.1.1-x";
   [%expect {| 1.1.1 [x] [] |}]
+
+let%expect_test _ =
+  parse_and_print "1.1.1-v";
+  [%expect {| 1.1.1 [v] [] |}]
+
+let%expect_test _ =
+  parse_and_print "1.1.1-vx";
+  [%expect {| 1.1.1 [vx] [] |}]
 
 let%expect_test _ =
   parse_and_print "1.1.1--";
