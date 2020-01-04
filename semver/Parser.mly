@@ -4,12 +4,12 @@
 %token PLUS
 %token MINUS
 %token OR
+%token AND
 %token DASH
 %token STAR
 %token <string> X
 %token TILDA
 %token CARET
-%token WS
 %token LT LTE GT GTE EQ
 %token EOF
 
@@ -39,20 +39,16 @@ disj_sep:
   OR { () }
 
 range:
-    v = separated_nonempty_list(conj_sep, clause) { Conj v }
+    v = separated_nonempty_list(AND, clause) { Conj v }
   | a = version_pattern; DASH; b = version_pattern { Hyphen (a, b) }
-
-conj_sep:
-  WS { () }
-
 
 clause:
     v = version_pattern { Patt v }
-  | EQ;  WS?; v = version_pattern { Expr (EQ, v) }
-  | LT;  WS?; v = version_pattern { Expr (LT, v) }
-  | GT;  WS?; v = version_pattern { Expr (GT, v) }
-  | LTE; WS?; v = version_pattern { Expr (LTE, v) }
-  | GTE; WS?; v = version_pattern { Expr (GTE, v) }
+  | EQ;    v = version_pattern { Expr (EQ, v) }
+  | LT;    v = version_pattern { Expr (LT, v) }
+  | GT;    v = version_pattern { Expr (GT, v) }
+  | LTE;   v = version_pattern { Expr (LTE, v) }
+  | GTE;   v = version_pattern { Expr (GTE, v) }
   | TILDA; v = version_pattern { Spec (Tilda, v) }
   | CARET; v = version_pattern { Spec (Caret, v) }
 

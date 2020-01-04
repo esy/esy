@@ -9,7 +9,7 @@
 
 }
 
-let n = ['0' - '9']
+let n = ['0' - '9']+
 let a = ['a' - 'z'] | ['A'-'Z']
 let an = a | n
 let ws = ' '*
@@ -19,19 +19,19 @@ rule tokenize = parse
   | '~' { TILDA }
   | '.' { DOT }
   | '-' { MINUS }
-  | ws+ '-' ws+ { DASH }
+  | ws '-' ws { DASH }
   | '+' { PLUS }
   | '*' { STAR }
   | 'x' { X "x" }
   | 'X' { X "X" }
-  | '>' { GT }
-  | '<' { LT }
-  | '>' '=' { GTE }
-  | '<' '=' { LTE }
-  | '=' { EQ }
+  | '>' ws { GT }
+  | '<' ws { LT }
+  | '>' '=' ws { GTE }
+  | '<' '=' ws { LTE }
+  | '=' ws { EQ }
   | ws '|' '|' ws { OR }
+  | ws { AND }
   | n+ as v { NUM v }
   | an+ as v { ALNUM v }
-  | ws { WS }
   | eof { EOF }
   | _ { unexpected lexbuf }
