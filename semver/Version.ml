@@ -1,4 +1,6 @@
-include Types.Version
+include Import.Version
+
+module Pp = Import.Pp
 
 include struct
   let compare_prerelease_id a b =
@@ -72,16 +74,6 @@ let parse v =
     Error msg
   | v -> Ok v
 
-let pp_list sep pp_item fmt xs =
-  match xs with
-  | [] -> ()
-  | [x] -> pp_item fmt x
-  | x::xs ->
-    pp_item fmt x;
-    List.iter
-      (fun p -> Format.pp_print_char fmt sep; pp_item fmt p)
-      xs
-
 let pp fmt v =
   Format.fprintf fmt "%i.%i.%i" v.major v.minor v.patch;
   let () =
@@ -90,17 +82,17 @@ let pp fmt v =
     | parts ->
       Format.pp_print_char fmt '-';
       let pp_item fmt = function
-        | A p -> Format.pp_print_string fmt p
-        | N p -> Format.pp_print_int fmt p
+        | A p -> Pp.pp_string fmt p
+        | N p -> Pp.pp_int fmt p
       in
-      pp_list '.' pp_item fmt parts
+      Pp.(pp_list (pp_const ".") pp_item) fmt parts
   in
   let () =
     match v.build with
     | [] -> ()
     | parts ->
       Format.pp_print_char fmt '+';
-      pp_list '.' Format.pp_print_string fmt parts
+      Pp.(pp_list (pp_const ".") pp_string) fmt parts
   in
   ()
 
@@ -112,11 +104,10 @@ let pp_inspect fmt v =
   Format.fprintf fmt
     "%i.%i.%i [%a] [%a]"
     v.major v.minor v.patch
-    (pp_list ';' pp_item) v.prerelease
-    (pp_list ';' Format.pp_print_string) v.build
+    Pp.(pp_list (pp_const ";") pp_item) v.prerelease
+    Pp.(pp_list (pp_const ";") pp_string) v.build
 
-let show v =
-  Format.asprintf "%a" pp v
+let show v = Format.asprintf "%a" pp v
 
 let parse_and_print v =
   match parse v with

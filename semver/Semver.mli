@@ -15,13 +15,13 @@ module Version : sig
   (** Compare two versions. *)
 
   val parse : string -> (t, string) result
-  (** Parse string into semver version. *)
+  (** Parse a string into a semver version. *)
 
   val pp : Format.formatter -> t -> unit
-  (** Pretty-printer for semver. *)
+  (** Pretty-printer for semvers. *)
 
   val show : t -> string
-  (** Convert semver to a string. *)
+  (** Convert a semver to a string. *)
 end
 
 module Formula : sig
@@ -52,4 +52,13 @@ module Formula : sig
   and spec =
     | Tilda
     | Caret
+
+  val parse : string -> (t, string) result
+  (** Parse a string into a semver formula. *)
+
+  val pp : Format.formatter -> t -> unit
+  (** Pretty-printer for semver formulas. *)
+
+  val show : t -> string
+  (** Convert a semver formula to a string. *)
 end

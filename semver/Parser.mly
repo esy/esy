@@ -13,13 +13,16 @@
 %token LT LTE GT GTE EQ
 %token EOF
 
+%left OR
+%left WS
+
 %start parse_version parse_formula
-%type <Types.Version.t> parse_version
-%type <Types.Formula.t> parse_formula
+%type <Import.Version.t> parse_version
+%type <Import.Formula.t> parse_formula
 
 %{
-  open Types.Version
-  open Types.Formula
+  open Import.Version
+  open Import.Formula
 %}
 
 %%
@@ -33,7 +36,10 @@ parse_formula:
 disj:
     v = range { [v] }
   | { [Conj [Patt Any]] }
-  | v = range; OR; vs = disj { v::vs }
+  | v = range; disj_sep; vs = disj { v::vs }
+
+disj_sep:
+  OR; WS? { () }
 
 range:
     v = separated_nonempty_list(WS, clause) { Conj v }

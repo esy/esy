@@ -41,3 +41,24 @@ module Formula = struct
 
   type t = range list
 end
+
+module Pp = struct
+  let pp_const v fmt () =
+    Format.pp_print_string fmt v
+
+  let pp_string =
+    Format.pp_print_string
+
+  let pp_int =
+    Format.pp_print_int
+
+  let pp_list pp_sep pp_item fmt xs =
+    match xs with
+    | [] -> ()
+    | [x] -> pp_item fmt x
+    | x::xs ->
+      pp_item fmt x;
+      List.iter
+        (fun p -> pp_sep fmt (); pp_item fmt p)
+        xs
+end
