@@ -13,9 +13,6 @@
 %token LT LTE GT GTE EQ
 %token EOF
 
-%left OR
-%left WS
-
 %start parse_version parse_formula
 %type <Import.Version.t> parse_version
 %type <Import.Formula.t> parse_formula
@@ -39,11 +36,15 @@ disj:
   | v = range; disj_sep; vs = disj { v::vs }
 
 disj_sep:
-  OR; WS? { () }
+  OR { () }
 
 range:
-    v = separated_nonempty_list(WS, clause) { Conj v }
+    v = separated_nonempty_list(conj_sep, clause) { Conj v }
   | a = version_pattern; DASH; b = version_pattern { Hyphen (a, b) }
+
+conj_sep:
+  WS { () }
+
 
 clause:
     v = version_pattern { Patt v }

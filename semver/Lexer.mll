@@ -29,7 +29,7 @@ rule tokenize = parse
   | '>' '=' { GTE }
   | '<' '=' { LTE }
   | '=' { EQ }
-  | '|' '|' { OR }
+  | ws '|' '|' ws { OR }
   | n+ as v { NUM v }
   | an+ as v { ALNUM v }
   | ws { WS }
