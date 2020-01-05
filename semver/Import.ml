@@ -13,31 +13,34 @@ module Version = struct
 end
 
 module Formula = struct
-  type patt =
+  type version_or_pattern =
+    | Version of Version.t
+    | Pattern of pattern
+
+  and pattern =
     | Any
     | Major of int
     | Minor of int * int
-    | Version of Version.t
 
   type clause =
-    | Patt of patt
-    | Expr of op * patt
-    | Spec of spec * patt
+    | Patt of version_or_pattern
+    | Expr of op * version_or_pattern
+    | Spec of spec * version_or_pattern
 
   and op =
-  | GT
-  | GTE
-  | LT
-  | LTE
-  | EQ
+    | GT
+    | GTE
+    | LT
+    | LTE
+    | EQ
 
   and spec =
     | Tilda
     | Caret
 
   type range =
-    | Hyphen of patt * patt
-    | Conj of clause list
+    | Hyphen of version_or_pattern * version_or_pattern
+    | Simple of clause list
 
   type t = range list
 end

@@ -24,34 +24,44 @@ module Version : sig
   (** Convert a semver to a string. *)
 end
 
+(**
+ * Represents dependency formulats over [Version.t].
+ *)
 module Formula : sig
   type t = range list
+  (**
+   * A dependency formula is a DNF but with some advanced range syntax, see
+   * [N.t] for a representation which have all advanced syntax desugared.
+   *)
 
   and range =
-    | Hyphen of patt * patt
-    | Conj of clause list
+    | Hyphen of version_or_pattern * version_or_pattern
+    | Simple of clause list
 
-  and patt =
-    | Any
-    | Major of int
-    | Minor of int * int
-    | Version of Version.t
-
-  and clause =
-    | Patt of patt
-    | Expr of op * patt
-    | Spec of spec * patt
+   and clause =
+    | Patt of version_or_pattern
+    | Expr of op * version_or_pattern
+    | Spec of spec * version_or_pattern
 
   and op =
-   | GT
-   | GTE
-   | LT
-   | LTE
-   | EQ
+    | GT
+    | GTE
+    | LT
+    | LTE
+    | EQ
 
   and spec =
     | Tilda
     | Caret
+
+  and version_or_pattern =
+    | Version of Version.t
+    | Pattern of pattern
+
+  and pattern =
+    | Any
+    | Major of int
+    | Minor of int * int
 
   val parse : string -> (t, string) result
   (** Parse a string into a semver formula. *)
@@ -61,4 +71,18 @@ module Formula : sig
 
   val show : t -> string
   (** Convert a semver formula to a string. *)
+
+  (**
+   * Normalized formula representation with all advanced range syntax being
+   * desugared into a DNF of [op * Version.t] pairs.
+   *)
+  module N : sig
+    type t = (op * Version.t) list list
+
+    val pp : Format.formatter -> t -> unit
+    val show : t -> string
+  end
+
+  val normalize : t -> N.t
+  (** Normalize formula. *)
 end

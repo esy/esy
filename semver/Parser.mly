@@ -33,14 +33,11 @@ parse_formula:
 
 disj:
     v = range { [v] }
-  | { [Conj [Patt Any]] }
-  | v = range; disj_sep; vs = disj { v::vs }
-
-disj_sep:
-  OR { () }
+  | { [Simple [Patt (Pattern Any)]] }
+  | v = range; OR; vs = disj { v::vs }
 
 range:
-    v = separated_nonempty_list(AND, clause) { Conj v }
+    v = separated_nonempty_list(AND, clause) { Simple v }
   | a = version_pattern; DASH; b = version_pattern { Hyphen (a, b) }
 
 clause:
@@ -55,17 +52,24 @@ clause:
 
 version_pattern:
     v = version { Version v }
-  | star { Any }
-  | ioption(V); major = num; DOT; minor = num { Minor (major, minor) }
-  | ioption(V); major = num; DOT; minor = num; DOT; star { Minor (major, minor) }
-  | ioption(V); major = num { Major major }
-  | ioption(V); major = num; DOT; star { Major major }
-  | ioption(V); major = num; DOT; star; DOT; star { Major major }
+  | star { Pattern Any }
+  | ioption(V); major = num; DOT; minor = num {
+      Pattern (Minor (major, minor))
+    }
+  | ioption(V); major = num; DOT; minor = num; DOT; star {
+      Pattern (Minor (major, minor))
+    }
+  | ioption(V); major = num {
+      Pattern (Major major)
+    }
+  | ioption(V); major = num; DOT; star { Pattern (Major major) }
+  | ioption(V); major = num; DOT; star; DOT; star {
+      Pattern (Major major)
+    }
 
 star:
     STAR { () }
   | X { () }
-
 
 version:
   v = version_exact; p = loption(prerelease); b = loption(build) {

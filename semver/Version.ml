@@ -2,6 +2,13 @@ include Import.Version
 
 module Pp = Import.Pp
 
+let make ?(prerelease=[]) ?(build=[]) major minor patch =
+  {major; minor; patch; prerelease; build}
+
+let next_major v = make (v.major + 1) 0 0
+let next_minor v = make v.major (v.minor + 1) 0
+let next_patch v = make v.major v.minor (v.patch + 1)
+
 include struct
   let compare_prerelease_id a b =
     match a, b with
