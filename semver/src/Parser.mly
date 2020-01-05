@@ -38,19 +38,19 @@ disj:
 
 range:
     v = separated_nonempty_list(AND, clause) { Simple v }
-  | a = version_pattern; DASH; b = version_pattern { Hyphen (a, b) }
+  | a = pattern; DASH; b = pattern { Hyphen (a, b) }
 
 clause:
-    v = version_pattern { Patt v }
-  | EQ;    v = version_pattern { Expr (EQ, v) }
-  | LT;    v = version_pattern { Expr (LT, v) }
-  | GT;    v = version_pattern { Expr (GT, v) }
-  | LTE;   v = version_pattern { Expr (LTE, v) }
-  | GTE;   v = version_pattern { Expr (GTE, v) }
-  | TILDA; v = version_pattern { Spec (Tilda, v) }
-  | CARET; v = version_pattern { Spec (Caret, v) }
+    v = pattern { Patt v }
+  | EQ;    v = pattern { Expr (EQ, v) }
+  | LT;    v = pattern { Expr (LT, v) }
+  | GT;    v = pattern { Expr (GT, v) }
+  | LTE;   v = pattern { Expr (LTE, v) }
+  | GTE;   v = pattern { Expr (GTE, v) }
+  | TILDA; v = pattern { Spec (Tilda, v) }
+  | CARET; v = pattern { Spec (Caret, v) }
 
-version_pattern:
+pattern:
     v = version { Version v }
   | star { Pattern Any }
   | ioption(V); major = num; DOT; minor = num {

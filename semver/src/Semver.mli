@@ -22,6 +22,8 @@ module Version : sig
 
   val show : t -> string
   (** Convert a semver to a string. *)
+
+  val pp_inspect : Format.formatter -> t -> unit
 end
 
 (**

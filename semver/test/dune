@@ -1,0 +1,6 @@
+(library
+  (name TestSemver)
+  (inline_tests)
+  (libraries Semver)
+  (preprocess (pps ppx_expect ppx_inline_test))
+  )
