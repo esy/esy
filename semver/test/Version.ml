@@ -85,3 +85,6 @@ let%expect_test _ =
   parse "1.1.1-X+x.x";
   [%expect {| 1.1.1 [X] [x;x] |}]
 
+let%expect_test _ =
+  parse "1.1.1beta";
+  [%expect {| 1.1.1 [beta] [] |}]

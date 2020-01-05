@@ -4,7 +4,7 @@ include Types.Formula
 
 let parse v =
   let lexbuf = Lexing.from_string v in
-  match Parser.parse_formula Lexer.tokenize lexbuf with
+  match Parser.parse_formula Lexer.(make main ()) lexbuf with
   | exception Lexer.Error msg -> Error msg
   | exception Parser.Error ->
     let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in
@@ -194,16 +194,9 @@ let satisfies f v =
         List.exists conj ~f:(fun (_op, e) ->
           Version.(is_prerelease e && equal (strip_prerelease e) v_strict))
       in
-      List.for_all conj ~f:(fun (op, e) ->
-        if Version.is_prerelease e then begin
-          if Version.(equal (strip_prerelease e)) v_strict
-          then check_clause (op, e)
-          else false
-        end else begin
-          if allow_prerelease_match
-          then check_clause (op, e)
-          else false
-        end)
+      allow_prerelease_match && List.for_all conj ~f:(fun (op, e) ->
+        check_clause (op, e)
+      )
     in
     List.exists disj ~f:check_conj
   else

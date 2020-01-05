@@ -83,7 +83,7 @@ let equal a b = compare a b = 0
 
 let parse v =
   let lexbuf = Lexing.from_string v in
-  match Parser.parse_version Lexer.tokenize lexbuf with
+  match Parser.parse_version Lexer.(make main ()) lexbuf with
   | exception Lexer.Error msg -> Error msg
   | exception Parser.Error ->
     let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in
