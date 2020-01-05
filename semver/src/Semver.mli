@@ -41,6 +41,7 @@ module Formula : sig
 
   and range =
     | Hyphen of version_or_pattern * version_or_pattern
+      (** V1 - V2 *)
     | Simple of clause list
 
    and clause =

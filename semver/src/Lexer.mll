@@ -55,7 +55,7 @@ let ws = ' '
 let star = 'x' | 'X' | '*'
 
 rule main = parse
-  | 'v'? (num as major) '.' (num as minor) '.' (num as patch) '-'? {
+  | 'v'? ws* (num as major) '.' (num as minor) '.' (num as patch) '-'? {
       let version = {
         major = int_of_string major;
         minor = int_of_string minor;
@@ -65,23 +65,23 @@ rule main = parse
       } in
       RK (VERSION version, words)
     }
-  | 'v'? (num as major) '.' (num as minor) ('.' star)? {
+  | 'v'? ws* (num as major) '.' (num as minor) ('.' star)? {
       R (PATTERN (Minor (int_of_string major, int_of_string minor)))
     }
-  | 'v'? (num as major) ('.' star ('.' star)?)? {
+  | 'v'? ws* (num as major) ('.' star ('.' star)?)? {
       R (PATTERN (Major (int_of_string major)))
     }
-  | 'v'? star ('.' star ('.' star)?)? {
+  | 'v'? ws* star ('.' star ('.' star)?)? {
       R (PATTERN Any)
     }
-  | '^' { R (SPEC Caret) }
-  | '~' { R (SPEC Tilda) }
+  | '^' ws* { R (SPEC Caret) }
+  | '~' ws* { R (SPEC Tilda) }
   | '>' ws* { R (OP GT) }
   | '<' ws* { R (OP LT) }
   | '>' '=' ws* { R (OP GTE) }
   | '<' '=' ws* { R (OP LTE) }
   | '=' ws* { R (OP EQ) }
-  | ws+ '-' ws+ { R DASH }
+  | ws+ '-' ws+ { R HYPHEN }
   | ws* '|' '|' ws* { R OR }
   | ws+ { R AND }
   | eof { R EOF }

@@ -8,7 +8,7 @@
 %token PLUS
 %token OR
 %token AND
-%token DASH
+%token HYPHEN
 %token EOF
 
 %start parse_version parse_formula
@@ -35,7 +35,7 @@ disj:
 
 range:
     v = separated_nonempty_list(AND, clause) { Simple v }
-  | a = pattern; DASH; b = pattern { Hyphen (a, b) }
+  | a = pattern; HYPHEN; b = pattern { Hyphen (a, b) }
 
 clause:
     v = pattern { Patt v }
