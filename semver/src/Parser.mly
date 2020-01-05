@@ -15,12 +15,12 @@
 %token EOF
 
 %start parse_version parse_formula
-%type <Import.Version.t> parse_version
-%type <Import.Formula.t> parse_formula
+%type <Import.Types.Version.t> parse_version
+%type <Import.Types.Formula.t> parse_formula
 
 %{
-  open Import.Version
-  open Import.Formula
+  open Import.Types.Version
+  open Import.Types.Formula
 %}
 
 %%

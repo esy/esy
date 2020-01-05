@@ -280,3 +280,66 @@ let%expect_test _ =
 let%expect_test _ =
   parse_and_normalize "^*";
   [%expect {| >=0.0.0 |}]
+
+let%test_module "Formula.satisfies" = (module struct
+  let satisfies f v =
+    let open Semver in
+    let f = Formula.parse_exn f in
+    let v = Version.parse_exn v in
+    Formula.satisfies f v
+
+  let%test _ = satisfies "1.0.0" "1.0.0"
+  let%test _ = not @@ satisfies "1.0.0" "1.0.1"
+  let%test _ = satisfies ">=1.0.0" "1.0.0"
+  let%test _ = satisfies "<=1.0.0" "1.0.0"
+  let%test _ = satisfies "<=1.0.0" "0.9.0"
+  let%test _ = satisfies "<1.0.0" "0.9.0"
+  let%test _ = not @@ satisfies "<=1.0.0" "1.1.0"
+  let%test _ = not @@ satisfies "<1.0.0" "1.1.0"
+  let%test _ = satisfies ">=1.0.0" "1.1.0"
+  let%test _ = satisfies ">1.0.0" "1.1.0"
+  let%test _ = not @@ satisfies ">=1.0.0" "0.9.0"
+  let%test _ = not @@ satisfies ">1.0.0" "0.9.0"
+  let%test _ = satisfies "1.0.0 - 1.1.0" "1.0.0"
+  let%test _ = satisfies "1.0.0 - 1.1.0" "1.1.0"
+  let%test _ = not @@ satisfies "1.0.0 - 1.1.0" "0.9.0"
+  let%test _ = not @@ satisfies "1.0.0 - 1.1.0" "1.2.0"
+
+  let%test _ = satisfies "~1.0.0" "1.0.0"
+  let%test _ = not @@ satisfies "~1.0.0" "2.0.0"
+  let%test _ = not @@ satisfies "~1.0.0" "0.9.0"
+  let%test _ = not @@ satisfies "~1.0.0" "1.1.0"
+  let%test _ = satisfies "~1.0.0" "1.0.1"
+  let%test _ = satisfies "~0.3.0" "0.3.0"
+  let%test _ = not @@ satisfies "~0.3.0" "0.4.0"
+  let%test _ = not @@ satisfies "~0.3.0" "0.2.0"
+  let%test _ = satisfies "~0.3.0" "0.3.1"
+
+  let%test _ = satisfies "^1.0.0" "1.0.0"
+  let%test _ = not @@ satisfies "^1.0.0" "2.0.0"
+  let%test _ = not @@ satisfies "^1.0.0" "0.9.0"
+  let%test _ = satisfies "^1.0.0" "1.1.0"
+  let%test _ = satisfies "^1.0.0" "1.0.1"
+  let%test _ = satisfies "^0.3.0" "0.3.0"
+  let%test _ = not @@ satisfies "^0.3.0" "0.4.0"
+  let%test _ = not @@ satisfies "^0.3.0" "0.2.0"
+  let%test _ = satisfies "^0.3.0" "0.3.1"
+
+  let%test _ = satisfies "1.0.0-alpha" "1.0.0-alpha"
+  let%test _ = not @@ satisfies ">1.0.0" "1.0.0-alpha"
+  let%test _ = not @@ satisfies ">=1.0.0" "1.0.0-alpha"
+  let%test _ = not @@ satisfies "<1.0.0" "1.0.0-alpha"
+  let%test _ = not @@ satisfies "<=1.0.0" "1.0.0-alpha"
+  let%test _ = satisfies ">=1.0.0-alpha" "1.0.0-alpha"
+  let%test _ = satisfies ">=1.0.0-alpha <2.0.0" "1.0.0-alpha"
+  let%test _ = satisfies ">1.0.0-alpha.1 <2.0.0" "1.0.0-alpha.2"
+  let%test _ = satisfies ">0.1.0 <=1.0.0-alpha" "1.0.0-alpha"
+  let%test _ = satisfies ">0.1.0 <1.0.0-alpha.2" "1.0.0-alpha.1"
+  let%test _ = satisfies "<=1.0.0-alpha" "1.0.0-alpha"
+  let%test _ = satisfies ">=1.0.0-alpha.1" "1.0.0-alpha.2"
+  let%test _ = satisfies ">1.0.0-alpha.1" "1.0.0-alpha.2"
+  let%test _ = satisfies "<=1.0.0-alpha.2" "1.0.0-alpha.1"
+  let%test _ = satisfies "<1.0.0-alpha.2" "1.0.0-alpha.1"
+  let%test _ = not @@ satisfies ">=1.0.0 <3.0.0" "2.0.0-alpha"
+
+end)

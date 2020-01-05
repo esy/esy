@@ -17,6 +17,9 @@ module Version : sig
   val parse : string -> (t, string) result
   (** Parse a string into a semver version. *)
 
+  val parse_exn : string -> t
+  (** Like {!parse} but raises if it cannot parse. *)
+
   val pp : Format.formatter -> t -> unit
   (** Pretty-printer for semvers. *)
 
@@ -68,11 +71,17 @@ module Formula : sig
   val parse : string -> (t, string) result
   (** Parse a string into a semver formula. *)
 
+  val parse_exn : string -> t
+  (** Like {!parse} but raises if it cannot parse. *)
+
   val pp : Format.formatter -> t -> unit
   (** Pretty-printer for semver formulas. *)
 
   val show : t -> string
   (** Convert a semver formula to a string. *)
+
+  val satisfies : t -> Version.t -> bool
+  (** [satisfies f v] returns [true] if version [v] satisfies formula [f]. *)
 
   (**
    * Normalized formula representation with all advanced range syntax being

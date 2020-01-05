@@ -1,6 +1,6 @@
-include Import.Version
+open Import
 
-module Pp = Import.Pp
+include Types.Version
 
 let make ?(prerelease=[]) ?(build=[]) major minor patch =
   {major; minor; patch; prerelease; build}
@@ -9,7 +9,13 @@ let next_major v = make (v.major + 1) 0 0
 let next_minor v = make v.major (v.minor + 1) 0
 let next_patch v = make v.major v.minor (v.patch + 1)
 
-include struct
+let is_prerelease = function
+  | {prerelease = []; _} -> false
+  | _ -> true
+
+let strip_prerelease v = make v.major v.minor v.patch
+
+module Compare = struct
   let compare_prerelease_id a b =
     match a, b with
     | N _, A _ -> -1
@@ -71,6 +77,10 @@ include struct
     | v -> v
 end
 
+let compare = Compare.compare
+
+let equal a b = compare a b = 0
+
 let parse v =
   let lexbuf = Lexing.from_string v in
   match Parser.parse_version Lexer.tokenize lexbuf with
@@ -80,6 +90,11 @@ let parse v =
     let msg = Printf.sprintf "error parsing: %i column" pos in
     Error msg
   | v -> Ok v
+
+let parse_exn v =
+  match parse v with
+  | Ok v -> v
+  | Error msg -> failwith msg
 
 let pp fmt v =
   Format.fprintf fmt "%i.%i.%i" v.major v.minor v.patch;

@@ -1,6 +1,6 @@
-include Import.Formula
+open! Import
 
-module Pp = Import.Pp
+include Types.Formula
 
 let parse v =
   let lexbuf = Lexing.from_string v in
@@ -11,6 +11,11 @@ let parse v =
     let msg = Printf.sprintf "error parsing: %i column" pos in
     Error msg
   | v -> Ok v
+
+let parse_exn v =
+  match parse v with
+  | Ok v -> v
+  | Error msg -> failwith msg
 
 let pp_op fmt v =
   match v with
@@ -127,7 +132,7 @@ module N = struct
       | Any -> (GTE, to_version p), None
       | _ -> (GTE, to_version p), Some (LT, to_next_version p)
     in
-    ListLabels.map ranges ~f:(function
+    List.map ranges ~f:(function
       | Hyphen (left, right) ->
         begin match conv_hyphen left right with
         | Some left, Some right -> [left; right]
@@ -137,8 +142,9 @@ module N = struct
         end
       | Simple xs ->
         xs
-        |> ListLabels.fold_left ~init:[] ~f:(fun acc -> function
-          | Expr (_, _) -> assert false
+        |> List.fold_left ~init:[] ~f:(fun acc -> function
+          | Expr (op, Version v) -> (op, v)::acc
+          | Expr (op, Pattern p) -> (op, to_version p)::acc
           | Spec (Caret, v) ->
             begin match conv_caret v with
             | left, Some right -> right::left::acc
@@ -155,12 +161,12 @@ module N = struct
             | left, None -> left::acc
             end
         )
-        |> ListLabels.rev
+        |> List.rev
     )
 
   let to_formula disj =
-    ListLabels.map disj ~f:(fun conj ->
-      Simple (ListLabels.map conj ~f:(fun (op, v) ->
+    List.map disj ~f:(fun conj ->
+      Simple (List.map conj ~f:(fun (op, v) ->
         Expr (op, Version v))))
 
   let pp fmt v = pp fmt (to_formula v)
@@ -169,3 +175,39 @@ module N = struct
 end
 
 let normalize = N.of_formula
+
+let satisfies f v =
+  let check_clause = function
+    | EQ, e -> Version.compare v e = 0
+    | LT, e -> Version.compare v e < 0
+    | LTE, e -> Version.compare v e <= 0
+    | GT, e -> Version.compare v e > 0
+    | GTE, e -> Version.compare v e >= 0
+  in
+  let disj = normalize f in
+  if Version.is_prerelease v then
+    let v_strict = Version.strip_prerelease v in
+    let check_conj conj =
+      (* check for clause with prerelease with the same major, minor, patch as
+       * the version *)
+      let allow_prerelease_match =
+        List.exists conj ~f:(fun (_op, e) ->
+          Version.(is_prerelease e && equal (strip_prerelease e) v_strict))
+      in
+      List.for_all conj ~f:(fun (op, e) ->
+        if Version.is_prerelease e then begin
+          if Version.(equal (strip_prerelease e)) v_strict
+          then check_clause (op, e)
+          else false
+        end else begin
+          if allow_prerelease_match
+          then check_clause (op, e)
+          else false
+        end)
+    in
+    List.exists disj ~f:check_conj
+  else
+    (* fast-path for non-prerelease versions *)
+    List.(exists disj ~f:(List.for_all ~f:check_clause))
+
+
