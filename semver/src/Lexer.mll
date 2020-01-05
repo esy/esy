@@ -69,13 +69,13 @@ rule main = parse
   | 'v'? star ('.' star ('.' star)?)? {
       R (PATTERN Any)
     }
-  | '^' { R CARET }
-  | '~' { R TILDA }
-  | '>' ws* { R GT }
-  | '<' ws* { R LT }
-  | '>' '=' ws* { R GTE }
-  | '<' '=' ws* { R LTE }
-  | '=' ws* { R EQ }
+  | '^' { R (SPEC Caret) }
+  | '~' { R (SPEC Tilda) }
+  | '>' ws* { R (OP GT) }
+  | '<' ws* { R (OP LT) }
+  | '>' '=' ws* { R (OP GTE) }
+  | '<' '=' ws* { R (OP LTE) }
+  | '=' ws* { R (OP EQ) }
   | ws+ '-' ws+ { R DASH }
   | ws* '|' '|' ws* { R OR }
   | ws+ { R AND }

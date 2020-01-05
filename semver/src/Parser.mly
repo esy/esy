@@ -1,5 +1,7 @@
 %token <Import.Types.Version.t> VERSION
 %token <Import.Types.Formula.pattern> PATTERN
+%token <Import.Types.Formula.op> OP
+%token <Import.Types.Formula.spec> SPEC
 %token <string> NUM
 %token <string> WORD
 %token DOT
@@ -7,9 +9,6 @@
 %token OR
 %token AND
 %token DASH
-%token TILDA
-%token CARET
-%token LT LTE GT GTE EQ
 %token EOF
 
 %start parse_version parse_formula
@@ -40,13 +39,8 @@ range:
 
 clause:
     v = pattern { Patt v }
-  | EQ;    v = pattern { Expr (EQ, v) }
-  | LT;    v = pattern { Expr (LT, v) }
-  | GT;    v = pattern { Expr (GT, v) }
-  | LTE;   v = pattern { Expr (LTE, v) }
-  | GTE;   v = pattern { Expr (GTE, v) }
-  | TILDA; v = pattern { Spec (Tilda, v) }
-  | CARET; v = pattern { Spec (Caret, v) }
+  | op = OP; v = pattern { Expr (op, v) }
+  | spec = SPEC; v = pattern { Spec (spec, v) }
 
 pattern:
     v = version { Version v }
