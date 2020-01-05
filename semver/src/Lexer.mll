@@ -31,7 +31,12 @@
       tok
     | K next ->
       curr := next;
-      lexbuf.lex_curr_pos <- lexbuf.lex_last_pos; (* backtrack *)
+      (* backtrack so the next lexer can reconsider and emit some token *)
+      lexbuf.lex_curr_pos <- lexbuf.lex_last_pos;
+      lexbuf.lex_curr_p <- {
+        lexbuf.lex_start_p with
+        pos_cnum = lexbuf.lex_abs_pos + lexbuf.lex_curr_pos
+      };
       run curr lexbuf
     | RK (tok, next) ->
       curr := next;
