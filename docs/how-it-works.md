@@ -144,12 +144,11 @@ Modules of interest:
 
 There are multiple levels of caches used by esy.
 
-> There's no garbage collection mechanism provided at the moment. This can be a
-> problem for hosts low on free disk space.
-
 ### Global Installation Cache
 
-This cache stores sources of concrete package versions.
+This cache stores sources of concrete package versions. It can be cleaned with
+the `esy cleanup` command. See `esy cleanup --help` for details. This was
+previously known as `esy gc`.
 
 #### Location & Structure
 
