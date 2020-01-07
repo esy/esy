@@ -7,7 +7,7 @@
 %token DOT
 %token PLUS
 %token OR
-%token AND
+%token WS
 %token HYPHEN
 %token EOF
 
@@ -23,7 +23,7 @@
 %%
 
 parse_version:
-  v = version; EOF { v }
+  WS?; v = version; WS?; EOF { v }
 
 parse_formula:
   v = disj; EOF { v }
@@ -34,7 +34,7 @@ disj:
   | v = range; OR; vs = disj { v::vs }
 
 range:
-    v = separated_nonempty_list(AND, clause) { Simple v }
+    v = separated_nonempty_list(WS, clause) { Simple v }
   | a = pattern; HYPHEN; b = pattern { Hyphen (a, b) }
 
 clause:

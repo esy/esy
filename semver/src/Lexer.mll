@@ -53,9 +53,10 @@ let word = (a | n | '-')+
 let ws = ' '
 
 let star = 'x' | 'X' | '*'
+let prefix = 'v' | '='
 
 rule main = parse
-  | 'v'? ws* (num as major) '.' (num as minor) '.' (num as patch) '-'? {
+  | prefix? ws* (num as major) '.' (num as minor) '.' (num as patch) '-'? {
       let version = {
         major = int_of_string major;
         minor = int_of_string minor;
@@ -65,13 +66,13 @@ rule main = parse
       } in
       RK (VERSION version, words)
     }
-  | 'v'? ws* (num as major) '.' (num as minor) ('.' star)? {
+  | prefix? ws* (num as major) '.' (num as minor) ('.' star)? {
       R (PATTERN (Minor (int_of_string major, int_of_string minor)))
     }
-  | 'v'? ws* (num as major) ('.' star ('.' star)?)? {
+  | prefix? ws* (num as major) ('.' star ('.' star)?)? {
       R (PATTERN (Major (int_of_string major)))
     }
-  | 'v'? ws* star ('.' star ('.' star)?)? {
+  | prefix? ws* star ('.' star ('.' star)?)? {
       R (PATTERN Any)
     }
   | '^' ws* { R (SPEC Caret) }
@@ -83,7 +84,7 @@ rule main = parse
   | '=' ws* { R (OP EQ) }
   | ws+ '-' ws+ { R HYPHEN }
   | ws* '|' '|' ws* { R OR }
-  | ws+ { R AND }
+  | ws+ { R WS }
   | eof { R EOF }
   | _ { unexpected lexbuf }
 
