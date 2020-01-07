@@ -84,10 +84,12 @@ let equal a b = compare a b = 0
 let parse v =
   let lexbuf = Lexing.from_string v in
   match Parser.parse_version Lexer.(make main ()) lexbuf with
-  | exception Lexer.Error msg -> Error msg
+  | exception Lexer.Error msg ->
+    let msg = Printf.sprintf "error parsing `%s`: %s" v msg in
+    Error msg
   | exception Parser.Error ->
-    let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in
-    let msg = Printf.sprintf "error parsing: %i column" pos in
+    (* let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in *)
+    let msg = Printf.sprintf "error parsing `%s`: %s" v "invalid version" in
     Error msg
   | v -> Ok v
 
