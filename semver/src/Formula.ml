@@ -10,7 +10,7 @@ let parse v =
     Error msg
   | exception Parser.Error ->
     (* let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in *)
-    let msg = Printf.sprintf "error parsing `%s`: %s" v "invalid version" in
+    let msg = Printf.sprintf "error parsing `%s`: %s" v "invalid formula" in
     Error msg
   | v -> Ok v
 

@@ -34,8 +34,12 @@ disj:
   | v = range; OR; vs = disj { v::vs }
 
 range:
-    v = separated_nonempty_list(WS, clause) { Simple v }
+    v = clauses { Simple v }
   | a = pattern; HYPHEN; b = pattern { Hyphen (a, b) }
+
+clauses:
+    v = clause; WS? { [v] }
+  | v = clause; WS; vs = clauses { v::vs }
 
 clause:
     v = pattern { Patt v }

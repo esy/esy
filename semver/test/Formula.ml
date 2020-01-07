@@ -11,6 +11,18 @@ let%test_module "parse" = (module struct
     [%expect {| 1.1.1 |}]
 
   let%expect_test _ =
+    parse_and_print " 1.1.1";
+    [%expect {| 1.1.1 |}]
+
+  let%expect_test _ =
+    parse_and_print "1.1.1 ";
+    [%expect {| 1.1.1 |}]
+
+  let%expect_test _ =
+    parse_and_print " 1.1.1 ";
+    [%expect {| 1.1.1 |}]
+
+  let%expect_test _ =
     parse_and_print "1.1";
     [%expect {| 1.1.x |}]
 
