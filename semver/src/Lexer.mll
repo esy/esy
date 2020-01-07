@@ -76,7 +76,7 @@ rule main = parse
       R (PATTERN Any)
     }
   | '^' ws* { R (SPEC Caret) }
-  | '~' ws* { R (SPEC Tilda) }
+  | '~' '>'? ws* { R (SPEC Tilda) }
   | '>' ws* { R (OP GT) }
   | '<' ws* { R (OP LT) }
   | '>' '=' ws* { R (OP GTE) }

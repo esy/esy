@@ -144,7 +144,23 @@ module N = struct
         xs
         |> List.fold_left ~init:[] ~f:(fun acc -> function
           | Expr (op, Version v) -> (op, v)::acc
-          | Expr (op, Pattern p) -> (op, to_version p)::acc
+          | Expr (EQ, Pattern p) -> (EQ, to_version p)::acc
+          | Expr (GTE, Pattern p) -> (GTE, to_version p)::acc
+          | Expr (LTE, Pattern p) -> (LTE, to_version p)::acc
+          | Expr (LT, Pattern p) ->
+            (* ex: <* means <0.0.0, effectively matches no version *)
+            (* ex: <1 means <1.0.0 *)
+            (* ex: <1.2 means <1.2.0 *)
+            (LT, to_version  p)::acc
+          | Expr (GT, Pattern Any) ->
+            (* ex: >* means <0.0.0, effectively matches no version *)
+            (LT, Version.make 0 0 0)::acc
+          | Expr (GT, Pattern Major a) ->
+            (* ex: >1 means >=2.0.0 *)
+            (GTE, Version.make (a + 1) 0 0)::acc
+          | Expr (GT, Pattern Minor (a, b)) ->
+            (* ex: >1.2 means >=1.3.0 *)
+            (GTE, Version.make a (b + 1) 0)::acc
           | Spec (Caret, v) ->
             begin match conv_caret v with
             | left, Some right -> right::left::acc
