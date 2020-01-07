@@ -26,7 +26,7 @@ parse_version:
   WS?; v = version; WS?; EOF { v }
 
 parse_formula:
-  v = disj; EOF { v }
+  WS?; v = disj; EOF { v }
 
 disj:
     v = range { [v] }

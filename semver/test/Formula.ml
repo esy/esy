@@ -417,4 +417,12 @@ let%test_module "Formula.satisfies" = (module struct
   let%test _ = not @@ satisfies "2.x" "3.0.0-pre.0"
   let%test _ = not @@ satisfies "^1.0.0" "1.0.0-rc1"
   let%test _ = not @@ satisfies "^1.2.3-rc2" "2.0.0"
+
+  let%test _ = satisfies "1.2.3-beta+build" " = 1.2.3-beta+otherbuild"
+  let%test _ = satisfies "1.2.3+build" " = 1.2.3+otherbuild"
+  let%test _ = satisfies "1.2.3-beta+build" "1.2.3-beta+otherbuild"
+  let%test _ = satisfies "1.2.3+build" "1.2.3+otherbuild"
+  let%test _ = satisfies "  v1.2.3+build" "1.2.3+otherbuild"
+  let%test _ = satisfies ">=v1.2.3+build" "1.2.3+otherbuild"
+  let%test _ = satisfies "<=v1.2.3+build" "1.2.3+otherbuild"
 end)

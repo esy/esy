@@ -82,11 +82,20 @@ module Formula : sig
   (** Convert a semver formula to a string. *)
 
   val satisfies : t -> Version.t -> bool
-  (** [satisfies f v] returns [true] if version [v] satisfies formula [f]. *)
+  (**
+   * [satisfies f v] returns [true] if version [v] satisfies formula [f].
+   *
+   * Note that this doesn't take into account build metadata (+tag), so
+   *
+   *    1.0.0+build matches =1.0.0
+   *    1.0.0+build matches =1.0.0+build2
+   *
+   *)
 
   (**
    * Normalized formula representation with all advanced range syntax being
-   * desugared into a DNF of [op * Version.t] pairs.
+   * desugared into a DNF of [op * Version.t] pairs. This also drops build
+   * metadata (+tag).
    *)
   module N : sig
     type t = (op * Version.t) list list

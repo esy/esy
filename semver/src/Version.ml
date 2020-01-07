@@ -14,6 +14,7 @@ let is_prerelease = function
   | _ -> true
 
 let strip_prerelease v = make v.major v.minor v.patch
+let strip_build v = make ~prerelease:v.prerelease v.major v.minor v.patch
 
 module Compare = struct
   let compare_prerelease_id a b =

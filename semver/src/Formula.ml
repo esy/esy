@@ -5,10 +5,12 @@ include Types.Formula
 let parse v =
   let lexbuf = Lexing.from_string v in
   match Parser.parse_formula Lexer.(make main ()) lexbuf with
-  | exception Lexer.Error msg -> Error msg
+  | exception Lexer.Error msg ->
+    let msg = Printf.sprintf "error parsing `%s`: %s" v msg in
+    Error msg
   | exception Parser.Error ->
-    let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in
-    let msg = Printf.sprintf "error parsing: %i column" pos in
+    (* let pos = lexbuf.Lexing.lex_curr_p.pos_cnum in *)
+    let msg = Printf.sprintf "error parsing `%s`: %s" v "invalid version" in
     Error msg
   | v -> Ok v
 
@@ -65,6 +67,7 @@ let show v = Format.asprintf "%a" pp v
 module N = struct
   type t = (op * Version.t) list list
 
+  (* NOTE: we strip build metadata from any version per semver spec *)
   let of_formula ranges =
     let to_version = function
       | Any -> Version.make 0 0 0
@@ -79,13 +82,13 @@ module N = struct
     let conv_hyphen a b =
       let a =
         match a with
-        | Version a -> Some (GTE, a)
+        | Version a -> Some (GTE, Version.strip_build a)
         | Pattern Any  -> None
         | Pattern a -> Some (GTE, to_version a)
       in
       let b =
         match b with
-        | Version b -> Some (LTE, b)
+        | Version b -> Some (LTE, Version.strip_build b)
         | Pattern Any -> None
         | Pattern b -> Some (LT, to_next_version b)
       in
@@ -94,7 +97,7 @@ module N = struct
     let conv_tilda v =
       match v with
       | Version v ->
-        (GTE, v),
+        (GTE, Version.strip_build v),
         (LT, Version.next_minor v)
       | Pattern p ->
         (GTE, to_version p),
@@ -103,13 +106,13 @@ module N = struct
     let conv_caret v =
       match v with
       | Version ({major = 0; minor = 0; _} as v) ->
-        (GTE, v),
+        (GTE, Version.strip_build v),
         Some (LT, Version.next_patch v)
       | Version ({major = 0; _} as v) ->
-        (GTE, v),
+        (GTE, Version.strip_build v),
         Some (LT, Version.next_minor v)
       | Version v ->
-        (GTE, v),
+        (GTE, Version.strip_build v),
         Some (LT, Version.next_major v)
       | Pattern Any ->
         (GTE, (to_version Any)),
@@ -143,7 +146,7 @@ module N = struct
       | Simple xs ->
         xs
         |> List.fold_left ~init:[] ~f:(fun acc -> function
-          | Expr (op, Version v) -> (op, v)::acc
+          | Expr (op, Version v) -> (op, Version.strip_build v)::acc
           | Expr (EQ, Pattern p) -> (EQ, to_version p)::acc
           | Expr (GTE, Pattern p) -> (GTE, to_version p)::acc
           | Expr (LTE, Pattern p) -> (LTE, to_version p)::acc
@@ -170,7 +173,7 @@ module N = struct
             let left, right = conv_tilda v in
             right::left::acc
           | Patt (Version v) ->
-            (EQ, v)::acc
+            (EQ, Version.strip_build v)::acc
           | Patt (Pattern p) ->
             begin match conv_x_range p with
             | left, Some right -> right::left::acc
@@ -193,6 +196,8 @@ end
 let normalize = N.of_formula
 
 let satisfies f v =
+  (* we don't take into account build metadata per semver *)
+  let v = Version.strip_build v in
   let check_clause = function
     | EQ, e -> Version.compare v e = 0
     | LT, e -> Version.compare v e < 0

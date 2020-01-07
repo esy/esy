@@ -165,12 +165,6 @@ let%test_module "Version.compare" = (module struct
     "1.2.3-beta", " =1.2.3-beta";
     "1.2.3-beta", " v 1.2.3-beta";
     "1.2.3-beta", " = 1.2.3-beta";
-    (* those are valid in original npm but we choose to compare build as well *)
-    (* "1.2.3-beta+build", " = 1.2.3-beta+otherbuild"; *)
-    (* "1.2.3+build", " = 1.2.3+otherbuild"; *)
-    (* "1.2.3-beta+build", "1.2.3-beta+otherbuild"; *)
-    (* "1.2.3+build", "1.2.3+otherbuild"; *)
-    (* "  v1.2.3+build", "1.2.3+otherbuild"; *)
   ]
 
   let%test _ =
