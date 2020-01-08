@@ -1337,10 +1337,10 @@ esutils@^2.0.2:
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
   integrity sha1-Cr9PHKpbyx96nYrMbepPqqBLrJs=
 
-esy-bash@0.3.19:
-  version "0.3.19"
-  resolved "https://registry.yarnpkg.com/esy-bash/-/esy-bash-0.3.19.tgz#67f3ebeccea738f15153a628432ca50344913a3d"
-  integrity sha512-+Duv8M+ZWM+MSY30ypqJrj40y5trPHrXpORTGVimPXUl7+6sj9bJLbRR/Pp0QHHYhANZzCTJAEjpu2dV6zl5UQ==
+esy-bash@0.3.20:
+  version "0.3.20"
+  resolved "https://registry.yarnpkg.com/esy-bash/-/esy-bash-0.3.20.tgz#c2f8227bd047e73e661bd89e0bfe2c09fd1193c2"
+  integrity sha512-VeQY7AgpwmgDgeR/2yFRM3QyIYjnGF6SC6PHh8gOU8Tz3S2OA1wAFCgDS4sFGwqjK6VY4EfKERrxOpMojbi+7w==
 
 esy-solve-cudf@^0.1.10:
   version "0.1.10"
