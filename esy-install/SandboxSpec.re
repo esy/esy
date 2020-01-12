@@ -87,33 +87,44 @@ let ofPath = path => {
 
     let%bind manifest =
       if (StringSet.mem("esy.json", fnames)) {
-        return([@implicit_arity] Manifest(Esy, "esy.json"));
+        return(Manifest((Esy, "esy.json")));
       } else if (StringSet.mem("package.json", fnames)) {
-        return([@implicit_arity] Manifest(Esy, "package.json"));
-      } else if (StringSet.mem("opam", fnames)) {
-        return([@implicit_arity] Manifest(Opam, "opam"));
+        return(Manifest((Esy, "package.json")));
       } else {
-        let%bind filenames = {
-          let f = filename => {
-            let path = Path.(path / filename);
-            if (Path.(hasExt(".opam", path))) {
-              let%bind data = Fs.readFile(path);
-              return(String.(length(trim(data))) > 0);
-            } else {
-              return(false);
+        let%bind hasOpam = {
+          let has = StringSet.mem("opam", fnames);
+          if (has) {
+            let%map isDir = Fs.isDir(Path.(path / "opam"));
+            !isDir;
+          } else {
+            return(false);
+          };
+        };
+        if (hasOpam) {
+          return(Manifest((Opam, "opam")));
+        } else {
+          let%bind filenames = {
+            let f = filename => {
+              let path = Path.(path / filename);
+              if (Path.(hasExt(".opam", path))) {
+                let%bind data = Fs.readFile(path);
+                return(String.(length(trim(data))) > 0);
+              } else {
+                return(false);
+              };
             };
+
+            RunAsync.List.filter(~f, StringSet.elements(fnames));
           };
 
-          RunAsync.List.filter(~f, StringSet.elements(fnames));
-        };
-
-        switch (filenames) {
-        | [] => errorf("no manifests found at %a", Path.pp, path)
-        | [filename] => return([@implicit_arity] Manifest(Opam, filename))
-        | filenames =>
-          let filenames =
-            List.map(~f=fn => (ManifestSpec.Opam, fn), filenames);
-          return(ManifestAggregate(filenames));
+          switch (filenames) {
+          | [] => errorf("no manifests found at %a", Path.pp, path)
+          | [filename] => return(Manifest((Opam, filename)))
+          | filenames =>
+            let filenames =
+              List.map(~f=fn => (ManifestSpec.Opam, fn), filenames);
+            return(ManifestAggregate(filenames));
+          };
         };
       };
 
