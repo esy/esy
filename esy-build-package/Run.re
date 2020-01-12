@@ -129,8 +129,27 @@ let write = (~perm=?, ~data, path) =>
 let read = path => Bos.OS.File.read(path);
 
 let copyFile = (~perm=?, srcPath, dstPath) => {
-  let%bind data = read(srcPath);
-  write(~data, ~perm?, dstPath);
+  // Choosen "arbitrarily" but informed by:
+  // https://eklitzke.org/efficient-file-copying-on-linux
+  let buflen = 1024 * 128;
+  let buf = Bytes.create(buflen);
+  let rec loop = (ic, oc, ()) => {
+    switch (input(ic, buf, 0, buflen)) {
+    | 0 => return()
+    | n =>
+      output(oc, buf, 0, n);
+      loop(ic, oc, ());
+    };
+  };
+  let%bind res =
+    Bos.OS.File.with_ic(
+      srcPath,
+      (ic, ()) =>
+        Bos.OS.File.with_oc(~mode=?perm, dstPath, oc => loop(ic, oc), ()),
+      (),
+    );
+  let%bind res = res;
+  res;
 };
 
 let mv = Bos.OS.Path.move;
