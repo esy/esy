@@ -164,7 +164,7 @@ endif
 	@git tag $(ESY_RELEASE_TAG)
 
 release-prepare:
-	@esy node ./scripts/promote-nightly-release.js $(GIT_COMMIT_SHA)
+	@node ./scripts/promote-nightly-release.js $(GIT_COMMIT_SHA)
 
 release-publish: release
 	@(cd _release/package && npm publish --access public --tag $(NPM_RELEASE_TAG))

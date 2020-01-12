@@ -307,6 +307,24 @@
       },
       "version-0.5.6-what-why": {
         "title": "What & Why"
+      },
+      "version-0.6.0-commands": {
+        "title": "Commands"
+      },
+      "version-0.6.0-configuration": {
+        "title": "Project Configuration"
+      },
+      "version-0.6.0-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.6.0-how-it-works": {
+        "title": "How esy works"
+      },
+      "version-0.6.0-linking-workflow": {
+        "title": "Linking Packages in Development"
+      },
+      "version-0.6.0-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
       }
     },
     "links": {
