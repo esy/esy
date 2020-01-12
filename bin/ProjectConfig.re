@@ -62,16 +62,17 @@ module ProjectArg = {
         | "package.json"
         | "esy.json" => Kind.(Project + check(rest))
         | "opam" =>
-          /* opam could easily by a directory name */
           let p = Path.(path / name);
-          if (!Sys.is_directory(Path.(show(p)))) {
+          let is_dir = Sys.is_directory(Path.(show(p)));
+          if (!is_dir) {
             Kind.(Project + check(rest));
           } else {
             check(rest);
           };
         | name =>
           let p = Path.(path / name);
-          if (Path.hasExt(".opam", p) && !Sys.is_directory(Path.(show(p)))) {
+          let is_dir = Sys.is_directory(Path.(show(p)));
+          if (Path.hasExt(".opam", p) && !is_dir) {
             Kind.(Project + check(rest));
           } else {
             check(rest);
@@ -106,6 +107,7 @@ module ProjectArg = {
     let homePath = Path.homePath();
 
     let parentPath = path => {
+      let path = Path.normalizeAndRemoveEmptySeg(path);
       let parent = Path.parent(path);
       /* do not climb further than root or home path */
       if (Path.compare(path, parent) != 0
