@@ -4,7 +4,7 @@
 #   work both on linux/macos and windows.
 
 steps:
-  - script: 'npm install -g esy@0.5.0 --unsafe-perm'
+  - script: 'npm install -g esy@0.6.0 --unsafe-perm'
     displayName: 'npm install -g esy'
 
   - script: 'npm install'

@@ -14,7 +14,7 @@ run-test: [
   ["dune" "runtest" "-p" name "-j" jobs] { ocaml:version >= "4.06" & ocaml:version < "4.08" }
 ]
 depends: [
-  "ocaml"                   {>= "4.04.1" & < "4.10.0"}
+  "ocaml"                   {>= "4.04.1" & < "4.11.0"}
   "base"                    {>= "v0.11.0"}
   "dune"                    {>= "1.11"}
   "ocaml-compiler-libs"     {>= "v0.11.0"}
@@ -38,9 +38,9 @@ A comprehensive toolbox for ppx development. It features:
 """
 url {
   src:
-    "https://github.com/ocaml-ppx/ppxlib/releases/download/0.10.0/ppxlib-0.10.0.tbz"
+    "https://github.com/ocaml-ppx/ppxlib/archive/0.12.0.tar.gz"
   checksum: [
-    "sha256=588e85c759688742ae0bd2cb1a53f0f555a76d8810ad9a9dbb026a076a0c10af"
-    "sha512=8e3e9399b260e16fb537cdd58706875933ecbf28e3bcddc1bf3e607a33307eb2191a7d3c315e8e4b51ec6f548779a0fad118826f709de65dddd3b2510f3e4bcc"
+    "sha256=6b562c9b3b9350777318729921f890850b385c469db60769aafd9371998a2c42"
+    "sha512=2372a7a53d857389978e617c95183289547d53caa5e83a7d867cab347b114b719667bd09eaf2e2334085ef92691a99b42871f6410ffb2977b0b8724014c80a70"
   ]
 }
