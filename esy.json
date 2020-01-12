@@ -1,9 +1,6 @@
 {
   "name": "esy",
-  "version": "0.6.0",
-  "description": "Package builder for esy.",
-  "license": "MIT",
-  "esy": {
+  "version": "0.6.0", "description": "Package builder for esy.", "license": "MIT", "esy": {
     "build": "dune build -p esy,esy-build-package",
     "install": "esy-installer esy.install esy-build-package.install",
     "buildsInSource": "_build"
@@ -57,6 +54,7 @@
   },
   "devDependencies": {
     "@opam/merlin": "3.3.3",
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/utop": "2.4.2",
     "ocaml": "4.08.1000"
   }
