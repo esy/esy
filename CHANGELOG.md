@@ -1,5 +1,69 @@
 # CHANGELOG
 
+## 0.6.0 @ latest
+
+- When installing packages from git/github esy now recursively fetches
+  submodules which matches opam behaviour (@prometheansacrifice and @sachaayoun)
+
+- New command `esy run-script SCRIPTNAME` which provides a future proof way of
+  running `package.json` scripts (@zindel)
+
+- New command `esy gc [PROJECT_ROOT...]` to purge unused artifacts from esy
+  build cache (@prometheansacrifice)
+
+- Efficient encoding of dependency constraints (@zindel)
+
+- Allow to run build without sandbox optionally with `--disable-sandbox`
+  (@prometheansacrifice)
+
+- Pass `--retry` to `curl` command when fetching sources. This make it try to
+  fetch package multiple times before giving up (@sahandevs)
+
+- Do not try to guess an esy subcommand name on typo which broke `esy CMD`
+  invocation previously (@andreypopp)
+
+- Do not read an entire file into memory when copying files (@ulrikstrid and
+  @andreypopp)
+
+- Fixes to project discovery to be more robust (@andreypopp)
+
+- Fixes for pnp.js runtime (@aweis and @imbsky)
+
+- Fix for translation of `ocaml` package version constraint from opam to npm
+  package universe (@anmonteiro)
+
+- Fix double backslash paths in `esy import-build`/`esy export-build` commands
+  (@jordwalke)
+
+- Fix for `esy add` not to fail on missing `"dependencies"` key (@lessp)
+
+- Fix `"buildsInSource": "unsafe"` to retain atime and mtime when copying
+  sources to a build dir (@prometheansacrifice)
+
+- esy now marks `esy.lock` directory as generated, this suppresses it in diff on
+  github (@Khady)
+
+- Fix `package.json` scripts to be executed with project root as cwd (@sachaayoun)
+
+- Fixes for dependency git source parsing (@andreypopp)
+
+- Fixes for `esy npm-release` command (@ulrikstrid and @manuhornung)
+
+- Enable long-paths on windows if supported (@ulrikstrid)
+
+- Fixes and updates to esy-bash (@bryphe, @saitonakamura, @CrossR and @imbsky)
+
+- Look for `$HOME/.esyrc` if not at the project dir (@ulrikstrid)
+
+- Improvements to test suite (@WhoAteDaCake, @andreypopp)
+
+- Doc updates (@joprice, @yawaramin, @ShalokShalom, @pbiggar, @jchavarri,
+  @evanram, @aantron, @af and @tienle)
+
+## 0.5.8 @ latest
+
+- Update esy-bash.
+
 ## 0.5.7 @ latest
 
 - Make esy read `.esyrc` in `$HOME` if no `.esyrc` is found in project
