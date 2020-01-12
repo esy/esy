@@ -142,7 +142,16 @@ module NpmPackageJson: {
 module PackagePaths = {
   let key = pkg => {
     let hash = {
-      let digest = Digestv.(ofString(PackageId.show(pkg.Package.id)));
+      open Digestv;
+      let digest = ofString(PackageId.show(pkg.Package.id));
+      // Modify digest if we change how we fetch sources.
+      let digest = {
+        let version = PackageId.version(pkg.id);
+        switch (version) {
+        | Source(Dist(Github(_))) => digest |> add(string("1"))
+        | _ => digest
+        };
+      };
       let digest = Digestv.toHex(digest);
       String.Sub.to_string(String.sub(~start=0, ~stop=8, digest));
     };
