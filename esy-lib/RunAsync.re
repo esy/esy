@@ -24,6 +24,15 @@ let withContextOfLog = (~header=?, content, v) => {
   Lwt.return(Run.withContextOfLog(~header?, content, v));
 };
 
+let map = (~f, v) => {
+  let waitForPromise =
+    fun
+    | Ok(v) => Lwt.return(Ok(f(v)))
+    | Error(err) => Lwt.return(Error(err));
+
+  Lwt.bind(v, waitForPromise);
+};
+
 let bind = (~f, v) => {
   let waitForPromise =
     fun
@@ -56,6 +65,7 @@ module Syntax = {
   let errorf = errorf;
 
   module Let_syntax = {
+    let map = map;
     let bind = bind;
     let both = both;
   };

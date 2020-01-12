@@ -110,6 +110,7 @@ module Syntax: {
 
   module Let_syntax: {
     let bind: (~f: 'a => t('b), t('a)) => t('b);
+    let map: (~f: 'a => 'b, t('a)) => t('b);
     let both: (t('a), t('b)) => t(('a, 'b));
   };
 };
