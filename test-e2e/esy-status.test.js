@@ -1,5 +1,6 @@
 // @flow
 
+const outdent = require('outdent');
 const path = require('path');
 const helpers = require('./test/helpers.js');
 
@@ -139,5 +140,41 @@ describe(`'esy status' command`, function() {
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
+  });
+
+  it('#1040: it does not get confused by opam/ dir', async function() {
+    // https://github.com/esy/esy/issues/1040
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      helpers.file(
+        'pkg.opam',
+        outdent`
+          opam-version: "2.0"
+          description: """
+          Hello, World!
+          """
+          tags: []
+          depends: [
+            "ocaml" {>= "4.07.1"}
+            "dune"
+          ]
+          build: [
+            ["dune" "subst"] {pinned}
+            ["dune" "build" "-p" name "-j" jobs]
+            ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+          ]
+        `,
+      ),
+      helpers.dir('opam', helpers.file('dummy', '')),
+    );
+    const {stdout} = await p.esy('status --json');
+    const status = JSON.parse(stdout);
+    expect(status).toMatchObject({
+      isProject: true,
+      isProjectFetched: false,
+      isProjectReadyForDev: false,
+      isProjectSolved: false,
+      rootPackageConfigPath: path.join(p.projectPath, 'pkg.opam'),
+    });
   });
 });
