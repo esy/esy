@@ -63,7 +63,7 @@ bootstrap: install-githooks
 ifndef ESY_EXT
 	$(error "esy command is not avaialble, run 'npm install -g esy@0.$(ESY_VERSION_MINOR).x'")
 endif
-ifeq ($(ESY_VERSION_MINOR),5)
+ifeq ($(ESY_VERSION_MINOR),6)
 	@esy install
 	@make build
 	@node scripts/bootstrap.js
