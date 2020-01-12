@@ -52,6 +52,14 @@ module ProjectArg = {
       };
   };
 
+  let is_dir = path => {
+    let path = Path.show(path);
+    try(Sys.is_directory(path)) {
+    // Might fail because of broken symlink or etc
+    | Sys_error(_) => false
+    };
+  };
+
   let classifyPath = path => {
     let rec check = items =>
       switch (items) {
@@ -63,16 +71,14 @@ module ProjectArg = {
         | "esy.json" => Kind.(Project + check(rest))
         | "opam" =>
           let p = Path.(path / name);
-          let is_dir = Sys.is_directory(Path.(show(p)));
-          if (!is_dir) {
+          if (!is_dir(p)) {
             Kind.(Project + check(rest));
           } else {
             check(rest);
           };
         | name =>
           let p = Path.(path / name);
-          let is_dir = Sys.is_directory(Path.(show(p)));
-          if (Path.hasExt(".opam", p) && !is_dir) {
+          if (Path.hasExt(".opam", p) && !is_dir(p)) {
             Kind.(Project + check(rest));
           } else {
             check(rest);
