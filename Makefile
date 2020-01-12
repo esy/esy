@@ -122,7 +122,7 @@ test-unit::
 	esy test:unit
 
 test-e2e::
-	esy test:e2e
+	./node_modules/.bin/jest test-e2e
 
 test-e2e-slow::
 	esy test:e2e-slow
