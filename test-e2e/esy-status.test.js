@@ -17,7 +17,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: false,
       rootBuildPath: null,
       rootInstallPath: null,
-      rootPackageConfigPath: null
+      rootPackageConfigPath: null,
     });
   });
 
@@ -28,12 +28,19 @@ describe(`'esy status' command`, function() {
         dep: 'path:./dep',
       },
     }),
-    helpers.file('dev.json', JSON.stringify({
-      name: 'dev',
-      dependencies: {
-        dep: 'path:./dep',
-      },
-    }, null, 2)),
+    helpers.file(
+      'dev.json',
+      JSON.stringify(
+        {
+          name: 'dev',
+          dependencies: {
+            dep: 'path:./dep',
+          },
+        },
+        null,
+        2,
+      ),
+    ),
     helpers.dir(
       'dep',
       helpers.packageJson({
@@ -56,7 +63,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: false,
       rootBuildPath: null,
       rootInstallPath: null,
-      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json'),
     });
   });
 
@@ -74,7 +81,7 @@ describe(`'esy status' command`, function() {
       isProjectSolved: true,
       rootBuildPath: null,
       rootInstallPath: null,
-      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json'),
     });
   });
 
@@ -90,7 +97,7 @@ describe(`'esy status' command`, function() {
       isProjectFetched: true,
       isProjectReadyForDev: false,
       isProjectSolved: true,
-      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json'),
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
@@ -109,7 +116,7 @@ describe(`'esy status' command`, function() {
       isProjectFetched: true,
       isProjectReadyForDev: true,
       isProjectSolved: true,
-      rootPackageConfigPath: path.join(p.projectPath, 'package.json')
+      rootPackageConfigPath: path.join(p.projectPath, 'package.json'),
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
@@ -128,10 +135,9 @@ describe(`'esy status' command`, function() {
       isProjectFetched: true,
       isProjectReadyForDev: true,
       isProjectSolved: true,
-      rootPackageConfigPath: path.join(p.projectPath, 'dev.json')
+      rootPackageConfigPath: path.join(p.projectPath, 'dev.json'),
     });
     expect(status.rootBuildPath).not.toBe(null);
     expect(status.rootInstallPath).not.toBe(null);
   });
-
 });
