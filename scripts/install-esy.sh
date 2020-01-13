@@ -3,10 +3,10 @@
 set -e
 set -o pipefail
 
-ESY_SHA256="f2cec5e6556172141bb399d1dcef7db4b9d881b0bed9c9749c0eebd95584b739"
+ESY_SHA256="d24e64938f108d7161ed82bd7a9a9e9db869be6e54114f4431be3a53fb817887"
 ESY_SOLVE_CUDF_SHA256="3cfb233e5536fe555ff1318bcff241481c8dcbe1edc30b5f97e2366134d3f234"
 
-ESY_VERSION="0.5.8"
+ESY_VERSION="0.6.0"
 ESY_PREFIX=/usr/local/lib/esy
 ESY_BIN=/usr/local/bin/esy
 
@@ -24,7 +24,7 @@ ask () {
   if [[ "$NOPROMPT" == "--noprompt" ]]; then
     REPLY='y'
   else
-  read -p "$1 (Y/N) " -n 1 -r; echo
+    read -p "$1 (Y/N) " -n 1 -r; echo
   fi
 }
 
