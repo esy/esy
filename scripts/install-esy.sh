@@ -13,13 +13,19 @@ ESY_BIN=/usr/local/bin/esy
 ESY_DOWNLOAD_DIR=/tmp/esy-release
 ESY_SOLVE_CUDF_DOWNLOAD_DIR=/tmp/esy-solve-cudf-release
 
+NOPROMPT=$1
+
 error() {
   echo "ERROR:" "$@"
   exit 1
 }
 
 ask () {
+  if [[ "$NOPROMPT" == "--noprompt" ]]; then
+    REPLY='y'
+  else
   read -p "$1 (Y/N) " -n 1 -r; echo
+  fi
 }
 
 echo "Installing esy@${ESY_VERSION} into ${ESY_PREFIX}..."
