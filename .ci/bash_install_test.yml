@@ -1,5 +1,6 @@
 steps:
-  - script: 'scripts/install-esy.sh --noprompt'
+  # We're using sudo here because Azure won't let us write to /usr/local/lib on Linux
+  - script: 'sudo scripts/install-esy.sh --noprompt'
     displayName: 'scripts/install-esy.sh --noprompt'
 
   - script: 'esy install'
