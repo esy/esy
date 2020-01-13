@@ -1,39 +1,18 @@
 (library
-  (name EsyLib)
-  (flags (:standard (-w -39)))
-  (inline_tests)
-  (libraries
-            angstrom
-            lwt
-            lwt.unix
-            cmdliner
-            yojson
-            bos
-            logs
-            logs.fmt
-            logs.lwt
-            logs.cli
-            re
-            fmt
-            fmt.cli
-            fmt.tty
-            ppx_deriving_yojson.runtime
-            str
-            astring
-            EsyShellExpansion
-            )
-  (c_names win32_path)
-  (preprocess (
-               pps
-               lwt_ppx
-               ppx_let
-               ppx_deriving_yojson
-               ppx_deriving.std
-               ppx_expect
-               ppx_inline_test
-               ppx_sexp_conv
-               ))
-  )
+ (name EsyLib)
+ (flags
+  (:standard
+   (-w -39)))
+ (inline_tests)
+ (libraries angstrom lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
+   logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime str astring
+   EsyShellExpansion)
+ (foreign_stubs
+  (language c)
+  (names win32_path))
+ (preprocess
+  (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std ppx_expect
+    ppx_inline_test ppx_sexp_conv)))
 
-(ocamllex (modules ShellSplit))
-
+(ocamllex
+ (modules ShellSplit))

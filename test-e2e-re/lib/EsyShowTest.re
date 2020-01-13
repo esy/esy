@@ -6,7 +6,7 @@ module Result = EsyLib.Result;
 Helpers.skipSuiteOnWindows();
 
 describe("esy show", ({test, _}) => {
-  test("shows info about packages hosted on npm", ({expect}) =>
+  test("shows info about packages hosted on npm", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
       let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
@@ -41,7 +41,7 @@ describe("esy show", ({test, _}) => {
     })
   );
 
-  test("shows info about packages hosted on opam", ({expect}) =>
+  test("shows info about packages hosted on opam", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
       let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
@@ -86,7 +86,7 @@ describe("esy show", ({test, _}) => {
     })
   );
 
-  test("shows info about packages hosted on github", ({expect}) =>
+  test("shows info about packages hosted on github", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
       let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
