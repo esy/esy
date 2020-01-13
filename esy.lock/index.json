@@ -1,5 +1,5 @@
 {
-  "checksum": "cf82cc99440faed6dacfef1317ce2637",
+  "checksum": "e9ede76e20e62e546caad4e2c7851f4c",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "refmterr@3.3.0@d41d8cd9": {
@@ -63,12 +63,13 @@
         "@opam/fpath@opam:0.7.2@45477b93", "@opam/fmt@opam:0.8.8@01c3a23c",
         "@opam/dune@opam:2.1.2@94bd8c1b", "@opam/dose3@opam:5.0.1@5325ecb6",
         "@opam/cudf@opam:0.9@bdf476b4",
-        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9",
+        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
         "@opam/bos@opam:0.2.0@df49e63f",
         "@opam/angstrom@github:esy-ocaml/angstrom#5a06a0@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.8.1000@d41d8cd9", "@opam/utop@opam:2.4.2@4656e89b",
+        "@opam/ocaml-lsp-server@github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#007a1af2d3a128d6160f434ce74b27f83cbf0b30@d41d8cd9",
         "@opam/merlin@opam:3.3.3@d653b06a"
       ]
     },
@@ -254,7 +255,7 @@
         "@opam/topkg@opam:1.0.1@a42c631e",
         "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
         "@opam/ocamlbuild@opam:0.14.0@6ac75d03",
-        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9",
+        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
@@ -698,6 +699,32 @@
       "devDependencies": [
         "ocaml@4.8.1000@d41d8cd9", "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
         "@opam/ocaml-migrate-parsetree@opam:1.5.0@3e319dbc",
+        "@opam/dune@opam:2.1.2@94bd8c1b"
+      ]
+    },
+    "@opam/ppx_yojson_conv_lib@opam:v0.13.0@97a4cb97": {
+      "id": "@opam/ppx_yojson_conv_lib@opam:v0.13.0@97a4cb97",
+      "name": "@opam/ppx_yojson_conv_lib",
+      "version": "opam:v0.13.0",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/md5/79/790fade9ecff5767dd48cd49c9bba2f3#md5:790fade9ecff5767dd48cd49c9bba2f3",
+          "archive:https://ocaml.janestreet.com/ocaml-core/v0.13/files/ppx_yojson_conv_lib-v0.13.0.tar.gz#md5:790fade9ecff5767dd48cd49c9bba2f3"
+        ],
+        "opam": {
+          "name": "ppx_yojson_conv_lib",
+          "version": "v0.13.0",
+          "path": "esy.lock/opam/ppx_yojson_conv_lib.v0.13.0"
+        }
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.8.1000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
+        "@opam/dune@opam:2.1.2@94bd8c1b", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.8.1000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/dune@opam:2.1.2@94bd8c1b"
       ]
     },
@@ -1455,6 +1482,32 @@
         "@opam/dune@opam:2.1.2@94bd8c1b"
       ]
     },
+    "@opam/ocaml-lsp-server@github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#007a1af2d3a128d6160f434ce74b27f83cbf0b30@d41d8cd9": {
+      "id":
+        "@opam/ocaml-lsp-server@github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#007a1af2d3a128d6160f434ce74b27f83cbf0b30@d41d8cd9",
+      "name": "@opam/ocaml-lsp-server",
+      "version":
+        "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#007a1af2d3a128d6160f434ce74b27f83cbf0b30",
+      "source": {
+        "type": "install",
+        "source": [
+          "github:ocaml/ocaml-lsp:ocaml-lsp-server.opam#007a1af2d3a128d6160f434ce74b27f83cbf0b30"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.8.1000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
+        "@opam/ppx_yojson_conv_lib@opam:v0.13.0@97a4cb97",
+        "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
+        "@opam/dune@opam:2.1.2@94bd8c1b", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.8.1000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
+        "@opam/ppx_yojson_conv_lib@opam:v0.13.0@97a4cb97",
+        "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
+        "@opam/dune@opam:2.1.2@94bd8c1b"
+      ]
+    },
     "@opam/ocaml-compiler-libs@opam:v0.12.1@5c34eb0d": {
       "id": "@opam/ocaml-compiler-libs@opam:v0.12.1@5c34eb0d",
       "name": "@opam/ocaml-compiler-libs",
@@ -1724,7 +1777,7 @@
         "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
         "@opam/ocamlbuild@opam:0.14.0@6ac75d03",
         "@opam/lwt@opam:4.4.0@0357bb8b", "@opam/fmt@opam:0.8.8@01c3a23c",
-        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9",
+        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
         "@opam/base-threads@opam:base@36803084",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
@@ -1866,7 +1919,7 @@
         "@opam/seq@opam:base@d8d7de1d",
         "@opam/ocamlfind@opam:1.8.1@ff07b0f9",
         "@opam/ocamlbuild@opam:0.14.0@6ac75d03",
-        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9",
+        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
         "@opam/base-unix@opam:base@87d0b2eb",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
@@ -2154,14 +2207,14 @@
       "dependencies": [ "@esy-ocaml/substs@0.0.1@d41d8cd9" ],
       "devDependencies": []
     },
-    "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9": {
+    "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9": {
       "id":
-        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#8500634a@d41d8cd9",
+        "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
       "name": "@opam/cmdliner",
-      "version": "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a",
+      "version": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
       "source": {
         "type": "install",
-        "source": [ "github:esy-ocaml/cmdliner:cmdliner.opam#8500634a" ]
+        "source": [ "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc" ]
       },
       "overrides": [],
       "dependencies": [
