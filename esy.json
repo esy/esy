@@ -5,6 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy,esy-build-package",
+    "buildDev": "dune build --only-packages esy,esy-build-package --root .",
     "install": "esy-installer esy.install esy-build-package.install",
     "buildsInSource": "_build"
   },
