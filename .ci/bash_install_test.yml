@@ -1,0 +1,6 @@
+steps:
+  - script: 'scripts/install-esy.sh --noprompt'
+    displayName: 'scripts/install-esy.sh --noprompt'
+
+  - script: 'esy install'
+    displayName: 'esy install'
