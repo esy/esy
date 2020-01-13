@@ -60,6 +60,7 @@
     "@opam/merlin": "3.3.3",
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/utop": "2.4.2",
+    "@opam/ocamlformat": "*",
     "ocaml": "4.08.1000"
   }
 }
