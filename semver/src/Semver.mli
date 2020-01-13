@@ -1,15 +1,12 @@
 module Version : sig
-  type t = {
-    major : int;
-    minor : int;
-    patch : int;
-    prerelease : prerelease_id list;
-    build : string list;
-  }
+  type t =
+    { major : int;
+      minor : int;
+      patch : int;
+      prerelease : prerelease_id list;
+      build : string list }
 
-  and prerelease_id =
-    | N of int
-    | A of string
+  and prerelease_id = N of int | A of string
 
   val compare : t -> t -> int
   (** Compare two versions. *)
@@ -40,34 +37,21 @@ module Formula : sig
    *)
 
   and range =
-    | Hyphen of version_or_pattern * version_or_pattern
-      (** V1 - V2 *)
+    | Hyphen of version_or_pattern * version_or_pattern  (** V1 - V2 *)
     | Simple of clause list
 
-   and clause =
+  and clause =
     | Patt of version_or_pattern
     | Expr of op * version_or_pattern
     | Spec of spec * version_or_pattern
 
-  and op =
-    | GT
-    | GTE
-    | LT
-    | LTE
-    | EQ
+  and op = GT | GTE | LT | LTE | EQ
 
-  and spec =
-    | Tilda
-    | Caret
+  and spec = Tilda | Caret
 
-  and version_or_pattern =
-    | Version of Version.t
-    | Pattern of pattern
+  and version_or_pattern = Version of Version.t | Pattern of pattern
 
-  and pattern =
-    | Any
-    | Major of int
-    | Minor of int * int
+  and pattern = Any | Major of int | Minor of int * int
 
   val parse : string -> (t, string) result
   (** Parse a string into a semver formula. *)
@@ -101,6 +85,7 @@ module Formula : sig
     type t = (op * Version.t) list list
 
     val pp : Format.formatter -> t -> unit
+
     val show : t -> string
   end
 

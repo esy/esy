@@ -1,9 +1,9 @@
 (library
-  (name Semver)
-  )
+ (name Semver))
 
-(ocamllex (modules Lexer))
+(ocamllex
+ (modules Lexer))
+
 (menhir
-  (flags "--explain" "--dump")
-  (modules Parser)
-  )
+ (flags "--explain" "--dump")
+ (modules Parser))
