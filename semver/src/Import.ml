@@ -52,4 +52,9 @@ module Pp = struct
       List.iter xs ~f:(fun p ->
           pp_sep fmt () ;
           pp_item fmt p)
+
+  let pp_enclosing pp_left pp pp_right fmt v =
+    pp_left fmt () ;
+    pp fmt v ;
+    pp_right fmt ()
 end

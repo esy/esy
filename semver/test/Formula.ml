@@ -157,8 +157,8 @@ let%test_module "Formula.normalize" =
     let parse_and_normalize v =
       match Semver.Formula.parse v with
       | Ok f ->
-        let f = Semver.Formula.normalize f in
-        Format.printf "%a" Semver.Formula.N.pp f
+        let f = Semver.Formula.to_dnf f in
+        Format.printf "%a" Semver.Formula.DNF.pp f
       | Error msg ->
         Format.printf "ERROR: %s" msg
 

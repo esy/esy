@@ -76,19 +76,57 @@ module Formula : sig
    *
    *)
 
+  val of_version : Version.t -> t
   (**
-   * Normalized formula representation with all advanced range syntax being
-   * desugared into a DNF of [op * Version.t] pairs. This also drops build
-   * metadata (+tag).
+   * Create a formula of version. It can only be satisfied by this exact
+   * version
    *)
-  module N : sig
-    type t = (op * Version.t) list list
+
+  val any : t
+  (**
+   * A formula which can be satisfied by any version.
+   *)
+
+  (** A simple constraint is an op and a version. *)
+  module Constraint : sig
+    type t = op * Version.t
+  end
+
+  (**
+   * DNF - Disjunctive Normal Form.
+   *
+   * Represents as formula as a set of disjunctions of conjunctions.
+   *)
+  module DNF : sig
+    type t = Constraint.t list list
+
+    val pp : Format.formatter -> t -> unit
+
+    val show : t -> string
+
+    val satisfies : t -> Version.t -> bool
+  end
+
+  (**
+   * CNF - Conjunctive Normal Form
+   *
+   * Represents a formula as a set of conjunctions of disjunctions.
+   *
+   * Note that we don't provide [satisfies : CNF.t -> Version.t -> bool] because
+   * semver defines constraint matching in terms of DNF and CNF in relation on
+   * how it treats pre-releases.
+   *)
+  module CNF : sig
+    type t = Constraint.t list list
 
     val pp : Format.formatter -> t -> unit
 
     val show : t -> string
   end
 
-  val normalize : t -> N.t
-  (** Normalize formula. *)
+  val to_dnf : t -> DNF.t
+  (** Converts a formula into DNF form. *)
+
+  val to_cnf : t -> CNF.t
+  (** Converts a formula into CNF form. *)
 end
