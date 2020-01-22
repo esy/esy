@@ -321,6 +321,10 @@ While the command `esy test` is defined to be a shortcut for:
 esy dune runtest
 ```
 
+However, to ensure forward compatiblity, we encourage a more verbose 
+`esy run-script build-dev` and `esy run-script test`. Explicitly specifying
+`run-script` prevents clashes with subcommands that we add in future.
+
 Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
 
 [npm-dependencies]: https://docs.npmjs.com/files/package.json#dependencies
