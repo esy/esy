@@ -111,7 +111,7 @@ let ocamlOpamVersionToOcamlNpmVersion = v => {
       }
     | other => String.concat(".", other)
     };
-  SemverVersion.Version.parse(npmVersion);
+  Semver.Version.parse(npmVersion);
 };
 
 let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
