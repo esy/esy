@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.1 @ latest
+
+- Strip `.git` when feching overrides from git and github repositories (@giltho
+  and @andreypopp).
+
 ## 0.6.0 @ latest
 
 - When installing packages from git/github esy now recursively fetches
