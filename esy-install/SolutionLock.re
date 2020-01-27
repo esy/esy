@@ -120,6 +120,7 @@ let writeOverride = (sandbox, pkg, override) =>
           / Digestv.toHex(digest)
         );
       let%bind () = Fs.copyPath(~src=distPath, ~dst=lockPath);
+      let%bind () = Fs.rmPath(Path.(lockPath / ".git"));
       let manifest = Dist.manifest(dist);
       let path =
         DistPath.ofPath(
