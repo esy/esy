@@ -103,6 +103,7 @@ let fetch' = (sandbox, dist) => {
           );
         let%bind () = Git.clone(~dst=stagePath, ~remote, ());
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
+        let%bind () = Fs.rmPath(Path.(stagePath / ".git"));
         let%bind () = Fs.rename(~src=stagePath, path);
         return(Path(path));
       },
@@ -117,6 +118,7 @@ let fetch' = (sandbox, dist) => {
         let%bind () = Fs.createDir(stagePath);
         let%bind () = Git.clone(~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
+        let%bind () = Fs.rmPath(Path.(stagePath / ".git"));
         let%bind () = Fs.rename(~src=stagePath, path);
         return(Path(path));
       },

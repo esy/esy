@@ -376,8 +376,8 @@ let rmPath = path =>
       RunAsync.return();
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, _, _) => RunAsync.return()
-  | [@implicit_arity] Unix.Unix_error(error, _, _) =>
+  | Unix.Unix_error(Unix.ENOENT, _, _) => RunAsync.return()
+  | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
 
