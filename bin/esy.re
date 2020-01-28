@@ -1238,9 +1238,13 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
 
   let%bind configured = Project.configured(proj);
   let%bind plan = Project.plan(mode, proj);
+
+  let rootId =
+    configured.Project.root.EsyBuild.BuildSandbox.Task.pkg.Package.id;
   let%bind allProjectDependencies =
     BuildSandbox.Plan.all(plan)
     |> List.map(~f=task => task.BuildSandbox.Task.pkg)
+    |> List.filter(~f=pkg => pkg.Package.id != rootId)
     |> RunAsync.return;
 
   let exportBuild = pkg =>
@@ -1301,12 +1305,21 @@ let importBuild = (fromPath, buildPaths, projcfg: ProjectConfig.t) => {
   );
 };
 
-let importDependencies = (fromPath, proj: Project.t) => {
+let importDependencies =
+    (fromPath, mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind solved = Project.solved(proj);
   let%bind fetched = Project.fetched(proj);
   let%bind configured = Project.configured(proj);
+
+  let rootId =
+    configured.Project.root.EsyBuild.BuildSandbox.Task.pkg.Package.id;
+  let%bind plan = Project.plan(mode, proj);
+  let%bind allProjectDependencies =
+    BuildSandbox.Plan.all(plan)
+    |> List.map(~f=task => task.BuildSandbox.Task.pkg)
+    |> List.filter(~f=pkg => pkg.Package.id != rootId)
+    |> RunAsync.return;
 
   let fromPath =
     switch (fromPath) {
@@ -1314,7 +1327,7 @@ let importDependencies = (fromPath, proj: Project.t) => {
     | None => Path.(proj.buildCfg.projectPath / "_export")
     };
 
-  let importBuild = ((_direct, pkg)) =>
+  let importBuild = pkg =>
     switch (
       BuildSandbox.Plan.get(configured.Project.planForDev, pkg.Package.id)
     ) {
@@ -1345,10 +1358,7 @@ let importDependencies = (fromPath, proj: Project.t) => {
   RunAsync.List.mapAndWait(
     ~concurrency=16,
     ~f=importBuild,
-    Solution.allDependenciesBFS(
-      solved.Project.solution,
-      Solution.root(solved.Project.solution).id,
-    ),
+    allProjectDependencies,
   );
 };
 
@@ -1801,6 +1811,7 @@ let commandsConfig = {
               & pos(0, some(resolvedPathTerm), None)
               & info([], ~doc="Path with builds.")
             )
+          $ modeTerm
         ),
       ),
       /* INTROSPECTION COMMANDS */
