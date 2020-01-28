@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.6.2 @ latest
+
+- Fix fetching submodules for git/github sources.
+
+  Previous submodules were fetched against the tip of the branch and not the
+  specified commit. Cache for git/github sources is invalidated.
+
 ## 0.6.1 @ latest
 
 - Strip `.git` when feching overrides from git and github repositories (@giltho
