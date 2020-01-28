@@ -29,6 +29,23 @@ let runGit = cmd => {
   };
 };
 
+let updateSubmodules = (~repo, ()) => {
+  open RunAsync.Syntax;
+  let repo = EsyBash.normalizePathForCygwin(Path.show(repo));
+  let cmd =
+    Cmd.(
+      v("git")
+      % "-C"
+      % repo
+      % "submodule"
+      % "update"
+      % "--init"
+      % "--recursive"
+    );
+  let%bind _ = runGit(cmd);
+  return();
+};
+
 let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
   open RunAsync.Syntax;
   let%bind cmd =
@@ -37,7 +54,7 @@ let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
         open Cmd;
         open Result.Syntax;
         let dest = EsyBash.normalizePathForCygwin(Path.show(dst));
-        let cmd = v("git") % "clone" % "--recursive";
+        let cmd = v("git") % "clone";
         let cmd =
           switch (branch) {
           | Some(branch) => cmd % "--branch" % branch

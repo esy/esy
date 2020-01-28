@@ -217,6 +217,7 @@ let resolve = (~overrides=Overrides.empty, ~cfg, ~sandbox, dist: Dist.t) => {
       Fs.withTempDir(repo => {
         let%bind () = Git.clone(~dst=repo, ~remote, ());
         let%bind () = Git.checkout(~ref=commit, ~repo, ());
+        let%bind () = Git.updateSubmodules(~repo, ());
         let%bind (_, pkg) = ofPath(~manifest?, repo);
         return((pkg, Path.Set.empty));
       })
