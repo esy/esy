@@ -1233,13 +1233,17 @@ let exportBuild = (buildPath, proj: Project.t) => {
   BuildSandbox.exportBuild(~outputPrefixPath, proj.buildCfg, buildPath);
 };
 
-let exportDependencies = (proj: Project.t) => {
+let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind solved = Project.solved(proj);
   let%bind configured = Project.configured(proj);
+  let%bind plan = Project.plan(mode, proj);
+  let%bind allProjectDependencies =
+    BuildSandbox.Plan.all(plan)
+    |> List.map(~f=task => task.BuildSandbox.Task.pkg)
+    |> RunAsync.return;
 
-  let exportBuild = ((_, pkg)) =>
+  let exportBuild = pkg =>
     switch (
       BuildSandbox.Plan.get(configured.Project.planForDev, pkg.Package.id)
     ) {
@@ -1266,10 +1270,7 @@ let exportDependencies = (proj: Project.t) => {
   RunAsync.List.mapAndWait(
     ~concurrency=8,
     ~f=exportBuild,
-    Solution.allDependenciesBFS(
-      solved.Project.solution,
-      Solution.root(solved.Project.solution).id,
-    ),
+    allProjectDependencies,
   );
 };
 
@@ -1787,7 +1788,7 @@ let commandsConfig = {
         ~name="export-dependencies",
         ~doc="Export sandbox dependendencies as prebuilt artifacts",
         ~docs=otherSection,
-        Term.(const(exportDependencies)),
+        Term.(const(exportDependencies) $ modeTerm),
       ),
       makeProjectCommand(
         ~name="import-dependencies",
