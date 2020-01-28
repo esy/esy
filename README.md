@@ -140,16 +140,10 @@ forget to commit it.
 
 ### Running Tests
 
-Unit tests:
+Run:
 
 ```
-% esy test:unit
-```
-
-E2E tests:
-
-```
-% esy test:e2e
+% make test
 ```
 
 ### Branches

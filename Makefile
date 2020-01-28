@@ -118,14 +118,17 @@ fmt-no-promote refmt-no-promote::
 # Test
 #
 
+./bin/esy:
+	@node ./scripts/bootstrap.js
+
 test-unit::
 	esy test:unit
 
-test-e2e::
-	./node_modules/.bin/jest test-e2e
+test-e2e:: ./bin/esy
+	@./node_modules/.bin/jest test-e2e
 
-test-e2e-slow::
-	esy test:e2e-slow
+test-e2e-slow:: ./bin/esy
+	@./node_modules/.bin/jest test-e2e-slow
 
 test::
 	@echo "Running test suite: unit tests"
