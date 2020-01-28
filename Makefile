@@ -6,7 +6,7 @@ ESY_VERSION_MINOR :=$(word 2, $(subst ., ,$(ESY_VERSION)))
 
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package
-VERSION = $(shell esy node -p "require('./package.json').version")
+VERSION = $(shell node -p "require('./package.json').version")
 PLATFORM = $(shell uname | tr '[A-Z]' '[a-z]')
 NPM_RELEASE_TAG ?= latest
 ESY_RELEASE_TAG ?= v$(VERSION)
@@ -164,7 +164,7 @@ endif
 	@git tag $(ESY_RELEASE_TAG)
 
 release-prepare:
-	@esy node ./scripts/promote-nightly-release.js $(GIT_COMMIT_SHA)
+	@node ./scripts/promote-nightly-release.js $(GIT_COMMIT_SHA)
 
 release-publish: release
 	@(cd _release/package && npm publish --access public --tag $(NPM_RELEASE_TAG))
