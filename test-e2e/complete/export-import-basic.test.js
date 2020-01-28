@@ -1,7 +1,6 @@
 // @flow
 
 const path = require('path');
-const del = require('del');
 const fs = require('fs-extra');
 
 const helpers = require('../test/helpers');
@@ -22,6 +21,9 @@ it('basic export / import test', async () => {
       dependencies: {
         dep: 'path:dep',
       },
+      devDependencies: {
+        devdep: 'path:devdep',
+      }
     }),
     dir(
       'dep',
@@ -36,6 +38,23 @@ it('basic export / import test', async () => {
           subdep: 'path:../subdep',
         },
       }),
+    ),
+    dir(
+      'devdep',
+      packageJson({
+        name: 'devdep',
+        version: '1.0.0',
+        license: 'MIT',
+        esy: {
+          buildsInSource: true,
+          build: [helpers.buildCommand(p, '#{self.name}.js')],
+          install: [
+            'cp #{self.name}.cmd #{self.bin / self.name}.cmd',
+            'cp #{self.name}.js #{self.bin / self.name}.js',
+          ],
+        },
+      }),
+      dummyExecutable('devdep'),
     ),
     dir(
       'subdep',
@@ -89,5 +108,9 @@ it('basic export / import test', async () => {
   {
     const {stdout} = await p.esy('x app.cmd');
     expect(stdout.trim()).toBe('__subdep__');
+  }
+  {
+    const {stdout} = await p.esy('devdep.cmd');
+    expect(stdout.trim()).toBe('__devdep__');
   }
 });
