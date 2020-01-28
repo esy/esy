@@ -4,7 +4,7 @@
  */;
 
 type t =
-  | Npm(SemverVersion.Formula.DNF.t)
+  | Npm(SemverVersion.Formula.t)
   | NpmDistTag(string)
   | Opam(OpamPackageVersion.Formula.DNF.t)
   | Source(SourceSpec.t);

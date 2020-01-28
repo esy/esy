@@ -1,36 +1,21 @@
 module Version: {
-  type t = {
-    major: int,
-    minor: int,
-    patch: int,
-    prerelease,
-    build,
-  }
-  and prerelease = list(segment)
-  and build = list(string)
-  and segment =
-    | W(string)
-    | N(int);
+  include (module type of Semver.Version);
 
-  include VersionBase.VERSION with type t := t;
+  include S.COMMON with type t := t;
+  include S.SEXPABLE with type t := t;
 
-  let parse: string => result(t, string);
-  let sexp_of_t: t => Sexplib0.Sexp.t;
+  let parser: Parse.t(t);
 };
-
-module Constraint: VersionBase.CONSTRAINT with type version = Version.t;
 
 module Formula: {
-  include
-    VersionBase.FORMULA with
-      type version = Version.t and type constr = Constraint.t;
+  include (module type of Semver.Formula.DNF);
 
-  let any: DNF.t;
+  let any: t;
 
-  let parserDnf: Parse.t(DNF.t);
+  let parserDnf: Parse.t(t);
 
-  let parse: string => result(DNF.t, string);
-  let parseExn: string => DNF.t;
+  let parse: string => result(t, string);
+  let parseExn: string => t;
 };
 
-let caretRangeOfVersion: Version.t => Formula.DNF.t;
+let caretRangeOfVersion: Version.t => Formula.t;

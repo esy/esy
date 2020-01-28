@@ -87,7 +87,7 @@ clean:
 	@esy dune clean
 
 build:
-	@esy b dune build -j 4 $(TARGETS)
+	@esy b dune build -j 4
 
 esy::
 	@esy b dune build -j 4 _build/default/esy/Esy.cmxa
@@ -106,7 +106,10 @@ doc:
 
 b: build-dev
 build-dev:
-	@esy b dune build -j 4 $(TARGETS)
+	@esy b dune build -j 4
+
+check:
+	@esy dune build @check
 
 fmt refmt::
 	@esy dune build @fmt --auto-promote

@@ -18,6 +18,12 @@ module type COMPARABLE = {
   let compare: (t, t) => int;
 };
 
+module type SEXPABLE = {
+  type t;
+
+  let sexp_of_t: t => Sexplib0.Sexp.t;
+};
+
 module type COMMON = {
   type t;
 

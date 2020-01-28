@@ -1,13 +1,13 @@
 [@deriving ord]
 type t =
-  | Npm(SemverVersion.Formula.DNF.t)
+  | Npm(SemverVersion.Formula.t)
   | NpmDistTag(string)
   | Opam(OpamPackageVersion.Formula.DNF.t)
   | Source(SourceSpec.t);
 
 let show =
   fun
-  | Npm(formula) => SemverVersion.Formula.DNF.show(formula)
+  | Npm(formula) => SemverVersion.Formula.show(formula)
   | NpmDistTag(tag) => tag
   | Opam(formula) => OpamPackageVersion.Formula.DNF.show(formula)
   | Source(src) => SourceSpec.show(src);
@@ -19,7 +19,7 @@ let to_yojson = src => `String(show(src));
 let ofVersion = (version: Version.t) =>
   switch (version) {
   | Version.Npm(v) =>
-    Npm(SemverVersion.Formula.DNF.unit(SemverVersion.Constraint.EQ(v)))
+    Npm([[(Semver.Formula.EQ, v)]])
   | Version.Opam(v) =>
     Opam(
       OpamPackageVersion.Formula.DNF.unit(
