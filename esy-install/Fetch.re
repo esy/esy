@@ -148,7 +148,7 @@ module PackagePaths = {
       let digest = {
         let version = PackageId.version(pkg.id);
         switch (version) {
-        | Source(Dist(Github(_))) => digest |> add(string("1"))
+        | Source(Dist(Github(_))) => digest |> add(string("2"))
         | _ => digest
         };
       };
