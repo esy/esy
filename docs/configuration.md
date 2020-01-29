@@ -287,6 +287,8 @@ solver. In such a case, use `resolutions` field in the `package.json`.
 }
 ```
 
+Resolutions are only valid in the current project and are not exported.
+
 This feature works similar to yarn's [Selective dependency resolutions][yarn-resolutions]
 but nested patterns (which contain `**` or `*` are not supported).
 
