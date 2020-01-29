@@ -1239,12 +1239,15 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   let%bind configured = Project.configured(proj);
   let%bind plan = Project.plan(mode, proj);
 
-  let rootId =
-    configured.Project.root.EsyBuild.BuildSandbox.Task.pkg.Package.id;
   let%bind allProjectDependencies =
     BuildSandbox.Plan.all(plan)
     |> List.map(~f=task => task.BuildSandbox.Task.pkg)
-    |> List.filter(~f=pkg => pkg.Package.id != rootId)
+    |> List.filter(~f=pkg =>
+         switch (pkg.Package.source) {
+         | Link(_) => false
+         | Install(_) => true
+         }
+       )
     |> RunAsync.return;
 
   let exportBuild = pkg =>
@@ -1312,13 +1315,16 @@ let importDependencies =
   let%bind fetched = Project.fetched(proj);
   let%bind configured = Project.configured(proj);
 
-  let rootId =
-    configured.Project.root.EsyBuild.BuildSandbox.Task.pkg.Package.id;
   let%bind plan = Project.plan(mode, proj);
   let%bind allProjectDependencies =
     BuildSandbox.Plan.all(plan)
     |> List.map(~f=task => task.BuildSandbox.Task.pkg)
-    |> List.filter(~f=pkg => pkg.Package.id != rootId)
+    |> List.filter(~f=pkg =>
+         switch (pkg.Package.source) {
+         | Link(_) => false
+         | Install(_) => true
+         }
+       )
     |> RunAsync.return;
 
   let fromPath =
