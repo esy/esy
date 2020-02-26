@@ -257,6 +257,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
           let%bind {st_atime: atime, st_mtime: mtime, _}: Unix.stats =
             Bos.OS.Path.stat(path);
           let%bind () = Bos.OS.File.write(nextPath, data);
+
+          let oc = open_out(nextPath |> Path.show); /* create or truncate file, return channel */
+          Printf.fprintf(oc, "%s\n", data); /* write something */
+          close_out(oc);
+
           Unix.utimes(Fpath.to_string(nextPath), atime, mtime);
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
         | Unix.S_LNK =>
