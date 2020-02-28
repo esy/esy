@@ -246,7 +246,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
                  )) {
         Ok();
       } else {
-        let%bind stats = Bos.OS.Path.symlink_stat(path);
+        let%bind stats = Bos.OS.Path.stat(path);
         let nextPath = rebasePath(path);
         switch (stats.Unix.st_kind) {
         | Unix.S_DIR =>
