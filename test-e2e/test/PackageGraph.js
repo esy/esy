@@ -191,9 +191,10 @@ async function read(directory: string, sandbox?: string = 'default'): Promise<?P
       dependencies[name] = make(dep);
     }
 
+    const devDependencies = {};
     for (const dep of item.devDependencies) {
       const {name} = parseId(dep);
-      dependencies[name] = make(dep);
+      devDependencies[name] = make(dep);
     }
 
     return {
@@ -201,6 +202,7 @@ async function read(directory: string, sandbox?: string = 'default'): Promise<?P
       version: item.version,
       path: installation[id].path,
       dependencies,
+      devDependencies,
     };
   }
 
