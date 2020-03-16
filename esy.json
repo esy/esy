@@ -28,7 +28,7 @@
     "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest",
     "test:e2e": "npm run jest test-e2e",
-    "test:e2e-re": "esy b dune exec ./test-e2e-re/lib/RunTests.exe",
+    "test:e2e-re": "sh -c 'esy b; esy dune exec ./test-e2e-re/lib/RunTests.exe'",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
