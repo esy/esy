@@ -13,7 +13,7 @@ in their source trees.
 ## With esy packages
 
 To link a package to the project add a special `link:` resolution to project's
-[`resolutions`](cfg-resolutions) field alongside the dependency declaration:
+[`resolutions`](configuration.html#resolutions) field alongside the dependency declaration:
 
 ```json
 "dependencies": {
