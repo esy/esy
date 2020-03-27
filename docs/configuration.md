@@ -321,7 +321,7 @@ While the command `esy test` is defined to be a shortcut for:
 esy dune runtest
 ```
 
-However, to ensure forward compatiblity, we encourage a more verbose 
+For non-interactive (ie. when used in scripts), to ensure forward compatiblity, we encourage a more verbose 
 `esy run-script build-dev` and `esy run-script test`. Explicitly specifying
 `run-script` prevents clashes with subcommands that we add in future.
 
