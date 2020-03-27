@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## dev
+
+- Fixes symlink copying in sources [#1065](https://github.com/esy/esy/pull/1065)
+
+## 0.6.2 @ latest
+
+- Fetch git submodules recursively ([210c806ea](https://github.com/esy/esy/commit/210c806eac702015d6f2a143f215a0c60deebb7b))
+- Invalidate sources cache. ([d49bd03f27](https://github.com/esy/esy/commit/d49bd03f273f6f12efd0a34eeb91f014ed6de2c3) and [2f7b94280](https://github.com/esy/esy/commit/2f7b94280261ad5eac4ced7d317cd80dc9e975d6))
+
+## 0.6.1 @ latest
+
+- Drop .git from git/github sources [#1053](https://github.com/esy/esy/pull/1053)
+  esy.lock used to contain a .git folder which is not removed when it should be.
+
 ## 0.6.0 @ latest
 
 - When installing packages from git/github esy now recursively fetches
