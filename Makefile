@@ -65,6 +65,7 @@ ifndef ESY_EXT
 endif
 ifeq ($(ESY_VERSION_MINOR),6)
 	@esy install
+	@yarn install
 	@make build
 	@node scripts/bootstrap.js
 else
