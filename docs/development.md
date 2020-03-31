@@ -11,6 +11,8 @@ cd esy
 make bootstrap
 ```
 
+And then run newly built `esy` executable from anywhere like `PATH_TO_REPO/bin/esy`.
+
 Run:
 
 ```bash
@@ -18,20 +20,6 @@ make
 ```
 
 to see the description of development workflow.
-
-## Testing Locally
-
-```bash
-make build-release
-npm remove -g esy
-npm install -g _release
-```
-
-Now you may run `esy` commands using your local version of `esy`.
-
-> You don't have to install local version of esy globally if you're in the
-> middle of developing something.  Just running `PATH_TO_ESY/bin/esy` will work,
-> too.
 
 ## Running Tests
 

@@ -22,7 +22,7 @@ GIT_COMMIT_SHA = $(shell git rev-parse --verify HEAD)
 define HELP
 
  Run "make bootstrap" if this is your first time with esy development. After
- that you can use "bin/esy" executable to run the development version of esy
+ that you can use "PATH_TO_REPO/bin/esy" executable to run the development version of esy
  command. Enjoy!
 
  Common tasks:
@@ -33,12 +33,7 @@ define HELP
 
  Release tasks:
 
-   publish             Build release and run 'npm publish'
-
-   release             Produce an npm release inside _release, use ESY_RELEASE_TAG
-                       to control for which tag to fetch platform releases from GitHub
-
-   platform-release    Produce a plartform specific release inside _platformrelease.
+    # TODO Describe release tasks
 
  Site tasks (https://esy.sh):
 

@@ -110,20 +110,10 @@ To make changes to `esy` and test them locally:
 ```
 % git clone git://github.com/esy/esy.git
 % cd esy
-% esy
-% yarn
-% node scripts/bootstrap.js
+% make bootstrap
 ```
 
-On Linux/macOS (soon on Windows too) you can run:
-
-```
-% make install-githooks
-```
-
-which will install git hooks which will do pre commit validation.
-
-To test the `esy` executable in development you can use `bin/esy`.
+And then run newly built `esy` executable from anywhere like `PATH_TO_REPO/bin/esy`.
 
 ### Updating `bin/esyInstallRelease.js`
 
