@@ -8,6 +8,7 @@ type t = {
   overrides: Overrides.t,
   dependencies: PackageId.Set.t,
   devDependencies: PackageId.Set.t,
+  installConfig: InstallConfig.t,
 };
 
 let compare = (a, b) => PackageId.compare(a.id, b.id);

@@ -913,22 +913,29 @@ let fetch = (installspec, sandbox, solution) => {
             RunAsync.List.mapAndWait(~f, dependencies);
           };
 
-          let%bind () = {
-            let pnpJsPath = Path.(binPath / "pnp.js");
-            let installation = Installation.add(id, path, installation);
-            let data =
-              PnpJs.render(
-                ~basePath=binPath,
-                ~rootPath=path,
-                ~rootId=id,
-                ~solution,
-                ~installation,
-                (),
-              );
+          let%bind () =
+            if (pkg.installConfig.pnp == true) {
+              let%bind () = {
+                let pnpJsPath = Path.(binPath / "pnp.js");
+                let installation = Installation.add(id, path, installation);
+                let data =
+                  PnpJs.render(
+                    ~basePath=binPath,
+                    ~rootPath=path,
+                    ~rootId=id,
+                    ~solution,
+                    ~installation,
+                    (),
+                  );
 
-            let%bind () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
-            installNodeWrapper(~binPath, ~pnpJsPath, ());
-          };
+                let%bind () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
+                installNodeWrapper(~binPath, ~pnpJsPath, ());
+              };
+
+              return();
+            } else {
+              return();
+            };
 
           return();
         };
@@ -1008,29 +1015,36 @@ let fetch = (installspec, sandbox, solution) => {
     return();
   };
 
-  /* Produce _esy/<sandbox>/pnp.js */
-  let%bind () = {
-    let path = SandboxSpec.pnpJsPath(sandbox.Sandbox.spec);
-    let data =
-      PnpJs.render(
-        ~basePath=Path.parent(SandboxSpec.pnpJsPath(sandbox.spec)),
-        ~rootPath=sandbox.spec.path,
-        ~rootId=Solution.root(solution).Package.id,
-        ~solution,
-        ~installation,
-        (),
-      );
-
-    Fs.writeFile(~data, path);
-  };
-
-  /* place <binPath>/node executable with pnp enabled */
   let%bind () =
-    installNodeWrapper(
-      ~binPath=SandboxSpec.binPath(sandbox.Sandbox.spec),
-      ~pnpJsPath=SandboxSpec.pnpJsPath(sandbox.spec),
-      (),
-    );
+    if (root.installConfig.pnp) {
+      /* Produce _esy/<sandbox>/pnp.js */
+      let%bind () = {
+        let path = SandboxSpec.pnpJsPath(sandbox.Sandbox.spec);
+        let data =
+          PnpJs.render(
+            ~basePath=Path.parent(SandboxSpec.pnpJsPath(sandbox.spec)),
+            ~rootPath=sandbox.spec.path,
+            ~rootId=Solution.root(solution).Package.id,
+            ~solution,
+            ~installation,
+            (),
+          );
+
+        Fs.writeFile(~data, path);
+      };
+
+      /* place <binPath>/node executable with pnp enabled */
+      let%bind () =
+        installNodeWrapper(
+          ~binPath=SandboxSpec.binPath(sandbox.Sandbox.spec),
+          ~pnpJsPath=SandboxSpec.pnpJsPath(sandbox.spec),
+          (),
+        );
+
+      return();
+    } else {
+      return();
+    };
 
   let%bind () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
 

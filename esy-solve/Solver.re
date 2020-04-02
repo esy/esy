@@ -374,6 +374,7 @@ let lockPackage =
     optDependencies,
     resolutions: _,
     kind: _,
+    installConfig,
   } = pkg;
 
   let idsOfDependencies = dependencies =>
@@ -452,6 +453,7 @@ let lockPackage =
     overrides,
     dependencies,
     devDependencies,
+    installConfig,
   });
 };
 
@@ -626,6 +628,7 @@ let solveDependencies =
     optDependencies: StringSet.empty,
     resolutions: Resolutions.empty,
     kind: Esy,
+    installConfig: InstallConfig.empty,
   };
 
   let universe = Universe.add(~pkg=dummyRoot, solver.universe);

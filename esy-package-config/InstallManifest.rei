@@ -41,6 +41,7 @@ type t = {
   optDependencies: StringSet.t,
   resolutions: Resolutions.t,
   kind,
+  installConfig: InstallConfig.t,
 }
 and kind =
   | Esy

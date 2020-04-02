@@ -48,6 +48,7 @@ and node = {
   overrides,
   dependencies: PackageId.Set.t,
   devDependencies: PackageId.Set.t,
+  installConfig: InstallConfig.t,
 };
 
 let indexFilename = "index.json";
@@ -216,6 +217,7 @@ let writePackage = (sandbox, pkg: Package.t) => {
     overrides,
     dependencies: pkg.dependencies,
     devDependencies: pkg.devDependencies,
+    installConfig: pkg.installConfig,
   });
 };
 
@@ -241,6 +243,7 @@ let readPackage = (sandbox, node: node) => {
     overrides,
     dependencies: node.dependencies,
     devDependencies: node.devDependencies,
+    installConfig: node.installConfig,
   });
 };
 

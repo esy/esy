@@ -106,6 +106,7 @@ let make = (~cfg, spec: EsyInstall.SandboxSpec.t) => {
           optDependencies: StringSet.empty,
           resolutions,
           kind: Npm,
+          installConfig: InstallConfig.empty,
         };
         return({cfg, spec, root, resolutions: root.resolutions, resolver});
       };

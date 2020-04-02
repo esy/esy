@@ -31,6 +31,8 @@ module InstallManifestV1 = {
       esy: option(EsyPackageJson.t),
       [@default None]
       dist: option(dist),
+      [@default InstallConfig.empty]
+      installConfig: InstallConfig.t,
     }
     and dist = {
       tarball: string,
@@ -180,6 +182,7 @@ module InstallManifestV1 = {
           } else {
             Npm;
           },
+        installConfig: pkgJson.installConfig,
       },
       warnings,
     ));
