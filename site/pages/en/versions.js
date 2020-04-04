@@ -56,13 +56,13 @@ function Versions(props) {
               {versions.map(
                 version =>
                   version !== latestVersion && (
-                    <tr>
+                    <tr key={version}>
                       <th>{version}</th>
                       <td>
-                        <a href="">Documentation</a>
+                        <a href={`/docs/en/${version}/gettings-started.html`}>Documentation</a>
                       </td>
                       <td>
-                        <a href="">Release Notes</a>
+                        <a href={`https://github.com/esy/esy/blob/master/CHANGELOG.md#${version.replace(/\./g, '')}--latest`}>Release Notes</a>
                       </td>
                     </tr>
                   ),
