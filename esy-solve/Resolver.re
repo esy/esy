@@ -94,6 +94,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   optDependencies: StringSet.empty,
   resolutions: Resolutions.empty,
   kind: Esy,
+  installConfig: InstallConfig.empty,
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -109,6 +110,7 @@ let emptyInstall = (~name, ~source, ()) => {
   optDependencies: StringSet.empty,
   resolutions: Resolutions.empty,
   kind: Esy,
+  installConfig: InstallConfig.empty,
 };
 
 let make = (~cfg, ~sandbox, ()) =>
