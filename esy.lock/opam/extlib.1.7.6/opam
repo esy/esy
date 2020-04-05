@@ -3,7 +3,7 @@ maintainer: "ygrek@autistici.org"
 homepage: "https://github.com/ygrek/ocaml-extlib"
 dev-repo: "git://github.com/ygrek/ocaml-extlib.git"
 bug-reports: "https://github.com/ygrek/ocaml-extlib/issues"
-doc: ["http://ygrek.org.ua/p/extlib/doc/"]
+doc: ["https://ygrek.org/p/extlib/doc/"]
 license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
 authors: [
   "Nicolas Cannasse"
@@ -43,7 +43,7 @@ safety (tail-recursive) and also to provide new modules which should be useful
 for day to day programming."""
 flags: light-uninstall
 url {
-  src: "https://ygrek.org.ua/p/release/ocaml-extlib/extlib-1.7.6.tar.gz"
+  src: "https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.6.tar.gz"
   checksum: "md5=b976093ef23b7d60fc1c8f0380c4f76a"
   mirrors:
     "https://github.com/ygrek/ocaml-extlib/releases/download/1.7.6/extlib-1.7.6.tar.gz"
