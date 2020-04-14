@@ -529,7 +529,8 @@ module OfTerm = {
           };
         }
       ) {
-      | Failure(_) =>
+      | Failure(_)
+      | End_of_file =>
         let%lwt () =
           Logs_lwt.debug(m => m("unable to read the cache, skipping..."));
         return(None);
