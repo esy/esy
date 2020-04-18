@@ -163,7 +163,10 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t) => {
     return(path);
   } else {
     let%bind fetched = fetch(cfg, sandbox, dist);
-    let%bind () = unpack(fetched, path);
-    return(path);
+    Fs.withTempDir(stagePath => {
+      let%bind () = unpack(fetched, stagePath);
+      let%bind () = Fs.rename(~src=stagePath, path);
+      return(path);
+    });
   };
 };
