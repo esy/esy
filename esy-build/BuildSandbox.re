@@ -1463,7 +1463,7 @@ let importBuild = (storePath, buildPath) => {
           buildPath,
         );
 
-      let%bind () = Fs.rename(~src=buildPath, outputPath);
+      let%bind () = Fs.rename(~skipIfExists=true, ~src=buildPath, outputPath);
       let%lwt () = Logs_lwt.app(m => m("Import %s: done", buildId));
       return();
     };

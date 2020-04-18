@@ -219,7 +219,7 @@ module PackagePaths = {
               return();
             };
 
-          Fs.rename(~src=stagePath, installPath);
+          Fs.rename(~skipIfExists=true, ~src=stagePath, installPath);
         }
       );
 };
