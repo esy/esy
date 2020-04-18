@@ -6,7 +6,7 @@ let toRunAsync = (~desc="I/O failed", promise) => {
       return(v);
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(err, _, _) =>
+  | Unix.Unix_error(err, _, _) =>
     let msg = Unix.error_message(err);
     error(Printf.sprintf("%s: %s", desc, msg));
   };
@@ -66,7 +66,7 @@ let chmod = (permission, path: Path.t) =>
       let%lwt () = Lwt_unix.chmod(path, permission);
       RunAsync.return();
     }) {
-    | [@implicit_arity] Unix.Unix_error(errno, _, _) =>
+    | Unix.Unix_error(errno, _, _) =>
       let msg = Unix.error_message(errno);
       RunAsync.error(msg);
     },
@@ -82,9 +82,8 @@ let createDirLwt = (path: Path.t) => {
       let%lwt () = Lwt_unix.mkdir(path, 0o777);
       Lwt.return(`Created);
     }) {
-    | [@implicit_arity] Unix.Unix_error(Unix.EEXIST, _, _) =>
-      Lwt.return(`AlreadyExists)
-    | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, _, _) =>
+    | Unix.Unix_error(Unix.EEXIST, _, _) => Lwt.return(`AlreadyExists)
+    | Unix.Unix_error(Unix.ENOENT, _, _) =>
       let%lwt _ = create(Path.parent(path));
       create(path);
     };
@@ -98,8 +97,8 @@ let createDir = (path: Path.t) => {
       let path = Path.show(path);
       Lwt_unix.mkdir(path, 0o777);
     }) {
-    | [@implicit_arity] Unix.Unix_error(Unix.EEXIST, _, _) => Lwt.return()
-    | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, _, _) =>
+    | Unix.Unix_error(Unix.EEXIST, _, _) => Lwt.return()
+    | Unix.Unix_error(Unix.ENOENT, _, _) =>
       let%lwt () = create(Path.parent(path));
       let%lwt () = create(path);
       Lwt.return();
@@ -113,9 +112,9 @@ let stat = (path: Path.t) => {
   let path = Path.show(path);
   switch%lwt (Lwt_unix.stat(path)) {
   | stats => RunAsync.return(stats)
-  | exception ([@implicit_arity] Unix.Unix_error(Unix.ENOTDIR, "stat", _)) =>
+  | exception (Unix.Unix_error(Unix.ENOTDIR, "stat", _)) =>
     RunAsync.error("unable to stat")
-  | exception ([@implicit_arity] Unix.Unix_error(Unix.ENOENT, "stat", _)) =>
+  | exception (Unix.Unix_error(Unix.ENOENT, "stat", _)) =>
     RunAsync.error("unable to stat")
   };
 };
@@ -128,7 +127,7 @@ let lstat = (path: Path.t) => {
       RunAsync.return(stats);
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(error, _, _) =>
+  | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
 };
@@ -155,7 +154,7 @@ let rename = (~src, target) => {
       RunAsync.return();
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
+  | Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
     RunAsync.errorf("no such file: %s", filename)
   };
 };
@@ -204,9 +203,9 @@ let fold =
 
 let listDir = path =>
   switch%lwt (Lwt_unix.opendir(Path.show(path))) {
-  | exception ([@implicit_arity] Unix.Unix_error(Unix.ENOENT, "opendir", _)) =>
+  | exception (Unix.Unix_error(Unix.ENOENT, "opendir", _)) =>
     RunAsync.error("cannot read the directory")
-  | exception ([@implicit_arity] Unix.Unix_error(Unix.ENOTDIR, "opendir", _)) =>
+  | exception (Unix.Unix_error(Unix.ENOTDIR, "opendir", _)) =>
     RunAsync.error("not a directory")
   | dir =>
     let rec readdir = (names, ()) =>
@@ -235,7 +234,7 @@ let copyStatLwt = (~stat, path) =>
     let%lwt () = Lwt_unix.chmod(path, stat.Unix.st_perm);
     let%lwt () =
       try%lwt(Lwt_unix.chown(path, stat.Unix.st_uid, stat.Unix.st_gid)) {
-      | [@implicit_arity] Unix.Unix_error(Unix.EPERM, _, _) => Lwt.return()
+      | Unix.Unix_error(Unix.EPERM, _, _) => Lwt.return()
       };
     Lwt.return();
   };
@@ -285,7 +284,7 @@ let copyFile = (~src, ~dst) =>
       RunAsync.return();
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(error, _, _) =>
+  | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
 
@@ -337,7 +336,7 @@ let copyPath = (~src, ~dst) => {
       RunAsync.return();
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(error, _, _) =>
+  | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
 };
@@ -481,7 +480,7 @@ let readlink = (path: Path.t) => {
       return(Path.v(link));
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(err, _, _) =>
+  | Unix.Unix_error(err, _, _) =>
     errorf("readlink %s: %s", path, Unix.error_message(err))
   };
 };
@@ -495,8 +494,8 @@ let readlinkOpt = (path: Path.t) => {
       return(Some(Path.v(link)));
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(ENOENT, _, _) => return(None)
-  | [@implicit_arity] Unix.Unix_error(err, _, _) =>
+  | Unix.Unix_error(ENOENT, _, _) => return(None)
+  | Unix.Unix_error(err, _, _) =>
     errorf("readlink %s: %s", path, Unix.error_message(err))
   };
 };
@@ -513,7 +512,7 @@ let symlink = (~force=false, ~src, dst) => {
         Lwt.return(Ok());
       }
     ) {
-    | [@implicit_arity] Unix.Unix_error(err, _, _) => Lwt.return(Error(err))
+    | Unix.Unix_error(err, _, _) => Lwt.return(Error(err))
     };
   };
 
