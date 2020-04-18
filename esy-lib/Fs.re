@@ -158,6 +158,7 @@ let rename = (~skipIfExists=false, ~src, target) => {
   ) {
   | Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
     RunAsync.errorf("no such file: %s", filename)
+  | Unix.Unix_error(Unix.ENOTEMPTY, "rename", filename)
   | Unix.Unix_error(Unix.EEXIST, "rename", filename) =>
     if (skipIfExists) {
       RunAsync.return();
