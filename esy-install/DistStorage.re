@@ -32,18 +32,21 @@ let cache = (fetched, tarballPath) =>
       let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
       let%bind () = Fs.createDir(unpackPath);
       let%bind () = Tarball.create(~filename=tempTarballPath, unpackPath);
-      let%bind () = Fs.rename(~src=tempTarballPath, tarballPath);
+      let%bind () =
+        Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let%bind () = Fs.rmPath(unpackPath);
       return(Tarball({tarballPath, stripComponents: 0}));
     | SourcePath(path) =>
       let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
       let%bind () = Tarball.create(~filename=tempTarballPath, path);
-      let%bind () = Fs.rename(~src=tempTarballPath, tarballPath);
+      let%bind () =
+        Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       return(Tarball({tarballPath, stripComponents: 0}));
     | Path(path) =>
       let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
       let%bind () = Tarball.create(~filename=tempTarballPath, path);
-      let%bind () = Fs.rename(~src=tempTarballPath, tarballPath);
+      let%bind () =
+        Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let%bind () = Fs.rmPath(path);
       return(Tarball({tarballPath, stripComponents: 0}));
     | Tarball(info) =>
@@ -52,7 +55,8 @@ let cache = (fetched, tarballPath) =>
       let%bind () =
         Tarball.unpack(~stripComponents=1, ~dst=unpackPath, info.tarballPath);
       let%bind () = Tarball.create(~filename=tempTarballPath, unpackPath);
-      let%bind () = Fs.rename(~src=tempTarballPath, tarballPath);
+      let%bind () =
+        Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let%bind () = Fs.rmPath(info.tarballPath);
       let%bind () = Fs.rmPath(unpackPath);
       return(Tarball({tarballPath, stripComponents: 0}));
@@ -83,7 +87,7 @@ let fetch' = (sandbox, dist) => {
         let%bind () = Curl.download(~output=tarballPath, url);
         let%bind () = Checksum.checkFile(~path=tarballPath, checksum);
         let%bind () = Fs.createDir(Path.parent(path));
-        let%bind () = Fs.rename(~src=tarballPath, path);
+        let%bind () = Fs.rename(~skipIfExists=true, ~src=tarballPath, path);
         return(Tarball({tarballPath: path, stripComponents: 1}));
       },
     );
@@ -104,7 +108,7 @@ let fetch' = (sandbox, dist) => {
         let%bind () = Git.clone(~dst=stagePath, ~remote, ());
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
-        let%bind () = Fs.rename(~src=stagePath, path);
+        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },
     );
@@ -119,7 +123,7 @@ let fetch' = (sandbox, dist) => {
         let%bind () = Git.clone(~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
-        let%bind () = Fs.rename(~src=stagePath, path);
+        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },
     );
@@ -165,7 +169,7 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t) => {
     let%bind fetched = fetch(cfg, sandbox, dist);
     Fs.withTempDir(stagePath => {
       let%bind () = unpack(fetched, stagePath);
-      let%bind () = Fs.rename(~src=stagePath, path);
+      let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
       return(path);
     });
   };

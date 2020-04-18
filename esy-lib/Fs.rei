@@ -29,7 +29,7 @@ let readlink: Path.t => RunAsync.t(Path.t);
 let readlinkOpt: Path.t => RunAsync.t(option(Path.t));
 
 let symlink: (~force: bool=?, ~src: Path.t, Path.t) => RunAsync.t(unit);
-let rename: (~src: Path.t, Path.t) => RunAsync.t(unit);
+let rename: (~skipIfExists: bool=?, ~src: Path.t, Path.t) => RunAsync.t(unit);
 
 let realpath: Path.t => RunAsync.t(Path.t);
 

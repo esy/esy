@@ -145,7 +145,9 @@ let unlink = (path: Path.t) => {
   RunAsync.return();
 };
 
-let rename = (~src, target) => {
+let rename = (~skipIfExists=false, ~src, target) => {
+  let%lwt () =
+    Logs_lwt.debug(m => m("rename %a -> %a", Path.pp, src, Path.pp, target));
   let src = Path.show(src);
   let target = Path.show(target);
   try%lwt(
@@ -156,6 +158,12 @@ let rename = (~src, target) => {
   ) {
   | Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
     RunAsync.errorf("no such file: %s", filename)
+  | Unix.Unix_error(Unix.EEXIST, "rename", filename) =>
+    if (skipIfExists) {
+      RunAsync.return();
+    } else {
+      RunAsync.errorf("destination already exists: %s", filename);
+    }
   };
 };
 
