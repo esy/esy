@@ -1,8 +1,14 @@
 # CHANGELOG
 
-## dev
+## 0.6.4 @ latest
 
-- Fixes symlink copying in sources [#1065](https://github.com/esy/esy/pull/1065)
+- Fix symlink copying in sources [#1065](https://github.com/esy/esy/pull/1065)
+
+- Do not fail on reading corrupted project cache file.
+
+- Allow to disable pnp runtime generation via `installConfig.pnp: false`
+
+- Fix failures during resolving git/github dependencies.
 
 ## 0.6.2 @ latest
 
