@@ -48,6 +48,7 @@ and node = {
   overrides,
   dependencies: PackageId.Set.t,
   devDependencies: PackageId.Set.t,
+  [@default InstallConfig.empty]
   installConfig: InstallConfig.t,
 };
 
