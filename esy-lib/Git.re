@@ -75,6 +75,24 @@ let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
   return();
 };
 
+let revParse = (~repo, ~ref, ()) => {
+  open RunAsync.Syntax;
+  let cmd = Cmd.(v("git") % "rev-parse" % "-C" % p(repo) % ref);
+  runGit(cmd);
+};
+
+let fetch = (~depth=?, ~dst, ~ref, ~remote, ()) => {
+  open Result.Syntax;
+  let cmd = Cmd.(v("git") % "-C" % Path.show(dst) % "fetch" % remote % ref);
+  let cmd =
+    switch (depth) {
+    | Some(depth) => Cmd.(cmd % "--depth" % string_of_int(depth))
+    | None => cmd
+    };
+  let%lwt _ = runGit(cmd);
+  RunAsync.return();
+};
+
 let pull =
     (~force=false, ~ffOnly=false, ~depth=?, ~remote, ~repo, ~branchSpec, ()) => {
   open RunAsync.Syntax;
