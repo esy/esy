@@ -105,7 +105,7 @@ let fetch' = (sandbox, dist) => {
             github.user,
             github.repo,
           );
-        let%bind () = Git.clone(~dst=stagePath, ~remote, ());
+        let%bind () = Git.clone(~depth=1, ~dst=stagePath, ~remote, ());
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
@@ -120,7 +120,8 @@ let fetch' = (sandbox, dist) => {
       ~tempPath,
       stagePath => {
         let%bind () = Fs.createDir(stagePath);
-        let%bind () = Git.clone(~dst=stagePath, ~remote=git.remote, ());
+        let%bind () =
+          Git.clone(~depth=1, ~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
