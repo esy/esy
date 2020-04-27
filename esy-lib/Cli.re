@@ -109,10 +109,14 @@ let cmdConv = {
 let checkoutConv = {
   open Cmdliner;
   let parse = v =>
-    switch (Astring.String.cut(~sep=":", v)) {
-    | Some((remote, "")) => Ok(`Remote(remote))
+    switch (Astring.String.cut(~rev=true, ~sep=":", v)) {
     | Some(("", local)) => Ok(`Local(Path.v(local)))
-    | Some((remote, local)) => Ok(`RemoteLocal((remote, Path.v(local))))
+    | Some((remote, local)) =>
+      switch (remote) {
+      | "http"
+      | "https" => Ok(`Remote(v))
+      | _ => Ok(`RemoteLocal((remote, Path.v(local))))
+      }
     | None => Ok(`Remote(v))
     };
 
