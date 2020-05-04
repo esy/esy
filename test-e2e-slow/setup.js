@@ -123,6 +123,16 @@ function createSandbox() /* : TestSandbox */ {
   };
 }
 
+function createSandboxFromGitRepo(url) {
+  let sandbox = createSandbox();
+  childProcess.execSync(`git clone ${url} ${sandbox.path}`, {
+    cwd: sandbox.path,
+    env: {...process.env, ESY__PREFIX: esyPrefixPath},
+    stdio: "inherit",
+  });
+  return sandbox;
+}
+
 function buildOCaml() {
   const sandbox = createSandbox();
 
@@ -159,3 +169,4 @@ module.exports.isWindows = isWindows;
 module.exports.mkdirTemp = mkdirTemp;
 module.exports.ocamlVersion = ocamlVersion;
 module.exports.createSandbox = createSandbox;
+module.exports.createSandboxFromGitRepo = createSandboxFromGitRepo;

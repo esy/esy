@@ -12,9 +12,9 @@ const cases = [
       require('react');
     `,
   },
-  {
-    name: 'bs-platform',
-  },
+  // {
+  //   name: 'bs-platform',
+  // },
   {
     name: 'webpack',
     test: `
