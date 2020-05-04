@@ -105,7 +105,20 @@ let fetch' = (sandbox, dist) => {
             github.user,
             github.repo,
           );
-        let%bind () = Git.clone(~dst=stagePath, ~remote, ());
+        /* Optimisation: if we find that the commit hash is long, we can shallow clone. */
+        let%bind () =
+          if (String.length(github.commit) == 40) {
+            let%bind () = Git.clone(~dst=stagePath, ~remote, ~depth=1, ());
+            Git.fetch(
+              ~ref=github.commit,
+              ~depth=1,
+              ~dst=stagePath,
+              ~remote,
+              (),
+            );
+          } else {
+            Git.clone(~dst=stagePath, ~remote, ());
+          };
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
