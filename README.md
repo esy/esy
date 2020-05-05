@@ -1,6 +1,6 @@
 # esy
 
-`package.json` workflow for native development with Reason/OCaml.
+`package.json` workflow for native development with Reason/OCaml
 
 [![Build Status](https://dev.azure.com/esy-dev/esy/_apis/build/status/build)](https://dev.azure.com/esy-dev/esy/_build/latest?definitionId=1)
 
