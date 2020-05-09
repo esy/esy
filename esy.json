@@ -56,6 +56,7 @@
     "ocaml": "4.08.1000"
   },
   "devDependencies": {
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam#7aa196ffeb358b2916f425df4923b7431f7eaf51",
     "@opam/merlin": "3.3.3",
     "@opam/utop": "2.4.2",
     "ocaml": "4.08.1000"
