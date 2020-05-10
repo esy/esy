@@ -119,7 +119,7 @@ let checkoutConv = {
         Ok(`Remote(v));
       } else {
         let remote = String.concat(":", [p, snd]);
-        let local = String.concat(":", [p, snd]);
+        let local = String.concat(":", tail);
         Ok(`RemoteLocal((remote, Path.v(local))));
       }
     | _ => Ok(`Remote(v))
