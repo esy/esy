@@ -42,7 +42,7 @@ jobs:
     displayName: Build macOS
     condition: succeeded()
     pool:
-      vmImage: macOS-10.13
+      vmImage: macOS-latest
       demands: node.js
 
     variables:
