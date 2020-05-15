@@ -15,6 +15,7 @@ let applyOverride = (manifest: BuildManifest.t, override: Override.build) => {
   let {
     Override.buildType,
     build,
+    buildDev,
     install,
     exportedEnv,
     exportedEnvOverride,
@@ -32,6 +33,12 @@ let applyOverride = (manifest: BuildManifest.t, override: Override.build) => {
     switch (build) {
     | None => manifest
     | Some(commands) => {...manifest, build: EsyCommands(commands)}
+    };
+
+  let manifest =
+    switch (buildDev) {
+    | None => manifest
+    | commands => {...manifest, buildDev: commands}
     };
 
   let manifest =

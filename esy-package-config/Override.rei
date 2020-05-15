@@ -14,6 +14,7 @@ let pp: Fmt.t(t);
 type build = {
   buildType: option(BuildType.t),
   build: option(CommandList.t),
+  buildDev: option(CommandList.t),
   install: option(CommandList.t),
   exportedEnv: option(ExportedEnv.t),
   exportedEnvOverride: option(ExportedEnv.Override.t),
