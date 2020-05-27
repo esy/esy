@@ -7,6 +7,12 @@ let rewritePrefixInFile' = (~origPrefix, ~destPrefix, path) =>
   | Error(msg) => Error(`Msg(msg))
   };
 
+let replaceAllButFirstForwardSlashWithBack = s =>
+  switch (String.split_on_char('/', s)) {
+  | [hd, ...tl] => hd ++ "/" ++ String.concat("\\", tl)
+  | [] => s
+  };
+
 let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
   open Result.Syntax;
 
@@ -51,6 +57,15 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
 
       rewritePrefixInFile'(
         ~origPrefix=escapedOrigPrefix,
+        ~destPrefix=escapedDestPrefix,
+        path,
+      );
+
+      rewritePrefixInFile'(
+        ~origPrefix=
+          replaceAllButFirstForwardSlashWithBack(
+            Path.normalizePathSepOfFilename(origPrefixString),
+          ),
         ~destPrefix=escapedDestPrefix,
         path,
       );
