@@ -8,7 +8,7 @@ let rewritePrefixInFile' = (~origPrefix, ~destPrefix, path) =>
   };
 
 let replaceAllButFirstForwardSlashWithBack = s =>
-  switch(String.split_on_char('/', s)) {
+  switch (String.split_on_char('/', s)) {
   | [hd, ...tl] => hd ++ "/" ++ String.concat("\\", tl)
   | [] => s
   };
@@ -62,11 +62,13 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
       );
 
       rewritePrefixInFile'(
-        ~origPrefix=replaceAllButFirstForwardSlashWithBack(Path.normalizePathSepOfFilename(origPrefixString)),
+        ~origPrefix=
+          replaceAllButFirstForwardSlashWithBack(
+            Path.normalizePathSepOfFilename(origPrefixString),
+          ),
         ~destPrefix=escapedDestPrefix,
-        path
+        path,
       );
-
     };
 
     return();
