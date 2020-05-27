@@ -167,10 +167,14 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t) => {
     return(path);
   } else {
     let%bind fetched = fetch(cfg, sandbox, dist);
-    Fs.withTempDir(stagePath => {
-      let%bind () = unpack(fetched, stagePath);
-      let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-      return(path);
-    });
+    let tempPath = SandboxSpec.tempPath(sandbox);
+    Fs.withTempDir(
+      ~tempPath,
+      stagePath => {
+        let%bind () = unpack(fetched, stagePath);
+        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        return(path);
+      },
+    );
   };
 };
