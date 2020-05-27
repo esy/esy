@@ -2120,6 +2120,8 @@ let commandsConfig = {
 };
 
 let () = {
+  EsyLib.System.ensureMinimumFileDescriptors();
+
   let (defaultCommand, commands) = commandsConfig;
 
   /*

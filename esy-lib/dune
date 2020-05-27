@@ -9,7 +9,7 @@
    EsyShellExpansion)
  (foreign_stubs
   (language c)
-  (names win32_path))
+  (names unix_rlimit_patch win32_path))
  (preprocess
   (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std ppx_expect
     ppx_inline_test ppx_sexp_conv)))
