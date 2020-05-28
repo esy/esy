@@ -35,6 +35,7 @@ let make:
     ~prefixPath: Fpath.t=?,
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
+    ~fetchConcurrency: int=?,
     ~opamRepository: checkoutCfg=?,
     ~esyOpamOverride: checkoutCfg=?,
     ~solveTimeout: float=?,

@@ -203,6 +203,7 @@ type t = {
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
+  fetchConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
   npmRegistry: option(string),
@@ -324,6 +325,15 @@ let skipRepositoryUpdateArg = {
   );
 };
 
+let fetchConcurrencyArg = {
+  let doc = "Specifies number of concurrent fetch tasks.";
+  Arg.(
+    value
+    & opt(some(int), None)
+    & info(["fetch-concurrency"], ~doc, ~docs=commonOptionsSection)
+  );
+};
+
 let solveCudfCommandArg = {
   let doc = "Set command which is used for solving CUDF problems.";
   let env = Arg.env_var("ESY__SOLVE_CUDF_COMMAND", ~doc);
@@ -340,6 +350,7 @@ let make =
       mainprg,
       prefixPath,
       cacheTarballsPath,
+      fetchConcurrency,
       opamRepository,
       esyOpamOverride,
       npmRegistry,
@@ -367,6 +378,7 @@ let make =
     spec,
     prefixPath,
     cacheTarballsPath,
+    fetchConcurrency,
     opamRepository,
     esyOpamOverride,
     npmRegistry,
@@ -383,6 +395,7 @@ let promiseTerm = {
         projectPath,
         prefixPath,
         cacheTarballsPath,
+        fetchConcurrency,
         opamRepository,
         esyOpamOverride,
         npmRegistry,
@@ -396,6 +409,7 @@ let promiseTerm = {
       mainprg,
       prefixPath,
       cacheTarballsPath,
+      fetchConcurrency,
       opamRepository,
       esyOpamOverride,
       npmRegistry,
@@ -410,6 +424,7 @@ let promiseTerm = {
     $ projectPath
     $ prefixPath
     $ cacheTarballsPath
+    $ fetchConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
     $ npmRegistryArg
@@ -430,6 +445,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         paths,
         prefixPath,
         cacheTarballsPath,
+        fetchConcurrency,
         opamRepository,
         esyOpamOverride,
         npmRegistry,
@@ -445,6 +461,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            mainprg,
            prefixPath,
            cacheTarballsPath,
+           fetchConcurrency,
            opamRepository,
            esyOpamOverride,
            npmRegistry,
@@ -469,6 +486,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
       )
     $ prefixPath
     $ cacheTarballsPath
+    $ fetchConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
     $ npmRegistryArg

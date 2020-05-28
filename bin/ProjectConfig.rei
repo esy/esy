@@ -12,6 +12,7 @@ type t = {
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
+  fetchConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
   npmRegistry: option(string),

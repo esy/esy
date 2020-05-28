@@ -4,9 +4,17 @@ type t = {
   sourceFetchPath: Path.t,
   sourceStagePath: Path.t,
   sourceInstallPath: Path.t,
+  fetchConcurrency: option(int),
 };
 
-let make = (~prefixPath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
+let make =
+    (
+      ~prefixPath=?,
+      ~cacheTarballsPath=?,
+      ~cacheSourcesPath=?,
+      ~fetchConcurrency=?,
+      (),
+    ) => {
   open RunAsync.Syntax;
   let%bind prefixPath =
     RunAsync.ofRun(
@@ -49,5 +57,6 @@ let make = (~prefixPath=?, ~cacheTarballsPath=?, ~cacheSourcesPath=?, ()) => {
     sourceFetchPath,
     sourceStagePath,
     sourceInstallPath,
+    fetchConcurrency,
   });
 };

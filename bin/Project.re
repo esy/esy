@@ -122,6 +122,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~skipRepositoryUpdate=projcfg.skipRepositoryUpdate,
       ~prefixPath=?projcfg.prefixPath,
       ~cacheTarballsPath=?projcfg.cacheTarballsPath,
+      ~fetchConcurrency=?projcfg.fetchConcurrency,
       ~npmRegistry=?projcfg.npmRegistry,
       ~opamRepository=?projcfg.opamRepository,
       ~esyOpamOverride=?projcfg.esyOpamOverride,

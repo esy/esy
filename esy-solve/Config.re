@@ -34,6 +34,7 @@ let make =
       ~prefixPath=?,
       ~cacheTarballsPath=?,
       ~cacheSourcesPath=?,
+      ~fetchConcurrency=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
       ~solveTimeout=60.0,
@@ -74,6 +75,7 @@ let make =
       ~prefixPath,
       ~cacheTarballsPath?,
       ~cacheSourcesPath?,
+      ~fetchConcurrency?,
       (),
     );
 

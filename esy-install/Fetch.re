@@ -833,7 +833,11 @@ let fetchPackages = (installspec, sandbox, solution) => {
       return((pkg, fetch));
     };
 
-    let%bind items = RunAsync.List.mapAndJoin(~concurrency=40, ~f, pkgs);
+    let fetchConcurrency =
+      Option.orDefault(~default=40, sandbox.Sandbox.cfg.fetchConcurrency);
+
+    let%bind items =
+      RunAsync.List.mapAndJoin(~concurrency=fetchConcurrency, ~f, pkgs);
     let%lwt () = finish();
     return(items);
   };
