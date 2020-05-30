@@ -271,7 +271,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
         try (
           let idx = String.index item '=' in
           let name = String.sub item 0 idx in
-          let value = String.sub item (idx + 1) (String.length item - idx - 1) in
+          let value = if (String.length item - 1) = idx then "" else String.sub item (idx + 1) (String.length item - idx - 1) in
           EnvHashtbl.replace table name value
         ) with Not_found -> ()
       in
@@ -336,7 +336,9 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
   |},
     environmentString,
     bin,
-    Path.show(destPrefix),
+    Path.show(destPrefix)
+    |> String.split_on_char('\\')
+    |> String.concat("\\\\"),
   );
 };
 
@@ -383,14 +385,8 @@ let make =
   open RunAsync.Syntax;
 
   let%lwt () = Logs_lwt.app(m => m("Creating npm release"));
-  let%bind releaseCfg = configure(spec, ());
+  let%bind releaseCfg = configure(spec, ()) /* * Construct a task tree with all tasks marked as immutable. This will make * sure all packages are built into a global store and this is required for * the release tarball as only globally stored artefacts can be relocated * between stores (b/c of a fixed path length). */;
 
-  /*
-   * Construct a task tree with all tasks marked as immutable. This will make
-   * sure all packages are built into a global store and this is required for
-   * the release tarball as only globally stored artefacts can be relocated
-   * between stores (b/c of a fixed path length).
-   */
   let%bind plan =
     RunAsync.ofRun(
       BuildSandbox.makePlan(~forceImmutable=true, buildspec, Build, sandbox),
@@ -437,9 +433,8 @@ let make =
       };
 
       filterOut;
-    };
+    } /* Make sure all packages are built */;
 
-  /* Make sure all packages are built */
   let%bind () = {
     let%lwt () = Logs_lwt.app(m => m("Building packages"));
     BuildSandbox.build(
@@ -452,9 +447,8 @@ let make =
     );
   };
 
-  let%bind () = Fs.createDir(outputPath);
+  let%bind () = Fs.createDir(outputPath) /* Export builds */;
 
-  /* Export builds */
   let%bind () = {
     let%lwt () =
       switch (releaseCfg.filterPackages) {
@@ -501,9 +495,8 @@ let make =
   let%bind () = {
     let%lwt () = Logs_lwt.app(m => m("Configuring release"));
     let binPath = Path.(outputPath / "bin");
-    let%bind () = Fs.createDir(binPath);
+    let%bind () = Fs.createDir(binPath) /* Emit wrappers for released binaries */;
 
-    /* Emit wrappers for released binaries */
     let%bind () = {
       let%bind bindings =
         RunAsync.ofRun(
@@ -539,8 +532,7 @@ let make =
           RunAsync.ofRun(Run.ofBosError(Cmd.resolveCmd(path, prg)));
         };
 
-        let%bind namePath = resolveBinInEnv(~env, innerName);
-        /* Create the .ml file that we will later compile and write it to disk */
+        let%bind namePath = resolveBinInEnv(~env, innerName) /* Create the .ml file that we will later compile and write it to disk */;
         let data =
           makeBinWrapper(
             ~destPrefix,
@@ -549,8 +541,7 @@ let make =
           );
 
         let mlPath = Path.(stagePath / (innerName ++ ".ml"));
-        let%bind () = Fs.writeFile(~data, mlPath);
-        /* Compile the wrapper to a binary */
+        let%bind () = Fs.writeFile(~data, mlPath) /* Compile the wrapper to a binary */;
         let compile =
           Cmd.(
             v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
@@ -561,8 +552,7 @@ let make =
             % "unix.cmxa"
             % "str.cmxa"
             % EsyLib.Path.normalizePathSepOfFilename(p(mlPath))
-          );
-        /* Needs to have ocaml in environment */
+          ) /* Needs to have ocaml in environment */;
         let%bind env =
           switch (System.Platform.host) {
           | Windows =>
@@ -589,10 +579,19 @@ let make =
 
       let (origPrefix, destPrefix) = {
         let destPrefix =
-          String.make(
-            String.length(Path.show(cfg.EsyBuildPackage.Config.storePath)),
-            '_',
-          );
+          switch (System.Platform.host) {
+          | Windows =>
+            /* Keep the slashes segments in the path.  It's important for doing
+             * replacement of double backslashes in artifacts.  */
+            String.split_on_char('\\', cfg.storePath |> Path.show)
+            |> List.map(~f=seg => String.make(String.length(seg), '_'))
+            |> String.concat("\\")
+          | _ =>
+            String.make(
+              String.length(Path.show(cfg.EsyBuildPackage.Config.storePath)),
+              '_',
+            )
+          };
 
         (cfg.storePath, Path.v(destPrefix));
       };
@@ -618,14 +617,13 @@ let make =
       };
 
       return();
-    };
+    } /* Emit package.json */;
 
-    /* Emit package.json */
     let%bind () = {
       let postinstall =
         switch (releaseCfg.rewritePrefix) {
         | NoRewrite => "node ./esyInstallRelease.js"
-        | Rewrite => "ESY_RELEASE_REWRITE_PREFIX=true node ./esyInstallRelease.js"
+        | Rewrite => "node -e \"process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\""
         };
 
       let pkgJson = {
@@ -715,9 +713,8 @@ let make =
     };
 
     return();
-  };
+  } /*** Cleanup linked packages from global store */;
 
-  /*** Cleanup linked packages from global store */
   let%bind () = cleanupLinksFromGlobalStore(cfg, tasks);
 
   let%lwt () = Logs_lwt.app(m => m("Done!"));
