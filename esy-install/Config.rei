@@ -6,6 +6,7 @@ type t =
     sourceFetchPath: Path.t,
     sourceStagePath: Path.t,
     sourceInstallPath: Path.t,
+    fetchConcurrency: option(int),
   };
 
 let pp: Fmt.t(t);
@@ -16,6 +17,7 @@ let make:
     ~prefixPath: Fpath.t=?,
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
+    ~fetchConcurrency: int=?,
     unit
   ) =>
   RunAsync.t(t);
