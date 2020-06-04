@@ -106,27 +106,6 @@ let cmdConv = {
   Arg.conv(~docv="COMMAND", (parse, print));
 };
 
-let checkoutConv = {
-  open Cmdliner;
-  let parse = v =>
-    switch (Astring.String.cut(~sep=":", v)) {
-    | Some((remote, "")) => Ok(`Remote(remote))
-    | Some(("", local)) => Ok(`Local(Path.v(local)))
-    | Some((remote, local)) => Ok(`RemoteLocal((remote, Path.v(local))))
-    | None => Ok(`Remote(v))
-    };
-
-  let print = (fmt: Format.formatter, v) =>
-    switch (v) {
-    | `RemoteLocal(remote, local) =>
-      Fmt.pf(fmt, "%s:%s", remote, Path.show(local))
-    | `Local(local) => Fmt.pf(fmt, ":%s", Path.show(local))
-    | `Remote(remote) => Fmt.pf(fmt, "%s", remote)
-    };
-
-  Arg.conv(~docv="VAL", (parse, print));
-};
-
 let cmdTerm = (~doc, ~docv, makeconv) => {
   open Cmdliner;
   let commandTerm =

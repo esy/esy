@@ -166,8 +166,8 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
 
   const envForTests = {
     ESY__PREFIX: esyPrefixPath,
-    ESYI__OPAM_REPOSITORY: `:${opamRegistry.registryPath}`,
-    ESYI__OPAM_OVERRIDE: `:${opamRegistry.overridePath}`,
+    ESYI__OPAM_REPOSITORY_LOCAL: opamRegistry.registryPath,
+    ESYI__OPAM_OVERRIDE_LOCAL: opamRegistry.overridePath,
     NPM_CONFIG_REGISTRY: npmRegistry.serverUrl,
   };
 

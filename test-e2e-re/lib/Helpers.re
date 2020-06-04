@@ -73,10 +73,10 @@ let createSandbox = (~fixture=[], npmMock) => {
       |> add("ESY__PROJECT", Path.show(projectPath))
       |> add("NPM_CONFIG_REGISTRY", npmMock)
       |> add(
-           "ESYI__OPAM_REPOSITORY",
-           ":" ++ Path.show(opamMock.registryPath),
+           "ESYI__OPAM_REPOSITORY_LOCAL",
+           Path.show(opamMock.registryPath),
          )
-      |> add("ESYI__OPAM_OVERRIDE", ":" ++ Path.show(opamMock.overridePath))
+      |> add("ESYI__OPAM_OVERRIDE_LOCAL", Path.show(opamMock.overridePath))
       |> remove("ESY__ROOT_PACKAGE_CONFIG_PATH")
     );
   let esyCmd = Cmd.v(Path.show(esyExePath));

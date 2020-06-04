@@ -1,10 +1,3 @@
-[@deriving (show, to_yojson)]
-type checkoutCfg = [
-  | `Local(Path.t)
-  | `Remote(string)
-  | `RemoteLocal(string, Path.t)
-];
-
 [@deriving show]
 type t = {
   installCfg: EsyInstall.Config.t,
@@ -23,10 +16,10 @@ let esyOpamOverrideVersion = "6";
 
 let configureCheckout = (~defaultRemote, ~defaultLocal) =>
   fun
-  | Some(`RemoteLocal(remote, local)) => Remote(remote, local)
-  | Some(`Remote(remote)) => Remote(remote, defaultLocal)
-  | Some(`Local(local)) => Local(local)
-  | None => Remote(defaultRemote, defaultLocal);
+  | (None, None) => Remote(defaultRemote, defaultLocal)
+  | (None, Some(local)) => Local(local)
+  | (Some(remote), None) => Remote(remote, defaultLocal)
+  | (Some(remote), Some(local)) => Remote(remote, local);
 
 let make =
     (
@@ -35,8 +28,10 @@ let make =
       ~cacheTarballsPath=?,
       ~cacheSourcesPath=?,
       ~fetchConcurrency=?,
-      ~opamRepository=?,
-      ~esyOpamOverride=?,
+      ~opamRepositoryLocal=?,
+      ~opamRepositoryRemote=?,
+      ~esyOpamOverrideLocal=?,
+      ~esyOpamOverrideRemote=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
       ~skipRepositoryUpdate,
@@ -58,13 +53,21 @@ let make =
   let opamRepository = {
     let defaultRemote = "https://github.com/ocaml/opam-repository";
     let defaultLocal = Path.(prefixPath / "opam-repository");
-    configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
+    configureCheckout(
+      ~defaultLocal,
+      ~defaultRemote,
+      (opamRepositoryRemote, opamRepositoryLocal),
+    );
   };
 
   let esyOpamOverride = {
     let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
     let defaultLocal = Path.(prefixPath / "esy-opam-override");
-    configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
+    configureCheckout(
+      ~defaultLocal,
+      ~defaultRemote,
+      (esyOpamOverrideRemote, esyOpamOverrideLocal),
+    );
   };
 
   let npmRegistry =

@@ -33,8 +33,8 @@ async function main() {
     PATH: `${esyBin}:${process.env.PATH || ''}`,
     NPM_CONFIG_REGISTRY: registryUrl,
     ESYI__CACHE: path.join(cwd, 'cache'),
-    ESYI__OPAM_REPOSITORY: ':' + path.join(currentDir, 'opam-repository'),
-    ESYI__OPAM_OVERRIDE: ':' + path.join(currentDir, 'esy-opam-override'),
+    ESYI__OPAM_REPOSITORY_LOCAL: path.join(currentDir, 'opam-repository'),
+    ESYI__OPAM_OVERRIDE_LOCAL: path.join(currentDir, 'esy-opam-override'),
   });
 
   await definePackage({

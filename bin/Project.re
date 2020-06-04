@@ -124,8 +124,10 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~cacheTarballsPath=?projcfg.cacheTarballsPath,
       ~fetchConcurrency=?projcfg.fetchConcurrency,
       ~npmRegistry=?projcfg.npmRegistry,
-      ~opamRepository=?projcfg.opamRepository,
-      ~esyOpamOverride=?projcfg.esyOpamOverride,
+      ~opamRepositoryLocal=?projcfg.opamRepositoryLocal,
+      ~opamRepositoryRemote=?projcfg.opamRepositoryRemote,
+      ~esyOpamOverrideLocal=?projcfg.esyOpamOverrideLocal,
+      ~esyOpamOverrideRemote=?projcfg.esyOpamOverrideRemote,
       ~solveTimeout=?projcfg.solveTimeout,
       (),
     );

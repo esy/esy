@@ -59,7 +59,8 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
         ~origPrefix=escapedOrigPrefix,
         ~destPrefix=escapedDestPrefix,
         path,
-      );
+      )
+      |> ignore;
 
       rewritePrefixInFile'(
         ~origPrefix=
