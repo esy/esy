@@ -9,7 +9,7 @@ sudo pkg install gmake
 # we need to setup ocaml version 4.08.1, the official package of
 # FreeBSD have version 4.05.0, so let's build it from source
 set -ex;
-    #curl -L --show-error --retry 5 -o ocaml-4.08.1.tar.gz https://github.com/ocaml/ocaml/archive/4.08.1.tar.gz; \
+    curl -L --show-error --retry 5 -o ocaml-4.08.1.tar.gz https://github.com/ocaml/ocaml/archive/4.08.1.tar.gz; \
     tar -xvzf ocaml-4.08.1.tar.gz; \
     cd ocaml-4.08.1; \
     # create directory for ocaml prefix
@@ -19,7 +19,10 @@ set -ex;
     gmake install
 
 # set the PATH to our compiled directory, so we have our ocaml version
-export PATH=~/.config/esy-ocaml/bin;$PATH
+export PATH=~/.config/esy-ocaml/bin:$PATH
+
+# according to doc, Answer yes to all yes/no questions without prompting
+export OPAMYES="true"
 
 # initialize opam and create switch
 set -ex; \
