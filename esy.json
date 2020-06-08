@@ -24,6 +24,7 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
+    "@opam/merlin": "jordwalke/merlin:merlin.opam#e1bdce7bfbcb23d18781b3adf1309d9ae2a77846",
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
   },
