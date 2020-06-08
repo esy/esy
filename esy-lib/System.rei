@@ -46,6 +46,8 @@ module Arch: {
 
 let supportsLongPaths: unit => bool;
 
+let ensureMinimumFileDescriptors: unit => unit;
+
 module Environment: {
   /** Environment variable separator which is used for $PATH and etc */
 

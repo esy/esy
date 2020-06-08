@@ -121,6 +121,9 @@ module Arch = {
 external checkLongPathRegistryKey: unit => bool =
   "esy_win32_check_long_path_regkey";
 
+external ensureMinimumFileDescriptors: unit => unit =
+  "esy_ensure_minimum_file_descriptors";
+
 let supportsLongPaths = () =>
   switch (Sys.win32) {
   | false => true
