@@ -23,7 +23,7 @@ void directory_get_entries_recursively(const char* path) {
     } else {
       /* printf("RW %s\n", path); */
     }
-    DeleteFileA(path);
+    /* DeleteFileA(path); */
     return;
   }
   
@@ -52,7 +52,7 @@ void directory_get_entries_recursively(const char* path) {
 	/* printf("Attrs: %x \nRemoving readonly attribute\n", child_attrs); */
 	DWORD newAttrs = child_attrs & (~FILE_ATTRIBUTE_READONLY);
 	if(SetFileAttributesA(child_path, newAttrs)) {
-	  DeleteFileA(child_path);
+	  /* DeleteFileA(child_path); */
 	  /* printf("Updated file attributes to %x\n", newAttrs); */
 	} else {
 	  /* printf("Failed to set attrs to %x \n", newAttrs); */
@@ -63,11 +63,11 @@ void directory_get_entries_recursively(const char* path) {
       if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 	/* printf("Directory: %s\n", child_path); */
         directory_get_entries_recursively(child_path);
-	RemoveDirectoryA(child_path);
+	/* RemoveDirectoryA(child_path); */
       }
     }
   } while (FindNextFile(hFind, &ffd) != 0);
-  RemoveDirectoryA(path);
+  /* RemoveDirectoryA(path); */
 }
 
 #endif

@@ -59,12 +59,8 @@ let empty = path =>
 let rm = path => {
   switch (Bos.OS.Path.symlink_stat(path)) {
   | Ok({Unix.st_kind: S_DIR, _}) =>
-    switch (System.Platform.host) {
-    | Windows =>
-      System.win32RemoveReadOnlyAttribute(Path.show(path));
-      return();
-    | _ => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
-    }
+    System.win32RemoveReadOnlyAttribute(Path.show(path));
+    Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
   | Ok({Unix.st_kind: S_LNK, _}) =>
     switch (System.Platform.host) {
     | Windows =>
