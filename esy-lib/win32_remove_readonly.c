@@ -15,7 +15,9 @@ void directory_get_entries_recursively(const char* path) {
     return;
   }
   if (attrs & FILE_ATTRIBUTE_READONLY) {
-    SetFileAttributesA(path, attrs & (~FILE_ATTRIBUTE_READONLY));
+    printf("Readonly %s\n", path);
+    printf("Attrs: %x \nRemoving readonly attribute\n", attrs);
+    /* SetFileAttributesA(path, attrs & (~FILE_ATTRIBUTE_READONLY)); */
   } else {
     /* printf("RW %s\n", path); */
   }
@@ -39,22 +41,22 @@ void directory_get_entries_recursively(const char* path) {
       strcpy(child_path, path);
       strcat(child_path, "\\");
       strcat(child_path, ffd.cFileName);
-      DWORD attrs = GetFileAttributesA(child_path);
-      if (attrs == INVALID_FILE_ATTRIBUTES) {  
-	printf("GetFileAttributesA(%s) (while iterating) failed\n", path); 
+      DWORD child_attrs = GetFileAttributesA(child_path);
+      if (child_attrs == INVALID_FILE_ATTRIBUTES) {  
+	printf("GetFileAttributesA(%s) (while iterating) failed\n", child_path); 
 	return;
       }
-      if (attrs & FILE_ATTRIBUTE_READONLY) {
+      if (child_attrs & FILE_ATTRIBUTE_READONLY) {
 	printf("Readonly %s\n", child_path);
-	printf("Attrs: %x \nRemoving readonly attribute\n", attrs);
-	DWORD newAttrs = attrs & (~FILE_ATTRIBUTE_READONLY);
-	if(SetFileAttributesA(child_path, newAttrs)) {
-	  printf("Updated file attributes to %x\n", newAttrs);
-	} else {
-	  printf("Failed to set attrs to %x \n", newAttrs);
-	}
+	printf("Attrs: %x \nRemoving readonly attribute\n", child_attrs);
+	DWORD newAttrs = child_attrs & (~FILE_ATTRIBUTE_READONLY);
+	/* if(SetFileAttributesA(child_path, newAttrs)) { */
+	/*   printf("Updated file attributes to %x\n", newAttrs); */
+	/* } else { */
+	/*   printf("Failed to set attrs to %x \n", newAttrs); */
+	/* } */
       } else {
-	/* printf("RW %s\n", path); */
+	/* printf("RW %s\n", child_path); */
       }
       if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 	/* printf("Directory: %s\n", child_path); */

@@ -56,13 +56,16 @@ let empty = path =>
   | _ => return(false)
   };
 
-let rm = path =>
+let rm = path => {
   switch (Bos.OS.Path.symlink_stat(path)) {
   | Ok({Unix.st_kind: S_DIR, _}) =>
-    Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
+    System.win32RemoveReadOnlyAttribute(Path.show(path));
+    Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
   | Ok({Unix.st_kind: S_LNK, _}) =>
     switch (System.Platform.host) {
-    | Windows => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
+    | Windows =>
+      System.win32RemoveReadOnlyAttribute(Path.show(path));
+      Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path);
     | _ =>
       switch (Bos.OS.U.unlink(path)) {
       | Ok () => ok
@@ -71,9 +74,12 @@ let rm = path =>
         error(msg);
       }
     }
-  | Ok({Unix.st_kind: _, _}) => Bos.OS.Path.delete(~must_exist=false, path)
+  | Ok({Unix.st_kind: _, _}) =>
+    /* System.win32RemoveReadOnlyAttribute(Path.show(path)); */
+    Bos.OS.Path.delete(~must_exist=false, path)
   | Error(_) => ok
   };
+};
 let stat = Bos.OS.Path.stat;
 
 let rec statOrError = p =>
@@ -113,8 +119,7 @@ let symlink = (~force=?, ~target, dest) => {
       switch (result) {
       | Ok(_) => result
       | Error(`Msg(msg)) =>
-        let r = Str.string_match(errorRegex, msg, 0);
-        /* If the error message is "The operation completed successfully", we'll ignore. */
+        let r = Str.string_match(errorRegex, msg, 0) /* If the error message is "The operation completed successfully", we'll ignore. */;
         if (r) {ok} else {result};
       | _ => result
       };

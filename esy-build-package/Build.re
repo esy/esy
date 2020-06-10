@@ -34,7 +34,6 @@ let regex = (base, segments) => {
 };
 
 let relocateSourcePath = (sourcePath, rootPath) => {
-  /* System.win32RemoveReadOnlyAttribute(Path.show(rootPath)); */
   let%bind () = rm(rootPath);
   let%bind () = mkdir(rootPath);
   let%bind () = {
