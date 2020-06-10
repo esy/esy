@@ -14,15 +14,16 @@ void directory_get_entries_recursively(const char* path) {
     printf("GetFileAttributesA(%s) (in main) failed\n", path); 
     return;
   }
-  if (attrs & FILE_ATTRIBUTE_READONLY) {
-    printf("Readonly %s\n", path);
-    printf("Attrs: %x \nRemoving readonly attribute\n", attrs);
-    /* SetFileAttributesA(path, attrs & (~FILE_ATTRIBUTE_READONLY)); */
-  } else {
-    /* printf("RW %s\n", path); */
-  }
 
   if (! (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+    if (attrs & FILE_ATTRIBUTE_READONLY) {
+      /* printf("Readonly %s\n", path); */
+      /* printf("Attrs: %x \nRemoving readonly attribute\n", attrs); */
+      SetFileAttributesA(path, attrs & (~FILE_ATTRIBUTE_READONLY));
+    } else {
+      /* printf("RW %s\n", path); */
+    }
+    DeleteFileA(path);
     return;
   }
   
@@ -32,7 +33,7 @@ void directory_get_entries_recursively(const char* path) {
   strcat(search_path, "\\*");
   HANDLE hFind = FindFirstFile(search_path, &ffd);
   if (INVALID_HANDLE_VALUE == hFind) {
-    printf("FindFirstFile failed for %s\n", path);
+    /* printf("FindFirstFile failed for %s\n", path); */
     return;
   }
   do {
@@ -43,27 +44,30 @@ void directory_get_entries_recursively(const char* path) {
       strcat(child_path, ffd.cFileName);
       DWORD child_attrs = GetFileAttributesA(child_path);
       if (child_attrs == INVALID_FILE_ATTRIBUTES) {  
-	printf("GetFileAttributesA(%s) (while iterating) failed\n", child_path); 
+	/* printf("GetFileAttributesA(%s) (while iterating) failed\n", child_path);  */
 	return;
       }
       if (child_attrs & FILE_ATTRIBUTE_READONLY) {
-	printf("Readonly %s\n", child_path);
-	printf("Attrs: %x \nRemoving readonly attribute\n", child_attrs);
+	/* printf("Readonly %s\n", child_path); */
+	/* printf("Attrs: %x \nRemoving readonly attribute\n", child_attrs); */
 	DWORD newAttrs = child_attrs & (~FILE_ATTRIBUTE_READONLY);
-	/* if(SetFileAttributesA(child_path, newAttrs)) { */
-	/*   printf("Updated file attributes to %x\n", newAttrs); */
-	/* } else { */
-	/*   printf("Failed to set attrs to %x \n", newAttrs); */
-	/* } */
+	if(SetFileAttributesA(child_path, newAttrs)) {
+	  DeleteFileA(child_path);
+	  /* printf("Updated file attributes to %x\n", newAttrs); */
+	} else {
+	  /* printf("Failed to set attrs to %x \n", newAttrs); */
+	}
       } else {
 	/* printf("RW %s\n", child_path); */
       }
       if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 	/* printf("Directory: %s\n", child_path); */
         directory_get_entries_recursively(child_path);
+	RemoveDirectoryA(child_path);
       }
     }
   } while (FindNextFile(hFind, &ffd) != 0);
+  RemoveDirectoryA(path);
 }
 
 #endif
