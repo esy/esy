@@ -104,8 +104,7 @@ module Arch = {
       /* Return values for Windows PROCESSOR_ARCHITECTURE environment variable */
       | "x86" => X86_32
       | "x86_64" => X86_64
-      | "amd64" => X86_64
-      /* Return values for uname on other platforms */
+      | "amd64" => X86_64 /* Return values for uname on other platforms */
       | "ppc32" => Ppc32
       | "ppc64" => Ppc64
       | "arm32" => Arm32
@@ -120,6 +119,9 @@ module Arch = {
 
 external checkLongPathRegistryKey: unit => bool =
   "esy_win32_check_long_path_regkey";
+
+external win32RemoveReadOnlyAttribute: string => unit =
+  "esy_win32_remove_readonly_attribute";
 
 external ensureMinimumFileDescriptors: unit => unit =
   "esy_ensure_minimum_file_descriptors";

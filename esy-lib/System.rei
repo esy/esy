@@ -45,7 +45,7 @@ module Arch: {
 };
 
 let supportsLongPaths: unit => bool;
-
+let win32RemoveReadOnlyAttribute: string => unit;
 let ensureMinimumFileDescriptors: unit => unit;
 
 module Environment: {

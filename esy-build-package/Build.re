@@ -34,6 +34,7 @@ let regex = (base, segments) => {
 };
 
 let relocateSourcePath = (sourcePath, rootPath) => {
+  /* System.win32RemoveReadOnlyAttribute(Path.show(rootPath)); */
   let%bind () = rm(rootPath);
   let%bind () = mkdir(rootPath);
   let%bind () = {
@@ -52,14 +53,13 @@ let relocateSourcePath = (sourcePath, rootPath) => {
     copyContents(~ignore, ~from=sourcePath, rootPath);
   };
   ok;
-};
-
-/*
+} /*
 
   A special lifecycle designed to be compatible with jbuilder's use of _build
   subdirectory as a build dir.
 
- */
+ */;
+
 module JbuilderHack = {
   let prepareImpl = (build: build) => {
     let savedBuild = build.buildPath / "_build";
@@ -344,9 +344,8 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
 
   let perform = () => {
     let%bind () = rm(build.installPath);
-    let%bind () = rm(build.stagePath);
-    /* remove buildPath only if we build into a global store, otherwise we keep
-     * buildPath and thus keep incremental builds */
+    let%bind () = rm(build.stagePath) /* remove buildPath only if we build into a global store, otherwise we keep * buildPath and thus keep incremental builds */;
+
     let%bind () =
       switch (build.plan.sourceType) {
       | Immutable => rm(build.buildPath)
@@ -405,9 +404,8 @@ let filterPathSegments = (paths: list(string)) => {
     if (String.length(path) < 1) {
       false;
     } else if (path.[0] == '/' && Sys.win32) {
-      true;
-          /* On Windows, we let Cygwin resolve paths like `/usr/bin`.
-           * These would fail the empty check, but we still want to include them */
+      true /* On Windows, we let Cygwin resolve paths like `/usr/bin`.
+            * These would fail the empty check, but we still want to include them */;
     } else {
       switch (empty(Path.v(path))) {
       | Ok(empty) => !empty
@@ -531,9 +529,9 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
           | None =>
             error({|multiple *.install files found, specify "esy.install"|})
           }
-        }
-      /* the case where esy-installer is called explicitly with 0 args, fail
+        } /* the case where esy-installer is called explicitly with 0 args, fail
        * on all but a single *.install file found. */
+
       | Some([]) =>
         switch%bind (findInstallFilenames()) {
         | [] => error("no *.install files found")
