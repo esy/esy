@@ -26,7 +26,8 @@
   "resolutions": {
     "@opam/merlin": "jordwalke/merlin:merlin.opam#e1bdce7bfbcb23d18781b3adf1309d9ae2a77846",
     "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
-    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
+    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
+    "@opam/bos": "link:vendor/bos/opam"
   },
   "dependencies": {
     "@opam/angstrom": "*",
