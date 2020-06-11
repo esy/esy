@@ -1,5 +1,5 @@
 {
-  "checksum": "629aa3d84553a21d5e5de5bf270ffdca",
+  "checksum": "88e664607e8445c1c2c7dc06c1128120",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -65,7 +65,7 @@
         "@opam/dune@opam:2.2.0@9f6b1c70", "@opam/dose3@opam:5.0.1@5325ecb6",
         "@opam/cudf@opam:0.9@bdf476b4",
         "@opam/cmdliner@github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc@d41d8cd9",
-        "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@ce74c6cc",
+        "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@43b64cf9",
         "@opam/angstrom@github:esy-ocaml/angstrom#5a06a0@d41d8cd9"
       ],
       "devDependencies": [
@@ -2434,9 +2434,9 @@
         "ocaml@4.8.1000@d41d8cd9", "@opam/dune@opam:2.2.0@9f6b1c70"
       ]
     },
-    "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@ce74c6cc": {
+    "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@43b64cf9": {
       "id":
-        "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@ce74c6cc",
+        "@opam/bos@archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6@43b64cf9",
       "name": "@opam/bos",
       "version":
         "archive:https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#sha1:86a4c0f0fa9610279973b8fd1b52531e7a19bfd6",
@@ -2448,6 +2448,7 @@
       },
       "overrides": [
         {
+          "buildsInSource": true,
           "build": [
             "curl https://gist.githubusercontent.com/prometheansacrifice/7e52d0e80c099a1a649cffeae5d077bf/raw/16afca8407b111a0de0b31ee06c8fd90cb67386a/chmod.patch --output chmod.patch",
             "bash -c 'patch -p1 < chmod.patch'", "ocaml pkg/pkg.ml build"
