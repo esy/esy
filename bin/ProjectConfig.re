@@ -204,6 +204,8 @@ type t = {
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
+  opamRepository: option(EsySolve.Config.checkoutCfg),
+  esyOpamOverride: option(EsySolve.Config.checkoutCfg),
   opamRepositoryLocal: option(Path.t),
   opamRepositoryRemote: option(string),
   esyOpamOverrideLocal: option(Path.t),
@@ -253,6 +255,40 @@ let prefixPath = {
     value
     & opt(some(Cli.pathConv), None)
     & info(["prefix-path"], ~env, ~docs=commonOptionsSection, ~doc)
+  );
+};
+
+let opamRepositoryArg = {
+  let doc = "Specifies an opam repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
+  let docv = "REMOTE[:LOCAL]";
+  let env = Arg.env_var("ESYI__OPAM_REPOSITORY", ~doc);
+  Arg.(
+    value
+    & opt(some(Cli.checkoutConv), None)
+    & info(
+        ["opam-repository"],
+        ~env,
+        ~doc,
+        ~docv,
+        ~docs=commonOptionsSection,
+      )
+  );
+};
+
+let esyOpamOverrideArg = {
+  let doc = "Specifies an opam override repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
+  let docv = "REMOTE[:LOCAL]";
+  let env = Arg.env_var("ESYI__OPAM_OVERRIDE", ~doc);
+  Arg.(
+    value
+    & opt(some(Cli.checkoutConv), None)
+    & info(
+        ["opam-override-repository"],
+        ~env,
+        ~doc,
+        ~docv,
+        ~docs=commonOptionsSection,
+      )
   );
 };
 
@@ -372,6 +408,8 @@ let make =
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      opamRepository,
+      esyOpamOverride,
       opamRepositoryLocal,
       opamRepositoryRemote,
       esyOpamOverrideLocal,
@@ -402,6 +440,8 @@ let make =
     prefixPath,
     cacheTarballsPath,
     fetchConcurrency,
+    opamRepository,
+    esyOpamOverride,
     opamRepositoryLocal,
     opamRepositoryRemote,
     esyOpamOverrideLocal,
@@ -421,6 +461,8 @@ let promiseTerm = {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        opamRepository,
+        esyOpamOverride,
         opamRepositoryLocal,
         opamRepositoryRemote,
         esyOpamOverrideLocal,
@@ -437,6 +479,8 @@ let promiseTerm = {
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      opamRepository,
+      esyOpamOverride,
       opamRepositoryLocal,
       opamRepositoryRemote,
       esyOpamOverrideLocal,
@@ -454,6 +498,8 @@ let promiseTerm = {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ opamRepositoryArg
+    $ esyOpamOverrideArg
     $ opamRepositoryLocalArg
     $ opamRepositoryRemoteArg
     $ esyOpamOverrideLocalArg
@@ -477,6 +523,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        opamRepository,
+        esyOpamOverride,
         opamRepositoryLocal,
         opamRepositoryRemote,
         esyOpamOverrideLocal,
@@ -495,6 +543,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
+           opamRepository,
+           esyOpamOverride,
            opamRepositoryLocal,
            opamRepositoryRemote,
            esyOpamOverrideLocal,
@@ -522,6 +572,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ opamRepositoryArg
+    $ esyOpamOverrideArg
     $ opamRepositoryLocalArg
     $ opamRepositoryRemoteArg
     $ esyOpamOverrideLocalArg

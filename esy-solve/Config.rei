@@ -1,5 +1,15 @@
 /** Configuration for esy installer */
 
+type checkoutCfg = [
+  | `Local(Path.t)
+  | `Remote(string)
+  | `RemoteLocal(string, Path.t)
+];
+
+let checkoutCfg_to_yojson: Json.encoder(checkoutCfg);
+let pp_checkoutCfg: Fmt.t(checkoutCfg);
+let show_checkoutCfg: checkoutCfg => string;
+
 type t =
   pri {
     installCfg: EsyInstall.Config.t,
@@ -26,6 +36,8 @@ let make:
     ~cacheTarballsPath: Fpath.t=?,
     ~cacheSourcesPath: Fpath.t=?,
     ~fetchConcurrency: int=?,
+    ~opamRepository: checkoutCfg=?,
+    ~esyOpamOverride: checkoutCfg=?,
     ~opamRepositoryLocal: Fpath.t=?,
     ~opamRepositoryRemote: string=?,
     ~esyOpamOverrideLocal: Fpath.t=?,
