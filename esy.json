@@ -29,7 +29,7 @@
       "override": {
 	"buildsInSource": true,
 	"build": [
-	  "curl https://gist.githubusercontent.com/prometheansacrifice/7e52d0e80c099a1a649cffeae5d077bf/raw/16afca8407b111a0de0b31ee06c8fd90cb67386a/chmod.patch --output chmod.patch",
+	  "curl https://gist.githubusercontent.com/prometheansacrifice/7e52d0e80c099a1a649cffeae5d077bf/raw/ff3baedd8cb78936a63acb36f071333968b606c6/chmod.patch --output chmod.patch",
 	  "bash -c 'patch -p1 < chmod.patch'",
 	  "ocaml pkg/pkg.ml build"
 	],
