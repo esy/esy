@@ -136,6 +136,33 @@ Run:
 % make test
 ```
 
+#### Windows
+
+In cases e2e tests fail with `Host key verification failed.`, you might have to create ssh keys
+in the cygwin shall and add them to your github profile.
+
+1. Enter cygwin installed by esy (not the global one)
+
+```sh
+.\node_modules\esy-bash\re\_build\default\bin\EsyBash.exe bash
+```
+
+2. Generate ssh keys
+
+```sh
+ssh-keygen
+```
+
+3. Add the public key to you Github profile
+
+4. Add the following to the bash rc of the cygwin instance
+
+```sh
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_rsa
+```
+
+
 ### Branches
 
 There are two branches:
