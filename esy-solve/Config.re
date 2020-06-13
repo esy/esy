@@ -21,12 +21,19 @@ and checkout =
 
 let esyOpamOverrideVersion = "6";
 
-let configureCheckout = (~defaultRemote, ~defaultLocal) =>
+let configureDeprecatedCheckout = (~defaultRemote, ~defaultLocal) =>
   fun
   | Some(`RemoteLocal(remote, local)) => Remote(remote, local)
   | Some(`Remote(remote)) => Remote(remote, defaultLocal)
   | Some(`Local(local)) => Local(local)
   | None => Remote(defaultRemote, defaultLocal);
+
+let configureCheckout = (~defaultRemote, ~defaultLocal) =>
+  fun
+  | (None, None) => Remote(defaultRemote, defaultLocal)
+  | (None, Some(local)) => Local(local)
+  | (Some(remote), None) => Remote(remote, defaultLocal)
+  | (Some(remote), Some(local)) => Remote(remote, local);
 
 let make =
     (
@@ -37,6 +44,10 @@ let make =
       ~fetchConcurrency=?,
       ~opamRepository=?,
       ~esyOpamOverride=?,
+      ~opamRepositoryLocal=?,
+      ~opamRepositoryRemote=?,
+      ~esyOpamOverrideLocal=?,
+      ~esyOpamOverrideRemote=?,
       ~solveTimeout=60.0,
       ~esySolveCmd,
       ~skipRepositoryUpdate,
@@ -58,13 +69,49 @@ let make =
   let opamRepository = {
     let defaultRemote = "https://github.com/ocaml/opam-repository";
     let defaultLocal = Path.(prefixPath / "opam-repository");
-    configureCheckout(~defaultLocal, ~defaultRemote, opamRepository);
+
+    switch (opamRepositoryRemote, opamRepositoryLocal) {
+    /***
+      * If no opamRepositoryRemote nor opamRepositoryLocal options are provided,
+      * we fallback to the deprecated opamRepository option.
+     */
+    | (None, None) =>
+      configureDeprecatedCheckout(
+        ~defaultRemote,
+        ~defaultLocal,
+        opamRepository,
+      )
+    | _ =>
+      configureCheckout(
+        ~defaultLocal,
+        ~defaultRemote,
+        (opamRepositoryRemote, opamRepositoryLocal),
+      )
+    };
   };
 
   let esyOpamOverride = {
     let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
     let defaultLocal = Path.(prefixPath / "esy-opam-override");
-    configureCheckout(~defaultLocal, ~defaultRemote, esyOpamOverride);
+
+    switch (esyOpamOverrideRemote, esyOpamOverrideLocal) {
+    /***
+      * If no esyOpamOverrideRemote nor esyOpamOverrideLocal options are provided,
+      * we fallback to the deprecated esyOpamOverride option.
+     */
+    | (None, None) =>
+      configureDeprecatedCheckout(
+        ~defaultRemote,
+        ~defaultLocal,
+        esyOpamOverride,
+      )
+    | _ =>
+      configureCheckout(
+        ~defaultLocal,
+        ~defaultRemote,
+        (esyOpamOverrideRemote, esyOpamOverrideLocal),
+      )
+    };
   };
 
   let npmRegistry =

@@ -206,6 +206,10 @@ type t = {
   fetchConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
+  opamRepositoryLocal: option(Path.t),
+  opamRepositoryRemote: option(string),
+  esyOpamOverrideLocal: option(Path.t),
+  esyOpamOverrideRemote: option(string),
   npmRegistry: option(string),
   solveTimeout: option(float),
   skipRepositoryUpdate: bool,
@@ -255,7 +259,7 @@ let prefixPath = {
 };
 
 let opamRepositoryArg = {
-  let doc = "Specifies an opam repository to use.";
+  let doc = "Specifies an opam repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
   let docv = "REMOTE[:LOCAL]";
   let env = Arg.env_var("ESYI__OPAM_REPOSITORY", ~doc);
   Arg.(
@@ -272,7 +276,7 @@ let opamRepositoryArg = {
 };
 
 let esyOpamOverrideArg = {
-  let doc = "Specifies an opam override repository to use.";
+  let doc = "Specifies an opam override repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
   let docv = "REMOTE[:LOCAL]";
   let env = Arg.env_var("ESYI__OPAM_OVERRIDE", ~doc);
   Arg.(
@@ -283,6 +287,59 @@ let esyOpamOverrideArg = {
         ~env,
         ~doc,
         ~docv,
+        ~docs=commonOptionsSection,
+      )
+  );
+};
+
+let opamRepositoryLocalArg = {
+  let doc = "Specifies a local opam repository to use.";
+  let env = Arg.env_var("ESYI__OPAM_REPOSITORY_LOCAL", ~doc);
+  Arg.(
+    value
+    & opt(some(Cli.pathConv), None)
+    & info(["opam-repository-local"], ~env, ~doc, ~docs=commonOptionsSection)
+  );
+};
+let opamRepositoryRemoteArg = {
+  let doc = "Specifies a remote opam repository to use.";
+  let env = Arg.env_var("ESYI__OPAM_REPOSITORY_REMOTE", ~doc);
+  Arg.(
+    value
+    & opt(some(string), None)
+    & info(
+        ["opam-repository-remote"],
+        ~env,
+        ~doc,
+        ~docs=commonOptionsSection,
+      )
+  );
+};
+
+let esyOpamOverrideLocalArg = {
+  let doc = "Specifies a local opam override repository to use.";
+  let env = Arg.env_var("ESYI__OPAM_OVERRIDE_LOCAL", ~doc);
+  Arg.(
+    value
+    & opt(some(Cli.pathConv), None)
+    & info(
+        ["opam-override-repository-local"],
+        ~env,
+        ~doc,
+        ~docs=commonOptionsSection,
+      )
+  );
+};
+let esyOpamOverrideRemoteArg = {
+  let doc = "Specifies a remote opam override repository to use.";
+  let env = Arg.env_var("ESYI__OPAM_OVERRIDE_REMOTE", ~doc);
+  Arg.(
+    value
+    & opt(some(string), None)
+    & info(
+        ["opam-override-repository-remote"],
+        ~env,
+        ~doc,
         ~docs=commonOptionsSection,
       )
   );
@@ -353,6 +410,10 @@ let make =
       fetchConcurrency,
       opamRepository,
       esyOpamOverride,
+      opamRepositoryLocal,
+      opamRepositoryRemote,
+      esyOpamOverrideLocal,
+      esyOpamOverrideRemote,
       npmRegistry,
       solveTimeout,
       skipRepositoryUpdate,
@@ -381,6 +442,10 @@ let make =
     fetchConcurrency,
     opamRepository,
     esyOpamOverride,
+    opamRepositoryLocal,
+    opamRepositoryRemote,
+    esyOpamOverrideLocal,
+    esyOpamOverrideRemote,
     npmRegistry,
     solveTimeout,
     skipRepositoryUpdate,
@@ -398,6 +463,10 @@ let promiseTerm = {
         fetchConcurrency,
         opamRepository,
         esyOpamOverride,
+        opamRepositoryLocal,
+        opamRepositoryRemote,
+        esyOpamOverrideLocal,
+        esyOpamOverrideRemote,
         npmRegistry,
         solveTimeout,
         skipRepositoryUpdate,
@@ -412,6 +481,10 @@ let promiseTerm = {
       fetchConcurrency,
       opamRepository,
       esyOpamOverride,
+      opamRepositoryLocal,
+      opamRepositoryRemote,
+      esyOpamOverrideLocal,
+      esyOpamOverrideRemote,
       npmRegistry,
       solveTimeout,
       skipRepositoryUpdate,
@@ -427,6 +500,10 @@ let promiseTerm = {
     $ fetchConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
+    $ opamRepositoryLocalArg
+    $ opamRepositoryRemoteArg
+    $ esyOpamOverrideLocalArg
+    $ esyOpamOverrideRemoteArg
     $ npmRegistryArg
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg
@@ -448,6 +525,10 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         fetchConcurrency,
         opamRepository,
         esyOpamOverride,
+        opamRepositoryLocal,
+        opamRepositoryRemote,
+        esyOpamOverrideLocal,
+        esyOpamOverrideRemote,
         npmRegistry,
         solveTimeout,
         skipRepositoryUpdate,
@@ -464,6 +545,10 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            fetchConcurrency,
            opamRepository,
            esyOpamOverride,
+           opamRepositoryLocal,
+           opamRepositoryRemote,
+           esyOpamOverrideLocal,
+           esyOpamOverrideRemote,
            npmRegistry,
            solveTimeout,
            skipRepositoryUpdate,
@@ -489,6 +574,10 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     $ fetchConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
+    $ opamRepositoryLocalArg
+    $ opamRepositoryRemoteArg
+    $ esyOpamOverrideLocalArg
+    $ esyOpamOverrideRemoteArg
     $ npmRegistryArg
     $ solveTimeoutArg
     $ skipRepositoryUpdateArg

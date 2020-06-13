@@ -108,13 +108,14 @@ let cmdConv = {
 
 let checkoutConv = {
   open Cmdliner;
-  let parse = v =>
+  let parse = v => {
     switch (Astring.String.cut(~sep=":", v)) {
     | Some((remote, "")) => Ok(`Remote(remote))
     | Some(("", local)) => Ok(`Local(Path.v(local)))
     | Some((remote, local)) => Ok(`RemoteLocal((remote, Path.v(local))))
     | None => Ok(`Remote(v))
     };
+  };
 
   let print = (fmt: Format.formatter, v) =>
     switch (v) {
