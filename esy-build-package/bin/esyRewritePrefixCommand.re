@@ -7,79 +7,30 @@ let rewritePrefixInFile' = (~origPrefix, ~destPrefix, path) =>
   | Error(msg) => Error(`Msg(msg))
   };
 
-let replaceAllButFirstForwardSlashWithBack = s =>
-  switch (String.split_on_char('/', s)) {
-  | [hd, ...tl] => hd ++ "/" ++ String.concat("\\", tl)
-  | [] => s
-  };
-
 let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
-  open Result.Syntax;
+  Result.Syntax.(
+    switch (System.Platform.host) {
+    | Windows =>
+      let%bind _ =
+        Result.List.map(
+          ~f=
+            ((origPrefix, destPrefix)) => {
+              rewritePrefixInFile'(~origPrefix, ~destPrefix, path)
+            },
+          RewritePrefix.genSearchPrefixesForWin(origPrefix, destPrefix),
+        );
+      return();
 
-  let origPrefixString = Path.show(origPrefix);
-  let destPrefixString = Path.show(destPrefix);
-
-  switch (System.Platform.host) {
-  | Windows =>
-    let%bind () =
+    | _ =>
+      let origPrefixString = Path.show(origPrefix);
+      let destPrefixString = Path.show(destPrefix);
       rewritePrefixInFile'(
         ~origPrefix=origPrefixString,
         ~destPrefix=destPrefixString,
         path,
       );
-
-    let normalizedOrigPrefix =
-      Path.normalizePathSepOfFilename(origPrefixString);
-    let normalizedDestPrefix =
-      Path.normalizePathSepOfFilename(destPrefixString);
-    let%bind () =
-      rewritePrefixInFile'(
-        ~origPrefix=normalizedOrigPrefix,
-        ~destPrefix=normalizedDestPrefix,
-        path,
-      );
-
-    let%bind () = {
-      let forwardSlashRegex = Str.regexp("/");
-      let escapedOrigPrefix =
-        Str.global_replace(
-          forwardSlashRegex,
-          "\\\\\\\\",
-          normalizedOrigPrefix,
-        );
-
-      let escapedDestPrefix =
-        Str.global_replace(
-          forwardSlashRegex,
-          "\\\\\\\\",
-          normalizedDestPrefix,
-        );
-
-      rewritePrefixInFile'(
-        ~origPrefix=escapedOrigPrefix,
-        ~destPrefix=escapedDestPrefix,
-        path,
-      );
-
-      rewritePrefixInFile'(
-        ~origPrefix=
-          replaceAllButFirstForwardSlashWithBack(
-            Path.normalizePathSepOfFilename(origPrefixString),
-          ),
-        ~destPrefix=escapedDestPrefix,
-        path,
-      );
-    };
-
-    return();
-
-  | _ =>
-    rewritePrefixInFile'(
-      ~origPrefix=origPrefixString,
-      ~destPrefix=destPrefixString,
-      path,
-    )
-  };
+    }
+  );
 };
 
 let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {

@@ -253,14 +253,33 @@ function rewritePathInFile(filename, origPath, destPath) {
       return;
     }
 
-    return fsReadFile(filename).then(function(content) {
+    function subst(content, origPath, destPath) {
       var offset = content.indexOf(origPath);
       var needRewrite = offset > -1;
       while (offset > -1) {
         content.write(destPath, offset);
         offset = content.indexOf(origPath);
       }
-      if (needRewrite) {
+      return needRewrite;
+    }
+
+    const allFwd = s => s.replace(/\\/g, '/');
+    const allBack = s => s.replace(/\//g, '\\');
+    const allButFirstFwd = s => {
+      let parts = allFwd(s).split('/');
+      if (parts.length === 0) {
+	return "";
+      } else {
+	return parts[0] + '/' + parts.slice(1).join('\\')
+      }
+    };
+    const allDouble = s => allFwd(s).replace(/\/\//g, '\\\\');
+    return fsReadFile(filename).then(function(content) {
+      let r1 = subst(content, allFwd(origPath), allFwd(destPath));
+      let r2 = subst(content, allBack(origPath), allBack(destPath));
+      let r3 = subst(content, allButFirstFwd(origPath), allButFirstFwd(destPath));
+      let r4 = subst(content, allDouble(origPath), allDouble(destPath));
+      if (r1 || r2 || r3 || r4) {
         return fsWriteFile(filename, content);
       }
     });
