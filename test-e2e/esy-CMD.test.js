@@ -92,6 +92,17 @@ describe(`'esy CMD' invocation`, () => {
     await p.esy('devDep.cmd');
   });
 
+  test.disableIf(isWindows)('ensures the RLIMIT_NOFILE was set', async () => {
+    const p = await createTestSandbox();
+    await p.esy('install');
+    const { stdout } = await p.run([
+      "ulimit -Sn 2048",
+      `${helpers.ESY} sh -c "ulimit -Sn"`,
+    ].join('\n'));
+    const result = stdout.trim();
+    expect(result).toEqual("4096");
+  })
+
   test('inherits the outside environment', async () => {
     process.env.X = '1';
     const p = await createTestSandbox();

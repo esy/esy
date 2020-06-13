@@ -287,6 +287,8 @@ solver. In such a case, use `resolutions` field in the `package.json`.
 }
 ```
 
+Resolutions are only valid in the current project and are not exported.
+
 This feature works similar to yarn's [Selective dependency resolutions][yarn-resolutions]
 but nested patterns (which contain `**` or `*` are not supported).
 
@@ -320,6 +322,10 @@ While the command `esy test` is defined to be a shortcut for:
 ```bash
 esy dune runtest
 ```
+
+For non-interactive (ie. when used in scripts), to ensure forward compatiblity, we encourage a more verbose 
+`esy run-script build-dev` and `esy run-script test`. Explicitly specifying
+`run-script` prevents clashes with subcommands that we add in future.
 
 Note that if a command in `scripts` is not prefixed with the `esy` command then it's made to automatically execute inside the [Command Environment](environment.md#Command-Environment).
 
