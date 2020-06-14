@@ -17,7 +17,7 @@ homepage: "https://github.com/ocaml/dune"
 doc: "https://dune.readthedocs.io/"
 bug-reports: "https://github.com/ocaml/dune/issues"
 depends: [
-  "dune" {>= "2.0"}
+  "dune" {>= "2.6"}
   "dune-private-libs" {= version}
 ]
 dev-repo: "git+https://github.com/ocaml/dune.git"
@@ -35,9 +35,9 @@ build: [
   ]
 ]
 url {
-  src: "https://github.com/ocaml/dune/releases/download/2.2.0/dune-2.2.0.tbz"
+  src: "https://github.com/ocaml/dune/releases/download/2.6.0/dune-2.6.0.tbz"
   checksum: [
-    "sha256=ab5eb970c21641a6f3034448218cdc1c138512b906c7d2f67fea41ecd98d8bf4"
-    "sha512=b48812a478ad1b75992a0c53dbdfac34841e3d5e97c559d63e2dd41d1724c21736cc3159743f3d95d85e1060ee5aa88a0abb46f5b0e778f533b40dead20af95c"
+    "sha256=12c9d849fbc5f202f99e9f8ed13fdff7de85ae9c5206cb1b821763dcd1916fc3"
+    "sha512=de808537e471ef5a4ca49f68bfaf99d36441b5d30bc66712467a636e7bf69ea825e30286d882dac4e18a36c3eae45a80c3407d86255484c76570f771d84ce8b5"
   ]
 }
