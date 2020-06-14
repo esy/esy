@@ -78,39 +78,13 @@ it('basic export / import test', async () => {
   await p.esy('install');
   await p.esy('build');
 
-  await p.esy('export-dependencies');
-
+  let { stdout, stderr } = await p.esy('export-dependencies --release');
   const exportPath = path.join(p.projectPath, '_export');
 
   expect(await fs.exists(exportPath)).toBeTruthy();
 
   const items = await fs.readdir(exportPath);
 
-  // make sure we can import w/o store and local esy installation
-  await fs.remove(p.esyPrefixPath);
-  await fs.remove(path.join(p.projectPath, '_esy'));
-
-  for (const item of items) {
-    const buildPath = path.join(exportPath, item);
-    await p.esy(`import-build ${buildPath}`);
-  }
-
-  await p.esy('install');
-
-  {
-    const {stdout} = await p.esy('subdep.cmd');
-    expect(stdout.trim()).toBe('__subdep__');
-  }
-  {
-    const {stdout} = await p.esy('dep.cmd');
-    expect(stdout.trim()).toBe('__subdep__');
-  }
-  {
-    const {stdout} = await p.esy('x app.cmd');
-    expect(stdout.trim()).toBe('__subdep__');
-  }
-  {
-    const {stdout} = await p.esy('devdep.cmd');
-    expect(stdout.trim()).toBe('__devdep__');
-  }
+  // make sure that devdep is not exported
+  items.forEach(v => expect(v).toEqual(expect.not.stringContaining('devdep')));
 });
