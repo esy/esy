@@ -41,24 +41,33 @@ jobs:
       - macOS
       - Windows
     pool:
-      vmImage: macOS-latest
-      demands: node.js
+      vmImage: ubuntu-16.04
     steps:
-      - template: .ci/cross-release.yml
-  - template: .ci-self/cross-release.yml
 
-  - job: Linux_bash_install
-    displayName: Test bash install on Linux
-    condition: succeeded()
-    pool:
-        vmImage: ubuntu-16.04
-    steps:
-      - template: bash_install_test.yml
+    - script: |
+        node scripts/make-release-skeleton.js
+      displayName: 'Prepare release'
 
-  - job: macos_bash_install
-    displayName: Test bash install on macOS
-    condition: succeeded()
-    pool:
-      vmImage: macOS-latest
-    steps:
-      - template: bash_install_test.yml
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Linux Artifacts'
+      inputs:
+        artifactName: Linux
+        downloadPath: '_release'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download macOS Artifacts'
+      inputs:
+        artifactName: macOS
+        downloadPath: '_release'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Windows Artifacts'
+      inputs:
+        artifactName: Windows
+        downloadPath: '_release'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: Release'
+      inputs:
+        PathtoPublish: '_release'
+        ArtifactName: release
