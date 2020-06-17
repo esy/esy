@@ -1094,7 +1094,7 @@ let solveAndFetch = (proj: Project.t) => {
   };
 };
 
-let add = (reqs: list(string), proj: Project.t) => {
+let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
   let opamError = "add dependencies manually when working with opam sandboxes";
@@ -1113,8 +1113,16 @@ let add = (reqs: list(string), proj: Project.t) => {
         }
       );
 
-    let%bind combinedDeps = addReqs(solveSandbox.root.dependencies);
-    let root = {...solveSandbox.root, dependencies: combinedDeps};
+    let%bind combinedDeps =
+      devDependency
+        ? addReqs(solveSandbox.root.devDependencies)
+        : addReqs(solveSandbox.root.dependencies);
+
+    let root =
+      devDependency
+        ? {...solveSandbox.root, devDependencies: combinedDeps}
+        : {...solveSandbox.root, dependencies: combinedDeps};
+
     return({...solveSandbox, root});
   };
 
@@ -1167,7 +1175,8 @@ let add = (reqs: list(string), proj: Project.t) => {
   };
 
   let%bind json = {
-    let keyToUpdate = "dependencies";
+    let keyToUpdate = devDependency ? "devDependencies" : "dependencies";
+
     let%bind json = Fs.readJsonFile(configPath);
     let%bind json =
       RunAsync.ofStringError(
@@ -1721,6 +1730,11 @@ let commandsConfig = {
               non_empty
               & pos_all(string, [])
               & info([], ~docv="PACKAGE", ~doc="Package to install")
+            )
+          $ Arg.(
+              value
+              & flag
+              & info(["dev", "D"], ~doc="Install as a devDependency")
             )
         ),
       ),
