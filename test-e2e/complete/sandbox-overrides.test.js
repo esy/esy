@@ -99,13 +99,13 @@ describe('Sandbox overrides', function() {
     await p.esy('@another install');
 
     expect(await helpers.readInstalledPackages(p.projectPath, 'default')).toMatchObject({
-      dependencies: {
+      devDependencies: {
         dep: {name: 'dep', version: '1.0.0'},
       },
     });
 
     expect(await helpers.readInstalledPackages(p.projectPath, 'another')).toMatchObject({
-      dependencies: {
+      devDependencies: {
         dep: {name: 'dep', version: '2.0.0'},
       },
     });
@@ -309,8 +309,10 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     expect(await helpers.readInstalledPackages(p.projectPath)).toMatchObject({
       dependencies: {
-        devDep: {name: 'devDep'},
         '@esy-ocaml/substs': {name: '@esy-ocaml/substs'},
+      },
+      devDependencies: {
+        devDep: {name: 'devDep'},
       },
     });
   });

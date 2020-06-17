@@ -40,8 +40,9 @@ describe('lock invalidation', () => {
       name: 'root',
       version: 'link-dev:./package.json',
       dependencies: {
-        a: {name: 'a', version: '1.0.0', dependencies: {}},
+        a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -60,9 +61,10 @@ describe('lock invalidation', () => {
       name: 'root',
       version: 'link-dev:./package.json',
       dependencies: {
-        a: {name: 'a', version: '1.0.0', dependencies: {}},
-        b: {name: 'b', version: '1.0.0', dependencies: {}},
+        a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
+        b: {name: 'b', version: '1.0.0', dependencies: {}, devDependencies: {}},
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -81,8 +83,9 @@ describe('lock invalidation', () => {
       name: 'root',
       version: 'link-dev:./package.json',
       dependencies: {
-        a: {name: 'a', version: '1.0.0', dependencies: {}},
+        a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
       },
+      devDependencies: {},
     });
   });
 
@@ -126,10 +129,12 @@ describe('lock invalidation', () => {
           name: 'dep',
           version: 'link:dep',
           dependencies: {
-            a: {name: 'a', version: '1.0.0', dependencies: {}},
+            a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
           },
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -152,11 +157,13 @@ describe('lock invalidation', () => {
           name: 'dep',
           version: 'link:dep',
           dependencies: {
-            a: {name: 'a', version: '1.0.0', dependencies: {}},
-            b: {name: 'b', version: '1.0.0', dependencies: {}},
+            a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
+            b: {name: 'b', version: '1.0.0', dependencies: {}, devDependencies: {}},
           },
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -179,10 +186,12 @@ describe('lock invalidation', () => {
           name: 'dep',
           version: 'link:dep',
           dependencies: {
-            a: {name: 'a', version: '1.0.0', dependencies: {}},
+            a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
           },
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
   });
 
@@ -227,13 +236,15 @@ describe('lock invalidation', () => {
       name: 'root',
       version: 'link-dev:./package.json',
       dependencies: {
-        a: {name: 'a', version: '1.0.0', dependencies: {}},
+        a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
         dep: {
           name: 'dep',
           version: 'link:dep',
           dependencies: {},
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -252,15 +263,17 @@ describe('lock invalidation', () => {
       name: 'root',
       version: 'link-dev:./package.json',
       dependencies: {
-        a: {name: 'a', version: '1.0.0', dependencies: {}},
+        a: {name: 'a', version: '1.0.0', dependencies: {}, devDependencies: {}},
         dep: {
           name: 'dep',
           version: 'link:dep',
           dependencies: {
-            b: {name: 'b', version: '1.0.0', dependencies: {}},
+            b: {name: 'b', version: '1.0.0', dependencies: {}, devDependencies: {}},
           },
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
 
     // wait, on macOS sometimes it doesn't pick up changes
@@ -288,10 +301,12 @@ describe('lock invalidation', () => {
           name: 'dep',
           version: 'link:dep',
           dependencies: {
-            b: {name: 'b', version: '1.0.0', dependencies: {}},
+            b: {name: 'b', version: '1.0.0', dependencies: {}, devDependencies: {}},
           },
+          devDependencies: {},
         },
       },
+      devDependencies: {},
     });
   });
 });

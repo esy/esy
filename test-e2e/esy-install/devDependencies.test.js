@@ -34,7 +34,7 @@ describe('Installing devDependencies', function() {
     });
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
-      dependencies: {
+      devDependencies: {
         devDep: {
           name: 'devDep',
         },
@@ -76,7 +76,7 @@ describe('Installing devDependencies', function() {
     });
 
     await expect(helpers.readInstalledPackages(p.projectPath)).resolves.toMatchObject({
-      dependencies: {
+      devDependencies: {
         devDep: {
           name: 'devDep',
           dependencies: {
@@ -132,6 +132,8 @@ describe('Installing devDependencies', function() {
           name: 'ok',
           version: '1.0.0',
         },
+      },
+      devDependencies: {
         devDep: {
           name: 'devDep',
           dependencies: {
@@ -183,7 +185,7 @@ describe('Installing devDependencies', function() {
 
     const layout = await helpers.readInstalledPackages(p.projectPath);
     await expect(layout).toMatchObject({
-      dependencies: {
+      devDependencies: {
         devDep: {
           name: 'devDep',
           dependencies: {
