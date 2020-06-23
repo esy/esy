@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## 0.6.5 @ latest
+
+- Support `esy add --dev PKG` invocation to a package as a dev dependency.
+  ([#980](https://github.com/esy/esy/pull/980) by @lessp)
+
+- Make `esy export-dependencies` export dev dependencies unless `--release` flag
+  is passed.
+  ([#1054](https://github.com/esy/esy/pull/1054) by @giltho)
+
+- Introduce `--opam-repository-remote` and `--opam-repository-local` (and
+  corresponding options for override repo) instead of
+  `--opam-repository`/`--opam-override-repository` options
+  which are now deprecated. Previous options had ambigious interpretation.
+  ([#1115](https://github.com/esy/esy/pull/1115) by @tatchi)
+
+- Fixes for Windows (path rewriting and stability).
+  ([#1111](https://github.com/esy/esy/pull/1111) and
+  [#1108](https://github.com/esy/esy/pull/1108) and
+  [#1122](https://github.com/esy/esy/pull/1122) by @prometheansacrifice)
+
+- Increase open file limits on Linux and macOS
+  ([#1107](https://github.com/esy/esy/pull/1107) by @EduardoRFS)
+
+- Fix unpacking archives on systems with `/tmp` being on a different mount.
+  ([#1106](https://github.com/esy/esy/pull/1106) by @EduardoRFS)
+
+- Allow to specify `--fetch-concurrency` which limits the concurrency when
+  fetching package sources.
+  ([#1110](https://github.com/esy/esy/pull/1110) by @amiralies)
+
+- Do shallow clones of github repositories as we don't need the full history to
+  perform the build.
+  ([#1087](https://github.com/esy/esy/pull/1087) by @prometheansacrifice)
+
 ## 0.6.4 @ latest
 
 - Fix symlink copying in sources [#1065](https://github.com/esy/esy/pull/1065)
