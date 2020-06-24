@@ -69,9 +69,13 @@ Each regular **and development** dependency of the project can also contribute t
 environment through `"esy.exportedEnv"` key in `package.json`. See [Project
 Configuration](configuration.md) for details.
 
-## Test Environment
+## Test Environment (exported environment)
 
-The following environment is provided by esy:
+Some packages need to set environment variables in the environment of the package consuming them. Sometimes, a root package may need to set some variables in the sandbox if the binaries need them.
+
+These environment variables are 'exported' using the `exportedEnv`.
+
+By default, the following environment is provided by esy:
 
 * `$PATH` contains all regular time dependencies' `bin/`
   directories **and project's own** `bin/` directory.

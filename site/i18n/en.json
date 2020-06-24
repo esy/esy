@@ -331,6 +331,9 @@
       },
       "version-0.6.2-linking-workflow": {
         "title": "Linking Packages in Development"
+      },
+      "version-0.6.5-configuration": {
+        "title": "Project Configuration"
       }
     },
     "links": {
