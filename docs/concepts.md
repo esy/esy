@@ -91,7 +91,7 @@ Esy maintains three kinds of artifacts - sources, builds and installed artfiacts
 
 ### Sources
 
-Source entries in the esy store are source code files and the recipies that build and install them bundled together. Change any of them, and esy creates a different entry for the source of a package.
+Source entries in the esy store are source code files and the recipes that build and install them bundled together. Change any of them, and esy creates a different entry for the source of a package.
 
 If, for instance, build instructions of a package from opam are overridden (and the source files are not necessarily touched), esy places them in a different location.
 
