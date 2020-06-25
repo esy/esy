@@ -101,7 +101,7 @@ Conceptually, a source entry in the esy store is both it's source files and it's
 
 Build store is simply location where build artifacts are stored. They can be local to a project or global (so that they can be reused).
 
-Build artifacts (object files, bytecode files etc) stored as separate entries dependending on the instructions that build and install them, environment variables present during its build and of course the sources (source code + recipie).
+Build artifacts (object files, bytecode files etc) stored as separate entries dependending on the instructions that build and install them, environment variables present during its build and of course the sources (source code + recipe).
 
 Change anyone of them, and esy creates a separate entry in the build store.
 
