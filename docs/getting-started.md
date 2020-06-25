@@ -79,10 +79,6 @@ Hack on project's source code and rebuild the project:
 esy 
 ```
 
-This will take care of updating dependencies as well as building the project. Same as running `esy install` and `esy build` sequentially.
-
-If you're sure, dependencies haven't been updated, simply run `esy build`
-
 ## Adding a dependency
 
 ```shell
