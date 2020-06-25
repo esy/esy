@@ -95,7 +95,7 @@ Source entries in the esy store are source code files and the recipes that build
 
 If, for instance, build instructions of a package from opam are overridden (and the source files are not necessarily touched), esy places them in a different location.
 
-Conceptually, a source entry in the esy store is both it's source files and it's recipie.
+Conceptually, a source entry in the esy store is both its source files and its recipe.
 
 ### Build store
 
