@@ -385,10 +385,11 @@ let skipRepositoryUpdateArg = {
 
 let fetchConcurrencyArg = {
   let doc = "Specifies number of concurrent fetch tasks.";
+  let env = Arg.env_var("ESY__FETCH_CONCURRENCY", ~doc);
   Arg.(
     value
     & opt(some(int), None)
-    & info(["fetch-concurrency"], ~doc, ~docs=commonOptionsSection)
+    & info(["fetch-concurrency"], ~env, ~doc, ~docs=commonOptionsSection)
   );
 };
 
