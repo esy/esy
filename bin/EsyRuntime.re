@@ -37,14 +37,27 @@ let version =
   };
 
 let concurrency = {
-  /*** TODO: handle more platforms, right now this is tested only on macOS and Linux */
-  let cmd = Bos.Cmd.(v("getconf") % "_NPROCESSORS_ONLN");
-  switch (Bos.OS.Cmd.(run_out(cmd) |> to_string)) {
-  | Ok(out) =>
-    switch (out |> String.trim |> int_of_string_opt) {
-    | Some(n) => n
-    | None => 1
+  let to_int =
+    Option.bind(~f=n_str => n_str |> String.trim |> int_of_string_opt);
+  let env_esy_build_concurrency =
+    Sys.getenv_opt("ESY_BUILD_CONCURRENCY") |> to_int;
+  let env_number_of_processors =
+    Sys.getenv_opt("NUMBER_OF_PROCESSORS") |> to_int;
+
+  let getconf_nprocessors = {
+    let cmd = Bos.Cmd.(v("getconf") % "_NPROCESSORS_ONLN");
+    switch (Bos.OS.Cmd.(run_out(cmd) |> to_string)) {
+    | Ok(n_str) => n_str |> String.trim |> int_of_string_opt
+    | Error(_) => None
+    };
+  };
+  switch (env_esy_build_concurrency) {
+  | Some(n) => n
+  | None =>
+    switch (getconf_nprocessors, env_number_of_processors) {
+    | (Some(n), _) => n
+    | (None, Some(n)) => n
+    | (None, None) => 1
     }
-  | Error(_) => 1
   };
 };
