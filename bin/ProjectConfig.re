@@ -204,6 +204,7 @@ type t = {
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
+  buildConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
   opamRepositoryLocal: option(Path.t),
@@ -391,6 +392,16 @@ let fetchConcurrencyArg = {
   );
 };
 
+let buildConcurrencyArg = {
+  let doc = "Specifies number of concurrent build tasks";
+  let env = Arg.env_var("ESY__BUILD_CONCURRENCY", ~doc);
+  Arg.(
+    value
+    & opt(some(int), None)
+    & info(["build-concurrency"], ~env, ~doc, ~docs=commonOptionsSection)
+  );
+};
+
 let solveCudfCommandArg = {
   let doc = "Set command which is used for solving CUDF problems.";
   let env = Arg.env_var("ESY__SOLVE_CUDF_COMMAND", ~doc);
@@ -408,6 +419,7 @@ let make =
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      buildConcurrency,
       opamRepository,
       esyOpamOverride,
       opamRepositoryLocal,
@@ -440,6 +452,7 @@ let make =
     prefixPath,
     cacheTarballsPath,
     fetchConcurrency,
+    buildConcurrency,
     opamRepository,
     esyOpamOverride,
     opamRepositoryLocal,
@@ -461,6 +474,7 @@ let promiseTerm = {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        buildConcurrency,
         opamRepository,
         esyOpamOverride,
         opamRepositoryLocal,
@@ -479,6 +493,7 @@ let promiseTerm = {
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      buildConcurrency,
       opamRepository,
       esyOpamOverride,
       opamRepositoryLocal,
@@ -498,6 +513,7 @@ let promiseTerm = {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ buildConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
     $ opamRepositoryLocalArg
@@ -523,6 +539,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        buildConcurrency,
         opamRepository,
         esyOpamOverride,
         opamRepositoryLocal,
@@ -543,6 +560,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
+           buildConcurrency,
            opamRepository,
            esyOpamOverride,
            opamRepositoryLocal,
@@ -572,6 +590,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ buildConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
     $ opamRepositoryLocalArg

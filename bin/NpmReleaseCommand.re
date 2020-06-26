@@ -751,7 +751,8 @@ let run = (proj: Project.t) => {
   make(
     ~ocamlopt,
     ~outputPath,
-    ~concurrency=EsyRuntime.concurrency,
+    ~concurrency=
+      EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
     proj.buildCfg,
     proj.projcfg.ProjectConfig.spec,
     fetched.Project.sandbox,
