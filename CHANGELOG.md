@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.6.6 @ latest
+
+- Improve build/fetch concurrency configuration:
+
+  - Allow to specify fetch concurrency via `ESY__FETCH_CONCURRENCY` env var.
+  - Allow to specify build concurrency via `ESY__BUILD_CONCURRENCY` env var and
+    `--build-concurrency` command line option
+
+  - Fix detecting number of CPUs on Windows (outside of cygwin).
+
+  ([#1129](https://github.com/esy/esy/pull/1129) by @EduardoRFS)
+
 ## 0.6.5 @ latest
 
 - Support `esy add --dev PKG` invocation to a package as a dev dependency.
