@@ -716,7 +716,8 @@ let buildDependencies =
       Solution.dependenciesByDepSpec(solved.solution, depspec, task.pkg);
     BuildSandbox.build(
       ~skipStalenessCheck,
-      ~concurrency=EsyRuntime.concurrency,
+      ~concurrency=
+        EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
       ~buildLinked,
       fetched.sandbox,
       plan,

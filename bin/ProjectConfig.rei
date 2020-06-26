@@ -13,6 +13,7 @@ type t = {
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
+  buildConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
   opamRepositoryLocal: option(Path.t),
