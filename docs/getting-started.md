@@ -58,13 +58,50 @@ installed:
 esy x Hello
 ```
 
+### Where is the binary executable?
+When a compiled binary is run with `esy x Hello`, esy creates a local install sandbox with `/bin`, `/lib`, `/etc` and other directories found globally where binaries are meant to be installed. If you're curious, you could peek into them, running
+
+```shell
+esy echo #{self.install}
+```
+
+and inspect the contents yourself. You'll find the binaries in the `bin` directory.
+
+However, they are not meant to be run directly as they could be missing the necessary [exported environment](./concepts.md) - it could be possible that the binary you created needs a dependency during the runtime. `esy x <your project binary>` is the recommended way to run them.
+
+Checkout [concepts](./concepts.md) for more information.
+
 ## Rebuild the project
 
 Hack on project's source code and rebuild the project:
 
 ```shell
+esy 
+```
+
+## Adding a dependency
+
+```shell
+esy add <dependency>
+```
+
+This will fetch the sources and copy them in esy's store. Next, run
+
+```shell
 esy build
 ```
+
+This will build the newly downloaded dependency.
+
+Alternatively, add a new entry in the `dependencies` (or `devDependencies`) 
+
+```diff
+  "@reason-native/console: "*"
++ "@reason-native/pastel": "*"
+  "@reason-native/rely": "*"
+```
+
+And run, esy afterwards.
 
 ## Other useful commands
 
@@ -93,5 +130,6 @@ For more options:
 ```shell
 esy help
 ```
+
 
 [dune]: https://github.com/ocaml/dune
