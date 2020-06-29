@@ -2,7 +2,8 @@
 
 ESY_EXT := $(shell command -v esy 2> /dev/null)
 ESY_VERSION := $(shell esy version)
-ESY_VERSION_MINOR :=$(word 2, $(subst ., ,$(ESY_VERSION)))
+ESY_VERSION_MINOR := $(word 2, $(subst ., ,$(ESY_VERSION)))
+ESY_REQUIRED_VERSION_MINOR = 6
 
 BIN = $(PWD)/node_modules/.bin
 PROJECTS = esy esy-build-package
@@ -56,15 +57,15 @@ help:
 
 bootstrap: install-githooks
 ifndef ESY_EXT
-	$(error "esy command is not avaialble, run 'npm install -g esy@0.$(ESY_VERSION_MINOR).x'")
+	$(error "esy command is not avaialble, run 'npm install -g esy@0.$(ESY_REQUIRED_VERSION_MINOR).x'")
 endif
-ifeq ($(ESY_VERSION_MINOR),6)
+ifeq ($(ESY_VERSION_MINOR),$(ESY_REQUIRED_VERSION_MINOR))
 	@esy install
 	@yarn install
 	@make build
 	@node scripts/bootstrap.js
 else
-	$(error "esy requires version 0.$(ESY_VERSION_MINOR).x installed to bootstrap, run 'npm install -g esy@0.$(ESY_VERSION_MINOR).x'")
+	$(error "esy requires version 0.$(ESY_REQUIRED_VERSION_MINOR).x installed to bootstrap, run 'npm install -g esy@0.$(ESY_REQUIRED_VERSION_MINOR).x'")
 endif
 
 GITHOOKS = $(shell git rev-parse --git-dir)/hooks
