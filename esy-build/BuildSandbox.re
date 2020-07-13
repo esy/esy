@@ -1428,7 +1428,21 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
     );
 
   let%lwt () = Logs_lwt.app(m => m("Exporting %s: done", buildId));
-  let%bind () = Fs.rmPath(stagePath);
+  /* `Fs.rmPath` needs the same fix we made for `Bos.OS.Path.delete`
+   * readonly files need to have their readonly bit off just before
+   * deleting. (https://github.com/esy/esy/pull/1122)
+   * Temporarily commenting `Fs.rmPath` and using the Bos
+   * equivalent as a stopgap.
+   */
+  /* let%bind () = Fs.rmPath(stagePath); */
+  let%lwt () =
+    switch (Bos.OS.Path.delete(~must_exist=false, ~recurse=true, stagePath)) {
+    | Ok () => Lwt.return()
+    | Error(e) =>
+      switch (e) {
+      | `Msg(message) => Logs_lwt.debug(m => m("%s", message))
+      }
+    };
   return();
 };
 
