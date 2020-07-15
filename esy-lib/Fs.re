@@ -165,6 +165,17 @@ let rename = (~skipIfExists=false, ~src, target) => {
     } else {
       RunAsync.errorf("destination already exists: %s", filename);
     }
+  | Unix.Unix_error(Unix.EXDEV, "rename", filename) =>
+    let%lwt () =
+      Logs_lwt.debug(m =>
+        m("rename of %s failed with EXDEV, trying `mv`", filename)
+      );
+    let cmd = Printf.sprintf("mv %s %s", src, target);
+    if (Sys.command(cmd) == 0) {
+      RunAsync.return();
+    } else {
+      RunAsync.errorf("Unable to rename %s to %s", src, target);
+    };
   };
 };
 
