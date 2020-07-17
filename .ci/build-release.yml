@@ -120,6 +120,22 @@ jobs:
           PathtoPublish: '_platformrelease'
           ArtifactName: platform-win32-long
 
+  - job: Linux_bash_install
+    displayName: Test bash install on Linux
+    condition: succeeded()
+    pool:
+        vmImage: ubuntu-16.04
+    steps:
+      - template: bash_install_test.yml
+
+  - job: macos_bash_install
+    displayName: Test bash install on macOS
+    condition: succeeded()
+    pool:
+      vmImage: macOS-10.13
+    steps:
+      - template: bash_install_test.yml
+
   - job: buildRelease
     displayName: Build Release
     dependsOn:
