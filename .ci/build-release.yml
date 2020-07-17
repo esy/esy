@@ -132,7 +132,7 @@ jobs:
     displayName: Test bash install on macOS
     condition: succeeded()
     pool:
-      vmImage: macOS-10.13
+      vmImage: macOS-latest
     steps:
       - template: bash_install_test.yml
 
