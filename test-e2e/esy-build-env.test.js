@@ -263,4 +263,17 @@ describe(`'esy build-env' command`, () => {
     const env = JSON.parse((await p.esy('build-env --json -p dep@path:dep')).stdout);
     expect(env.cur__name).toBe('dep');
   });
+
+  it('expands a variable to a global path for the sandbox', async () => {
+    // Append the current path so we can access tools like `cp`
+    process.env.TEST_PATH = "/some/path:" + process.env.PATH;
+
+    const p = await createTestSandbox();
+
+    await p.esy('install');
+
+    const env = JSON.parse((await p.esy('build-env --global-path TEST_PATH --release --json')).stdout);
+
+    expect(env.PATH).toContain("/some/path");
+  });
 });

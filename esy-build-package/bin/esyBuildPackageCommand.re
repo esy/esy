@@ -15,6 +15,7 @@ type commonOpts = {
   projectPath: option(Fpath.t),
   logLevel: option(Logs.level),
   disableSandbox: bool,
+  globalPathVariable: option(string),
 };
 
 let setupLog = (style_renderer, level) => {
@@ -27,7 +28,14 @@ let setupLog = (style_renderer, level) => {
 
 let createConfig = (copts: commonOpts) => {
   open Run;
-  let {globalStorePrefix, localStorePath, projectPath, disableSandbox, _} = copts;
+  let {
+    globalStorePrefix,
+    localStorePath,
+    projectPath,
+    disableSandbox,
+    globalPathVariable,
+    _,
+  } = copts;
   let%bind currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
@@ -47,6 +55,7 @@ let createConfig = (copts: commonOpts) => {
     ~localStorePath=
       Option.orDefault(~default=projectPath / "_store", localStorePath),
     ~projectPath,
+    ~globalPathVariable,
     (),
   );
 };
@@ -248,6 +257,15 @@ let () = {
       let doc = "Disables sandboxing and builds the package without. CAUTION: this can be dangerous";
       Arg.(value & flag & info(["disable-sandbox"], ~docs, ~doc));
     };
+    let globalPathVariable = {
+      let doc = "Specifies the PATH variable to look for global utils in the build env.";
+      let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
+      Arg.(
+        value
+        & opt(some(string), None)
+        & info(["global-path"], ~env, ~docs, ~doc)
+      );
+    };
     let setupLogT =
       Term.(
         const(setupLog)
@@ -262,6 +280,7 @@ let () = {
           planPath,
           logLevel,
           disableSandbox,
+          globalPathVariable,
         ) => {
       {
         projectPath,
@@ -270,6 +289,7 @@ let () = {
         planPath,
         logLevel,
         disableSandbox,
+        globalPathVariable,
       };
     };
     Term.(
@@ -280,6 +300,7 @@ let () = {
       $ planPath
       $ setupLogT
       $ disableSandbox
+      $ globalPathVariable
     );
   };
   /* Command terms */

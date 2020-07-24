@@ -7,6 +7,7 @@ type t = {
   storePath: EsyLib.Path.t,
   localStorePath: EsyLib.Path.t,
   disableSandbox: bool,
+  globalPathVariable: option(string),
 };
 
 type config = t;
@@ -54,6 +55,7 @@ let make =
       ~storePath,
       ~projectPath,
       ~localStorePath,
+      ~globalPathVariable,
       (),
     ) => {
   open Run;
@@ -71,6 +73,7 @@ let make =
     storePath,
     localStorePath,
     disableSandbox,
+    globalPathVariable,
   });
 };
 

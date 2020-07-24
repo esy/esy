@@ -19,6 +19,7 @@ let make:
     ~depspec: EsyInstall.Solution.DepSpec.t,
     ~sourceType: SourceType.t,
     ~sourcePath: SandboxPath.t,
+    ~globalPathVariable: option(string),
     EsyInstall.Package.t,
     BuildManifest.t
   ) =>
