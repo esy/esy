@@ -24,6 +24,7 @@ type t = {
   solveTimeout: option(float),
   skipRepositoryUpdate: bool,
   solveCudfCommand: option(Cmd.t),
+  globalPathVariable: option(string),
 };
 
 let storePath: t => Run.t(Path.t);
