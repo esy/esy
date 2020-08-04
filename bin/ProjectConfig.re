@@ -218,6 +218,13 @@ type t = {
   globalPathVariable: option(string),
 };
 
+let globalStorePrefixPath = cfg => {
+  switch (cfg.prefixPath) {
+  | None => EsyBuildPackage.Config.storePrefixDefault
+  | Some(prefixPath) => prefixPath
+  };
+};
+
 let storePath = cfg => {
   let storePath =
     switch (cfg.prefixPath) {
@@ -225,14 +232,10 @@ let storePath = cfg => {
     | Some(path) => EsyBuildPackage.Config.StorePathOfPrefix(path)
     };
 
-  let globalStorePrefix =
-    switch (cfg.prefixPath) {
-    | None => EsyBuildPackage.Config.storePrefixDefault
-    | Some(prefixPath) => prefixPath
-    };
-
   Run.ofBosError(
-    EsyBuildPackage.Config.(configureStorePath(storePath, globalStorePrefix)),
+    EsyBuildPackage.Config.(
+      configureStorePath(storePath, globalStorePrefixPath(cfg))
+    ),
   );
 };
 
