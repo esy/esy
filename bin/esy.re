@@ -256,6 +256,12 @@ let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
             RunAsync.ofRun(ProjectConfig.storePath(projCfg));
           let%bind allDirs' =
             Fs.listDir(Path.(storePath / Store.installTree));
+          let shortBuildPath =
+            Path.(
+              ProjectConfig.globalStorePrefixPath(projCfg)
+              / Store.version
+              / Store.buildTree
+            );
           RunAsync.return((
             Path.Set.union(dirsToKeep, allProjectDependencies),
             Path.Set.union(
@@ -263,6 +269,7 @@ let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
               Path.Set.of_list([
                 Path.(storePath / Store.buildTree),
                 Path.(storePath / Store.stageTree),
+                shortBuildPath,
                 ...allDirs'
                    |> List.map(~f=x =>
                         Path.(storePath / Store.installTree / x)

@@ -28,6 +28,7 @@ type t = {
 };
 
 let storePath: t => Run.t(Path.t);
+let globalStorePrefixPath: t => Path.t;
 
 let show: t => string;
 let pp: Fmt.t(t);
