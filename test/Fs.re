@@ -71,3 +71,24 @@ let%test "rmPathLwt - delete read only file" = {
 
   TestHarness.runRunAsyncTest(test);
 };
+
+let%test "rename - can rename a directory" = {
+  let test = () => {
+    let f = (srcTempPath, dstTempPath) => {
+      open RunAsync.Syntax;
+      let src = Path.(srcTempPath / "test.txt");
+      let dst = Path.(dstTempPath / "");
+      let data = "test";
+      let%bind () = Fs.writeFile(~data, src);
+      let src = Path.(srcTempPath / "");
+      let%bind () = Fs.rename(~src, dst);
+      return(true);
+    };
+
+    Fs.withTempDir(srcTempPath => {
+      Fs.withTempDir(dstTempPath => {f(srcTempPath, dstTempPath)})
+    });
+  };
+
+  TestHarness.runRunAsyncTest(test);
+};
