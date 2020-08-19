@@ -18,7 +18,7 @@ depends: [
   "menhir"        {>= "20170418"}
   "merlin-extend" {>= "0.4"}
   "result"
-  "ocaml-migrate-parsetree"
+  "ocaml-migrate-parsetree" {< "2.0.0"}
 ]
 synopsis: "Reason: Syntax & Toolchain for OCaml"
 description: """
