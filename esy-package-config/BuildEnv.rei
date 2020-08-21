@@ -1,8 +1,10 @@
 type t = StringMap.t(item)
-and item = {
-  name: string,
-  value: string,
-};
+and item =
+  | Unset({name: string})
+  | Set({
+      name: string,
+      value: string,
+    });
 
 let empty: t;
 

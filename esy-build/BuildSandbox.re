@@ -532,13 +532,23 @@ let makeScope =
     let sourcePath = Scope.SandboxPath.ofPath(sandbox.cfg, location);
 
     let sandboxEnv = {
-      let f = ({BuildEnv.name, value}) =>
-        Scope.SandboxEnvironment.Bindings.value(
-          name,
-          Scope.SandboxValue.v(value),
-        );
-
-      List.map(~f, StringMap.values(sandbox.sandboxEnv));
+      let f = (env, item) =>
+        // TODO: what should that do?
+        switch (item) {
+        | BuildEnv.Set({name, value}) => [
+            (
+              name,
+              Scope.SandboxEnvironment.Bindings.value(
+                name,
+                Scope.SandboxValue.v(value),
+              ),
+            ),
+          ]
+        | Unset({name}) => env |> List.filter(~f=((key, _)) => name != key)
+        };
+      StringMap.values(sandbox.sandboxEnv)
+      |> List.fold_left(~f, ~init=[])
+      |> List.rev_map(~f=snd);
     };
 
     let scope =

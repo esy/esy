@@ -36,11 +36,11 @@ module PackageScope: {
   let logPath: t => SandboxPath.t;
 
   let buildEnv:
-    (~buildIsInProgress: bool, BuildSpec.mode, t) => list((string, string));
+    (~buildIsInProgress: bool, BuildSpec.mode, t) => list(BuildEnv.item);
   let buildEnvAuto:
-    (~buildIsInProgress: bool, ~dev: bool, t) => list((string, string));
-  let exportedEnvLocal: t => list((string, string));
-  let exportedEnvGlobal: t => list((string, string));
+    (~buildIsInProgress: bool, ~dev: bool, t) => list(BuildEnv.item);
+  let exportedEnvLocal: t => list(BuildEnv.item);
+  let exportedEnvGlobal: t => list(BuildEnv.item);
 
   let var:
     (~buildIsInProgress: bool, t, string) =>
@@ -57,6 +57,7 @@ module PackageScope: {
     exportedEnvGlobal: list((string, string)),
   };
 
+  let set = (name, value) => BuildEnv.Set({name, value});
   let make =
       (~id, ~name, ~version, ~sourceType, ~sourcePath, build: BuildManifest.t) => {
     let (exportedEnvGlobal, exportedEnvLocal) = {
@@ -197,8 +198,16 @@ module PackageScope: {
     | (Unsafe, Transient) => scope.sourcePath
     };
 
-  let exportedEnvLocal = scope => scope.exportedEnvLocal;
-  let exportedEnvGlobal = scope => scope.exportedEnvGlobal;
+  let exportedEnvLocal = scope =>
+    List.map(
+      ~f=((name, value)) => set(name, value),
+      scope.exportedEnvLocal,
+    );
+  let exportedEnvGlobal = scope =>
+    List.map(
+      ~f=((name, value)) => set(name, value),
+      scope.exportedEnvGlobal,
+    );
 
   let var = (~buildIsInProgress, scope, id) => {
     let b = v => Some(EsyCommandExpression.bool(v));
@@ -255,22 +264,22 @@ module PackageScope: {
 
     let p = v => SandboxValue.show(SandboxPath.toValue(v));
     [
-      ("cur__name", name(scope)),
-      ("cur__version", Version.showSimple(version(scope))),
-      ("cur__dev", if (dev) {"true"} else {"false"}),
-      ("cur__root", p(rootPath(scope))),
-      ("cur__original_root", p(sourcePath(scope))),
-      ("cur__target_dir", p(buildPath(scope))),
-      ("cur__install", p(installPath)),
-      ("cur__bin", p(SandboxPath.(installPath / "bin"))),
-      ("cur__sbin", p(SandboxPath.(installPath / "sbin"))),
-      ("cur__lib", p(SandboxPath.(installPath / "lib"))),
-      ("cur__man", p(SandboxPath.(installPath / "man"))),
-      ("cur__doc", p(SandboxPath.(installPath / "doc"))),
-      ("cur__stublibs", p(SandboxPath.(installPath / "stublibs"))),
-      ("cur__toplevel", p(SandboxPath.(installPath / "toplevel"))),
-      ("cur__share", p(SandboxPath.(installPath / "share"))),
-      ("cur__etc", p(SandboxPath.(installPath / "etc"))),
+      set("cur__name", name(scope)),
+      set("cur__version", Version.showSimple(version(scope))),
+      set("cur__dev", if (dev) {"true"} else {"false"}),
+      set("cur__root", p(rootPath(scope))),
+      set("cur__original_root", p(sourcePath(scope))),
+      set("cur__target_dir", p(buildPath(scope))),
+      set("cur__install", p(installPath)),
+      set("cur__bin", p(SandboxPath.(installPath / "bin"))),
+      set("cur__sbin", p(SandboxPath.(installPath / "sbin"))),
+      set("cur__lib", p(SandboxPath.(installPath / "lib"))),
+      set("cur__man", p(SandboxPath.(installPath / "man"))),
+      set("cur__doc", p(SandboxPath.(installPath / "doc"))),
+      set("cur__stublibs", p(SandboxPath.(installPath / "stublibs"))),
+      set("cur__toplevel", p(SandboxPath.(installPath / "toplevel"))),
+      set("cur__share", p(SandboxPath.(installPath / "share"))),
+      set("cur__etc", p(SandboxPath.(installPath / "etc"))),
     ];
   };
 
@@ -286,15 +295,12 @@ module PackageScope: {
 
     /* add builtins */
     let env = [
-      ("OCAMLFIND_DESTDIR", p(SandboxPath.(installPath / "lib"))),
-      ("OCAMLFIND_LDCONF", "ignore"),
+      set("OCAMLFIND_DESTDIR", p(SandboxPath.(installPath / "lib"))),
+      set("OCAMLFIND_LDCONF", "ignore"),
     ];
 
     let env = {
-      let f = (_name, {BuildEnv.name, value}, env) => [
-        (name, value),
-        ...env,
-      ];
+      let f = (_name, item, env) => [item, ...env];
       StringMap.fold(f, scope.build.buildEnv, env);
     };
 
@@ -305,7 +311,7 @@ module PackageScope: {
     // default if absent).
     let env =
       switch (scope.build.buildType) {
-      | OutOfSource => [("DUNE_BUILD_DIR", p(buildPath(scope))), ...env]
+      | OutOfSource => [set("DUNE_BUILD_DIR", p(buildPath(scope))), ...env]
       | InSource
       | JbuilderLike
       | Unsafe => env
@@ -318,7 +324,7 @@ module PackageScope: {
     let env =
       switch (scope.sourceType, scope.build.buildType) {
       | (Transient, OutOfSource) => [
-          ("DUNE_STORE_ORIG_SOURCE_DIR", "true"),
+          set("DUNE_STORE_ORIG_SOURCE_DIR", "true"),
           ...env,
         ]
       | _ => env
@@ -532,21 +538,24 @@ let render =
 
 let makeEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
   open Run.Syntax;
-  let f = ((name, value)) => {
-    let%bind value =
-      Run.contextf(
-        render(
-          ~buildIsInProgress,
-          ~environmentVariableName=name,
-          scope,
-          value,
-        ),
-        "processing exportedEnv $%s",
-        name,
-      );
+  let f = buildItem =>
+    switch (buildItem) {
+    | BuildEnv.Set({name, value}) =>
+      let%bind value =
+        Run.contextf(
+          render(
+            ~buildIsInProgress,
+            ~environmentVariableName=name,
+            scope,
+            value,
+          ),
+          "processing exportedEnv $%s",
+          name,
+        );
 
-    return(SandboxEnvironment.Bindings.value(~origin?, name, value));
-  };
+      return(SandboxEnvironment.Bindings.value(~origin?, name, value));
+    | Unset({name}) => return(SandboxEnvironment.Bindings.remove(name))
+    };
 
   Result.List.map(~f, bindings);
 };
