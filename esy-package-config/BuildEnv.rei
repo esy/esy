@@ -1,12 +1,14 @@
+type value =
+  | Set(string)
+  | Unset;
 type t = StringMap.t(item)
-and item =
-  | Unset({name: string})
-  | Set({
-      name: string,
-      value: string,
-    });
+and item = {
+  name: string,
+  value,
+};
 
 let empty: t;
+let set: (string, string) => item;
 
 include S.COMPARABLE with type t := t;
 include S.JSONABLE with type t := t;
