@@ -1,21 +1,25 @@
 [@ocaml.warning "-32"];
 [@deriving (show, ord)]
-type item =
-  | Unset({name: string})
-  | Set({
-      name: string,
-      value: string,
-    });
+type value =
+  | Set(string)
+  | Unset;
+[@deriving (show, ord)]
+type item = {
+  name: string,
+  value,
+};
 
 [@deriving ord]
 type t = StringMap.t(item);
 
 let empty = StringMap.empty;
 
+let set = (name, value) => {name, value: Set(value)};
+
 let item_of_yojson = (name, json) =>
   switch (json) {
-  | `String(value) => Ok(Set({name, value}))
-  | `Null => Ok(Unset({name: name}))
+  | `String(value) => Ok({name, value: Set(value)})
+  | `Null => Ok({name, value: Unset})
   | _ => Error("expected string")
   };
 
@@ -35,8 +39,8 @@ let of_yojson =
 
 let item_to_yojson =
   fun
-  | Set({value, _}) => `String(value)
-  | Unset(_) => `Null;
+  | {value: Set(value), _} => `String(value)
+  | {value: Unset, _} => `Null;
 
 let to_yojson = env => {
   let items = {
@@ -48,10 +52,10 @@ let to_yojson = env => {
 };
 
 let pp = {
-  let ppItem = (fmt, (name, item)) =>
-    switch (item) {
-    | Set({value, _}) => Fmt.pf(fmt, "%s: %s", name, value)
-    | Unset(_) => Fmt.pf(fmt, "unset %s", name)
+  let ppItem = (fmt, (name, {value, _})) =>
+    switch (value) {
+    | Set(value) => Fmt.pf(fmt, "%s: %s", name, value)
+    | Unset => Fmt.pf(fmt, "unset %s", name)
     };
 
   StringMap.pp(~sep=Fmt.unit(", "), ppItem);

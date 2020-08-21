@@ -57,7 +57,6 @@ module PackageScope: {
     exportedEnvGlobal: list((string, string)),
   };
 
-  let set = (name, value) => BuildEnv.Set({name, value});
   let make =
       (~id, ~name, ~version, ~sourceType, ~sourcePath, build: BuildManifest.t) => {
     let (exportedEnvGlobal, exportedEnvLocal) = {
@@ -200,12 +199,12 @@ module PackageScope: {
 
   let exportedEnvLocal = scope =>
     List.map(
-      ~f=((name, value)) => set(name, value),
+      ~f=((name, value)) => BuildEnv.set(name, value),
       scope.exportedEnvLocal,
     );
   let exportedEnvGlobal = scope =>
     List.map(
-      ~f=((name, value)) => set(name, value),
+      ~f=((name, value)) => BuildEnv.set(name, value),
       scope.exportedEnvGlobal,
     );
 
@@ -255,6 +254,7 @@ module PackageScope: {
   };
 
   let buildEnvAuto = (~buildIsInProgress, ~dev, scope) => {
+    open BuildEnv;
     let installPath =
       if (buildIsInProgress) {
         stagePath(scope);
@@ -284,6 +284,7 @@ module PackageScope: {
   };
 
   let buildEnv = (~buildIsInProgress, _mode, scope) => {
+    open BuildEnv;
     let installPath =
       if (buildIsInProgress) {
         stagePath(scope);
@@ -536,25 +537,30 @@ let render =
   return(SandboxValue.v(v));
 };
 
-let makeEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
+let makeSetBinding = (~buildIsInProgress, ~origin=?, scope, (name, value)) => {
   open Run.Syntax;
-  let f = buildItem =>
-    switch (buildItem) {
-    | BuildEnv.Set({name, value}) =>
-      let%bind value =
-        Run.contextf(
-          render(
-            ~buildIsInProgress,
-            ~environmentVariableName=name,
-            scope,
-            value,
-          ),
-          "processing exportedEnv $%s",
-          name,
-        );
+  let%bind value =
+    Run.contextf(
+      render(~buildIsInProgress, ~environmentVariableName=name, scope, value),
+      "processing exportedEnv $%s",
+      name,
+    );
 
-      return(SandboxEnvironment.Bindings.value(~origin?, name, value));
-    | Unset({name}) => return(SandboxEnvironment.Bindings.remove(name))
+  return(SandboxEnvironment.Bindings.value(~origin?, name, value));
+};
+let makeUnsetBinding = (~buildIsInProgress as _, ~origin=?, _scope, name) => {
+  // TODO: should log something
+  Run.Syntax.(
+    return(SandboxEnvironment.Bindings.remove(~origin?, name))
+  );
+};
+
+let makeEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
+  let f = ({BuildEnv.name, value}) =>
+    switch (value) {
+    | Set(value) =>
+      makeSetBinding(~buildIsInProgress, ~origin?, scope, (name, value))
+    | Unset => makeUnsetBinding(~buildIsInProgress, ~origin?, scope, name)
     };
 
   Result.List.map(~f, bindings);

@@ -532,10 +532,10 @@ let makeScope =
     let sourcePath = Scope.SandboxPath.ofPath(sandbox.cfg, location);
 
     let sandboxEnv = {
-      let f = (env, item) =>
+      let f = (env, {BuildEnv.name, value}) =>
         // TODO: what should that do?
-        switch (item) {
-        | BuildEnv.Set({name, value}) => [
+        switch (value) {
+        | Set(value) => [
             (
               name,
               Scope.SandboxEnvironment.Bindings.value(
@@ -544,7 +544,7 @@ let makeScope =
               ),
             ),
           ]
-        | Unset({name}) => env |> List.filter(~f=((key, _)) => name != key)
+        | Unset => env |> List.filter(~f=((key, _)) => name != key)
         };
       StringMap.values(sandbox.sandboxEnv)
       |> List.fold_left(~f, ~init=[])
