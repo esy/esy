@@ -10,7 +10,14 @@ const {promiseExec, packageJson, dir, file, dummyExecutable, buildCommand} = hel
 helpers.skipSuiteOnWindows('#301');
 
 describe(`'esy build-env' command`, () => {
-  function createPackage(p, {name, dependencies}: {name: string, dependencies?: Object}) {
+  function createPackage(
+    p,
+    {
+      name,
+      dependencies,
+      exportedEnv,
+    }: {name: string, dependencies?: Object, exportedEnv?: Object},
+  ) {
     return dir(
       name,
       packageJson({
@@ -26,6 +33,7 @@ describe(`'esy build-env' command`, () => {
             [`${name}__buildvar`]: `${name}__buildvar__value`,
           },
           exportedEnv: {
+            ...exportedEnv,
             [`${name}__local`]: {val: `${name}__local__value`},
             [`${name}__global`]: {val: `${name}__global__value`, scope: 'global'},
           },
@@ -62,6 +70,7 @@ describe(`'esy build-env' command`, () => {
           exportedEnv: {
             root__local: {val: 'root__local__value'},
             root__global: {val: 'root__global__value', scope: 'global'},
+            unsetDep__local: {val: null, scope: 'global'},
           },
         },
       }),
@@ -69,7 +78,14 @@ describe(`'esy build-env' command`, () => {
       createPackage(p, {name: 'depOfDep'}),
       createPackage(p, {name: 'linkedDep'}),
       createPackage(p, {name: 'devDep'}),
-      createPackage(p, {name: 'unsetDep'}),
+      createPackage(p, {name: 'exportDep'}),
+      createPackage(p, {
+        name: 'unsetDep',
+        dependencies: {exportDep: 'path:../exportDep'},
+        exportedEnv: {
+          exportDep__global: {val: null, scope: 'global'},
+        },
+      }),
     );
     return p;
   }
@@ -186,6 +202,7 @@ describe(`'esy build-env' command`, () => {
 
     // unset dep global should have been removed
     expect(env.unsetDep__global).toBe(undefined);
+    expect(env.exportDep__global).toBe(undefined);
   });
 
   it('generates an environment in JSON (--release)', async () => {
