@@ -33,7 +33,8 @@
 %%
 
 start:
-  e = expr; EOF { e }
+    e = expr; EOF { e }
+  | EOF; { String "" }
 
 expr:
   e = nonempty_list(atom) {
