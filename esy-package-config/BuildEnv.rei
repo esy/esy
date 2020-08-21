@@ -9,6 +9,7 @@ and item = {
 
 let empty: t;
 let set: (string, string) => item;
+let unset: string => item;
 
 include S.COMPARABLE with type t := t;
 include S.JSONABLE with type t := t;

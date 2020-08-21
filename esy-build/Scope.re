@@ -39,8 +39,8 @@ module PackageScope: {
     (~buildIsInProgress: bool, BuildSpec.mode, t) => list(BuildEnv.item);
   let buildEnvAuto:
     (~buildIsInProgress: bool, ~dev: bool, t) => list(BuildEnv.item);
-  let exportedEnvLocal: t => list(BuildEnv.item);
-  let exportedEnvGlobal: t => list(BuildEnv.item);
+  let exportedEnvLocal: t => list(ExportedEnv.item);
+  let exportedEnvGlobal: t => list(ExportedEnv.item);
 
   let var:
     (~buildIsInProgress: bool, t, string) =>
@@ -53,18 +53,19 @@ module PackageScope: {
     sourcePath: SandboxPath.t,
     sourceType: SourceType.t,
     build: BuildManifest.t,
-    exportedEnvLocal: list((string, string)),
-    exportedEnvGlobal: list((string, string)),
+    exportedEnvLocal: list(ExportedEnv.item),
+    exportedEnvGlobal: list(ExportedEnv.item),
   };
 
   let make =
       (~id, ~name, ~version, ~sourceType, ~sourcePath, build: BuildManifest.t) => {
     let (exportedEnvGlobal, exportedEnvLocal) = {
+      open ExportedEnv;
       let (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal) = {
         let f =
             (
               _name,
-              {ExportedEnv.name, scope: envScope, value, exclusive: _},
+              {ExportedEnv.name, scope: envScope, _} as item,
               (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal),
             ) =>
           switch (envScope) {
@@ -72,10 +73,10 @@ module PackageScope: {
             let injectCamlLdLibraryPath =
               name != "CAML_LD_LIBRARY_PATH" && injectCamlLdLibraryPath;
 
-            let exportedEnvGlobal = [(name, value), ...exportedEnvGlobal];
+            let exportedEnvGlobal = [item, ...exportedEnvGlobal];
             (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal);
           | Local =>
-            let exportedEnvLocal = [(name, value), ...exportedEnvLocal];
+            let exportedEnvLocal = [item, ...exportedEnvLocal];
             (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal);
           };
 
@@ -86,15 +87,15 @@ module PackageScope: {
         if (injectCamlLdLibraryPath) {
           let name = "CAML_LD_LIBRARY_PATH";
           let value = "#{self.stublibs : self.lib / 'stublibs' : $CAML_LD_LIBRARY_PATH}";
-          [(name, value), ...exportedEnvGlobal];
+          [set(Global, name, value), ...exportedEnvGlobal];
         } else {
           exportedEnvGlobal;
         };
 
       let exportedEnvGlobal = {
-        let path = ("PATH", "#{self.bin : $PATH}");
-        let manPath = ("MAN_PATH", "#{self.man : $MAN_PATH}");
-        let ocamlpath = ("OCAMLPATH", "#{self.lib : $OCAMLPATH}");
+        let path = set(Global, "PATH", "#{self.bin : $PATH}");
+        let manPath = set(Global, "MAN_PATH", "#{self.man : $MAN_PATH}");
+        let ocamlpath = set(Global, "OCAMLPATH", "#{self.lib : $OCAMLPATH}");
         [path, manPath, ocamlpath, ...exportedEnvGlobal];
       };
 
@@ -197,16 +198,8 @@ module PackageScope: {
     | (Unsafe, Transient) => scope.sourcePath
     };
 
-  let exportedEnvLocal = scope =>
-    List.map(
-      ~f=((name, value)) => BuildEnv.set(name, value),
-      scope.exportedEnvLocal,
-    );
-  let exportedEnvGlobal = scope =>
-    List.map(
-      ~f=((name, value)) => BuildEnv.set(name, value),
-      scope.exportedEnvGlobal,
-    );
+  let exportedEnvLocal = scope => scope.exportedEnvLocal;
+  let exportedEnvGlobal = scope => scope.exportedEnvGlobal;
 
   let var = (~buildIsInProgress, scope, id) => {
     let b = v => Some(EsyCommandExpression.bool(v));
@@ -555,7 +548,17 @@ let makeUnsetBinding = (~buildIsInProgress as _, ~origin=?, _scope, name) => {
   );
 };
 
-let makeEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
+let makeExportedEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
+  let f = ({ExportedEnv.name, value, _}) =>
+    switch (value) {
+    | Set(value) =>
+      makeSetBinding(~buildIsInProgress, ~origin?, scope, (name, value))
+    | Unset => makeUnsetBinding(~buildIsInProgress, ~origin?, scope, name)
+    };
+
+  Result.List.map(~f, bindings);
+};
+let makeBuildEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
   let f = ({BuildEnv.name, value}) =>
     switch (value) {
     | Set(value) =>
@@ -570,7 +573,7 @@ let buildEnv = (~buildIsInProgress, scope) => {
   open Run.Syntax;
   let bindings =
     PackageScope.buildEnv(~buildIsInProgress, scope.mode, scope.self);
-  let%bind env = makeEnvBindings(~buildIsInProgress, bindings, scope);
+  let%bind env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
@@ -586,7 +589,7 @@ let buildEnvAuto = (~buildIsInProgress, scope) => {
 
   let bindings =
     PackageScope.buildEnvAuto(~buildIsInProgress, ~dev, scope.self);
-  let%bind env = makeEnvBindings(~buildIsInProgress, bindings, scope);
+  let%bind env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
@@ -595,7 +598,12 @@ let exportedEnvGlobal = scope => {
   let bindings = PackageScope.exportedEnvGlobal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
   let%bind env =
-    makeEnvBindings(~buildIsInProgress=false, ~origin, bindings, scope);
+    makeExportedEnvBindings(
+      ~buildIsInProgress=false,
+      ~origin,
+      bindings,
+      scope,
+    );
   return(env);
 };
 
@@ -604,7 +612,12 @@ let exportedEnvLocal = scope => {
   let bindings = PackageScope.exportedEnvLocal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
   let%bind env =
-    makeEnvBindings(~buildIsInProgress=false, ~origin, bindings, scope);
+    makeExportedEnvBindings(
+      ~buildIsInProgress=false,
+      ~origin,
+      bindings,
+      scope,
+    );
   return(env);
 };
 

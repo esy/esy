@@ -19,7 +19,7 @@ module Item = {
   [@deriving yojson]
   type t = {
     [@key "val"]
-    value: string,
+    value: option(string),
     scope: [@default Local] scope_,
     exclusive: [@default false] bool,
   }
@@ -27,11 +27,15 @@ module Item = {
   and scope_ = scope;
 };
 
+[@deriving (show, ord)]
+type value =
+  | Set(string)
+  | Unset;
 [@ocaml.warning "-32"];
 [@deriving (show, ord)]
 type item = {
   name: string,
-  value: string,
+  value,
   scope,
   exclusive: bool,
 };
@@ -40,10 +44,27 @@ type item = {
 type t = StringMap.t(item);
 
 let empty = StringMap.empty;
+let set = (~exclusive=?, scope, name, value) => {
+  name,
+  value: Set(value),
+  scope,
+  exclusive: Option.orDefault(~default=false, exclusive),
+};
+let unset = (~exclusive=?, scope, name) => {
+  name,
+  value: Unset,
+  scope,
+  exclusive: Option.orDefault(~default=false, exclusive),
+};
 
 let item_of_yojson = (name, json) => {
   open Result.Syntax;
   let%bind {Item.value, scope, exclusive} = Item.of_yojson(json);
+  let value =
+    switch (value) {
+    | Some(value) => Set(value)
+    | None => Unset
+    };
   return({name, value, scope, exclusive});
 };
 
@@ -62,7 +83,13 @@ let of_yojson =
 
 let item_to_yojson = item =>
   `Assoc([
-    ("val", `String(item.value)),
+    (
+      "val",
+      switch (item.value) {
+      | Set(value) => `String(value)
+      | Unset => `Null
+      },
+    ),
     ("scope", scope_to_yojson(item.scope)),
     ("exclusive", `Bool(item.exclusive)),
   ]);
