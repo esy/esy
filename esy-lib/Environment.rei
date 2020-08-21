@@ -40,6 +40,7 @@ module type S = {
     let value: (~origin: string=?, string, value) => Binding.t(value);
     let prefixValue: (~origin: string=?, string, value) => Binding.t(value);
     let suffixValue: (~origin: string=?, string, value) => Binding.t(value);
+    let remove: (~origin: string=?, string) => Binding.t(value);
 
     let empty: t;
     let render: (ctx, t) => list(Binding.t(string));

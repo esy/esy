@@ -9,7 +9,8 @@ module Binding = {
     | Value('v)
     | ExpandedValue('v)
     | Prefix('v)
-    | Suffix('v);
+    | Suffix('v)
+    | Remove;
 
   let origin = binding => binding.origin;
 
@@ -21,6 +22,7 @@ module Binding = {
       Fmt.pf(fmt, "%s=%a:%s", binding.name, ppValue, v, binding.name)
     | Suffix(v) =>
       Fmt.pf(fmt, "%s=%s:%a", binding.name, binding.name, ppValue, v)
+    | Remove => Fmt.pf(fmt, "unset %s", binding.name)
     };
 };
 
@@ -49,6 +51,7 @@ module type S = {
     let value: (~origin: string=?, string, value) => Binding.t(value);
     let prefixValue: (~origin: string=?, string, value) => Binding.t(value);
     let suffixValue: (~origin: string=?, string, value) => Binding.t(value);
+    let remove: (~origin: string=?, string) => Binding.t(value);
 
     let empty: t;
     let render: (ctx, t) => list(Binding.t(string));
@@ -113,6 +116,8 @@ module Make =
       {Binding.name, value, origin};
     };
 
+    let remove = (~origin=?, name) => {Binding.name, value: Remove, origin};
+
     let map = (~f, bindings) => {
       let f = binding => {
         let value =
@@ -125,6 +130,7 @@ module Make =
             Binding.Prefix(value |> V.show |> f |> V.v)
           | Binding.Suffix(value) =>
             Binding.Suffix(value |> V.show |> f |> V.v)
+          | Binding.Remove => Binding.Remove
           };
 
         {...binding, value};
@@ -142,6 +148,7 @@ module Make =
           | Binding.Value(value) => Binding.Value(V.render(ctx, value))
           | Binding.Prefix(value) => Binding.Prefix(V.render(ctx, value))
           | Binding.Suffix(value) => Binding.Suffix(V.render(ctx, value))
+          | Binding.Remove => Binding.Remove
           };
 
         {Binding.name, value, origin};
@@ -195,6 +202,7 @@ module Make =
 
           let value = V.v(value);
           Ok(StringMap.add(binding.name, value, env));
+        | Remove => Ok(StringMap.remove(binding.name, env))
         };
       };
 
@@ -300,6 +308,7 @@ let renderToShellSource =
         let sep = System.Environment.sep(~platform, ~name, ());
         let value = escapeDoubleQuote(value);
         Ok(Printf.sprintf("export %s=\"$%s%s%s\"", name, name, sep, value));
+      | Remove => Ok(Printf.sprintf("unset %s", name))
       };
 
     [@implicit_arity] Ok([line, ...lines], origin);
@@ -321,6 +330,8 @@ let renderToList = (~platform=System.Platform.host, bindings) => {
       | Binding.Suffix(value) =>
         let sep = System.Environment.sep(~platform, ~name, ());
         "$" ++ name ++ sep ++ value;
+      // TODO: is that correct?
+      | Binding.Remove => ""
       };
 
     (name, value);

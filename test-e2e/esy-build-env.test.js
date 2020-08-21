@@ -48,6 +48,7 @@ describe(`'esy build-env' command`, () => {
         },
         devDependencies: {
           devDep: 'path:./devDep',
+          unsetDep: 'path:./unsetDep',
         },
         resolutions: {
           linkedDep: 'link:./linkedDep',
@@ -56,6 +57,7 @@ describe(`'esy build-env' command`, () => {
           buildEnv: {
             root__build: 'root__build__value',
             emptyVariable: '',
+            unsetDep__global: null,
           },
           exportedEnv: {
             root__local: {val: 'root__local__value'},
@@ -67,6 +69,7 @@ describe(`'esy build-env' command`, () => {
       createPackage(p, {name: 'depOfDep'}),
       createPackage(p, {name: 'linkedDep'}),
       createPackage(p, {name: 'devDep'}),
+      createPackage(p, {name: 'unsetDep'}),
     );
     return p;
   }
@@ -118,7 +121,7 @@ describe(`'esy build-env' command`, () => {
         cwd: p.projectPath,
       }),
     ).rejects.toMatchObject({
-      code: 127
+      code: 127,
     });
   });
 
@@ -180,6 +183,9 @@ describe(`'esy build-env' command`, () => {
 
     // check if empty variables are defined
     expect(env.emptyVariable).toBe('');
+
+    // unset dep global should have been removed
+    expect(env.unsetDep__global).toBe(undefined);
   });
 
   it('generates an environment in JSON (--release)', async () => {
@@ -270,14 +276,16 @@ describe(`'esy build-env' command`, () => {
 
   it('expands a variable to a global path for the sandbox', async () => {
     // Append the current path so we can access tools like `cp`
-    process.env.TEST_PATH = "/some/path:" + process.env.PATH;
+    process.env.TEST_PATH = '/some/path:' + process.env.PATH;
 
     const p = await createTestSandbox();
 
     await p.esy('install');
 
-    const env = JSON.parse((await p.esy('build-env --global-path TEST_PATH --release --json')).stdout);
+    const env = JSON.parse(
+      (await p.esy('build-env --global-path TEST_PATH --release --json')).stdout,
+    );
 
-    expect(env.PATH).toContain("/some/path");
+    expect(env.PATH).toContain('/some/path');
   });
 });
