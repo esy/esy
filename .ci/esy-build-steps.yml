@@ -31,6 +31,7 @@ steps:
   - script: 'node ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
     continueOnError: true
+  - template: utils/publish-build-cache.yml
   - script: 'node ./scripts/make-platform-release.js'
     condition: succeededOrFailed()
     displayName: 'esy platform-release'
