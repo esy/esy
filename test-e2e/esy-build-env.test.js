@@ -55,6 +55,7 @@ describe(`'esy build-env' command`, () => {
         esy: {
           buildEnv: {
             root__build: 'root__build__value',
+            emptyVariable: '',
           },
           exportedEnv: {
             root__local: {val: 'root__local__value'},
@@ -176,6 +177,9 @@ describe(`'esy build-env' command`, () => {
     // dev deps are not present in build env
     expect(env.devDep__local).toBe('devDep__local__value');
     expect(env.devDep__global).toBe('devDep__global__value');
+
+    // check if empty variables are defined
+    expect(env.emptyVariable).toBe('');
   });
 
   it('generates an environment in JSON (--release)', async () => {
