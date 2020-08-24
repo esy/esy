@@ -17,7 +17,7 @@ jobs:
   - template: build-platform.yml
     parameters:
       platform: Linux
-      vmImage: ubuntu-16.04
+      vmImage: ubuntu-latest
 
   - template: build-platform.yml
     parameters:
@@ -41,7 +41,7 @@ jobs:
       - macOS
       - Windows
     pool:
-      vmImage: ubuntu-16.04
+      vmImage: ubuntu-latest
     steps:
 
     - script: |
