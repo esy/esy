@@ -101,8 +101,21 @@ function copyFileSync(sourcePath, destPath) {
 }
 
 const copyPlatformBinaries = platformPath => {
-  const platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
+  switch(platformPath) {
+  case "win32":
+    suffix = "Windows";
+    break;
+  case "linux":
+    suffix = "Linux";
+    break;
+  case "darwin":
+    suffix = "macOS";
+    break;
+  default:
+    break;
+  }
+  const platformBuildPath = path.join(__dirname, suffix);
   binariesToCopy.forEach(binaryPath => {
     const sourcePath = path.join(platformBuildPath, binaryPath);
     const destPath = path.join(__dirname, binaryPath);

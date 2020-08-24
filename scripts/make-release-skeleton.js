@@ -75,9 +75,9 @@ const pkgJson = {
   files: [
     'bin/',
     'postinstall.js',
-    'platform-linux/',
-    'platform-darwin/',
-    'platform-win32/',
+    'Linux/',
+    'macOS/',
+    'Windows/',
     '_build/default/**/*.exe'
   ]
 };
