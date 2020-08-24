@@ -3,6 +3,9 @@ name: $(Build.SourceBranchName)-$(Build.SourceVersion)
 resources:
   - repo: self
 
+variables:
+  esy__ci_cache_version: v1    # this is available to all jobs in env as $ESY__CI_CACHE_VERSION or in azure config as $(esy__ci_cache_version)
+
 trigger:
   - master
   - bryphe/*
@@ -11,140 +14,34 @@ trigger:
   - prometheansacrifice/*
 
 jobs:
-  - job: buildLinux
-    displayName: Build Linux
-    condition: succeeded()
-    pool:
-        vmImage: ubuntu-16.04
+  - template: build-platform.yml
+    parameters:
+      platform: Linux
+      vmImage: ubuntu-latest
 
-    variables:
-        STAGING_DIRECTORY: $(Build.StagingDirectory)
-        STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
-        # ESY__NPM_ROOT: /opt/hostedtoolcache/node/8.14.0/x64/lib/node_modules/esy
-
-    steps:
-      - script: sudo apt-get update
-      - script: sudo apt-get install -y libcurl4-gnutls-dev libssl-dev libgmp-dev
-      - template: use-calc-esy-install-path.yml
-      - template: use-node.yml
-      - template: restore-build-cache.yml
-      - template: build.yml
-      - template: publish-build-cache.yml
-
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-linux
-
-  - job: buildMacos
-    displayName: Build macOS
-    condition: succeeded()
-    pool:
+  - template: build-platform.yml
+    parameters:
+      platform: macOS
       vmImage: macOS-latest
-      demands: node.js
 
-    variables:
-        HOMEBREW_NO_AUTO_UPDATE: yes
-        STAGING_DIRECTORY: $(Build.StagingDirectory)
-        STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
-        # ESY__NPM_ROOT: /usr/local/lib/node_modules/esy
+  # Need windows-2019 to do esy import/export-dependencies
+  # which assumes you have bsdtar (tar.exe) in your system
+  # otherwise it will end up using the esy-bash tar which doesn't
+  # understand drives like D:/ (thinks it's an scp path).
+  - template: build-platform.yml
+    parameters:
+      platform: Windows
+      vmImage: windows-2019
 
-    steps:
-      - script: brew install gmp
-      - template: use-calc-esy-install-path.yml
-      - template: use-node.yml
-      - template: restore-build-cache.yml
-      - template: build.yml
-      - template: publish-build-cache.yml
-
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-darwin
-
-  - job: buildWindows
-    displayName: Build Windows
-    condition: succeeded()
-    timeoutInMinutes: 0
-    pool:
-      vmImage: vs2017-win2016
-      demands: npm
-
-    variables:
-        ESY__WINDOWS_SHORT_PATHS: 1
-        STAGING_DIRECTORY: $(Build.StagingDirectory)
-        STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
-       # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
-
-    steps:
-      - template: windows-disable-long-paths.yml
-      - template: use-calc-esy-install-path.yml
-      - template: use-node.yml
-      - template: build.yml
-
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-win32
-
-  - job: buildWindowsLongPath
-    displayName: Build Windows with long paths
-    condition: succeeded()
-    timeoutInMinutes: 0
-    pool:
-      vmImage: vs2017-win2016
-      demands: npm
-
-    variables:
-        STAGING_DIRECTORY: $(Build.StagingDirectory)
-        STAGING_DIRECTORY_UNIX: $(Build.StagingDirectory)
-        # ESY__NPM_ROOT: /C/npm/prefix/node_modules/esy
-
-    steps:
-      - template: use-calc-esy-install-path.yml
-      - template: use-node.yml
-      - template: build.yml
-      - script: esy b where ocamlc
-        displayName: Check OCaml path
-
-      - task: PublishBuildArtifacts@1
-        displayName: 'Publish Platform Release'
-        condition: succeededOrFailed()
-        inputs:
-          PathtoPublish: '_platformrelease'
-          ArtifactName: platform-win32-long
-
-  - job: Linux_bash_install
-    displayName: Test bash install on Linux
-    condition: succeeded()
-    pool:
-        vmImage: ubuntu-16.04
-    steps:
-      - template: bash_install_test.yml
-
-  - job: macos_bash_install
-    displayName: Test bash install on macOS
-    condition: succeeded()
-    pool:
-      vmImage: macOS-latest
-    steps:
-      - template: bash_install_test.yml
-
-  - job: buildRelease
-    displayName: Build Release
+  # This job is kept here as we want to have the platform names in the same file
+  - job: Release
+    displayName: Release
     dependsOn:
-      - buildLinux
-      - buildMacos
-      - buildWindows
+      - Linux
+      - macOS
+      - Windows
     pool:
-      vmImage: ubuntu-16.04
-
+      vmImage: ubuntu-latest
     steps:
 
     - script: |
@@ -154,19 +51,19 @@ jobs:
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Linux Artifacts'
       inputs:
-        artifactName: platform-linux
+        artifactName: Linux
         downloadPath: '_release'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download macOS Artifacts'
       inputs:
-        artifactName: platform-darwin
+        artifactName: macOS
         downloadPath: '_release'
 
     - task: DownloadBuildArtifacts@0
       displayName: 'Download Windows Artifacts'
       inputs:
-        artifactName: platform-win32
+        artifactName: Windows
         downloadPath: '_release'
 
     - task: PublishBuildArtifacts@1
