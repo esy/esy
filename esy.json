@@ -8,6 +8,11 @@
     "install": "esy-installer esy.install esy-build-package.install",
     "buildsInSource": "_build"
   },
+  "//": "Following pesy config can be used to pull cached builds from CI",
+  "pesy": {
+    "github": "esy/esy",
+    "azure-project": "esy-dev/esy"
+  },
   "scripts": {
     "bootstrap": "node scripts/bootstrap.js",
     "install:esy": "esy install",
