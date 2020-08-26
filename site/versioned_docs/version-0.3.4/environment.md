@@ -14,7 +14,7 @@ For each project esy manages:
   and for general testing of the built artfiacts
 
 * **test environment** — an environment which includes the current package's
-  installation directories and expored environment. This is useful if you need
+  installation directories and its exported environment. This is useful if you need
   an environment in which the current application appears installed.
 
 Each environment consists of two parts:
