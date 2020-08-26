@@ -101,7 +101,7 @@ You can also use `esy b` shortcurt instead of `esy build`:
 % esy b dune build bin/hello.exe
 ```
 
-Note that the invocation `esy build CMD` also has to `"devDependencies"` and
+Note that the invocation `esy build CMD` also has access to `"devDependencies"` and
 thus it might be used for development time builds:
 ```bash
 % esy build refmterr dune build

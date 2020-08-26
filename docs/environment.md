@@ -13,7 +13,7 @@ For each project esy manages:
   and for general testing of the built artfiacts
 
 * **test environment** — an environment which includes the current package's
-  installation directories and expored environment. This is useful if you need
+  installation directories and its exported environment. This is useful if you need
   an environment in which the current application appears installed.
 
 Each environment consists of two parts:
@@ -138,8 +138,7 @@ Those variables refer to the values defined for the current package:
 Note that for packages which have `buildsInSource: true` esy copies sources into `self.target_dir` and therefore values of `self.root` and `self.target_dir` are the same.
 
 You can refer to the values defined for other packages which are direct
-dependencies by using the respective `package-name.` prefix. Set the set of
-available variables is the same:
+dependencies by using the respective `package-name.` prefix. Available variables are the same:
 
 * `package-name.name`
 * `package-name.version`
