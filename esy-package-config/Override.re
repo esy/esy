@@ -21,6 +21,8 @@ type build = {
   [@default None]
   build: option(CommandList.t),
   [@default None]
+  buildDev: option(CommandList.t),
+  [@default None]
   install: option(CommandList.t),
   [@default None]
   exportedEnv: option(ExportedEnv.t),
