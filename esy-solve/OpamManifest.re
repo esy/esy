@@ -242,12 +242,14 @@ let convertDependencies = manifest => {
 
   let filterOpamFormula = (~build, ~post, ~test, ~doc, ~dev, f) => {
     let f = {
-      let env = var =>
+      let env = var => {
         switch (OpamVariable.Full.to_string(var)) {
-        | "test" => Some(OpamVariable.B(test))
-        | "doc" => Some(OpamVariable.B(doc))
+        | "with-test" => Some(OpamVariable.B(test))
+        | "with-doc" => Some(OpamVariable.B(doc))
+        | "dev" => Some(OpamVariable.B(dev))
         | _ => None
         };
+      };
 
       OpamFilter.partial_filter_formula(env, f);
     };

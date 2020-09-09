@@ -815,7 +815,16 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
   | (Full.Global, "make") => Some(string("make"))
   | (Full.Global, "jobs") => Some(string("4"))
   | (Full.Global, "pinned") => Some(bool(false))
-
+  | (Full.Global, "dev") =>
+    Some(
+      bool(
+        switch (PackageScope.sourceType(scope.self)) {
+        | Immutable
+        | ImmutableWithTransientDependencies => false
+        | Transient => true
+        },
+      ),
+    )
   | (Full.Global, "prefix") => Some(configPath(installPath))
   | (Full.Global, "bin") =>
     Some(configPath(SandboxPath.(installPath / "bin")))
