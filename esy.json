@@ -63,7 +63,7 @@
     "@opam/opam-state": "2.0.5",
     "@opam/ppx_deriving": "4.5",
     "@opam/ppx_deriving_yojson": "~3.5.1",
-    "@opam/ppx_expect": "v0.13.0",
+    "@opam/ppx_expect": "v0.13.1",
     "@opam/ppx_inline_test": "v0.13.0",
     "@opam/ppx_let": "v0.13.0",
     "@opam/ppx_sexp_conv": "v0.13.0",

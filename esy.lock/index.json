@@ -1,5 +1,5 @@
 {
-  "checksum": "81607c233ca3c2e87c5fbbaaca33a038",
+  "checksum": "207b0af61ae0108e3433249050adb38e",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -49,7 +49,7 @@
         "@opam/ppx_sexp_conv@opam:v0.13.0@53058ed2",
         "@opam/ppx_let@opam:v0.13.0@5703d2be",
         "@opam/ppx_inline_test@opam:v0.13.0@f994539b",
-        "@opam/ppx_expect@opam:v0.13.0@272da626",
+        "@opam/ppx_expect@opam:v0.13.1@57259bad",
         "@opam/ppx_deriving_yojson@opam:3.5.3@253e094d",
         "@opam/ppx_deriving@opam:4.5@d89f2934",
         "@opam/opam-state@opam:2.0.5@815bdc18",
@@ -1007,20 +1007,20 @@
         "@opam/dune@opam:2.6.0@ebc30ce8", "@opam/base@opam:v0.13.2@5ac9ab39"
       ]
     },
-    "@opam/ppx_expect@opam:v0.13.0@272da626": {
-      "id": "@opam/ppx_expect@opam:v0.13.0@272da626",
+    "@opam/ppx_expect@opam:v0.13.1@57259bad": {
+      "id": "@opam/ppx_expect@opam:v0.13.1@57259bad",
       "name": "@opam/ppx_expect",
-      "version": "opam:v0.13.0",
+      "version": "opam:v0.13.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/e9/e9d928f6aed89da85a511ea3d8d57f58#md5:e9d928f6aed89da85a511ea3d8d57f58",
-          "archive:https://ocaml.janestreet.com/ocaml-core/v0.13/files/ppx_expect-v0.13.0.tar.gz#md5:e9d928f6aed89da85a511ea3d8d57f58"
+          "archive:https://opam.ocaml.org/cache/md5/8f/8f6fd9c0c3c93f9e5a25038f1c26b0aa#md5:8f6fd9c0c3c93f9e5a25038f1c26b0aa",
+          "archive:https://github.com/janestreet/ppx_expect/archive/v0.13.1.tar.gz#md5:8f6fd9c0c3c93f9e5a25038f1c26b0aa"
         ],
         "opam": {
           "name": "ppx_expect",
-          "version": "v0.13.0",
-          "path": "esy.lock/opam/ppx_expect.v0.13.0"
+          "version": "v0.13.1",
+          "path": "esy.lock/opam/ppx_expect.v0.13.1"
         }
       },
       "overrides": [],
