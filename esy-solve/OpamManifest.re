@@ -244,6 +244,8 @@ let convertDependencies = manifest => {
     let f = {
       let env = var => {
         switch (OpamVariable.Full.to_string(var)) {
+        | "test" => Some(OpamVariable.B(test))
+        | "doc" => Some(OpamVariable.B(doc))
         | "with-test" => Some(OpamVariable.B(test))
         | "with-doc" => Some(OpamVariable.B(doc))
         | "dev" => Some(OpamVariable.B(dev))
