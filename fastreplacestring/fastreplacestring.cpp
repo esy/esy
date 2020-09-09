@@ -48,7 +48,7 @@ int indexOf(const char *needle, size_t needleLen, const char *haystack,
   return -1;
 }
 
-int replace(char *filename, char *old, char *newWord) {
+int replace(const char *filename, const char *old, const char *newWord) {
   FILE *in = fopen(filename, "rb");
 
   // Check if file exists and can is read-write
@@ -169,9 +169,9 @@ extern "C" {
     CAMLparam3(vPath, vOldWord, vNewWord);
     CAMLlocal1(vRet);
 
-    char *szPath = String_val(vPath);
-    char *szOldWord = String_val(vOldWord);
-    char *szNewWord = String_val(vNewWord);
+    const char *szPath = String_val(vPath);
+    const char *szOldWord = String_val(vOldWord);
+    const char *szNewWord = String_val(vNewWord);
 
     int ret = replace(szPath, szOldWord, szNewWord);
     if (ret == 0) {

@@ -6,7 +6,7 @@ homepage: "https://github.com/ocaml-community/utop"
 bug-reports: "https://github.com/ocaml-community/utop/issues"
 doc: "https://ocaml-community.github.io/utop/"
 depends: [
-  "ocaml" {>= "4.03.0" & < "4.10"}
+  "ocaml" {>= "4.03.0" & < "4.11"}
   "base-unix"
   "base-threads"
   "ocamlfind" {>= "1.7.2"}
@@ -16,7 +16,7 @@ depends: [
   "camomile"
   "react" {>= "1.0.0"}
   "cppo" {build & >= "1.1.2"}
-  "dune"
+  "dune" {>= "1.0"}
 ]
 build: [
   ["dune" "subst"] {pinned}
@@ -33,9 +33,9 @@ and more.  It integrates with the Tuareg mode in Emacs.
 """
 url {
   src:
-    "https://github.com/ocaml-community/utop/releases/download/2.4.2/utop-2.4.2.tbz"
+    "https://github.com/ocaml-community/utop/releases/download/2.4.3/utop-2.4.3.tbz"
   checksum: [
-    "sha256=cb164ca395895f21d19b815b425fe1dbc3d279819302f8d0a73685ef66465b78"
-    "sha512=acd20a12f4a7e1f4a61780db1b83e0b920527d41f69db62f8eecb3f32b6e4c10705532ec8502652fb4fb3deb869cc99d9d3be41e74e79f90d872f77de3203c49"
+    "sha256=4e30ba6e224bea5776bc1a6ac3fee7f7548a35acf41d35e59c45913e28a0ea80"
+    "sha512=507917f4256c4a37058a106598a61aa092301f008b7e9385950a615e37b7f1a217f1e3b116678cb90ef1938c038ed135dabf2f9987c8fec21b5eb322a005632a"
   ]
 }

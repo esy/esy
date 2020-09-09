@@ -27,8 +27,5 @@
   "buildEnv": {
     "OCAMLFIND_CONF": "$OCAMLFIND_SECONDARY_PREFIX/lib/findlib.conf.d/ocaml-secondary-compiler.conf",
     "OCAMLPATH": "#{ $OCAMLFIND_SECONDARY_PREFIX / 'lib' : ocaml.lib : $OCAML_SECONDARY_COMPILER_PREFIX / 'share' / 'ocaml-secondary-compiler' / 'lib' }"
-  },
-  "dependencies": {
-    "ocaml": "*"
   }
 }
