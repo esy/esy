@@ -265,7 +265,7 @@ describe(`'esy CMD' invocation`, () => {
     }
   });
 
-  test.disableIf(isWindows)(`nested esy invocations autoconfigure with the right root package config`, async () => {
+  test.disableIf(isWindows)(`nested esy invocations give the right error messages`, async () => {
     const p = await helpers.createTestSandbox();
     await p.fixture(
       file('package.json', JSON.stringify({
