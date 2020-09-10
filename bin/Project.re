@@ -198,6 +198,13 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   ));
 };
 
+let getInstallCommand = spec =>
+  if (SandboxSpec.isDefault(spec)) {
+    "esy install";
+  } else {
+    Printf.sprintf("esy '@%s' install", SandboxSpec.projectName(spec));
+  };
+
 let makeSolved =
     (
       makeFetched,
@@ -228,7 +235,11 @@ let makeSolved =
         files,
       );
     return({solution, fetched});
-  | None => errorf("project is missing a lock, run `esy install`")
+  | None =>
+    errorf(
+      "project is missing a lock, run `%s`",
+      getInstallCommand(projcfg.spec),
+    )
   };
 };
 
@@ -282,7 +293,11 @@ let makeFetched =
       solution,
     )
   ) {
-  | None => errorf("project is not installed, run `esy install`")
+  | None =>
+    errorf(
+      "project is not installed, run `%s`",
+      getInstallCommand(projcfg.spec),
+    )
   | Some(installation) =>
     let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let%bind sandbox = {
