@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## Development
+
+- Better error messages pertaining to `esy install` - they now include the sandbox name. PR#1167 @CrossR
+- BugFix: Support %{dev} in the opam build expressions PR#1166 @ManasJayanth 
+- Overrides can now include `buildDev` PR#1100 @Et7f3
+- Support unsetting exported and build variables PR#1156 @EduardoRFS
+- Crash due to empty shell varibles fixed PR#1157 @EduardoRFS
+- `EXDEV` errors during internal rename operations handled better PR#1154 @pm-mck
+- `esy cleanup` removes the build tree too. Note: this doesn't affect the cache (as it shouldn't). PR#1148 @tatchi
+- $PATH made configurable with $ESY__GLOBAL_PATH PR#1143 @phated
+- Fix failing `esy export-dependencies` on Windows (`Permission Denied`) PR#1138 (@ManasJayanth)
+
 ## 0.6.6 @ latest
 
 - Improve build/fetch concurrency configuration:
