@@ -265,4 +265,50 @@ describe(`'esy CMD' invocation`, () => {
     }
   });
 
+  test.disableIf(isWindows)(`nested esy invocations give the right error messages`, async () => {
+    const p = await helpers.createTestSandbox();
+    await p.fixture(
+      file('package.json', JSON.stringify({
+        name: 'package',
+        version: '1.0.0',
+      }, null, 2)),
+      file('dev.json', JSON.stringify({
+        name: 'dev',
+        version: '1.0.0',
+      }, null, 2))
+    );
+
+    // check the `esy install` error message.
+    {
+      await expect(p.esy('dep.cmd')).rejects.toMatchObject({
+        message: expect.stringMatching(
+          'error: project is missing a lock, run `esy install`',
+        ),
+      });
+    }
+
+    // install, to unblock testing sandbox install err message
+    {
+      await p.esy('install');
+      const {stdout} = await p.esy("esy echo '#{self.name}'");
+      expect(stdout.trim()).toBe('package');
+    }
+
+    // check `esy '@dev' install` error message
+    {
+      await expect(p.esy('@dev dep.cmd')).rejects.toMatchObject({
+        message: expect.stringMatching(
+          'error: project is missing a lock, run `esy \'@dev\' install`',
+        ),
+      });
+    }
+
+    // check `esy @dev ...`
+    {
+      await p.esy('@dev install');
+      const {stdout} = await p.esy("@dev esy echo '#{self.name}'");
+      expect(stdout.trim()).toBe('dev');
+    }
+  });
+
 });
