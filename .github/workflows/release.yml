@@ -12,7 +12,6 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '12'
-        check-latest: true
     - name: Create NPM tarball
       run: |
         REST_BASE="https://dev.azure.com/esy-dev"
