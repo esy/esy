@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Development
+## 0.6.7 @ latest
 
 - Better error messages pertaining to `esy install` - they now include the sandbox name. PR#1167 @CrossR
 - BugFix: Support %{dev} in the opam build expressions PR#1166 @ManasJayanth 
@@ -12,7 +12,7 @@
 - $PATH made configurable with $ESY__GLOBAL_PATH PR#1143 @phated
 - Fix failing `esy export-dependencies` on Windows (`Permission Denied`) PR#1138 (@ManasJayanth)
 
-## 0.6.6 @ latest
+## 0.6.6
 
 - Improve build/fetch concurrency configuration:
 
