@@ -1,6 +1,6 @@
 const fs = require ('fs');
 const path = require ('path');
-let {name, version} = require ("../ package.json");
+let {name, version} = require ("../esy.json");
 
 
 let pkgJson = path.join (process.cwd (), 'release', 'package.json');
