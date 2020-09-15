@@ -30,7 +30,8 @@ bug-reports: "https://github.com/ocaml-dune/csexp/issues"
 depends: [
   "dune" {>= "2.5"}
   "ocaml" {>= "4.02.3"}
-  "ppx_expect" {with-test}
+# "ppx_expect" {with-test}
+# Disabled because of a dependency cycle (see https://github.com/ocaml-opam/opam-depext/issues/121)
   "result" {>= "1.5"}
 ]
 build: [
@@ -43,7 +44,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test}
+#   "@runtest" {with-test}
     "@doc" {with-doc}
   ]
 ]
