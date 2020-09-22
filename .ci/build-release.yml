@@ -21,6 +21,11 @@ jobs:
 
   - template: build-platform.yml
     parameters:
+      platform: macOS (10.12)
+      vmImage: macOS-latest
+
+  - template: build-platform.yml
+    parameters:
       platform: macOS
       vmImage: macOS-latest
 
