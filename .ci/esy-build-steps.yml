@@ -12,7 +12,7 @@ steps:
   - template: utils/use-cache-esy-install-tree.yml
   - script: 'npm install'
     displayName: 'npm install'
-  ${{ if eq(parameters.job,  "macOS_10_12") }}:
+  - ${{ if eq(parameters.job,  "macOS_10_12") }}:
     - script: mv macos-10.12.esy.json esy.json
       displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
