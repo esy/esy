@@ -62,6 +62,12 @@ jobs:
     - task: DownloadBuildArtifacts@0
       displayName: 'Download macOS Artifacts'
       inputs:
+        artifactName: macOS_10_12
+        downloadPath: '_release'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download macOS Artifacts'
+      inputs:
         artifactName: macOS
         downloadPath: '_release'
 
