@@ -1,3 +1,7 @@
+parameters:
+  platform: "macOS"
+  vmImage: "macOS-latest"
+  
 # Cross-platform set of build steps for building esy projects
 
 steps:
