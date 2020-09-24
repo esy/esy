@@ -2,4 +2,3 @@
  (:standard \ _esy \ node_modules \ flow-typed \ scripts \ test-e2e \ site))
 
 (vendored_dirs vendor)
- 
