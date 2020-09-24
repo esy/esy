@@ -28,18 +28,10 @@
   },
   "resolutions": {
     "@opam/bos": {
-      "source": "https://github.com/dbuenzli/bos/archive/v0.2.0.tar.gz#86a4c0f0fa9610279973b8fd1b52531e7a19bfd6",
-      "override": {
-        "buildsInSource": true,
-        "build": [
-          "curl https://gist.githubusercontent.com/ManasJayanth/7e52d0e80c099a1a649cffeae5d077bf/raw/ff3baedd8cb78936a63acb36f071333968b606c6/chmod.patch --output chmod.patch",
-          "bash -c 'patch -p1 < chmod.patch'",
-          "ocaml pkg/pkg.ml build"
-        ],
-        "install": "esy-installer bos.install"
-      }
+      "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
+      "override": {"dependencies": {"@opam/mtime": "*"}}
     },
-    "@opam/angstrom": "github:esy-ocaml/angstrom#5a06a0",
+    "@opam/angstrom": "github:esy-ocaml/angstrom#63a05dbb0ab0",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
   },
   "dependencies": {
@@ -70,13 +62,11 @@
     "@opam/re": "1.9.0",
     "@opam/reason": "^3.6.0",
     "@opam/yojson": "1.7.0",
-    "@reason-native/rely": "3.1.0",
-    "ocaml": "~4.10.0"
+    "ocaml": "4.10.0"
   },
   "devDependencies": {
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/merlin": "^3.3.3",
-    "@opam/utop": "^2.4.2",
-    "ocaml": "~4.10.0"
+    "@opam/utop": "^2.4.2"
   }
 }

@@ -7,15 +7,17 @@ dev-repo: "git+https://github.com/ocaml/merlin.git"
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" "1"] {with-test & os != "macos" & ocaml:version >= "4.03"}
+  ["dune" "runtest" "-p" name "-j" "1"] {with-test & ocaml:version >= "4.03"}
 ]
 depends: [
   "ocaml" {>= "4.02.3" & < "4.12"}
   "dune" {>= "1.8.0"}
-  "ocamlfind" {>= "1.5.2"}
+  "dot-merlin-reader" {= "3.4.0"}
   "yojson" {>= "1.6.0"}
   "mdx" {with-test & >= "1.3.0"}
   "conf-jq" {with-test}
+  "csexp" {>= "1.2.3"}
+  "result" {>= "1.5"}
 ]
 synopsis:
   "Editor helper, provides completion, typing and source browsing in Vim and Emacs"
@@ -61,11 +63,12 @@ See https://github.com/OCamlPro/opam-user-setup
 "
   {success & !user-setup:installed}
 ]
+x-commit-hash: "f24ffbd7732b8b58f15092b0b5c11acd90a80ddb"
 url {
   src:
-    "https://github.com/ocaml/merlin/releases/download/v3.3.9/merlin-v3.3.9.tbz"
+    "https://github.com/ocaml/merlin/releases/download/v3.4.0/merlin-v3.4.0.tbz"
   checksum: [
-    "sha256=a3170f1a993d810d552a21a4baa328dff0fe9ac9bf4b8aa6ba3f179a9240cf02"
-    "sha512=63034766c7dc7de21e3ce8624ed760a9d76b79cacbee8c17ecef2c62df00438ebd84f43a0d558cf8d9c4a800dac99e4b2f25c324f363a590cc294e46420f46aa"
+    "sha256=e26dfd7fa9731d0d43239c8b7d36bd3d79b0f709f1cdfa2ada7a7ab5d79d1911"
+    "sha512=f0c4488d3b894d7c5fa1a1fa8cc10d87d073e60da43e7c01df08b16c683b63e5529f181b2c249ea7db8d6424bab53a31f85db1cc19178acfb5b13b576b9745c9"
   ]
 }
