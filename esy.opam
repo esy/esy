@@ -18,6 +18,9 @@ maintainer:  [
 ]
 dev-repo:  "git+https://github.com/esy/esy.git"
 depends:  [
+    "angstrom"
+    "cmdliner"
+    "bos"
     "cudf"  { = "0.9" }
     "dose3"  { = "5.0.1" }
     "dune"  { = "2.6.0" }
@@ -43,6 +46,11 @@ depends:  [
     "reason" 
     "yojson"  { = "1.7.0" }
     "ocaml"  { >= "4.10.0" }
+]
+pin-depends: [
+  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
+  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
+  ["angstrom.dev" "git+https://github.com/esy-ocaml/angstrom.git"]
 ]
 build:  [
   ["dune" "build" "-p" name "-j" jobs]
