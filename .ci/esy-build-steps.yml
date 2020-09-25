@@ -1,3 +1,7 @@
+parameters:
+  platform: "macOS"
+  vmImage: "macOS-latest"
+  
 # Cross-platform set of build steps for building esy projects
 
 steps:
@@ -8,6 +12,9 @@ steps:
   - template: utils/use-cache-esy-install-tree.yml
   - script: 'npm install'
     displayName: 'npm install'
+  - ${{ if eq(parameters.platform,  'macOS_10_12') }}:
+    - script: mv macos-10.12.esy.json esy.json
+      displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
     displayName: "esy install"
   - template: utils/restore-build-cache.yml

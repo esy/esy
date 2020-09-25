@@ -63,6 +63,9 @@ jobs:
       - bash: env
         displayName: "Print environment"
       - template: esy-build-steps.yml
+        parameters:
+          platform: ${{ parameters.platform }}
+          vmImage: ${{ parameters.vmImage }}
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: ${{ parameters.platform }}"
         inputs:
