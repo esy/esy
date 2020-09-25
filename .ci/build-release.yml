@@ -34,7 +34,7 @@ jobs:
     pool:
       vmImage: ubuntu-latest
     steps:
-      - script: docker build . --network=host -t esy:alpine-latest
+      - script: docker build . --network=host -t esy:nightly-alpine-latest
 
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
