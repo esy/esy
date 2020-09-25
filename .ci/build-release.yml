@@ -29,6 +29,13 @@ jobs:
       platform: macOS
       vmImage: macOS-latest
 
+  - job: Alpine_Build
+    displayName: Alpine Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      script: docker build . --network=host -t esy:alpine-latest
+
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
   # otherwise it will end up using the esy-bash tar which doesn't
