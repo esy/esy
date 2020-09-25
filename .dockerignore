@@ -1,0 +1,17 @@
+/bin/esy
+/bin/esy.cmd
+node_modules
+/coverage
+/lib
+/_export
+/_esy
+/_build
+/_release
+/_platformrelease
+/bin/fastreplacestring
+.merlin
+npm-debug.log
+yarn-error.log
+*.install
+.esy-bash-path
+test-e2e-re/lib/verdaccio/storage
