@@ -1,5 +1,5 @@
 {
-  "checksum": "b8d13f22178e57509e57f5adf9687144",
+  "checksum": "32f7b7ea54bcdc95554ad3757677d099",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "ocaml@4.10.0@d41d8cd9": {
@@ -37,6 +37,7 @@
         "@opam/opam-core@opam:2.0.5@d3bfe33c",
         "@opam/ocamlformat@opam:0.15.0@8e036963",
         "@opam/menhir@opam:20200211@26571604",
+        "@opam/mccs@opam:1.1+11@e90fc9e0",
         "@opam/lwt_ppx@opam:1.2.4@056f8206", "@opam/lwt@opam:4.4.0@bd9defbd",
         "@opam/logs@opam:0.7.0@1d03143e",
         "@opam/lambda-term@opam:2.0.2@119fb081",
@@ -1743,6 +1744,32 @@
         "ocaml@4.10.0@d41d8cd9", "@opam/menhirSdk@opam:20200624@2a05b5a7",
         "@opam/menhirLib@opam:20200624@8bdd2b0e",
         "@opam/dune@opam:2.6.0@ebc30ce8"
+      ]
+    },
+    "@opam/mccs@opam:1.1+11@e90fc9e0": {
+      "id": "@opam/mccs@opam:1.1+11@e90fc9e0",
+      "name": "@opam/mccs",
+      "version": "opam:1.1+11",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/md5/9c/9c0038d0e945f742b9320a662566288b#md5:9c0038d0e945f742b9320a662566288b",
+          "archive:https://github.com/AltGr/ocaml-mccs/archive/1.1+11.tar.gz#md5:9c0038d0e945f742b9320a662566288b"
+        ],
+        "opam": {
+          "name": "mccs",
+          "version": "1.1+11",
+          "path": "esy.lock/opam/mccs.1.1+11"
+        }
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.10.0@d41d8cd9", "@opam/dune@opam:2.6.0@ebc30ce8",
+        "@opam/cudf@opam:0.9@bdf476b4", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.10.0@d41d8cd9", "@opam/dune@opam:2.6.0@ebc30ce8",
+        "@opam/cudf@opam:0.9@bdf476b4"
       ]
     },
     "@opam/lwt_react@opam:1.1.3@72987fcf": {

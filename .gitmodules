@@ -1,3 +1,6 @@
 [submodule "vendor/reason-native"]
 	path = vendor/reason-native
 	url = https://github.com/facebookexperimental/reason-native
+[submodule "vendor/esy-solve-cudf"]
+	path = esy-solve-cudf
+	url = https://github.com/andreypopp/esy-solve-cudf

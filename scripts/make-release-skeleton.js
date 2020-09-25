@@ -48,7 +48,7 @@ fs.copyFileSync(
 const filesToTouch = [
   '_build/default/bin/esy.exe',
   '_build/default/bin/esyBuildPackageCommand.exe',
-  '_build/default/esy-build-package/bin/fastreplacestring.exe'
+  '_build/default/bin/fastreplacestring.exe'
 ];
 
 for (const file of filesToTouch) {
