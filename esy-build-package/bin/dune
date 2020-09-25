@@ -1,5 +1,6 @@
 (executable
  (name esyBuildPackageCommand)
+ (public_name esyBuildPackageCommand)
  (modules esyBuildPackageCommand)
  (flags
   (:standard
@@ -11,6 +12,7 @@
 
 (executable
  (name esyRewritePrefixCommand)
+ (public_name esyRewritePrefixCommand)
  (modules esyRewritePrefixCommand)
  (flags
   (:standard
@@ -18,10 +20,3 @@
  (preprocess
   (pps ppx_let))
  (libraries EsyBuildPackage fastreplacestring cmdliner bos))
-
-(install
- (package esy-build-package)
- (section bin)
- (files
-  (esyBuildPackageCommand.exe as esy-build-package)
-  (esyRewritePrefixCommand.exe as esy-rewrite-prefix)))
