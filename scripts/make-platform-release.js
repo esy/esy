@@ -5,8 +5,8 @@ let fs = require('fs-extra');
 let util = require('util');
 
 let files = [
-  '_build/default/esy-build-package/bin/esyRewritePrefixCommand.exe',
-  '_build/default/esy-build-package/bin/esyBuildPackageCommand.exe',
+  '_build/default/bin/esyRewritePrefixCommand.exe',
+  '_build/default/bin/esyBuildPackageCommand.exe',
   '_build/default/bin/esy.exe',
   '_build/default/bin/esyInstallRelease.js'
 ];

@@ -1,9 +1,6 @@
 let esyBuildPackageCmd = {
-  let req = "../esy-build-package/bin/esyBuildPackageCommand.exe";
-  switch (NodeResolution.resolve(req)) {
-  | Ok(cmd) => Cmd.ofPath(cmd)
-  | Error(`Msg(msg)) => failwith(msg)
-  };
+  let req = "./esyBuildPackageCommand";
+  Path.v(req) |> Cmd.ofPath;
 };
 
 let run =
