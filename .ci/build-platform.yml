@@ -9,6 +9,8 @@ jobs:
       demands: node.js
     timeoutInMinutes: 120 # This is mostly for Windows
     steps: 
+      - checkout: self
+        submodules: true
       - powershell: $Env:Path
         continueOnError: true
         condition: and(eq(variables['AGENT.OS'], 'Windows_NT'), and(eq(variables['Build.Reason'], 'PullRequest'), and(succeeded(), ne(variables['Build.SourceBranch'], variables['System.PullRequest.TargetBranch']))))
