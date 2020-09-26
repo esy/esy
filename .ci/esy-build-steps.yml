@@ -22,6 +22,7 @@ steps:
     displayName: "esy build"
   - script: 'esy dune build @fmt'
     displayName: 'Check code formatting'
+    continueOnError: eq(variables['AGENT.OS'], 'Windows_NT')
   - script: 'node scripts/bootstrap.js'
     displayName: 'esy bootstrap'
   - script: 'esy b dune runtest test'
