@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.6.7",
+  "version": "0.6.8-dev",
   "devDependencies": {
     "esy-solve-cudf": "^0.1.10",
     "is-ci": "^1.2.1",
