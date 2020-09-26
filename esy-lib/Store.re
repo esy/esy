@@ -18,7 +18,7 @@ let maxStorePaddingLength = {
    * We reserve that amount of chars from padding so ocamlrun can be placed in
    * shebang lines
    */
-  let ocamlrunStorePath = "ocaml-n.00.000-########/bin/ocamlrun";
+  let ocamlrunStorePath = "ocaml-n.00.0000-########/bin/ocamlrun";
   maxShebangLength
   - String.length("!#")
   - String.length(
