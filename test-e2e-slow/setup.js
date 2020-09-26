@@ -9,12 +9,15 @@ const rmSync = require('rimraf').sync;
 const isCi = require("is-ci");
 
 const isWindows = process.platform === 'win32';
-const ocamlVersion = '4.7.x';
+const ocamlVersion = '4.10.0'; // Keep it the same as esy's package.json to reuse cache
 
-var __ESY__ = path.join(__dirname, '_build', 'install', 'default', 'bin', 'esy');
 if (isWindows) {
   __ESY__ = __ESY__ + '.exe';
 }
+
+var __ESY__base = path.join(process.cwd(), '_build', 'install', 'default', 'bin');
+var __ESY__ = path.join(__ESY__base, 'esy');
+process.env.PATH = __ESY__base + (isWindows ? ';': ':') + process.env.PATH;
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -
