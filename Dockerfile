@@ -13,5 +13,5 @@ RUN esy
 RUN esy release
 RUN mv _release /app/_release
 RUN rm -rf /app/esy
-RUN rm -rf ~/.opam
-RUN rm -rf ~/.esy
+RUN rm -rf /root/.opam
+RUN rm -rf /root/.esy
