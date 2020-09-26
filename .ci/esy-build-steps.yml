@@ -20,9 +20,9 @@ steps:
   - template: utils/restore-build-cache.yml
   - script: "esy build"
     displayName: "esy build"
-  - ${{ if ne(variables['AGENT.OS'], 'Windows_NT') }}:
-    - script: 'esy dune build @fmt'
-      displayName: 'Check code formatting'
+  - script: 'esy dune build @fmt'
+    displayName: 'Check code formatting'
+    condition: ne(variables['AGENT.OS'], 'Windows_NT')
   - script: 'node scripts/bootstrap.js'
     displayName: 'esy bootstrap'
   - script: 'esy b dune runtest test'
