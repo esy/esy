@@ -56,7 +56,7 @@ jobs:
       vmImage: macOS-latest
       demands: node.js
     steps:
-      - template: .ci/cross-release.yml
+      - template: cross-release.yml
         
   # # This job is kept here as we want to have the platform names in the same file
   # - job: Release
