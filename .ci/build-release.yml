@@ -56,36 +56,49 @@ jobs:
       vmImage: ubuntu-latest
     steps:
 
-    - script: |
-        node scripts/make-release-skeleton.js
-      displayName: 'Prepare release'
+  # This job is kept here as we want to have the platform names in the same file
+  - job: Release
+    displayName: Release
+    dependsOn:
+      - Linux
+      - macOS
+      - Windows
+    pool:
+      vmImage: macOS-latest
+      demands: node.js
+    steps:
+      - template: .ci/cross-release.yml
+        
+    # - script: |
+    #     node scripts/make-release-skeleton.js
+    #   displayName: 'Prepare release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Linux Artifacts'
-      inputs:
-        artifactName: Linux
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Linux Artifacts'
+    #   inputs:
+    #     artifactName: Linux
+    #     downloadPath: '_release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download macOS Artifacts'
-      inputs:
-        artifactName: macOS_10_12
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download macOS Artifacts'
+    #   inputs:
+    #     artifactName: macOS_10_12
+    #     downloadPath: '_release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download macOS Artifacts'
-      inputs:
-        artifactName: macOS
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download macOS Artifacts'
+    #   inputs:
+    #     artifactName: macOS
+    #     downloadPath: '_release'
 
-    - task: DownloadBuildArtifacts@0
-      displayName: 'Download Windows Artifacts'
-      inputs:
-        artifactName: Windows
-        downloadPath: '_release'
+    # - task: DownloadBuildArtifacts@0
+    #   displayName: 'Download Windows Artifacts'
+    #   inputs:
+    #     artifactName: Windows
+    #     downloadPath: '_release'
 
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: Release'
-      inputs:
-        PathtoPublish: '_release'
-        ArtifactName: release
+    # - task: PublishBuildArtifacts@1
+    #   displayName: 'Publish Artifact: Release'
+    #   inputs:
+    #     PathtoPublish: '_release'
+    #     ArtifactName: release

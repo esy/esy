@@ -1,0 +1,12 @@
+steps:
+- bash: |
+    YARN_CACHE_DIR=$(yarn cache dir)
+    echo "##vso[task.setvariable variable=YARN_CACHE_DIR]$YARN_CACHE_DIR"
+- task: Cache@2
+  inputs:
+    key: 'yarn | "$(Agent.OS)" | "$(Build.SourcesDirectory)/npm-cli/yarn.lock"'
+    restoreKeys: |
+       yarn | "$(Agent.OS)"
+       yarn
+    path: $(YARN_CACHE_DIR)
+  displayName: Cache yarn

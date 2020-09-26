@@ -1,0 +1,13 @@
+steps:
+  - task: Cache@2
+    inputs:
+      key: 'v1 | esy-install-cache | "$(Agent.OS)" | "$(Build.SourcesDirectory)/esy.lock/index.json"' # vPrimary, here, is just a way to bust cache during debugging. Inspired from https://docs.microsoft.com/en-us/azure/devops/pipelines/caching/?view=azure-devops#can-i-clear-a-cache" 
+      path: $(ESY__CACHE_INSTALL_PATH)
+      cacheHitVar: ESY_INSTALL_CACHE_RESTORED
+    displayName:  "Caching $(ESY__CACHE_INSTALL_PATH)"
+  - task: Cache@2
+    inputs:
+      key: 'v1 | esy-sources | "$(Agent.OS)" | "$(Build.SourcesDirectory)/esy.lock/index.json"' # vPrimary, here, is just a way to bust cache during debugging. Inspired from https://docs.microsoft.com/en-us/azure/devops/pipelines/caching/?view=azure-devops#can-i-clear-a-cache" 
+      path: "$(ESY__CACHE_INSTALL_PATH)/../../source"
+      cacheHitVar: ESY_SOURCE_CACHE_RESTORED
+    displayName:  "Caching $(ESY__CACHE_INSTALL_PATH)/../../source"
