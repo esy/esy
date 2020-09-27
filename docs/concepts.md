@@ -65,7 +65,7 @@ Packages like `@reason-native/console` are a good example of regular dependencie
 ## Development time dependency
 Dependencies that are required **only** during development mode are specified in the `devDependencies` (similar to how yarn and npm work)
 
-Good examples of dev-dependency is `@opam/ocaml-lsp-server` or `@reason-native/rely` as it is only required during development of the rot package.
+Good examples of dev-dependency is `@opam/ocaml-lsp-server` or `@reason-native/rely` as it is only required during development of the root package.
 
 ## Build time dependency
 Some dependencies are needed during the build. `@opam/dune` and autotools packages are a good examples.
