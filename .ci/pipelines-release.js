@@ -1,3 +1,4 @@
+const {execSync} = require('child_process');
 const fs = require("fs");
 const path = require("path");
 
@@ -31,10 +32,15 @@ const rewritePrefix =
   mainPackageJson.esy.release &&
   mainPackageJson.esy.release.rewritePrefix;
 
+function exec(cmd) {
+  console.log(`exec: ${cmd}`);
+  return execSync(cmd).toString();
+}
+const commit = args[0] != null ? args[0] : exec(`git rev-parse --verify HEAD`);
 const packageJson = JSON.stringify(
   {
-    name: mainPackageJson.name,
-    version: mainPackageJson.version,
+    name: '@esy-nightly/esy',
+    version: `${mainPackageJson.version}-${commit.slice(0, 6)}`,
     license: mainPackageJson.license,
     description: mainPackageJson.description,
     repository: mainPackageJson.repository,
