@@ -38,7 +38,7 @@ var STORE_INSTALL_TREE = 'i';
 var STORE_STAGE_TREE = 's';
 var ESY_STORE_VERSION = 3;
 var MAX_SHEBANG_LENGTH = 127;
-var OCAMLRUN_STORE_PATH = 'ocaml-n.00.000-########/bin/ocamlrun';
+var OCAMLRUN_STORE_PATH = 'ocaml-n.00.0000-########/bin/ocamlrun';
 var ESY_STORE_PADDING_LENGTH = MAX_SHEBANG_LENGTH - '!#'.length - ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 var shouldRewritePrefix = process.env.ESY_RELEASE_REWRITE_PREFIX === 'true';
 /**
@@ -7777,9 +7777,11 @@ module.exports = gunzip
 },{"is-deflate":294,"is-gzip":295,"peek-stream":298,"pumpify":302,"through2":324,"zlib":undefined}],292:[function(require,module,exports){
 try {
   var util = require('util');
+  /* istanbul ignore next */
   if (typeof util.inherits !== 'function') throw '';
   module.exports = util.inherits;
 } catch (e) {
+  /* istanbul ignore next */
   module.exports = require('./inherits_browser.js');
 }
 
@@ -7787,24 +7789,28 @@ try {
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
+    if (superCtor) {
+      ctor.super_ = superCtor
+      ctor.prototype = Object.create(superCtor.prototype, {
+        constructor: {
+          value: ctor,
+          enumerable: false,
+          writable: true,
+          configurable: true
+        }
+      })
+    }
   };
 } else {
   // old school shim for old browsers
   module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
+    if (superCtor) {
+      ctor.super_ = superCtor
+      var TempCtor = function () {}
+      TempCtor.prototype = superCtor.prototype
+      ctor.prototype = new TempCtor()
+      ctor.prototype.constructor = ctor
+    }
   }
 }
 
