@@ -7,6 +7,7 @@
     "build": "dune build -p esy",
     "install": "esy-installer esy.install",
     "release": {
+      "rewritePrefix": true,
       "bin": [ "esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand" ]
     },
     "buildsInSource": "_build"
