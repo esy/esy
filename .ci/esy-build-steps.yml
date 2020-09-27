@@ -23,8 +23,6 @@ steps:
   - script: 'esy dune build @fmt'
     displayName: 'Check code formatting'
     condition: ne(variables['AGENT.OS'], 'Windows_NT')
-  - script: 'node scripts/bootstrap.js'
-    displayName: 'esy bootstrap'
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
   - script: 'node ./node_modules/jest-cli/bin/jest.js'
