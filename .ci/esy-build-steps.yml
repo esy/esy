@@ -13,7 +13,7 @@ steps:
   - script: 'npm install'
     displayName: 'npm install'
   - ${{ if eq(parameters.platform,  'macOS_10_12') }}:
-    - script: mv macos-10.12.esy.json esy.json
+    - script: node scripts/create-macos-12-esy-manifest.js
       displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
     displayName: "esy install"
