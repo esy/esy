@@ -36,6 +36,8 @@ function exec(cmd) {
   console.log(`exec: ${cmd}`);
   return execSync(cmd).toString();
 }
+
+const args = process.argv.slice(2);
 const commit = args[0] != null ? args[0] : exec(`git rev-parse --verify HEAD`);
 const packageJson = JSON.stringify(
   {
