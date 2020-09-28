@@ -112,7 +112,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
     | None =>
-      let cmd = "esySolveCudfCommand";
+      let cmd = "esySolveCudfCommand.exe";
       return(Cmd.(v(cmd)));
     };
 

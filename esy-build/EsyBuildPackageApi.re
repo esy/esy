@@ -1,5 +1,5 @@
 let esyBuildPackageCmd = {
-  let req = "esyBuildPackageCommand";
+  let req = "esyBuildPackageCommand.exe";
   Path.v(req) |> Cmd.ofPath;
 };
 
