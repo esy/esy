@@ -11,12 +11,8 @@ const isCi = require("is-ci");
 const isWindows = process.platform === 'win32';
 const ocamlVersion = '4.7.x';
 
-if (isWindows) {
-  __ESY__ = __ESY__ + '.exe';
-}
-
 var __ESY__base = path.join(process.cwd(), '_build', 'install', 'default', 'bin');
-var __ESY__ = path.join(__ESY__base, 'esy');
+var __ESY__ = path.join(__ESY__base, 'esy.exe');
 process.env.PATH = __ESY__base + (isWindows ? ';': ':') + process.env.PATH;
 
 function getTempDir() {
