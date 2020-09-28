@@ -1,5 +1,5 @@
 let cmd = {
-  let cmd = Path.v("esyRewritePrefixCommand");
+  let cmd = Path.v("esyRewritePrefixCommand.exe");
   Cmd.ofPath(cmd);
 };
 
