@@ -8,7 +8,12 @@
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": true,
-      "bin": [ "esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand" ]
+      "bin": {
+	"esy": "esy.exe",
+	"esyBuildPackageCommand": "esyBuildPackageCommand.exe",
+	"esyRewriteprefixcommand": "esyRewritePrefixCommand.exe",
+	"esySolveCudfCommand": "esySolveCudfCommand.exe"
+      }
     },
     "buildsInSource": "_build"
   },

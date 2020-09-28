@@ -1,6 +1,6 @@
 (executable
  (name esyBuildPackageCommand)
- (public_name esyBuildPackageCommand)
+ (public_name esyBuildPackageCommand.exe)
  (modules esyBuildPackageCommand)
  (flags
   (:standard
@@ -12,7 +12,7 @@
 
 (executable
  (name esyRewritePrefixCommand)
- (public_name esyRewritePrefixCommand)
+ (public_name esyRewritePrefixCommand.exe)
  (modules esyRewritePrefixCommand)
  (flags
   (:standard
