@@ -16,4 +16,5 @@
  (package esy)
  (section bin)
  (files
+  (esy as esy)
   (esyInstallRelease.js as esyInstallRelease.js)))
