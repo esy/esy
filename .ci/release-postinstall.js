@@ -119,14 +119,13 @@ function copyFileSync(sourcePath, destPath) {
   try {
     data = fs.readFileSync(sourcePath);
   } catch (e) {
-    console.log("Couldn't find " + sourcePath + " trying with .exe");
     data = fs.readFileSync(sourcePath + ".exe");
     sourcePath = sourcePath + ".exe";
     destPath = destPath + ".exe";
   }
   var stat = fs.statSync(sourcePath);
   fs.writeFileSync(destPath, data);
-  fs.chmodSync(destPath, stat.mode);
+  fs.chmodSync(destPath, 0755);
 }
 
 var copyPlatformBinaries = platformPath => {
