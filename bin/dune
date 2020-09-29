@@ -1,6 +1,6 @@
 (executable
  (name esy)
- (public_name esy.exe)
+ (public_name esy)
  (preprocess
   (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
  (flags
@@ -16,5 +16,4 @@
  (package esy)
  (section bin)
  (files
-  (esy as esy)
   (esyInstallRelease.js as esyInstallRelease.js)))

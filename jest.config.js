@@ -14,7 +14,11 @@ if (isCi) {
 }
 
 var __ESY__base = path.join(__dirname, '_build', 'install', 'default', 'bin');
-var __ESY__ = path.join(__ESY__base, 'esy.exe');
+var __ESY__ = path.join(__ESY__base, 'esy');
+
+if (isWindows) {
+  __ESY__ += ".exe";
+}
 
 process.env.PATH = __ESY__base + (isWindows ? ';': ':') + process.env.PATH;
 
