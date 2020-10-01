@@ -24,16 +24,17 @@ const isWindows = process.platform === 'win32';
 const isLinux = process.platform === 'linux';
 const isMacos = process.platform === 'darwin';
 
+// This is set in jest.config.js
+declare var __ESY__: string;
+
+const ESY = __ESY__;
+
 const getWindowsSystemDirectory = () => {
   return path
     .join(process.env['windir'], 'System32')
     .split('\\')
     .join('/');
 };
-
-const ESY = isWindows
-  ? require.resolve('../../bin/esy.cmd')
-  : require.resolve('../../bin/esy');
 
 var regexpRe = /[|\\{}()[\]^$+*?.]/g;
 

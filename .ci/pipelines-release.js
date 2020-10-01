@@ -1,12 +1,13 @@
+const {execSync} = require('child_process');
 const fs = require("fs");
 const path = require("path");
 
 console.log("Creating package.json");
 
 // From the project root pwd
-const mainPackageJsonPath = fs.existsSync("esy.json")
-  ? "esy.json"
-  : "package.json";
+const mainPackageJsonPath =
+  fs.existsSync('esy.json') ?
+  'esy.json' : 'package.json';
 
 const exists = fs.existsSync(mainPackageJsonPath);
 if (!exists) {
@@ -14,37 +15,42 @@ if (!exists) {
   process.exit(1);
 }
 // Now require from this script's location.
-const mainPackageJson = require(path.join("..", mainPackageJsonPath));
-const bins = Array.isArray(mainPackageJson.esy.release.bin)
-  ? mainPackageJson.esy.release.bin.reduce(
-      (acc, curr) => Object.assign({ [curr]: "bin/" + curr }, acc),
-      {}
-    )
-  : Object.keys(mainPackageJson.esy.release.bin).reduce(
-      (acc, currKey) =>
-        Object.assign(
-          { [currKey]: "bin/" + mainPackageJson.esy.release.bin[currKey] },
-          acc
-        ),
-      {}
-    );
+const mainPackageJson = require(path.join('..', mainPackageJsonPath));
+const bins =
+  Array.isArray(mainPackageJson.esy.release.bin) ?
+  mainPackageJson.esy.release.bin.reduce(
+    (acc, curr) => Object.assign({ [curr]: "bin/" + curr}, acc),
+    {}
+  ) :
+  Object.keys(mainPackageJson.esy.release.bin).reduce(
+    (acc, currKey) => Object.assign({ [currKey]: "bin/" + mainPackageJson.esy.release.bin[currKey] }, acc),
+    {}
+  );
 
 const rewritePrefix =
   mainPackageJson.esy &&
   mainPackageJson.esy.release &&
   mainPackageJson.esy.release.rewritePrefix;
 
+function exec(cmd) {
+  console.log(`exec: ${cmd}`);
+  return execSync(cmd).toString();
+}
+
+const args = process.argv.slice(2);
+const commit = args[0] != null ? args[0] : exec(`git rev-parse --verify HEAD`);
 const packageJson = JSON.stringify(
   {
-    name: mainPackageJson.name,
-    version: mainPackageJson.version,
+    name: '@esy-nightly/esy',
+    version: `${mainPackageJson.version}-${commit.slice(0, 6)}`,
     license: mainPackageJson.license,
     description: mainPackageJson.description,
     repository: mainPackageJson.repository,
     scripts: {
-      postinstall: rewritePrefix
-        ? "ESY_RELEASE_REWRITE_PREFIX=true node ./postinstall.js"
-        : "node ./postinstall.js"
+      postinstall:
+        rewritePrefix ?
+	"node -e \"process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./postinstall.js')\"":
+        "node ./postinstall.js"
     },
     bin: bins,
     files: [

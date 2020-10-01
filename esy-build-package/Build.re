@@ -300,8 +300,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         )
       );
       let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
-      let%bind cmd =
-        EsyLib.NodeResolution.resolve("./esyRewritePrefixCommand.exe");
+      let cmd = Path.v("esyRewritePrefixCommand");
       let%bind () =
         Bos.OS.Cmd.run(
           ~env,

@@ -112,8 +112,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
     | None =>
-      let cmd = EsyRuntime.resolve("esy-solve-cudf/esySolveCudfCommand.exe");
-      return(Cmd.(v(p(cmd))));
+      let cmd = "esySolveCudfCommand";
+      return(Cmd.(v(cmd)));
     };
 
   let%bind solveCfg =

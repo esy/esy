@@ -72,7 +72,7 @@ cp "$ESY_DOWNLOAD_DIR/package/platform-$PLATFORM/_build/default/bin/esyInstallRe
 cp -r "$ESY_DOWNLOAD_DIR/package/platform-$PLATFORM/_build/default" "$ESY_PREFIX/lib"
 
 chmod 0555 "$ESY_PREFIX/lib/default/bin/esy.exe"
-chmod 0555 "$ESY_PREFIX/lib/default/esy-build-package/bin/esyBuildPackageCommand.exe"
+chmod 0555 "$ESY_PREFIX/lib/default/bin/esyBuildPackageCommand.exe"
 chmod 0555 "$ESY_PREFIX/lib/default/esy-build-package/bin/esyRewritePrefixCommand.exe"
 
 mkdir -p "$ESY_PREFIX/lib/node_modules/esy-solve-cudf"

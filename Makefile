@@ -63,7 +63,6 @@ ifeq ($(ESY_VERSION_MINOR),$(ESY_REQUIRED_VERSION_MINOR))
 	@esy install
 	@yarn install
 	@make build
-	@node scripts/bootstrap.js
 else
 	$(error "esy requires version 0.$(ESY_REQUIRED_VERSION_MINOR).x installed to bootstrap, run 'npm install -g esy@0.$(ESY_REQUIRED_VERSION_MINOR).x'")
 endif
@@ -114,9 +113,6 @@ fmt-no-promote refmt-no-promote::
 #
 # Test
 #
-
-./bin/esy:
-	@node ./scripts/bootstrap.js
 
 test-unit::
 	esy test:unit

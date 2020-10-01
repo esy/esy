@@ -1,11 +1,15 @@
 {
   "name": "esy",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "description": "Package builder for esy.",
   "license": "MIT",
   "esy": {
-    "build": "dune build -p esy,esy-build-package",
-    "install": "esy-installer esy.install esy-build-package.install",
+    "build": "dune build -p esy",
+    "install": "esy-installer esy.install",
+    "release": {
+      "rewritePrefix": true,
+      "bin": ["esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand"]
+    },
     "buildsInSource": "_build"
   },
   "//": "Following pesy config can be used to pull cached builds from CI",
@@ -35,6 +39,7 @@
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
   },
   "dependencies": {
+    "@opam/mccs": "*",
     "@opam/angstrom": "*",
     "@opam/bos": "0.2.0",
     "@opam/cmdliner": "*",

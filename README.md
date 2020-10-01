@@ -109,8 +109,8 @@ To make changes to `esy` and test them locally:
 
 ```
 % git clone git://github.com/esy/esy.git
-% cd esy
-% make bootstrap
+% cd esy # Change to the cloned directory
+% esy # install and build dependencies 
 ```
 
 And then run newly built `esy` executable from anywhere like `PATH_TO_REPO/bin/esy`.

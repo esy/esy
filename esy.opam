@@ -44,6 +44,7 @@ depends:  [
     "ppx_sexp_conv"  { = "v0.13.0" }
     "re"  { = "1.9.0" }
     "reason" 
+    "mccs"
     "yojson"  { = "1.7.0" }
     "ocaml"  { >= "4.10.0" }
 ]
