@@ -6,8 +6,8 @@
 
 (license MIT)
 (maintainers
- Manas Jayanth <prometheansacrifice@gmail.com>
- Andrey Popp <8mayday@gmail.com>)
+ "Manas Jayanth <prometheansacrifice@gmail.com>"
+ "Andrey Popp <8mayday@gmail.com>")
  
 (authors
  "Andrey Popp <8mayday@gmail.com>"
@@ -23,35 +23,36 @@
 (package
  (name esy)
  (synopsis "A package.json driven package manager for Reason and OCaml")
- (description "LSP protocol implementation in OCaml")
+ (description "
+Easy package management for native Reason, OCaml and more
+")
  (depends
     angstrom
     cmdliner
-    bos
-    (cudf  (= 0.9))
-    (dose3  (= 5.0.1))
-    (dune  (= 2.6.0))
-    (fmt  (= 0.8.8))
-    (fpath  (= 0.7.2))
-    (lambda-term  (= 2.0.2))
-    (logs  (= 0.7.0))
-    (lwt  (= 4.4.0))
-    (lwt_ppx  (= 1.2.4))
-    (menhir  (= 20200211))
-    (ocamlformat  (= 0.15.0))
-    (opam-core  (= 2.0.5))
-    (opam-file-format  (= 2.0.0))
-    (opam-format  (= 2.0.5))
-    (opam-state  (= 2.0.5))
-    (ppx_deriving  (= 4.5))
+    bos 
+(cudf (= 0.9+dune))  
+    dose3  
+    dune  
+    fmt  
+    fpath  
+    lambda-term  
+    logs  
+    lwt  
+    lwt_ppx  
+    menhir  
+    ocamlformat  
+    opam-core  
+    opam-file-format  
+    opam-format  
+    opam-state  
+    ppx_deriving  
     ppx_deriving_yojson
-    (ppx_expect  (= v0.13.1))
-    (ppx_inline_test  (= v0.13.0))
-    (ppx_let  (= v0.13.0))
-    (ppx_sexp_conv  (= v0.13.0))
-    (re  (= 1.9.0))
-    reason 
+    ppx_expect  
+    ppx_inline_test  
+    ppx_let  
+    ppx_sexp_conv  
+    re  
     mccs
-    (yojson  (= 1.7.0 ))
-    (ocaml  (>= 4.10.0 ))))
+    yojson  
+    (ocaml (>= 4.10.1))))
 
