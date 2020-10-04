@@ -5,7 +5,7 @@ COPY . /app/esy
 WORKDIR /app/esy
 RUN opam init -y --disable-sandboxing --bare
 RUN opam switch create esy-local-switch ocaml-base-compiler.4.10.1 -y
-RUN opam repository add duniverse git@github.com/dune-universe/opam-overlays.git
+RUN opam repository add duniverse git@github.com/dune-universe/opam-repository.git#duniverse
 RUN opam install . --deps-only -y
 RUN opam exec -- dune build -p esy
 RUN opam exec -- dune build @install
