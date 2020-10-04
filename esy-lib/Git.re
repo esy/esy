@@ -80,8 +80,8 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
             List.fold_left(
               ~f=
                 (accCmd, cfg) => {
-                  let (k, v) = cfg;
-                  accCmd % "-c" % Printf.sprintf("%s=%s", k, v);
+                  let (k, value) = cfg;
+                  accCmd % "-c" % Printf.sprintf("%s=%s", k, value);
                 },
               ~init=cmd,
               cs,
