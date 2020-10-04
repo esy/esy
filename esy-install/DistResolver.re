@@ -225,7 +225,8 @@ let resolve = (~overrides=Overrides.empty, ~cfg, ~sandbox, dist: Dist.t) => {
       let%bind pkg = ofGithub(~manifest?, user, repo, commit);
       return((pkg, Path.Set.empty));
     | Archive(_) =>
-      let%bind path = DistStorage.fetchIntoCache(cfg, sandbox, dist);
+      let%bind path =
+        DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);
       let%bind (_, pkg) = ofPath(path);
       return((pkg, Path.Set.empty));
 

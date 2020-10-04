@@ -11,7 +11,14 @@ type remote = string;
 /** Clone repository from [remote] into [dst] local path. */
 
 let clone:
-  (~branch: string=?, ~depth: int=?, ~dst: Fpath.t, ~remote: remote, unit) =>
+  (
+    ~branch: string=?,
+    ~config: list((string /*key*/, string /*value*/))=?,
+    ~depth: int=?,
+    ~dst: Fpath.t,
+    ~remote: remote,
+    unit
+  ) =>
   RunAsync.t(unit);
 
 /** Pull into [repo] from [source] branch [branchSpec] */

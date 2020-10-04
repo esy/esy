@@ -1013,6 +1013,8 @@ let getSandboxSolution =
       proj.installSandbox,
       solution,
       lockPath,
+      proj.projcfg.gitUsername,
+      proj.projcfg.gitPassword,
     );
   };
 
@@ -1072,6 +1074,8 @@ let fetch = (proj: Project.t) => {
       proj.workflow.installspec,
       proj.installSandbox,
       solution,
+      proj.projcfg.gitUsername,
+      proj.projcfg.gitPassword,
     )
   | None => error("no lock found, run 'esy solve' first")
   };

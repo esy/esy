@@ -204,6 +204,8 @@ type t = {
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
+  gitUsername: option(string),
+  gitPassword: option(string),
   buildConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
@@ -407,6 +409,26 @@ let fetchConcurrencyArg = {
   );
 };
 
+let gitUsername = {
+  let doc = "Specifies username of the git repositories being fetched. Note: this username will be used for all repositories in the dependencies tree. This option is useful in environments where ssh isn't available.";
+  let env = Arg.env_var("ESY__GIT_USERNAME", ~doc);
+  Arg.(
+    value
+    & opt(some(string), None)
+    & info(["git-username"], ~env, ~doc, ~docs=commonOptionsSection)
+  );
+};
+
+let gitPassword = {
+  let doc = "Specifies password of the git repositories being fetched. Note: Will be used everywhere (ref: username option). If your git repository services provides personal access token, it recommended you use them.";
+  let env = Arg.env_var("ESY__GIT_PASSWORD", ~doc);
+  Arg.(
+    value
+    & opt(some(string), None)
+    & info(["git-password"], ~env, ~doc, ~docs=commonOptionsSection)
+  );
+};
+
 let buildConcurrencyArg = {
   let doc = "Specifies number of concurrent build tasks";
   let env = Arg.env_var("ESY__BUILD_CONCURRENCY", ~doc);
@@ -434,6 +456,8 @@ let make =
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      gitUsername,
+      gitPassword,
       buildConcurrency,
       opamRepository,
       esyOpamOverride,
@@ -468,6 +492,8 @@ let make =
     prefixPath,
     cacheTarballsPath,
     fetchConcurrency,
+    gitUsername,
+    gitPassword,
     buildConcurrency,
     opamRepository,
     esyOpamOverride,
@@ -491,6 +517,8 @@ let promiseTerm = {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        gitUsername,
+        gitPassword,
         buildConcurrency,
         opamRepository,
         esyOpamOverride,
@@ -511,6 +539,8 @@ let promiseTerm = {
       prefixPath,
       cacheTarballsPath,
       fetchConcurrency,
+      gitUsername,
+      gitPassword,
       buildConcurrency,
       opamRepository,
       esyOpamOverride,
@@ -532,6 +562,8 @@ let promiseTerm = {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ gitUsername
+    $ gitPassword
     $ buildConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg
@@ -559,6 +591,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
+        gitUsername,
+        gitPassword,
         buildConcurrency,
         opamRepository,
         esyOpamOverride,
@@ -581,6 +615,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
+           gitUsername,
+           gitPassword,
            buildConcurrency,
            opamRepository,
            esyOpamOverride,
@@ -612,6 +648,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
+    $ gitUsername
+    $ gitPassword
     $ buildConcurrencyArg
     $ opamRepositoryArg
     $ esyOpamOverrideArg

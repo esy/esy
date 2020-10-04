@@ -46,7 +46,7 @@ let updateSubmodules = (~repo, ()) => {
   return();
 };
 
-let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
+let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => {
   open RunAsync.Syntax;
   let%bind cmd =
     RunAsync.ofBosError(
@@ -59,6 +59,22 @@ let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
           switch (branch) {
           | Some(branch) => cmd % "--branch" % branch
           | None => cmd
+          };
+
+        let cmd =
+          switch (configKVs) {
+          | Some([])
+          | None => cmd
+          | Some(cs) =>
+            List.fold_left(
+              ~f=
+                (accCmd, cfg) => {
+                  let (k, v) = cfg;
+                  accCmd % Printf.sprintf("-c %s=%s", k, v);
+                },
+              ~init=cmd,
+              cs,
+            )
           };
 
         let cmd =

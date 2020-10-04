@@ -1,5 +1,13 @@
 let toPath:
-  (~digest: Digestv.t, Sandbox.t, Solution.t, Fpath.t) => RunAsync.t(unit);
+  (
+    ~digest: Digestv.t,
+    Sandbox.t,
+    Solution.t,
+    Fpath.t,
+    option(string) /* git username */,
+    option(string)
+  ) => /* git password */
+  RunAsync.t(unit);
 
 let ofPath:
   (~digest: Digestv.t=?, Sandbox.t, Fpath.t) =>

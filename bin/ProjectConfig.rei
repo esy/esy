@@ -13,6 +13,8 @@ type t = {
   prefixPath: option(Path.t),
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
+  gitUsername: option(string),
+  gitPassword: option(string),
   buildConcurrency: option(int),
   opamRepository: option(EsySolve.Config.checkoutCfg),
   esyOpamOverride: option(EsySolve.Config.checkoutCfg),
