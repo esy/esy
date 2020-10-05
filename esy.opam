@@ -31,9 +31,10 @@ depends: [
   "lambda-term"
   "logs"
   "lwt"
+  "reason"
   "lwt_ppx"
   "menhir"
-  "ocamlformat"
+  "ocamlformat" {= "0.15.0"}
   "opam-core"
   "opam-file-format"
   "opam-format"
@@ -47,7 +48,7 @@ depends: [
   "re"
   "mccs"
   "yojson"
-  "ocaml" {>= "4.10.1"}
+  "ocaml" {= "4.10.1"}
 ]
 build: [
   ["dune" "subst"] {pinned}

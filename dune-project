@@ -30,7 +30,7 @@ Easy package management for native Reason, OCaml and more
     angstrom
     cmdliner
     bos 
-(cudf (= 0.9+dune))  
+    (cudf (= 0.9+dune))  
     dose3  
     dune  
     fmt  
@@ -38,9 +38,10 @@ Easy package management for native Reason, OCaml and more
     lambda-term  
     logs  
     lwt  
+    reason
     lwt_ppx  
     menhir  
-    ocamlformat  
+    (ocamlformat (= 0.15.0)) 
     opam-core  
     opam-file-format  
     opam-format  
@@ -54,5 +55,5 @@ Easy package management for native Reason, OCaml and more
     re  
     mccs
     yojson  
-    (ocaml (>= 4.10.1))))
+    (ocaml (= 4.10.1))))
 
