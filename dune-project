@@ -39,8 +39,9 @@ Easy package management for native Reason, OCaml and more
     logs  
     lwt  
     reason
-    lwt_ppx  
-    menhir  
+    lwt_ppx
+    junit
+    (menhir (= 20200211)) 
     (ocamlformat (= 0.15.0)) 
     opam-core  
     opam-file-format  
