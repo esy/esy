@@ -4,7 +4,7 @@
 
 [![Build Status](https://dev.azure.com/esy-dev/esy/_apis/build/status/build)](https://dev.azure.com/esy-dev/esy/_build/latest?definitionId=1)
 
-This README serves as a development documentation for esy. For user 
+This README serves as a development documentation for esy. For user
 documentation refer to [esy.sh][] documentation site.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
