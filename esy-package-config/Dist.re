@@ -82,6 +82,22 @@ module Parse = {
 
   let manifestFilenameBeforeSharp = till(c => c != '#', ManifestSpec.parser);
 
+  let urlWithPort = {
+    let%bind host = take_while1(c => c != ':') <* char(':');
+    let%bind port =
+      take_while1(c => c != '/')
+      >>= (
+        p => {
+          switch (int_of_string_opt(p)) {
+          | Some(port) => return(string_of_int(port))
+          | None => fail("invalid port")
+          };
+        }
+      );
+    let%bind path = take_while1(c => c != '#' && c != ':');
+    return(host ++ ":" ++ port ++ path);
+  };
+
   let commitSHA = {
     let err = fail("missing or incorrect <commit>");
     let%bind () = ignore(char('#')) <|> err;
@@ -163,8 +179,10 @@ module Parse = {
       };
       let%bind () = commit;
       let%bind remote =
-        take_while1(c => c != '#' && c != ':')
-        <|> fail("missing on incorrect <remote>");
+        choice(
+          ~failure_msg="missing on incorrect <remote>",
+          [urlWithPort, take_while1(c => c != '#' && c != ':')],
+        );
       let%bind manifest = gitOrGithubManifest;
       let%bind commit = commitSHA;
       return(Git({remote: proto ++ remote, commit, manifest}));
@@ -187,8 +205,10 @@ module Parse = {
         <|> fail("missing on incorrect <remote>");
 
       let%bind remote =
-        take_while1(c => c != '#' && c != ':')
-        <|> fail("missing on incorrect <remote>");
+        choice(
+          ~failure_msg="missing on incorrect <remote>",
+          [urlWithPort, take_while1(c => c != '#' && c != ':')],
+        );
 
       let%bind manifest = gitOrGithubManifest;
       let%bind commit = commitSHA;
@@ -442,6 +462,41 @@ module Parse = {
          |};
        };
 
+       let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
+         test("git:git+https://github.com:8080/esy/esy.git#abcdef");
+         %expect
+         {|
+        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
+         (manifest ()))
+      |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
+         test("git:git+ssh://git@github.com:22/esy/esy.git#abcdef");
+         %expect
+         {|
+       (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
+     |};
+       };
+
+       let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+       (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
+        (manifest ((Opam esy.opam))))
+      |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
+         test("git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef");
+         %expect
+         {|
+       (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
+        (manifest ((Opam esy.opam))))
+       |};
+       };
+
        /* relaxed parser */
 
        let%expect_test "http://example.com/pkg.tgz#abcdef" = {
@@ -543,6 +598,45 @@ module Parse = {
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
          |};
+       };
+
+       let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
+         testRelaxed("git:git+https://github.com:8080/esy/esy.git#abcdef");
+         %expect
+         {|
+        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
+         (manifest ()))
+      |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
+         testRelaxed("git:git+ssh://git@github.com:22/esy/esy.git#abcdef");
+         %expect
+         {|
+       (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
+     |};
+       };
+
+       let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed(
+           "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef",
+         );
+         %expect
+         {|
+       (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
+        (manifest ((Opam esy.opam))))
+      |};
+       };
+
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
+         testRelaxed(
+           "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef",
+         );
+         %expect
+         {|
+       (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
+        (manifest ((Opam esy.opam))))
+       |};
        };
 
        /* Testing parser: errors */
@@ -689,6 +783,15 @@ module Parse = {
          {|
       ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
       |};
+       };
+
+       /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
+         test("git:git+ssh://git@github.com:22:esy/esy.git#abcdef");
+         %expect
+         {|
+          ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
+     |};
        };
 
        /* Testing parserRelaxed: errors */
@@ -891,6 +994,14 @@ module Parse = {
          {|
       ERROR: parsing "user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
       |};
+       };
+       /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
+       let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
+         testRelaxed("git:git+ssh://git@github.com:22:esy/esy.git#abcdef");
+         %expect
+         {|
+          ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
+     |};
        };
      });
 };
