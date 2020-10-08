@@ -32,6 +32,9 @@
       "esy-configuration": {
         "title": "Configuration"
       },
+      "faqs": {
+        "title": "Frequently Asked Questions"
+      },
       "getting-started": {
         "title": "Getting started"
       },
@@ -334,6 +337,15 @@
       },
       "version-0.6.5-configuration": {
         "title": "Project Configuration"
+      },
+      "version-0.6.7-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.6.7-environment": {
+        "title": "Environment"
+      },
+      "version-0.6.7-getting-started": {
+        "title": "Getting started"
       }
     },
     "links": {
