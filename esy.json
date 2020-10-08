@@ -72,6 +72,7 @@
   "devDependencies": {
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/merlin": "^3.3.3",
-    "@opam/utop": "^2.4.2"
+    "@opam/utop": "^2.4.2",
+    "@opam/rtop": "facebook/reason:rtop.json"
   }
 }
