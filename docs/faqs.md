@@ -7,6 +7,8 @@ This is a running list of frequently asked questions (recommendations are very w
 
 ## Why doesn't Esy support Dune operations like opam file generation or copying of JS files in the source tree?
 
+TLDR; If you're looking to generate opam files with Dune, use `esy dune build <project opam file>`. For substitution, use `esy dune substs`.
+
 Any build operation is recommended to be run in an isolated sandboxed environment where the sources are considered
 immutable. Esy uses sandbox-exec on MacOS to enforce a sandbox (Linux and Windows are pending). It is always recommended 
 that build commands are run with `esy b ...` prefix. For this to work, esy assumes that there is no inplace editing of the 
