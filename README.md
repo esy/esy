@@ -114,7 +114,7 @@ To make changes to `esy` and test them locally:
 ```
 
 And then run newly built `esy` executable from anywhere by adding `PATH_TO_REPO/_build/install/default/bin`
-to the $PATH during the shell's session. On Windows, additionally, append the path to repo.
+to the $PATH during the shell's session. On Windows, append `PATH_TO_REPO/bin` too.
 
 ### Updating `bin/esyInstallRelease.js`
 
