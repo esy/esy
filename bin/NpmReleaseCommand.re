@@ -330,12 +330,16 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
       else (
         let program = expandFallback storePrefix program in
         Sys.argv.(0) <- program;
-        let pid = Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr in
-        let (_, status) = Unix.waitpid [] pid in
-        match status with
-        | WEXITED code -> exit code
-        | WSIGNALED code -> exit code
-        | WSTOPPED code -> exit code
+        if windows then (
+          let pid = Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr in
+          let (_, status) = Unix.waitpid [] pid in
+          match status with
+          | WEXITED code -> exit code
+          | WSIGNALED code -> exit code
+          | WSTOPPED code -> exit code
+        )
+        else
+          Unix.execve program Sys.argv expandedEnv
       )
     ;;
   |},
