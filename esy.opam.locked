@@ -137,6 +137,10 @@ dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
   ["angstrom.dev" "git+https://github.com/esy-ocaml/angstrom.git"]
+  [
+    "dose3.5.0.1"
+    "https://gforge.inria.fr/frs/download.php/file/36063/dose3-5.0.1.tar.gz"
+  ]
   ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
 ]
 name: "esy"
