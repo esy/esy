@@ -38,6 +38,7 @@ jobs:
         submodules: true
       - script: docker build . --network=host -t esy:nightly-alpine-latest
         displayName: "Docker build (Alpine)"
+        continueOnError: true
 
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
