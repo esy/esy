@@ -8,8 +8,8 @@ steps:
   
   - template: utils/use-node.yml
   - template: utils/use-esy.yml
-  - template: utils/use-cache-esy-sources.yml
-  - template: utils/use-cache-esy-install-tree.yml
+  # - template: utils/use-cache-esy-sources.yml
+  # - template: utils/use-cache-esy-install-tree.yml
   - script: 'npm install'
     displayName: 'npm install'
   - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
@@ -20,7 +20,7 @@ steps:
       displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
     displayName: "esy install"
-  - template: utils/restore-build-cache.yml
+  # - template: utils/restore-build-cache.yml
   - script: "esy build"
     displayName: "esy build"
   - template: utils/publish-build-cache.yml
