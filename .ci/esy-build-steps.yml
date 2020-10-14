@@ -20,6 +20,7 @@ steps:
       displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
     displayName: "esy install"
+  # This is unnecessary now that store is cached via Cache@2 azure task. Runing this could help with testing the flow e2e
   # - template: utils/restore-build-cache.yml
   - script: "esy build"
     displayName: "esy build"
