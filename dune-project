@@ -31,7 +31,7 @@ Easy package management for native Reason, OCaml and more
     cmdliner
     bos 
     (cudf (= 0.9+dune))  
-    dose3  
+    (dose3 (= 5.0.1))
     dune  
     fmt  
     fpath  
