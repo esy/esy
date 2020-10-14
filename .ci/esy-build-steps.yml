@@ -8,8 +8,8 @@ steps:
   
   - template: utils/use-node.yml
   - template: utils/use-esy.yml
-  # - template: utils/use-cache-esy-sources.yml
-  # - template: utils/use-cache-esy-install-tree.yml
+  - template: utils/use-cache-esy-sources.yml
+  - template: utils/use-cache-esy-install-tree.yml
   - script: 'npm install'
     displayName: 'npm install'
   - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
