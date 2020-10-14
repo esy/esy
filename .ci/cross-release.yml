@@ -30,4 +30,4 @@ steps:
     displayName: "Publish Artifact: Release"
     inputs:
       PathtoPublish: "_release"
-      ArtifactName: Release
+      ArtifactName: release
