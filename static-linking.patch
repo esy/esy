@@ -1,0 +1,32 @@
+diff --git a/bin/dune b/bin/dune
+index d94b6ec2..abd02e00 100644
+--- a/bin/dune
++++ b/bin/dune
+@@ -4,6 +4,7 @@
+  (preprocess
+   (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (flags
++  (-ccopt -static)
+   (:standard
+    (-w -39)
+    "-open"
+diff --git a/esy-build-package/bin/dune b/esy-build-package/bin/dune
+index 1c0b8479..74301b9d 100644
+--- a/esy-build-package/bin/dune
++++ b/esy-build-package/bin/dune
+@@ -3,6 +3,7 @@
+  (public_name esyBuildPackageCommand)
+  (modules esyBuildPackageCommand)
+  (flags
++  (-ccopt -static)
+   (:standard
+    (-w -39)))
+  (preprocess
+@@ -15,6 +16,7 @@
+  (public_name esyRewritePrefixCommand)
+  (modules esyRewritePrefixCommand)
+  (flags
++  (-ccopt -static)
+   (:standard
+    (-w -39)))
+  (preprocess
