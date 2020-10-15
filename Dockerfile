@@ -4,7 +4,7 @@ RUN apk add opam make m4 git gcc g++ musl-dev perl perl-utils
 COPY . /app/esy
 WORKDIR /app/esy
 RUN opam init -y --disable-sandboxing --bare && \
- opam switch create esy-local-switch ocaml-base-compiler.4.10.1 -y && \ 
+ opam switch create esy-local-switch 4.10.1+musl+static+flambda -y && \ 
  opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse && \
  opam install . --deps-only -y && \
  opam exec -- dune build -p esy && \
