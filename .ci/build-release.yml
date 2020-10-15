@@ -61,7 +61,7 @@ jobs:
       - task: PublishBuildArtifacts@1
         displayName: "Publish Docker built artifact"
         inputs:
-          PathtoPublish: "_container_release/$(esy__project_name)-$(esy__project_version.tgz"
+          PathtoPublish: "_container_release/$(esy__project_name)-$(esy__project_version).tgz"
           ArtifactName: DockerBuiltNPM.tgz
       - script: docker save $(esy__project_name) | gzip > $(esy__project_name)-docker-image.tar.gz
         displayName: "Save Docker image as tarball"

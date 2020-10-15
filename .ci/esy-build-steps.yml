@@ -10,6 +10,9 @@ steps:
   - template: utils/use-esy.yml
   - template: utils/use-cache-esy-sources.yml
   - template: utils/use-cache-esy-install-tree.yml
+    parameters:
+      platform: ${{ parameters.platform }}
+      vmImage: ${{ parameters.vmImage }}
   - script: 'npm install'
     displayName: 'npm install'
   - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
