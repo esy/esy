@@ -2,7 +2,10 @@ FROM alpine:latest
 
 RUN apk add opam make m4 git gcc g++ musl-dev perl perl-utils
 COPY . /app/esy
+WORKDIR /app/esy/esy-solve-cudf
+RUN git apply static-linking.patch
 WORKDIR /app/esy
+RUN git apply static-linking.patch
 RUN opam init -y --disable-sandboxing --bare && \
  opam switch create esy-local-switch 4.10.1+musl+static+flambda -y && \ 
  opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse && \
@@ -15,4 +18,5 @@ RUN opam init -y --disable-sandboxing --bare && \
  mv _release /app/_release && \
  rm -rf /app/esy && \
  rm -rf /root/.opam && \
- rm -rf /root/.esy
+ rm -rf /root/.esy && \
+ apk del opam m4 gcc g++ musl-dev
