@@ -20,5 +20,4 @@ RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils && \
  rm -rf /app/esy && \
  rm -rf /root/.opam && \
  rm -rf /root/.esy && \
- rm -rf /app && \
  apk del opam m4 gcc g++ musl-dev yarn
