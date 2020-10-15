@@ -2,7 +2,7 @@ FROM alpine:latest
 
 COPY . /app/esy
 WORKDIR /app/esy
-RUN apk add opam node make m4 git gcc g++ musl-dev perl perl-utils && \
+RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils && \
  git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
  git -C /app/esy apply static-linking.patch && \
  opam init -y --disable-sandboxing --bare && \
@@ -14,10 +14,11 @@ RUN apk add opam node make m4 git gcc g++ musl-dev perl perl-utils && \
  opam exec -- dune install --prefix /usr/local && \
  esy  && \
  esy release && \
- yarn global add _release && \
+ opam exec -- dune uninstall --prefix /usr/local && \
+ yarn global --prefix=/usr/local --force add $PWD/_release && \
  mv _release /app/_release && \
  rm -rf /app/esy && \
  rm -rf /root/.opam && \
  rm -rf /root/.esy && \
  rm -rf /app && \
- apk del opam m4 gcc g++ musl-dev node
+ apk del opam m4 gcc g++ musl-dev yarn
