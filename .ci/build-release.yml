@@ -41,10 +41,36 @@ jobs:
     steps:
       - checkout: self
         submodules: true
+      - template: utils/use-node.yml
+      - script: sudo apt install jq gzip
+        displayName: Install deps
+      - bash: |
+          ESY__PROJECT_NAME=$(jq -r .name package.json)
+          ESY__PROJECT_VERSION=$(jq -r .version package.json)
+          echo "##vso[task.setvariable variable=esy__project_name]$ESY__PROJECT_NAME"
+          echo "##vso[task.setvariable variable=esy__project_version]$ESY__PROJECT_VERSION"
       - script: docker build . --network=host -t esy:nightly-alpine-latest
-        displayName: "Docker build (Alpine)"
-        continueOnError: true
-
+        displayName: "Docker Build (Alpine)"
+      - script: docker container run -itd --network=host --name esy-container esy:nightly-alpine-latest
+        displayName: "Run Docker Container"
+      - script:  docker cp esy-container:/app/_release $PWD/_container_release
+        displayName: "Copy _release from container"
+      - script: npm pack
+        workingDirectory: _container_release
+        displayName: "Npm pack'ing"
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Docker built artifact"
+        inputs:
+          PathtoPublish: "_container_release/$(esy__project_name)-$(esy__project_version).tgz"
+          ArtifactName: DockerBuiltNPM.tgz
+      - script: docker save $(esy__project_name) | gzip > $(esy__project_name)-docker-image.tar.gz
+        displayName: "Save Docker image as tarball"
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Docker production image"
+        inputs:
+          PathtoPublish: "$(esy__project_name)-docker-image.tar.gz"
+          ArtifactName: DockerBuiltNPM
+          
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
   # otherwise it will end up using the esy-bash tar which doesn't
