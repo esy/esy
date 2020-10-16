@@ -13,7 +13,7 @@ RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils && \
  opam exec -- dune build @install && \
  opam exec -- dune install --prefix /usr/local && \
  esy  && \
- esy release && \
+ esy release --static && \
  opam exec -- dune uninstall --prefix /usr/local && \
  yarn global --prefix=/usr/local --force add $PWD/_release && \
  mv _release /app/_release && \
