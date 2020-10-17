@@ -384,6 +384,7 @@ let cleanupLinksFromGlobalStore = (cfg, tasks) => {
 let make =
     (
       ~ocamlopt,
+      ~createStatic,
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
@@ -551,9 +552,17 @@ let make =
 
         let mlPath = Path.(stagePath / (innerName ++ ".ml"));
         let%bind () = Fs.writeFile(~data, mlPath) /* Compile the wrapper to a binary */;
+        let ocamloptCmd =
+          Cmd.(
+            createStatic
+              ? v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+                % "-ccopt"
+                % "-static"
+              : v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+          );
         let compile =
           Cmd.(
-            v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+            ocamloptCmd
             % "-o"
             % EsyLib.Path.normalizePathSepOfFilename(
                 p(Path.(binPath / publicName)),
@@ -730,7 +739,7 @@ let make =
   return();
 };
 
-let run = (proj: Project.t) => {
+let run = (createStatic: bool, proj: Project.t) => {
   open RunAsync.Syntax;
 
   let%bind solved = Project.solved(proj);
@@ -759,6 +768,7 @@ let run = (proj: Project.t) => {
 
   make(
     ~ocamlopt,
+    ~createStatic,
     ~outputPath,
     ~concurrency=
       EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
