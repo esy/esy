@@ -8,7 +8,7 @@ let stageTree = "s";
 
 let version = "3";
 
-let maxStorePaddingLength = {
+let maxStorePaddingLength = (~ocamlPkgName, ~ocamlVersion, ()) => {
   /*
    * This is restricted by POSIX, Linux enforces this but macOS is more
    * forgiving.
@@ -18,7 +18,8 @@ let maxStorePaddingLength = {
    * We reserve that amount of chars from padding so ocamlrun can be placed in
    * shebang lines
    */
-  let ocamlrunStorePath = "ocaml-n.00.0000-########/bin/ocamlrun";
+  let ocamlrunStorePath =
+    ocamlPkgName ++ "-" ++ ocamlVersion ++ "-########/bin/ocamlrun";
   maxShebangLength
   - String.length("!#")
   - String.length(
@@ -30,13 +31,17 @@ let getPadding =
     (
       ~system=System.Platform.host,
       ~longPaths=System.supportsLongPaths(),
+      ~ocamlPkgName,
+      ~ocamlVersion,
       prefixPath,
     ) =>
   switch (system, longPaths) {
   | (Windows, false) => Ok("_")
   | _ =>
     let prefixPathLength = String.length(Fpath.to_string(prefixPath));
-    let paddingLength = maxStorePaddingLength - prefixPathLength;
+    let paddingLength =
+      maxStorePaddingLength(~ocamlPkgName, ~ocamlVersion, ())
+      - prefixPathLength;
 
     if (paddingLength < 0) {
       Error(`Msg("prefixPath is too deep in the filesystem"));

@@ -11,6 +11,8 @@ type t = {
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
+  ocamlPkgName: string,
+  ocamlVersion: string,
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
   buildConcurrency: option(int),

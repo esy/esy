@@ -5,6 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy",
+    "buildDev": "refmterr dune build -p esy",
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": true,
@@ -73,6 +74,7 @@
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/merlin": "^3.3.3",
     "@opam/utop": "^2.4.2",
-    "@opam/rtop": "facebook/reason:rtop.json"
+    "@opam/rtop": "facebook/reason:rtop.json",
+    "refmterr": "*"
   }
 }
