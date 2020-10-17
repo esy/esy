@@ -29,6 +29,10 @@ let run =
             Cmd.(
               esyBuildPackageCmd
               % action
+              % "--ocaml-pkg-name"
+              % cfg.ocamlPkgName
+              % "--ocaml-version"
+              % cfg.ocamlVersion
               % "--global-store-prefix"
               % p(cfg.globalStorePrefix)
               % "--local-store-path"
