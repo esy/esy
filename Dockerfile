@@ -12,8 +12,8 @@ RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils && \
  opam exec -- dune build -p esy && \
  opam exec -- dune build @install && \
  opam exec -- dune install --prefix /usr/local && \
- esy i --npm-registry http://localhost:4873  && \
- esy b && \
+ esy i --npm-registry http://localhost:4873 --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
+ esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
  esy release --static && \
  opam exec -- dune uninstall --prefix /usr/local && \
  yarn global --prefix=/usr/local --force add $PWD/_release && \

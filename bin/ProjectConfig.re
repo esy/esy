@@ -202,6 +202,8 @@ type t = {
   esyVersion: string,
   spec: EsyInstall.SandboxSpec.t,
   prefixPath: option(Path.t),
+  ocamlPkgName: string,
+  ocamlVersion: string,
   cacheTarballsPath: option(Path.t),
   fetchConcurrency: option(int),
   buildConcurrency: option(int),
@@ -234,7 +236,12 @@ let storePath = cfg => {
 
   Run.ofBosError(
     EsyBuildPackage.Config.(
-      configureStorePath(storePath, globalStorePrefixPath(cfg))
+      configureStorePath(
+        ~ocamlPkgName=cfg.ocamlPkgName,
+        ~ocamlVersion=cfg.ocamlVersion,
+        storePath,
+        globalStorePrefixPath(cfg),
+      )
     ),
   );
 };
@@ -243,6 +250,25 @@ module FindProject = {};
 
 let commonOptionsSection = Manpage.s_common_options;
 
+let ocamlPkgName = {
+  let doc = "Specifies the name of the ocaml compiler package (not supported on opam projects yet)";
+  let env = Arg.env_var("ESY__OCAML_PKG_NAME", ~doc);
+  Arg.(
+    value
+    & opt(string, "ocaml")
+    & info(["ocaml-pkg-name"], ~env, ~doc, ~docv="<OCAML COMPILER PACKAGE>")
+  );
+};
+
+let ocamlVersion = {
+  let doc = "Specifies the version of the ocaml compiler package (not supported on opam projects yet)";
+  let env = Arg.env_var("ESY__OCAML_VERSION", ~doc);
+  Arg.(
+    value
+    & opt(string, "n.00.0000")
+    & info(["ocaml-version"], ~env, ~doc, ~docv="<OCAML VERSION>")
+  );
+};
 let projectPath = {
   let doc = "Specifies esy project.";
   let env = Arg.env_var("ESY__PROJECT", ~doc);
@@ -430,6 +456,8 @@ let solveCudfCommandArg = {
 let make =
     (
       project,
+      ocamlPkgName,
+      ocamlVersion,
       mainprg,
       prefixPath,
       cacheTarballsPath,
@@ -462,6 +490,8 @@ let make =
 
   return({
     mainprg,
+    ocamlPkgName,
+    ocamlVersion,
     path: projectPath,
     esyVersion: EsyRuntime.version,
     spec,
@@ -488,6 +518,8 @@ let promiseTerm = {
       (
         mainprg,
         projectPath,
+        ocamlPkgName,
+        ocamlVersion,
         prefixPath,
         cacheTarballsPath,
         fetchConcurrency,
@@ -507,6 +539,8 @@ let promiseTerm = {
       ) =>
     make(
       projectPath,
+      ocamlPkgName,
+      ocamlVersion,
       mainprg,
       prefixPath,
       cacheTarballsPath,
@@ -529,6 +563,8 @@ let promiseTerm = {
     const(parse)
     $ main_name
     $ projectPath
+    $ ocamlPkgName
+    $ ocamlVersion
     $ prefixPath
     $ cacheTarballsPath
     $ fetchConcurrencyArg
@@ -578,6 +614,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
          make(
            Some(ProjectArg.ofPath(path)),
            mainprg,
+           "ocaml", /* specifying ocaml package name for multiple paths is unsupported */
+           "n.00.0000", /* specifying ocaml version for multiple paths is unsupported */
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,

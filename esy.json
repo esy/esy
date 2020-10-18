@@ -5,6 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy",
+    "buildDev": "refmterr dune build -p esy",
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": true,
@@ -67,12 +68,13 @@
     "@opam/re": "1.9.0",
     "@opam/reason": "^3.6.0",
     "@opam/yojson": "1.7.0",
-    "ocaml": "latest"
+    "ocaml": "4.10.1002"
   },
   "devDependencies": {
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
     "@opam/merlin": "^3.3.3",
     "@opam/utop": "^2.4.2",
-    "@opam/rtop": "facebook/reason:rtop.json"
+    "@opam/rtop": "facebook/reason:rtop.json",
+    "refmterr": "*"
   }
 }

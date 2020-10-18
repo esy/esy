@@ -1,5 +1,7 @@
 type t =
   pri {
+    ocamlPkgName: string,
+    ocamlVersion: string,
     projectPath: Fpath.t,
     globalStorePrefix: Fpath.t,
     storePath: Fpath.t,
@@ -18,10 +20,14 @@ type storePathConfig =
   | StorePathDefault;
 
 let storePrefixDefault: Fpath.t;
-let configureStorePath: (storePathConfig, Fpath.t) => Run.t(Fpath.t, _);
+let configureStorePath:
+  (~ocamlPkgName: string, ~ocamlVersion: string, storePathConfig, Fpath.t) =>
+  Run.t(Fpath.t, _);
 
 let make:
   (
+    ~ocamlPkgName: string,
+    ~ocamlVersion: string,
     ~globalStorePrefix: Fpath.t,
     ~disableSandbox: bool,
     ~storePath: storePathConfig,
