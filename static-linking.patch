@@ -39,7 +39,7 @@ index 64d7da65..4722ee5d 100644
    },
    "resolutions": {
 +    "ocaml": "4.10.1002-musl.static.flambda",
-+    "@opam/astring": "github:dune-universe/astring#baa4e7e2bf919293aac2c899786c2ac40757dd9b",
++    "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b",
      "@opam/bos": {
        "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
        "override": {"dependencies": {"@opam/mtime": "*"}}
