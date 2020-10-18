@@ -137,13 +137,30 @@ let checkout = (~ref, ~repo, ()) => {
   return();
 };
 
-let lsRemote = (~ref=?, ~remote, ()) => {
+let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
   open RunAsync.Syntax;
   let cmd = Cmd.(v("git") % "ls-remote" % remote);
   let cmd =
     switch (ref) {
     | Some(ref) => Cmd.(cmd % ref)
     | None => cmd
+    };
+
+  let cmd =
+    switch (configKVs) {
+    | Some([])
+    | None => cmd
+    | Some(cs) =>
+      List.fold_left(
+        ~f=
+          (accCmd, cfg) => {
+            let (k, v) = cfg;
+            let configOption = Printf.sprintf("-c %s=%s", k, v);
+            Cmd.(accCmd % configOption);
+          },
+        ~init=cmd,
+        cs,
+      )
     };
 
   let%bind out = runGit(cmd);
@@ -170,16 +187,31 @@ let isCommitLike = v => {
 };
 
 module ShallowClone = {
-  let update = (~branch, ~dst, source) => {
+  let update = (~gitUsername=?, ~gitPassword=?, ~branch, ~dst, source) => {
+    let gitConfig =
+      switch (gitUsername, gitPassword) {
+      | (Some(gitUsername), Some(gitPassword)) => [
+          (
+            "credential.helper",
+            Printf.sprintf(
+              "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+              gitUsername,
+              gitPassword,
+            ),
+          ),
+        ]
+      | _ => []
+      };
     let getLocalCommit = () => {
       let remote = EsyBash.normalizePathForCygwin(Path.show(dst));
-      lsRemote(~remote, ());
+      lsRemote(~remote, ~config=gitConfig, ());
     };
 
     let rec aux = (~retry=true, ()) => {
       open RunAsync.Syntax;
       if%bind (Fs.exists(dst)) {
-        let%bind remoteCommit = lsRemote(~ref=branch, ~remote=source, ());
+        let%bind remoteCommit =
+          lsRemote(~config=gitConfig, ~ref=branch, ~remote=source, ());
         let%bind localCommit = getLocalCommit();
 
         if (remoteCommit == localCommit) {

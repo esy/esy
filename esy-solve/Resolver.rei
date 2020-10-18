@@ -18,7 +18,14 @@ let getUnusedResolutions: t => list(string);
  */
 
 let resolve:
-  (~fullMetadata: bool=?, ~name: string, ~spec: VersionSpec.t=?, t) =>
+  (
+    ~gitUsername: option(string),
+    ~gitPassword: option(string),
+    ~fullMetadata: bool=?,
+    ~name: string,
+    ~spec: VersionSpec.t=?,
+    t
+  ) =>
   RunAsync.t(list(Resolution.t));
 
 /**

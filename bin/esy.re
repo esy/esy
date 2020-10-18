@@ -999,6 +999,8 @@ let getSandboxSolution =
   open RunAsync.Syntax;
   let%bind solution =
     Solver.solve(
+      ~gitUsername=proj.projcfg.gitUsername,
+      ~gitPassword=proj.projcfg.gitPassword,
       ~dumpCudfInput,
       ~dumpCudfOutput,
       solvespec,
@@ -1396,7 +1398,13 @@ let show = (_asJson, req, proj: Project.t) => {
     Resolver.make(~cfg=proj.solveSandbox.cfg, ~sandbox=proj.spec, ());
   let%bind resolutions =
     RunAsync.contextf(
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver),
+      Resolver.resolve(
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~name=req.name,
+        ~spec=req.spec,
+        resolver,
+      ),
       "resolving %a",
       Req.pp,
       req,

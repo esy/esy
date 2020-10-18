@@ -47,12 +47,26 @@ let fetch:
 /** Resolve [ref] of the [remote] */
 
 let lsRemote:
-  (~ref: ref=?, ~remote: remote, unit) => RunAsync.t(option(commit));
+  (
+    ~config: list((string /* key */, string /* value */))=?,
+    ~ref: ref=?,
+    ~remote: remote,
+    unit
+  ) =>
+  RunAsync.t(option(commit));
 
 let isCommitLike: string => bool;
 
 let updateSubmodules: (~repo: Path.t, unit) => RunAsync.t(unit);
 
 module ShallowClone: {
-  let update: (~branch: remote, ~dst: Fpath.t, remote) => RunAsync.t(unit);
+  let update:
+    (
+      ~gitUsername: string=?,
+      ~gitPassword: string=?,
+      ~branch: remote,
+      ~dst: Fpath.t,
+      remote
+    ) =>
+    RunAsync.t(unit);
 };
