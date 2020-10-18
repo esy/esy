@@ -9,6 +9,8 @@ type verb =
   | Verbose;
 
 type commonOpts = {
+  ocamlPkgName: string,
+  ocamlVersion: string,
   planPath: option(Fpath.t),
   globalStorePrefix: option(Fpath.t),
   localStorePath: option(Fpath.t),
@@ -33,6 +35,8 @@ let createConfig = (copts: commonOpts) => {
     localStorePath,
     projectPath,
     disableSandbox,
+    ocamlPkgName,
+    ocamlVersion,
     globalPathVariable,
     _,
   } = copts;
@@ -49,6 +53,8 @@ let createConfig = (copts: commonOpts) => {
     | Some(storePrefix) => storePrefix
     };
   Config.make(
+    ~ocamlPkgName,
+    ~ocamlVersion,
     ~globalStorePrefix,
     ~disableSandbox,
     ~storePath,
@@ -253,6 +259,24 @@ let () = {
         & info(["plan", "p"], ~env, ~docs, ~docv="PATH", ~doc)
       );
     };
+    let ocamlPkgName = {
+      let doc = "Specifies the name of the ocaml compiler package (not supported on opam projects yet)";
+      let env = Arg.env_var("ESY__OCAML_PKG_NAME", ~doc);
+      Arg.(
+        required
+        & opt(some(string), None)
+        & info(["ocaml-pkg-name"], ~env, ~docs, ~doc, ~docv="OCAML COMPILER")
+      );
+    };
+    let ocamlVersion = {
+      let doc = "Specifies the version of the ocaml compiler package (not supported on opam projects yet)";
+      let env = Arg.env_var("ESY__OCAML_VERSION", ~doc);
+      Arg.(
+        required
+        & opt(some(string), None)
+        & info(["ocaml-version"], ~env, ~docs, ~doc, ~docv="OCAML COMPILER")
+      );
+    };
     let disableSandbox = {
       let doc = "Disables sandboxing and builds the package without. CAUTION: this can be dangerous";
       Arg.(value & flag & info(["disable-sandbox"], ~docs, ~doc));
@@ -274,6 +298,8 @@ let () = {
       );
     let parse =
         (
+          ocamlPkgName,
+          ocamlVersion,
           projectPath,
           globalStorePrefix,
           localStorePath,
@@ -283,6 +309,8 @@ let () = {
           globalPathVariable,
         ) => {
       {
+        ocamlPkgName,
+        ocamlVersion,
         projectPath,
         globalStorePrefix,
         localStorePath,
@@ -294,6 +322,8 @@ let () = {
     };
     Term.(
       const(parse)
+      $ ocamlPkgName
+      $ ocamlVersion
       $ projectPath
       $ globalStorePrefix
       $ localStorePath
