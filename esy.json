@@ -37,7 +37,8 @@
       "override": {"dependencies": {"@opam/mtime": "*"}}
     },
     "@opam/angstrom": "github:esy-ocaml/angstrom#63a05dbb0ab0",
-    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc"
+    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
+    "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
   },
   "dependencies": {
     "@opam/mccs": "*",
