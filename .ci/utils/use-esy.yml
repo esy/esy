@@ -1,7 +1,7 @@
 # steps to install esy globally
 
 steps:
-- script: "yarn global add @esy-nightly/esy"
+- script: "yarn global add esy"
   displayName: "Install esy (via yarn)"
 
 - bash: |
