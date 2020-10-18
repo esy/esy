@@ -69,7 +69,7 @@
     "@opam/re": "1.9.0",
     "@opam/reason": "^3.6.0",
     "@opam/yojson": "1.7.0",
-    "ocaml": "4.10.1002"
+    "ocaml": "4.10.0"
   },
   "devDependencies": {
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
