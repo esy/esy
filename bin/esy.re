@@ -1437,7 +1437,12 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let%bind pkg =
         RunAsync.contextf(
-          Resolver.package(~gitUsername=proj.projcfg.gitUsername, ~gitPassword=proj.projcfg.gitPassword, ~resolution, resolver),
+          Resolver.package(
+            ~gitUsername=proj.projcfg.gitUsername,
+            ~gitPassword=proj.projcfg.gitPassword,
+            ~resolution,
+            resolver,
+          ),
           "resolving metadata %a",
           Resolution.pp,
           resolution,
