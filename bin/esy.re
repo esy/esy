@@ -1233,7 +1233,12 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let%bind () = {
     let%bind solveSandbox =
-      EsySolve.Sandbox.make(~cfg=solveSandbox.cfg, solveSandbox.spec);
+      EsySolve.Sandbox.make(
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~cfg=solveSandbox.cfg,
+        solveSandbox.spec,
+      );
 
     let proj = {...proj, solveSandbox};
     let%bind digest =
@@ -1432,7 +1437,7 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let%bind pkg =
         RunAsync.contextf(
-          Resolver.package(~resolution, resolver),
+          Resolver.package(~gitUsername=proj.projcfg.gitUsername, ~gitPassword=proj.projcfg.gitPassword, ~resolution, resolver),
           "resolving metadata %a",
           Resolution.pp,
           resolution,

@@ -198,12 +198,34 @@ let ofPath = (~manifest=?, path: Path.t) => {
   };
 };
 
-let resolve = (~overrides=Overrides.empty, ~cfg, ~sandbox, dist: Dist.t) => {
+let resolve =
+    (
+      ~gitUsername,
+      ~gitPassword,
+      ~overrides=Overrides.empty,
+      ~cfg,
+      ~sandbox,
+      dist: Dist.t,
+    ) => {
   open RunAsync.Syntax;
 
   let resolve' = (dist: Dist.t) => {
     let%lwt () =
       Logs_lwt.debug(m => m("fetching metadata %a", Dist.pp, dist));
+    let config =
+      switch (gitUsername, gitPassword) {
+      | (Some(gitUsername), Some(gitPassword)) => [
+          (
+            "credential.helper",
+            Printf.sprintf(
+              "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+              gitUsername,
+              gitPassword,
+            ),
+          ),
+        ]
+      | _ => []
+      };
     switch (dist) {
     | LocalPath({path, manifest}) =>
       let realpath = DistPath.toPath(sandbox.SandboxSpec.path, path);
@@ -215,7 +237,7 @@ let resolve = (~overrides=Overrides.empty, ~cfg, ~sandbox, dist: Dist.t) => {
       };
     | Git({remote, commit, manifest}) =>
       Fs.withTempDir(repo => {
-        let%bind () = Git.clone(~dst=repo, ~remote, ());
+        let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
         let%bind () = Git.checkout(~ref=commit, ~repo, ());
         let%bind () = Git.updateSubmodules(~repo, ());
         let%bind (_, pkg) = ofPath(~manifest?, repo);
@@ -223,7 +245,20 @@ let resolve = (~overrides=Overrides.empty, ~cfg, ~sandbox, dist: Dist.t) => {
       })
     | Github({user, repo, commit, manifest}) =>
       let%bind pkg = ofGithub(~manifest?, user, repo, commit);
-      return((pkg, Path.Set.empty));
+      switch (pkg) {
+      | EmptyManifest =>
+        let remote =
+          Printf.sprintf("https://github.com/%s/%s.git", user, repo);
+
+        Fs.withTempDir(repo => {
+          let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
+          let%bind () = Git.checkout(~ref=commit, ~repo, ());
+          let%bind () = Git.updateSubmodules(~repo, ());
+          let%bind (_, pkg) = ofPath(~manifest?, repo);
+          return((pkg, Path.Set.empty));
+        });
+      | pkg => return((pkg, Path.Set.empty))
+      };
     | Archive(_) =>
       let%bind path =
         DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);

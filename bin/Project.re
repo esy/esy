@@ -135,7 +135,13 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     );
 
   let installCfg = solveCfg.EsySolve.Config.installCfg;
-  let%bind solveSandbox = EsySolve.Sandbox.make(~cfg=solveCfg, projcfg.spec);
+  let%bind solveSandbox =
+    EsySolve.Sandbox.make(
+      ~gitUsername=projcfg.gitUsername,
+      ~gitPassword=projcfg.gitPassword,
+      ~cfg=solveCfg,
+      projcfg.spec,
+    );
   let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
 
   let%lwt () =

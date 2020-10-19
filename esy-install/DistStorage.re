@@ -105,23 +105,23 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
             github.user,
             github.repo,
           );
+        let config =
+          switch (gitUsername, gitPassword) {
+          | (Some(gitUsername), Some(gitPassword)) => [
+              (
+                "credential.helper",
+                Printf.sprintf(
+                  "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+                  gitUsername,
+                  gitPassword,
+                ),
+              ),
+            ]
+          | _ => []
+          };
         /* Optimisation: if we find that the commit hash is long, we can shallow clone. */
         let%bind () =
           if (String.length(github.commit) == 40) {
-            let config =
-              switch (gitUsername, gitPassword) {
-              | (Some(gitUsername), Some(gitPassword)) => [
-                  (
-                    "credential.helper",
-                    Printf.sprintf(
-                      "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
-                      gitUsername,
-                      gitPassword,
-                    ),
-                  ),
-                ]
-              | _ => []
-              };
             let%bind () =
               Git.clone(~dst=stagePath, ~config, ~remote, ~depth=1, ());
             Git.fetch(
@@ -132,7 +132,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
               (),
             );
           } else {
-            Git.clone(~dst=stagePath, ~remote, ());
+            Git.clone(~config, ~dst=stagePath, ~remote, ());
           };
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
@@ -147,8 +147,23 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
+        let config =
+          switch (gitUsername, gitPassword) {
+          | (Some(gitUsername), Some(gitPassword)) => [
+              (
+                "credential.helper",
+                Printf.sprintf(
+                  "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+                  gitUsername,
+                  gitPassword,
+                ),
+              ),
+            ]
+          | _ => []
+          };
         let%bind () = Fs.createDir(stagePath);
-        let%bind () = Git.clone(~dst=stagePath, ~remote=git.remote, ());
+        let%bind () =
+          Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);

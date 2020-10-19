@@ -36,7 +36,12 @@ let resolve:
  */
 
 let package:
-  (~resolution: Resolution.t, t) =>
+  (
+    ~gitUsername: option(string),
+    ~gitPassword: option(string),
+    ~resolution: Resolution.t,
+    t
+  ) =>
   RunAsync.t(result(InstallManifest.t, string));
 
 let versionByNpmDistTag:

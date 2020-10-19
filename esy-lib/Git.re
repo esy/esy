@@ -139,7 +139,7 @@ let checkout = (~ref, ~repo, ()) => {
 
 let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
   open RunAsync.Syntax;
-  let cmd = Cmd.(v("git") % "ls-remote" % remote);
+  let cmd = Cmd.(v("git"));
   let cmd =
     switch (ref) {
     | Some(ref) => Cmd.(cmd % ref)
@@ -155,13 +155,15 @@ let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
         ~f=
           (accCmd, cfg) => {
             let (k, v) = cfg;
-            let configOption = Printf.sprintf("-c %s=%s", k, v);
-            Cmd.(accCmd % configOption);
+            let configOption = Printf.sprintf("%s=%s", k, v);
+            Cmd.(accCmd % "-c" % configOption);
           },
         ~init=cmd,
         cs,
       )
     };
+
+  let cmd = Cmd.(cmd % "ls-remote" % remote);
 
   let%bind out = runGit(cmd);
   switch (out |> String.trim |> String.split_on_char('\n')) {

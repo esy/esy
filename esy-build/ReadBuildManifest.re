@@ -251,7 +251,13 @@ let ofInstallationLocation =
     | Link({path, manifest, kind: _}) =>
       let dist = Dist.LocalPath({path, manifest});
       let%bind res =
-        EsyInstall.DistResolver.resolve(~cfg=installCfg, ~sandbox=spec, dist);
+        EsyInstall.DistResolver.resolve(
+          ~gitUsername=None,
+          ~gitPassword=None,
+          ~cfg=installCfg,
+          ~sandbox=spec,
+          dist,
+        ); /* Git creds are None. Since link resolutions are local, git creds (which are only used over HTTPS) are not needed */
 
       let overrides =
         Overrides.merge(pkg.overrides, res.EsyInstall.DistResolver.overrides);

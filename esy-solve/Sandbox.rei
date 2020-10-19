@@ -14,5 +14,12 @@ type t = {
   resolver: Resolver.t,
 };
 
-let make: (~cfg: Config.t, EsyInstall.SandboxSpec.t) => RunAsync.t(t);
+let make:
+  (
+    ~gitUsername: option(string),
+    ~gitPassword: option(string),
+    ~cfg: Config.t,
+    EsyInstall.SandboxSpec.t
+  ) =>
+  RunAsync.t(t);
 let digest: (SolveSpec.t, t) => RunAsync.t(Digestv.t);

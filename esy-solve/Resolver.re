@@ -248,7 +248,15 @@ let versionMatchesDep =
   dep.name == name && (checkResolutions() || checkVersion());
 };
 
-let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
+let packageOfSource =
+    (
+      ~gitUsername,
+      ~gitPassword,
+      ~name,
+      ~overrides,
+      source: Source.t,
+      resolver,
+    ) => {
   open RunAsync.Syntax;
 
   let readManifest =
@@ -308,6 +316,8 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
       _,
     } =
       EsyInstall.DistResolver.resolve(
+        ~gitUsername,
+        ~gitPassword,
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
@@ -477,7 +487,8 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
-let package = (~resolution: Resolution.t, resolver) => {
+let package =
+    (~gitUsername, ~gitPassword, ~resolution: Resolution.t, resolver) => {
   open RunAsync.Syntax;
   let key = (resolution.name, resolution.resolution);
 
@@ -511,6 +522,8 @@ let package = (~resolution: Resolution.t, resolver) => {
 
     | Version.Source(source) =>
       packageOfSource(
+        ~gitUsername,
+        ~gitPassword,
         ~overrides=Overrides.empty,
         ~name=resolution.name,
         source,
@@ -529,6 +542,8 @@ let package = (~resolution: Resolution.t, resolver) => {
           let override = Override.ofJson(override);
           let overrides = Overrides.(add(override, empty));
           packageOfSource(
+            ~gitUsername,
+            ~gitPassword,
             ~name=resolution.name,
             ~overrides,
             source,

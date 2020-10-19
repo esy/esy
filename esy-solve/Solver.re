@@ -539,7 +539,12 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
       let fetchPackage = resolution => {
         let%bind pkg =
           RunAsync.contextf(
-            Resolver.package(~resolution, solver.sandbox.resolver),
+            Resolver.package(
+              ~gitUsername,
+              ~gitPassword,
+              ~resolution,
+              solver.sandbox.resolver,
+            ),
             "resolving metadata %a",
             Resolution.pp,
             resolution,
@@ -813,7 +818,7 @@ let solveDependenciesNaively =
       findResolutionForRequest(solver.sandbox.resolver, req, resolutions)
     ) {
     | Some(resolution) =>
-      switch%bind (Resolver.package(~resolution, solver.sandbox.resolver)) {
+      switch%bind (Resolver.package(~gitUsername, ~gitPassword, ~resolution, solver.sandbox.resolver)) {
       | Ok(pkg) => return(Some(pkg))
       | Error(reason) =>
         errorf("invalid package %a: %s", Resolution.pp, resolution, reason)
@@ -947,7 +952,7 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
 
   let make = resolution => {
     let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let%bind pkg = Resolver.package(~resolution, resolver);
+    let%bind pkg = Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
     let%bind pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
