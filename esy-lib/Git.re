@@ -67,12 +67,6 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
         let dest = EsyBash.normalizePathForCygwin(Path.show(dst));
         let cmd = v("git");
         let cmd =
-          switch (branch) {
-          | Some(branch) => cmd % "--branch" % branch
-          | None => cmd
-          };
-
-        let cmd =
           switch (configKVs) {
           | Some([])
           | None => cmd
@@ -88,13 +82,21 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
             )
           };
 
+        let cmd = cmd % "clone";
+
+        let cmd =
+          switch (branch) {
+          | Some(branch) => cmd % "--branch" % branch
+          | None => cmd
+          };
+
         let cmd =
           switch (depth) {
           | Some(depth) => cmd % "--depth" % string_of_int(depth)
           | None => cmd
           };
 
-        return(Cmd.(cmd % "clone" % remote % dest));
+        return(Cmd.(cmd % remote % dest));
       },
     );
 
@@ -152,12 +154,6 @@ let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
   open RunAsync.Syntax;
   let cmd = Cmd.(v("git"));
   let cmd =
-    switch (ref) {
-    | Some(ref) => Cmd.(cmd % ref)
-    | None => cmd
-    };
-
-  let cmd =
     switch (configKVs) {
     | Some([])
     | None => cmd
@@ -175,6 +171,12 @@ let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
     };
 
   let cmd = Cmd.(cmd % "ls-remote" % remote);
+
+  let cmd =
+    switch (ref) {
+    | Some(ref) => Cmd.(cmd % ref)
+    | None => cmd
+    };
 
   let%bind out = runGit(cmd);
   switch (out |> String.trim |> String.split_on_char('\n')) {
