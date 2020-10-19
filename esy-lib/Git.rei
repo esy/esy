@@ -57,7 +57,13 @@ let lsRemote:
 
 let isCommitLike: string => bool;
 
-let updateSubmodules: (~repo: Path.t, unit) => RunAsync.t(unit);
+let updateSubmodules:
+  (
+    ~repo: Path.t,
+    ~config: list((string /*key*/, string /*value*/))=?,
+    unit
+  ) =>
+  RunAsync.t(unit);
 
 module ShallowClone: {
   let update:

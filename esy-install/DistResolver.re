@@ -239,7 +239,7 @@ let resolve =
       Fs.withTempDir(repo => {
         let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
         let%bind () = Git.checkout(~ref=commit, ~repo, ());
-        let%bind () = Git.updateSubmodules(~repo, ());
+        let%bind () = Git.updateSubmodules(~config, ~repo, ());
         let%bind (_, pkg) = ofPath(~manifest?, repo);
         return((pkg, Path.Set.empty));
       })
@@ -253,7 +253,7 @@ let resolve =
         Fs.withTempDir(repo => {
           let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
           let%bind () = Git.checkout(~ref=commit, ~repo, ());
-          let%bind () = Git.updateSubmodules(~repo, ());
+          let%bind () = Git.updateSubmodules(~config, ~repo, ());
           let%bind (_, pkg) = ofPath(~manifest?, repo);
           return((pkg, Path.Set.empty));
         });

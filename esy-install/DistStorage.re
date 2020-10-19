@@ -135,7 +135,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
             Git.clone(~config, ~dst=stagePath, ~remote, ());
           };
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~repo=stagePath, ());
+        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },
@@ -165,7 +165,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
         let%bind () =
           Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~repo=stagePath, ());
+        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },

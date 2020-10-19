@@ -29,18 +29,29 @@ let runGit = cmd => {
   };
 };
 
-let updateSubmodules = (~repo, ()) => {
+let updateSubmodules = (~repo, ~config as configKVs=?, ()) => {
   open RunAsync.Syntax;
   let repo = EsyBash.normalizePathForCygwin(Path.show(repo));
+  let cmd = Cmd.v("git");
+  let cmd =
+    switch (configKVs) {
+    | Some([])
+    | None => cmd
+    | Some(cs) =>
+      List.fold_left(
+        ~f=
+          (accCmd, cfg) => {
+            let (k, v) = cfg;
+            let configKVs = Printf.sprintf("%s=%s", k, v);
+            Cmd.(accCmd % "-c" % configKVs);
+          },
+        ~init=cmd,
+        cs,
+      )
+    };
   let cmd =
     Cmd.(
-      v("git")
-      % "-C"
-      % repo
-      % "submodule"
-      % "update"
-      % "--init"
-      % "--recursive"
+      cmd % "-C" % repo % "submodule" % "update" % "--init" % "--recursive"
     );
   let%bind _ = runGit(cmd);
   return();
@@ -54,7 +65,7 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
         open Cmd;
         open Result.Syntax;
         let dest = EsyBash.normalizePathForCygwin(Path.show(dst));
-        let cmd = v("git") % "clone";
+        let cmd = v("git");
         let cmd =
           switch (branch) {
           | Some(branch) => cmd % "--branch" % branch
@@ -70,7 +81,7 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
               ~f=
                 (accCmd, cfg) => {
                   let (k, v) = cfg;
-                  accCmd % Printf.sprintf("-c %s=%s", k, v);
+                  accCmd % "-c" % Printf.sprintf("%s=%s", k, v);
                 },
               ~init=cmd,
               cs,
@@ -83,7 +94,7 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
           | None => cmd
           };
 
-        return(Cmd.(cmd % remote % dest));
+        return(Cmd.(cmd % "clone" % remote % dest));
       },
     );
 
