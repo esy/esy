@@ -2,6 +2,8 @@ module Store = EsyLib.Store;
 
 [@deriving (show, to_yojson)]
 type t = {
+  ocamlPkgName: string,
+  ocamlVersion: string,
   projectPath: EsyLib.Path.t,
   globalStorePrefix: EsyLib.Path.t,
   storePath: EsyLib.Path.t,
@@ -28,17 +30,21 @@ let initStore = (path: Fpath.t) => {
   return();
 };
 
-let rec configureStorePath = (cfg, globalStorePrefix) => {
+let rec configureStorePath =
+        (~ocamlPkgName, ~ocamlVersion, cfg, globalStorePrefix) => {
   open Run;
   let%bind path =
     switch (cfg) {
     | StorePath(storePath) => return(storePath)
     | StorePathOfPrefix(prefixPath) =>
-      let%bind padding = Store.getPadding(prefixPath);
+      let%bind padding =
+        Store.getPadding(~ocamlPkgName, ~ocamlVersion, prefixPath);
       let storePath = prefixPath / (Store.version ++ padding);
       return(storePath);
     | StorePathDefault =>
       configureStorePath(
+        ~ocamlPkgName,
+        ~ocamlVersion,
         StorePathOfPrefix(storePrefixDefault),
         globalStorePrefix,
       )
@@ -50,6 +56,8 @@ let rec configureStorePath = (cfg, globalStorePrefix) => {
 
 let make =
     (
+      ~ocamlPkgName,
+      ~ocamlVersion,
       ~globalStorePrefix,
       ~disableSandbox,
       ~storePath,
@@ -59,7 +67,13 @@ let make =
       (),
     ) => {
   open Run;
-  let%bind storePath = configureStorePath(storePath, globalStorePrefix);
+  let%bind storePath =
+    configureStorePath(
+      ~ocamlPkgName,
+      ~ocamlVersion,
+      storePath,
+      globalStorePrefix,
+    );
   let storeSymlinkPath = EsyLib.Path.(parent(storePath) / Store.version);
   switch (Bos.OS.Path.symlink_stat(storeSymlinkPath)) {
   | Ok({Unix.st_kind: Unix.S_LNK, _}) =>
@@ -68,6 +82,8 @@ let make =
   };
   let%bind () = initStore(localStorePath);
   return({
+    ocamlPkgName,
+    ocamlVersion,
     projectPath,
     globalStorePrefix,
     storePath,

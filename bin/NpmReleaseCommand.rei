@@ -1,1 +1,1 @@
-let run: Project.t => RunAsync.t(unit);
+let run: (bool /* static or not */, Project.t) => RunAsync.t(unit);

@@ -10,14 +10,21 @@ steps:
   - template: utils/use-esy.yml
   - template: utils/use-cache-esy-sources.yml
   - template: utils/use-cache-esy-install-tree.yml
+    parameters:
+      platform: ${{ parameters.platform }}
+      vmImage: ${{ parameters.vmImage }}
   - script: 'npm install'
     displayName: 'npm install'
+  - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
+    - script: npm i -g esy@0.6.4
+      displayName: 'Install esy@0.6.4 for Ubuntu 16.04 (bootstrapping)'
   - ${{ if eq(parameters.platform,  'macOS_10_12') }}:
     - script: node scripts/create-macos-12-esy-manifest.js
       displayName: 'Build with MACOSX_DEPLOYMENT_TARGET = 10.12'
   - script: "esy install"
     displayName: "esy install"
-  - template: utils/restore-build-cache.yml
+  # This is unnecessary now that store is cached via Cache@2 azure task. Runing this could help with testing the flow e2e
+  # - template: utils/restore-build-cache.yml
   - script: "esy build"
     displayName: "esy build"
   - template: utils/publish-build-cache.yml

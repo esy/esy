@@ -330,12 +330,16 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
       else (
         let program = expandFallback storePrefix program in
         Sys.argv.(0) <- program;
-        let pid = Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr in
-        let (_, status) = Unix.waitpid [] pid in
-        match status with
-        | WEXITED code -> exit code
-        | WSIGNALED code -> exit code
-        | WSTOPPED code -> exit code
+        if windows then (
+          let pid = Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr in
+          let (_, status) = Unix.waitpid [] pid in
+          match status with
+          | WEXITED code -> exit code
+          | WSIGNALED code -> exit code
+          | WSTOPPED code -> exit code
+        )
+        else
+          Unix.execve program Sys.argv expandedEnv
       )
     ;;
   |},
@@ -380,6 +384,9 @@ let cleanupLinksFromGlobalStore = (cfg, tasks) => {
 let make =
     (
       ~ocamlopt,
+      ~createStatic,
+      ~ocamlPkgName,
+      ~ocamlVersion,
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
@@ -547,9 +554,17 @@ let make =
 
         let mlPath = Path.(stagePath / (innerName ++ ".ml"));
         let%bind () = Fs.writeFile(~data, mlPath) /* Compile the wrapper to a binary */;
+        let ocamloptCmd =
+          Cmd.(
+            createStatic
+              ? v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+                % "-ccopt"
+                % "-static"
+              : v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+          );
         let compile =
           Cmd.(
-            v(EsyLib.Path.normalizePathSepOfFilename(p(ocamlopt)))
+            ocamloptCmd
             % "-o"
             % EsyLib.Path.normalizePathSepOfFilename(
                 p(Path.(binPath / publicName)),
@@ -627,8 +642,18 @@ let make =
     let%bind () = {
       let postinstall =
         switch (releaseCfg.rewritePrefix) {
-        | NoRewrite => "node ./esyInstallRelease.js"
-        | Rewrite => "node -e \"process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\""
+        | NoRewrite =>
+          Printf.sprintf(
+            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; require('./esyInstallRelease.js')\"",
+            ocamlPkgName,
+            ocamlVersion,
+          )
+        | Rewrite =>
+          Printf.sprintf(
+            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\"",
+            ocamlPkgName,
+            ocamlVersion,
+          )
         };
 
       let pkgJson = {
@@ -726,12 +751,14 @@ let make =
   return();
 };
 
-let run = (proj: Project.t) => {
+let run = (createStatic: bool, proj: Project.t) => {
   open RunAsync.Syntax;
 
   let%bind solved = Project.solved(proj);
   let%bind fetched = Project.fetched(proj);
   let%bind configured = Project.configured(proj);
+  let ocamlPkgName = proj.projcfg.ocamlPkgName;
+  let ocamlVersion = proj.projcfg.ocamlVersion;
 
   let%bind outputPath = {
     let outputDir = "_release";
@@ -755,6 +782,9 @@ let run = (proj: Project.t) => {
 
   make(
     ~ocamlopt,
+    ~createStatic,
+    ~ocamlPkgName,
+    ~ocamlVersion,
     ~outputPath,
     ~concurrency=
       EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),

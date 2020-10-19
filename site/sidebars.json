@@ -13,7 +13,8 @@
       "commands",
       "low-level-commands",
       "esy-configuration",
-      "node-compatibility"
+      "node-compatibility",
+      "faqs"
     ],
     "Community": [
       "community"

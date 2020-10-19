@@ -1687,14 +1687,24 @@ let commandsConfig = {
         Term.(const(solveAndFetch)),
       );
 
+    let staticArg =
+      Cmdliner.Arg.(
+        value
+        & flag
+        & info(
+            ["static"],
+            ~doc=
+              "Ensures that wrappers binaries are statically linked. Useful on Alpine.",
+          )
+      );
+
     let npmReleaseCommand =
       makeProjectCommand(
         ~name="npm-release",
         ~doc="Produce npm package with prebuilt artifacts",
         ~docs=otherSection,
-        Term.(const(NpmReleaseCommand.run)),
+        Term.(const(NpmReleaseCommand.run) $ staticArg),
       );
-
     [
       /* COMMON COMMANDS */
       installCommand,

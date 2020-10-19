@@ -168,6 +168,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
 
     RunAsync.ofBosError(
       EsyBuildPackage.Config.make(
+        ~ocamlPkgName=projcfg.ocamlPkgName,
+        ~ocamlVersion=projcfg.ocamlVersion,
         ~disableSandbox=false,
         ~globalStorePrefix,
         ~storePath,
