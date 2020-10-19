@@ -38,7 +38,7 @@ var STORE_INSTALL_TREE = 'i';
 var STORE_STAGE_TREE = 's';
 var ESY_STORE_VERSION = 3;
 var MAX_SHEBANG_LENGTH = 127;
-var OCAMLRUN_STORE_PATH = 'ocaml-n.00.0000-########/bin/ocamlrun';
+var OCAMLRUN_STORE_PATH = 'ocaml-' + (process.env.OCAML_VERSION || 'n.00.0000') + '-########/bin/ocamlrun';
 var ESY_STORE_PADDING_LENGTH = MAX_SHEBANG_LENGTH - '!#'.length - ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 var shouldRewritePrefix = process.env.ESY_RELEASE_REWRITE_PREFIX === 'true';
 /**

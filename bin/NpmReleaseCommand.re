@@ -385,6 +385,8 @@ let make =
     (
       ~ocamlopt,
       ~createStatic,
+      ~ocamlPkgName,
+      ~ocamlVersion,
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
@@ -640,8 +642,18 @@ let make =
     let%bind () = {
       let postinstall =
         switch (releaseCfg.rewritePrefix) {
-        | NoRewrite => "node ./esyInstallRelease.js"
-        | Rewrite => "node -e \"process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\""
+        | NoRewrite =>
+          Printf.sprintf(
+            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; require('./esyInstallRelease.js')\"",
+            ocamlPkgName,
+            ocamlVersion,
+          )
+        | Rewrite =>
+          Printf.sprintf(
+            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\"",
+            ocamlPkgName,
+            ocamlVersion,
+          )
         };
 
       let pkgJson = {
@@ -745,6 +757,8 @@ let run = (createStatic: bool, proj: Project.t) => {
   let%bind solved = Project.solved(proj);
   let%bind fetched = Project.fetched(proj);
   let%bind configured = Project.configured(proj);
+  let ocamlPkgName = proj.projcfg.ocamlPkgName;
+  let ocamlVersion = proj.projcfg.ocamlVersion;
 
   let%bind outputPath = {
     let outputDir = "_release";
@@ -769,6 +783,8 @@ let run = (createStatic: bool, proj: Project.t) => {
   make(
     ~ocamlopt,
     ~createStatic,
+    ~ocamlPkgName,
+    ~ocamlVersion,
     ~outputPath,
     ~concurrency=
       EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
