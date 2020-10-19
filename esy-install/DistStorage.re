@@ -70,20 +70,6 @@ let ofDir = path => SourcePath(path);
 let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
-  let config =
-    switch (gitUsername, gitPassword) {
-    | (Some(gitUsername), Some(gitPassword)) => [
-        (
-          "credential.helper",
-          Printf.sprintf(
-            "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
-            gitUsername,
-            gitPassword,
-          ),
-        ),
-      ]
-    | _ => []
-    };
   switch (dist) {
   | Dist.LocalPath({path: srcPath, manifest: _}) =>
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
