@@ -33,12 +33,24 @@ var gunzipMaybe = require('gunzip-maybe');
  */
 
 
+var OCAML_PKG_NAME = process.env.OCAML_PKG_NAME;
+
+if (!OCAML_PKG_NAME) {
+  throw 'OCAML_PKG_NAME wasn\'t set in the environment';
+}
+
+var OCAML_VERSION = process.env.OCAML_VERSION;
+
+if (!OCAML_VERSION) {
+  throw 'OCAML_VERSION wasn\'t set in the environment';
+}
+
 var STORE_BUILD_TREE = 'b';
 var STORE_INSTALL_TREE = 'i';
 var STORE_STAGE_TREE = 's';
 var ESY_STORE_VERSION = 3;
 var MAX_SHEBANG_LENGTH = 127;
-var OCAMLRUN_STORE_PATH = 'ocaml-' + (process.env.OCAML_VERSION || 'n.00.0000') + '-########/bin/ocamlrun';
+var OCAMLRUN_STORE_PATH = OCAML_PKG_NAME + '-' + OCAML_VERSION + '-########/bin/ocamlrun';
 var ESY_STORE_PADDING_LENGTH = MAX_SHEBANG_LENGTH - '!#'.length - ('/' + STORE_INSTALL_TREE + '/' + OCAMLRUN_STORE_PATH).length;
 var shouldRewritePrefix = process.env.ESY_RELEASE_REWRITE_PREFIX === 'true';
 /**
