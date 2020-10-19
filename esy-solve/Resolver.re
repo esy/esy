@@ -248,7 +248,15 @@ let versionMatchesDep =
   dep.name == name && (checkResolutions() || checkVersion());
 };
 
-let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
+let packageOfSource =
+    (
+      ~gitUsername,
+      ~gitPassword,
+      ~name,
+      ~overrides,
+      source: Source.t,
+      resolver,
+    ) => {
   open RunAsync.Syntax;
 
   let readManifest =
@@ -308,6 +316,8 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
       _,
     } =
       EsyInstall.DistResolver.resolve(
+        ~gitUsername,
+        ~gitPassword,
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
@@ -477,7 +487,8 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
-let package = (~resolution: Resolution.t, resolver) => {
+let package =
+    (~gitUsername, ~gitPassword, ~resolution: Resolution.t, resolver) => {
   open RunAsync.Syntax;
   let key = (resolution.name, resolution.resolution);
 
@@ -511,6 +522,8 @@ let package = (~resolution: Resolution.t, resolver) => {
 
     | Version.Source(source) =>
       packageOfSource(
+        ~gitUsername,
+        ~gitPassword,
         ~overrides=Overrides.empty,
         ~name=resolution.name,
         source,
@@ -529,6 +542,8 @@ let package = (~resolution: Resolution.t, resolver) => {
           let override = Override.ofJson(override);
           let overrides = Overrides.(add(override, empty));
           packageOfSource(
+            ~gitUsername,
+            ~gitPassword,
             ~name=resolution.name,
             ~overrides,
             source,
@@ -552,9 +567,30 @@ let package = (~resolution: Resolution.t, resolver) => {
   );
 };
 
-let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
+let resolveSource =
+    (
+      ~gitUsername,
+      ~gitPassword,
+      ~name,
+      ~sourceSpec: SourceSpec.t,
+      resolver: t,
+    ) => {
   open RunAsync.Syntax;
 
+  let gitConfig =
+    switch (gitUsername, gitPassword) {
+    | (Some(gitUsername), Some(gitPassword)) => [
+        (
+          "credential.helper",
+          Printf.sprintf(
+            "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+            gitUsername,
+            gitPassword,
+          ),
+        ),
+      ]
+    | _ => []
+    };
   let errorResolvingSource = msg =>
     errorf(
       "unable to resolve %s@%a: %s",
@@ -577,7 +613,8 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
         | SourceSpec.Github({user, repo, ref, manifest}) =>
           let remote =
             Printf.sprintf("https://github.com/%s/%s.git", user, repo);
-          let%bind commit = Git.lsRemote(~ref?, ~remote, ());
+          let%bind commit =
+            Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
             return(Source.Dist(Github({user, repo, commit, manifest})))
@@ -593,7 +630,8 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
           };
 
         | SourceSpec.Git({remote, ref, manifest}) =>
-          let%bind commit = Git.lsRemote(~ref?, ~remote, ());
+          let%bind commit =
+            Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
             return(Source.Dist(Git({remote, commit, manifest})))
@@ -630,7 +668,8 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
   );
 };
 
-let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
+let resolve' =
+    (~gitUsername, ~gitPassword, ~fullMetadata, ~name, ~spec, resolver) =>
   RunAsync.Syntax.(
     switch (spec) {
     | VersionSpec.Npm(_)
@@ -725,7 +764,14 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
       return(resolutions);
 
     | VersionSpec.Source(sourceSpec) =>
-      let%bind source = resolveSource(~name, ~sourceSpec, resolver);
+      let%bind source =
+        resolveSource(
+          ~gitUsername,
+          ~gitPassword,
+          ~name,
+          ~sourceSpec,
+          resolver,
+        );
       let version = Version.Source(source);
       let resolution = {
         Resolution.name,
@@ -737,6 +783,8 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
 
 let resolve =
     (
+      ~gitUsername,
+      ~gitPassword,
       ~fullMetadata=false,
       ~name: string,
       ~spec: option(VersionSpec.t)=?,
@@ -760,7 +808,14 @@ let resolve =
         | Some(spec) => spec
         };
 
-      resolve'(~fullMetadata, ~name, ~spec, resolver);
+      resolve'(
+        ~gitUsername,
+        ~gitPassword,
+        ~fullMetadata,
+        ~name,
+        ~spec,
+        resolver,
+      );
     }
   );
 

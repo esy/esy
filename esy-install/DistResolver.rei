@@ -37,6 +37,8 @@ and manifest = {
 
 let resolve:
   (
+    ~gitUsername: option(string),
+    ~gitPassword: option(string),
     ~overrides: Overrides.t=?,
     ~cfg: Config.t,
     ~sandbox: SandboxSpec.t,

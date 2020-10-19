@@ -7,7 +7,8 @@ let fetchOverrideFiles = (cfg, sandbox, override: EsyPackageConfig.Override.t) =
     switch (override) {
     | OfJson(_) => return([])
     | OfDist(info) =>
-      let%bind path = DistStorage.fetchIntoCache(cfg, sandbox, info.dist);
+      let%bind path =
+        DistStorage.fetchIntoCache(cfg, sandbox, info.dist, None, None);
       File.ofDir(Path.(path / "files"));
     | OfOpamOverride(info) => File.ofDir(Path.(info.path / "files"))
     }
@@ -233,7 +234,9 @@ module FetchPackage: {
     path: Path.t,
   };
 
-  let fetch: (Sandbox.t, Package.t) => RunAsync.t(fetch);
+  let fetch:
+    (Sandbox.t, Package.t, option(string), option(string)) =>
+    RunAsync.t(fetch);
   let install:
     (Path.t => RunAsync.t(unit), Sandbox.t, fetch) =>
     RunAsync.t(installation);
@@ -251,14 +254,20 @@ module FetchPackage: {
   };
 
   /* fetch any of the dists for the package */
-  let fetch' = (sandbox, pkg, dists) => {
+  let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
     open RunAsync.Syntax;
 
     let rec fetchAny = (errs, alternatives) =>
       switch (alternatives) {
       | [dist, ...rest] =>
         let fetched =
-          DistStorage.fetch(sandbox.Sandbox.cfg, sandbox.spec, dist);
+          DistStorage.fetch(
+            sandbox.Sandbox.cfg,
+            sandbox.spec,
+            dist,
+            gitUsername,
+            gitPassword,
+          );
         switch%lwt (fetched) {
         | Ok(fetched) => return(fetched)
         | Error(err) => fetchAny([(dist, err), ...errs], rest)
@@ -290,7 +299,7 @@ module FetchPackage: {
     fetchAny([], dists);
   };
 
-  let fetch = (sandbox, pkg) =>
+  let fetch = (sandbox, pkg, gitUsername, gitPassword) =>
     /*** TODO: need to sync here so no two same tasks are running at the same time */
     RunAsync.Syntax.(
       RunAsync.contextf(
@@ -316,7 +325,7 @@ module FetchPackage: {
                     m("fetching %a: making cached tarball", Package.pp, pkg)
                   );
                 let dists = [main, ...mirrors];
-                let%bind dist = fetch'(sandbox, pkg, dists);
+                let%bind dist = fetch'(sandbox, pkg, dists, None, None);
                 let%bind dist = DistStorage.cache(dist, cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               }
@@ -338,7 +347,8 @@ module FetchPackage: {
                   m("fetching %a: fetching", Package.pp, pkg)
                 );
               let dists = [main, ...mirrors];
-              let%bind dist = fetch'(sandbox, pkg, dists);
+              let%bind dist =
+                fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
               return((pkg, Fetched(dist)));
             };
           };
@@ -819,7 +829,7 @@ let maybeInstallationOfSolution =
   };
 };
 
-let fetchPackages = (installspec, sandbox, solution) => {
+let fetchPackages = (installspec, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
   /* Collect packages which from the solution */
@@ -829,7 +839,8 @@ let fetchPackages = (installspec, sandbox, solution) => {
   let%bind items = {
     let f = pkg => {
       let%lwt () = report("%a", Package.pp, pkg);
-      let%bind fetch = FetchPackage.fetch(sandbox, pkg);
+      let%bind fetch =
+        FetchPackage.fetch(sandbox, pkg, gitUsername, gitPassword);
       return((pkg, fetch));
     };
 
@@ -851,14 +862,15 @@ let fetchPackages = (installspec, sandbox, solution) => {
   return(fetched);
 };
 
-let fetch = (installspec, sandbox, solution) => {
+let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
   /* Collect packages which from the solution */
   let (pkgs, root) = collectPackagesOfSolution(installspec, solution);
 
   /* Fetch all packages. */
-  let%bind fetched = fetchPackages(installspec, sandbox, solution);
+  let%bind fetched =
+    fetchPackages(installspec, sandbox, solution, gitUsername, gitPassword);
 
   /* Produce _esy/<sandbox>/installation.json */
   let%bind installation = {

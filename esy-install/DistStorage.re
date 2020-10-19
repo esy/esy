@@ -67,7 +67,7 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' = (sandbox, dist) => {
+let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
@@ -105,10 +105,25 @@ let fetch' = (sandbox, dist) => {
             github.user,
             github.repo,
           );
+        let config =
+          switch (gitUsername, gitPassword) {
+          | (Some(gitUsername), Some(gitPassword)) => [
+              (
+                "credential.helper",
+                Printf.sprintf(
+                  "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+                  gitUsername,
+                  gitPassword,
+                ),
+              ),
+            ]
+          | _ => []
+          };
         /* Optimisation: if we find that the commit hash is long, we can shallow clone. */
         let%bind () =
           if (String.length(github.commit) == 40) {
-            let%bind () = Git.clone(~dst=stagePath, ~remote, ~depth=1, ());
+            let%bind () =
+              Git.clone(~dst=stagePath, ~config, ~remote, ~depth=1, ());
             Git.fetch(
               ~ref=github.commit,
               ~depth=1,
@@ -117,10 +132,10 @@ let fetch' = (sandbox, dist) => {
               (),
             );
           } else {
-            Git.clone(~dst=stagePath, ~remote, ());
+            Git.clone(~config, ~dst=stagePath, ~remote, ());
           };
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~repo=stagePath, ());
+        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },
@@ -132,10 +147,25 @@ let fetch' = (sandbox, dist) => {
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
+        let config =
+          switch (gitUsername, gitPassword) {
+          | (Some(gitUsername), Some(gitPassword)) => [
+              (
+                "credential.helper",
+                Printf.sprintf(
+                  "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+                  gitUsername,
+                  gitPassword,
+                ),
+              ),
+            ]
+          | _ => []
+          };
         let%bind () = Fs.createDir(stagePath);
-        let%bind () = Git.clone(~dst=stagePath, ~remote=git.remote, ());
+        let%bind () =
+          Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~repo=stagePath, ());
+        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(Path(path));
       },
@@ -143,9 +173,9 @@ let fetch' = (sandbox, dist) => {
   };
 };
 
-let fetch = (_cfg, sandbox, dist) =>
+let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist),
+    fetch'(sandbox, dist, gitUsername, gitPassword),
     "fetching dist: %a",
     Dist.pp,
     dist,
@@ -173,13 +203,13 @@ let unpack = (fetched, path) =>
     }
   );
 
-let fetchIntoCache = (cfg, sandbox, dist: Dist.t) => {
+let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let path = CachePaths.cachedDist(cfg, dist);
   if%bind (Fs.exists(path)) {
     return(path);
   } else {
-    let%bind fetched = fetch(cfg, sandbox, dist);
+    let%bind fetched = fetch(cfg, sandbox, dist, gitUsername, gitPassword);
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,

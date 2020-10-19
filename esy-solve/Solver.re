@@ -171,7 +171,8 @@ module Explanation = {
     Fmt.pf(fmt, "@[<v>No solution found:@;@;%a@]", ppReasons, reasons);
   };
 
-  let collectReasons = (cudfMapping, solver, reasons) => {
+  let collectReasons =
+      (~gitUsername, ~gitPassword, cudfMapping, solver, reasons) => {
     open RunAsync.Syntax;
 
     /* Find a pair of requestor, path for the current package.
@@ -283,7 +284,14 @@ module Explanation = {
                   Universe.CudfName.make(name),
                 );
               let%lwt available =
-                switch%lwt (Resolver.resolve(~name, solver.sandbox.resolver)) {
+                switch%lwt (
+                  Resolver.resolve(
+                    ~gitUsername,
+                    ~gitPassword,
+                    ~name,
+                    solver.sandbox.resolver,
+                  )
+                ) {
                 | Ok(available) => Lwt.return(available)
                 | Error(_) => Lwt.return([])
                 };
@@ -311,7 +319,7 @@ module Explanation = {
     return(Reason.Set.elements(reasons));
   };
 
-  let explain = (cudfMapping, solver, cudf) =>
+  let explain = (~gitUsername, ~gitPassword, cudfMapping, solver, cudf) =>
     RunAsync.Syntax.(
       switch (Algo.Depsolver.check_request(~explain=true, cudf)) {
       | Algo.Depsolver.Sat(_)
@@ -322,7 +330,14 @@ module Explanation = {
           Some({result: Algo.Diagnostic.Failure(reasons), _}),
         ) =>
         let reasons = reasons();
-        let%bind reasons = collectReasons(cudfMapping, solver, reasons);
+        let%bind reasons =
+          collectReasons(
+            ~gitUsername,
+            ~gitPassword,
+            cudfMapping,
+            solver,
+            reasons,
+          );
         return(Some(reasons));
       | Algo.Depsolver.Error(err) => error(err)
       }
@@ -463,7 +478,7 @@ let make = (solvespec, sandbox: Sandbox.t) => {
   return({solvespec, universe: universe^, sandbox});
 };
 
-let add = (~dependencies: Dependencies.t, solver) => {
+let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) => {
   open RunAsync.Syntax;
 
   let universe = ref(solver.universe);
@@ -508,6 +523,8 @@ let add = (~dependencies: Dependencies.t, solver) => {
     let%bind resolutions =
       RunAsync.contextf(
         Resolver.resolve(
+          ~gitUsername,
+          ~gitPassword,
           ~fullMetadata=true,
           ~name=req.name,
           ~spec=req.spec,
@@ -522,7 +539,12 @@ let add = (~dependencies: Dependencies.t, solver) => {
       let fetchPackage = resolution => {
         let%bind pkg =
           RunAsync.contextf(
-            Resolver.package(~resolution, solver.sandbox.resolver),
+            Resolver.package(
+              ~gitUsername,
+              ~gitPassword,
+              ~resolution,
+              solver.sandbox.resolver,
+            ),
             "resolving metadata %a",
             Resolution.pp,
             resolution,
@@ -579,6 +601,8 @@ let parseCudfSolution = (~cudfUniverse, data) => {
 
 let solveDependencies =
     (
+      ~gitUsername,
+      ~gitPassword,
       ~root,
       ~installed,
       ~strategy,
@@ -720,7 +744,15 @@ let solveDependencies =
 
   | None =>
     let cudf = (preamble, cudfUniverse, request);
-    switch%bind (Explanation.explain(cudfMapping, solver, cudf)) {
+    switch%bind (
+      Explanation.explain(
+        ~gitUsername,
+        ~gitPassword,
+        cudfMapping,
+        solver,
+        cudf,
+      )
+    ) {
     | Some(reasons) => return(Error(reasons))
     | None => return(Error(Explanation.empty))
     };
@@ -729,6 +761,8 @@ let solveDependencies =
 
 let solveDependenciesNaively =
     (
+      ~gitUsername,
+      ~gitPassword,
       ~installed: InstallManifest.Set.t,
       ~root: InstallManifest.t,
       dependencies: Dependencies.t,
@@ -774,6 +808,8 @@ let solveDependenciesNaively =
     let%lwt () = report("%a", Req.pp, req);
     let%bind resolutions =
       Resolver.resolve(
+        ~gitUsername,
+        ~gitPassword,
         ~name=req.name,
         ~spec=req.spec,
         solver.sandbox.resolver,
@@ -782,7 +818,14 @@ let solveDependenciesNaively =
       findResolutionForRequest(solver.sandbox.resolver, req, resolutions)
     ) {
     | Some(resolution) =>
-      switch%bind (Resolver.package(~resolution, solver.sandbox.resolver)) {
+      switch%bind (
+        Resolver.package(
+          ~gitUsername,
+          ~gitPassword,
+          ~resolution,
+          solver.sandbox.resolver,
+        )
+      ) {
       | Ok(pkg) => return(Some(pkg))
       | Error(reason) =>
         errorf("invalid package %a: %s", Resolution.pp, resolution, reason)
@@ -911,12 +954,13 @@ let solveDependenciesNaively =
   return(sealDependencies());
 };
 
-let solveOCamlReq = (req: Req.t, resolver) => {
+let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
     let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let%bind pkg = Resolver.package(~resolution, resolver);
+    let%bind pkg =
+      Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
     let%bind pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
@@ -925,7 +969,13 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Npm(_)
   | VersionSpec.NpmDistTag(_) =>
     let%bind resolutions =
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver);
+      Resolver.resolve(
+        ~gitUsername,
+        ~gitPassword,
+        ~name=req.name,
+        ~spec=req.spec,
+        resolver,
+      );
     switch (findResolutionForRequest(resolver, req, resolutions)) {
     | Some(resolution) => make(resolution)
     | None =>
@@ -936,7 +986,15 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Opam(_) =>
     error("ocaml version should be either an npm version or source")
   | VersionSpec.Source(_) =>
-    switch%bind (Resolver.resolve(~name=req.name, ~spec=req.spec, resolver)) {
+    switch%bind (
+      Resolver.resolve(
+        ~gitUsername,
+        ~gitPassword,
+        ~name=req.name,
+        ~spec=req.spec,
+        resolver,
+      )
+    ) {
     | [resolution] => make(resolution)
     | _ => errorf("multiple resolutions for %a, expected one", Req.pp, req)
     }
@@ -944,7 +1002,14 @@ let solveOCamlReq = (req: Req.t, resolver) => {
 };
 
 let solve =
-    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, sandbox: Sandbox.t) => {
+    (
+      ~gitUsername,
+      ~gitPassword,
+      ~dumpCudfInput=None,
+      ~dumpCudfOutput=None,
+      solvespec,
+      sandbox: Sandbox.t,
+    ) => {
   open RunAsync.Syntax;
 
   let getResultOrExplain =
@@ -970,7 +1035,12 @@ let solve =
     | Some(ocamlReq) =>
       let%bind (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf(
-          solveOCamlReq(ocamlReq, sandbox.resolver),
+          solveOCamlReq(
+            ~gitUsername,
+            ~gitPassword,
+            ocamlReq,
+            sandbox.resolver,
+          ),
           "resolving %a",
           Req.pp,
           ocamlReq,
@@ -1018,7 +1088,8 @@ let solve =
     };
 
   let%bind (solver, dependencies) = {
-    let%bind (solver, dependencies) = add(~dependencies, solver);
+    let%bind (solver, dependencies) =
+      add(~gitUsername, ~gitPassword, ~dependencies, solver);
     return((solver, dependencies));
   };
 
@@ -1026,6 +1097,8 @@ let solve =
   let%bind installed = {
     let%bind res =
       solveDependencies(
+        ~gitUsername,
+        ~gitPassword,
         ~root=sandbox.root,
         ~installed=InstallManifest.Set.empty,
         ~strategy=Strategy.trendy,
@@ -1041,6 +1114,8 @@ let solve =
   /* Solve npm dependencies now. */
   let%bind dependenciesMap =
     solveDependenciesNaively(
+      ~gitUsername,
+      ~gitPassword,
       ~installed,
       ~root=sandbox.root,
       dependencies,

@@ -29,24 +29,35 @@ let runGit = cmd => {
   };
 };
 
-let updateSubmodules = (~repo, ()) => {
+let updateSubmodules = (~repo, ~config as configKVs=?, ()) => {
   open RunAsync.Syntax;
   let repo = EsyBash.normalizePathForCygwin(Path.show(repo));
+  let cmd = Cmd.v("git");
+  let cmd =
+    switch (configKVs) {
+    | Some([])
+    | None => cmd
+    | Some(cs) =>
+      List.fold_left(
+        ~f=
+          (accCmd, cfg) => {
+            let (k, v) = cfg;
+            let configKVs = Printf.sprintf("%s=%s", k, v);
+            Cmd.(accCmd % "-c" % configKVs);
+          },
+        ~init=cmd,
+        cs,
+      )
+    };
   let cmd =
     Cmd.(
-      v("git")
-      % "-C"
-      % repo
-      % "submodule"
-      % "update"
-      % "--init"
-      % "--recursive"
+      cmd % "-C" % repo % "submodule" % "update" % "--init" % "--recursive"
     );
   let%bind _ = runGit(cmd);
   return();
 };
 
-let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
+let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => {
   open RunAsync.Syntax;
   let%bind cmd =
     RunAsync.ofBosError(
@@ -54,7 +65,25 @@ let clone = (~branch=?, ~depth=?, ~dst, ~remote, ()) => {
         open Cmd;
         open Result.Syntax;
         let dest = EsyBash.normalizePathForCygwin(Path.show(dst));
-        let cmd = v("git") % "clone";
+        let cmd = v("git");
+        let cmd =
+          switch (configKVs) {
+          | Some([])
+          | None => cmd
+          | Some(cs) =>
+            List.fold_left(
+              ~f=
+                (accCmd, cfg) => {
+                  let (k, value) = cfg;
+                  accCmd % "-c" % Printf.sprintf("%s=%s", k, value);
+                },
+              ~init=cmd,
+              cs,
+            )
+          };
+
+        let cmd = cmd % "clone";
+
         let cmd =
           switch (branch) {
           | Some(branch) => cmd % "--branch" % branch
@@ -121,9 +150,28 @@ let checkout = (~ref, ~repo, ()) => {
   return();
 };
 
-let lsRemote = (~ref=?, ~remote, ()) => {
+let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
   open RunAsync.Syntax;
-  let cmd = Cmd.(v("git") % "ls-remote" % remote);
+  let cmd = Cmd.(v("git"));
+  let cmd =
+    switch (configKVs) {
+    | Some([])
+    | None => cmd
+    | Some(cs) =>
+      List.fold_left(
+        ~f=
+          (accCmd, cfg) => {
+            let (k, v) = cfg;
+            let configOption = Printf.sprintf("%s=%s", k, v);
+            Cmd.(accCmd % "-c" % configOption);
+          },
+        ~init=cmd,
+        cs,
+      )
+    };
+
+  let cmd = Cmd.(cmd % "ls-remote" % remote);
+
   let cmd =
     switch (ref) {
     | Some(ref) => Cmd.(cmd % ref)
@@ -154,16 +202,31 @@ let isCommitLike = v => {
 };
 
 module ShallowClone = {
-  let update = (~branch, ~dst, source) => {
+  let update = (~gitUsername=?, ~gitPassword=?, ~branch, ~dst, source) => {
+    let gitConfig =
+      switch (gitUsername, gitPassword) {
+      | (Some(gitUsername), Some(gitPassword)) => [
+          (
+            "credential.helper",
+            Printf.sprintf(
+              "!f() { sleep 1; echo username=%s; echo password=%s; }; f",
+              gitUsername,
+              gitPassword,
+            ),
+          ),
+        ]
+      | _ => []
+      };
     let getLocalCommit = () => {
       let remote = EsyBash.normalizePathForCygwin(Path.show(dst));
-      lsRemote(~remote, ());
+      lsRemote(~remote, ~config=gitConfig, ());
     };
 
     let rec aux = (~retry=true, ()) => {
       open RunAsync.Syntax;
       if%bind (Fs.exists(dst)) {
-        let%bind remoteCommit = lsRemote(~ref=branch, ~remote=source, ());
+        let%bind remoteCommit =
+          lsRemote(~config=gitConfig, ~ref=branch, ~remote=source, ());
         let%bind localCommit = getLocalCommit();
 
         if (remoteCommit == localCommit) {

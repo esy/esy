@@ -84,7 +84,7 @@ module PackageOverride = {
     );
 };
 
-let writeOverride = (sandbox, pkg, override) =>
+let writeOverride = (sandbox, pkg, gitUsername, gitPassword, override) =>
   RunAsync.Syntax.(
     switch (override) {
     | Override.OfJson({json}) => return(OfJson({json: json}))
@@ -113,7 +113,13 @@ let writeOverride = (sandbox, pkg, override) =>
       return(OfPath(local))
     | Override.OfDist({dist, json: _}) =>
       let%bind distPath =
-        DistStorage.fetchIntoCache(sandbox.cfg, sandbox.spec, dist);
+        DistStorage.fetchIntoCache(
+          sandbox.cfg,
+          sandbox.spec,
+          dist,
+          gitUsername,
+          gitPassword,
+        );
       let digest = Digestv.ofString(Dist.show(dist));
       let lockPath =
         Path.(
@@ -160,8 +166,11 @@ let readOverride = (sandbox, override) =>
     }
   );
 
-let writeOverrides = (sandbox, pkg, overrides) =>
-  RunAsync.List.mapAndJoin(~f=writeOverride(sandbox, pkg), overrides);
+let writeOverrides = (sandbox, pkg, overrides, gitUsername, gitPassword) =>
+  RunAsync.List.mapAndJoin(
+    ~f=writeOverride(sandbox, pkg, gitUsername, gitPassword),
+    overrides,
+  );
 
 let readOverrides = (sandbox, overrides) =>
   RunAsync.List.mapAndJoin(~f=readOverride(sandbox), overrides);
@@ -196,7 +205,7 @@ let readOpam = (sandbox, opam: PackageSource.opam) => {
   return({...opam, path: opampath});
 };
 
-let writePackage = (sandbox, pkg: Package.t) => {
+let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let%bind source =
     switch (pkg.source) {
@@ -209,7 +218,8 @@ let writePackage = (sandbox, pkg: Package.t) => {
       return(PackageSource.Install({source, opam: Some(opam)}));
     };
 
-  let%bind overrides = writeOverrides(sandbox, pkg, pkg.overrides);
+  let%bind overrides =
+    writeOverrides(sandbox, pkg, pkg.overrides, gitUsername, gitPassword);
   return({
     id: pkg.id,
     name: pkg.name,
@@ -259,12 +269,12 @@ let solutionOfLock = (sandbox, root, node) => {
   PackageId.Map.fold(f, node, return(Solution.empty(root)));
 };
 
-let lockOfSolution = (sandbox, solution: Solution.t) => {
+let lockOfSolution = (sandbox, solution: Solution.t, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let%bind node = {
     let f = (pkg, _dependencies, nodes) => {
       let%bind nodes = nodes;
-      let%bind node = writePackage(sandbox, pkg);
+      let%bind node = writePackage(sandbox, pkg, gitUsername, gitPassword);
       return(PackageId.Map.add(pkg.Package.id, node, nodes));
     };
 
@@ -327,12 +337,21 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
     )
   );
 
-let toPath = (~digest, sandbox, solution: Solution.t, path: Path.t) => {
+let toPath =
+    (
+      ~digest,
+      sandbox,
+      solution: Solution.t,
+      path: Path.t,
+      gitUsername,
+      gitPassword,
+    ) => {
   open RunAsync.Syntax;
   let%lwt () =
     Logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
   let%bind () = Fs.rmPath(path);
-  let%bind (root, node) = lockOfSolution(sandbox, solution);
+  let%bind (root, node) =
+    lockOfSolution(sandbox, solution, gitUsername, gitPassword);
   let lock = {digest: Digestv.toHex(digest), node, root: root.Package.id};
   let%bind () = Fs.createDir(path);
   let%bind () =

@@ -999,6 +999,8 @@ let getSandboxSolution =
   open RunAsync.Syntax;
   let%bind solution =
     Solver.solve(
+      ~gitUsername=proj.projcfg.gitUsername,
+      ~gitPassword=proj.projcfg.gitPassword,
       ~dumpCudfInput,
       ~dumpCudfOutput,
       solvespec,
@@ -1013,6 +1015,8 @@ let getSandboxSolution =
       proj.installSandbox,
       solution,
       lockPath,
+      proj.projcfg.gitUsername,
+      proj.projcfg.gitPassword,
     );
   };
 
@@ -1072,6 +1076,8 @@ let fetch = (proj: Project.t) => {
       proj.workflow.installspec,
       proj.installSandbox,
       solution,
+      proj.projcfg.gitUsername,
+      proj.projcfg.gitPassword,
     )
   | None => error("no lock found, run 'esy solve' first")
   };
@@ -1227,7 +1233,12 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let%bind () = {
     let%bind solveSandbox =
-      EsySolve.Sandbox.make(~cfg=solveSandbox.cfg, solveSandbox.spec);
+      EsySolve.Sandbox.make(
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~cfg=solveSandbox.cfg,
+        solveSandbox.spec,
+      );
 
     let proj = {...proj, solveSandbox};
     let%bind digest =
@@ -1392,7 +1403,13 @@ let show = (_asJson, req, proj: Project.t) => {
     Resolver.make(~cfg=proj.solveSandbox.cfg, ~sandbox=proj.spec, ());
   let%bind resolutions =
     RunAsync.contextf(
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver),
+      Resolver.resolve(
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~name=req.name,
+        ~spec=req.spec,
+        resolver,
+      ),
       "resolving %a",
       Req.pp,
       req,
@@ -1420,7 +1437,12 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let%bind pkg =
         RunAsync.contextf(
-          Resolver.package(~resolution, resolver),
+          Resolver.package(
+            ~gitUsername=proj.projcfg.gitUsername,
+            ~gitPassword=proj.projcfg.gitPassword,
+            ~resolution,
+            resolver,
+          ),
           "resolving metadata %a",
           Resolution.pp,
           resolution,

@@ -11,7 +11,14 @@ type remote = string;
 /** Clone repository from [remote] into [dst] local path. */
 
 let clone:
-  (~branch: string=?, ~depth: int=?, ~dst: Fpath.t, ~remote: remote, unit) =>
+  (
+    ~branch: string=?,
+    ~config: list((string /*key*/, string /*value*/))=?,
+    ~depth: int=?,
+    ~dst: Fpath.t,
+    ~remote: remote,
+    unit
+  ) =>
   RunAsync.t(unit);
 
 /** Pull into [repo] from [source] branch [branchSpec] */
@@ -40,12 +47,32 @@ let fetch:
 /** Resolve [ref] of the [remote] */
 
 let lsRemote:
-  (~ref: ref=?, ~remote: remote, unit) => RunAsync.t(option(commit));
+  (
+    ~config: list((string /* key */, string /* value */))=?,
+    ~ref: ref=?,
+    ~remote: remote,
+    unit
+  ) =>
+  RunAsync.t(option(commit));
 
 let isCommitLike: string => bool;
 
-let updateSubmodules: (~repo: Path.t, unit) => RunAsync.t(unit);
+let updateSubmodules:
+  (
+    ~repo: Path.t,
+    ~config: list((string /*key*/, string /*value*/))=?,
+    unit
+  ) =>
+  RunAsync.t(unit);
 
 module ShallowClone: {
-  let update: (~branch: remote, ~dst: Fpath.t, remote) => RunAsync.t(unit);
+  let update:
+    (
+      ~gitUsername: string=?,
+      ~gitPassword: string=?,
+      ~branch: remote,
+      ~dst: Fpath.t,
+      remote
+    ) =>
+    RunAsync.t(unit);
 };
