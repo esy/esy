@@ -325,7 +325,8 @@ module FetchPackage: {
                     m("fetching %a: making cached tarball", Package.pp, pkg)
                   );
                 let dists = [main, ...mirrors];
-                let%bind dist = fetch'(sandbox, pkg, dists, None, None);
+                let%bind dist =
+                  fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
                 let%bind dist = DistStorage.cache(dist, cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               }
