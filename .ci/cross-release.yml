@@ -6,7 +6,7 @@ steps:
 
   - template: release-platform-setup.yml
     parameters:
-      platform: "Linux"
+      platform: "AlpineLinux"
       folder: "platform-linux"
 
   - template: release-platform-setup.yml
