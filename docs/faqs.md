@@ -19,3 +19,12 @@ Any command that does not generate build artifacts (dune subst, launching lightw
 just `esy ...` prefix (We call it the [command environment](https://esy.sh/docs/en/environment.html#command-environment) to distinguish it from [build environment](https://esy.sh/docs/en/environment.html#build-environment))
 
 Esy prefers immutability of sources and built artifacts so that it can provide reproducibility guarantees and other benefits immutability brings.
+
+## How to generate opam file with Dune?
+
+`esy dune build hello-reason.opam`
+
+It seems there is no way to generate opam files only in the build directory.
+https://discord.com/channels/436568060288172042/469167238268715021/718879610804371506
+
+This means dune build hello-reason.opam will not treat the source tree as immutable. 
