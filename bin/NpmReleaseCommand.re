@@ -599,8 +599,8 @@ let make =
 
       let (origPrefix, destPrefix) = {
         let destPrefix =
-          switch (System.Platform.host) {
-          | Windows =>
+          switch (releaseCfg.rewritePrefix, System.Platform.host) {
+          | (Rewrite, Windows) =>
             /* Keep the slashes segments in the path.  It's important for doing
              * replacement of double backslashes in artifacts.  */
             String.split_on_char('\\', cfg.storePath |> Path.show)
@@ -612,7 +612,6 @@ let make =
               '_',
             )
           };
-
         (cfg.storePath, Path.v(destPrefix));
       };
 
