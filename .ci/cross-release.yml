@@ -22,10 +22,6 @@ steps:
   - script: "node .ci/pipelines-release.js"
     displayName: "node .ci/pipelines-release.js"
 
-  - script: "npm pack ."
-    displayName: "npm pack"
-    workingDirectory: "_release"
-
   - task: PublishBuildArtifacts@1
     displayName: "Publish Artifact: Release"
     inputs:
