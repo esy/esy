@@ -374,7 +374,10 @@ function rewritePathInFile(filename, origPath, destPath) {
       var r4 = subst(content, allDouble(origPath), allDouble(destPath));
 
       if (r1 || r2 || r3 || r4) {
-        return fsWriteFile(filename, content);
+        fs.chmodSync(filename, stat.mode | 128);
+        return fsWriteFile(filename, content).then(function () {
+          fs.chmodSync(filename, stat.mode);
+        });
       }
     });
   });
