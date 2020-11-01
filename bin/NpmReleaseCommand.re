@@ -161,6 +161,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
     |> Environment.renderToList
     |> List.filter(~f=((name, _)) =>
          switch (name) {
+         | "SHELL"
          | "cur__original_root"
          | "cur__root" => false
          | _ => true
