@@ -290,7 +290,10 @@ function rewritePathInFile(filename, origPath, destPath) {
       let r3 = subst(content, allButFirstFwd(origPath), allButFirstFwd(destPath));
       let r4 = subst(content, allDouble(origPath), allDouble(destPath));
       if (r1 || r2 || r3 || r4) {
-        return fsWriteFile(filename, content);
+	fs.chmodSync(filename, stat.mode | 0o200);
+        return fsWriteFile(filename, content).then(() => {
+	  fs.chmodSync(filename, stat.mode);
+	});
       }
     });
   });
