@@ -22,13 +22,15 @@ var gunzipMaybe = require('gunzip-maybe');
  */
 
 var OCAML_PKG_NAME = process.env.OCAML_PKG_NAME;
-if (!OCAML_PKG_NAME) {
-  throw 'OCAML_PKG_NAME wasn\'t set in the environment';
+if (!OCAML_PKG_NAME || OCAML_PKG_NAME == '') {
+  console.log("[Warning] OCAML_PKG_NAME wasn't present in the environment. Falling back to 'ocaml'. This can potentially fail");
+  OCAML_PKG_NAME = 'ocaml';
 }
 
 var OCAML_VERSION = process.env.OCAML_VERSION;
 if(!OCAML_VERSION) {
-  throw 'OCAML_VERSION wasn\'t set in the environment';
+  console.log("[Warning] OCAML_VERSION wasn't present in the environment. Falling back to default 'n.00.0000'. This can potentially fail");
+  OCAML_VERSION = 'n.00.0000';
 }
 
 var STORE_BUILD_TREE = 'b';
