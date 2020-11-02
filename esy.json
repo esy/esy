@@ -8,7 +8,7 @@
     "buildDev": "refmterr dune build -p esy",
     "install": "esy-installer esy.install",
     "release": {
-      "rewritePrefix": true,
+      "rewritePrefix": false,
       "bin": ["esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand"]
     },
     "buildsInSource": "_build"
