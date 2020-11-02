@@ -1,0 +1,11 @@
+(executable
+ (name NatEsyInstallRelease)
+ (public_name NatEsyInstallRelease)
+ (flags
+  (:standard
+   (-w -39)
+   "-open"
+   "EsyLib"))
+ (libraries cmdliner EsyLib)
+ (preprocess
+  (pps lwt_ppx ppx_let)))
