@@ -5,7 +5,9 @@ steps:
   displayName: "Install esy (via yarn)"
   condition: ne(variables['AGENT.OS'], 'Windows_NT')
   
-- script: "yarn global add @esy-nightly/esy@0.6.8-bbdfb8 --prefix=C:\\Windows\\system32"
+- script: |
+    yarn config set prefix C:\
+    yarn global add @esy-nightly/esy@0.6.8-bbdfb8
   displayName: "Install esy (via yarn)"
   condition: eq(variables['AGENT.OS'], 'Windows_NT')
 
