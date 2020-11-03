@@ -25,3 +25,6 @@ steps:
 - powershell: Write-Host "##vso[task.setvariable variable=PATH;]${env:PATH};${env:YARN_BIN_DIR}"
   displayName: "Ensure yarn install global tools are available on $PATH"
   condition: eq(variables['AGENT.OS'], 'Windows_NT')
+
+- bash: env
+  displayName: "Print environment"
