@@ -26,5 +26,6 @@ steps:
   displayName: "Ensure yarn install global tools are available on $PATH"
   condition: eq(variables['AGENT.OS'], 'Windows_NT')
 
-- bash: env
-  displayName: "Print environment"
+- powershell: echo $env:PATH
+  condition: eq(variables['AGENT.OS'], 'Windows_NT')
+  displayName: "Print PATH"
