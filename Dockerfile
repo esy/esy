@@ -2,7 +2,7 @@ FROM alpine:latest
 
 COPY . /app/esy
 WORKDIR /app/esy
-RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils && \
+RUN apk add opam pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils && \
  git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
  git -C /app/esy apply static-linking.patch && \
  opam init -y --disable-sandboxing --bare && \
