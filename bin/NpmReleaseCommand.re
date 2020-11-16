@@ -174,6 +174,12 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
          ++ EsyLib.Path.normalizePathSepOfFilename(value)
          ++ "|}"
        )
+    |> List.append([
+         switch (Sys.getenv_opt("SHELL")) {
+         | Some(v) => "{|SHELL|}, {|" ++ v ++ "|}"
+         | None => "{|SHELL|}, {|/bin/sh|}"
+         },
+       ])
     |> String.concat(";");
 
   Printf.sprintf(
