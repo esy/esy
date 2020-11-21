@@ -2,7 +2,7 @@ FROM alpine:latest as builder
 
 WORKDIR /app/esy
 
-RUN apk add opam yarn make m4 git gcc g++ musl-dev perl perl-utils
+RUN apk add pkgconfig opam yarn make m4 git gcc g++ musl-dev perl perl-utils
 
 RUN opam init -y --disable-sandboxing --bare && \
     opam switch create esy-local-switch 4.10.1+musl+static+flambda -y && \
