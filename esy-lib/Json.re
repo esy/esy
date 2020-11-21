@@ -101,7 +101,7 @@ module Decode = {
 
   let list = (~errorMsg="expected an array", value, json: t) =>
     switch (json) {
-    | `List((items: list(t))) =>
+    | `List(items: list(t)) =>
       let f = (acc, v) =>
         switch (acc, value(v)) {
         | (Ok(acc), Ok(v)) => Ok([v, ...acc])
@@ -192,7 +192,7 @@ module Print: {
       | '\n' => Format.pp_print_string(fmt, "\\n")
       | '\r' => Format.pp_print_string(fmt, "\\r")
       | '\t' => Format.pp_print_string(fmt, "\\t")
-      | ('\000'..'\031' | '\127') as c =>
+      | ('\000' .. '\031' | '\127') as c =>
         Format.pp_print_string(fmt, "\\u00");
         Format.pp_print_char(fmt, hex(Char.code(c) lsr 4));
         Format.pp_print_char(fmt, hex(Char.code(c) land 0xf));

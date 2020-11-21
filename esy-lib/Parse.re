@@ -37,7 +37,7 @@ let pair = {
 let hex =
   take_while1(
     fun
-    | '0'..'9' => true
+    | '0' .. '9' => true
     | 'a'
     | 'b'
     | 'c'
