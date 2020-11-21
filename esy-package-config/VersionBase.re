@@ -397,7 +397,7 @@ let%test_module "Formula" =
          Parse.(
            take_while1(
              fun
-             | '0'..'9' => true
+             | '0' .. '9' => true
              | _ => false,
            )
            >>| int_of_string

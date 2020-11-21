@@ -20,7 +20,7 @@ depends: [
   "dune" {>= "1.2.1"}
 ]
 build: [
-  ["./configure" "--disable-checks" "--prefix" prefix]
+  ["env" "CI=" "./configure" "--disable-checks" "--prefix" prefix]
   [make "%{name}%.install"]
 ]
 dev-repo: "git+https://github.com/ocaml/opam.git"

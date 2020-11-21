@@ -11,9 +11,9 @@ authors: [
   "Olivier Rosello"
 ]
 homepage: "http://www.mancoosi.org/software/"
-bug-reports: "https://gforge.inria.fr/tracker/?group_id=4395"
+bug-reports: "https://gitlab.com/irill/dose3/-/issues"
 license: "LGPL-3.0-or-later with OCaml-LGPL-linking-exception"
-dev-repo: "git+https://gforge.inria.fr/git/dose/dose.git"
+dev-repo: "git+https://gitlab.com/irill/dose3.git"
 build: [
   ["./configure"]
   [make "printconf"]

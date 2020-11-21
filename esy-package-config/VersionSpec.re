@@ -44,7 +44,7 @@ module Parse = {
 
     switch%bind (peek_char_fail) {
     | 'v'
-    | '0'..'9' => fail("unable to parse npm tag")
+    | '0' .. '9' => fail("unable to parse npm tag")
     | _ => p
     };
   };

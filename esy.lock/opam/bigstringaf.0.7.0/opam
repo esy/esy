@@ -8,20 +8,20 @@ dev-repo: "git+https://github.com/inhabitedtype/bigstringaf.git"
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "runtest" "-p" name] {with-test}
 ]
 depends: [
-  "dune" {>= "1.0"}
+  "dune" {>= "2.6.0"}
   "alcotest" {with-test}
   "bigarray-compat"
   "ocaml" {>= "4.03.0"}
+  "conf-pkg-config" {build}
 ]
 depopts: [
-  "mirage-xen-posix"
   "ocaml-freestanding"
 ]
 conflicts: [
-  "mirage-xen-posix" {< "3.1.0"}
+  "mirage-xen" {< "6.0.0"}
   "ocaml-freestanding" {< "0.4.1"}
   "js_of_ocaml" {< "3.5.0"}
 ]
@@ -38,6 +38,6 @@ Bigstrings and other string-like types.
 So here they are. Go crazy.
 """
 url {
-  src: "https://github.com/inhabitedtype/bigstringaf/archive/0.6.1.tar.gz"
-  checksum: "md5=dccf639273b1eec0e0f142f21319268d"
+  src: "https://github.com/inhabitedtype/bigstringaf/archive/0.7.0.tar.gz"
+  checksum: "md5=3e47593200b77fa6dd2754d37e9cbe19"
 }
