@@ -51,11 +51,10 @@ let make = (~concurrency=40, ~url=?, ()) => {
     switch (url) {
     | None => "http://registry.npmjs.org"
     | Some(url) =>
-      let reverse = url |> String.to_seq |> List.of_seq |> List.rev;
-      let lastChar = reverse |> List.hd;
+      let lastChar = url.[String.length(url) - 1];
 
       if (lastChar == '/') {
-        reverse |> List.tl |> List.rev |> List.to_seq |> String.of_seq;
+        String.sub(url, 0, String.length(url) - 1);
       } else {
         url;
       };
