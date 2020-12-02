@@ -8,9 +8,8 @@ let stripComponentFrom = (~stripComponents=?, out) => {
       | [item] => find(Path.(path / item), n - 1)
       | [] => error("unpacking: unable to strip path components: empty dir")
       | _ =>
-        error(
-          "unpacking: unable to strip path components: multiple root dirs",
-        )
+        let%lwt () = Logs_lwt.info(m => m("unpacking: unable to strip path components: multiple root dirs"));
+        return(path)
       };
 
   switch (stripComponents) {
