@@ -8,9 +8,19 @@ let stripComponentFrom = (~stripComponents=?, out) => {
       | [item] => find(Path.(path / item), n - 1)
       | [] => error("unpacking: unable to strip path components: empty dir")
       | _ =>
-        let%lwt () = Logs_lwt.info(m => m("unpacking: unable to strip path components: multiple root dirs"));
-        return(path)
+        let%lwt () =
+          Logs_lwt.info(m =>
+            m(
+              "unpacking: unable to strip path components: multiple root dirs",
+            )
+          );
+        return(path);
       };
+  /* Strip components was greater than 0, but the tarball has multiple entires in the root
+     to traverse deep.
+     Package that caused this: https://github.com/project-everest/hacl-star/releases/download/ocaml-v0.3.0/hacl-star.0.3.0.tar.gz
+     PR: https://github.com/esy/esy/pull/1236
+     Bailing out and returning root... */
 
   switch (stripComponents) {
   | None => return(out)
