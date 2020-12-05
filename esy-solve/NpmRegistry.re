@@ -49,8 +49,15 @@ let rec retryInCaseOfError = (~num, ~desc, f) =>
 let make = (~concurrency=40, ~url=?, ()) => {
   let url =
     switch (url) {
-    | None => "http://registry.npmjs.org/"
-    | Some(url) => url
+    | None => "http://registry.npmjs.org"
+    | Some(url) =>
+      let lastChar = String.length(url) - 1;
+
+      if (url.[lastChar] == '/') {
+        String.sub(url, 0, lastChar);
+      } else {
+        url;
+      };
     };
 
   {
