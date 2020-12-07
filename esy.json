@@ -9,22 +9,24 @@
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,
-      "bin": ["esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand"]
+      "bin": [
+        "esy", "esyBuildPackageCommand", "esyRewritePrefixCommand",
+        "esySolveCudfCommand"
+      ]
     },
     "buildsInSource": "_build"
   },
   "//": "Following pesy config can be used to pull cached builds from CI",
-  "pesy": {
-    "github": "esy/esy",
-    "azure-project": "esy-dev/esy"
-  },
+  "pesy": { "github": "esy/esy", "azure-project": "esy-dev/esy" },
   "scripts": {
     "bootstrap": "node scripts/bootstrap.js",
     "install:esy": "esy install",
-    "build": "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
+    "build":
+      "npm run build:esy && npm run build:postinstall-esy-bash && npm run build:postinstall-esy-solve-cudf",
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
-    "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
+    "build:postinstall-esy-solve-cudf":
+      "cd node_modules/esy-solve-cudf && npm install",
     "release:platform-release": "node ./scripts/make-platform-release.js",
     "test:unit": "esy b dune runtest",
     "test:e2e": "npm run jest test-e2e",
@@ -34,15 +36,14 @@
   "resolutions": {
     "@opam/bos": {
       "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
-      "override": {"dependencies": {"@opam/mtime": "*"}}
+      "override": { "dependencies": { "@opam/mtime": "*" } }
     },
-    "@opam/angstrom": "github:esy-ocaml/angstrom#63a05dbb0ab0",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
-    "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
+    "@opam/astring":
+      "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
   },
   "dependencies": {
-    "@opam/mccs": "*",
-    "@opam/angstrom": "*",
+    "@opam/angstrom": "0.15.0",
     "@opam/bos": "0.2.0",
     "@opam/cmdliner": "*",
     "@opam/cudf": "0.9",
@@ -54,6 +55,7 @@
     "@opam/logs": "0.7.0",
     "@opam/lwt": "4.4.0",
     "@opam/lwt_ppx": "1.2.4",
+    "@opam/mccs": "*",
     "@opam/menhir": "20200211",
     "@opam/ocamlformat": "~0.15.0",
     "@opam/opam-core": "2.0.5",
