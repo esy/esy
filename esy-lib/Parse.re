@@ -23,7 +23,7 @@ let failIf = (msg, p) => {
 
 let till = (c, p) => {
   let%bind input = take_while1(c);
-  switch (parse_string(p, input)) {
+  switch (parse_string(~consume=All, p, input)) {
   | Ok(fname) => return(fname)
   | Error(msg) => fail(msg)
   };
@@ -49,7 +49,7 @@ let hex =
   <?> "hex";
 
 let parse = (p, input) =>
-  switch (parse_string(p <* end_of_input, input)) {
+  switch (parse_string(~consume=All, p <* end_of_input, input)) {
   | Ok(v) => Ok(v)
   | Error(msg) =>
     let msg = Printf.sprintf({|parsing "%s": %s|}, input, msg);
