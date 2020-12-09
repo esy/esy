@@ -1,5 +1,4 @@
 pin-depends: [
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
   ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
-  ["angstrom.dev" "git+https://github.com/esy-ocaml/angstrom.git"]
 ]
