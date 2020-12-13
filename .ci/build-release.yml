@@ -81,7 +81,7 @@ jobs:
   - job: Release
     displayName: Release
     dependsOn:
-      - Linux
+      - AlpineLinux
       - macOS
       - Windows
     pool:
