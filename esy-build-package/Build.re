@@ -323,6 +323,70 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         )
       );
       let%bind () = mv(build.stagePath, build.installPath);
+      module ChildProcess = Bos.OS.Cmd;
+      let sign' = path => {
+        let%bind _ =
+          ChildProcess.run(
+            Cmd.(
+              v("codesign")
+              % "--sign"
+              % "-"
+              % "--force"
+              % "--preserve-metadata=entitlements,requirements,flags,runtime"
+              % p(path)
+            ),
+          );
+        let tmpDir = Filename.get_temp_dir_name();
+        let fileBeingCopied = path |> Path.show |> Filename.basename;
+        let workAroundFilePath =
+          Path.(v(tmpDir) / "workaround" / fileBeingCopied);
+        print_endline("Creating " ++ tmpDir ++ "/workaround");
+        let%bind _ = mkdir(Path.(v(tmpDir) / "workaround"));
+        print_endline(
+          "Copying.."
+          ++ Path.show(path)
+          ++ " "
+          ++ Path.show(workAroundFilePath),
+        );
+        let%bind _ = copyFile(path, workAroundFilePath);
+        print_endline("rm " ++ Path.show(path));
+        let%bind _ = rm(path);
+        print_endline(
+          "Copying.."
+          ++ Path.show(workAroundFilePath)
+          ++ " "
+          ++ Path.show(path),
+        );
+        let%bind _ = copyFile(~perm=0o775, workAroundFilePath, path);
+        ChildProcess.run(
+          Cmd.(
+            v("codesign")
+            % "--sign"
+            % "-"
+            % "--force"
+            % "--preserve-metadata=entitlements,requirements,flags,runtime"
+            % p(path)
+          ),
+        );
+      };
+
+      let path = build.installPath;
+      let rec sign =
+        fun
+        | [] => return()
+        | [h, ...rest] => {
+            let%bind () = sign'(h);
+            sign(rest);
+          };
+
+      let%bind () =
+        switch (Bos.OS.Dir.contents(Path.(path / "bin"))) {
+        | Ok(entries) => sign(entries)
+        | Error(`Msg(m)) =>
+          print_endline("ERR: " ++ m);
+          return();
+        };
+
       return();
     };
   ok;
