@@ -94,7 +94,7 @@ module Parse = {
           };
         }
       );
-    let%bind path = take_while1(c => c != '#' && c != ':');
+    let%bind path = take_while1(c => c != '#' && c != ':' && c != '%');
     return(host ++ ":" ++ port ++ path);
   };
 
@@ -112,8 +112,9 @@ module Parse = {
 
   let gitOrGithubManifest =
     switch%bind (peek_char) {
-    | Some(':') =>
-      let%bind () = advance(1);
+    | Some(':')
+    | Some('%') =>
+      let%bind () = ignore(string("%3A")) <|> advance(1);
       let%map manifest =
         manifestFilenameBeforeSharp
         <|> fail("missing or incorrect <manifest>");
@@ -130,7 +131,7 @@ module Parse = {
         <|> fail("missing or incorrect <author>/<repo>");
 
       let%bind repo =
-        take_while1(c => c != '#' && c != ':')
+        take_while1(c => c != '#' && c != ':' && c != '%')
         <|> fail("missing or incorrect <author>/<repo>");
 
       let%bind manifest = gitOrGithubManifest;
@@ -181,7 +182,7 @@ module Parse = {
       let%bind remote =
         choice(
           ~failure_msg="missing on incorrect <remote>",
-          [urlWithPort, take_while1(c => c != '#' && c != ':')],
+          [urlWithPort, take_while1(c => c != '#' && c != ':' && c != '%')],
         );
       let%bind manifest = gitOrGithubManifest;
       let%bind commit = commitSHA;
@@ -207,7 +208,7 @@ module Parse = {
       let%bind remote =
         choice(
           ~failure_msg="missing on incorrect <remote>",
-          [urlWithPort, take_while1(c => c != '#' && c != ':')],
+          [urlWithPort, take_while1(c => c != '#' && c != ':' && c != '%')],
         );
 
       let%bind manifest = gitOrGithubManifest;
@@ -377,6 +378,33 @@ module Parse = {
          |};
        };
 
+       let%expect_test "github:bryphe/lru:lru.opam#2708c70" = {
+         test("github:bryphe/lru:lru.opam#2708c70");
+         %expect
+         {|
+         (Github (user bryphe) (repo lru) (commit 2708c70)
+          (manifest ((Opam lru.opam))))
+       |};
+       };
+
+       let%expect_test "github:bryphe/lru%3Alru.opam#2708c70" = {
+         test("github:bryphe/lru%3Alru.opam#2708c70");
+         %expect
+         {|
+          (Github (user bryphe) (repo lru) (commit 2708c70)
+           (manifest ((Opam lru.opam))))
+        |};
+       };
+
+       let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
+         test("git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70");
+         %expect
+         {|
+          (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
+           (manifest ((Opam lru.opam))))
+        |};
+       };
+
        let%expect_test "git:https://github.com/esy/esy.git#abcdef" = {
          test("git:https://github.com/esy/esy.git#abcdef");
          %expect
@@ -530,6 +558,17 @@ module Parse = {
            (Github (user user) (repo repo) (commit abcdef)
             (manifest ((Opam manifest.opam))))
          |};
+       };
+
+       let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
+         testRelaxed(
+           "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70",
+         );
+         %expect
+         {|
+         (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
+          (manifest ((Opam lru.opam))))
+       |};
        };
 
        let%expect_test "git+https://github.com/esy/esy.git#abcdef" = {
