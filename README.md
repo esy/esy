@@ -48,7 +48,7 @@ obvious items) with further explanations:
     │
     ├── esy
     │   This dune library implements sandbox builder - a routine which builds
-    │   the enture dependency graph and provides other introspection APIs.
+    │   the entire dependency graph and provides other introspection APIs.
     │
     ├── esy/bin
     │   This dune executable implements "esy" command.
@@ -97,7 +97,7 @@ obvious items) with further explanations:
     │   Unit tests.
     │
     ├── test-e2e-slow
-    │   End-to-end test suite which takes a significiant amount of time.
+    │   End-to-end test suite which takes a significant amount of time.
     │   We execute it on CI by placing `@slowtest` token in commit messages.
     │
     └── test-e2e
