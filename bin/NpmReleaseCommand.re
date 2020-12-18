@@ -336,7 +336,7 @@ let makeBinWrapper =
       let env = [|%s|] in
       let program = "%s" in
       let storePrefix = "%s" in
-      let no_wrapper = "%s" in
+      let no_wrapper = %s in
       let expandedEnv = expandFallbackEnv storePrefix (expandEnv env) in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline (expandFallback storePrefix program)
