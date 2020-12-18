@@ -384,23 +384,9 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         let fileBeingCopied = path |> Path.show |> Filename.basename;
         let workAroundFilePath =
           Path.(v(tmpDir) / "workaround" / fileBeingCopied);
-        print_endline("Creating " ++ tmpDir ++ "/workaround");
         let%bind () = mkdir(Path.(v(tmpDir) / "workaround"));
-        print_endline(
-          "Copying.."
-          ++ Path.show(path)
-          ++ " "
-          ++ Path.show(workAroundFilePath),
-        );
         let%bind () = copyFile(path, workAroundFilePath);
-        print_endline("rm " ++ Path.show(path));
         let%bind () = rm(path);
-        print_endline(
-          "Copying.."
-          ++ Path.show(workAroundFilePath)
-          ++ " "
-          ++ Path.show(path),
-        );
         let%bind () = copyFile(~perm=0o775, workAroundFilePath, path);
         ChildProcess.run(
           Cmd.(
