@@ -1,6 +1,7 @@
 (library
  (name TestUnit)
- (modules (:standard \ RunUnitTests))
+ (modules
+  (:standard \ RunUnitTests))
  (ocamlopt_flags -linkall -g)
  (libraries EsyBuildPackage TestUnitFs rely.lib))
 
@@ -13,4 +14,5 @@
 (rule
  (alias runtest)
  (deps RunUnitTests.exe)
- (action (run ./RunUnitTests.exe)))
+ (action
+  (run ./RunUnitTests.exe)))
