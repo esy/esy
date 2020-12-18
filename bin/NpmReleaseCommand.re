@@ -155,7 +155,14 @@ let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
   };
 };
 
-let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) => {
+let makeBinWrapper =
+    (~noEnv=?, ~destPrefix, ~bin, ~environment: Environment.Bindings.t) => {
+  let noEnv =
+    switch (noEnv) {
+    | Some(x) => x
+    | None => false
+    };
+  /* TODO: When noEnv is true, environment bindings need not be embedded */
   let environmentString =
     environment
     |> Environment.renderToList
@@ -329,6 +336,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
       let env = [|%s|] in
       let program = "%s" in
       let storePrefix = "%s" in
+      let no_wrapper = "%s" in
       let expandedEnv = expandFallbackEnv storePrefix (expandEnv env) in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline (expandFallback storePrefix program)
@@ -338,7 +346,11 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
         let program = expandFallback storePrefix program in
         Sys.argv.(0) <- program;
         if windows then (
-          let pid = Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr in
+          let pid = if no_wrapper then
+            Unix.create_process program Sys.argv Unix.stdin Unix.stdout Unix.stderr
+          else
+            Unix.create_process_env program Sys.argv expandedEnv Unix.stdin Unix.stdout Unix.stderr
+          in
           let (_, status) = Unix.waitpid [] pid in
           match status with
           | WEXITED code -> exit code
@@ -355,6 +367,7 @@ let makeBinWrapper = (~destPrefix, ~bin, ~environment: Environment.Bindings.t) =
     Path.show(destPrefix)
     |> String.split_on_char('\\')
     |> String.concat("\\\\"),
+    string_of_bool(noEnv),
   );
 };
 
@@ -394,6 +407,7 @@ let make =
       ~createStatic,
       ~ocamlPkgName,
       ~ocamlVersion,
+      ~noEnv,
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
@@ -554,6 +568,7 @@ let make =
         let%bind namePath = resolveBinInEnv(~env, innerName) /* Create the .ml file that we will later compile and write it to disk */;
         let data =
           makeBinWrapper(
+            ~noEnv,
             ~destPrefix,
             ~environment=bindings,
             ~bin=EsyLib.Path.normalizePathSepOfFilename(namePath),
@@ -757,7 +772,7 @@ let make =
   return();
 };
 
-let run = (createStatic: bool, proj: Project.t) => {
+let run = (createStatic: bool, noEnv: bool, proj: Project.t) => {
   open RunAsync.Syntax;
 
   let%bind solved = Project.solved(proj);
@@ -791,6 +806,7 @@ let run = (createStatic: bool, proj: Project.t) => {
     ~createStatic,
     ~ocamlPkgName,
     ~ocamlVersion,
+    ~noEnv,
     ~outputPath,
     ~concurrency=
       EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),

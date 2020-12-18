@@ -1698,12 +1698,23 @@ let commandsConfig = {
           )
       );
 
+    let noEnv =
+      Cmdliner.Arg.(
+        value
+        & flag
+        & info(
+            ["no-env"],
+            ~doc=
+              "Ensures that wrappers binaries are not wrapped with the environment. Useful for debugging wrapped environments.",
+          )
+      );
+
     let npmReleaseCommand =
       makeProjectCommand(
         ~name="npm-release",
         ~doc="Produce npm package with prebuilt artifacts",
         ~docs=otherSection,
-        Term.(const(NpmReleaseCommand.run) $ staticArg),
+        Term.(const(NpmReleaseCommand.run) $ staticArg $ noEnv),
       );
     [
       /* COMMON COMMANDS */
