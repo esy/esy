@@ -1,0 +1,16 @@
+(library
+ (name TestUnit)
+ (modules (:standard \ RunUnitTests))
+ (ocamlopt_flags -linkall -g)
+ (libraries EsyBuildPackage TestUnitFs rely.lib))
+
+(executable
+ (name RunUnitTests)
+ (modules RunUnitTests)
+ (ocamlopt_flags -linkall -g)
+ (libraries TestUnit))
+
+(rule
+ (alias runtest)
+ (deps RunUnitTests.exe)
+ (action (run ./RunUnitTests.exe)))

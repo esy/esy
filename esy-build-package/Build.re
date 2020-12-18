@@ -277,6 +277,50 @@ let withLock = (lockPath: Path.t, f) => {
   res;
 };
 
+let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
+  fun
+  | [] => return(acc)
+  | [entry, ...r] => {
+      let (module Fs) = m;
+      let%bind stats = Fs.stat(entry);
+      switch (stats.Unix.st_kind) {
+      | Unix.S_LNK
+      | Unix.S_REG =>
+        let%bind acc =
+          Fs.withIC(
+            entry,
+            (inputChannel, (entry, acc)) => {
+              let inputFD = Fs.fileDescriptorOfChannel(inputChannel);
+              let buffer = Bytes.create(4);
+              let bytesRead = Fs.readBytes(inputFD, buffer, 0, 4);
+              if (bytesRead != 4) {
+                let _remainingBytes =
+                  Fs.readBytes(inputFD, buffer, bytesRead, 4 - bytesRead);
+                // TODO handle read failure retries
+                ();
+              };
+              switch (Bytes.get_int32_ne(buffer, 0)) {
+              | 0xfeedfacfl => [entry, ...acc]
+              | _ => acc
+              };
+            },
+            (entry, acc),
+          );
+        loop(m, acc, r);
+      | Unix.S_DIR =>
+        let%bind rest = loop(m, acc, r);
+        getMachOBins(m, rest, entry);
+      | _ => loop(m, acc, r)
+      };
+    }
+and getMachOBins =
+    (m: (module Run.T), acc, root)
+    : result(list(Fpath.t), [> | `Msg(string)]) => {
+  let (module Fs) = m;
+  let%bind entries = Fs.Dir.contents(root);
+  loop(m, acc, entries);
+};
+
 let commitBuildToStore = (config: Config.t, build: build) => {
   let%bind () =
     write(
@@ -325,7 +369,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       let%bind () = mv(build.stagePath, build.installPath);
       module ChildProcess = Bos.OS.Cmd;
       let sign' = path => {
-        let%bind _ =
+        let%bind () =
           ChildProcess.run(
             Cmd.(
               v("codesign")
@@ -341,23 +385,23 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         let workAroundFilePath =
           Path.(v(tmpDir) / "workaround" / fileBeingCopied);
         print_endline("Creating " ++ tmpDir ++ "/workaround");
-        let%bind _ = mkdir(Path.(v(tmpDir) / "workaround"));
+        let%bind () = mkdir(Path.(v(tmpDir) / "workaround"));
         print_endline(
           "Copying.."
           ++ Path.show(path)
           ++ " "
           ++ Path.show(workAroundFilePath),
         );
-        let%bind _ = copyFile(path, workAroundFilePath);
+        let%bind () = copyFile(path, workAroundFilePath);
         print_endline("rm " ++ Path.show(path));
-        let%bind _ = rm(path);
+        let%bind () = rm(path);
         print_endline(
           "Copying.."
           ++ Path.show(workAroundFilePath)
           ++ " "
           ++ Path.show(path),
         );
-        let%bind _ = copyFile(~perm=0o775, workAroundFilePath, path);
+        let%bind () = copyFile(~perm=0o775, workAroundFilePath, path);
         ChildProcess.run(
           Cmd.(
             v("codesign")
@@ -379,14 +423,8 @@ let commitBuildToStore = (config: Config.t, build: build) => {
             sign(rest);
           };
 
-      let%bind () =
-        switch (Bos.OS.Dir.contents(Path.(path / "bin"))) {
-        | Ok(entries) => sign(entries)
-        | Error(`Msg(m)) =>
-          print_endline("ERR: " ++ m);
-          return();
-        };
-
+      let%bind entries = getMachOBins((module Run): (module Run.T), [], path);
+      let%bind () = sign(entries);
       return();
     };
   ok;

@@ -126,6 +126,7 @@ let readlink = Bos.OS.Path.symlink_target;
 
 let write = (~perm=?, ~data, path) =>
   Bos.OS.File.write(~mode=?perm, path, data);
+
 let read = path => Bos.OS.File.read(path);
 
 let copyFile = (~perm=?, srcPath, dstPath) => {
@@ -274,4 +275,28 @@ let copyContents = (~from, ~ignore=[], dest) => {
   EsyLib.Result.join(
     Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [from]),
   );
+};
+module Dir = {
+  let contents = Bos.OS.Dir.contents;
+};
+type in_channel = Stdlib.in_channel;
+type file_descr = Unix.file_descr;
+let withIC = Bos.OS.File.with_ic;
+let fileDescriptorOfChannel = Unix.descr_of_in_channel;
+let readBytes = Unix.read;
+
+module type T = {
+  type in_channel;
+  type file_descr;
+  let fileDescriptorOfChannel: in_channel => file_descr;
+  let read: Fpath.t => t(string, [> | `Msg(string)]);
+  let readBytes: (file_descr, Bytes.t, int, int) => int;
+  let stat: Fpath.t => t(Unix.stats, [> | `Msg(string)]);
+  let withIC:
+    (Fpath.t, (in_channel, 'a) => 'b, 'a) => t('b, [> | `Msg(string)]);
+  module Dir: {
+    let contents:
+      (~dotfiles: bool=?, ~rel: bool=?, Fpath.t) =>
+      t(list(Fpath.t), [> | `Msg(string)]);
+  };
 };
