@@ -55,3 +55,10 @@ let runCommand: (t, Cmd.t) => Run.t(unit, _);
 
  */
 let runCommandInteractive: (t, Cmd.t) => Run.t(unit, _);
+
+/**
+        Get a list of all mach-o binaries, recursively, in a directory.
+ */
+let getMachOBins:
+  ((module Run.T), list(Fpath.t), Fpath.t) =>
+  Run.t(list(Fpath.t), [> | `Msg(string)]);

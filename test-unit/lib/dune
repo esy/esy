@@ -1,0 +1,4 @@
+(library
+ (name TestUnitFs)
+ (modules Fs)
+ (libraries EsyBuildPackage rely.lib))

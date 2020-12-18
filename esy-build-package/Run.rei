@@ -114,3 +114,38 @@ let symlink:
 
 /** Read symlink's target. */
 let readlink: EsyLib.Path.t => t(EsyLib.Path.t, _);
+
+type in_channel = Stdlib.in_channel;
+type file_descr = Unix.file_descr;
+/** Run a callback with input channel to the file */
+let withIC:
+  (Fpath.t, (in_channel, 'a) => 'b, 'a) => result('b, [> | `Msg(string)]);
+
+/** Convert an input channel into an file descriptor */
+let fileDescriptorOfChannel: in_channel => Unix.file_descr;
+
+/** Read bytes from a file descriptor */;
+let readBytes: (Unix.file_descr, Bytes.t, int, int) => int;
+
+/** Read directory contents */
+module Dir: {
+  let contents:
+    (~dotfiles: bool=?, ~rel: bool=?, Fpath.t) =>
+    t(list(Fpath.t), [> | `Msg(string)]);
+};
+
+module type T = {
+  type in_channel;
+  type file_descr;
+  let fileDescriptorOfChannel: in_channel => file_descr;
+  let read: Fpath.t => t(string, [> | `Msg(string)]);
+  let readBytes: (file_descr, Bytes.t, int, int) => int;
+  let stat: Fpath.t => t(Unix.stats, [> | `Msg(string)]);
+  let withIC:
+    (Fpath.t, (in_channel, 'a) => 'b, 'a) => t('b, [> | `Msg(string)]);
+  module Dir: {
+    let contents:
+      (~dotfiles: bool=?, ~rel: bool=?, Fpath.t) =>
+      t(list(Fpath.t), [> | `Msg(string)]);
+  };
+};

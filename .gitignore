@@ -13,3 +13,4 @@ yarn-error.log
 *.install
 .esy-bash-path
 test-e2e-re/lib/verdaccio/storage
+*~
