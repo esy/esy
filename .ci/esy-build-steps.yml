@@ -45,5 +45,5 @@ steps:
   - script: 'node ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
     continueOnError: true
-  - script: "esy release"
-    displayName: "esy release"
+  - script: "esy release --no-env"
+    displayName: "esy release --no-env"
