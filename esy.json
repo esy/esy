@@ -9,7 +9,12 @@
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,
-      "bin": ["esy", "esyBuildPackageCommand", "esyRewritePrefixCommand", "esySolveCudfCommand"]
+      "bin": [
+        "esy",
+        "esyBuildPackageCommand",
+        "esyRewritePrefixCommand",
+        "esySolveCudfCommand"
+      ]
     },
     "buildsInSource": "_build"
   },
@@ -36,6 +41,8 @@
       "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
       "override": {"dependencies": {"@opam/mtime": "*"}}
     },
+    "@opam/menhirLib": "20200211",
+    "@opam/menhirSdk": "20200211",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
     "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
   },
@@ -68,7 +75,7 @@
     "@opam/re": "1.9.0",
     "@opam/reason": "^3.6.0",
     "@opam/yojson": "1.7.0",
-    "ocaml": "4.10.0"
+    "ocaml": "4.10.2000"
   },
   "devDependencies": {
     "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",

@@ -57,5 +57,5 @@ Easy package management for native Reason, OCaml and more
     re  
     mccs
     yojson  
-    (ocaml (= 4.10.1))))
+    (ocaml (= 4.10.2))))
 
