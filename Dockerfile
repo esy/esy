@@ -5,7 +5,7 @@ WORKDIR /app/esy
 RUN apk add pkgconfig opam yarn make m4 git gcc g++ musl-dev perl perl-utils
 
 RUN opam init -y --disable-sandboxing --bare && \
-    opam switch create esy-local-switch 4.10.1+musl+static+flambda -y && \
+    opam switch create esy-local-switch 4.10.2+musl+static+flambda -y && \
     opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse
 
 COPY esy.opam /app/esy
