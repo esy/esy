@@ -1,23 +1,7 @@
 {
-  "checksum": "804e34a679ff05318df86bcca4a37b4c",
+  "checksum": "733c3f3e152882f8b3abffce718244bf",
   "root": "esy@link-dev:./esy.json",
   "node": {
-    "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
-      "id":
-        "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9",
-      "name": "yarn-pkg-config",
-      "version":
-        "github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79",
-      "source": {
-        "type": "install",
-        "source": [
-          "github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79"
-        ]
-      },
-      "overrides": [],
-      "dependencies": [],
-      "devDependencies": []
-    },
     "refmterr@3.3.2@d41d8cd9": {
       "id": "refmterr@3.3.2@d41d8cd9",
       "name": "refmterr",
@@ -2510,31 +2494,6 @@
         "@opam/base-unix@opam:base@87d0b2eb"
       ]
     },
-    "@opam/conf-pkg-config@opam:1.3@93481236": {
-      "id": "@opam/conf-pkg-config@opam:1.3@93481236",
-      "name": "@opam/conf-pkg-config",
-      "version": "opam:1.3",
-      "source": {
-        "type": "install",
-        "source": [ "no-source:" ],
-        "opam": {
-          "name": "conf-pkg-config",
-          "version": "1.3",
-          "path": "esy.lock/opam/conf-pkg-config.1.3"
-        }
-      },
-      "overrides": [
-        {
-          "opamoverride":
-            "esy.lock/overrides/opam__s__conf_pkg_config_opam__c__1.3_opam_override"
-        }
-      ],
-      "dependencies": [
-        "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": []
-    },
     "@opam/conf-perl@opam:1@402f7201": {
       "id": "@opam/conf-perl@opam:1@402f7201",
       "name": "@opam/conf-perl",
@@ -2700,26 +2659,25 @@
         "@opam/dune@opam:2.6.0@ebc30ce8"
       ]
     },
-    "@opam/bigstringaf@opam:0.7.0@4784da9b": {
-      "id": "@opam/bigstringaf@opam:0.7.0@4784da9b",
+    "@opam/bigstringaf@opam:0.6.1@35f5e6d1": {
+      "id": "@opam/bigstringaf@opam:0.6.1@35f5e6d1",
       "name": "@opam/bigstringaf",
-      "version": "opam:0.7.0",
+      "version": "opam:0.6.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/3e/3e47593200b77fa6dd2754d37e9cbe19#md5:3e47593200b77fa6dd2754d37e9cbe19",
-          "archive:https://github.com/inhabitedtype/bigstringaf/archive/0.7.0.tar.gz#md5:3e47593200b77fa6dd2754d37e9cbe19"
+          "archive:https://opam.ocaml.org/cache/md5/dc/dccf639273b1eec0e0f142f21319268d#md5:dccf639273b1eec0e0f142f21319268d",
+          "archive:https://github.com/inhabitedtype/bigstringaf/archive/0.6.1.tar.gz#md5:dccf639273b1eec0e0f142f21319268d"
         ],
         "opam": {
           "name": "bigstringaf",
-          "version": "0.7.0",
-          "path": "esy.lock/opam/bigstringaf.0.7.0"
+          "version": "0.6.1",
+          "path": "esy.lock/opam/bigstringaf.0.6.1"
         }
       },
       "overrides": [],
       "dependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/dune@opam:2.6.0@ebc30ce8",
-        "@opam/conf-pkg-config@opam:1.3@93481236",
         "@opam/bigarray-compat@opam:1.0.0@3a87ad65",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
@@ -2987,13 +2945,13 @@
         "ocaml@4.10.2000@d41d8cd9", "@opam/result@opam:1.5@6b753c82",
         "@opam/ocaml-syntax-shims@opam:1.0.0@a9aa3bfa",
         "@opam/dune@opam:2.6.0@ebc30ce8",
-        "@opam/bigstringaf@opam:0.7.0@4784da9b",
+        "@opam/bigstringaf@opam:0.6.1@35f5e6d1",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.10.2000@d41d8cd9", "@opam/result@opam:1.5@6b753c82",
         "@opam/dune@opam:2.6.0@ebc30ce8",
-        "@opam/bigstringaf@opam:0.7.0@4784da9b"
+        "@opam/bigstringaf@opam:0.6.1@35f5e6d1"
       ]
     },
     "@esy-ocaml/substs@0.0.1@d41d8cd9": {
