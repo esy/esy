@@ -12,6 +12,7 @@
 require('@babel/polyfill');
 var path = require('path');
 var fs = require('fs');
+var cp = require('child_process');
 var os = require('os');
 var promisepipe = require('promisepipe');
 var tarFs = require('tar-fs');
@@ -146,6 +147,43 @@ var fsStat = promisify(fs.stat);
 var fsLstat = promisify(fs.lstat);
 var fsMkdir = promisify(fs.mkdir);
 var fsRename = promisify(fs.rename);
+
+let lookupMachOBinaries = (dir) => {
+  let entries = fs.readdirSync(dir);
+  return entries.reduce((acc, entry) => {
+    let entryPath = path.join(dir, entry);
+    let lstat = fs.lstatSync(entryPath);
+    if (lstat.isDirectory()) {
+      acc = acc.concat(lookupMachOBinaries(entryPath));
+    } else if (lstat.isFile(entryPath)) {
+      let magicNumber;
+      try {
+	magicNumber = fs.readFileSync(entryPath)['readUInt32' + os.endianness()](0);} catch(e) {
+	  magicNumber = 0;
+	}
+      if (magicNumber === 0xfeedfacf) {
+	acc = acc.concat(entryPath);
+      } else {
+      }
+    }
+    return acc;
+  }, []);
+};
+
+let codesign = p => {
+  cp.execSync("codesign --sign - --force --preserve-metadata=entitlements,requirements,flags,runtime " + p, {stdio: 'ignore'});
+};
+
+let sign = p => {
+  codesign(p);
+  let tempDirPath = fs.mkdtempSync("esy-npm-bigsur-workaround-");
+  fs.copyFileSync(p, path.join(tempDirPath, path.basename(p)));
+  fs.unlinkSync(p);
+  fs.copyFileSync(path.join(tempDirPath, path.basename(p)), p);
+  codesign(p);
+};
+
+
 
 function fsWalk(dir, relativeDir) {
   var files = [];
@@ -402,6 +440,14 @@ Promise.resolve()
   .then(
     function() {
       info('Done!');
+      if (os.arch() === 'arm64' && os.platform() === 'darwin') {
+	console.log("Detected macOS arm64. Signing binaries...");
+	let machOBinaries = lookupMachOBinaries(process.cwd());
+	machOBinaries.forEach(binaryPath => {
+	  sign(binaryPath);
+	});
+	console.log("Done!");
+      }
       process.exit(0);
     },
     function(err) {

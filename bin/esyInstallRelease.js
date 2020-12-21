@@ -21,6 +21,8 @@ var path = require('path');
 
 var fs = require('fs');
 
+var cp = require('child_process');
+
 var os = require('os');
 
 var promisepipe = require('promisepipe');
@@ -35,14 +37,16 @@ var gunzipMaybe = require('gunzip-maybe');
 
 var OCAML_PKG_NAME = process.env.OCAML_PKG_NAME;
 
-if (!OCAML_PKG_NAME) {
-  throw 'OCAML_PKG_NAME wasn\'t set in the environment';
+if (!OCAML_PKG_NAME || OCAML_PKG_NAME == '') {
+  console.log("[Warning] OCAML_PKG_NAME wasn't present in the environment. Falling back to 'ocaml'. This can potentially fail");
+  OCAML_PKG_NAME = 'ocaml';
 }
 
 var OCAML_VERSION = process.env.OCAML_VERSION;
 
 if (!OCAML_VERSION) {
-  throw 'OCAML_VERSION wasn\'t set in the environment';
+  console.log("[Warning] OCAML_VERSION wasn't present in the environment. Falling back to default 'n.00.0000'. This can potentially fail");
+  OCAML_VERSION = 'n.00.0000';
 }
 
 var STORE_BUILD_TREE = 'b';
@@ -151,6 +155,47 @@ var fsStat = promisify(fs.stat);
 var fsLstat = promisify(fs.lstat);
 var fsMkdir = promisify(fs.mkdir);
 var fsRename = promisify(fs.rename);
+
+var lookupMachOBinaries = function lookupMachOBinaries(dir) {
+  var entries = fs.readdirSync(dir);
+  return entries.reduce(function (acc, entry) {
+    var entryPath = path.join(dir, entry);
+    var lstat = fs.lstatSync(entryPath);
+
+    if (lstat.isDirectory()) {
+      acc = acc.concat(lookupMachOBinaries(entryPath));
+    } else if (lstat.isFile(entryPath)) {
+      var magicNumber;
+
+      try {
+        magicNumber = fs.readFileSync(entryPath)['readUInt32' + os.endianness()](0);
+      } catch (e) {
+        magicNumber = 0;
+      }
+
+      if (magicNumber === 0xfeedfacf) {
+        acc = acc.concat(entryPath);
+      } else {}
+    }
+
+    return acc;
+  }, []);
+};
+
+var codesign = function codesign(p) {
+  cp.execSync("codesign --sign - --force --preserve-metadata=entitlements,requirements,flags,runtime " + p, {
+    stdio: 'ignore'
+  });
+};
+
+var sign = function sign(p) {
+  codesign(p);
+  var tempDirPath = fs.mkdtempSync("esy-npm-bigsur-workaround-");
+  fs.copyFileSync(p, path.join(tempDirPath, path.basename(p)));
+  fs.unlinkSync(p);
+  fs.copyFileSync(path.join(tempDirPath, path.basename(p)), p);
+  codesign(p);
+};
 
 function fsWalk(dir, relativeDir) {
   var files = [];
@@ -474,12 +519,22 @@ function main() {
 process.on('unhandledRejection', error);
 Promise.resolve().then(main).then(function () {
   info('Done!');
+
+  if (os.arch() === 'arm64' && os.platform() === 'darwin') {
+    console.log("Detected macOS arm64. Signing binaries...");
+    var machOBinaries = lookupMachOBinaries(process.cwd());
+    machOBinaries.forEach(function (binaryPath) {
+      sign(binaryPath);
+    });
+    console.log("Done!");
+  }
+
   process.exit(0);
 }, function (err) {
   error(err);
 });
 
-},{"@babel/polyfill":2,"fs":undefined,"gunzip-maybe":291,"os":undefined,"path":undefined,"promisepipe":300,"tar-fs":319}],2:[function(require,module,exports){
+},{"@babel/polyfill":2,"child_process":undefined,"fs":undefined,"gunzip-maybe":291,"os":undefined,"path":undefined,"promisepipe":300,"tar-fs":319}],2:[function(require,module,exports){
 "use strict";
 
 require("core-js/es6");
