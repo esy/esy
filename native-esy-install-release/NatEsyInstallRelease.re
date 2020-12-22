@@ -40,8 +40,6 @@ type fileStat = {
   relative: Fpath.t,
   basename: Fpath.t,
   absolute: Fpath.t,
-  mtime: float,
-  stats: Lwt_unix.stats,
 };
 
 let fsWalk = (~dir) => {
@@ -58,15 +56,12 @@ let fsWalk = (~dir) => {
            )
         |> Option.orDefault(~default=basename);
 
-      let%bind (isDir, stats) =
-        Let_syntax.both(Fs.isDir(currentDirPath), Fs.lstat(currentDirPath));
+      let%bind isDir = Fs.isDir(currentDirPath);
 
       let file = {
         relative: currentRelativePath,
         basename,
         absolute: currentDirPath,
-        mtime: Unix.(stats.st_mtime),
-        stats,
       };
       if (isDir) {
         let%bind dirsInCurrentDirPath =
