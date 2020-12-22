@@ -36,28 +36,14 @@ let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
   );
 };
 
-type fileStat = {
-  relative: Fpath.t,
-  absolute: Fpath.t,
-};
-
 let fsWalk = (~dir) => {
   open RunAsync.Syntax;
-  let rec inner = (~dirsInPath, ~relativePath, ~acc) => {
+  let rec inner = (~dirsInPath, ~acc) => {
     switch (dirsInPath) {
     | [] => Lwt_result.return(acc)
     | [currentDirPath, ...restDir] =>
-      let basename = Path.v(Path.basename(currentDirPath));
-      let currentRelativePath =
-        relativePath
-        |> Option.map(~f=relativePath =>
-             Fpath.append(relativePath, basename)
-           )
-        |> Option.orDefault(~default=basename);
-
       let%bind isDir = Fs.isDir(currentDirPath);
 
-      let file = {relative: currentRelativePath, absolute: currentDirPath};
       if (isDir) {
         let%bind dirsInCurrentDirPath =
           Let_syntax.map(
@@ -66,11 +52,10 @@ let fsWalk = (~dir) => {
           );
         inner(
           ~dirsInPath=List.rev_append(dirsInCurrentDirPath, restDir),
-          ~relativePath,
-          ~acc=[file, ...acc],
+          ~acc=[currentDirPath, ...acc],
         );
       } else {
-        inner(~dirsInPath=restDir, ~relativePath, ~acc=[file, ...acc]);
+        inner(~dirsInPath=restDir, ~acc=[currentDirPath, ...acc]);
       };
     };
   };
@@ -80,7 +65,7 @@ let fsWalk = (~dir) => {
       ~f=List.map(~f=name => Path.(dir / name)),
       Fs.listDir(dir),
     );
-  inner(~dirsInPath, ~relativePath=None, ~acc=[]);
+  inner(~dirsInPath, ~acc=[]);
 };
 
 let importBuild = (filePath, maybeStorePath) => {
@@ -197,7 +182,7 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
           : None;
 
       RunAsync.List.mapAndJoin(
-        ~f=file => importBuild(file.absolute, storePath),
+        ~f=file => importBuild(file, storePath),
         files,
       );
     };
