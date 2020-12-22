@@ -38,7 +38,6 @@ let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
 
 type fileStat = {
   relative: Fpath.t,
-  basename: Fpath.t,
   absolute: Fpath.t,
 };
 
@@ -58,11 +57,7 @@ let fsWalk = (~dir) => {
 
       let%bind isDir = Fs.isDir(currentDirPath);
 
-      let file = {
-        relative: currentRelativePath,
-        basename,
-        absolute: currentDirPath,
-      };
+      let file = {relative: currentRelativePath, absolute: currentDirPath};
       if (isDir) {
         let%bind dirsInCurrentDirPath =
           Let_syntax.map(
