@@ -25,15 +25,19 @@ let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
   let prefixLength = String.length(prefix ++ "/" ++ esyStoreVersion);
   let paddingLength = esyStorePaddingLength - prefixLength;
   if (paddingLength < 0) {
-    failwith(
-      "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts",
+    Error(`PathTooDeep);
+  } else {
+    let p = Path.join(prefix, esyStoreVersion);
+    Ok(
+      Path.v(
+        Path.show(p)
+        ++ String.make(
+             esyStorePaddingLength - String.length(Path.show(p)),
+             '_',
+           ),
+      ),
     );
   };
-  let p = Path.join(prefix, esyStoreVersion);
-  Path.v(
-    Path.show(p)
-    ++ String.make(esyStorePaddingLength - String.length(Path.show(p)), '_'),
-  );
 };
 
 let fsWalk = (~dir) => {
@@ -112,7 +116,7 @@ let importBuild = (filePath, maybeStorePath) => {
   };
 };
 
-let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
+let main = (ocamlPkgName, ocamlVersion, rewritePrefix, storePath) => {
   print_endline("[ocamlPkgName]: " ++ ocamlPkgName);
   print_endline("[ocamlVersion]: " ++ ocamlVersion);
   print_endline("[rewritePrefix]: " ++ string_of_bool(rewritePrefix));
@@ -124,12 +128,6 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
       if (!rewritePrefix) {
         Lwt.return(Ok());
       } else {
-        let storePath =
-          getStorePathForPrefix(
-            releasePackagePath,
-            ocamlPkgName,
-            ocamlVersion,
-          );
         let%lwt storeFound = Fs.exists(storePath);
         Lwt.return(
           switch (storeFound) {
@@ -145,24 +143,19 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
   };
 
   let initStore = () => {
-    open Lwt_result;
-    let storePath =
-      if (rewritePrefix) {
-        getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion);
-      } else {
-        unpaddedStorePath;
-      };
-
-    Fs.createDir(storePath)
-    >>= (
-      _ =>
-        RunAsync.List.waitAll([
-          Fs.createDir(Path.(storePath / storeBuildTree)),
-          Fs.createDir(Path.(storePath / storeInstallTree)),
-          Fs.createDir(Path.(storePath / storeStageTree)),
-        ])
-    )
-    |> Lwt_result.map_err(err => `EsyLibError(err));
+    let finalStorePath = rewritePrefix ? storePath : unpaddedStorePath;
+    Lwt_result.(
+      Fs.createDir(finalStorePath)
+      >>= (
+        _ =>
+          RunAsync.List.waitAll([
+            Fs.createDir(Path.(finalStorePath / storeBuildTree)),
+            Fs.createDir(Path.(finalStorePath / storeInstallTree)),
+            Fs.createDir(Path.(finalStorePath / storeStageTree)),
+          ])
+      )
+      |> Lwt_result.map_err(err => `EsyLibError(err))
+    );
   };
 
   let doImport = () => {
@@ -170,19 +163,13 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
     let importBuilds = () => {
       open RunAsync.Syntax;
       let%bind files = fsWalk(~dir=releaseExportPath);
-      let storePath =
-        rewritePrefix
-          ? Some(
-              getStorePathForPrefix(
-                releasePackagePath,
-                ocamlPkgName,
-                ocamlVersion,
-              ),
-            )
-          : None;
-
       RunAsync.List.mapAndJoin(
-        ~f=file => importBuild(file, storePath),
+        ~f=
+          file =>
+            importBuild(
+              file,
+              rewritePrefix == true ? Some(storePath) : None,
+            ),
         files,
       );
     };
@@ -191,12 +178,6 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
       if (!rewritePrefix) {
         Lwt_result.return();
       } else {
-        let storePath =
-          getStorePathForPrefix(
-            releasePackagePath,
-            ocamlPkgName,
-            ocamlVersion,
-          );
         let%bind prevStorePath =
           Fs.readFile(Path.(releaseBinPath / "_storePath"));
 
@@ -251,11 +232,23 @@ let rewritePrefix = {
 };
 
 let lwt_main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
-  switch (Lwt_main.run(main(ocamlPkgName, ocamlVersion, rewritePrefix))) {
+  let result =
+    getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion)
+    |> Result.map(~f=storePath => {
+         Lwt_main.run(
+           main(ocamlPkgName, ocamlVersion, rewritePrefix, storePath),
+         )
+       });
+
+  switch (result) {
   | Ok(_) => print_endline("all ok")
   | Error(`NoBuildFound) => print_endline("No build found!")
   | Error(`ReleaseAlreadyInstalled) =>
     print_endline("Release already installed!")
+  | Error(`PathTooDeep) =>
+    print_endline(
+      "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts",
+    )
   | Error(`EsyLibError(err)) => print_endline(EsyLib.Run.formatError(err))
   };
 };
