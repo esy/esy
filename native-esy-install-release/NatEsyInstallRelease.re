@@ -1,13 +1,13 @@
-let esyStoreVersion = "3";
+let esyStoreVersion = Store.version;
 
 module Path = {
   include Path;
   let join = (x, y) => Filename.concat(x, y) |> Path.v;
 };
 
-let storeBuildTree = "b";
-let storeInstallTree = "i";
-let storeStageTree = "s";
+let storeBuildTree = Store.buildTree;
+let storeInstallTree = Store.installTree;
+let storeStageTree = Store.stageTree;
 let cwd = Sys.getcwd();
 let releasePackagePath = cwd;
 let releaseExportPath = Path.(v(releasePackagePath) / "_export");
@@ -18,105 +18,54 @@ type rewritePrefix =
   | NoRewrite(Path.t);
 
 let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
-  let ocamlrunStorePath =
-    ocamlPkgName ++ "-" ++ ocamlVersion ++ "-########/bin/ocamlrun";
-
-  let esyStorePaddingLength =
-    127
-    - String.length("!#")
-    - String.length("/" ++ "i" ++ "/" ++ ocamlrunStorePath);
-  let prefixLength = String.length(prefix ++ "/" ++ esyStoreVersion);
-  let paddingLength = esyStorePaddingLength - prefixLength;
-  if (paddingLength < 0) {
-    Error(`PathTooDeep);
-  } else {
-    let p = Path.join(prefix, esyStoreVersion);
-    Ok(
-      Path.v(
-        Path.show(p)
-        ++ String.make(
-             esyStorePaddingLength - String.length(Path.show(p)),
-             '_',
-           ),
-      ),
-    );
+  switch (Store.getPadding(~ocamlPkgName, ~ocamlVersion, Path.v(prefix))) {
+  | Error(err) => Error(err)
+  | Ok(padding) => Ok(Path.join(prefix, esyStoreVersion ++ padding))
   };
-};
-
-let fsWalk = (~dir) => {
-  open RunAsync.Syntax;
-  let rec inner = (~dirsInPath, ~acc) => {
-    switch (dirsInPath) {
-    | [] => Lwt_result.return(acc)
-    | [currentDirPath, ...restDir] =>
-      let%bind isDir = Fs.isDir(currentDirPath);
-
-      if (isDir) {
-        let%bind dirsInCurrentDirPath =
-          Let_syntax.map(
-            ~f=List.map(~f=name => Path.(currentDirPath / name)),
-            Fs.listDir(currentDirPath),
-          );
-        inner(
-          ~dirsInPath=List.rev_append(dirsInCurrentDirPath, restDir),
-          ~acc=[currentDirPath, ...acc],
-        );
-      } else {
-        inner(~dirsInPath=restDir, ~acc=[currentDirPath, ...acc]);
-      };
-    };
-  };
-
-  let%bind dirsInPath =
-    Let_syntax.map(
-      ~f=List.map(~f=name => Path.(dir / name)),
-      Fs.listDir(dir),
-    );
-  inner(~dirsInPath, ~acc=[]);
 };
 
 let importBuild = (filePath, rewritePrefix) => {
-  open RunAsync.Syntax;
   let buildId =
     Str.global_replace(
       Str.regexp(".tar.gz$"),
       "",
       Fpath.basename(filePath),
     );
+  RunAsync.Syntax.(
+    switch (rewritePrefix) {
+    | Rewrite(storePath) =>
+      // let storeStagePath = Path.(storePath / storeStageTree); // 3_____/s
+      // let buildStagePath = Path.(storeStagePath / buildId); // 3_____/s/buildId
+      // let buildFinalPath = Path.(storePath / storeInstallTree / buildId); // 3_____/i/builId
 
-  print_endline("importing: " ++ buildId);
+      // let%bind _ = Fs.createDir(buildStagePath);
 
-  switch (rewritePrefix) {
-  | Rewrite(storePath) =>
-    let storeStagePath = Path.(storePath / storeStageTree); // 3_____/s
-    let buildStagePath = Path.(storeStagePath / buildId); // 3_____/s/buildId
-    let buildFinalPath = Path.(storePath / storeInstallTree / buildId); // 3_____/i/builId
+      // let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
 
-    let%bind _ = Fs.createDir(buildStagePath);
+      // let%bind prevStorePrefix =
+      //   Fs.readFile(Path.(buildStagePath / "_esy" / "storePrefix"));
 
-    let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
+      // let%bind () =
+      //   RewritePrefix.rewritePrefix(
+      //     ~origPrefix=Path.v(prevStorePrefix),
+      //     ~destPrefix=storePath,
+      //     buildStagePath,
+      //   );
 
-    let%bind prevStorePrefix =
-      Fs.readFile(Path.(buildStagePath / "_esy" / "storePrefix"));
+      // Fs.rename(~src=buildStagePath, buildFinalPath);
 
-    let%bind () =
-      RewritePrefix.rewritePrefix(
-        ~origPrefix=Path.v(prevStorePrefix),
-        ~destPrefix=storePath,
-        buildStagePath,
-      );
+      EsyBuild.BuildSandbox.importBuild(storePath, filePath)
 
-    Fs.rename(~src=buildStagePath, buildFinalPath);
+    | NoRewrite(storePath) =>
+      let storeStagePath = Path.(storePath / storeStageTree);
+      let buildStagePath = Path.(storeStagePath / buildId);
+      let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
 
-  | NoRewrite(storePath) =>
-    let storeStagePath = Path.(storePath / storeStageTree);
-    let buildStagePath = Path.(storeStagePath / buildId);
-    let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
-
-    let%bind _ = Fs.createDir(buildStagePath);
-    let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
-    Fs.rename(~src=buildStagePath, buildFinalPath);
-  };
+      let%bind _ = Fs.createDir(buildStagePath);
+      let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
+      Fs.rename(~src=buildStagePath, buildFinalPath);
+    }
+  );
 };
 
 let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
@@ -131,6 +80,12 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
          },
        ),
   );
+
+  let storePath =
+    switch (rewritePrefix) {
+    | Rewrite(path)
+    | NoRewrite(path) => path
+    };
 
   let check = () => {
     let%lwt buildFound = Fs.exists(releaseExportPath);
@@ -153,11 +108,6 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
     };
   };
   let initStore = () => {
-    let storePath =
-      switch (rewritePrefix) {
-      | Rewrite(path)
-      | NoRewrite(path) => path
-      };
     Lwt_result.(
       Fs.createDir(storePath)
       >>= (
@@ -175,10 +125,16 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
     open RunAsync.Syntax;
     let importBuilds = () => {
       open RunAsync.Syntax;
-      let%bind files = fsWalk(~dir=releaseExportPath);
+      let%bind files =
+        Fs.fold(
+          ~init=[],
+          ~f=(acc, path, _) => RunAsync.ofRun(Ok([path, ...acc])),
+          releaseExportPath,
+        );
+
       RunAsync.List.mapAndJoin(
         ~f=file => importBuild(file, rewritePrefix),
-        files,
+        files |> List.map(~f=Path.append(releaseExportPath)),
       );
     };
     let rewriteBinWrappers = () =>
@@ -237,6 +193,7 @@ let rewritePrefix = {
 
 let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
   let unpaddedStorePath = Path.(v(releasePackagePath) / esyStoreVersion);
+
   let rewritePrefixResult =
     shouldRewritePrefix
       ? getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion)
@@ -253,10 +210,7 @@ let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
   | Error(`NoBuildFound) => print_endline("No build found!")
   | Error(`ReleaseAlreadyInstalled) =>
     print_endline("Release already installed!")
-  | Error(`PathTooDeep) =>
-    print_endline(
-      "Esy prefix path is too deep in the filesystem, Esy won't be able to relocate artefacts",
-    )
+  | Error(`Msg(msg)) => print_endline(msg)
   | Error(`EsyLibError(err)) => print_endline(EsyLib.Run.formatError(err))
   };
 };
