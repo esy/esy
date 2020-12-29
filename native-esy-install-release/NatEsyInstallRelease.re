@@ -50,18 +50,6 @@ let importBuild = (filePath, rewritePrefix) => {
 };
 
 let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
-  print_endline("[ocamlPkgName]: " ++ ocamlPkgName);
-  print_endline("[ocamlVersion]: " ++ ocamlVersion);
-  print_endline(
-    "[rewritePrefix]: "
-    ++ string_of_bool(
-         switch (rewritePrefix) {
-         | NoRewrite(_) => false
-         | Rewrite(_) => true
-         },
-       ),
-  );
-
   let storePath =
     switch (rewritePrefix) {
     | Rewrite(path)
