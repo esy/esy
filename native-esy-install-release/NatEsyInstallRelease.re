@@ -61,8 +61,8 @@ let importBuild = (filePath, rewritePrefix) => {
       let buildStagePath = Path.(storeStagePath / buildId);
       let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
 
-      let%bind _ = Fs.createDir(buildStagePath);
-      let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
+      let%bind () = Fs.createDir(buildStagePath);
+      let%bind () = Tarball.unpack(filePath, ~dst=storeStagePath);
       Fs.rename(~src=buildStagePath, buildFinalPath);
     }
   );
