@@ -730,13 +730,13 @@ let make =
         switch (releaseCfg.rewritePrefix) {
         | NoRewrite =>
           Printf.sprintf(
-            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; require('./esyInstallRelease.js')\"",
+            "esyNatEsyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=false",
             ocamlPkgName,
             ocamlVersion,
           )
         | Rewrite =>
           Printf.sprintf(
-            "node -e \"process.env['OCAML_VERSION']='%s'; process.env['OCAML_PKG_NAME']='%s'; process.env['ESY_RELEASE_REWRITE_PREFIX']=true; require('./esyInstallRelease.js')\"",
+            "esyNatEsyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=true",
             ocamlPkgName,
             ocamlVersion,
           )
