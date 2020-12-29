@@ -36,28 +36,7 @@ let importBuild = (filePath, rewritePrefix) => {
   RunAsync.Syntax.(
     switch (rewritePrefix) {
     | Rewrite(storePath) =>
-      // let storeStagePath = Path.(storePath / storeStageTree); // 3_____/s
-      // let buildStagePath = Path.(storeStagePath / buildId); // 3_____/s/buildId
-      // let buildFinalPath = Path.(storePath / storeInstallTree / buildId); // 3_____/i/builId
-
-      // let%bind _ = Fs.createDir(buildStagePath);
-
-      // let%bind _ = Tarball.unpack(filePath, ~dst=storeStagePath);
-
-      // let%bind prevStorePrefix =
-      //   Fs.readFile(Path.(buildStagePath / "_esy" / "storePrefix"));
-
-      // let%bind () =
-      //   RewritePrefix.rewritePrefix(
-      //     ~origPrefix=Path.v(prevStorePrefix),
-      //     ~destPrefix=storePath,
-      //     buildStagePath,
-      //   );
-
-      // Fs.rename(~src=buildStagePath, buildFinalPath);
-
       EsyBuild.BuildSandbox.importBuild(storePath, filePath)
-
     | NoRewrite(storePath) =>
       let storeStagePath = Path.(storePath / storeStageTree);
       let buildStagePath = Path.(storeStagePath / buildId);
