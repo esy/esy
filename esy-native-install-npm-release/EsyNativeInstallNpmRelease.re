@@ -27,17 +27,17 @@ let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
 };
 
 let importBuild = (filePath, rewritePrefix) => {
-  let buildId =
-    Str.global_replace(
-      Str.regexp(".tar.gz$"),
-      "",
-      Fpath.basename(filePath),
-    );
   RunAsync.Syntax.(
     switch (rewritePrefix) {
     | Rewrite(storePath) =>
       EsyBuild.BuildSandbox.importBuild(storePath, filePath)
     | NoRewrite(storePath) =>
+      let buildId =
+        Str.global_replace(
+          Str.regexp(".tar.gz$"),
+          "",
+          Fpath.basename(filePath),
+        );
       let storeStagePath = Path.(storePath / storeStageTree);
       let buildStagePath = Path.(storeStagePath / buildId);
       let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
