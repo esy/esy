@@ -125,16 +125,11 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
     open RunAsync.Syntax;
     let importBuilds = () => {
       open RunAsync.Syntax;
-      let%bind files =
-        Fs.fold(
-          ~init=[],
-          ~f=(acc, path, _) => RunAsync.ofRun(Ok([path, ...acc])),
-          releaseExportPath,
-        );
+      let%bind files = Fs.listDir(releaseExportPath);
 
       RunAsync.List.mapAndJoin(
         ~f=file => importBuild(file, rewritePrefix),
-        files |> List.map(~f=Path.append(releaseExportPath)),
+        files |> List.map(~f=Path.addSeg(releaseExportPath)),
       );
     };
     let rewriteBinWrappers = () =>
