@@ -1,3 +1,5 @@
+open Cmdliner;
+
 let esyStoreVersion = Store.version;
 
 module Path = {
@@ -149,16 +151,56 @@ let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
   };
   Lwt_result.(
     check()
+    >>= initStore
+    >>= (_ => doImport() |> Lwt_result.map_err(err => `EsyLibError(err)))
     >>= (
-      _ =>
-        initStore()
-        >>= (_ => doImport() |> Lwt_result.map_err(err => `EsyLibError(err)))
+      _ => {
+        switch (System.Platform.host, System.Arch.host) {
+        | (Darwin, Arm64) =>
+          print_endline("Detected macOS arm64. Signing binaries...");
+          Result.Syntax.Let_syntax.bind(
+            EsyBuildPackage.Build.getMachOBins(
+              (module EsyBuildPackage.Run),
+              [],
+              Path.v(releasePackagePath),
+            ),
+            ~f=entries =>
+            EsyBuildPackage.BigSurArm.sign(entries)
+          )
+          |> Lwt.return;
+        | _ => Lwt.return(Ok())
+        };
+      }
     )
   );
 };
 
-open Cmdliner;
+let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
+  let unpaddedStorePath = Path.(v(releasePackagePath) / esyStoreVersion);
 
+  let rewritePrefixResult =
+    shouldRewritePrefix
+      ? getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion)
+        |> Result.map(~f=storePath => Rewrite(storePath))
+      : Ok(NoRewrite(unpaddedStorePath));
+
+  let result =
+    rewritePrefixResult
+    |> Result.Syntax.Let_syntax.bind(~f=rewritePrefix => {
+         Lwt_main.run(main(ocamlPkgName, ocamlVersion, rewritePrefix))
+       });
+  switch (result) {
+  | Ok(_) => print_endline("Done!")
+  | Error(`NoBuildFound) => Printf.eprintf("No build found!")
+  | Error(`ReleaseAlreadyInstalled) =>
+    Printf.eprintf("Release already installed!")
+  | Error(`Msg(msg)) => Printf.eprintf("%s", msg)
+  | Error(`EsyLibError(err)) =>
+    Printf.eprintf("%s", EsyLib.Run.formatError(err))
+  | Error(`CommandError(cmd, status)) =>
+    Bos.Cmd.pp(Format.err_formatter, cmd)
+  };
+};
 let ocamlPkgName = {
   let doc = "OCaml package name";
   Arg.(
@@ -184,30 +226,6 @@ let rewritePrefix = {
     & opt(bool, true)
     & info(["rewrite-prefix"], ~docv="RELEASE CONFIG", ~doc)
   );
-};
-
-let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
-  let unpaddedStorePath = Path.(v(releasePackagePath) / esyStoreVersion);
-
-  let rewritePrefixResult =
-    shouldRewritePrefix
-      ? getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion)
-        |> Result.map(~f=storePath => Rewrite(storePath))
-      : Ok(NoRewrite(unpaddedStorePath));
-
-  let result =
-    rewritePrefixResult
-    |> Result.map(~f=rewritePrefix => {
-         Lwt_main.run(main(ocamlPkgName, ocamlVersion, rewritePrefix))
-       });
-  switch (result) {
-  | Ok(_) => print_endline("Done!")
-  | Error(`NoBuildFound) => print_endline("No build found!")
-  | Error(`ReleaseAlreadyInstalled) =>
-    print_endline("Release already installed!")
-  | Error(`Msg(msg)) => print_endline(msg)
-  | Error(`EsyLibError(err)) => print_endline(EsyLib.Run.formatError(err))
-  };
 };
 
 let main_t =
