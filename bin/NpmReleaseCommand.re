@@ -730,13 +730,13 @@ let make =
         switch (releaseCfg.rewritePrefix) {
         | NoRewrite =>
           Printf.sprintf(
-            "esyNatEsyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=false",
+            "esyNativeInstallNpmRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=false",
             ocamlPkgName,
             ocamlVersion,
           )
         | Rewrite =>
           Printf.sprintf(
-            "esyNatEsyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=true",
+            "esyNativeInstallNpmRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=true",
             ocamlPkgName,
             ocamlVersion,
           )

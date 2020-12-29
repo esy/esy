@@ -1,6 +1,6 @@
 (executable
- (name NatEsyInstallRelease)
- (public_name esyNatEsyInstallRelease)
+ (name EsyNativeInstallNpmRelease)
+ (public_name esyNativeInstallNpmRelease)
  (flags
   (:standard
    (-w -39)
