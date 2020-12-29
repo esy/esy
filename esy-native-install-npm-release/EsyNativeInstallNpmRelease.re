@@ -49,7 +49,7 @@ let importBuild = (filePath, rewritePrefix) => {
   );
 };
 
-let main = (ocamlPkgName, ocamlVersion, rewritePrefix) => {
+let main = rewritePrefix => {
   let storePath =
     switch (rewritePrefix) {
     | Rewrite(path)
@@ -154,7 +154,7 @@ let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
   let result =
     rewritePrefixResult
     |> Result.Syntax.Let_syntax.bind(~f=rewritePrefix => {
-         Lwt_main.run(main(ocamlPkgName, ocamlVersion, rewritePrefix))
+         Lwt_main.run(main(rewritePrefix))
        });
   switch (result) {
   | Ok(_) => print_endline("Done!")
@@ -164,8 +164,7 @@ let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
   | Error(`Msg(msg)) => Printf.eprintf("%s", msg)
   | Error(`EsyLibError(err)) =>
     Printf.eprintf("%s", EsyLib.Run.formatError(err))
-  | Error(`CommandError(cmd, status)) =>
-    Bos.Cmd.pp(Format.err_formatter, cmd)
+  | Error(`CommandError(cmd, _)) => Bos.Cmd.pp(Format.err_formatter, cmd)
   };
 };
 let ocamlPkgName = {
