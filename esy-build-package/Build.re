@@ -370,11 +370,9 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       let%bind entries =
         getMachOBins((module Run): (module Run.T), [], build.installPath);
       let isBigSurArm =
-        switch (
-          Bos.OS.Cmd.(run_out(Bos.Cmd.(v("uname") % "-ms")) |> to_string)
-        ) {
-        | Ok(output) => output == "Darwin arm64"
-        | Error(_) => false
+        switch (System.Platform.host, System.Arch.host) {
+        | (System.Platform.Darwin, System.Arch.Arm64) => true
+        | _ => false
         };
 
       if (isBigSurArm) {
