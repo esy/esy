@@ -1,5 +1,80 @@
 # CHANGELOG
 
+## Development (nightly releases)
+
+- Bug Fix: `ocamlfind` now to builds on `>= 4.10.1000` to as
+  expected. This fix accounts for an extra underscore in the store
+  path. Therefore, upgrading to this release, you'll notice a
+  completely fresh builds as the path of the cache has changed in a
+  minor way (one less underscore).
+  
+  [PR#1172](https://github.com/esy/esy/pull/1172) by @ManasJayanth
+
+- Enhancement: Adds support for port number in package URLs.
+  For example,
+  `git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef` is not
+  a valid URL for a dependency.
+  
+  [PR#1185](https://github.com/esy/esy/pull/1185) by @melwyn95
+  
+- Bug fix: Unix signals are now relayed properly from the sandboxing
+  wrapper (created by `esy npm-release`) to the real binary.
+  
+  [PR#1191](https://github.com/esy/esy/pull/1191) by @despairblue
+  
+- Infra and distribution: Two new CI pipelines have been added - one
+  for Ubuntu 16.04 and MacOS 10.12 
+  
+  [PR#1197](https://github.com/esy/esy/pull/1197) and
+  [PR#1174](https://github.com/esy/esy/pull/1174) by @ManasJayanth
+  
+- Enhancement: Adds `--static` option to `esy release` (also `esy
+  npm-release`) so that sandboxing wrapper is statically built too.
+  
+  [PR#1200](https://github.com/esy/esy/pull/1200) by @ManasJayanth
+  
+- Enhancement: Adds `--ocaml-pkg-name` and `--ocaml-version` for
+  compiler packages that have longer values. Fixes `esy release` using
+  `musl.static.flambda` compiler package.
+  
+  [PR#1201](https://github.com/esy/esy/pull/1201) by @ManasJayanth
+  
+- Enhancement: Add support for git credentials, via `ESY__GIT_USERNAME` and
+  `ESY__GIT_PASSWORD`, to fetch private repos.
+  
+  [PR#1184](https://github.com/esy/esy/pull/1184) by @ManasJayanth
+  
+- Infra and distribution: Linux builds are statically built via opam
+  and musl
+
+  [PR#1176](https://github.com/esy/esy/pull/1176) making esy buildable
+  with Opam inside Alpine Docker Image by @ManasJayanth and [PR#1207](https://github.com/esy/esy/pull/1207) plugging
+  it to CI and distribution by @EduardoRFS.
+  
+- Bug fix: sources that are compressed without a root directory (multi
+  root tarballs) are now extracted properly.
+  
+  [PR#1236](https://github.com/esy/esy/pull/1236) by @EduardoRFS
+  
+- Bug fix: `--npm-registry` option accepts URLs with (and
+  without) trailing slash
+  
+  [PR#1231](https://github.com/esy/esy/pull/1231) by @weslenng
+
+- Bug fix: URLs with `%3A` (encoded `:`) are correctly parsed.
+
+  [PR#1239](https://github.com/esy/esy/pull/1239) by @melwyn95
+  
+- Enhancement: Adds `--no-env` option for npm releases that dont need
+  sandboxing wrapper
+  
+  [PR#1244](https://github.com/esy/esy/pull/1244) by @ManasJayanth
+  
+- Distribution: New MacOS BigSur Arm64 build
+
+  [PR#1248](https://github.com/esy/esy/pull/1248) by @ManasJayanth
+  
+
 ## 0.6.7 @ latest
 
 - Better error messages pertaining to `esy install` - they now include the sandbox name. PR#1167 @CrossR
