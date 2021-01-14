@@ -112,25 +112,29 @@ fmt-no-promote refmt-no-promote::
 
 
 new-openbsd:
+	ulimit -s 10000
+	gmake new-docker
+
+
+new-docker:
 	doas mkdir -p /app/esy /app/esy-install && \
-		doas chown -R $(USER):$(USER) /app/esy
+		doas chown -R $(USER):$(USER) /app/esy /app/esy-install
 	opam init -y --disable-sandboxing --bare && \
 	opam switch create esy-local-switch 4.10.2+flambda -y && \
 	opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse
 	cp -rfp esy.opam /app/esy
-	ulimit -s 10000 && \
 	opam install . --deps-only -y
 	cp -rfp . /app/esy
 	git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
 	git -C /app/esy apply static-linking.patch
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
-	opam exec -- dune install --prefix /usr/local
-	esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
-	esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
-	esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda
+	opam exec -- dune install --prefix /app/esy-install/
+	/app/esy-install/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
+	/app/esy-install/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
+	/app/esy-install/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda
 	opam exec -- dune uninstall --prefix /app/esy-install
-	CXX=c++ yarn global --prefix=/usr/local --force add ${PWD}/_release
+	CXX=c++ yarn global --prefix=/app/esy/install --force add ${PWD}/_release
 	mv _release /app/_release
 #COPY --from=builder /usr/local /usr/local
 #COPY --from=builder /app/_release /app/_release
