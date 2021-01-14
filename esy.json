@@ -11,8 +11,6 @@
       "rewritePrefix": false,
       "bin": [
         "esy",
-        "esyBuildPackageCommand",
-        "esyRewritePrefixCommand",
         "esySolveCudfCommand"
       ]
     },

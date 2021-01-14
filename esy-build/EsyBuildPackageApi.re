@@ -1,6 +1,8 @@
 let esyBuildPackageCmd = {
-  let req = "esyBuildPackageCommand";
-  Path.v(req) |> Cmd.ofPath;
+  let bin_path = Sys.argv[0];
+  let dir = String.sub(bin_path, 0, String.length(bin_path) - 3);
+  dir ++ "../lib/esy/esyBuildPackageCommand"
+  |> Path.v |> Cmd.ofPath;
 };
 
 let run =

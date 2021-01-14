@@ -344,7 +344,9 @@ let commitBuildToStore = (config: Config.t, build: build) => {
         )
       );
       let env = EsyLib.EsyBash.currentEnvWithMingwInPath;
-      let cmd = Path.v("esyRewritePrefixCommand");
+      let bin_path = Sys.argv[0];
+      let dir = String.sub(bin_path, 0, String.length(bin_path) - 22);
+      let cmd = dir ++ "esyRewritePrefixCommand" |> Path.v;
       let%bind () =
         Bos.OS.Cmd.run(
           ~env,
