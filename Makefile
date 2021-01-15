@@ -128,7 +128,7 @@ new-docker:
 		doas chown -R $(USER):$(USER) $(APP_ESY)
 	opam init -y --disable-sandboxing --bare && \
 	opam switch create esy-local-switch 4.10.2+flambda -y && \
-	opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse
+	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#duniverse"
 	cp -rfp esy.opam $(APP_ESY)
 	opam install . --deps-only -y
 	cp -rfp . $(APP_ESY)
