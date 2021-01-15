@@ -1,8 +1,9 @@
+open EsyLib;
+
 let esyBuildPackageCmd = {
-  let bin_path = Sys.argv[0];
-  let dir = String.sub(bin_path, 0, String.length(bin_path) - 3);
-  dir ++ "../lib/esy/esyBuildPackageCommand"
-  |> Path.v |> Cmd.ofPath;
+  let dir = Path.(exePath() |> parent |> parent);
+  Path.(dir/"lib"/"esy"/"esyBuildPackageCommand")
+  |> Cmd.ofPath;
 };
 
 let run =
