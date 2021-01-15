@@ -21,5 +21,6 @@
 
 (install
  (section libexec)
- (files (esyBuildPackageCommand.exe as esyBuildPackageCommand)
-        (esyRewritePrefixCommand.exe as esyRewritePrefixCommand)))
+ (files
+  (esyBuildPackageCommand.exe as esyBuildPackageCommand)
+  (esyRewritePrefixCommand.exe as esyRewritePrefixCommand)))

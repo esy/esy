@@ -2,8 +2,7 @@ open EsyLib;
 
 let esyBuildPackageCmd = {
   let dir = Path.(exePath() |> parent |> parent);
-  Path.(dir/"lib"/"esy"/"esyBuildPackageCommand")
-  |> Cmd.ofPath;
+  Path.(dir / "lib" / "esy" / "esyBuildPackageCommand") |> Cmd.ofPath;
 };
 
 let run =

@@ -56,7 +56,7 @@ let currentPath = () =>
     failwith("Unable to determine current working dir: " ++ msg)
   };
 
-let exePath = () => v(Sys.argv[0])
+let exePath = () => v(Sys.argv[0]);
 
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
