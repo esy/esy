@@ -3,7 +3,11 @@ open EsyInstall;
 open EsyBuild;
 
 let esyInstallReleaseJs =
-  switch (NodeResolution.resolve("./esyNativeInstallNpmRelease")) {
+  switch (
+    NodeResolution.resolve(
+      "../esy-native-install-npm-release/EsyNativeInstallNpmRelease.exe",
+    )
+  ) {
   | Ok(path) => path
   | Error(`Msg(msg)) => failwith(msg)
   };
