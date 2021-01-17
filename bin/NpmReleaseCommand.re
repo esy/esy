@@ -3,7 +3,12 @@ open EsyInstall;
 open EsyBuild;
 
 let esyInstallReleaseJs =
-  Path.(addSeg(Path.v(Sys.argv[0]) |> parent, "esyNativeInstallNpmRelease"));
+  Path.(
+    addSeg(
+      Path.v(Sys.executable_name) |> parent,
+      "esyNativeInstallNpmRelease",
+    )
+  );
 
 type filterPackages =
   | ExcludeById(list(string))
