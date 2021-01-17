@@ -3,14 +3,7 @@ open EsyInstall;
 open EsyBuild;
 
 let esyInstallReleaseJs =
-  switch (
-    NodeResolution.resolve(
-      "../esy-native-install-npm-release/EsyNativeInstallNpmRelease.exe",
-    )
-  ) {
-  | Ok(path) => path
-  | Error(`Msg(msg)) => failwith(msg)
-  };
+  Path.(addSeg(Path.v(Sys.argv[0]) |> parent, "esyNativeInstallNpmRelease"));
 
 type filterPackages =
   | ExcludeById(list(string))
@@ -734,13 +727,13 @@ let make =
         switch (releaseCfg.rewritePrefix) {
         | NoRewrite =>
           Printf.sprintf(
-            "./esyInstallRelease.exe --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=false",
+            "./esyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=false",
             ocamlPkgName,
             ocamlVersion,
           )
         | Rewrite =>
           Printf.sprintf(
-            "./esyInstallRelease.exe --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=true",
+            "./esyInstallRelease --ocaml-version='%s' --ocaml-pkg-name='%s' --rewrite-prefix=true",
             ocamlPkgName,
             ocamlVersion,
           )
@@ -807,7 +800,7 @@ let make =
     let* () =
       Fs.copyFile(
         ~src=esyInstallReleaseJs,
-        ~dst=Path.(outputPath / "esyInstallRelease.exe"),
+        ~dst=Path.(outputPath / "esyInstallRelease"),
       );
     let* () = {
       let f = filename => {
