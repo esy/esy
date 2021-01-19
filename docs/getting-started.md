@@ -23,14 +23,18 @@ npm uninstall --global --update esy
 
 ## Step-by-step tutorial
 
+To understand the benefits and general workflow of writing a program with esy, we put together a simple Step-by-Step guide for you to follow.
+In this guide we want to write a simple "Hello, World" program. It will just print "Hello, World" to the console and exit afterwards.
+
+If you have questions or you find yourself stuck anywhere, don't hesitate to reach out at one of our [community platforms](https://esy.sh/docs/en/community.html)
+
 Let's start with an empty `package.json`
 
 ```json
 {}
 ```
 
-To write a basic hello world program in OCaml, let's add the `ocaml`
-compiler package to the `package.json`. 
+Every program we may want to write with ReasonML or OCaml needs at least the OCaml compiler as a dependency.
 
 ```json
 {
@@ -52,10 +56,17 @@ To install the dependencies, run `esy`
 $ esy
 ```
 
-This will fetch `ocaml` and install it in a sandbox exclusively
-created for this newly created project (described by `package.json`)
+This will fetch all of our dependencies (at this point, just `ocaml`) and install it in a sandbox exclusively created for this project.
 
-<screenshot>
+A esy sandbox is like an isolated environment for your project, so everything you install is just installed inside this environment and not globally on your system.
+
+The great advantage of a sandbox is that different projects can have different versions of the same dependency installed, which would not be easily possible if they were just installed globally.
+
+In OCaml, we can't just run our code as with for example NodeJS. It first needs to be compiled to an executable with the OCaml compiler we installed previously.
+
+The compiler gets invoked with either the command ocamlopt (for native compilation) or ocamlc (for bytecode compilation). You can learn more about the compilers here. In this example, we will prodeed with the native compiler (ocamlopt). The most basic syntax for compiling a file to an executable looks like this: ocamlopt -o <output.exe> <source-file>.
+
+With this info at hand, our first instinct might be just running ocamlopt -o hello.exe hello.ml to produce our executable file. But remember, we didn't install ocaml globally, but in our projects sandbox. So we need to somehow run this command inside of this sandbox.
 
 Just like in the Yarn/NPM world, build commands are run with a prefix.
 
@@ -65,20 +76,31 @@ To compile,
 esy ocamlopt -o hello.exe hello.ml
 ```
 
-To run the binary, `hello.exe`,
+If everything worked correctly, running the command above should have output a file called hello.exe.
+To now execute our program and output "Hello, World", we just need to run:
 
 ```sh
 ./hello.exe
 ```
 
+If you are following along on a Mac or Linux, it might seem a bit odd, that you can run an .exe file, as these files normally can only be run on Windows systems. This is just for convenience and completely optional.
+
+
 ### Using a build system
-Taking a step further, to use a build system, [Dune](https://dune.readthedocs.io/en/stable/), and build the same hello
-world program, add `@opam/dune`.
+
+Compiling your code with ocamlopt or ocamlc works well, when you don't have a lot of dependencies. But as soon as your project gets larger, compiling your code manually becomes very complex, very fast. To help with this, we want to use a build system.
+
+If you are coming from JavaScript, you probably already heard from tools like "Webpack", "Browserify" or "Rollup". These are build systems. They take your code and its dependencies and bundle them together into a single file.
+
+For Reason and OCaml, we use [Dune](https://dune.readthedocs.io/en/stable/) - the community endorsed build system. You give it an entry point and it "bundles" all of your code and its dependencies together into a single executable.
+
+To install dune into our "Hello World" program, we have to add `@opam/dune` to the dependencies of our package.json.
+
 
 ```diff
   "dependencies": {
     "ocaml": "4.10.x",
-+	"@opam/dune": "*"
++	  "@opam/dune": "*"
   }
 ```
 
@@ -99,7 +121,7 @@ needs
    ```
    (executable
      (name hello) ; asking dune to build hello.ml
-	 (public_name hello.exe)) ; name of the binary
+	   (public_name hello.exe)) ; name of the binary
    ```
    
    We're now ready to build and distribute the hello world program.
