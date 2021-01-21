@@ -119,7 +119,7 @@ new-openbsd:
 		doas chown -R $(USER):$(USER) /app/esy-install
 	gmake -E "APP_ESY=/app/esy" -E "APP_ESYINSTAL=/app/esy-install/" new-docker 
 
-APP_ESY ?= /app/esy
+APP_ESY ?= $(PWD)
 APP_ESY_INSTALL ?= /usr/local/
 APP_ESY_RELEASE ?= /app/_release
 
