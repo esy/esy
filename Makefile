@@ -117,7 +117,7 @@ new-openbsd:
 	doas chmod +x /usr/local/bin/shasum
 	doas mkdir -p /app/esy-install && \
 		doas chown -R $(USER):$(USER) /app/esy-install
-	gmake -E "APP_ESY=/app/esy" -E "APP_ESYINSTAL=/app/esy-install/" new-docker 
+	gmake -E "APP_ESY=/app/esy" -E "APP_ESY_INSTAL=/app/esy-install/" new-docker 
 
 APP_ESY ?= $(PWD)
 APP_ESY_INSTALL ?= /usr/local/
