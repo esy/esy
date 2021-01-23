@@ -121,7 +121,8 @@ new-openbsd:
 	doas chmod +x /usr/local/bin/shasum
 	doas mkdir -p /app/esy-install && \
 		doas chown -R $(USER):$(USER) /app/esy-install
-	OPAM_PREFIX_POST=flambda APP_ESY=/app/esy APP_ESY_INSTALL=/app/esy-install gmake new-docker
+	SUDO=doas OPAM_PREFIX_POST=flambda APP_ESY=/app/esy \
+			 APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
 APP_ESY ?= $(PWD)
 APP_ESY_INSTALL ?= /usr/local/
@@ -129,10 +130,11 @@ APP_ESY_RELEASE ?= /app/_release
 OPAM_PREFIX_POST ?= musl+static+flambda
 OPAM_PREFIX ?= 4.10.2+$(OPAM_PREFIX_POST)
 OPAM_PREFIX_POSTDOT = $(subst +,.,$(OPAM_PREFIX_POST))
+SUDO ?= sudo
 
 new-docker:
-	doas mkdir -p $(APP_ESY)&& \
-		doas chown -R $(USER):$(USER) $(APP_ESY)
+	$(SUDO) mkdir -p $(APP_ESY)&& \
+		$(SUDO) chown -R $(USER):$(USER) $(APP_ESY)
 	opam init -y --disable-sandboxing --bare && \
 	opam switch create esy-local-switch $(OPAM_PREFIX) -y && \
 	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#duniverse"
