@@ -113,21 +113,28 @@ fmt-no-promote refmt-no-promote::
 
 new-openbsd:
 	ulimit -s 10000
-	doas ftp -o /usr/local/bin/shasum https://fastapi.metacpan.org/source/MSHELOR/Digest-SHA-6.02/shasum
+	ulimit -n 4096
+	ftp -o /tmp/shasum1 https://fastapi.metacpan.org/source/MSHELOR/Digest-SHA-6.02/shasum
+	sed -e 's|#!perl|#!/usr/bin/env perl|g' /tmp/shasum1 > /tmp/shasum
+	rm /tmp/shasum1
+	doas mv /tmp/shasum /usr/local/bin/
 	doas chmod +x /usr/local/bin/shasum
 	doas mkdir -p /app/esy-install && \
 		doas chown -R $(USER):$(USER) /app/esy-install
-	APP_ESY=/app/esy APP_ESY_INSTALL=/app/esy-install gmake new-docker 
+	OPAM_PREFIX_POST=flambda APP_ESY=/app/esy APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
 APP_ESY ?= $(PWD)
 APP_ESY_INSTALL ?= /usr/local/
 APP_ESY_RELEASE ?= /app/_release
+OPAM_PREFIX_POST ?= musl+static+flambda
+OPAM_PREFIX ?= 4.10.2+$(OPAM_PREFIX_POST)
+OPAM_PREFIX_POSTDOT = $(subst +,.,$(OPAM_PREFIX_POST))
 
 new-docker:
 	doas mkdir -p $(APP_ESY)&& \
 		doas chown -R $(USER):$(USER) $(APP_ESY)
 	opam init -y --disable-sandboxing --bare && \
-	opam switch create esy-local-switch 4.10.2+flambda -y && \
+	opam switch create esy-local-switch $(OPAM_PREFIX) -y && \
 	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#duniverse"
 	cp -rfp esy.opam $(APP_ESY)
 	opam install . --deps-only -y
@@ -137,14 +144,12 @@ new-docker:
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
-	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
-	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda && \
-	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-flambda
+	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT) && \
+	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT) && \
+	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT)
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
-#COPY --from=builder /usr/local /usr/local
-#COPY --from=builder /app/_release /app/_release
 
 #
 # Test
