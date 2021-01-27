@@ -1,5 +1,9 @@
 FROM alpine:latest as builder
 
+RUN mkdir -p /app
+COPY . /app/esy
+COPY esy.opam /app/esy
+
 WORKDIR /app/esy
 
 RUN apk add pkgconfig opam yarn make m4 git gcc g++ musl-dev perl perl-utils
@@ -8,11 +12,8 @@ RUN opam init -y --disable-sandboxing --bare && \
     opam switch create esy-local-switch 4.10.2+musl+static+flambda -y && \
     opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse
 
-COPY esy.opam /app/esy
 
 RUN opam install . --deps-only -y
-
-COPY . /app/esy
 
 RUN git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
     git -C /app/esy apply static-linking.patch
