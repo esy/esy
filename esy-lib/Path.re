@@ -56,7 +56,19 @@ let currentPath = () =>
     failwith("Unable to determine current working dir: " ++ msg)
   };
 
-let exePath = () => v(Sys.argv[0]);
+let exePath' = () => {
+  switch (Sys.getenv_opt("_")) {
+  | Some(p) => p
+  | None =>
+    // TODO cross-platform solution to getting full path of the current executable.
+    // Linux has /proc/self/exe. Macos ?? Windows GetModuleFileName()
+    // https://stackoverflow.com/a/1024937
+
+    Sys.argv[0]
+  };
+};
+
+let exePath = () => v @@ exePath'();
 
 let relativize = Fpath.relativize;
 let parent = Fpath.parent;
