@@ -83,6 +83,11 @@ let run =
     };
 
     ChildProcess.withProcess(
+      ~env=
+        ChildProcess.CurrentEnvOverride(
+          Astring.String.Map.empty
+          |> Astring.String.Map.add("_", Cmd.show(esyBuildPackageCmd)),
+        ),
       ~stderr,
       ~stdout,
       ~stdin,
