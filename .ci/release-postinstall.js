@@ -169,7 +169,7 @@ switch (platform) {
     break;
   case "linux":
   case "darwin":
-    copyPlatformBinaries(platform);
+    copyPlatformBinaries(platform + (process.arch === "x64" ? "": "-arm64"));
     break;
   default:
     console.warn("error: no release built for the " + platform + " platform");
