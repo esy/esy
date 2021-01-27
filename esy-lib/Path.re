@@ -57,20 +57,20 @@ let currentPath = () =>
   };
 
 let exePath' = () => {
+  switch (Sys.getenv_opt("_")) {
+  | Some(p) => p
+  | None =>
+    switch (System.Platform.host) {
+    | Linux => Unix.readlink("/proc/self/exe")
+    | Darwin
+    | Cygwin
+    | Windows
+    | Unix
+    | Unknown => Sys.argv[0]
+    }
   // TODO cross-platform solution to getting full path of the current executable.
   // Linux has /proc/self/exe. Macos ?? Windows GetModuleFileName()
   // https://stackoverflow.com/a/1024937
-  switch (System.Platform.host) {
-  | Linux => Unix.readlink("/proc/self/exe")
-  | Darwin
-  | Cygwin
-  | Windows
-  | Unix
-  | Unknown =>
-    switch (Sys.getenv_opt("_")) {
-    | Some(p) => p
-    | None => Sys.argv[0]
-    }
   };
 };
 
