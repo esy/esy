@@ -14,25 +14,25 @@ trigger:
   - prometheansacrifice/*
 
 jobs:
-  - template: build-platform.yml
-    parameters:
-      platform: Linux
-      vmImage: ubuntu-18.04
+  # - template: build-platform.yml
+  #   parameters:
+  #     platform: Linux
+  #     vmImage: ubuntu-latest
 
   # - template: build-platform.yml
   #   parameters:
   #     platform: Ubuntu_16_04
   #     vmImage: ubuntu-16.04
 
-  - template: build-platform.yml
-    parameters:
-      platform: macOS_10_12
-      vmImage: macOS-latest
+  # - template: build-platform.yml
+  #   parameters:
+  #     platform: macOS_10_12
+  #     vmImage: macOS-latest
 
-  - template: build-platform.yml
-    parameters:
-      platform: macOS
-      vmImage: macOS-latest
+  # - template: build-platform.yml
+  #   parameters:
+  #     platform: macOS
+  #     vmImage: macOS-latest
 
   - job: Alpine_Build
     displayName: Alpine Build
@@ -72,23 +72,23 @@ jobs:
   # which assumes you have bsdtar (tar.exe) in your system
   # otherwise it will end up using the esy-bash tar which doesn't
   # understand drives like D:/ (thinks it's an scp path).
-  - template: build-platform.yml
-    parameters:
-      platform: Windows
-      vmImage: windows-2019
+  # - template: build-platform.yml
+  #   parameters:
+  #     platform: Windows
+  #     vmImage: windows-2019
 
   # This job is kept here as we want to have the platform names in the same file
-  - job: Release
-    displayName: Release
-    dependsOn:
-      - Alpine_Build
-      - macOS
-      - Windows
-    pool:
-      vmImage: macOS-latest
-      demands: node.js
-    steps:
-      - template: cross-release.yml
+  # - job: Release
+  #   displayName: Release
+  #   dependsOn:
+  #     - Alpine_Build
+  #     - macOS
+  #     - Windows
+  #   pool:
+  #     vmImage: macOS-latest
+  #     demands: node.js
+  #   steps:
+  #     - template: cross-release.yml
         
   # # This job is kept here as we want to have the platform names in the same file
   # - job: Release
