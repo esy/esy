@@ -19,6 +19,10 @@ authors: [
   "Gabriel Scherer"
   "Pietro Abate"
 ]
+patches: [
+  "0001-Add-support-for-OCaml-4.12.patch"
+  "0002-caml_hash_univ_param-was-removed-for-OCaml-pre-4.00-.patch"
+]
 build: [
   [make "minimal=1" "build"]
   [make "minimal=1" "test"] {with-test}
@@ -26,10 +30,14 @@ build: [
 ]
 install: [ [make "minimal=1" "install"] ]
 depends: [
-  "ocaml" {< "4.12.0"}
+  "ocaml"
   "ocamlfind" {build}
   "cppo" {build}
   "base-bytes" {build}
+]
+extra-files: [
+  ["0001-Add-support-for-OCaml-4.12.patch" "md5=816012e35353d76872ca56743d9fc71a"]
+  ["0002-caml_hash_univ_param-was-removed-for-OCaml-pre-4.00-.patch" "md5=4c3d4a6b1f66f4d913aef808c0ebc96b"]
 ]
 synopsis:
   "A complete yet small extension for OCaml standard library (reduced, recommended)"

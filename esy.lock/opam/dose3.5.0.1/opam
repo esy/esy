@@ -17,7 +17,7 @@ dev-repo: "git+https://gitlab.com/irill/dose3.git"
 build: [
   ["./configure"]
   [make "printconf"]
-  [make]
+  [make "libs" "apps"]
 ]
 install: [make "installlib"]
 remove: [
@@ -28,8 +28,7 @@ depends: [
   "ocaml"
   "ocamlgraph" {>= "1.8.6" & < "2.0.0"}
   "cudf" {>= "0.7"}
-  "conf-perl" {build}
-  ("extlib" {>= "1.7.0"} | "extlib-compat" {>= "1.7.0"})
+  ("extlib" {>= "1.7.0" & < "1.7.8"} | "extlib-compat" {>= "1.7.0"})
   "re" {>= "1.2.2"}
   "ocamlbuild" {build}
   "cppo" {build & >= "1.1.2"}
