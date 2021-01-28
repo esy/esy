@@ -1,5 +1,5 @@
 {
-  "checksum": "733c3f3e152882f8b3abffce718244bf",
+  "checksum": "3ba9f29a3c2f9c7862c341a5f70aed40",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -66,7 +66,7 @@
         "@opam/ppx_inline_test@opam:v0.13.0@f994539b",
         "@opam/ppx_expect@opam:v0.13.1@57259bad",
         "@opam/ppx_deriving_yojson@opam:3.5.3@253e094d",
-        "@opam/ppx_deriving@opam:4.5@d89f2934",
+        "@opam/ppx_deriving@opam:4.5@870c733d",
         "@opam/opam-state@opam:2.0.5@815bdc18",
         "@opam/opam-format@opam:2.0.5@b9eb4e25",
         "@opam/opam-file-format@opam:2.0.0@d0c9876d",
@@ -1048,7 +1048,7 @@
         "ocaml@4.10.2000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82", "@opam/ppxfind@opam:1.4@d75848d2",
         "@opam/ppx_tools@opam:6.3@e259a756",
-        "@opam/ppx_deriving@opam:4.5@d89f2934",
+        "@opam/ppx_deriving@opam:4.5@870c733d",
         "@opam/dune@opam:2.6.0@ebc30ce8", "@opam/cppo@opam:1.6.7@c28ac3ae",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
@@ -1056,12 +1056,12 @@
         "ocaml@4.10.2000@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82",
         "@opam/ppx_tools@opam:6.3@e259a756",
-        "@opam/ppx_deriving@opam:4.5@d89f2934",
+        "@opam/ppx_deriving@opam:4.5@870c733d",
         "@opam/dune@opam:2.6.0@ebc30ce8"
       ]
     },
-    "@opam/ppx_deriving@opam:4.5@d89f2934": {
-      "id": "@opam/ppx_deriving@opam:4.5@d89f2934",
+    "@opam/ppx_deriving@opam:4.5@870c733d": {
+      "id": "@opam/ppx_deriving@opam:4.5@870c733d",
       "name": "@opam/ppx_deriving",
       "version": "opam:4.5",
       "source": {
