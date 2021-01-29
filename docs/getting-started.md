@@ -60,13 +60,13 @@ This will fetch all of our dependencies (at this point, just `ocaml`) and instal
 
 A esy sandbox is like an isolated environment for your project, so everything you install is just installed inside this environment and not globally on your system.
 
-The great advantage of a sandbox is that different projects can have different versions of the same dependency installed, which would not be easily possible if they were just installed globally.
+The advantage of a sandbox is that different projects can have different versions of the same dependency installed, which would not be easily possible if they were just installed globally.
 
 In OCaml, we can't just run our code as with for example NodeJS. It first needs to be compiled to an executable with the OCaml compiler we installed previously.
 
-The compiler gets invoked with either the command ocamlopt (for native compilation) or ocamlc (for bytecode compilation). You can learn more about the compilers here. In this example, we will prodeed with the native compiler (ocamlopt). The most basic syntax for compiling a file to an executable looks like this: ocamlopt -o <output.exe> <source-file>.
+The compiler gets invoked with either the command `ocamlopt` (for native compilation) or `ocamlc` (for bytecode compilation). You can learn more about the compilers here. In this example, we will prodeed with the native compiler (ocamlopt). The most basic syntax for compiling a file to an executable looks like this: `ocamlopt -o <output.exe> <source-file>`.
 
-With this info at hand, our first instinct might be just running ocamlopt -o hello.exe hello.ml to produce our executable file. But remember, we didn't install ocaml globally, but in our projects sandbox. So we need to somehow run this command inside of this sandbox.
+With this info at hand, our first instinct might be just running `ocamlopt -o hello.exe hello.ml` to produce our executable file. But remember, we didn't install ocaml globally, but in our projects sandbox. So we need to somehow run this command inside of this sandbox.
 
 Just like in the Yarn/NPM world, build commands are run with a prefix.
 
@@ -100,11 +100,11 @@ To install dune into our "Hello World" program, we have to add `@opam/dune` to t
 ```diff
   "dependencies": {
     "ocaml": "4.10.x",
-+	  "@opam/dune": "*"
++   "@opam/dune": "*"
   }
 ```
 
-If you're familiar with Dune, you'd know, that starting scratch Dune
+If you're familiar with Dune, you'd know, that starting from scratch, Dune
 needs
 
 1. A `dune-project` file describe the project
@@ -126,7 +126,7 @@ needs
    
    We're now ready to build and distribute the hello world program.
 
-3. Optionally, create a `dune-project` file. If you dont, Dune will
+3. Optionally, create a `dune-project` file. If you don't, Dune will
    create it for you.
 
 ```
@@ -150,12 +150,12 @@ esy dune build
 You're not wrong.
 
 However, esy's real strength is isolated build environment - read the
-package.json, create an isolated environment, try to build the project
+`package.json`, create an isolated environment, try to build the project
 there. 
 
 This way, should you happen to forget to include a dependency in your
-package.json, build will break. Other package managers dont guarantee
-this! Esy also creates lock files, not optional unlike `opam`. This
+package.json, the build will break. Other package managers don't guarantee
+this! Esy also creates lock files, not optional like in `opam`. This
 ensures users have the same version of a dependency across machines.
 
 To build projects in isolated build environments, use `esy b` prefix.
@@ -249,7 +249,7 @@ Esy understands Dune, and the following will not be necessary
 ```diff
   "esy": {
     "build": "dune build -p hello",
--	"install": "dune install"
+-   "install": "dune install"
   },
 ```
 
