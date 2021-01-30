@@ -51,6 +51,7 @@ depends: [
   "mccs"
   "yojson"
   "ocaml" {= "4.10.2"}
+  "extlib" {< "1.7.8"}
 ]
 build: [
   ["dune" "subst"] {pinned}
