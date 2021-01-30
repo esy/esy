@@ -48,6 +48,7 @@
     "@opam/extlib-compat": {
       "source": "https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.7.tar.gz#sha256:4183abeca72efefc2513a440706c0e6e56d4676f60ae89a4306f8e5e03fbb5eb",
       "override": {
+        "buildsInSource": true,
         "build": ["make minimal=1 build"],
         "install": ["make minimal=1 install"]
       }
