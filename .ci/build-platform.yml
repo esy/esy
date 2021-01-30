@@ -34,6 +34,10 @@ jobs:
         continueOnError: true
         condition: and(eq(variables['AGENT.OS'], 'Windows_NT'), and(eq(variables['Build.Reason'], 'PullRequest'), and(succeeded(), ne(variables['Build.SourceBranch'], variables['System.PullRequest.TargetBranch']))))
         displayName: "Print tar help"
+      - powershell: Write-Host "##vso[task.setvariable variable=HOME;]D:\"
+        continueOnError: true
+        condition: eq(variables['AGENT.OS'], 'Windows_NT')
+        displayName: "Make sure $HOME is same is Agent.BuildDirectory"
       - bash: |
           # COMPUTE THE ESY INSTALL CACHE LOCATION AHEAD OF TIME
           DESIRED_LEN="85"
