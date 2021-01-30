@@ -205,7 +205,7 @@ describe('Sandbox overrides', function() {
     await p.esy('install');
     await p.esy('build');
     {
-      const {stdout} = await p.esy('esy x hello.cmd');
+      const {stdout} = await p.esy('x hello.cmd');
       expect(stdout.trim()).toBe('__one__');
     }
 
@@ -213,7 +213,7 @@ describe('Sandbox overrides', function() {
     await p.esy('@another build');
 
     {
-      const {stdout} = await p.esy('esy @another x hello.cmd');
+      const {stdout} = await p.esy('@another x hello.cmd');
       expect(stdout.trim()).toBe('__two__');
     }
   });

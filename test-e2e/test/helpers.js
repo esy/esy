@@ -211,7 +211,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
       // this is required so esy won't "attach" to the outer esy project (esy
       // itself)
       delete env.ESY__ROOT_PACKAGE_CONFIG_PATH;
-      return promiseExec(execCommand, {cwd, env});
+      return promiseExec(execCommand, {cwd, env: {...env, "_": execCommand.split(' ')[0] }});
     });
     return p.catch(err => {
       err.stdout = normalizeEOL(err.stdout);

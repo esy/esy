@@ -92,13 +92,12 @@ describe(`'esy CMD' invocation`, () => {
     await p.esy('devDep.cmd');
   });
 
-  test.disableIf(isWindows)('ensures the RLIMIT_NOFILE was set', async () => {
+  // TODO On some machines, ulimit is not present as a binary for POSIX compatibility.
+  // Esy should ideally not try to fork/exec shell built-ins
+  test.disableIf(true)('ensures the RLIMIT_NOFILE was set', async () => {
     const p = await createTestSandbox();
     await p.esy('install');
-    const { stdout } = await p.run([
-      "ulimit -Sn 2048",
-      `${helpers.ESY} sh -c "ulimit -Sn"`,
-    ].join('\n'));
+    const { stdout } = await p.run(`ulimit -Sn 2048 && ${helpers.ESY} sh -c "ulimit -Sn"`);
     const result = stdout.trim();
     expect(result).toEqual("4096");
   })

@@ -19,6 +19,7 @@ let ofString: string => result(t, [> | `Msg(string)]);
 let currentPath: unit => t;
 let homePath: unit => t;
 let dataPath: unit => t;
+let exePath: unit => t;
 
 let isPrefix: (t, t) => bool;
 let remPrefix: (t, t) => option(t);
