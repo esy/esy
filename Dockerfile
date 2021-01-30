@@ -21,9 +21,11 @@ RUN git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
 RUN opam exec -- dune build -p esy
 RUN opam exec -- dune build @install
 RUN opam exec -- dune install --prefix /usr/local
+RUN opam clean
 
 RUN esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
     esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
+    esy cleanup . && \
     esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda
 
 RUN opam exec -- dune uninstall --prefix /usr/local
