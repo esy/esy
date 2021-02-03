@@ -2,6 +2,7 @@
 
 steps:
   - bash: 'mkdir -p $(Build.StagingDirectory)'
+    continueOnError: true
     condition: and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'))
     displayName: '[Cache][Publish] Create cache directory'
 
@@ -13,6 +14,7 @@ steps:
     displayName: "esy export-dependencies"
 
   - bash: pwd && ls _export/* && mv _export '$(Build.StagingDirectory)' && ls '$(Build.StagingDirectory)/_export/'
+    continueOnError: true
     condition: and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'))
     displayName: '[Cache][Publish] move export to staging dir'
 
@@ -26,6 +28,7 @@ steps:
   #   displayName: '[Cache][Publish] Tar npm cache directory'
 
   - task: PublishBuildArtifacts@1
+    continueOnError: true
     displayName: '[Cache][Publish] Upload tarball'
     condition: and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'))
     # TODO: The CI Build caches are pulled down by the last successful buildID
