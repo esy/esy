@@ -11,19 +11,19 @@ index d94b6ec2..abd02e00 100644
     (-w -39)
     "-open"
 diff --git a/esy-build-package/bin/dune b/esy-build-package/bin/dune
-index 47148185..f9533d73 100644
+index 1c0b8479..74301b9d 100644
 --- a/esy-build-package/bin/dune
 +++ b/esy-build-package/bin/dune
-@@ -2,6 +2,7 @@
-  (name esyBuildPackageCommand)
+@@ -3,6 +3,7 @@
+  (public_name esyBuildPackageCommand)
   (modules esyBuildPackageCommand)
   (flags
 +  (-ccopt -static)
    (:standard
     (-w -39)))
   (preprocess
-@@ -13,6 +14,7 @@
-  (name esyRewritePrefixCommand)
+@@ -15,6 +16,7 @@
+  (public_name esyRewritePrefixCommand)
   (modules esyRewritePrefixCommand)
   (flags
 +  (-ccopt -static)
@@ -31,10 +31,10 @@ index 47148185..f9533d73 100644
     (-w -39)))
   (preprocess
 diff --git a/esy.json b/esy.json
-index a31db1c7..9cb8917e 100644
+index 68255b2f..96220077 100644
 --- a/esy.json
 +++ b/esy.json
-@@ -32,6 +32,7 @@
+@@ -37,6 +37,7 @@
      "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
    },
    "resolutions": {
@@ -42,7 +42,7 @@ index a31db1c7..9cb8917e 100644
      "@opam/bos": {
        "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
        "override": {"dependencies": {"@opam/mtime": "*"}}
-@@ -40,6 +41,14 @@
+@@ -45,6 +46,14 @@
      "@opam/menhirSdk": "20200211",
      "@opam/bigstringaf": "0.6.1",
      "@opam/extlib": "1.7.7-1",

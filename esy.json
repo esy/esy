@@ -9,7 +9,12 @@
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,
-      "bin": ["esy"]
+      "bin": [
+        "esy",
+        "esyBuildPackageCommand",
+        "esyRewritePrefixCommand",
+        "esySolveCudfCommand"
+      ]
     },
     "buildsInSource": "_build"
   },
