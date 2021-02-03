@@ -97,7 +97,7 @@ function createSandbox() /* : TestSandbox */ {
     console.log(`EXEC: ${cmd}`);
     childProcess.execSync(cmd, {
       cwd: cwd,
-      env: {...process.env, ESY__PREFIX: esyPrefixPath, "_": cmd.split(' ')[0]},
+      env: {...process.env, ESY__PREFIX: esyPrefixPath},
       stdio: 'inherit',
     });
   }

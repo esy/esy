@@ -1,12 +1,6 @@
-open EsyLib;
-
-let esyBuildPackagePath = {
-  let dir = Path.(exePath() |> parent |> parent);
-  Path.(dir / "lib" / "esy" / "esyBuildPackageCommand");
-};
-
 let esyBuildPackageCmd = {
-  esyBuildPackagePath |> Cmd.ofPath;
+  let req = "esyBuildPackageCommand";
+  Path.v(req) |> Cmd.ofPath;
 };
 
 let run =
@@ -87,11 +81,6 @@ let run =
     };
 
     ChildProcess.withProcess(
-      ~env=
-        ChildProcess.CurrentEnvOverride(
-          Astring.String.Map.empty
-          |> Astring.String.Map.add("_", Path.show(esyBuildPackagePath)),
-        ),
       ~stderr,
       ~stdout,
       ~stdin,

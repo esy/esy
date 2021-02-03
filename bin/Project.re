@@ -112,10 +112,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
     | None =>
-      let dir = Path.(exePath() |> parent |> parent);
-      let cmd =
-        Path.(dir / "lib" / "esy" / "esySolveCudfCommand") |> Cmd.ofPath;
-      return(cmd);
+      let cmd = "esySolveCudfCommand";
+      return(Cmd.(v(cmd)));
     };
 
   let%bind solveCfg =
