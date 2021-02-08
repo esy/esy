@@ -254,10 +254,6 @@ let makeBinWrapper =
          ++ "|}"
        )
     |> List.append([
-         switch (Sys.getenv_opt("SHELL")) {
-         | Some(v) => "{|SHELL|}, {|" ++ v ++ "|}"
-         | None => "{|SHELL|}, {|/bin/sh|}"
-         },
          "{|_|}, {|" ++ expandFallback(storePrefix, bin) ++ "|}",
        ])
     |> String.concat(";");
@@ -411,6 +407,11 @@ let makeBinWrapper =
       let storePrefix = "%s" in
       let no_wrapper = %s in
       let expandedEnv = expandFallbackEnv storePrefix (expandEnv env) in
+      let shellEnv = match (Sys.getenv_opt "SHELL") with
+      | Some v -> [| "SHELL=" ^ v |]
+      | None -> [|"SHELL=/bin/sh"|]
+      in
+      let expandedEnv = Array.append expandedEnv shellEnv in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline (expandFallback storePrefix program)
       else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
