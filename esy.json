@@ -41,9 +41,6 @@
     "@opam/bigstringaf": "0.6.1",
     "@opam/extlib": "1.7.7-1",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
-    "@opam/dune-configurator": "2.6.1",
-    "@opam/dune-build-info": "2.6.1",
-    "@opam/dune-private-libs": "2.6.1",
     "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
   },
   "dependencies": {
