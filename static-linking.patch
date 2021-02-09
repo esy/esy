@@ -31,7 +31,7 @@ index 47148185..f9533d73 100644
     (-w -39)))
   (preprocess
 diff --git a/esy.json b/esy.json
-index a31db1c7..9cb8917e 100644
+index a31db1c7..5c6cb386 100644
 --- a/esy.json
 +++ b/esy.json
 @@ -32,6 +32,7 @@
@@ -42,7 +42,7 @@ index a31db1c7..9cb8917e 100644
      "@opam/bos": {
        "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
        "override": {"dependencies": {"@opam/mtime": "*"}}
-@@ -40,6 +41,14 @@
+@@ -40,6 +41,17 @@
      "@opam/menhirSdk": "20200211",
      "@opam/bigstringaf": "0.6.1",
      "@opam/extlib": "1.7.7-1",
@@ -54,6 +54,9 @@ index a31db1c7..9cb8917e 100644
 +        "install": ["make minimal=1 install"]
 +      }
 +    },
++    "@opam/dune-configurator": "2.6.1",
++    "@opam/dune-build-info": "2.6.1",
++    "@opam/dune-private-libs": "2.6.1",
      "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
      "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
    },
