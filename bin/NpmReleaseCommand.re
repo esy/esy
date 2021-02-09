@@ -2,13 +2,10 @@ open EsyPackageConfig;
 open EsyInstall;
 open EsyBuild;
 
-let esyInstallReleaseJs =
-  Path.(
-    addSeg(
-      Path.v(Sys.executable_name) |> parent,
-      "esyNativeInstallNpmRelease",
-    )
-  );
+let esyNativeInstallNpmReleasePath = {
+  let dir = Path.(exePath() |> parent |> parent);
+  Path.(dir / "lib" / "esy" / "esyNativeInstallNpmRelease");
+};
 
 type filterPackages =
   | ExcludeById(list(string))
@@ -804,7 +801,7 @@ let make =
 
     let* () =
       Fs.copyFile(
-        ~src=esyInstallReleaseJs,
+        ~src=esyNativeInstallNpmReleasePath,
         ~dst=Path.(outputPath / "esyInstallRelease"),
       );
     let* () = {
