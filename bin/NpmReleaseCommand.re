@@ -7,6 +7,18 @@ let esyNativeInstallNpmReleasePath = {
   Path.(dir / "lib" / "esy" / "esyNativeInstallNpmRelease");
 };
 
+let cmd =
+  Bos.Cmd.(
+    v("ls") % Path.show(Path.(esyNativeInstallNpmReleasePath |> parent))
+  );
+let cmdResult =
+  Bos.OS.Cmd.(run_out(cmd) |> to_string) |> Stdlib.Result.to_option;
+
+switch (cmdResult) {
+| None => print_endline("fail")
+| Some(r) => print_endline(r)
+};
+
 type filterPackages =
   | ExcludeById(list(string))
   | IncludeByPkgSpec(list(PkgSpec.t));
