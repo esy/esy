@@ -2,10 +2,6 @@ open EsyPackageConfig;
 open EsyInstall;
 open EsyBuild;
 
-print_endline("[args]: " ++ Sys.argv[0]);
-print_endline("[exePath]: " ++ (Path.exePath() |> Path.show));
-print_endline("[executable_name]: " ++ Sys.executable_name);
-
 let esyNativeInstallNpmReleasePath = {
   Path.(
     (v(Sys.argv[0]) |> parent |> parent)
@@ -13,16 +9,6 @@ let esyNativeInstallNpmReleasePath = {
     / "esy"
     / "esyNativeInstallNpmRelease"
   );
-};
-
-let print_cmd = cmd => {
-  let cmdResult =
-    Bos.OS.Cmd.(run_out(cmd) |> to_string) |> Stdlib.Result.to_option;
-
-  switch (cmdResult) {
-  | None => print_endline("fail")
-  | Some(r) => print_endline(r)
-  };
 };
 
 type filterPackages =
