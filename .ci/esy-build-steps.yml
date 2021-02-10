@@ -49,5 +49,5 @@ steps:
     - script: "esy x esy release"
       displayName: "esy release"
   - ${{ if ne(parameters.platform,  'Ubuntu_16_04') }}:
-    - script: "esy x esy release"
-      displayName: "esy release"
+    - script: "esy x esy release --no-env"
+      displayName: "esy release --no-env"
