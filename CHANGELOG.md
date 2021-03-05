@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Development (nightly releases)
+## 0.6.8 @ latest
 
 - Bug Fix: `ocamlfind` now to builds on `>= 4.10.1000` to as
   expected. This fix accounts for an extra underscore in the store
@@ -75,7 +75,7 @@
   [PR#1248](https://github.com/esy/esy/pull/1248) by @ManasJayanth
   
 
-## 0.6.7 @ latest
+## 0.6.7
 
 - Better error messages pertaining to `esy install` - they now include the sandbox name. PR#1167 @CrossR
 - BugFix: Support %{dev} in the opam build expressions PR#1166 @ManasJayanth 
