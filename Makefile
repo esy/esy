@@ -157,6 +157,8 @@ new-docker:
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
+	opam switch -y remove esy-local-switch
+	opam clean
 
 #
 # Test
