@@ -249,6 +249,9 @@ let convertDependencies = manifest => {
         | "with-test" => Some(OpamVariable.B(test))
         | "with-doc" => Some(OpamVariable.B(doc))
         | "dev" => Some(OpamVariable.B(dev))
+        | "version" =>
+          let version = OpamPackage.Version.to_string(manifest.version);
+          Some(OpamVariable.S(version));
         | _ => None
         };
       };

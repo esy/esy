@@ -128,9 +128,7 @@ let cases = [
   {name: 'async', toolchains: [ocamlVersion]},
   {name: 'cudf', toolchains: [ocamlVersion]},
   {name: 'ssl', toolchains: [ocamlVersion]},
-  // When solving this sandbox for tls, solver picks 5.x cstruct for 6.0 cstruct-sexp
-  // causing a build failure. Disabling tls, till we figure why
-  // {name: 'tls', toolchains: [ocamlVersion]},
+  {name: 'tls', toolchains: [ocamlVersion]},
 ];
 
 let reposUpdated = false;
