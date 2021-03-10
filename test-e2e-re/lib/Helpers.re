@@ -50,10 +50,8 @@ let createSandbox = (~fixture=[], npmMock) => {
   let esyPrefixPath = Path.addSeg(tmp, "esy");
   let esyExePath = Path.addSeg(binPath, exe("esy"));
 
-  /**
-    * Setup directores
-    * Use underscore because it returns Ok(bool)
-    */
+  // Setup directores
+  // Use underscore because it returns Ok(bool)
   let* _ = Dir.create(tmp);
   let* _ = Dir.create(binPath);
   let* _ = Dir.create(projectPath);
