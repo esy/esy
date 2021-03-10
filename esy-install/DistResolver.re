@@ -8,10 +8,10 @@ module PackageOverride = {
 
   let of_yojson = json => {
     open Result.Syntax;
-    let%bind dist =
+    let* dist =
       Json.Decode.fieldWith(~name="source", Dist.relaxed_of_yojson, json);
 
-    let%bind override =
+    let* override =
       Json.Decode.fieldWith(~name="override", Json.of_yojson, json);
 
     return({dist, override});
@@ -141,7 +141,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
       );
 
     if%bind (Fs.exists(manifestPath)) {
-      let%bind data = Fs.readFile(manifestPath);
+      let* data = Fs.readFile(manifestPath);
       switch (kind) {
       | ManifestSpec.Esy =>
         switch (Json.parseStringWith(PackageOverride.of_yojson, data)) {
@@ -178,7 +178,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
 
   switch (manifest) {
   | Some(manifest) =>
-    let%bind (tried, state) = tryManifests(Path.Set.empty, [manifest]);
+    let* (tried, state) = tryManifests(Path.Set.empty, [manifest]);
 
     switch (state) {
     | EmptyManifest =>
@@ -232,37 +232,36 @@ let resolve =
       switch%bind (Fs.exists(realpath)) {
       | false => errorf("%a doesn't exist", DistPath.pp, path)
       | true =>
-        let%bind (tried, pkg) = ofPath(~manifest?, realpath);
+        let* (tried, pkg) = ofPath(~manifest?, realpath);
         return((pkg, tried));
       };
     | Git({remote, commit, manifest}) =>
       Fs.withTempDir(repo => {
-        let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
-        let%bind () = Git.checkout(~ref=commit, ~repo, ());
-        let%bind () = Git.updateSubmodules(~config, ~repo, ());
-        let%bind (_, pkg) = ofPath(~manifest?, repo);
+        let* () = Git.clone(~config, ~dst=repo, ~remote, ());
+        let* () = Git.checkout(~ref=commit, ~repo, ());
+        let* () = Git.updateSubmodules(~config, ~repo, ());
+        let* (_, pkg) = ofPath(~manifest?, repo);
         return((pkg, Path.Set.empty));
       })
     | Github({user, repo, commit, manifest}) =>
-      let%bind pkg = ofGithub(~manifest?, user, repo, commit);
+      let* pkg = ofGithub(~manifest?, user, repo, commit);
       switch (pkg) {
       | EmptyManifest =>
         let remote =
           Printf.sprintf("https://github.com/%s/%s.git", user, repo);
 
         Fs.withTempDir(repo => {
-          let%bind () = Git.clone(~config, ~dst=repo, ~remote, ());
-          let%bind () = Git.checkout(~ref=commit, ~repo, ());
-          let%bind () = Git.updateSubmodules(~config, ~repo, ());
-          let%bind (_, pkg) = ofPath(~manifest?, repo);
+          let* () = Git.clone(~config, ~dst=repo, ~remote, ());
+          let* () = Git.checkout(~ref=commit, ~repo, ());
+          let* () = Git.updateSubmodules(~config, ~repo, ());
+          let* (_, pkg) = ofPath(~manifest?, repo);
           return((pkg, Path.Set.empty));
         });
       | pkg => return((pkg, Path.Set.empty))
       };
     | Archive(_) =>
-      let%bind path =
-        DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);
-      let%bind (_, pkg) = ofPath(path);
+      let* path = DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);
+      let* (_, pkg) = ofPath(path);
       return((pkg, Path.Set.empty));
 
     | NoSource => return((EmptyManifest, Path.Set.empty))
@@ -287,7 +286,7 @@ let resolve =
       })
     | (Override({dist: nextDist, override: json}), newPaths) =>
       let override = Override.ofDist(json, dist);
-      let%bind nextDist = RunAsync.ofRun(rebase(~base=dist, nextDist));
+      let* nextDist = RunAsync.ofRun(rebase(~base=dist, nextDist));
       let%lwt () =
         Logs_lwt.debug(m =>
           m("override: %a -> %a@.", Dist.pp, dist, Dist.pp, nextDist)

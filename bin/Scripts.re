@@ -45,8 +45,8 @@ let ofSandbox = (spec: EsyInstall.SandboxSpec.t) =>
   RunAsync.Syntax.(
     switch (spec.manifest) {
     | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
-      let%bind json = Fs.readJsonFile(Path.(spec.path / filename));
-      let%bind pkgJson =
+      let* json = Fs.readJsonFile(Path.(spec.path / filename));
+      let* pkgJson =
         RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
       return(pkgJson.OfPackageJson.scripts);
 

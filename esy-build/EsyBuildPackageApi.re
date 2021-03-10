@@ -28,7 +28,7 @@ let run =
     };
 
   let runProcess = buildJsonFilename => {
-    let%bind command =
+    let* command =
       RunAsync.ofRun(
         Run.Syntax.(
           return(
@@ -59,7 +59,7 @@ let run =
       | `Keep => `FD_copy(Unix.stdin)
       };
 
-    let%bind (stdout, stderr, log) =
+    let* (stdout, stderr, log) =
       switch (logPath) {
       | Some(logPath) =>
         let%lwt () =
@@ -67,7 +67,7 @@ let run =
           | _ => Lwt.return()
           };
 
-        let%bind () = Fs.createDir(Path.parent(logPath));
+        let* () = Fs.createDir(Path.parent(logPath));
 
         let%lwt fd =
           Lwt_unix.openfile(
@@ -131,7 +131,7 @@ let build =
        );
   };
 
-  let%bind (status, log) = run(~logPath?, ~args, cfg, `Build, plan);
+  let* (status, log) = run(~logPath?, ~args, cfg, `Build, plan);
   switch (status, log) {
   | (Unix.WEXITED(0), Some((_, fd))) =>
     UnixLabels.close(fd);
@@ -142,7 +142,7 @@ let build =
   | (Unix.WSIGNALED(code), Some((logPath, fd)))
   | (Unix.WSTOPPED(code), Some((logPath, fd))) =>
     UnixLabels.close(fd);
-    let%bind log = Fs.readFile(logPath);
+    let* log = Fs.readFile(logPath);
     RunAsync.withContextOfLog(
       ~header="build log:",
       log,
@@ -158,7 +158,7 @@ let build =
 
 let buildShell = (cfg, plan) => {
   open RunAsync.Syntax;
-  let%bind (status, _log) = run(~stdin=`Keep, cfg, `Shell, plan);
+  let* (status, _log) = run(~stdin=`Keep, cfg, `Shell, plan);
   return(status);
 };
 
@@ -166,6 +166,6 @@ let buildExec = (cfg, plan, cmd) => {
   open RunAsync.Syntax;
   let (tool, args) = Cmd.getToolAndArgs(cmd);
   let args = ["--", tool, ...args];
-  let%bind (status, _log) = run(~stdin=`Keep, ~args, cfg, `Exec, plan);
+  let* (status, _log) = run(~stdin=`Keep, ~args, cfg, `Exec, plan);
   return(status);
 };

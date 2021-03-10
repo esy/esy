@@ -25,21 +25,21 @@ let repoFile =
 
 let withPackages = name => {
   open Result.Syntax;
-  let%bind root = Shared.getRandomTmpDir(~prefix=name, ());
-  let%bind _ = OS.Dir.create(~path=true, Path.addSeg(root, "packages"));
+  let* root = Shared.getRandomTmpDir(~prefix=name, ());
+  let* _ = OS.Dir.create(~path=true, Path.addSeg(root, "packages"));
   return(root);
 };
 
 let initialize = () => {
   open Result.Syntax;
-  let%bind registryPath = withPackages("esy-opam-registry");
-  let%bind overridePath = withPackages("esy-opam-override");
+  let* registryPath = withPackages("esy-opam-registry");
+  let* overridePath = withPackages("esy-opam-override");
 
-  let%bind _ = OS.File.write(Path.addSeg(registryPath, "repo"), repoFile);
+  let* _ = OS.File.write(Path.addSeg(registryPath, "repo"), repoFile);
 
   let remove = () => {
-    let%bind _ = OS.Dir.delete(~recurse=true, registryPath);
-    let%bind _ = OS.Dir.delete(~recurse=true, overridePath);
+    let* _ = OS.Dir.delete(~recurse=true, registryPath);
+    let* _ = OS.Dir.delete(~recurse=true, overridePath);
     return();
   };
 
@@ -50,14 +50,13 @@ let defineOpamPackage = (registry, spec) => {
   open Result.Syntax;
   let packagePath =
     Path.(append(registry.registryPath, v("./packages/" ++ spec.name)));
-  // let%bind _ = OS.Dir.create(~path=true, packagePath);
+  // let* _ = OS.Dir.create(~path=true, packagePath);
   let packageVersionPath =
     Path.addSeg(packagePath, spec.name ++ "." ++ spec.version);
-  let%bind _ = OS.Dir.create(~path=true, packageVersionPath);
+  let* _ = OS.Dir.create(~path=true, packageVersionPath);
   // Put contents
-  let%bind _ =
-    OS.File.write(Path.addSeg(packageVersionPath, "opam"), spec.opam);
-  let%bind _ =
+  let* _ = OS.File.write(Path.addSeg(packageVersionPath, "opam"), spec.opam);
+  let* _ =
     switch (spec.url) {
     | Some(url) => OS.File.write(Path.addSeg(packageVersionPath, "url"), url)
     | None => return()

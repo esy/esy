@@ -28,9 +28,9 @@ let opam = pkg =>
     | Install({opam: Some(opam), _}) =>
       let name = OpamPackage.Name.to_string(opam.name);
       let version = Version.Opam(opam.version);
-      let%bind opamfile = {
+      let* opamfile = {
         let path = Path.(opam.path / "opam");
-        let%bind data = Fs.readFile(path);
+        let* data = Fs.readFile(path);
         let filename =
           OpamFile.make(OpamFilename.of_string(Path.show(path)));
         try(return(OpamFile.OPAM.read_from_string(~filename, data))) {

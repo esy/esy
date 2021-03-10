@@ -16,7 +16,7 @@ let ofDir = base => {
     open RunAsync.Syntax;
     let root = Path.(base /\/ sub);
     if%bind (Fs.exists(root)) {
-      let%bind files = Fs.listDir(root);
+      let* files = Fs.listDir(root);
       let f = name =>
         if%bind (Fs.isDir(Path.(root / name))) {
           loop(Path.(sub / name));
@@ -24,7 +24,7 @@ let ofDir = base => {
           return([{name: Path.(sub / name), root: base}]);
         };
 
-      let%bind lists = RunAsync.List.mapAndJoin(~concurrency=20, ~f, files);
+      let* lists = RunAsync.List.mapAndJoin(~concurrency=20, ~f, files);
       return(List.concat(lists));
     } else {
       return([]);
@@ -46,6 +46,6 @@ let placeAt = (path, file) => {
         Path.showPretty(dst),
       )
     );
-  let%bind () = Fs.createDir(Path.parent(dst));
+  let* () = Fs.createDir(Path.parent(dst));
   Fs.copyFile(~src, ~dst);
 };

@@ -30,12 +30,12 @@ let resolution_of_yojson = json =>
   Result.Syntax.(
     switch (json) {
     | `String(v) =>
-      let%bind version = Version.parse(v);
+      let* version = Version.parse(v);
       return(Version(version));
     | `Assoc(_) =>
-      let%bind source =
+      let* source =
         Json.Decode.fieldWith(~name="source", Source.relaxed_of_yojson, json);
-      let%bind override =
+      let* override =
         Json.Decode.fieldWith(~name="override", Json.of_yojson, json);
       return(SourceOverride({source, override}));
     | _ => Error("expected string or object")

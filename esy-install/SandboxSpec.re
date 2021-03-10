@@ -82,16 +82,16 @@ let ofPath = path => {
   open RunAsync.Syntax;
 
   let discoverOfDir = path => {
-    let%bind fnames = Fs.listDir(path);
+    let* fnames = Fs.listDir(path);
     let fnames = StringSet.of_list(fnames);
 
-    let%bind manifest =
+    let* manifest =
       if (StringSet.mem("esy.json", fnames)) {
         return(Manifest((Esy, "esy.json")));
       } else if (StringSet.mem("package.json", fnames)) {
         return(Manifest((Esy, "package.json")));
       } else {
-        let%bind hasOpam = {
+        let* hasOpam = {
           let has = StringSet.mem("opam", fnames);
           if (has) {
             let%map isDir = Fs.isDir(Path.(path / "opam"));
@@ -103,11 +103,11 @@ let ofPath = path => {
         if (hasOpam) {
           return(Manifest((Opam, "opam")));
         } else {
-          let%bind filenames = {
+          let* filenames = {
             let f = filename => {
               let path = Path.(path / filename);
               if (Path.(hasExt(".opam", path))) {
-                let%bind data = Fs.readFile(path);
+                let* data = Fs.readFile(path);
                 return(String.(length(trim(data))) > 0);
               } else {
                 return(false);

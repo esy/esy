@@ -180,7 +180,7 @@ let to_yojson = v => `String(show(v));
 
 let of_yojson = json => {
   open Result.Syntax;
-  let%bind v = Json.Decode.string(json);
+  let* v = Json.Decode.string(json);
   parse(v);
 };
 

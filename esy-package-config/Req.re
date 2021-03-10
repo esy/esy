@@ -39,7 +39,7 @@ module Parse = {
     opamPackageName <|> npmPackageNameWithScope <|> npmPackageName;
 
   let parser = {
-    let%bind name = packageName;
+    let* name = packageName;
     switch%bind (peek_char) {
     | None =>
       let (name, spec) =
@@ -56,8 +56,8 @@ module Parse = {
 
       return({name, spec});
     | Some('@') =>
-      let%bind () = advance(1);
-      let%bind nextChar = peek_char;
+      let* () = advance(1);
+      let* nextChar = peek_char;
       switch (nextChar, name) {
       | (None, _) =>
         let (name, spec) =
@@ -74,10 +74,10 @@ module Parse = {
 
         return({name, spec});
       | (Some(_), `opam(name)) =>
-        let%bind spec = VersionSpec.parserOpam;
+        let* spec = VersionSpec.parserOpam;
         return({name, spec});
       | (Some(_), `npm(name)) =>
-        let%bind spec = VersionSpec.parserNpm;
+        let* spec = VersionSpec.parserNpm;
         return({name, spec});
       };
     | _ => fail("cannot parse request")

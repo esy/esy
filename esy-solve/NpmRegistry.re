@@ -89,25 +89,25 @@ let versions = (~fullMetadata=false, ~name, registry, ()) => {
     switch%bind (fetch) {
     | Curl.NotFound => return(None)
     | Curl.Success(data) =>
-      let%bind packument =
+      let* packument =
         RunAsync.context(
           Json.parseStringWith(Packument.of_yojson, data) |> RunAsync.ofRun,
           "parsing packument",
         );
 
-      let%bind versions =
+      let* versions =
         RunAsync.ofStringError(
           {
             let f = ((version, packageJson)) => {
               open Result.Syntax;
-              let%bind version = SemverVersion.Version.parse(version);
+              let* version = SemverVersion.Version.parse(version);
               PackageCache.ensureComputed(
                 registry.pkgCache,
                 (name, version),
                 () => {
                   open RunAsync.Syntax;
                   let version = Version.Npm(version);
-                  let%bind (manifest, _warnings) =
+                  let* (manifest, _warnings) =
                     RunAsync.ofRun(
                       OfPackageJson.installManifest(
                         ~name,
@@ -138,7 +138,7 @@ let versions = (~fullMetadata=false, ~name, registry, ()) => {
 
 let package = (~name, ~version, registry, ()) => {
   open RunAsync.Syntax;
-  let%bind _: option(versions) =
+  let* _: option(versions) =
     versions(~fullMetadata=true, ~name, registry, ());
   switch (PackageCache.get(registry.pkgCache, (name, version))) {
   | None =>

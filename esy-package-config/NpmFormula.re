@@ -8,10 +8,10 @@ let pp = (fmt, deps) =>
 
 let of_yojson = json => {
   open Result.Syntax;
-  let%bind items = Json.Decode.assoc(json);
+  let* items = Json.Decode.assoc(json);
   let f = (deps, (name, json)) => {
-    let%bind spec = Json.Decode.string(json);
-    let%bind req = Req.parse(name ++ "@" ++ spec);
+    let* spec = Json.Decode.string(json);
+    let* req = Req.parse(name ++ "@" ++ spec);
     return([req, ...deps]);
   };
 
@@ -51,7 +51,7 @@ module Override = {
   let of_yojson = {
     let req_of_yojson = (name, json) => {
       open Result.Syntax;
-      let%bind spec = Json.Decode.string(json);
+      let* spec = Json.Decode.string(json);
       Req.parse(name ++ "@" ++ spec);
     };
 

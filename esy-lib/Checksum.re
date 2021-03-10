@@ -78,7 +78,7 @@ let computeOfFile = (~kind=Sha256, path) => {
     {
       open Result.Syntax;
       let path = EsyBash.normalizePathForCygwin(Path.show(path));
-      let%bind out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
+      let* out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
       switch (Astring.String.cut(~sep=" ", out)) {
       | Some((v, _)) => return((kind, v))
       | None => return((kind, String.trim(out)))
@@ -90,7 +90,7 @@ let computeOfFile = (~kind=Sha256, path) => {
 let checkFile = (~path, checksum: t) => {
   open RunAsync.Syntax;
 
-  let%bind value = {
+  let* value = {
     let cmd =
       switch (checksum) {
       | (Md5, _) => md5sum
@@ -104,7 +104,7 @@ let checkFile = (~path, checksum: t) => {
       {
         open Result.Syntax;
         let path = EsyBash.normalizePathForCygwin(Path.show(path));
-        let%bind out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
+        let* out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
         switch (Astring.String.cut(~sep=" ", out)) {
         | Some((v, _)) => return(v)
         | None => return(String.trim(out))

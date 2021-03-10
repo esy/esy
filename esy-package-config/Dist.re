@@ -83,8 +83,8 @@ module Parse = {
   let manifestFilenameBeforeSharp = till(c => c != '#', ManifestSpec.parser);
 
   let urlWithPort = {
-    let%bind host = take_while1(c => c != ':') <* char(':');
-    let%bind port =
+    let* host = take_while1(c => c != ':') <* char(':');
+    let* port =
       take_while1(c => c != '/')
       >>= (
         p => {
@@ -94,15 +94,15 @@ module Parse = {
           };
         }
       );
-    let%bind path = take_while1(c => c != '#' && c != ':' && c != '%');
+    let* path = take_while1(c => c != '#' && c != ':' && c != '%');
     return(host ++ ":" ++ port ++ path);
   };
 
   let commitSHA = {
     let err = fail("missing or incorrect <commit>");
-    let%bind () = ignore(char('#')) <|> err;
-    let%bind () = commit;
-    let%bind sha = hex <|> err;
+    let* () = ignore(char('#')) <|> err;
+    let* () = commit;
+    let* sha = hex <|> err;
     if (String.length(sha) < 6) {
       err;
     } else {
@@ -114,7 +114,7 @@ module Parse = {
     switch%bind (peek_char) {
     | Some(':')
     | Some('%') =>
-      let%bind () = ignore(string("%3A")) <|> advance(1);
+      let* () = ignore(string("%3A")) <|> advance(1);
       let%map manifest =
         manifestFilenameBeforeSharp
         <|> fail("missing or incorrect <manifest>");
@@ -125,36 +125,35 @@ module Parse = {
 
   let github =
     {
-      let%bind user =
+      let* user =
         take_while1(c => c != '/')
         <* char('/')
         <|> fail("missing or incorrect <author>/<repo>");
 
-      let%bind repo =
+      let* repo =
         take_while1(c => c != '#' && c != ':' && c != '%')
         <|> fail("missing or incorrect <author>/<repo>");
 
-      let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitSHA;
+      let* manifest = gitOrGithubManifest;
+      let* commit = commitSHA;
       return(Github({user, repo, commit, manifest}));
     }
     <?> "<author>/<repo>(:<manifest>)?#<commit>";
 
   let gitViaSSH = {
-    let%bind parts =
-      sep_by1(char(':'), take_while1(c => c != ':' && c != '#'));
+    let* parts = sep_by1(char(':'), take_while1(c => c != ':' && c != '#'));
 
     switch (parts) {
     | [] => fail("missing or incorrect <remote>")
     | [remote] =>
-      let%bind commit = commitSHA;
+      let* commit = commitSHA;
       return(Git({remote, commit, manifest: None}));
     | [remote, path] =>
-      let%bind commit = commitSHA;
+      let* commit = commitSHA;
       return(Git({remote: remote ++ ":" ++ path, commit, manifest: None}));
     | [remote, path, manifest] =>
-      let%bind commit = commitSHA;
-      let%bind manifest =
+      let* commit = commitSHA;
+      let* manifest =
         switch (ManifestSpec.ofString(manifest)) {
         | Ok(manifest) => return(manifest)
         | Error(err) => fail("invalid manifest: " ++ err)
@@ -172,20 +171,20 @@ module Parse = {
 
   let gitRelaxed = {
     let viaURL = {
-      let%bind proto = {
+      let* proto = {
         let gitproto = string("git://") *> return("git://");
         let httpproto = string("git+http://") *> return("http://");
         let httpsproto = string("git+https://") *> return("https://");
         gitproto <|> httpproto <|> httpsproto;
       };
-      let%bind () = commit;
-      let%bind remote =
+      let* () = commit;
+      let* remote =
         choice(
           ~failure_msg="missing on incorrect <remote>",
           [urlWithPort, take_while1(c => c != '#' && c != ':' && c != '%')],
         );
-      let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitSHA;
+      let* manifest = gitOrGithubManifest;
+      let* commit = commitSHA;
       return(Git({remote: proto ++ remote, commit, manifest}));
     };
 
@@ -196,44 +195,44 @@ module Parse = {
 
   let git =
     {
-      let%bind () =
+      let* () =
         ignore(string("git+ssh://"))
         <|> ignore(string("git+"))
         <|> return();
-      let%bind proto =
+      let* proto =
         take_while1(c => c != ':')
         <* char(':')
         <|> fail("missing on incorrect <remote>");
 
-      let%bind remote =
+      let* remote =
         choice(
           ~failure_msg="missing on incorrect <remote>",
           [urlWithPort, take_while1(c => c != '#' && c != ':' && c != '%')],
         );
 
-      let%bind manifest = gitOrGithubManifest;
-      let%bind commit = commitSHA;
+      let* manifest = gitOrGithubManifest;
+      let* commit = commitSHA;
       return(Git({remote: proto ++ ":" ++ remote, commit, manifest}));
     }
     <?> "<remote>(:<manifest>)?#<commit>";
 
   let archive =
     {
-      let%bind proto =
+      let* proto =
         take_while1(c => c != ':')
         <* string("://")
         <|> fail("missing on incorrect <remote>");
 
-      let%bind () = commit;
-      let%bind proto =
+      let* () = commit;
+      let* proto =
         switch (proto) {
         | "http"
         | "https" => return(proto)
         | _ => fail("incorrect protocol: expected http: or https:")
         };
 
-      let%bind host = take_while1(c => c != '#');
-      let%bind checksum =
+      let* host = take_while1(c => c != '#');
+      let* checksum =
         char('#')
         *> Checksum.parser
         <|> fail("missing or incorrect <checksum>");
@@ -259,7 +258,7 @@ module Parse = {
     let path =
       scan(false, (seenPathSep, c) => Some(seenPathSep || c == '/'));
 
-    let%bind (path, seenPathSep) = path;
+    let* (path, seenPathSep) = path;
     if (!requirePathSep || seenPathSep) {
       return(make(path));
     } else {
@@ -287,8 +286,8 @@ module Parse = {
   };
 
   let parser = {
-    let%bind schema = schema;
-    let%bind () = commit;
+    let* schema = schema;
+    let* () = commit;
     switch (schema) {
     | `Git => git
     | `GitHub => github

@@ -78,22 +78,22 @@ let of_yojson = json => {
   open Json.Decode;
   switch%bind (fieldWith(~name="type", string, json)) {
   | "install" =>
-    let%bind source =
+    let* source =
       switch%bind (fieldWith(~name="source", list(Dist.of_yojson), json)) {
       | [source, ...mirrors] => return((source, mirrors))
       | _ => errorf("invalid source configuration")
       };
 
-    let%bind opam = fieldOptWith(~name="opam", opam_of_yojson, json);
+    let* opam = fieldOptWith(~name="opam", opam_of_yojson, json);
     Ok(Install({source, opam}));
   | "link" =>
-    let%bind path = fieldWith(~name="path", DistPath.of_yojson, json);
-    let%bind manifest =
+    let* path = fieldWith(~name="path", DistPath.of_yojson, json);
+    let* manifest =
       fieldOptWith(~name="manifest", ManifestSpec.of_yojson, json);
     Ok(Link({path, manifest, kind: LinkRegular}));
   | "link-dev" =>
-    let%bind path = fieldWith(~name="path", DistPath.of_yojson, json);
-    let%bind manifest =
+    let* path = fieldWith(~name="path", DistPath.of_yojson, json);
+    let* manifest =
       fieldOptWith(~name="manifest", ManifestSpec.of_yojson, json);
     Ok(Link({path, manifest, kind: LinkDev}));
   | typ => errorf("unknown source type: %s", typ)

@@ -34,9 +34,9 @@ let regex = (base, segments) => {
 };
 
 let relocateSourcePath = (sourcePath, rootPath) => {
-  let%bind () = rm(rootPath);
-  let%bind () = mkdir(rootPath);
-  let%bind () = {
+  let* () = rm(rootPath);
+  let* () = mkdir(rootPath);
+  let* () = {
     let ignore = [
       ".git",
       ".hg",
@@ -66,14 +66,14 @@ module JbuilderHack = {
     let currentBuild = build.sourcePath / "_build";
     let backupBuild = build.sourcePath / "_build.prev";
 
-    let%bind () =
+    let* () =
       if%bind (exists(currentBuild)) {
         mv(currentBuild, backupBuild);
       } else {
         ok;
       };
-    let%bind () = mkdir(savedBuild);
-    let%bind () = mv(savedBuild, currentBuild);
+    let* () = mkdir(savedBuild);
+    let* () = mv(savedBuild, currentBuild);
     ok;
   };
 
@@ -82,13 +82,13 @@ module JbuilderHack = {
     let currentBuild = build.sourcePath / "_build";
     let backupBuild = build.sourcePath / "_build.prev";
 
-    let%bind () =
+    let* () =
       if%bind (exists(currentBuild)) {
         mv(currentBuild, savedBuild);
       } else {
         ok;
       };
-    let%bind () =
+    let* () =
       if%bind (exists(backupBuild)) {
         mv(backupBuild, currentBuild);
       } else {
@@ -101,7 +101,7 @@ module JbuilderHack = {
     if (build.plan.jbuilderHackEnabled) {
       if (isRoot(build)) {
         let duneBuildDir = build.sourcePath / "_build";
-        let%bind () =
+        let* () =
           switch (lstat(duneBuildDir)) {
           | Ok({Unix.st_kind: S_DIR, _}) => ok
           | Ok(_) => rm(duneBuildDir)
@@ -128,7 +128,7 @@ module JbuilderHack = {
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
-  let%bind env = {
+  let* env = {
     let f = (k, v) =>
       fun
       | Ok(result) => {
@@ -146,11 +146,11 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
     };
     EsyLib.Result.List.map(~f, cmds);
   };
-  let%bind build = renderCommands(~cfg, plan.build);
-  let%bind install =
+  let* build = renderCommands(~cfg, plan.build);
+  let* install =
     switch (plan.install) {
     | Some(cmds) =>
-      let%bind cmds = renderCommands(~cfg, cmds);
+      let* cmds = renderCommands(~cfg, cmds);
       return(Some(cmds));
     | None => return(None)
     };
@@ -171,11 +171,11 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
   let lockPath =
     Path.(storePath / EsyLib.Store.buildTree / plan.id |> addExt(".lock"));
 
-  let%bind sandbox = {
-    let%bind config = {
-      let%bind tempPath = {
+  let* sandbox = {
+    let* config = {
+      let* tempPath = {
         let v = Path.v(Bos.OS.Env.opt_var("TMPDIR", ~absent="/tmp"));
-        let%bind v = realpath(v);
+        let* v = realpath(v);
         Ok(Path.show(v));
       };
       let allowWrite = [
@@ -282,15 +282,11 @@ let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
   | [] => return(acc)
   | [entry, ...r] => {
       let (module Fs) = m;
-      switch (
-        {
-          let%bind stats = Fs.stat(entry);
-          Ok(stats.Unix.st_kind);
-        }
-      ) {
-      | Ok(Unix.S_LNK)
-      | Ok(Unix.S_REG) =>
-        let%bind acc =
+      let* stats = Fs.stat(entry);
+      switch (stats.Unix.st_kind) {
+      | Unix.S_LNK
+      | Unix.S_REG =>
+        let* acc =
           Fs.withIC(
             entry,
             (inputChannel, (entry, acc)) => {
@@ -311,8 +307,8 @@ let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
             (entry, acc),
           );
         loop(m, acc, r);
-      | Ok(Unix.S_DIR) =>
-        let%bind rest = loop(m, acc, r);
+      | Unix.S_DIR =>
+        let* rest = loop(m, acc, r);
         getMachOBins(m, rest, entry);
       | Ok(_)
       | Error(_) => loop(m, acc, r)
@@ -322,17 +318,17 @@ and getMachOBins =
     (m: (module Run.T), acc, root)
     : result(list(Fpath.t), [> | `Msg(string)]) => {
   let (module Fs) = m;
-  let%bind entries = Fs.Dir.contents(root);
+  let* entries = Fs.Dir.contents(root);
   loop(m, acc, entries);
 };
 
 let commitBuildToStore = (config: Config.t, build: build) => {
-  let%bind () =
+  let* () =
     write(
       ~data=Path.show(config.storePath),
       Path.(build.stagePath / "_esy" / "storePrefix"),
     );
-  let%bind () =
+  let* () =
     if (Path.compare(build.stagePath, build.installPath) == 0) {
       Logs.app(m =>
         m("# esy-build-package: stage path and install path are the same")
@@ -353,7 +349,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       let env =
         EsyLib.EsyBash.currentEnvWithMingwInPath
         |> EsyLib.StringMap.add("_", Path.show(cmd));
-      let%bind () =
+      let* () =
         Bos.OS.Cmd.run(
           ~env,
           Cmd.(
@@ -374,8 +370,8 @@ let commitBuildToStore = (config: Config.t, build: build) => {
           build.installPath,
         )
       );
-      let%bind () = mv(build.stagePath, build.installPath);
-      let%bind entries =
+      let* () = mv(build.stagePath, build.installPath);
+      let* entries =
         getMachOBins((module Run): (module Run.T), [], build.installPath);
       let isBigSurArm =
         switch (System.Platform.host, System.Arch.host) {
@@ -397,63 +393,63 @@ let commitBuildToStore = (config: Config.t, build: build) => {
 };
 
 let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
-  let%bind build = configureBuild(~cfg, plan);
+  let* build = configureBuild(~cfg, plan);
 
   let initStoreAt = (path: Path.t) => {
-    let%bind () = mkdir(Path.(path / "i"));
-    let%bind () = mkdir(Path.(path / "b"));
-    let%bind () = mkdir(Path.(path / "s"));
+    let* () = mkdir(Path.(path / "i"));
+    let* () = mkdir(Path.(path / "b"));
+    let* () = mkdir(Path.(path / "s"));
     Ok();
   };
 
-  let%bind () = initStoreAt(cfg.storePath);
-  let%bind () = initStoreAt(cfg.localStorePath);
+  let* () = initStoreAt(cfg.storePath);
+  let* () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    let%bind () = rm(build.installPath);
-    let%bind () = rm(build.stagePath);
+    let* () = rm(build.installPath);
+    let* () = rm(build.stagePath);
     /* remove buildPath only if we build into a global store, otherwise we keep
      * buildPath and thus keep incremental builds */
-    let%bind () =
+    let* () =
       switch (build.plan.sourceType) {
       | Immutable => rm(build.buildPath)
       | ImmutableWithTransientDependencies
       | Transient => return()
       };
-    let%bind () = mkdir(build.stagePath);
-    let%bind () = mkdir(build.stagePath / "bin");
-    let%bind () = mkdir(build.stagePath / "lib");
-    let%bind () = mkdir(build.stagePath / "etc");
-    let%bind () = mkdir(build.stagePath / "sbin");
-    let%bind () = mkdir(build.stagePath / "man");
-    let%bind () = mkdir(build.stagePath / "share");
-    let%bind () = mkdir(build.stagePath / "toplevel");
-    let%bind () = mkdir(build.stagePath / "doc");
-    let%bind () = mkdir(build.stagePath / "_esy");
-    let%bind () = JbuilderHack.prepare(build);
-    let%bind () = mkdir(build.buildPath);
-    let%bind () = mkdir(build.buildPath / "_esy");
+    let* () = mkdir(build.stagePath);
+    let* () = mkdir(build.stagePath / "bin");
+    let* () = mkdir(build.stagePath / "lib");
+    let* () = mkdir(build.stagePath / "etc");
+    let* () = mkdir(build.stagePath / "sbin");
+    let* () = mkdir(build.stagePath / "man");
+    let* () = mkdir(build.stagePath / "share");
+    let* () = mkdir(build.stagePath / "toplevel");
+    let* () = mkdir(build.stagePath / "doc");
+    let* () = mkdir(build.stagePath / "_esy");
+    let* () = JbuilderHack.prepare(build);
+    let* () = mkdir(build.buildPath);
+    let* () = mkdir(build.buildPath / "_esy");
 
-    let%bind () =
+    let* () =
       if (Path.compare(build.sourcePath, build.rootPath) == 0) {
         ok;
       } else {
         relocateSourcePath(build.sourcePath, build.rootPath);
       };
 
-    let%bind () =
+    let* () =
       switch (withCwd(build.rootPath, ~f=() => f(build))) {
       | Ok () =>
-        let%bind () =
+        let* () =
           if (commit) {
             commitBuildToStore(cfg, build);
           } else {
             ok;
           };
-        let%bind () = JbuilderHack.finalize(build);
+        let* () = JbuilderHack.finalize(build);
         ok;
       | error =>
-        let%bind () = JbuilderHack.finalize(build);
+        let* () = JbuilderHack.finalize(build);
         error;
       };
 
@@ -512,11 +508,11 @@ let getEnvAndPath = build => {
 
 let runCommand = (build, cmd) => {
   let (env, path) = getEnvAndPath(build);
-  let%bind ((), (_runInfo, runStatus)) = {
-    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+  let* ((), (_runInfo, runStatus)) = {
+    let* cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let* cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
-    let%bind exec = Sandbox.exec(~env, build.sandbox, cmd);
+    let* exec = Sandbox.exec(~env, build.sandbox, cmd);
     Bos.OS.Cmd.(in_null |> exec(~err=Bos.OS.Cmd.err_run_out) |> out_stdout);
   };
   switch (runStatus) {
@@ -527,11 +523,11 @@ let runCommand = (build, cmd) => {
 
 let runCommandInteractive = (build, cmd) => {
   let (env, path) = getEnvAndPath(build);
-  let%bind ((), (_runInfo, runStatus)) = {
-    let%bind cmd = EsyLib.Cmd.ofBosCmd(cmd);
-    let%bind cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
+  let* ((), (_runInfo, runStatus)) = {
+    let* cmd = EsyLib.Cmd.ofBosCmd(cmd);
+    let* cmd = EsyLib.Cmd.resolveInvocation(path, cmd);
     let cmd = EsyLib.Cmd.toBosCmd(cmd);
-    let%bind exec = Sandbox.exec(~env, build.sandbox, cmd);
+    let* exec = Sandbox.exec(~env, build.sandbox, cmd);
     Bos.OS.Cmd.(in_stdin |> exec(~err=Bos.OS.Cmd.err_stderr) |> out_stdout);
   };
   switch (runStatus) {
@@ -541,7 +537,7 @@ let runCommandInteractive = (build, cmd) => {
 };
 
 let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
-  let%bind build = configureBuild(~cfg, plan);
+  let* build = configureBuild(~cfg, plan);
   Logs.debug(m => m("start %s", build.plan.id));
   Logs.debug(m => m("building"));
   Logs.app(m =>
@@ -562,7 +558,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       };
     let runEsyInstaller = installFilenames => {
       let findInstallFilenames = () => {
-        let%bind items = Run.ls(build.rootPath);
+        let* items = Run.ls(build.rootPath);
         return(
           items
           |> List.filter(name => Path.hasExt(".install", name))
@@ -651,7 +647,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
           Logs.app(m =>
             m("# esy-build-package: running: %s", Cmd.to_string(cmd))
           );
-          let%bind () = runCommand(cmd);
+          let* () = runCommand(cmd);
           aux(cmds);
         };
       aux(cmds);
@@ -671,13 +667,13 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
       if (!buildOnly) {
         runInstall();
       } else {
-        let%bind () = rm(build.installPath);
-        let%bind () = rm(build.stagePath);
+        let* () = rm(build.installPath);
+        let* () = rm(build.stagePath);
         ok;
       }
     | Error(msg) =>
-      let%bind () = rm(build.installPath);
-      let%bind () = rm(build.stagePath);
+      let* () = rm(build.installPath);
+      let* () = rm(build.stagePath);
       Error(msg);
     };
   };

@@ -37,7 +37,7 @@ let toFile = (path: Path.t, info: t) => {
 let ofFile = (path: EsyLib.Path.t) => {
   open RunAsync.Syntax;
   if%bind (Fs.exists(path)) {
-    let%bind json = Fs.readJsonFile(path);
+    let* json = Fs.readJsonFile(path);
     switch (of_yojson(json)) {
     | Ok(v) => return(Some(v))
     | Error(_err) => return(None)

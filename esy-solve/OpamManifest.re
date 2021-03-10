@@ -34,7 +34,7 @@ module File = {
   let ofPath = (~upgradeIfOpamVersionIsLessThan=?, ~cache=?, path) => {
     open RunAsync.Syntax;
     let load = () => {
-      let%bind data = Fs.readFile(path);
+      let* data = Fs.readFile(path);
       let filename = Path.show(path);
       return(ofString(~upgradeIfOpamVersionIsLessThan?, ~filename, data));
     };
@@ -57,7 +57,7 @@ type t = {
 
 let ofPath = (~name, ~version, path: Path.t) => {
   open RunAsync.Syntax;
-  let%bind opam = File.ofPath(path);
+  let* opam = File.ofPath(path);
   return({
     name,
     version,
@@ -125,30 +125,30 @@ let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
   switch (name) {
   | "ocaml" =>
     module C = SemverVersion.Constraint;
-    let%bind req =
+    let* req =
       switch (relop) {
       | None => return(C.ANY)
       | Some((`Eq, v)) =>
         switch (OpamPackage.Version.to_string(v)) {
         | "broken" => error("package is marked as broken")
         | _ =>
-          let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+          let* v = ocamlOpamVersionToOcamlNpmVersion(v);
           return(C.EQ(v));
         }
       | Some((`Neq, v)) =>
-        let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.NEQ(v));
       | Some((`Lt, v)) =>
-        let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.LT(v));
       | Some((`Gt, v)) =>
-        let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.GT(v));
       | Some((`Leq, v)) =>
-        let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.LTE(v));
       | Some((`Geq, v)) =>
-        let%bind v = ocamlOpamVersionToOcamlNpmVersion(v);
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.GTE(v));
       };
 
@@ -193,7 +193,7 @@ let convertOpamUrl = (manifest: t) => {
     };
 
   let sourceOfOpamUrl = url => {
-    let%bind hash =
+    let* hash =
       switch (OpamFile.URL.checksum(url)) {
       | [] =>
         errorf(
@@ -277,12 +277,12 @@ let convertDependencies = manifest => {
   };
 
   let filterAndConvertOpamFormula = (~build, ~post, ~test, ~doc, ~dev, f) => {
-    let%bind f = filterOpamFormula(~build, ~post, ~test, ~doc, ~dev, f);
+    let* f = filterOpamFormula(~build, ~post, ~test, ~doc, ~dev, f);
     convertOpamFormula(f);
   };
 
-  let%bind dependencies = {
-    let%bind formula =
+  let* dependencies = {
+    let* formula =
       filterAndConvertOpamFormula(
         ~build=true,
         ~post=false,
@@ -297,8 +297,8 @@ let convertDependencies = manifest => {
     return(InstallManifest.Dependencies.OpamFormula(formula));
   };
 
-  let%bind devDependencies = {
-    let%bind formula =
+  let* devDependencies = {
+    let* formula =
       filterAndConvertOpamFormula(
         ~build=false,
         ~post=false,
@@ -310,8 +310,8 @@ let convertDependencies = manifest => {
     return(InstallManifest.Dependencies.OpamFormula(formula));
   };
 
-  let%bind optDependencies = {
-    let%bind formula =
+  let* optDependencies = {
+    let* formula =
       filterOpamFormula(
         ~build=false,
         ~post=false,
@@ -339,8 +339,8 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
 
   let converted = {
     open Result.Syntax;
-    let%bind source = convertOpamUrl(manifest);
-    let%bind (dependencies, devDependencies, optDependencies) =
+    let* source = convertOpamUrl(manifest);
+    let* (dependencies, devDependencies, optDependencies) =
       convertDependencies(manifest);
     return((source, dependencies, devDependencies, optDependencies));
   };

@@ -2,7 +2,7 @@ open EsyPackageConfig;
 
 let ofPackageJson = (path: Path.t) => {
   open RunAsync.Syntax;
-  let%bind json = Fs.readJsonFile(path);
+  let* json = Fs.readJsonFile(path);
   switch (OfPackageJson.buildManifest(json)) {
   | Ok(Some(manifest)) =>
     return((Some(manifest), Path.Set.singleton(path)))
@@ -85,7 +85,7 @@ let parseOpam = data =>
     if (String.trim(data) == "") {
       return(None);
     } else {
-      let%bind opam =
+      let* opam =
         try(return(OpamFile.OPAM.read_from_string(data))) {
         | Failure(msg) => errorf("error parsing opam: %s", msg)
         | _ => errorf(" error parsing opam")
@@ -165,7 +165,7 @@ module OpamBuild = {
 
   let ofFile = (path: Path.t) => {
     open RunAsync.Syntax;
-    let%bind data = Fs.readFile(path);
+    let* data = Fs.readFile(path);
     switch (ofData(~nameFallback=None, data)) {
     | Ok(None) => errorf("unable to load opam manifest at %a", Path.pp, path)
     | Ok(Some(manifest)) =>
@@ -250,7 +250,7 @@ let ofInstallationLocation =
     switch (pkg.source) {
     | Link({path, manifest, kind: _}) =>
       let dist = Dist.LocalPath({path, manifest});
-      let%bind res =
+      let* res =
         EsyInstall.DistResolver.resolve(
           ~gitUsername=None,
           ~gitPassword=None,
@@ -261,7 +261,7 @@ let ofInstallationLocation =
 
       let overrides =
         Overrides.merge(pkg.overrides, res.EsyInstall.DistResolver.overrides);
-      let%bind manifest =
+      let* manifest =
         switch (res.EsyInstall.DistResolver.manifest) {
         | Some({
             kind: ManifestSpec.Esy,
@@ -272,7 +272,7 @@ let ofInstallationLocation =
           RunAsync.ofRun(
             {
               open Run.Syntax;
-              let%bind json = Json.parse(data);
+              let* json = Json.parse(data);
               OfPackageJson.buildManifest(json);
             },
           )
@@ -296,7 +296,7 @@ let ofInstallationLocation =
           return((None, res.EsyInstall.DistResolver.paths));
         } else {
           let manifest = BuildManifest.empty(~name=None, ~version=None, ());
-          let%bind manifest =
+          let* manifest =
             Overrides.foldWithBuildOverrides(
               ~f=applyOverride,
               ~init=manifest,
@@ -306,7 +306,7 @@ let ofInstallationLocation =
           return((Some(manifest), res.EsyInstall.DistResolver.paths));
         }
       | Some((manifest, _warnings)) =>
-        let%bind manifest =
+        let* manifest =
           Overrides.foldWithBuildOverrides(
             ~f=applyOverride,
             ~init=manifest,
@@ -326,7 +326,7 @@ let ofInstallationLocation =
             opamfile,
           );
 
-        let%bind manifest =
+        let* manifest =
           Overrides.foldWithBuildOverrides(
             ~f=applyOverride,
             ~init=manifest,
@@ -336,11 +336,11 @@ let ofInstallationLocation =
         return((Some(manifest), Path.Set.empty));
       | None =>
         let manifest = Dist.manifest(source);
-        let%bind (manifest, paths) = ofPath(~manifest?, loc);
-        let%bind manifest =
+        let* (manifest, paths) = ofPath(~manifest?, loc);
+        let* manifest =
           switch (manifest) {
           | Some((manifest, _warnings)) =>
-            let%bind manifest =
+            let* manifest =
               Overrides.foldWithBuildOverrides(
                 ~f=applyOverride,
                 ~init=manifest,
@@ -354,7 +354,7 @@ let ofInstallationLocation =
             } else {
               let manifest =
                 BuildManifest.empty(~name=None, ~version=None, ());
-              let%bind manifest =
+              let* manifest =
                 Overrides.foldWithBuildOverrides(
                   ~f=applyOverride,
                   ~init=manifest,

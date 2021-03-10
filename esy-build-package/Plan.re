@@ -24,8 +24,8 @@ type t = {
 };
 
 let ofFile = (path: Path.t) => {
-  module Let_syntax = EsyLib.Result.Syntax.Let_syntax;
-  let%bind data = Run.read(path);
+  open EsyLib.Result.Syntax;
+  let* data = Run.read(path);
   let json = Yojson.Safe.from_string(data);
   switch (of_yojson(json)) {
   | Ok(plan) => Ok(plan)

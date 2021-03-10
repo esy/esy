@@ -517,7 +517,7 @@ let render =
     | (None, _) => None
     };
 
-  let%bind v =
+  let* v =
     Run.ofStringError(
       EsyCommandExpression.render(
         ~envVar?,
@@ -532,7 +532,7 @@ let render =
 
 let makeSetBinding = (~buildIsInProgress, ~origin=?, scope, (name, value)) => {
   open Run.Syntax;
-  let%bind value =
+  let* value =
     Run.contextf(
       render(~buildIsInProgress, ~environmentVariableName=name, scope, value),
       "processing exportedEnv $%s",
@@ -573,7 +573,7 @@ let buildEnv = (~buildIsInProgress, scope) => {
   open Run.Syntax;
   let bindings =
     PackageScope.buildEnv(~buildIsInProgress, scope.mode, scope.self);
-  let%bind env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
+  let* env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
@@ -589,7 +589,7 @@ let buildEnvAuto = (~buildIsInProgress, scope) => {
 
   let bindings =
     PackageScope.buildEnvAuto(~buildIsInProgress, ~dev, scope.self);
-  let%bind env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
+  let* env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
@@ -597,7 +597,7 @@ let exportedEnvGlobal = scope => {
   open Run.Syntax;
   let bindings = PackageScope.exportedEnvGlobal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
-  let%bind env =
+  let* env =
     makeExportedEnvBindings(
       ~buildIsInProgress=false,
       ~origin,
@@ -611,7 +611,7 @@ let exportedEnvLocal = scope => {
   open Run.Syntax;
   let bindings = PackageScope.exportedEnvLocal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
-  let%bind env =
+  let* env =
     makeExportedEnvBindings(
       ~buildIsInProgress=false,
       ~origin,
@@ -624,16 +624,16 @@ let exportedEnvLocal = scope => {
 let env = (~includeBuildEnv, ~buildIsInProgress, scope) => {
   open Run.Syntax;
 
-  let%bind dependenciesEnv = {
+  let* dependenciesEnv = {
     let f = (env, dep) => {
       let name = dep.pkg.name;
       let isDirect = StringMap.mem(name, scope.directDependencies);
       if (isDirect) {
-        let%bind g = exportedEnvGlobal(dep);
-        let%bind l = exportedEnvLocal(dep);
+        let* g = exportedEnvGlobal(dep);
+        let* l = exportedEnvLocal(dep);
         return(env @ g @ l);
       } else {
-        let%bind g = exportedEnvGlobal(dep);
+        let* g = exportedEnvGlobal(dep);
         return(env @ g);
       };
     };
@@ -641,14 +641,14 @@ let env = (~includeBuildEnv, ~buildIsInProgress, scope) => {
     Run.List.foldLeft(~f, ~init=[], scope.dependencies);
   };
 
-  let%bind buildEnv =
+  let* buildEnv =
     if (includeBuildEnv) {
       buildEnv(~buildIsInProgress, scope);
     } else {
       return([]);
     };
 
-  let%bind buildEnvAuto =
+  let* buildEnvAuto =
     if (includeBuildEnv) {
       buildEnvAuto(~buildIsInProgress, scope);
     } else {
@@ -695,7 +695,7 @@ let ocamlVersion = scope => {
     | _ => false
     };
 
-  let%bind ocaml = List.find_opt(~f, scope.dependencies);
+  let* ocaml = List.find_opt(~f, scope.dependencies);
   return(toOCamlVersion(PackageScope.version(ocaml.self)));
 };
 
@@ -751,7 +751,7 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
     | (Some("ocaml"), "native-dynlink") => Some(bool(true))
     | (Some("ocaml"), "version") =>
       open Option.Syntax;
-      let%bind ocamlVersion = ocamlVersion;
+      let* ocamlVersion = ocamlVersion;
       Some(string(ocamlVersion));
 
     | (_, "hash") => Some(string(""))

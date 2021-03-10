@@ -24,20 +24,20 @@ let cwd = EsyLib.Path.v(Sys.getcwd());
 
 let initStore = (path: Fpath.t) => {
   open Run;
-  let%bind () = mkdir(Fpath.(path / "i"));
-  let%bind () = mkdir(Fpath.(path / "b"));
-  let%bind () = mkdir(Fpath.(path / "s"));
+  let* () = mkdir(Fpath.(path / "i"));
+  let* () = mkdir(Fpath.(path / "b"));
+  let* () = mkdir(Fpath.(path / "s"));
   return();
 };
 
 let rec configureStorePath =
         (~ocamlPkgName, ~ocamlVersion, cfg, globalStorePrefix) => {
   open Run;
-  let%bind path =
+  let* path =
     switch (cfg) {
     | StorePath(storePath) => return(storePath)
     | StorePathOfPrefix(prefixPath) =>
-      let%bind padding =
+      let* padding =
         Store.getPadding(~ocamlPkgName, ~ocamlVersion, prefixPath);
       let storePath = prefixPath / (Store.version ++ padding);
       return(storePath);
@@ -49,8 +49,8 @@ let rec configureStorePath =
         globalStorePrefix,
       )
     };
-  let%bind () = initStore(path);
-  let%bind () = mkdir(Fpath.(globalStorePrefix / Store.version / "b"));
+  let* () = initStore(path);
+  let* () = mkdir(Fpath.(globalStorePrefix / Store.version / "b"));
   return(path);
 };
 
@@ -67,7 +67,7 @@ let make =
       (),
     ) => {
   open Run;
-  let%bind storePath =
+  let* storePath =
     configureStorePath(
       ~ocamlPkgName,
       ~ocamlVersion,
@@ -80,7 +80,7 @@ let make =
     Unix.unlink(Fpath.to_string(storeSymlinkPath))
   | _ => ()
   };
-  let%bind () = initStore(localStorePath);
+  let* () = initStore(localStorePath);
   return({
     ocamlPkgName,
     ocamlVersion,

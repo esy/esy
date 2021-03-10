@@ -84,12 +84,12 @@ let withProcess =
 
   let env = prepareEnv(env);
 
-  let%bind cmd =
+  let* cmd =
     RunAsync.ofRun(
       {
         open Run.Syntax;
         let (prg, args) = Cmd.getToolAndArgs(cmd);
-        let%bind prg =
+        let* prg =
           switch (resolveProgramInEnv, env) {
           | (true, Some((env, _))) => resolveCmdInEnv(~env, prg)
           | _ => Ok(prg)
@@ -205,12 +205,12 @@ let runOut =
     | CustomEnv(env) => Some(env)
     };
 
-  let%bind cmdLwt =
+  let* cmdLwt =
     RunAsync.ofRun(
       {
         open Run.Syntax;
         let (prg, args) = Cmd.getToolAndArgs(cmd);
-        let%bind prg =
+        let* prg =
           switch (resolveProgramInEnv, env) {
           | (true, Some(env)) => resolveCmdInEnv(~env, prg)
           | _ => Ok(prg)

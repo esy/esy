@@ -12,8 +12,8 @@ let%test "curl download simple file" = {
       open RunAsync.Syntax;
       let fileToCurl = Path.(tempPath / "input.txt");
       let data = "test";
-      let%bind () = Fs.createDir(tempPath);
-      let%bind () = Fs.writeFile(~data, fileToCurl);
+      let* () = Fs.createDir(tempPath);
+      let* () = Fs.writeFile(~data, fileToCurl);
 
       /* use curl to copy the file, as opposed to hitting an external server */
       let output = Path.(tempPath / "output.txt");
@@ -23,7 +23,7 @@ let%test "curl download simple file" = {
       /* This won't impact HTTP requests though - just our test using the local file system */
       let url = EsyBash.normalizePathForCygwin(Path.show(fileToCurl));
 
-      let%bind () = EsyLib.Curl.download(~output, "file://" ++ url);
+      let* () = EsyLib.Curl.download(~output, "file://" ++ url);
 
       /* validate we were able to download it */
       Fs.exists(output);

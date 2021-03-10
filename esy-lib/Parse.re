@@ -22,7 +22,7 @@ let failIf = (msg, p) => {
 };
 
 let till = (c, p) => {
-  let%bind input = take_while1(c);
+  let* input = take_while1(c);
   switch (parse_string(~consume=All, p, input)) {
   | Ok(fname) => return(fname)
   | Error(msg) => fail(msg)

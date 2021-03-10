@@ -54,7 +54,7 @@ let make =
       (),
     ) => {
   open RunAsync.Syntax;
-  let%bind prefixPath =
+  let* prefixPath =
     RunAsync.ofRun(
       Run.Syntax.(
         switch (prefixPath) {
@@ -117,7 +117,7 @@ let make =
   let npmRegistry =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
-  let%bind installCfg =
+  let* installCfg =
     EsyInstall.Config.make(
       ~prefixPath,
       ~cacheTarballsPath?,

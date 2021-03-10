@@ -40,7 +40,7 @@ let createConfig = (copts: commonOpts) => {
     globalPathVariable,
     _,
   } = copts;
-  let%bind currentPath = Bos.OS.Dir.current();
+  let* currentPath = Bos.OS.Dir.current();
   let projectPath = Option.orDefault(~default=currentPath, projectPath);
   let storePath =
     switch (globalStorePrefix) {
@@ -70,9 +70,9 @@ let build = (~buildOnly=false, copts: commonOpts) => {
   open Run;
   let {planPath, _} = copts;
   let planPath = Option.orDefault(~default=v("build.json"), planPath);
-  let%bind cfg = createConfig(copts);
-  let%bind plan = Plan.ofFile(planPath);
-  let%bind () = Build.build(~buildOnly, ~cfg, plan);
+  let* cfg = createConfig(copts);
+  let* plan = Plan.ofFile(planPath);
+  let* () = Build.build(~buildOnly, ~cfg, plan);
   Ok();
 };
 
@@ -80,8 +80,8 @@ let shell = (copts: commonOpts) => {
   open Run;
   let {planPath, _} = copts;
   let planPath = Option.orDefault(~default=v("build.json"), planPath);
-  let%bind cfg = createConfig(copts);
-  let%bind plan = Plan.ofFile(planPath);
+  let* cfg = createConfig(copts);
+  let* plan = Plan.ofFile(planPath);
 
   let ppBanner = (build: Build.t) => {
     open Fmt;
@@ -120,7 +120,7 @@ let shell = (copts: commonOpts) => {
 
   let runShell = build => {
     ppBanner(build);
-    let%bind rcFilename =
+    let* rcFilename =
       createTmpFile(
         {|
         export PS1="[build $cur__name] % ";
@@ -136,7 +136,7 @@ let shell = (copts: commonOpts) => {
     Build.runCommandInteractive(build, cmd);
   };
 
-  let%bind () = Build.withBuild(~cfg, plan, runShell);
+  let* () = Build.withBuild(~cfg, plan, runShell);
   ok;
 };
 
@@ -144,13 +144,13 @@ let exec = (copts, command) => {
   open Run;
   let {planPath, _} = copts;
   let planPath = Option.orDefault(~default=v("build.json"), planPath);
-  let%bind cfg = createConfig(copts);
+  let* cfg = createConfig(copts);
   let runCommand = build => {
     let cmd = Cmd.of_list(command);
     Build.runCommandInteractive(build, cmd);
   };
-  let%bind plan = Plan.ofFile(planPath);
-  let%bind () = Build.withBuild(~cfg, plan, runCommand);
+  let* plan = Plan.ofFile(planPath);
+  let* () = Build.withBuild(~cfg, plan, runCommand);
   ok;
 };
 

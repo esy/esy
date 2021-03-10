@@ -16,7 +16,7 @@ let make =
       (),
     ) => {
   open RunAsync.Syntax;
-  let%bind prefixPath =
+  let* prefixPath =
     RunAsync.ofRun(
       Run.Syntax.(
         switch (prefixPath) {
@@ -33,24 +33,24 @@ let make =
     | Some(path) => path
     | None => Path.(prefixPath / "source")
     };
-  let%bind () = Fs.createDir(sourcePath);
+  let* () = Fs.createDir(sourcePath);
 
-  let%bind sourceArchivePath =
+  let* sourceArchivePath =
     switch (cacheTarballsPath) {
     | Some(path) =>
-      let%bind () = Fs.createDir(path);
+      let* () = Fs.createDir(path);
       return(Some(path));
     | None => return(None)
     };
 
   let sourceFetchPath = Path.(sourcePath / "f");
-  let%bind () = Fs.createDir(sourceFetchPath);
+  let* () = Fs.createDir(sourceFetchPath);
 
   let sourceStagePath = Path.(sourcePath / "s");
-  let%bind () = Fs.createDir(sourceStagePath);
+  let* () = Fs.createDir(sourceStagePath);
 
   let sourceInstallPath = Path.(sourcePath / "i");
-  let%bind () = Fs.createDir(sourceInstallPath);
+  let* () = Fs.createDir(sourceInstallPath);
 
   return({
     sourceArchivePath,

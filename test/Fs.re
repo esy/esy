@@ -12,10 +12,10 @@ let%test "copyPathLwt - copy simple file" = {
       let src = Path.(tempPath / "src.txt");
       let dst = Path.(tempPath / "dst.txt");
       let data = "test";
-      let%bind () = Fs.createDir(tempPath);
-      let%bind () = Fs.writeFile(~data, src);
+      let* () = Fs.createDir(tempPath);
+      let* () = Fs.writeFile(~data, src);
 
-      let%bind () = Fs.copyPath(~src, ~dst);
+      let* () = Fs.copyPath(~src, ~dst);
 
       Fs.exists(dst);
     };
@@ -35,10 +35,10 @@ let%test "copyPathLwt - copy nested file" = {
       let src = Path.(nestedSrc / "src.txt");
       let dst = Path.(nestedDest / "dst.txt");
       let data = "test";
-      let%bind () = Fs.createDir(nestedSrc);
-      let%bind () = Fs.writeFile(~data, src);
+      let* () = Fs.createDir(nestedSrc);
+      let* () = Fs.writeFile(~data, src);
 
-      let%bind () = Fs.copyPath(~src, ~dst);
+      let* () = Fs.copyPath(~src, ~dst);
 
       Fs.exists(dst);
     };
@@ -55,14 +55,14 @@ let%test "rmPathLwt - delete read only file" = {
       open RunAsync.Syntax;
       let src = Path.(tempPath / "test.txt");
       let data = "test";
-      let%bind () = Fs.writeFile(~data, src);
+      let* () = Fs.writeFile(~data, src);
 
       /* Set file as read only, and verify we can still delete it */
       /* Tested on Windows, this sets the read-only flag there too */
       let () = Unix.chmod(Path.show(src), 0o444);
 
-      let%bind () = Fs.rmPath(src);
-      let%bind exists = Fs.exists(src);
+      let* () = Fs.rmPath(src);
+      let* exists = Fs.exists(src);
       return(!exists);
     };
 
@@ -79,9 +79,9 @@ let%test "rename - can rename a directory" = {
       let src = Path.(srcTempPath / "test.txt");
       let dst = Path.(dstTempPath / "");
       let data = "test";
-      let%bind () = Fs.writeFile(~data, src);
+      let* () = Fs.writeFile(~data, src);
       let src = Path.(srcTempPath / "");
-      let%bind () = Fs.rename(~src, dst);
+      let* () = Fs.rename(~src, dst);
       return(true);
     };
 

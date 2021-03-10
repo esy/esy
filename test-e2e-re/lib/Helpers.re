@@ -40,7 +40,7 @@ let skipSuiteOnWindows = (~blockingIssue="Needs investigation", ()) =>
 let createSandbox = (~fixture=[], npmMock) => {
   open Result.Syntax;
   let numb = Random.int(20000);
-  let%bind tmp = getTempDir("esy-" ++ string_of_int(numb));
+  let* tmp = getTempDir("esy-" ++ string_of_int(numb));
   /* Save it, so it can be cleaned up later */
   // addSandbox(Path.show(tmp));
   /* Paths */
@@ -54,18 +54,18 @@ let createSandbox = (~fixture=[], npmMock) => {
     * Setup directores
     * Use underscore because it returns Ok(bool)
     */
-  let%bind _ = Dir.create(tmp);
-  let%bind _ = Dir.create(binPath);
-  let%bind _ = Dir.create(projectPath);
-  let%bind _ = Dir.create(npmPrefixPath);
-  let%bind () = BPath.symlink(~target=esyLocalPath, esyExePath);
+  let* _ = Dir.create(tmp);
+  let* _ = Dir.create(binPath);
+  let* _ = Dir.create(projectPath);
+  let* _ = Dir.create(npmPrefixPath);
+  let* () = BPath.symlink(~target=esyLocalPath, esyExePath);
   /* Initialize mock handlers */
-  let%bind () = Fixture.layoutMany(projectPath, fixture);
-  let%bind opamMockR = OpamMock.initialize();
+  let* () = Fixture.layoutMany(projectPath, fixture);
+  let* opamMockR = OpamMock.initialize();
   // Type issues when accesing fields otherwise
   let opamMock: OpamMock.registry = opamMockR;
 
-  let%bind currentEnv = Env.current();
+  let* currentEnv = Env.current();
   let esyEnv =
     Astring.String.Map.(
       currentEnv
@@ -82,15 +82,15 @@ let createSandbox = (~fixture=[], npmMock) => {
   let esyCmd = Cmd.v(Path.show(esyExePath));
 
   let remove = () => {
-    let%bind _ = Dir.delete(~recurse=true, tmp);
-    let%bind _ = opamMock.remove();
+    let* _ = Dir.delete(~recurse=true, tmp);
+    let* _ = opamMock.remove();
     return();
   };
   let esy = cmd => {
     let revert = changeCwd(Path.show(projectPath));
     let cmdList = String.split_on_char(' ', cmd);
     let program = Cmd.(esyCmd %% of_list(cmdList));
-    let%bind result = OS.Cmd.(run_out(~env=esyEnv, program) |> to_string);
+    let* result = OS.Cmd.(run_out(~env=esyEnv, program) |> to_string);
     revert();
     return(result);
   };
@@ -102,13 +102,13 @@ let createSandbox = (~fixture=[], npmMock) => {
   let defineNpmPackage = (package, ()) =>
     NpmPublish.publish(package, npmMock);
   let defineNpmPackages = (packages, ()) => {
-    let%bind _ = Result.List.map(~f=p => defineNpmPackage(p, ()), packages);
+    let* _ = Result.List.map(~f=p => defineNpmPackage(p, ()), packages);
     return();
   };
   let defineOpamPackage = (package, ()) =>
     OpamMock.defineOpamPackage(opamMock, package);
   let defineOpamPackages = (packages, ()) => {
-    let%bind _ = Result.List.map(~f=p => defineOpamPackage(p, ()), packages);
+    let* _ = Result.List.map(~f=p => defineOpamPackage(p, ()), packages);
     return();
   };
 
