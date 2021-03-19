@@ -38,14 +38,12 @@
     },
     "@opam/menhirLib": "20200211",
     "@opam/menhirSdk": "20200211",
-    "@opam/bigstringaf": "0.6.1",
     "@opam/extlib": "1.7.7-1",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
-    "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
+    "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b",
+    "@opam/ocamlfind": "1.8.1"
   },
   "dependencies": {
-    "@opam/mccs": "*",
-    "@opam/angstrom": "0.15.0",
     "@opam/bos": "0.2.0",
     "@opam/cmdliner": "*",
     "@opam/cudf": "0.9",
@@ -75,7 +73,7 @@
     "ocaml": "4.10.2000"
   },
   "devDependencies": {
-    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam",
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam#92924b6e36a91ce323b7f8eddfe20def4173e6e5",
     "@opam/merlin": "^3.3.3",
     "@opam/utop": "^2.4.2",
     "@opam/rtop": "facebook/reason:rtop.json",

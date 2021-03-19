@@ -44,7 +44,6 @@ index a31db1c7..5c6cb386 100644
        "override": {"dependencies": {"@opam/mtime": "*"}}
 @@ -40,6 +41,17 @@
      "@opam/menhirSdk": "20200211",
-     "@opam/bigstringaf": "0.6.1",
      "@opam/extlib": "1.7.7-1",
 +    "@opam/extlib-compat": {
 +      "source": "https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.7.tar.gz#sha256:4183abeca72efefc2513a440706c0e6e56d4676f60ae89a4306f8e5e03fbb5eb",
@@ -58,5 +57,6 @@ index a31db1c7..5c6cb386 100644
 +    "@opam/dune-build-info": "2.6.1",
 +    "@opam/dune-private-libs": "2.6.1",
      "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
-     "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
+     "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b",
+     "@opam/ocamlfind": "1.8.1"
    },
