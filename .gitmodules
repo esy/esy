@@ -4,3 +4,15 @@
 [submodule "vendor/esy-solve-cudf"]
 	path = esy-solve-cudf
 	url = https://github.com/esy-ocaml/esy-solve-cudf
+[submodule "vendor/angstrom"]
+	path = vendor/angstrom
+	url = https://github.com/inhabitedtype/angstrom/
+[submodule "vendor/bigstringaf"]
+	path = vendor/bigstringaf
+	url = https://github.com/inhabitedtype/bigstringaf
+[submodule "vendor/ocaml-mccs"]
+	path = vendor/ocaml-mccs
+	url = https://github.com/AltGr/ocaml-mccs.git
+[submodule "vendor/bigarray-compat"]
+	path = vendor/bigarray-compat
+	url = https://github.com/mirage/bigarray-compat.git
