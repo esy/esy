@@ -282,10 +282,14 @@ let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
   | [] => return(acc)
   | [entry, ...r] => {
       let (module Fs) = m;
-      let%bind stats = Fs.stat(entry);
-      switch (stats.Unix.st_kind) {
-      | Unix.S_LNK
-      | Unix.S_REG =>
+      switch (
+        {
+          let%bind stats = Fs.stat(entry);
+          Ok(stats.Unix.st_kind);
+        }
+      ) {
+      | Ok(Unix.S_LNK)
+      | Ok(Unix.S_REG) =>
         let%bind acc =
           Fs.withIC(
             entry,
@@ -307,10 +311,11 @@ let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
             (entry, acc),
           );
         loop(m, acc, r);
-      | Unix.S_DIR =>
+      | Ok(Unix.S_DIR) =>
         let%bind rest = loop(m, acc, r);
         getMachOBins(m, rest, entry);
-      | _ => loop(m, acc, r)
+      | Ok(_)
+      | Error(_) => loop(m, acc, r)
       };
     }
 and getMachOBins =
