@@ -30,6 +30,7 @@ depends: [
   "cudf" {>= "0.7"}
   ("extlib" {>= "1.7.0" & < "1.7.8"} | "extlib-compat" {>= "1.7.0"})
   "re" {>= "1.2.2"}
+  "ocamlfind" {build}
   "ocamlbuild" {build}
   "cppo" {build & >= "1.1.2"}
 ]
