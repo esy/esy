@@ -1,6 +1,18 @@
 # CHANGELOG
 
-## 0.6.8 @ latest
+## 0.6.9 @ latest
+
+- Bug Fix: packages that have invalid symlink now builds again. This
+  was introduced on `0.6.8` because of the to support macOS ARM64
+
+  [PR#1284](https://github.com/esy/esy/pull/1284) by @EduardoRFS
+
+- Feature: add support to `=version` when using opam dependencies, this
+  should solve the problem of `conduit-lwt-unix` and `tls`
+
+  [PR#1276](https://github.com/esy/esy/pull/1276) by @andreypopp
+
+## 0.6.8
 
 - Bug Fix: `ocamlfind` now to builds on `>= 4.10.1000` to as
   expected. This fix accounts for an extra underscore in the store
