@@ -20,5 +20,6 @@
   },
   "dependencies": {
     "docusaurus": "^1.0.0"
-  }
+  },
+  "version": "0.6.10"
 }

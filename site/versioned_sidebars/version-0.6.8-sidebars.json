@@ -1,0 +1,34 @@
+{
+  "version-0.6.8-docs": {
+    "Workflow": [
+      "version-0.6.8-what-why",
+      "version-0.6.8-getting-started",
+      "version-0.6.8-using-repo-sources-workflow",
+      "version-0.6.8-linking-workflow"
+    ],
+    "Reference": [
+      "version-0.6.8-concepts",
+      "version-0.6.8-configuration",
+      "version-0.6.8-environment",
+      "version-0.6.8-commands",
+      "version-0.6.8-low-level-commands",
+      "version-0.6.8-esy-configuration",
+      "version-0.6.8-node-compatibility",
+      "version-0.6.8-faqs"
+    ],
+    "Community": [
+      "version-0.6.8-community"
+    ],
+    "Advanced Workflow": [
+      "version-0.6.8-multiple-sandboxes",
+      "version-0.6.8-npm-release",
+      "version-0.6.8-opam-workflow",
+      "version-0.6.8-c-workflow",
+      "version-0.6.8-offline"
+    ],
+    "Internals": [
+      "version-0.6.8-how-it-works",
+      "version-0.6.8-development"
+    ]
+  }
+}
