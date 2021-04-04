@@ -270,7 +270,7 @@ The command to build the project simply becomes, `esy`
 
 ```
 $ esy
-info esy 0.6.9 (using package.json)
+info esy 0.6.10 (using package.json)
 info fetching: done
 info installing: done                                
 Done: 13/17 (jobs: 1)

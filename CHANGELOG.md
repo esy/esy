@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.6.9 @ latest
+## 0.6.10 @ latest
 
 - Bug Fix: packages that have invalid symlink now builds again. This
   was introduced on `0.6.8` because of the to support macOS ARM64
