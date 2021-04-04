@@ -104,11 +104,6 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
   return();
 };
 
-let revParse = (~repo, ~ref, ()) => {
-  let cmd = Cmd.(v("git") % "rev-parse" % "-C" % p(repo) % ref);
-  runGit(cmd);
-};
-
 let fetch = (~depth=?, ~dst, ~ref, ~remote, ()) => {
   let cmd = Cmd.(v("git") % "-C" % Path.show(dst) % "fetch" % remote % ref);
   let cmd =
