@@ -701,8 +701,8 @@ let checkSymlinksMessage =
     {|
 ERROR: Unable to create symlinks. Missing SeCreateSymbolicLinkPrivilege.
 
-Esy must be ran as an administrator on Windows, because it uses symbolic links.
-Open an elevated command shell by right-clicking and selecting 'Run as administrator', and try esy again.
+Esy needs permission to create symlinks, because of this you should
+Enable Developer Mode at Settings -> Update & Security -> For developers
 
 For more info, see https://github.com/esy/esy/issues/389
 |},
