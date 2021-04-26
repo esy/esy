@@ -1,0 +1,31 @@
+opam-version: "2.0"
+maintainer: "https://github.com/ocaml/opam-repository/issues"
+homepage: "https://sourceware.org/bzip2/"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+authors: "Bzip2 dev team"
+license: "BSD"
+build: [
+  ["sh" "-exc" "echo '#include <bzlib.h>' > test.c"]
+  ["sh" "-exc" "echo 'int main() { return 0; }' >> test.c"]
+  ["cc" "-lbz2" "test.c"]
+]
+depexts: [
+  ["libbz2-dev"] {os-family = "debian"}
+  ["libbz2-dev"] {os-family = "ubuntu"}
+  ["bzip2-dev"] {os-family = "alpine"}
+  ["bzip2-devel"] {os-distribution = "fedora"}
+  ["bzip2-devel"] {os-distribution = "rhel"}
+  ["bzip2-devel"] {os-distribution = "centos"}
+  ["bzip2-devel"] {os-distribution = "ol"}
+  ["libbz2-devel"] {os-family = "suse"}
+  ["bzip2"] {os-family = "arch"}
+  ["bzip2"] {os = "freebsd"}
+  ["bzip2"] {os = "openbsd"}
+  ["bzip2"] {os = "netbsd"}
+  ["bzip2"] {os = "macos" & os-distribution = "homebrew"}
+  ["bzip2"] {os = "macos" & os-distribution = "macports"}
+]
+synopsis: "Virtual package relying on libbz2"
+description:
+  "This package can only install if the libbz2 library is installed on the system."
+flags: conf

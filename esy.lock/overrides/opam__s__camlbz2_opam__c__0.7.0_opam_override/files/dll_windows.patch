@@ -1,0 +1,36 @@
+diff --git a/Makefile.in b/Makefile.in
+index 125f476..9a28a09 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -21,7 +21,7 @@ VERSION := 0.6.0
+ 
+ INSTALLFILES := \
+ 	$(SHORTNAME).cmi $(SHORTNAME).mli $(SHORTNAME).cma \
+-	dll$(NAME).so lib$(NAME).a
++	dll$(NAME).$(SO) lib$(NAME).a
+ 
+ DISTSRC := $(SHORTNAME).ml $(SHORTNAME).mli \
+ 	c_bz.c io.h \
+@@ -53,11 +53,11 @@ else
+ install : normal-install
+ endif
+ 
+-stub   : dll$(NAME).so lib$(NAME).a
++stub   : dll$(NAME).$(SO) lib$(NAME).a
+ lib    : $(SHORTNAME).cma
+ libopt : $(SHORTNAME).cmxa
+ 
+-lib$(NAME).a dll$(NAME).so : c_bz.o
++lib$(NAME).a dll$(NAME).$(SO) : c_bz.o
+ 	$(OCAMLMKLIB) -oc $(NAME) $^ $(CLIBS) $(CLIBSDIR)
+ 
+ $(SHORTNAME).cma : $(SHORTNAME).cmo
+@@ -87,7 +87,7 @@ findlib-install: all
+ 		$(SHORTNAME) META $(INSTALLFILES)
+ 
+ clean:
+-	rm -f *.cm* *.a *.so *.o *.opt test test.opt .depend
++	rm -f *.cm* *.a *.so *.dll *.o *.opt test test.opt .depend
+ distclean: clean
+ 	rm -f config.log config.status Makefile
+ maintainer-clean: distclean

@@ -2,7 +2,7 @@ FROM ocaml/opam:alpine-3.12-ocaml-4.10 as builder
 
 WORKDIR /app/esy
 
-RUN sudo apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils
+RUN sudo apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils autoconf automake bzip2 bzip2-dev zlib zlib-dev
 
 RUN opam repository add duniverse https://github.com/dune-universe/opam-repository.git#duniverse
 

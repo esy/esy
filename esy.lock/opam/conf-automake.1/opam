@@ -1,0 +1,33 @@
+opam-version: "2.0"
+maintainer: "7895506+MSoegtropIMC@users.noreply.github.com"
+homepage: "https://www.gnu.org/software/automake"
+authors: ["Jim Meyering" "David J. MacKenzie" "https://git.savannah.gnu.org/cgit/automake.git/tree/THANKS"]
+bug-reports: "https://www.gnu.org/software/automake/manual/html_node/Reporting-Bugs.html"
+license: "GPL-2.0+"
+build: [ "automake" "--help" ]
+depends: "conf-autoconf"
+depexts: [
+  # The list of supported os-family names can be derived from the opam sources (thanks Enrico)
+  #   https://github.com/ocaml/opam/blob/6aefe95e60084e63d01b1c7c028b6b77de1f839f/src/state/opamSysInteract.ml#L84-L123
+  # The package name for many Linux/BSD/macOS/cygwin/msys platforms can be searched here (thanks Théo)
+  #   https://repology.org specifically https://repology.org/project/automake/versions
+  #   Not listed above but supported by opam are suse, oraclelinix, ol, rhel
+  [ "automake" ] {os-family = "alpine"}
+  [ "automake" ] {os-family = "amzn"}
+  [ "automake" ] {os-family = "arch"}
+  [ "automake" ] {os-family = "archlinux"}
+  [ "automake" ] {os-family = "centos"}
+  # Note: although https://repology.org/project/automake/versions states debian has only automake packages
+  # with explicit versions, there is an "automake" package, at least on Ubuntu 18.04
+  [ "automake" ] {os-family = "debian"}
+  [ "automake" ] {os-family = "fedora"}
+  [ "sys-devel/automake" ] {os-family = "gentoo"}
+  [ "automake" ] {os-family = "homebrew"}
+  [ "automake" ] {os-family = "macports"}
+  [ "automake" ] {os-family = "mageia"}
+  [ "automake" ] {os-family = "opensuse"}
+  [ "devel/automake" ] {os-family = "bsd"}
+]
+synopsis: "Virtual package relying on GNU automake"
+description: "This package can only install if GNU automake is installed on the system."
+flags: conf

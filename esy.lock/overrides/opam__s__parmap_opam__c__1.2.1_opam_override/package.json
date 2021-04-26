@@ -1,0 +1,6 @@
+{
+  "build": [
+    "bash -c #{os == 'windows' ? '\"patch -p1 < windows.patch\"' : 'true'}",
+    "dune build -p parmap"
+  ]
+}

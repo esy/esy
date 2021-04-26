@@ -1,0 +1,12 @@
+opam-version: "2.0"
+maintainer: "unixjunkie@sdf.org"
+authors: "https://git.savannah.gnu.org/cgit/automake.git/tree/AUTHORS"
+homepage: "http://www.gnu.org/software/automake/"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+license: "GPL-1.0-or-later"
+build: ["aclocal" "--version"]
+depends: ["conf-automake"]
+synopsis: "Virtual package relying on aclocal"
+description:
+  "This package can only install if the aclocal program is installed on the system."
+flags: conf

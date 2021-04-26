@@ -31,7 +31,7 @@ index 47148185..f9533d73 100644
     (-w -39)))
   (preprocess
 diff --git a/esy.json b/esy.json
-index a31db1c7..5c6cb386 100644
+index edecf384..3c8c6bf3 100644
 --- a/esy.json
 +++ b/esy.json
 @@ -32,6 +32,7 @@
@@ -42,18 +42,10 @@ index a31db1c7..5c6cb386 100644
      "@opam/bos": {
        "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
        "override": {"dependencies": {"@opam/mtime": "*"}}
-@@ -40,6 +41,17 @@
+@@ -39,6 +40,9 @@
+     "@opam/menhirLib": "20200211",
      "@opam/menhirSdk": "20200211",
      "@opam/bigstringaf": "0.6.1",
-     "@opam/extlib": "1.7.7-1",
-+    "@opam/extlib-compat": {
-+      "source": "https://ygrek.org/p/release/ocaml-extlib/extlib-1.7.7.tar.gz#sha256:4183abeca72efefc2513a440706c0e6e56d4676f60ae89a4306f8e5e03fbb5eb",
-+      "override": {
-+        "buildsInSource": true,
-+        "build": ["make minimal=1 build"],
-+        "install": ["make minimal=1 install"]
-+      }
-+    },
 +    "@opam/dune-configurator": "2.6.1",
 +    "@opam/dune-build-info": "2.6.1",
 +    "@opam/dune-private-libs": "2.6.1",
