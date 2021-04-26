@@ -183,9 +183,9 @@ module Explanation = {
       let map = {
         let f = map =>
           fun
-          | Algo.Diagnostic.Dependency((pkg, _, _))
+          | Dose_algo.Diagnostic.Dependency((pkg, _, _))
               when pkg.Cudf.package == "dose-dummy-request" => map
-          | Algo.Diagnostic.Dependency((pkg, _, deplist)) => {
+          | Dose_algo.Diagnostic.Dependency((pkg, _, deplist)) => {
               let pkg = Universe.CudfMapping.decodePkgExn(pkg, cudfMapping);
               let f = (map, dep) => {
                 let dep = Universe.CudfMapping.decodePkgExn(dep, cudfMapping);
@@ -235,7 +235,7 @@ module Explanation = {
     let%bind reasons = {
       let f = reasons =>
         fun
-        | Algo.Diagnostic.Conflict((left, right, _)) => {
+        | Dose_algo.Diagnostic.Conflict((left, right, _)) => {
             let left = {
               let pkg = Universe.CudfMapping.decodePkgExn(left, cudfMapping);
               let (requestor, path) = resolveReqViaDepChain(pkg);
@@ -267,7 +267,7 @@ module Explanation = {
               return(reasons);
             };
           }
-        | Algo.Diagnostic.Missing((pkg, vpkglist)) => {
+        | Dose_algo.Diagnostic.Missing((pkg, vpkglist)) => {
             let pkg = Universe.CudfMapping.decodePkgExn(pkg, cudfMapping);
             let (requestor, path) = resolveDepChain(pkg);
             let trace =
@@ -321,13 +321,15 @@ module Explanation = {
 
   let explain = (~gitUsername, ~gitPassword, cudfMapping, solver, cudf) =>
     RunAsync.Syntax.(
-      switch (Algo.Depsolver.check_request(~explain=true, cudf)) {
-      | Algo.Depsolver.Sat(_)
-      | Algo.Depsolver.Unsat(None)
-      | Algo.Depsolver.Unsat(Some({result: Algo.Diagnostic.Success(_), _})) =>
+      switch (Dose_algo.Depsolver.check_request(~explain=true, cudf)) {
+      | Dose_algo.Depsolver.Sat(_)
+      | Dose_algo.Depsolver.Unsat(None)
+      | Dose_algo.Depsolver.Unsat(
+          Some({result: Dose_algo.Diagnostic.Success(_), _}),
+        ) =>
         return(None)
-      | Algo.Depsolver.Unsat(
-          Some({result: Algo.Diagnostic.Failure(reasons), _}),
+      | Dose_algo.Depsolver.Unsat(
+          Some({result: Dose_algo.Diagnostic.Failure(reasons), _}),
         ) =>
         let reasons = reasons();
         let%bind reasons =
@@ -339,7 +341,7 @@ module Explanation = {
             reasons,
           );
         return(Some(reasons));
-      | Algo.Depsolver.Error(err) => error(err)
+      | Dose_algo.Depsolver.Error(err) => error(err)
       }
     );
 };
