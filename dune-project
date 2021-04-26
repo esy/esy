@@ -31,8 +31,8 @@ Easy package management for native Reason, OCaml and more
     cmdliner
     bos 
     (cudf (= 0.9+dune))  
-    (dose3 (= 5.0.1+dune))
-    (ocamlgraph (= 1.8.8+dune))
+    (dose3 (= 6.1))
+    (ocamlgraph (= 2.0.0))
     dune  
     fmt  
     fpath  
@@ -58,5 +58,5 @@ Easy package management for native Reason, OCaml and more
     mccs
     yojson  
     (ocaml (= 4.10.2))
-    (extlib (< 1.7.8))))
+    (extlib (= 1.7.8))))
 

@@ -1,0 +1,29 @@
+opam-version: "2.0"
+maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+authors: [
+  "Claude Michel <claude.michel@unice.fr>"
+  "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+]
+homepage: "http://www.i3s.unice.fr/~cpjm/misc/"
+bug-reports: "https://github.com/AltGr/ocaml-mccs/issues"
+license: ["LGPL-2.1-only with OCaml-LGPL-linking-exception" "BSD-3-clause" "GPL-3.0"]
+dev-repo: "git+https://github.com/AltGr/ocaml-mccs.git"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["sh" "-c" "dune build @settests --auto-promote || true"] {with-test}
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+depends: [
+  "ocaml"
+  "dune" {>= "1.0"}
+  "cudf" {>= "0.7"}
+]
+synopsis: "MCCS (which stands for Multi Criteria CUDF Solver) is a CUDF problem solver
+developed at UNS during the European MANCOOSI project"
+url {
+  src: "https://github.com/AltGr/ocaml-mccs/archive/1.1+13.tar.gz"
+  checksum: [
+    "md5=13504d3b5dcbf0bdc6d95a62de20af4a"
+    "sha512=2c2bc3c0e82b53a0e20c2542704eba8e3a2a1884f31b1a0a0079dd22fc02be8a8a62e582bdbf501339be0e9d6824872d737087e0fe150073b29b374505de073d"
+  ]
+}

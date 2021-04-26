@@ -1,0 +1,33 @@
+diff --git a/src/setcore_stubs.c b/src/setcore_stubs.c
+index 6c7cedd..8fdc2cf 100644
+--- a/src/setcore_stubs.c
++++ b/src/setcore_stubs.c
+@@ -12,14 +12,26 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <caml/mlvalues.h>
++#ifdef _WIN32
++#include <windows.h>
++#endif
+ 
++static int get_numcores() {
++#ifdef _WIN32
++  SYSTEM_INFO sysinfo;
++  GetSystemInfo(&sysinfo);
++  return sysinfo.dwNumberOfProcessors;
++#else
++  return sysconf( _SC_NPROCESSORS_ONLN );
++#endif
++}
+ CAMLprim value numcores(value unit) {
+-  int numcores = sysconf( _SC_NPROCESSORS_ONLN );
++  int numcores = get_numcores();
+   return Val_int(numcores);
+ }
+ 
+ CAMLprim value setcore(value which) {
+-  int numcores = sysconf( _SC_NPROCESSORS_ONLN );
++  int numcores = get_numcores();
+   int w = Int_val(which) % numcores; // stay in the space of existing cores
+ #if HAVE_DECL_SCHED_SETAFFINITY
+   cpu_set_t cpus;   
