@@ -21,26 +21,26 @@
 %left EQ NEQ
 %left NOT
 
-%{
-
-  module E = Types.Expr
-
-%}
-
 %start start
 %type <Types.Expr.t> start
+
+%{
+
+  open Types.Expr
+
+%}
 
 %%
 
 start:
-    e = expr; EOF { e }
+   e = expr; EOF { e }
   | EOF; { String "" }
 
 expr:
   e = nonempty_list(atom) {
     match e with
     | [e] -> e
-    | es -> E.Concat es
+    | es -> Concat es
   }
 
 (** Expressions which are allowed inside of then branch w/o parens *)
@@ -60,33 +60,33 @@ atom:
   | e = atomOr { e }
   | e = atomEq { e }
   | e = atomNeq { e }
-  | NOT; e = atom { E.Not e }
-  | SLASH { E.PathSep }
-  | COLON { E.Colon }
+  | NOT; e = atom { Not e }
+  | SLASH { PathSep }
+  | COLON { Colon }
 
 atomAnd:
-  a = atom; AND; b = atom { E.And (a, b) }
+  a = atom; AND; b = atom { And (a, b) }
 
 atomOr:
-  a = atom; OR; b = atom { E.Or (a, b) }
+  a = atom; OR; b = atom { Or (a, b) }
 
 atomEq:
-  a = atom; EQ; b = atom { E.Rel (E.EQ, a, b) }
+  a = atom; EQ; b = atom { Rel (EQ, a, b) }
 
 atomNeq:
-  a = atom; NEQ; b = atom { E.Rel (E.NEQ, a, b) }
+  a = atom; NEQ; b = atom { Rel (NEQ, a, b) }
 
 %inline atomCond:
-  cond = atom; QUESTION_MARK; t = restrictedExpr; COLON; e = restrictedExpr { E.Condition (cond, t, e) }
+  cond = atom; QUESTION_MARK; t = restrictedExpr; COLON; e = restrictedExpr { Condition (cond, t, e) }
 
 %inline atomString:
-  e = STRING { E.String e }
+  e = STRING { String e }
 
 %inline atomEnv:
-  DOLLAR; n = ID { E.EnvVar n }
+  DOLLAR; n = ID { EnvVar n }
 
 %inline atomId:
-  | e = id { E.Var e }
+  | e = id { Var e }
 
 id:
     id = ID { (None, id) }

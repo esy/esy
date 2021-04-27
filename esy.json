@@ -36,8 +36,6 @@
       "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
       "override": {"dependencies": {"@opam/mtime": "*"}}
     },
-    "@opam/menhirLib": "20200211",
-    "@opam/menhirSdk": "20200211",
     "@opam/bigstringaf": "0.6.1",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
     "@opam/astring": "github:dune-universe/astring:astring.opam#baa4e7e2bf919293aac2c899786c2ac40757dd9b"
@@ -56,8 +54,8 @@
     "@opam/logs": "0.7.0",
     "@opam/lwt": "4.4.0",
     "@opam/lwt_ppx": "1.2.4",
-    "@opam/menhir": "20200211",
-    "@opam/ocamlformat": "~0.15.0",
+    "@opam/menhir": "20210419",
+    "@opam/ocamlformat": "0.15.0",
     "@opam/opam-core": "2.0.5",
     "@opam/opam-file-format": "2.0.0",
     "@opam/opam-format": "2.0.5",

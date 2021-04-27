@@ -31,10 +31,10 @@ index 47148185..f9533d73 100644
     (-w -39)))
   (preprocess
 diff --git a/esy.json b/esy.json
-index edecf384..3c8c6bf3 100644
+index 34fde38a..ac403774 100644
 --- a/esy.json
 +++ b/esy.json
-@@ -32,6 +32,7 @@
+@@ -32,11 +32,15 @@
      "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
    },
    "resolutions": {
@@ -42,9 +42,7 @@ index edecf384..3c8c6bf3 100644
      "@opam/bos": {
        "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
        "override": {"dependencies": {"@opam/mtime": "*"}}
-@@ -39,6 +40,9 @@
-     "@opam/menhirLib": "20200211",
-     "@opam/menhirSdk": "20200211",
+     },
      "@opam/bigstringaf": "0.6.1",
 +    "@opam/dune-configurator": "2.6.1",
 +    "@opam/dune-build-info": "2.6.1",
