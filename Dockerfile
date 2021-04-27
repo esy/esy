@@ -1,4 +1,4 @@
-FROM ocaml/opam:alpine-3.12-ocaml-4.10 as builder
+FROM ocaml/opam:alpine-3.12-ocaml-4.12 as builder
 
 WORKDIR /app/esy
 
@@ -21,16 +21,16 @@ RUN opam clean
 RUN git -C /app/esy/esy-solve-cudf apply static-linking.patch && \
     git -C /app/esy apply static-linking.patch
 
-RUN esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
-    esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda && \
+RUN esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda && \
+    esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda && \
     esy cleanup . && \
-    esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-musl.static.flambda
+    esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.12.0-musl.static.flambda
 
 RUN opam exec -- sudo dune uninstall --prefix /usr/local
 RUN sudo yarn global --prefix=/usr/local --force add $PWD/_release
 RUN sudo mv _release /app/_release
 
-FROM ocaml/opam:alpine-3.12-ocaml-4.10
+FROM ocaml/opam:alpine-3.12-ocaml-4.12
 
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /app/_release /app/_release

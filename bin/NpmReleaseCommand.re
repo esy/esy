@@ -156,13 +156,7 @@ let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
 };
 
 let makeBinWrapper =
-    (~noEnv=?, ~destPrefix, ~bin, ~environment: Environment.Bindings.t) => {
-  let noEnv =
-    switch (noEnv) {
-    | Some(x) => x
-    | None => false
-    };
-
+    (~noEnv, ~destPrefix, ~bin, ~environment: Environment.Bindings.t) => {
   let path_sep =
     if (!Sys.unix) {
       '\\';
