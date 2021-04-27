@@ -128,7 +128,7 @@ APP_ESY ?= $(PWD)
 APP_ESY_INSTALL ?= /usr/local/
 APP_ESY_RELEASE ?= /app/_release
 OPAM_PREFIX_POST ?= musl+static+flambda
-OPAM_PREFIX ?= 4.10.2+$(OPAM_PREFIX_POST)
+OPAM_PREFIX ?= 4.12.0+$(OPAM_PREFIX_POST)
 OPAM_PREFIX_POSTDOT = $(subst +,.,$(OPAM_PREFIX_POST))
 SUDO ?= sudo
 
@@ -146,9 +146,9 @@ new-docker:
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
-	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.10.1002-$(OPAM_PREFIX_POSTDOT)
+	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
+	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
+	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT)
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)

@@ -43,7 +43,7 @@ Easy package management for native Reason, OCaml and more
     lwt_ppx
     junit
     (menhir (= 20210419)) 
-    (ocamlformat (= 0.15.0)) 
+    (ocamlformat (= 0.18.0)) 
     opam-core  
     opam-file-format  
     opam-format  
@@ -57,6 +57,6 @@ Easy package management for native Reason, OCaml and more
     re  
     mccs
     yojson  
-    (ocaml (= 4.10.2))
+    (ocaml (= 4.12.0))
     (extlib (= 1.7.8))))
 
