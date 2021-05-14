@@ -1,5 +1,5 @@
 {
-  "checksum": "295a1532c34d573ee50075d67ddc6410",
+  "checksum": "cf92419155ec284bf4efb6bedd672959",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -126,7 +126,7 @@
         "@opam/ppx_inline_test@opam:v0.14.1@2e4fdd8d",
         "@opam/ppx_expect@opam:v0.14.1@cee36131",
         "@opam/ppx_deriving_yojson@opam:3.6.1@faf11a7c",
-        "@opam/ppx_deriving@opam:5.2.1@479736f0",
+        "@opam/ppx_deriving@opam:5.2@585aa1d8",
         "@opam/opam-state@opam:2.1.0~beta4@d7643898",
         "@opam/opam-format@opam:2.1.0~beta4@7c7413c4",
         "@opam/opam-file-format@opam:2.1.2@39d5feb0",
@@ -147,7 +147,7 @@
       ],
       "devDependencies": [
         "@opam/utop@opam:2.7.0@4ba5133d",
-        "@opam/ocaml-lsp-server@opam:1.5.0@a7ce3ad8",
+        "@opam/ocaml-lsp-server@opam:1.6.0@e9e7f839",
         "@opam/merlin@opam:4.2-412@845ccff0"
       ]
     },
@@ -1067,31 +1067,31 @@
         "ocaml@4.12.0@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82",
         "@opam/ppxlib@opam:0.22.0@17206ba4",
-        "@opam/ppx_deriving@opam:5.2.1@479736f0",
+        "@opam/ppx_deriving@opam:5.2@585aa1d8",
         "@opam/dune@opam:2.8.5@83fb0224", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
         "@opam/result@opam:1.5@6b753c82",
         "@opam/ppxlib@opam:0.22.0@17206ba4",
-        "@opam/ppx_deriving@opam:5.2.1@479736f0",
+        "@opam/ppx_deriving@opam:5.2@585aa1d8",
         "@opam/dune@opam:2.8.5@83fb0224"
       ]
     },
-    "@opam/ppx_deriving@opam:5.2.1@479736f0": {
-      "id": "@opam/ppx_deriving@opam:5.2.1@479736f0",
+    "@opam/ppx_deriving@opam:5.2@585aa1d8": {
+      "id": "@opam/ppx_deriving@opam:5.2@585aa1d8",
       "name": "@opam/ppx_deriving",
-      "version": "opam:5.2.1",
+      "version": "opam:5.2",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/e9/e96b5fb25b7632570e4b329e22e097fcd4b8e8680d1e43ef003a8fbd742b0786#sha256:e96b5fb25b7632570e4b329e22e097fcd4b8e8680d1e43ef003a8fbd742b0786",
-          "archive:https://github.com/ocaml-ppx/ppx_deriving/releases/download/v5.2.1/ppx_deriving-v5.2.1.tbz#sha256:e96b5fb25b7632570e4b329e22e097fcd4b8e8680d1e43ef003a8fbd742b0786"
+          "archive:https://opam.ocaml.org/cache/sha256/1c/1c2d2626824ca350c365bf6c8bc3a23c8045c3995c170f2bc500e53baeda2ee6#sha256:1c2d2626824ca350c365bf6c8bc3a23c8045c3995c170f2bc500e53baeda2ee6",
+          "archive:https://github.com/ocaml-ppx/ppx_deriving/releases/download/v5.2/ppx_deriving-v5.2.tbz#sha256:1c2d2626824ca350c365bf6c8bc3a23c8045c3995c170f2bc500e53baeda2ee6"
         ],
         "opam": {
           "name": "ppx_deriving",
-          "version": "5.2.1",
-          "path": "esy.lock/opam/ppx_deriving.5.2.1"
+          "version": "5.2",
+          "path": "esy.lock/opam/ppx_deriving.5.2"
         }
       },
       "overrides": [],
@@ -1263,28 +1263,23 @@
         "@opam/dune@opam:2.8.5@83fb0224", "@opam/base@opam:v0.14.1@d14008e2"
       ]
     },
-    "@opam/parmap@opam:1.2.1@b55d8bc2": {
-      "id": "@opam/parmap@opam:1.2.1@b55d8bc2",
+    "@opam/parmap@opam:1.2.3@ae107f1f": {
+      "id": "@opam/parmap@opam:1.2.3@ae107f1f",
       "name": "@opam/parmap",
-      "version": "opam:1.2.1",
+      "version": "opam:1.2.3",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/70/701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd#sha256:701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd",
-          "archive:https://github.com/rdicosmo/parmap/releases/download/1.2.1/parmap-1.2.1.tbz#sha256:701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd"
+          "archive:https://opam.ocaml.org/cache/sha256/5b/5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1#sha256:5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1",
+          "archive:https://github.com/rdicosmo/parmap/releases/download/1.2.3/parmap-1.2.3.tbz#sha256:5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1"
         ],
         "opam": {
           "name": "parmap",
-          "version": "1.2.1",
-          "path": "esy.lock/opam/parmap.1.2.1"
+          "version": "1.2.3",
+          "path": "esy.lock/opam/parmap.1.2.3"
         }
       },
-      "overrides": [
-        {
-          "opamoverride":
-            "esy.lock/overrides/opam__s__parmap_opam__c__1.2.1_opam_override"
-        }
-      ],
+      "overrides": [],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9",
         "@opam/dune-configurator@opam:2.8.5@eae07e15",
@@ -1739,29 +1734,27 @@
         "ocaml@4.12.0@d41d8cd9", "@opam/dune@opam:2.8.5@83fb0224"
       ]
     },
-    "@opam/ocaml-lsp-server@opam:1.5.0@a7ce3ad8": {
-      "id": "@opam/ocaml-lsp-server@opam:1.5.0@a7ce3ad8",
+    "@opam/ocaml-lsp-server@opam:1.6.0@e9e7f839": {
+      "id": "@opam/ocaml-lsp-server@opam:1.6.0@e9e7f839",
       "name": "@opam/ocaml-lsp-server",
-      "version": "opam:1.5.0",
+      "version": "opam:1.6.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/2c/2c19731536a4f62923554c1947c39211#md5:2c19731536a4f62923554c1947c39211",
-          "archive:https://github.com/ocaml/ocaml-lsp/releases/download/1.5.0/jsonrpc-1.5.0.tbz#md5:2c19731536a4f62923554c1947c39211"
+          "archive:https://opam.ocaml.org/cache/sha256/35/35e8c7341f8eb1fa39fb0f0e0701a7ed90b9a0bb89ccf84b7ed997cd258cbec3#sha256:35e8c7341f8eb1fa39fb0f0e0701a7ed90b9a0bb89ccf84b7ed997cd258cbec3",
+          "archive:https://github.com/ocaml/ocaml-lsp/releases/download/1.6.0/jsonrpc-1.6.0.tbz#sha256:35e8c7341f8eb1fa39fb0f0e0701a7ed90b9a0bb89ccf84b7ed997cd258cbec3"
         ],
         "opam": {
           "name": "ocaml-lsp-server",
-          "version": "1.5.0",
-          "path": "esy.lock/opam/ocaml-lsp-server.1.5.0"
+          "version": "1.6.0",
+          "path": "esy.lock/opam/ocaml-lsp-server.1.6.0"
         }
       },
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
-        "@opam/stdlib-shims@opam:0.3.0@0d088929",
         "@opam/result@opam:1.5@6b753c82",
         "@opam/ppx_yojson_conv_lib@opam:v0.14.0@116b53d6",
-        "@opam/ocamlfind@opam:1.9.1@b748edf6",
         "@opam/dune-build-info@opam:2.8.5@1dae72be",
         "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/dot-merlin-reader@opam:4.1@120afa42",
@@ -1769,10 +1762,8 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/yojson@opam:1.7.0@7056d985",
-        "@opam/stdlib-shims@opam:0.3.0@0d088929",
         "@opam/result@opam:1.5@6b753c82",
         "@opam/ppx_yojson_conv_lib@opam:v0.14.0@116b53d6",
-        "@opam/ocamlfind@opam:1.9.1@b748edf6",
         "@opam/dune-build-info@opam:2.8.5@1dae72be",
         "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/dot-merlin-reader@opam:4.1@120afa42",
@@ -2576,7 +2567,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/stdlib-shims@opam:0.3.0@0d088929",
-        "@opam/re@opam:1.9.0@d4d5e13d", "@opam/parmap@opam:1.2.1@b55d8bc2",
+        "@opam/re@opam:1.9.0@d4d5e13d", "@opam/parmap@opam:1.2.3@ae107f1f",
         "@opam/ocamlgraph@opam:2.0.0@3dafd524",
         "@opam/extlib@opam:1.7.8@24e7b47b", "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/cudf@opam:0.9@a6dc285d", "@opam/camlzip@opam:1.10@ac17c991",
@@ -2586,7 +2577,7 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/stdlib-shims@opam:0.3.0@0d088929",
-        "@opam/re@opam:1.9.0@d4d5e13d", "@opam/parmap@opam:1.2.1@b55d8bc2",
+        "@opam/re@opam:1.9.0@d4d5e13d", "@opam/parmap@opam:1.2.3@ae107f1f",
         "@opam/ocamlgraph@opam:2.0.0@3dafd524",
         "@opam/extlib@opam:1.7.8@24e7b47b", "@opam/dune@opam:2.8.5@83fb0224",
         "@opam/cudf@opam:0.9@a6dc285d", "@opam/camlzip@opam:1.10@ac17c991",

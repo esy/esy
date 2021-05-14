@@ -61,7 +61,7 @@
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
     "@opam/opam-state": "*",
-    "@opam/ppx_deriving": "*",
+    "@opam/ppx_deriving": "5.2",
     "@opam/ppx_deriving_yojson": "*",
     "@opam/ppx_expect": "*",
     "@opam/ppx_inline_test": "*",
