@@ -190,7 +190,7 @@ two reasons,
 1. They are installed in a global location somewhere else. Like
    `/usr/local`, `/usr/bin`
 2. Running them directly (`$ /path/to/hello.exe`) is rarely reliable
-   as they might depend on a version of libary that simply may not be
+   as they might depend on a version of library that simply may not be
    present, or the wrong version.
    
 Just like build environments, it would be nice to our project binaries
