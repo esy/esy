@@ -76,7 +76,7 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
           open Result.Syntax;
           let nf = EsyBash.normalizePathForCygwin(Path.show(filename));
           let normalizedOut = EsyBash.normalizePathForCygwin(Path.show(out));
-          return(Cmd.(v("tar") % "xf" % nf % "-C" % normalizedOut));
+          return(Cmd.(v("tar") % "xf" % "--dereference" % nf % "-C" % normalizedOut));
         },
       );
 
