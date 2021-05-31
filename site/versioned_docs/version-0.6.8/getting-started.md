@@ -271,7 +271,7 @@ The command to build the project simply becomes, `esy`
 
 ```
 $ esy
-info esy 0.6.8 (using package.json)
+info esy 0.6.10 (using package.json)
 info fetching: done
 info installing: done                                
 Done: 13/17 (jobs: 1)
@@ -300,6 +300,12 @@ git clone https://github.com/esy-ocaml/hello-reason.git
 cd hello-reason
 esy
 ```
+
+Note: to get intellisense on VSCode, make sure the latest version of
+`@opam/ocaml-lsp-server` is present in `package.json`. OCaml versions
+may differ across projects and a single global `ocamllsp` binary won't
+work across projects. The `hello-reason` template takes care of this
+already.
 
 ## Cheat sheet
 
