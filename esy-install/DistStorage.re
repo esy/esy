@@ -24,6 +24,13 @@ type fetchedDist =
       stripComponents: int,
     });
 
+let esyChecksumKind = kind =>
+  switch (kind) {
+  | `MD5 => Checksum.Md5
+  | `SHA256 => Checksum.Sha256
+  | `SHA512 => Checksum.Sha512
+  };
+
 let cache = (fetched, tarballPath) =>
   RunAsync.Syntax.(
     switch (fetched) {
@@ -67,18 +74,92 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
+let fetch' =
+    (
+      sandbox,
+      dist,
+      gitUsername,
+      gitPassword,
+      opamOpt: option(PackageSource.opam),
+    ) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
   | Dist.LocalPath({path: srcPath, manifest: _}) =>
+    let%lwt () = Logs_lwt.app(m => m("LocalPath: blahhhh"));
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
 
-  | Dist.NoSource => return(Empty)
+  | Dist.NoSource =>
+    let manifestOpt =
+      switch (SandboxSpec.manifestPath(sandbox)) {
+      | Some(manifest) => Fpath.to_string(manifest)
+      | None => "no path found"
+      };
+    let%lwt () =
+      Logs_lwt.app(m =>
+        m("NoSource: blahhhh  %s %b", manifestOpt, Option.isSome(opamOpt))
+      );
+    switch (opamOpt) {
+    | Some({path, name, version}) =>
+      let%lwt () =
+        Logs_lwt.app(m =>
+          m(
+            "inside some: %s, path: %s",
+            OpamPackage.Name.to_string(name),
+            Fpath.to_string(path),
+          )
+        );
+      let%bind opamContents = Fs.readFile(Path.(path / "opam"));
+      let opam =
+        OpamFile.OPAM.read(
+          OpamFile.make(
+            OpamFilename.of_string(Fpath.to_string(Path.(path / "opam"))),
+          ),
+        );
+      let extraSources = OpamFile.OPAM.extra_sources(opam);
+
+      let%lwt () =
+        Logs_lwt.app(m => m("length: %d", List.length(extraSources)));
+
+      let path = CachePaths.fetchedDist(sandbox, dist);
+
+      let%bind () = Fs.createDir(path);
+
+      Lwt_list.iter_s(
+        ((basename, u)) => {
+          let finalfilename = OpamFilename.Base.to_string(basename);
+          let url = OpamUrl.to_string(OpamFile.URL.url(u));
+          let checksum = OpamFile.URL.checksum(u) |> List.hd;
+          let checksumKind = checksum |> OpamHash.kind;
+          let checksumContents = checksum |> OpamHash.contents;
+
+          let tarballPath = Path.(path / finalfilename);
+          let%lwt () =
+            Logs_lwt.app(m =>
+              m("tarball Path: %s", Fpath.to_string(tarballPath))
+            );
+
+          Curl.download(~output=tarballPath, url) |> ignore;
+          // Checksum.checkFile(
+          //   ~path=tarballPath,
+          //   (esyChecksumKind(checksumKind), checksumContents),
+          // )
+          // |> ignore;
+          Lwt.return();
+        },
+        extraSources,
+      )
+      |> ignore;
+      return();
+    | _ => return()
+    };
+    let path = CachePaths.fetchedDist(sandbox, dist);
+    return(Path(path));
 
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
+    let%lwt () = Logs_lwt.app(m => m("Archive: blahhhh %s", url));
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
@@ -93,6 +174,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
     );
 
   | Dist.Github(github) =>
+    let%lwt () = Logs_lwt.app(m => m("GitHub: blahhhh"));
     let path = CachePaths.fetchedDist(sandbox, dist);
     let%bind () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
@@ -137,11 +219,45 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        let%bind () =
+          switch (github.manifest) {
+          | Some((Opam, opamfile)) =>
+            let%bind opamContents = Fs.readFile(Path.(path / opamfile));
+            let opam =
+              OpamFile.OPAM.read(
+                OpamFile.make(OpamFilename.of_string(opamfile)),
+              );
+            let extraSources = OpamFile.OPAM.extra_sources(opam);
+
+            Lwt_list.iter_s(
+              ((basename, u)) => {
+                let finalfilename = OpamFilename.Base.to_string(basename);
+                let url = OpamUrl.to_string(OpamFile.URL.url(u));
+                let checksum = OpamFile.URL.checksum(u) |> List.hd;
+                let checksumKind = checksum |> OpamHash.kind;
+                let checksumContents = checksum |> OpamHash.contents;
+                let tarballPath = Path.(path / finalfilename);
+                Curl.download(~output=tarballPath, url) |> ignore;
+                Checksum.checkFile(
+                  ~path=tarballPath,
+                  (esyChecksumKind(checksumKind), checksumContents),
+                )
+                |> ignore;
+                Lwt.return();
+              },
+              extraSources,
+            )
+            |> ignore;
+            return();
+          | _ => return()
+          };
+
         return(Path(path));
       },
     );
 
   | Dist.Git(git) =>
+    let%lwt () = Logs_lwt.app(m => m("Git: blahhhh"));
     let path = CachePaths.fetchedDist(sandbox, dist);
     let%bind () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
@@ -167,15 +283,47 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        let%bind () =
+          switch (git.manifest) {
+          | Some((Opam, opamfile)) =>
+            let%bind opamContents = Fs.readFile(Path.(path / opamfile));
+            let opam =
+              OpamFile.OPAM.read(
+                OpamFile.make(OpamFilename.of_string(opamfile)),
+              );
+            let extraSources = OpamFile.OPAM.extra_sources(opam);
+
+            Lwt_list.iter_s(
+              ((basename, u)) => {
+                let finalfilename = OpamFilename.Base.to_string(basename);
+                let url = OpamUrl.to_string(OpamFile.URL.url(u));
+                let checksum = OpamFile.URL.checksum(u) |> List.hd;
+                let checksumKind = checksum |> OpamHash.kind;
+                let checksumContents = checksum |> OpamHash.contents;
+                let tarballPath = Path.(path / finalfilename);
+                Curl.download(~output=tarballPath, url) |> ignore;
+                Checksum.checkFile(
+                  ~path=tarballPath,
+                  (esyChecksumKind(checksumKind), checksumContents),
+                )
+                |> ignore;
+                Lwt.return();
+              },
+              extraSources,
+            )
+            |> ignore;
+            return();
+          | _ => return()
+          };
         return(Path(path));
       },
     );
   };
 };
 
-let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword) =>
+let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, opamOpt) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist, gitUsername, gitPassword),
+    fetch'(sandbox, dist, gitUsername, gitPassword, opamOpt),
     "fetching dist: %a",
     Dist.pp,
     dist,
@@ -189,6 +337,9 @@ let unpack = (fetched, path) =>
     | SourcePath(srcPath)
     | Path(srcPath) =>
       let%bind names = Fs.listDir(srcPath);
+      let%lwt () =
+        Logs_lwt.app(m => m("names: %s", String.concat(" ", names)));
+
       let copy = name => {
         let src = Path.(srcPath / name);
         let dst = Path.(path / name);
@@ -209,7 +360,8 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
   if%bind (Fs.exists(path)) {
     return(path);
   } else {
-    let%bind fetched = fetch(cfg, sandbox, dist, gitUsername, gitPassword);
+    let%bind fetched =
+      fetch(cfg, sandbox, dist, gitUsername, gitPassword, None);
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,

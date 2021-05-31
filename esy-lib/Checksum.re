@@ -98,12 +98,15 @@ let checkFile = (~path, checksum: t) => {
       | (Sha256, _) => sha256sum
       | (Sha512, _) => sha512sum
       };
+    let _path = EsyBash.normalizePathForCygwin(Path.show(path));
+    let%lwt () = Logs_lwt.app(m => m("tarball Path: %s, >> %s", _path, Fpath.to_string(path)));
 
     /* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths */
     RunAsync.ofBosError(
       {
         open Result.Syntax;
         let path = EsyBash.normalizePathForCygwin(Path.show(path));
+
         let%bind out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
         switch (Astring.String.cut(~sep=" ", out)) {
         | Some((v, _)) => return(v)

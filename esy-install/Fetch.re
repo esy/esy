@@ -254,8 +254,21 @@ module FetchPackage: {
   };
 
   /* fetch any of the dists for the package */
-  let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
+  let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword, opamOpt) => {
     open RunAsync.Syntax;
+    let%lwt () =
+      Logs_lwt.debug(m => {m("fetch %a", Package.pp, pkg)});
+
+    let rec printList = dists => {
+      switch (dists) {
+      | [dist, ...dists] =>
+        let%lwt () = Logs_lwt.debug(m => {m("dist %a", Dist.pp, dist)});
+        printList(dists);
+      | [] => Lwt.return()
+      };
+    };
+
+    printList(dists);
 
     let rec fetchAny = (errs, alternatives) =>
       switch (alternatives) {
@@ -267,6 +280,7 @@ module FetchPackage: {
             dist,
             gitUsername,
             gitPassword,
+            opamOpt,
           );
         switch%lwt (fetched) {
         | Ok(fetched) => return(fetched)
@@ -307,7 +321,7 @@ module FetchPackage: {
         | Link({path, _}) =>
           let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
           return((pkg, Linked(path)));
-        | Install({source: (main, mirrors), opam: _}) =>
+        | Install({source: (main, mirrors), opam: opamOpt}) =>
           let%bind cached =
             switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
             | None => return(None)
@@ -326,7 +340,14 @@ module FetchPackage: {
                   );
                 let dists = [main, ...mirrors];
                 let%bind dist =
-                  fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
+                  fetch'(
+                    sandbox,
+                    pkg,
+                    dists,
+                    gitUsername,
+                    gitPassword,
+                    opamOpt,
+                  );
                 let%bind dist = DistStorage.cache(dist, cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               }
@@ -345,11 +366,23 @@ module FetchPackage: {
             | None =>
               let%lwt () =
                 Logs_lwt.debug(m =>
-                  m("fetching %a: fetching", Package.pp, pkg)
+                  m(
+                    "fetching %a: fetching %b",
+                    Package.pp,
+                    pkg,
+                    Option.isSome(opamOpt),
+                  )
                 );
               let dists = [main, ...mirrors];
               let%bind dist =
-                fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
+                fetch'(
+                  sandbox,
+                  pkg,
+                  dists,
+                  gitUsername,
+                  gitPassword,
+                  opamOpt,
+                );
               return((pkg, Fetched(dist)));
             };
           };
@@ -522,7 +555,7 @@ module FetchPackage: {
     };
 
     let%bind () = {
-      let%lwt () = Logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
+      let%lwt () = Logs_lwt.app(m => m("unpacking %a", Package.pp, pkg));
       RunAsync.contextf(
         DistStorage.unpack(fetched, stagePath),
         "unpacking %a",
