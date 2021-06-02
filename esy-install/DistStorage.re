@@ -13,7 +13,7 @@ module CachePaths = {
 /* dist which is fetched */
 type fetchedDist =
   /* no sources, corresponds to Dist.NoSource */
-  | Empty
+  | Empty(list(Path.t))
   /* cached source path which could be safely removed */
   | Path(Path.t)
   /* source path from some local package, should be retained */
@@ -34,7 +34,7 @@ let esyChecksumKind = kind =>
 let cache = (fetched, tarballPath) =>
   RunAsync.Syntax.(
     switch (fetched) {
-    | Empty =>
+    | Empty(_) =>
       let%bind unpackPath = Fs.randomPathVariation(tarballPath);
       let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
       let%bind () = Fs.createDir(unpackPath);
@@ -100,8 +100,10 @@ let fetch' =
       Logs_lwt.app(m =>
         m("NoSource: blahhhh  %s %b", manifestOpt, Option.isSome(opamOpt))
       );
+
     switch (opamOpt) {
     | Some({path, name, version}) =>
+      let __path = CachePaths.fetchedDist(sandbox, dist);
       let%lwt () =
         Logs_lwt.app(m =>
           m(
@@ -122,40 +124,39 @@ let fetch' =
       let%lwt () =
         Logs_lwt.app(m => m("length: %d", List.length(extraSources)));
 
-      let path = CachePaths.fetchedDist(sandbox, dist);
+      let%bind () = Fs.createDir(__path);
 
-      let%bind () = Fs.createDir(path);
+      let%lwt extraSourcePaths =
+        Lwt_list.fold_left_s(
+          (acc, (basename, u)) => {
+            let finalfilename = OpamFilename.Base.to_string(basename);
+            let url = OpamUrl.to_string(OpamFile.URL.url(u));
+            let checksum = OpamFile.URL.checksum(u) |> List.hd;
+            let checksumKind = checksum |> OpamHash.kind;
+            let checksumContents = checksum |> OpamHash.contents;
 
-      Lwt_list.iter_s(
-        ((basename, u)) => {
-          let finalfilename = OpamFilename.Base.to_string(basename);
-          let url = OpamUrl.to_string(OpamFile.URL.url(u));
-          let checksum = OpamFile.URL.checksum(u) |> List.hd;
-          let checksumKind = checksum |> OpamHash.kind;
-          let checksumContents = checksum |> OpamHash.contents;
+            let tarballPath = Path.(__path / finalfilename);
+            let%lwt () =
+              Logs_lwt.app(m =>
+                m("tarball Path: %s", Fpath.to_string(tarballPath))
+              );
 
-          let tarballPath = Path.(path / finalfilename);
-          let%lwt () =
-            Logs_lwt.app(m =>
-              m("tarball Path: %s", Fpath.to_string(tarballPath))
-            );
+            Curl.download(~output=tarballPath, url) |> ignore;
+            // TODO: integrity check
+            // Checksum.checkFile(
+            //   ~path=tarballPath,
+            //   (esyChecksumKind(checksumKind), checksumContents),
+            // )
+            // |> ignore;
+            Lwt.return(List.cons(tarballPath, acc));
+          },
+          [],
+          extraSources,
+        );
 
-          Curl.download(~output=tarballPath, url) |> ignore;
-          // Checksum.checkFile(
-          //   ~path=tarballPath,
-          //   (esyChecksumKind(checksumKind), checksumContents),
-          // )
-          // |> ignore;
-          Lwt.return();
-        },
-        extraSources,
-      )
-      |> ignore;
-      return();
-    | _ => return()
+      return(Empty(extraSourcePaths));
+    | _ => return(Empty([]))
     };
-    let path = CachePaths.fetchedDist(sandbox, dist);
-    return(Path(path));
 
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
@@ -251,7 +252,8 @@ let fetch' =
             return();
           | _ => return()
           };
-
+        let%lwt () =
+          Logs_lwt.app(m => m("GitHub: %s", Fpath.to_string(path)));
         return(Path(path));
       },
     );
@@ -333,12 +335,30 @@ let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, opamOpt) =>
 let unpack = (fetched, path) =>
   RunAsync.Syntax.(
     switch (fetched) {
-    | Empty => Fs.createDir(path)
+    | Empty(paths) =>
+      Fs.createDir(path) |> ignore;
+      Lwt_list.iter_s(
+        filepath => {
+          let filename = Fpath.basename(filepath);
+          let%lwt () = Logs_lwt.app(m => m("filename: %s", filename));
+          Fs.copyFile(~src=filepath, ~dst=Path.(path / filename)) |> ignore;
+          Lwt.return();
+        },
+        paths,
+      )
+      |> ignore;
+      return();
     | SourcePath(srcPath)
     | Path(srcPath) =>
       let%bind names = Fs.listDir(srcPath);
       let%lwt () =
-        Logs_lwt.app(m => m("names: %s", String.concat(" ", names)));
+        Logs_lwt.app(m =>
+          m(
+            "names: %s %s",
+            String.concat(" ", names),
+            Fpath.to_string(path),
+          )
+        );
 
       let copy = name => {
         let src = Path.(srcPath / name);
