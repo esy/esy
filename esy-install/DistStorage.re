@@ -90,7 +90,7 @@ let fetch' =
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
 
-  | Dist.NoSource =>
+  | Dist.NoSource(extraSources) =>
     let manifestOpt =
       switch (SandboxSpec.manifestPath(sandbox)) {
       | Some(manifest) => Fpath.to_string(manifest)

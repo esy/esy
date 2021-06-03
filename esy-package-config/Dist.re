@@ -7,6 +7,13 @@ type local = {
 };
 
 [@deriving (ord, sexp_of)]
+type extraSource = {
+  url: string,
+  checksum: Checksum.t,
+  relativePath: string,
+};
+
+[@deriving (ord, sexp_of)]
 type t =
   | Archive({
       url: string,
@@ -24,7 +31,7 @@ type t =
       manifest: option(ManifestSpec.t),
     })
   | LocalPath(local)
-  | NoSource;
+  | NoSource(list(extraSource));
 
 let manifest = (dist: t) =>
   switch (dist) {
@@ -34,7 +41,7 @@ let manifest = (dist: t) =>
   | Github(_) => None
   | LocalPath(info) => info.manifest
   | Archive(_) => None
-  | NoSource => None
+  | NoSource(_) => None
   };
 
 let show' = (~showPath) =>
@@ -68,7 +75,7 @@ let show' = (~showPath) =>
       showPath(path),
       ManifestSpec.show(manifest),
     )
-  | NoSource => "no-source:";
+  | NoSource(_) => "no-source:";
 
 let show = show'(~showPath=DistPath.show);
 let showPretty = show'(~showPath=DistPath.showPretty);
@@ -294,7 +301,8 @@ module Parse = {
     | `GitHub => github
     | `Archive => archive
     | `Path => path(~requirePathSep=false)
-    | `NoSource => return(NoSource)
+    // TODO: write parse for extra sources
+    | `NoSource => return(NoSource([]))
     };
   };
 

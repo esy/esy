@@ -55,7 +55,8 @@ let show' = (~showPath) =>
       showPath(path),
       ManifestSpec.show(manifest),
     )
-  | Dist(NoSource) => "no-source:"
+  // TODO: might need to encode extra sources as string
+  | Dist(NoSource(_)) => "no-source:"
   | Link({path, manifest: None, kind: LinkRegular}) =>
     Printf.sprintf("link:%s", showPath(path))
   | Link({path, manifest: Some(manifest), kind: LinkRegular}) =>

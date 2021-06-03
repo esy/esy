@@ -139,7 +139,8 @@ let ofPath = (~manifest=?, path: Path.t) => {
         ~fallback=Path.(path |> normalize |> remEmptySeg |> basename),
         (kind, filename),
       );
-    let%lwt () = Logs_lwt.app(m => m(">>> %s", Fpath.to_string(manifestPath)));
+    let%lwt () =
+      Logs_lwt.app(m => m(">>> %s", Fpath.to_string(manifestPath)));
     if%bind (Fs.exists(manifestPath)) {
       let%bind data = Fs.readFile(manifestPath);
       switch (kind) {
@@ -265,7 +266,7 @@ let resolve =
       let%bind (_, pkg) = ofPath(path);
       return((pkg, Path.Set.empty));
 
-    | NoSource => return((EmptyManifest, Path.Set.empty))
+    | NoSource(_) => return((EmptyManifest, Path.Set.empty))
     };
   };
 

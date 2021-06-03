@@ -20,7 +20,7 @@ type t =
       manifest: option(ManifestSpec.t),
     })
   | LocalPath(Dist.local)
-  | NoSource;
+  | NoSource(list(Dist.extraSource));
 
 include S.PRINTABLE with type t := t;
 include S.COMPARABLE with type t := t;

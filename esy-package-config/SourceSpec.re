@@ -18,7 +18,7 @@ type t =
       manifest: option(ManifestSpec.t),
     })
   | LocalPath(Dist.local)
-  | NoSource;
+  | NoSource(list(Dist.extraSource));
 
 let show =
   fun
@@ -64,7 +64,8 @@ let show =
       ManifestSpec.show(manifest),
     )
 
-  | NoSource => "no-source:";
+  // TODO: might need to encode extra sources as string
+  | NoSource(_) => "no-source:";
 
 let to_yojson = src => `String(show(src));
 
@@ -79,7 +80,7 @@ let ofSource = (src: Source.t) =>
   | Dist(Github({user, repo, commit, manifest})) =>
     Github({user, repo, ref: Some(commit), manifest})
   | Dist(LocalPath({path, manifest})) => LocalPath({path, manifest})
-  | Dist(NoSource) => NoSource
+  | Dist(NoSource(extraSources)) => NoSource(extraSources)
   | Link({path, manifest, kind: _}) => LocalPath({path, manifest})
   };
 
