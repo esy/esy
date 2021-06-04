@@ -309,7 +309,7 @@ module FetchPackage: {
         | Link({path, _}) =>
           let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
           return((pkg, Linked(path)));
-        | Install({source: (main, mirrors), opam}) =>
+        | Install({source: (main, mirrors), opam: _}) =>
           let%bind cached =
             switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
             | None => return(None)
@@ -345,6 +345,10 @@ module FetchPackage: {
             switch (cached) {
             | Some(cached) => return(cached)
             | None =>
+              let%lwt () =
+                Logs_lwt.debug(m =>
+                  m("fetching %a: fetching", Package.pp, pkg)
+                );
               let dists = [main, ...mirrors];
               let%bind dist =
                 fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
@@ -520,7 +524,7 @@ module FetchPackage: {
     };
 
     let%bind () = {
-      let%lwt () = Logs_lwt.app(m => m("unpacking %a", Package.pp, pkg));
+      let%lwt () = Logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
       RunAsync.contextf(
         DistStorage.unpack(fetched, stagePath),
         "unpacking %a",

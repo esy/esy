@@ -64,8 +64,7 @@ let show =
       ManifestSpec.show(manifest),
     )
 
-  // TODO: might need to encode extra sources as string
-  | NoSource(_) => "no-source:";
+  | NoSource => "no-source:";
 
 let to_yojson = src => `String(show(src));
 

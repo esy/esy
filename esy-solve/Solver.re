@@ -482,13 +482,6 @@ let make = (solvespec, sandbox: Sandbox.t) => {
   return({solvespec, universe: universe^, sandbox});
 };
 
-let contains = (s1, s2) => {
-  let re = Str.regexp_string(s2);
-  try(Str.search_forward(re, s1, 0) >= 0 ? true : false) {
-  | Not_found => false
-  };
-};
-
 let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) => {
   open RunAsync.Syntax;
 
@@ -510,15 +503,6 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
             InstallManifest.pp,
             manifest,
           );
-        if (contains(manifest.name, "wasm")) {
-          let%lwt () =
-            Logs_lwt.app(m =>
-              m("resolving package %a: %s", InstallManifest.pp, manifest, "")
-            );
-          Lwt.return();
-        } else {
-          Lwt.return();
-        };
 
         universe := Universe.add(~pkg=manifest, universe^);
         return();

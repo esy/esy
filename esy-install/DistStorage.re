@@ -178,40 +178,7 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
         let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-        let%bind () =
-          switch (github.manifest) {
-          | Some((Opam, opamfile)) =>
-            let%bind opamContents = Fs.readFile(Path.(path / opamfile));
-            let opam =
-              OpamFile.OPAM.read(
-                OpamFile.make(OpamFilename.of_string(opamfile)),
-              );
-            let extraSources = OpamFile.OPAM.extra_sources(opam);
-
-            Lwt_list.iter_s(
-              ((basename, u)) => {
-                let finalfilename = OpamFilename.Base.to_string(basename);
-                let url = OpamUrl.to_string(OpamFile.URL.url(u));
-                let checksum = OpamFile.URL.checksum(u) |> List.hd;
-                let checksumKind = checksum |> OpamHash.kind;
-                let checksumContents = checksum |> OpamHash.contents;
-                let tarballPath = Path.(path / finalfilename);
-                Curl.download(~output=tarballPath, url) |> ignore;
-                Checksum.checkFile(
-                  ~path=tarballPath,
-                  (esyChecksumKind(checksumKind), checksumContents),
-                )
-                |> ignore;
-                Lwt.return();
-              },
-              extraSources,
-            )
-            |> ignore;
-            return();
-          | _ => return()
-          };
-        let%lwt () =
-          Logs_lwt.app(m => m("GitHub: %s", Fpath.to_string(path)));
+        // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
     );
@@ -243,38 +210,7 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
         let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-        let%bind () =
-          switch (git.manifest) {
-          | Some((Opam, opamfile)) =>
-            let%bind opamContents = Fs.readFile(Path.(path / opamfile));
-            let opam =
-              OpamFile.OPAM.read(
-                OpamFile.make(OpamFilename.of_string(opamfile)),
-              );
-            let extraSources = OpamFile.OPAM.extra_sources(opam);
-
-            Lwt_list.iter_s(
-              ((basename, u)) => {
-                let finalfilename = OpamFilename.Base.to_string(basename);
-                let url = OpamUrl.to_string(OpamFile.URL.url(u));
-                let checksum = OpamFile.URL.checksum(u) |> List.hd;
-                let checksumKind = checksum |> OpamHash.kind;
-                let checksumContents = checksum |> OpamHash.contents;
-                let tarballPath = Path.(path / finalfilename);
-                Curl.download(~output=tarballPath, url) |> ignore;
-                Checksum.checkFile(
-                  ~path=tarballPath,
-                  (esyChecksumKind(checksumKind), checksumContents),
-                )
-                |> ignore;
-                Lwt.return();
-              },
-              extraSources,
-            )
-            |> ignore;
-            return();
-          | _ => return()
-          };
+        // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
     );

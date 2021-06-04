@@ -724,7 +724,7 @@ let resolve' =
           name,
           () => {
             let%lwt () =
-              Logs_lwt.app(m =>
+              Logs_lwt.debug(m =>
                 m("resolving %s %a", name, VersionSpec.pp, spec)
               );
             let%bind versions = {

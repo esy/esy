@@ -34,7 +34,7 @@ let manifest = (dist: t) =>
   | Github(_) => None
   | LocalPath(info) => info.manifest
   | Archive(_) => None
-  | NoSource(_) => None
+  | NoSource => None
   };
 
 let show' = (~showPath) =>
@@ -68,7 +68,7 @@ let show' = (~showPath) =>
       showPath(path),
       ManifestSpec.show(manifest),
     )
-  | NoSource(_) => "no-source:";
+  | NoSource => "no-source:";
 
 let show = show'(~showPath=DistPath.show);
 let showPretty = show'(~showPath=DistPath.showPretty);
@@ -294,7 +294,6 @@ module Parse = {
     | `GitHub => github
     | `Archive => archive
     | `Path => path(~requirePathSep=false)
-    // TODO: write parse for extra sources
     | `NoSource => return(NoSource)
     };
   };
