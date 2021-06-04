@@ -134,6 +134,10 @@ let checkFile = (~path, checksum: t) => {
 
   let (_, cvalue) = checksum;
   if (cvalue == value) {
+    let%lwt () =
+      Logs_lwt.app(m =>
+        m("CORRECT CHECKSUM")
+      );
     return();
   } else {
     let msg =

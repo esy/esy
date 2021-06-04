@@ -13,7 +13,7 @@ module CachePaths = {
 /* dist which is fetched */
 type fetchedDist =
   /* no sources, corresponds to Dist.NoSource */
-  | Empty(list(Path.t))
+  | Empty(option(Path.t))
   /* cached source path which could be safely removed */
   | Path(Path.t)
   /* source path from some local package, should be retained */
@@ -84,36 +84,37 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
     return(SourcePath(srcPath));
 
   | Dist.NoSource =>
-    let __path = CachePaths.fetchedDist(sandbox, dist);
     switch (pkg) {
     | Some(pkg) =>
-      let extraSources = Package.extraSources(pkg);
-      let%bind () = Fs.createDir(__path);
-      let%lwt extraSourcePaths =
-        Lwt_list.fold_left_s(
-          (acc, {ExtraSource.url, checksum, relativePath}) => {
-            let tarballPath = Path.(__path / relativePath);
-            let%lwt () =
-              Logs_lwt.app(m =>
-                m("tarball Path: %s", Fpath.to_string(tarballPath))
-              );
-
-            Curl.download(~output=tarballPath, url) |> ignore;
-            // TODO: integrity check
-            // Checksum.checkFile(
-            //   ~path=tarballPath,
-            //   (esyChecksumKind(checksumKind), checksumContents),
-            // )
-            // |> ignore;
-            Lwt.return(List.cons(tarballPath, acc));
-          },
-          [],
-          extraSources,
-        );
-
-      return(Empty(extraSourcePaths));
-    | None => return(Empty([]))
-    };
+      let path = CachePaths.fetchedDist(sandbox, dist);
+      let%bind () = Fs.createDir(path);
+      Fs.withTempDir(
+        ~tempPath,
+        stagePath => {
+          let%bind () = Fs.createDir(stagePath);
+          let extraSources = Package.extraSources(pkg);
+          let%lwt extraSourcePaths =
+            Lwt_list.iter_s(
+              ({ExtraSource.url, checksum, relativePath}) => {
+                let tarballPath = Path.(stagePath / relativePath);
+                let%lwt _ = Curl.download(~output=tarballPath, url);
+                let%lwt _ = Checksum.checkFile(~path=tarballPath, checksum);
+                let%lwt _ = Fs.createDir(Path.parent(path));
+                let%lwt _ =
+                  Fs.rename(
+                    ~skipIfExists=true,
+                    ~src=tarballPath,
+                    Path.(path / relativePath),
+                  );
+                Lwt.return();
+              },
+              extraSources,
+            );
+          return(Empty(Some(path)));
+        },
+      );
+    | None => return(Empty(None))
+    }
 
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
@@ -292,21 +293,12 @@ let fetch = (_cfg, sandbox, dist, pkg, gitUsername, gitPassword) =>
 let unpack = (fetched, path) =>
   RunAsync.Syntax.(
     switch (fetched) {
-    | Empty(paths) =>
-      Fs.createDir(path) |> ignore;
-      Lwt_list.iter_s(
-        filepath => {
-          let filename = Fpath.basename(filepath);
-          let%lwt () = Logs_lwt.app(m => m("filename: %s", filename));
-          Fs.copyFile(~src=filepath, ~dst=Path.(path / filename)) |> ignore;
-          Lwt.return();
-        },
-        paths,
-      )
-      |> ignore;
-      return();
+    | Empty(None) => Fs.createDir(path)
+    | Empty(Some(srcPath))
     | SourcePath(srcPath)
     | Path(srcPath) =>
+      let%lwt () =
+        Logs_lwt.app(m => m("srcPath: %s ", Fpath.to_string(srcPath)));
       let%bind names = Fs.listDir(srcPath);
       let%lwt () =
         Logs_lwt.app(m =>

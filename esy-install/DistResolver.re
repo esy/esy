@@ -266,7 +266,7 @@ let resolve =
       let%bind (_, pkg) = ofPath(path);
       return((pkg, Path.Set.empty));
 
-    | NoSource(_) => return((EmptyManifest, Path.Set.empty))
+    | NoSource => return((EmptyManifest, Path.Set.empty))
     };
   };
 
