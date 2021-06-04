@@ -13,6 +13,7 @@ type t = {
 };
 
 let id: t => PackageId.t;
+let extraSources: t => list(ExtraSource.t);
 let opam: t => RunAsync.t(option((string, Version.t, OpamFile.OPAM.t)));
 
 include S.COMPARABLE with type t := t;

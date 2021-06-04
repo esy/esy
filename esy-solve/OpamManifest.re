@@ -229,25 +229,10 @@ let convertOpamUrl = (manifest: t) => {
     return((main, mirrors));
   };
 
-  // TODO: parse out extra sources and add to Dist.t
-  let extraSources: list(Dist.extraSource) =
-    OpamFile.OPAM.extra_sources(manifest.opam)
-    |> List.map(~f=((basename, u)) =>
-         (
-           {
-             let relativePath = OpamFilename.Base.to_string(basename);
-             let url = OpamUrl.to_string(OpamFile.URL.url(u));
-             let checksum = OpamFile.URL.checksum(u) |> List.hd;
-
-             {url, checksum: convChecksum(checksum), relativePath};
-           }: Dist.extraSource
-         )
-       );
-
   switch (manifest.url) {
   | Some(url) => sourceOfOpamUrl(url)
   | None =>
-    let main = Dist.NoSource(extraSources);
+    let main = Dist.NoSource;
     Ok((main, []));
   };
 };

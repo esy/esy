@@ -74,14 +74,7 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' =
-    (
-      sandbox,
-      dist,
-      gitUsername,
-      gitPassword,
-      opamOpt: option(PackageSource.opam),
-    ) => {
+let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
@@ -90,52 +83,16 @@ let fetch' =
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
 
-  | Dist.NoSource(extraSources) =>
-    let manifestOpt =
-      switch (SandboxSpec.manifestPath(sandbox)) {
-      | Some(manifest) => Fpath.to_string(manifest)
-      | None => "no path found"
-      };
-    let%lwt () =
-      Logs_lwt.app(m =>
-        m("NoSource: blahhhh  %s %b", manifestOpt, Option.isSome(opamOpt))
-      );
-
-    switch (opamOpt) {
-    | Some({path, name, version}) =>
-      let __path = CachePaths.fetchedDist(sandbox, dist);
-      let%lwt () =
-        Logs_lwt.app(m =>
-          m(
-            "inside some: %s, path: %s",
-            OpamPackage.Name.to_string(name),
-            Fpath.to_string(path),
-          )
-        );
-      let%bind opamContents = Fs.readFile(Path.(path / "opam"));
-      let opam =
-        OpamFile.OPAM.read(
-          OpamFile.make(
-            OpamFilename.of_string(Fpath.to_string(Path.(path / "opam"))),
-          ),
-        );
-      let extraSources = OpamFile.OPAM.extra_sources(opam);
-
-      let%lwt () =
-        Logs_lwt.app(m => m("length: %d", List.length(extraSources)));
-
+  | Dist.NoSource =>
+    let __path = CachePaths.fetchedDist(sandbox, dist);
+    switch (pkg) {
+    | Some(pkg) =>
+      let extraSources = Package.extraSources(pkg);
       let%bind () = Fs.createDir(__path);
-
       let%lwt extraSourcePaths =
         Lwt_list.fold_left_s(
-          (acc, (basename, u)) => {
-            let finalfilename = OpamFilename.Base.to_string(basename);
-            let url = OpamUrl.to_string(OpamFile.URL.url(u));
-            let checksum = OpamFile.URL.checksum(u) |> List.hd;
-            let checksumKind = checksum |> OpamHash.kind;
-            let checksumContents = checksum |> OpamHash.contents;
-
-            let tarballPath = Path.(__path / finalfilename);
+          (acc, {ExtraSource.url, checksum, relativePath}) => {
+            let tarballPath = Path.(__path / relativePath);
             let%lwt () =
               Logs_lwt.app(m =>
                 m("tarball Path: %s", Fpath.to_string(tarballPath))
@@ -155,7 +112,7 @@ let fetch' =
         );
 
       return(Empty(extraSourcePaths));
-    | _ => return(Empty([]))
+    | None => return(Empty([]))
     };
 
   | Dist.Archive({url, checksum}) =>
@@ -323,9 +280,9 @@ let fetch' =
   };
 };
 
-let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, opamOpt) =>
+let fetch = (_cfg, sandbox, dist, pkg, gitUsername, gitPassword) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist, gitUsername, gitPassword, opamOpt),
+    fetch'(sandbox, dist, pkg, gitUsername, gitPassword),
     "fetching dist: %a",
     Dist.pp,
     dist,
@@ -381,7 +338,7 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
     return(path);
   } else {
     let%bind fetched =
-      fetch(cfg, sandbox, dist, gitUsername, gitPassword, None);
+      fetch(cfg, sandbox, dist, None, gitUsername, gitPassword);
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,

@@ -8,13 +8,6 @@ let sexp_of_local: local => Sexplib0.Sexp.t;
 let local_of_yojson: Json.decoder(local);
 let local_to_yojson: Json.encoder(local);
 
-[@deriving (ord, sexp_of)]
-type extraSource = {
-  url: string,
-  checksum: Checksum.t,
-  relativePath: string,
-};
-
 type t =
   | Archive({
       url: string,
@@ -32,7 +25,7 @@ type t =
       manifest: option(ManifestSpec.t),
     })
   | LocalPath(local)
-  | NoSource(list(extraSource));
+  | NoSource;
 
 include S.PRINTABLE with type t := t;
 include S.JSONABLE with type t := t;

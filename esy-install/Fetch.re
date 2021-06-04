@@ -254,21 +254,9 @@ module FetchPackage: {
   };
 
   /* fetch any of the dists for the package */
-  let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword, opamOpt) => {
+  let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
     open RunAsync.Syntax;
-    let%lwt () =
-      Logs_lwt.debug(m => {m("fetch %a", Package.pp, pkg)});
-
-    let rec printList = dists => {
-      switch (dists) {
-      | [dist, ...dists] =>
-        let%lwt () = Logs_lwt.debug(m => {m("dist %a", Dist.pp, dist)});
-        printList(dists);
-      | [] => Lwt.return()
-      };
-    };
-
-    printList(dists);
+    let%lwt () = Logs_lwt.debug(m => {m("fetch %a", Package.pp, pkg)});
 
     let rec fetchAny = (errs, alternatives) =>
       switch (alternatives) {
@@ -278,9 +266,9 @@ module FetchPackage: {
             sandbox.Sandbox.cfg,
             sandbox.spec,
             dist,
+            Some(pkg),
             gitUsername,
             gitPassword,
-            opamOpt,
           );
         switch%lwt (fetched) {
         | Ok(fetched) => return(fetched)
@@ -321,7 +309,7 @@ module FetchPackage: {
         | Link({path, _}) =>
           let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
           return((pkg, Linked(path)));
-        | Install({source: (main, mirrors), opam: opamOpt}) =>
+        | Install({source: (main, mirrors), opam}) =>
           let%bind cached =
             switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
             | None => return(None)
@@ -340,14 +328,7 @@ module FetchPackage: {
                   );
                 let dists = [main, ...mirrors];
                 let%bind dist =
-                  fetch'(
-                    sandbox,
-                    pkg,
-                    dists,
-                    gitUsername,
-                    gitPassword,
-                    opamOpt,
-                  );
+                  fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
                 let%bind dist = DistStorage.cache(dist, cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               }
@@ -364,25 +345,9 @@ module FetchPackage: {
             switch (cached) {
             | Some(cached) => return(cached)
             | None =>
-              let%lwt () =
-                Logs_lwt.debug(m =>
-                  m(
-                    "fetching %a: fetching %b",
-                    Package.pp,
-                    pkg,
-                    Option.isSome(opamOpt),
-                  )
-                );
               let dists = [main, ...mirrors];
               let%bind dist =
-                fetch'(
-                  sandbox,
-                  pkg,
-                  dists,
-                  gitUsername,
-                  gitPassword,
-                  opamOpt,
-                );
+                fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
               return((pkg, Fetched(dist)));
             };
           };

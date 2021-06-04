@@ -112,11 +112,11 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
         Resolver.setResolutions(resolutions, resolver);
         let root = {
           InstallManifest.name: Path.basename(spec.path),
-          version: Version.Source(Dist(NoSource([]))),
+          version: Version.Source(Dist(NoSource)),
           originalVersion: None,
           originalName: None,
           source:
-            PackageSource.Install({source: (NoSource([]), []), opam: None}),
+            PackageSource.Install({source: (NoSource, []), opam: None}),
           overrides: Overrides.empty,
           dependencies: InstallManifest.Dependencies.OpamFormula(deps),
           devDependencies: InstallManifest.Dependencies.OpamFormula(devDeps),

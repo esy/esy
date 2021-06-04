@@ -7,13 +7,6 @@ type local = {
 };
 
 [@deriving (ord, sexp_of)]
-type extraSource = {
-  url: string,
-  checksum: Checksum.t,
-  relativePath: string,
-};
-
-[@deriving (ord, sexp_of)]
 type t =
   | Archive({
       url: string,
@@ -31,7 +24,7 @@ type t =
       manifest: option(ManifestSpec.t),
     })
   | LocalPath(local)
-  | NoSource(list(extraSource));
+  | NoSource;
 
 let manifest = (dist: t) =>
   switch (dist) {
@@ -302,7 +295,7 @@ module Parse = {
     | `Archive => archive
     | `Path => path(~requirePathSep=false)
     // TODO: write parse for extra sources
-    | `NoSource => return(NoSource([]))
+    | `NoSource => return(NoSource)
     };
   };
 

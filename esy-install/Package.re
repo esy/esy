@@ -9,7 +9,7 @@ type t = {
   dependencies: PackageId.Set.t,
   devDependencies: PackageId.Set.t,
   installConfig: InstallConfig.t,
-  extraSources: list(ExtraSource.t)
+  extraSources: list(ExtraSource.t),
 };
 
 let compare = (a, b) => PackageId.compare(a.id, b.id);
@@ -20,6 +20,7 @@ let pp = (fmt, pkg) =>
 let show = Format.asprintf("%a", pp);
 
 let id = pkg => pkg.id;
+let extraSources = pkg => pkg.extraSources;
 
 let opam = pkg =>
   RunAsync.Syntax.(

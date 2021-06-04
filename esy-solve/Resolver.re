@@ -646,7 +646,7 @@ let resolveSource =
           | (None, None) => errorResolvingSource("cannot resolve commit")
           };
 
-        | SourceSpec.NoSource(extraSources) => return(Source.Dist(NoSource(extraSources)))
+        | SourceSpec.NoSource => return(Source.Dist(NoSource))
 
         | SourceSpec.Archive({url, checksum: None}) =>
           failwith(
