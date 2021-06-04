@@ -51,6 +51,19 @@ let of_yojson = json =>
   | _ => Error("expected string")
   };
 
+let esyChecksumKind = kind =>
+  switch (kind) {
+  | `MD5 => Md5
+  | `SHA256 => Sha256
+  | `SHA512 => Sha512
+  };
+
+let ofOpamHash = opamHash => {
+  let kind = OpamHash.kind(opamHash) |> esyChecksumKind;
+  let contents = OpamHash.contents(opamHash);
+  (kind, contents);
+};
+
 let md5sum =
   switch (System.Platform.host) {
   | System.Platform.Unix

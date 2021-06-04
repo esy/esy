@@ -9,6 +9,7 @@ type t = {
   dependencies: PackageId.Set.t,
   devDependencies: PackageId.Set.t,
   installConfig: InstallConfig.t,
+  extraSources: list(ExtraSource.t)
 };
 
 let compare = (a, b) => PackageId.compare(a.id, b.id);
