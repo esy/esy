@@ -95,7 +95,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   resolutions: Resolutions.empty,
   kind: Esy,
   installConfig: InstallConfig.empty,
-  extraSources: []
+  extraSources: [],
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -112,7 +112,7 @@ let emptyInstall = (~name, ~source, ()) => {
   resolutions: Resolutions.empty,
   kind: Esy,
   installConfig: InstallConfig.empty,
-  extraSources: []
+  extraSources: [],
 };
 
 let make = (~cfg, ~sandbox, ()) =>

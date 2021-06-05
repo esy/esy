@@ -149,7 +149,7 @@ type t = {
   resolutions: Resolutions.t,
   kind,
   installConfig: InstallConfig.t,
-  extraSources: list(ExtraSource.t)
+  extraSources: list(ExtraSource.t),
 }
 and kind =
   | Esy
