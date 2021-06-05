@@ -13,7 +13,7 @@ module CachePaths = {
 /* dist which is fetched */
 type fetchedDist =
   /* no sources, corresponds to Dist.NoSource */
-  | Empty(option(Path.t))
+  | Empty
   /* cached source path which could be safely removed */
   | Path(Path.t)
   /* source path from some local package, should be retained */
@@ -110,10 +110,10 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
               },
               extraSources,
             );
-          return(Empty(Some(path)));
+          return(Path(path));
         },
       );
-    | None => return(Empty(None))
+    | None => return(Empty)
     }
 
   | Dist.Archive({url, checksum}) =>
@@ -229,8 +229,7 @@ let fetch = (_cfg, sandbox, dist, pkg, gitUsername, gitPassword) =>
 let unpack = (fetched, path) =>
   RunAsync.Syntax.(
     switch (fetched) {
-    | Empty(None) => Fs.createDir(path)
-    | Empty(Some(srcPath))
+    | Empty => Fs.createDir(path)
     | SourcePath(srcPath)
     | Path(srcPath) =>
       let%lwt () =
