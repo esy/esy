@@ -256,7 +256,6 @@ module FetchPackage: {
   /* fetch any of the dists for the package */
   let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
     open RunAsync.Syntax;
-    let%lwt () = Logs_lwt.debug(m => {m("fetch %a", Package.pp, pkg)});
 
     let rec fetchAny = (errs, alternatives) =>
       switch (alternatives) {

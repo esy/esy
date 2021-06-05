@@ -139,8 +139,6 @@ let ofPath = (~manifest=?, path: Path.t) => {
         ~fallback=Path.(path |> normalize |> remEmptySeg |> basename),
         (kind, filename),
       );
-    let%lwt () =
-      Logs_lwt.app(m => m(">>> %s", Fpath.to_string(manifestPath)));
     if%bind (Fs.exists(manifestPath)) {
       let%bind data = Fs.readFile(manifestPath);
       switch (kind) {

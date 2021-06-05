@@ -24,17 +24,10 @@ type fetchedDist =
       stripComponents: int,
     });
 
-let esyChecksumKind = kind =>
-  switch (kind) {
-  | `MD5 => Checksum.Md5
-  | `SHA256 => Checksum.Sha256
-  | `SHA512 => Checksum.Sha512
-  };
-
 let cache = (fetched, tarballPath) =>
   RunAsync.Syntax.(
     switch (fetched) {
-    | Empty(_) =>
+    | Empty =>
       let%bind unpackPath = Fs.randomPathVariation(tarballPath);
       let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
       let%bind () = Fs.createDir(unpackPath);
@@ -79,7 +72,6 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
   | Dist.LocalPath({path: srcPath, manifest: _}) =>
-    let%lwt () = Logs_lwt.app(m => m("LocalPath: blahhhh"));
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
 
@@ -118,7 +110,6 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
 
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
-    let%lwt () = Logs_lwt.app(m => m("Archive: blahhhh %s", url));
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
@@ -133,7 +124,6 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
     );
 
   | Dist.Github(github) =>
-    let%lwt () = Logs_lwt.app(m => m("GitHub: blahhhh"));
     let path = CachePaths.fetchedDist(sandbox, dist);
     let%bind () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
@@ -184,7 +174,6 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
     );
 
   | Dist.Git(git) =>
-    let%lwt () = Logs_lwt.app(m => m("Git: blahhhh"));
     let path = CachePaths.fetchedDist(sandbox, dist);
     let%bind () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
@@ -232,18 +221,7 @@ let unpack = (fetched, path) =>
     | Empty => Fs.createDir(path)
     | SourcePath(srcPath)
     | Path(srcPath) =>
-      let%lwt () =
-        Logs_lwt.app(m => m("srcPath: %s ", Fpath.to_string(srcPath)));
       let%bind names = Fs.listDir(srcPath);
-      let%lwt () =
-        Logs_lwt.app(m =>
-          m(
-            "names: %s %s",
-            String.concat(" ", names),
-            Fpath.to_string(path),
-          )
-        );
-
       let copy = name => {
         let src = Path.(srcPath / name);
         let dst = Path.(path / name);

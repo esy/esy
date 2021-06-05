@@ -51,7 +51,7 @@ let of_yojson = json =>
   | _ => Error("expected string")
   };
 
-let esyChecksumKind = kind =>
+let convOpamKind = kind =>
   switch (kind) {
   | `MD5 => Md5
   | `SHA256 => Sha256
@@ -59,7 +59,7 @@ let esyChecksumKind = kind =>
   };
 
 let ofOpamHash = opamHash => {
-  let kind = OpamHash.kind(opamHash) |> esyChecksumKind;
+  let kind = OpamHash.kind(opamHash) |> convOpamKind;
   let contents = OpamHash.contents(opamHash);
   (kind, contents);
 };
@@ -111,18 +111,12 @@ let checkFile = (~path, checksum: t) => {
       | (Sha256, _) => sha256sum
       | (Sha512, _) => sha512sum
       };
-    let _path = EsyBash.normalizePathForCygwin(Path.show(path));
-    let%lwt () =
-      Logs_lwt.app(m =>
-        m("tarball Path: %s, >> %s", _path, Fpath.to_string(path))
-      );
 
     /* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths */
     RunAsync.ofBosError(
       {
         open Result.Syntax;
         let path = EsyBash.normalizePathForCygwin(Path.show(path));
-
         let%bind out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
         switch (Astring.String.cut(~sep=" ", out)) {
         | Some((v, _)) => return(v)
@@ -134,10 +128,6 @@ let checkFile = (~path, checksum: t) => {
 
   let (_, cvalue) = checksum;
   if (cvalue == value) {
-    let%lwt () =
-      Logs_lwt.app(m =>
-        m("CORRECT CHECKSUM")
-      );
     return();
   } else {
     let msg =
