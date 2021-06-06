@@ -78,33 +78,36 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
   | Dist.NoSource =>
     switch (pkg) {
     | Some(pkg) =>
-      let path = CachePaths.fetchedDist(sandbox, dist);
-      let%bind () = Fs.createDir(path);
-      Fs.withTempDir(
-        ~tempPath,
-        stagePath => {
-          let%bind () = Fs.createDir(stagePath);
-          let extraSources = Package.extraSources(pkg);
-          let%lwt extraSourcePaths =
-            Lwt_list.iter_s(
-              ({ExtraSource.url, checksum, relativePath}) => {
-                let tarballPath = Path.(stagePath / relativePath);
-                let%lwt _ = Curl.download(~output=tarballPath, url);
-                let%lwt _ = Checksum.checkFile(~path=tarballPath, checksum);
-                let%lwt _ = Fs.createDir(Path.parent(path));
-                let%lwt _ =
-                  Fs.rename(
-                    ~skipIfExists=true,
-                    ~src=tarballPath,
-                    Path.(path / relativePath),
-                  );
-                Lwt.return();
-              },
-              extraSources,
-            );
-          return(Path(path));
-        },
-      );
+      let extraSources = Package.extraSources(pkg);
+      if (extraSources == []) {
+        return(Empty);
+      } else {
+        let path = CachePaths.fetchedDist(sandbox, dist);
+        let%bind () = Fs.createDir(path);
+        Fs.withTempDir(
+          ~tempPath,
+          stagePath => {
+            let%bind () = Fs.createDir(stagePath);
+            let%lwt extraSourcePaths =
+              Lwt_list.iter_s(
+                ({ExtraSource.url, checksum, relativePath}) => {
+                  let tarballPath = Path.(stagePath / relativePath);
+                  let%lwt _ = Curl.download(~output=tarballPath, url);
+                  let%lwt _ = Checksum.checkFile(~path=tarballPath, checksum);
+                  let%lwt _ =
+                    Fs.rename(
+                      ~skipIfExists=true,
+                      ~src=tarballPath,
+                      Path.(path / relativePath),
+                    );
+                  Lwt.return();
+                },
+                extraSources,
+              );
+            return(Path(path));
+          },
+        );
+      };
     | None => return(Empty)
     }
 
@@ -232,7 +235,15 @@ let unpack = (fetched, path) =>
 
       return();
     | Tarball({tarballPath, stripComponents}) =>
-      Tarball.unpack(~stripComponents, ~dst=path, tarballPath)
+      let%lwt () =
+        Logs_lwt.debug(m =>
+          m(
+            "tarballPath %s, path %s",
+            Fpath.to_string(tarballPath),
+            Fpath.to_string(path),
+          )
+        );
+      Tarball.unpack(~stripComponents, ~dst=path, tarballPath);
     }
   );
 
