@@ -50,6 +50,7 @@ and node = {
   devDependencies: PackageId.Set.t,
   [@default InstallConfig.empty]
   installConfig: InstallConfig.t,
+  [@default []]
   extraSources: list(ExtraSource.t),
 };
 
