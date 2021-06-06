@@ -88,20 +88,23 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
           ~tempPath,
           stagePath => {
             let%bind () = Fs.createDir(stagePath);
-            let%lwt extraSourcePaths =
-              Lwt_list.iter_s(
-                ({ExtraSource.url, checksum, relativePath}) => {
-                  let tarballPath = Path.(stagePath / relativePath);
-                  let%lwt _ = Curl.download(~output=tarballPath, url);
-                  let%lwt _ = Checksum.checkFile(~path=tarballPath, checksum);
-                  let%lwt _ =
-                    Fs.rename(
-                      ~skipIfExists=true,
-                      ~src=tarballPath,
-                      Path.(path / relativePath),
-                    );
-                  Lwt.return();
-                },
+            let%bind _ =
+              RunAsync.List.map(
+                ~f=
+                  ({ExtraSource.url, checksum, relativePath}) => {
+                    open RunAsync.Syntax;
+                    let tarballPath = Path.(stagePath / relativePath);
+                    let%bind _ = Curl.download(~output=tarballPath, url);
+                    let%bind _ =
+                      Checksum.checkFile(~path=tarballPath, checksum);
+                    let%bind _ =
+                      Fs.rename(
+                        ~skipIfExists=true,
+                        ~src=tarballPath,
+                        Path.(path / relativePath),
+                      );
+                    RunAsync.return();
+                  },
                 extraSources,
               );
             return(Path(path));
