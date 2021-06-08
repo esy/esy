@@ -125,33 +125,40 @@ new-openbsd:
 			 APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
 APP_ESY ?= $(PWD)
-APP_ESY_INSTALL ?= /usr/local/
+APP_ESY_INSTALL ?= /usr/local
 APP_ESY_RELEASE ?= /app/_release
+RELEASE_ARGS ?= --no-env
 OPAM_PREFIX_POST ?= musl+static+flambda
 OPAM_PREFIX ?= 4.12.0+$(OPAM_PREFIX_POST)
 OPAM_PREFIX_POSTDOT = $(subst +,.,$(OPAM_PREFIX_POST))
 SUDO ?= sudo
 
+static-link-patch:
+	git -C $(APP_ESY)/esy-solve-cudf apply static-linking.patch && \
+	git -C $(APP_ESY) apply static-linking.patch
+
+ifneq (,$(findstring static,$(OPAM_PREFIX_POST)))
+RELEASE_ARGS += --static
+new-docker: static-link-patch
+endif
+
 new-docker:
-	$(SUDO) mkdir -p $(APP_ESY)&& \
-		$(SUDO) chown -R $(USER):$(USER) $(APP_ESY)
+
 	opam init -y --disable-sandboxing --bare && \
 	opam switch create esy-local-switch $(OPAM_PREFIX) -y && \
 	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#duniverse"
-	cp -rfp esy.opam $(APP_ESY)
 	opam install . --deps-only -y
-	cp -rfp . $(APP_ESY)
-	git -C $(APP_ESY)/esy-solve-cudf apply static-linking.patch && \
-	git -C $(APP_ESY) apply static-linking.patch
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
 	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
 	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT)
+	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT)
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
+	opam switch -y remove esy-local-switch
+	opam clean
 
 #
 # Test
