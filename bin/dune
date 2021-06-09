@@ -17,8 +17,3 @@
  (section bin)
  (files
   (esyInstallRelease.js as esyInstallRelease.js)))
-
-(rule
- (alias build)
- (deps ../esy-solve-cudf/esySolveCudfCommand)
- (action (progn)))
