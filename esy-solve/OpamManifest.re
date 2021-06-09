@@ -285,7 +285,7 @@ let convertDependencies = manifest => {
     let%bind formula =
       filterAndConvertOpamFormula(
         ~build=true,
-        ~post=true,
+        ~post=false,
         ~test=false,
         ~doc=false,
         ~dev=false,
