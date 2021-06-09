@@ -224,9 +224,9 @@ let fold =
 let listDir = path =>
   switch%lwt (Lwt_unix.opendir(Path.show(path))) {
   | exception (Unix.Unix_error(Unix.ENOENT, "opendir", _)) =>
-    RunAsync.error("cannot read the directory: ")
+    RunAsync.errorf("cannot read the directory: %s", Fpath.to_string(path))
   | exception (Unix.Unix_error(Unix.ENOTDIR, "opendir", _)) =>
-    RunAsync.error("not a directory")
+    RunAsync.errorf("not a directory: %s", Fpath.to_string(path))
   | dir =>
     let rec readdir = (names, ()) =>
       switch%lwt (Lwt_unix.readdir(dir)) {
