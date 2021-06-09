@@ -14,7 +14,6 @@ const rmSync = require('rimraf').sync;
 const isCi = require('is-ci');
 
 let cases = [
-  {name: 'libtorch', toolchains: [ocamlVersion]},
   {name: 'dune', toolchains: [ocamlVersion]},
   {name: 'menhir', toolchains: [ocamlVersion]},
   {name: 'cmdliner', toolchains: [ocamlVersion]},
@@ -130,6 +129,7 @@ let cases = [
   {name: 'cudf', toolchains: [ocamlVersion]},
   {name: 'ssl', toolchains: [ocamlVersion]},
   {name: 'tls', toolchains: [ocamlVersion]},
+  {name: 'libtorch', toolchains: [ocamlVersion]},
 ];
 
 let reposUpdated = false;
