@@ -30,7 +30,7 @@
     "test:e2e": "npm run jest test-e2e",
     "test:e2e-re": "esy b dune exec ./test-e2e-re/lib/RunTests.exe",
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js",
-    "fix": "dune build @fmt --auto-promote"
+    "fmt": "dune build @fmt --auto-promote"
   },
   "resolutions": {
     "@opam/bos": {
