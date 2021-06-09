@@ -137,6 +137,10 @@ Run:
 % make test
 ```
 
+#### Slow tests
+By pacing `@slowtest` token in commit messages, we mark the commit ready for the slow tests framework
+(tests that hit the network). They are run with `node test-e2e-slow/run-slow-tests.js`
+
 #### Windows
 
 In cases e2e tests fail with `Host key verification failed.`, you might have to create ssh keys
