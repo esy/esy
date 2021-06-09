@@ -237,6 +237,19 @@ let convertOpamUrl = (manifest: t) => {
   };
 };
 
+let convOpamKind = kind =>
+  switch (kind) {
+  | `MD5 => Checksum.Md5
+  | `SHA256 => Sha256
+  | `SHA512 => Sha512
+  };
+
+let opamHashToChecksum = opamHash => {
+  let kind = OpamHash.kind(opamHash) |> convOpamKind;
+  let contents = OpamHash.contents(opamHash);
+  (kind, contents);
+};
+
 let convertDependencies = manifest => {
   open Result.Syntax;
 
@@ -338,7 +351,7 @@ let convertDependencies = manifest => {
          let relativePath = OpamFilename.Base.to_string(basename);
          let url = OpamUrl.to_string(OpamFile.URL.url(u));
          let checksum =
-           OpamFile.URL.checksum(u) |> List.hd |> Checksum.ofOpamHash;
+           OpamFile.URL.checksum(u) |> List.hd |> opamHashToChecksum;
 
          {ExtraSource.url, relativePath, checksum};
        });

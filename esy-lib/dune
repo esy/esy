@@ -6,7 +6,7 @@
  (inline_tests)
  (libraries angstrom lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
    logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime str astring
-   opam-file-format EsyShellExpansion opam-format opam-state)
+   EsyShellExpansion)
  (foreign_stubs
   (language c)
   (names unix_rlimit_patch win32_path))

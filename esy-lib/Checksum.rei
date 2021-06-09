@@ -15,5 +15,3 @@ let parse: string => result(t, string);
 
 let computeOfFile: (~kind: kind=?, Path.t) => RunAsync.t(t);
 let checkFile: (~path: Path.t, t) => RunAsync.t(unit);
-
-let ofOpamHash: OpamHash.t => t;
