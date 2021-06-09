@@ -67,7 +67,7 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
+let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
@@ -76,9 +76,8 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
     return(SourcePath(srcPath));
 
   | Dist.NoSource =>
-    switch (pkg) {
-    | Some(pkg) =>
-      let extraSources = Package.extraSources(pkg);
+    switch (extraSources) {
+    | Some(extraSources) =>
       if (extraSources == []) {
         return(Empty);
       } else {
@@ -110,7 +109,7 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
             return(Path(path));
           },
         );
-      };
+      }
     | None => return(Empty)
     }
 
@@ -212,9 +211,10 @@ let fetch' = (sandbox, dist, pkg, gitUsername, gitPassword) => {
   };
 };
 
-let fetch = (_cfg, sandbox, dist, pkg, gitUsername, gitPassword) =>
+let fetch =
+    (_cfg, sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist, pkg, gitUsername, gitPassword),
+    fetch'(sandbox, dist, gitUsername, gitPassword, ~extraSources?, ()),
     "fetching dist: %a",
     Dist.pp,
     dist,
@@ -257,7 +257,7 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
     return(path);
   } else {
     let%bind fetched =
-      fetch(cfg, sandbox, dist, None, gitUsername, gitPassword);
+      fetch(cfg, sandbox, dist, gitUsername, gitPassword, ());
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,

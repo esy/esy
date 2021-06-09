@@ -26,9 +26,10 @@ let fetch:
     Config.t,
     SandboxSpec.t,
     Dist.t,
-    option(Package.t),
     option(string),
-    option(string)
+    option(string),
+    ~extraSources: list(ExtraSource.t)=?,
+    unit
   ) =>
   RunAsync.t(fetchedDist);
 
