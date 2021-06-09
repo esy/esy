@@ -139,6 +139,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
         ~fallback=Path.(path |> normalize |> remEmptySeg |> basename),
         (kind, filename),
       );
+
     if%bind (Fs.exists(manifestPath)) {
       let%bind data = Fs.readFile(manifestPath);
       switch (kind) {
