@@ -38,7 +38,6 @@ let pull:
 /** Checkout the [ref] in the [repo] */
 
 let checkout: (~ref: ref, ~repo: Fpath.t, unit) => RunAsync.t(unit);
-let revParse: (~repo: Fpath.t, ~ref: string, unit) => RunAsync.t(string);
 
 let fetch:
   (~depth: int=?, ~dst: Fpath.t, ~ref: ref, ~remote: remote, unit) =>
