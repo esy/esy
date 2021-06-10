@@ -281,6 +281,10 @@ let convertDependencies = manifest => {
     convertOpamFormula(f);
   };
 
+  /*
+   *  post=false since PR#1319
+   *  See: https://github.com/esy/esy/pull/1319
+   */
   let* dependencies = {
     let* formula =
       filterAndConvertOpamFormula(
