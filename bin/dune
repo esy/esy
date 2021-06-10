@@ -17,3 +17,8 @@
  (section bin)
  (files
   (esyInstallRelease.js as esyInstallRelease.js)))
+
+(rule
+ (alias install)
+ (deps ../esy-solve-cudf-submodule-is-cloned)
+ (action (progn)))

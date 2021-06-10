@@ -2,3 +2,10 @@
  (:standard \ _esy \ node_modules \ flow-typed \ scripts \ test-e2e \ site))
 
 (vendored_dirs vendor)
+
+(rule
+ (target esy-solve-cudf-submodule-is-cloned)
+ (action
+  (with-stdout-to
+   %{target}
+   (run git -C %{workspace_root} submodule update --init --recursive))))
