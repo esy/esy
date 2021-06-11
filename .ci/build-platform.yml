@@ -41,6 +41,10 @@ jobs:
       - bash: |
           # COMPUTE THE ESY INSTALL CACHE LOCATION AHEAD OF TIME
           DESIRED_LEN="85"
+          # Not sure why, windows is has one extra underscore. Observed at https://github.com/ManasJayanth/reason-ocaml-tls-tutorial-meet/commit/3b4a6113cc413cc5cdf0fd8a2521c4c44dd1c0e5
+          if [ "$AGENT_OS" == "Windows_NT" ]; then
+            DESIRED_LEN="86"
+          fi
           HOME_ESY3="$HOME/.esy/3"
           HOME_ESY3_LEN=${#HOME_ESY3}
           NUM_UNDERS=$(echo "$(($DESIRED_LEN-$HOME_ESY3_LEN))")
