@@ -11,7 +11,7 @@
       "rewritePrefix": false,
       "bin": ["esy"]
     },
-    "buildsInSource": "_build"
+    "buildsInSource": true
   },
   "//": "Following pesy config can be used to pull cached builds from CI",
   "pesy": {
