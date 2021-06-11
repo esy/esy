@@ -132,3 +132,10 @@ As packages are built and installed, they can fail for a lot of reasons. To prev
 ## Release
 
 Before a binary executable can be distributed, `esy` can bundle runtime depedendencies together with it and install them alongside. As a proof-of-concept, Esy provides `npm-release` command that creates a npm package that bundle the runtime binaries with a postinstalls cript that correctly installs them and updates the binaries to load the depdendencies from this install path. Check out [`npm-release`](./commands.md#esy-npm-release) to see what that looks like.
+
+## Additional notes
+
+### Compiler
+
+Esy expects the ocaml compiler from NPM and not Opam - this is tied to how esy solves dependency constraints for opam packages. Esy begins solving the package dependency graph with OCaml compiler at the root and expects the formula version spec to be either in NPM or source form. Packages like `@opam/ocaml`, `@opam/ocaml-base-compiler` are not looked at while solving.
+
