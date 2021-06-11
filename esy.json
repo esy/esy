@@ -5,7 +5,7 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy",
-    "buildDev": "dune build -p esy",
+    "buildDev": "dune build @install @dev --promote-install-files --root .",
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,

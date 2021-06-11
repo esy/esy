@@ -5,6 +5,7 @@
 
 (rule
  (target esy-solve-cudf-submodule-is-cloned)
+ (alias dev)
  (action
   (with-stdout-to
    %{target}

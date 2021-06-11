@@ -19,6 +19,6 @@
   (esyInstallRelease.js as esyInstallRelease.js)))
 
 (rule
- (alias install)
+ (alias dev)
  (deps ../esy-solve-cudf-submodule-is-cloned)
  (action (progn)))
