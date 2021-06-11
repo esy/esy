@@ -147,9 +147,9 @@ new-docker: static-link-patch
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
-	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT)
+	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
