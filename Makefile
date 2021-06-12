@@ -166,6 +166,12 @@ test-unit::
 test-e2e:: ./bin/esy
 	@./node_modules/.bin/jest test-e2e
 
+verdaccio::
+	cd test-e2e-re/lib/verdaccio && npm install
+
+test-e2e-re:: ./bin/esy verdaccio
+	esy test:e2e-re
+
 test-e2e-slow:: ./bin/esy
 	@./node_modules/.bin/jest test-e2e-slow
 
@@ -174,6 +180,8 @@ test::
 	@$(MAKE) test-unit
 	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
+	@echo "Running test suite: e2e-re"
+	@$(MAKE) test-e2e-re
 
 ci::
 	@$(MAKE) test
