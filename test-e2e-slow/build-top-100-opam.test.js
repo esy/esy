@@ -16,7 +16,6 @@ const isCi = require('is-ci');
 let cases = [
    { name: "menhir", toolchains: [ocamlVersion] },
    { name: "csexp", toolchains: [ocamlVersion] },
-   { name: "ocaml-base-compiler", toolchains: [ocamlVersion] },
    { name: "atd", toolchains: [ocamlVersion] },
    { name: "dot-merlin-reader", toolchains: [ocamlVersion] },
    // TODO: it's looking for X11 on mac's Needs esy-libx11 and/or esy-xquartz
