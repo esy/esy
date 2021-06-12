@@ -189,4 +189,61 @@ describe('building @opam/* dependencies', () => {
       expect(stdout.trim()).toEqual('__hello__');
     }
   });
+
+  it('builds opam dependencies with extra-sources', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          '@opam/pkg': '*',
+          '@opam/lib': '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'pkg',
+        version: '1.0.0',
+        opam: outdent`
+          opam-version: "2.0"
+          build: [
+            ${helpers.buildCommandInOpam('hello.js')}
+            ["cp" "hello.cmd" "%{bin}%/hello.cmd"]
+            ["cp" "hello.js" "%{bin}%/hello.js"]
+          ]
+        `,
+      },
+      [helpers.dummyExecutable('hello')]
+    );
+
+
+    await p.defineOpamPackageOfExtraSource(
+      {
+        name: 'lib',
+        version: '1.0.0',
+        opam: outdent`
+          opam-version: "2.0"
+        `,
+      }
+    );
+
+    await p.esy('install');
+    await p.esy('build');
+
+    {
+      const {stdout} = await p.esy('x hello.cmd');
+      expect(stdout.trim()).toEqual('__hello__');
+    }
+  });
+
 });

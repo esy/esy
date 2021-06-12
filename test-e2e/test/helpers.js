@@ -304,6 +304,7 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     defineNpmLocalPackage: (path, pkg) =>
       NpmRegistryMock.defineLocalPackage(npmRegistry, path, pkg),
     defineOpamPackage: spec => OpamRegistryMock.defineOpamPackage(opamRegistry, spec),
+    defineOpamPackageOfExtraSource: spec => OpamRegistryMock.defineOpamPackageOfExtraSource(opamRegistry, spec),
     defineOpamPackageOfFixture: (spec, fixture: Fixture) =>
       OpamRegistryMock.defineOpamPackageOfFixture(opamRegistry, spec, fixture),
   };
