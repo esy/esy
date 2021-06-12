@@ -30,8 +30,8 @@ let stat = (path: Fpath.t) =>
 let package_entry_point = (package_json_path: Fpath.t) => {
   open Result.Syntax;
   let package_path = Fpath.parent(package_json_path);
-  let%bind main_value = {
-    let%bind data = Bos.OS.File.read(package_path);
+  let* main_value = {
+    let* data = Bos.OS.File.read(package_path);
     switch (PackageJson.of_string(data)) {
     | Result.Ok(package) => Ok(package.PackageJson.main)
     | Result.Error(msg) =>
@@ -41,7 +41,7 @@ let package_entry_point = (package_json_path: Fpath.t) => {
   };
   switch (main_value) {
   | Some(main_value) =>
-    let%bind main_path = Fpath.of_string(main_value);
+    let* main_path = Fpath.of_string(main_value);
     Ok(Fpath.(package_path /\/ main_path));
   | None => Ok(Fpath.(package_path / "index.js"))
   };
@@ -51,11 +51,11 @@ let (/) = Fpath.(/);
 
 let rec realpath = (p: Fpath.t) => {
   open Result.Syntax;
-  let%bind p =
+  let* p =
     if (Fpath.is_abs(p)) {
       Ok(p);
     } else {
-      let%bind cwd = Bos.OS.Dir.current();
+      let* cwd = Bos.OS.Dir.current();
       Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
     };
   let _realpath = (p: Fpath.t) => {
@@ -67,20 +67,20 @@ let rec realpath = (p: Fpath.t) => {
     if (Fpath.is_root(p)) {
       Ok(p);
     } else {
-      let%bind isSymlink = isSymlinkAndExists(p);
+      let* isSymlink = isSymlinkAndExists(p);
       if (isSymlink) {
-        let%bind target = Bos.OS.Path.symlink_target(p);
+        let* target = Bos.OS.Path.symlink_target(p);
         realpath(
           target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
         );
       } else {
         let parent = p |> Fpath.parent |> Fpath.rem_empty_seg;
-        let%bind parent = realpath(parent);
+        let* parent = realpath(parent);
         Ok(parent / Fpath.basename(p));
       };
     };
   };
-  let%bind p = _realpath(p);
+  let* p = _realpath(p);
   let p =
     // on win we can get path swith \??\ prefix, remove it
     switch (System.Platform.host) {
@@ -109,7 +109,7 @@ let resolvePath = path =>
            there if any */
         let package_json_path = Fpath.(path / "package.json");
         if%bind (Bos.OS.Path.exists(package_json_path)) {
-          let%bind entry_point = package_entry_point(package_json_path);
+          let* entry_point = package_entry_point(package_json_path);
           Ok(Some(entry_point));
         } else {
           /*** Check if directory contains index.js and return it if found */
@@ -179,7 +179,7 @@ let defaultBaseDir = ref(None);
 
 let resolve = (~basedir=?, req) => {
   open Result.Syntax;
-  let%bind basedir =
+  let* basedir =
     switch (basedir) {
     | Some(basedir) => return(basedir)
     | None =>
@@ -187,7 +187,7 @@ let resolve = (~basedir=?, req) => {
       | Some(basedir) => return(basedir)
       | None =>
         let program = Sys.executable_name;
-        let%bind program = realpath(Path.v(program));
+        let* program = realpath(Path.v(program));
         let basedir = Fpath.parent(program);
         defaultBaseDir := Some(basedir);
         return(basedir);
@@ -214,12 +214,12 @@ let resolve = (~basedir=?, req) => {
       switch (path.[0]) {
       /* relative module path */
       | '.' =>
-        let%bind path = Fpath.of_string(path);
+        let* path = Fpath.of_string(path);
         let path = path |> Fpath.append(basedir) |> Fpath.normalize;
         someOrError(resolveExtensionlessPath(path));
       /* absolute module path */
       | '/' =>
-        let%bind path = Fpath.of_string(path);
+        let* path = Fpath.of_string(path);
         someOrError(resolveExtensionlessPath(path));
       /* scoped package */
       | '@' =>

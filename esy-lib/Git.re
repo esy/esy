@@ -53,13 +53,13 @@ let updateSubmodules = (~repo, ~config as configKVs=?, ()) => {
     Cmd.(
       cmd % "-C" % repo % "submodule" % "update" % "--init" % "--recursive"
     );
-  let%bind _ = runGit(cmd);
+  let* _ = runGit(cmd);
   return();
 };
 
 let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => {
   open RunAsync.Syntax;
-  let%bind cmd =
+  let* cmd =
     RunAsync.ofBosError(
       {
         open Cmd;
@@ -100,7 +100,7 @@ let clone = (~branch=?, ~config as configKVs=?, ~depth=?, ~dst, ~remote, ()) => 
       },
     );
 
-  let%bind _ = runGit(cmd);
+  let* _ = runGit(cmd);
   return();
 };
 
@@ -139,14 +139,14 @@ let pull =
     Cmd.(cmd % remote % branchSpec);
   };
 
-  let%bind _ = runGit(cmd);
+  let* _ = runGit(cmd);
   return();
 };
 
 let checkout = (~ref, ~repo, ()) => {
   open RunAsync.Syntax;
   let cmd = Cmd.(v("git") % "-C" % p(repo) % "checkout" % ref);
-  let%bind _ = runGit(cmd);
+  let* _ = runGit(cmd);
   return();
 };
 
@@ -178,7 +178,7 @@ let lsRemote = (~config as configKVs=?, ~ref=?, ~remote, ()) => {
     | None => cmd
     };
 
-  let%bind out = runGit(cmd);
+  let* out = runGit(cmd);
   switch (out |> String.trim |> String.split_on_char('\n')) {
   | [] => return(None)
   | [line, ..._] =>
@@ -225,9 +225,9 @@ module ShallowClone = {
     let rec aux = (~retry=true, ()) => {
       open RunAsync.Syntax;
       if%bind (Fs.exists(dst)) {
-        let%bind remoteCommit =
+        let* remoteCommit =
           lsRemote(~config=gitConfig, ~ref=branch, ~remote=source, ());
-        let%bind localCommit = getLocalCommit();
+        let* localCommit = getLocalCommit();
 
         if (remoteCommit == localCommit) {
           return();
@@ -246,14 +246,14 @@ module ShallowClone = {
           switch%lwt (pulling) {
           | Ok(_) => return()
           | Error(_) when retry =>
-            let%bind () = Fs.rmPath(dst);
+            let* () = Fs.rmPath(dst);
             aux(~retry=false, ());
           | Error(err) => Lwt.return(Error(err))
           };
         };
       } else {
-        let%bind () = Fs.createDir(Path.parent(dst));
-        let%bind () = clone(~branch, ~depth=1, ~remote=source, ~dst, ());
+        let* () = Fs.createDir(Path.parent(dst));
+        let* () = clone(~branch, ~depth=1, ~remote=source, ~dst, ());
         return();
       };
     };

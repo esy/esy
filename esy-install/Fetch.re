@@ -7,7 +7,7 @@ let fetchOverrideFiles = (cfg, sandbox, override: EsyPackageConfig.Override.t) =
     switch (override) {
     | OfJson(_) => return([])
     | OfDist(info) =>
-      let%bind path =
+      let* path =
         DistStorage.fetchIntoCache(cfg, sandbox, info.dist, None, None);
       File.ofDir(Path.(path / "files"));
     | OfOpamOverride(info) => File.ofDir(Path.(info.path / "files"))
@@ -17,7 +17,7 @@ let fetchOverrideFiles = (cfg, sandbox, override: EsyPackageConfig.Override.t) =
 let fetchOverridesFiles = (cfg, sandbox, overrides) => {
   open RunAsync.Syntax;
   let f = (files, override) => {
-    let%bind filesOfOverride = fetchOverrideFiles(cfg, sandbox, override);
+    let* filesOfOverride = fetchOverrideFiles(cfg, sandbox, override);
     return(filesOfOverride @ files);
   };
 
@@ -65,7 +65,7 @@ module NpmPackageJson: {
             };
           }
         | `Assoc(items) => {
-            let%bind items = {
+            let* items = {
               let f = (cmds, (name, json)) =>
                 switch (json) {
                 | `String(cmd) => return(StringMap.add(name, cmd, cmds))
@@ -103,9 +103,8 @@ module NpmPackageJson: {
     } else {
       let filename = Path.(path / "package.json");
       if%bind (Fs.exists(filename)) {
-        let%bind json = Fs.readJsonFile(filename);
-        let%bind manifest =
-          RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+        let* json = Fs.readJsonFile(filename);
+        let* manifest = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
         if (Option.isSome(manifest.esy)) {
           return(None);
         } else {
@@ -209,7 +208,7 @@ module PackagePaths = {
         switch (System.Platform.host) {
         | Windows => RunAsync.return()
         | _ =>
-          let%bind () =
+          let* () =
             if (needRewrite) {
               RewritePrefix.rewritePrefix(
                 ~origPrefix=stagePath,
@@ -308,7 +307,7 @@ module FetchPackage: {
           let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
           return((pkg, Linked(path)));
         | Install({source: (main, mirrors), opam: _}) =>
-          let%bind cached =
+          let* cached =
             switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
             | None => return(None)
             | Some(cachedTarballPath) =>
@@ -325,9 +324,9 @@ module FetchPackage: {
                     m("fetching %a: making cached tarball", Package.pp, pkg)
                   );
                 let dists = [main, ...mirrors];
-                let%bind dist =
+                let* dist =
                   fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
-                let%bind dist = DistStorage.cache(dist, cachedTarballPath);
+                let* dist = DistStorage.cache(dist, cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               }
             };
@@ -348,7 +347,7 @@ module FetchPackage: {
                   m("fetching %a: fetching", Package.pp, pkg)
                 );
               let dists = [main, ...mirrors];
-              let%bind dist =
+              let* dist =
                 fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
               return((pkg, Fetched(dist)));
             };
@@ -410,8 +409,8 @@ module FetchPackage: {
 
         let env = {
           open Option.Syntax;
-          let%bind env = env;
-          let%bind (_, env) = ChildProcess.prepareEnv(env);
+          let* env = env;
+          let* (_, env) = ChildProcess.prepareEnv(env);
           return(env);
         };
 
@@ -458,7 +457,7 @@ module FetchPackage: {
 
     let run = (pkg, sourcePath, lifecycle) => {
       open RunAsync.Syntax;
-      let%bind env = {
+      let* env = {
         let path = [
           Path.(show(sourcePath / "_esy")),
           ...System.Environment.path,
@@ -469,14 +468,14 @@ module FetchPackage: {
         return(ChildProcess.CurrentEnvOverride(override));
       };
 
-      let%bind () =
+      let* () =
         switch (lifecycle.NpmPackageJson.install) {
         | Some(cmd) =>
           runScript(~env, ~lifecycleName="install", pkg, sourcePath, cmd)
         | None => return()
         };
 
-      let%bind () =
+      let* () =
         switch (lifecycle.NpmPackageJson.postinstall) {
         | Some(cmd) =>
           runScript(~env, ~lifecycleName="postinstall", pkg, sourcePath, cmd)
@@ -489,15 +488,16 @@ module FetchPackage: {
 
   let copyFiles = (sandbox, pkg, path) => {
     open RunAsync.Syntax;
+    open Package;
 
-    let%bind filesOfOpam =
+    let* filesOfOpam =
       switch (pkg.source) {
       | Link(_)
       | Install({opam: None, _}) => return([])
       | Install({opam: Some(opam), _}) => PackageSource.opamfiles(opam)
       };
 
-    let%bind filesOfOverride =
+    let* filesOfOverride =
       fetchOverridesFiles(
         sandbox.Sandbox.cfg,
         sandbox.Sandbox.spec,
@@ -515,13 +515,13 @@ module FetchPackage: {
 
     let installPath = PackagePaths.installPath(sandbox, pkg);
 
-    let%bind stagePath = {
+    let* stagePath = {
       let path = PackagePaths.stagePath(sandbox, pkg);
-      let%bind () = Fs.rmPath(path);
+      let* () = Fs.rmPath(path);
       return(path);
     };
 
-    let%bind () = {
+    let* () = {
       let%lwt () = Logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
       RunAsync.contextf(
         DistStorage.unpack(fetched, stagePath),
@@ -531,19 +531,19 @@ module FetchPackage: {
       );
     };
 
-    let%bind () = copyFiles(sandbox, pkg, stagePath);
-    let%bind pkgJson = NpmPackageJson.ofDir(stagePath);
+    let* () = copyFiles(sandbox, pkg, stagePath);
+    let* pkgJson = NpmPackageJson.ofDir(stagePath);
 
-    let%bind () =
+    let* () =
       switch (Option.bind(~f=NpmPackageJson.lifecycle, pkgJson)) {
       | Some(lifecycle) =>
-        let%bind () = onBeforeLifecycle(stagePath);
-        let%bind () = Lifecycle.run(pkg, stagePath, lifecycle);
-        let%bind () =
+        let* () = onBeforeLifecycle(stagePath);
+        let* () = Lifecycle.run(pkg, stagePath, lifecycle);
+        let* () =
           PackagePaths.commit(~needRewrite=true, stagePath, installPath);
         return();
       | None =>
-        let%bind () =
+        let* () =
           PackagePaths.commit(~needRewrite=false, stagePath, installPath);
         return();
       };
@@ -557,7 +557,7 @@ module FetchPackage: {
         switch (fetch) {
         | Linked(path)
         | Installed(path) =>
-          let%bind pkgJson = NpmPackageJson.ofDir(path);
+          let* pkgJson = NpmPackageJson.ofDir(path);
           return({pkg, path, pkgJson});
         | Fetched(fetched) =>
           install'(onBeforeLifecycle, sandbox, pkg, fetched)
@@ -621,7 +621,7 @@ module LinkBin = {
 
   let installBinWrapperAsSymlink = (binPath, (name, origPath)) => {
     open RunAsync.Syntax;
-    let%bind () = Fs.chmod(0o777, origPath);
+    let* () = Fs.chmod(0o777, origPath);
     let destPath = Path.(binPath / name);
     if%bind (Fs.exists(destPath)) {
       return();
@@ -666,7 +666,7 @@ module LinkBin = {
       switch (installation.FetchPackage.pkgJson) {
       | Some(pkgJson) =>
         let bin = NpmPackageJson.bin(~sourcePath=installation.path, pkgJson);
-        let%bind () =
+        let* () =
           RunAsync.List.mapAndWait(~f=installBinWrapper(binPath), bin);
         return(bin);
       | None => RunAsync.return([])
@@ -706,12 +706,12 @@ let installNodeWrapper = (~binPath, ~pnpJsPath, ()) =>
   RunAsync.Syntax.(
     switch (Cmd.resolveCmd(System.Environment.path, "node")) {
     | Ok(nodeCmd) =>
-      let%bind binPath = {
-        let%bind () = Fs.createDir(binPath);
+      let* binPath = {
+        let* () = Fs.createDir(binPath);
         return(binPath);
       };
 
-      let%bind nodeCmd = Fs.realpath(Path.v(nodeCmd));
+      let* nodeCmd = Fs.realpath(Path.v(nodeCmd));
       let nodeCmd = Path.show(nodeCmd);
 
       let (data, path) =
@@ -837,18 +837,17 @@ let fetchPackages = (installspec, sandbox, solution, gitUsername, gitPassword) =
   let (pkgs, _root) = collectPackagesOfSolution(installspec, solution);
 
   let (report, finish) = Cli.createProgressReporter(~name="fetching", ());
-  let%bind items = {
+  let* items = {
     let f = pkg => {
       let%lwt () = report("%a", Package.pp, pkg);
-      let%bind fetch =
-        FetchPackage.fetch(sandbox, pkg, gitUsername, gitPassword);
+      let* fetch = FetchPackage.fetch(sandbox, pkg, gitUsername, gitPassword);
       return((pkg, fetch));
     };
 
     let fetchConcurrency =
       Option.orDefault(~default=40, sandbox.Sandbox.cfg.fetchConcurrency);
 
-    let%bind items =
+    let* items =
       RunAsync.List.mapAndJoin(~concurrency=fetchConcurrency, ~f, pkgs);
     let%lwt () = finish();
     return(items);
@@ -870,11 +869,11 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
   let (pkgs, root) = collectPackagesOfSolution(installspec, solution);
 
   /* Fetch all packages. */
-  let%bind fetched =
+  let* fetched =
     fetchPackages(installspec, sandbox, solution, gitUsername, gitPassword);
 
   /* Produce _esy/<sandbox>/installation.json */
-  let%bind installation = {
+  let* installation = {
     let installation = {
       let f = (installation, pkg) => {
         let id = pkg.Package.id;
@@ -889,7 +888,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       List.fold_left(~f, ~init, pkgs);
     };
 
-    let%bind () =
+    let* () =
       Fs.writeJsonFile(
         ~json=Installation.to_yojson(installation),
         SandboxSpec.installationPath(sandbox.spec),
@@ -899,7 +898,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
   };
 
   /* Install all packages. */
-  let%bind () = {
+  let* () = {
     let (report, finish) =
       Cli.createProgressReporter(~name="installing", ());
     let queue = LwtTaskQueue.create(~concurrency=40, ());
@@ -918,21 +917,20 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
            * stage directory and a node wrapper which uses this pnp.js.
            */
           let binPath = Path.(path / "_esy");
-          let%bind () = Fs.createDir(binPath);
+          let* () = Fs.createDir(binPath);
 
-          let%bind () = {
+          let* () = {
             let f = dep => {
-              let%bind _: list((string, Path.t)) =
-                LinkBin.link(binPath, dep);
+              let* _: list((string, Path.t)) = LinkBin.link(binPath, dep);
               return();
             };
 
             RunAsync.List.mapAndWait(~f, dependencies);
           };
 
-          let%bind () =
+          let* () =
             if (pkg.installConfig.pnp == true) {
-              let%bind () = {
+              let* () = {
                 let pnpJsPath = Path.(binPath / "pnp.js");
                 let installation = Installation.add(id, path, installation);
                 let data =
@@ -945,7 +943,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
                     (),
                   );
 
-                let%bind () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
+                let* () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
                 installNodeWrapper(~binPath, ~pnpJsPath, ());
               };
 
@@ -965,7 +963,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
     };
 
     let rec visit' = (seen, pkg) => {
-      let%bind dependencies =
+      let* dependencies =
         RunAsync.List.mapAndJoin(
           ~f=visit(seen),
           Solution.dependenciesBySpec(solution, installspec, pkg),
@@ -978,7 +976,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       let id = pkg.Package.id;
       if (!PackageId.Set.mem(id, seen)) {
         let seen = PackageId.Set.add(id, seen);
-        let%bind installation =
+        let* installation =
           Memoize.compute(tasks, id, () => visit'(seen, pkg));
         return(Some(installation));
       } else {
@@ -986,19 +984,19 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       };
     };
 
-    let%bind rootDependencies =
+    let* rootDependencies =
       RunAsync.List.mapAndJoin(
         ~f=visit(PackageId.Set.empty),
         Solution.dependenciesBySpec(solution, installspec, root),
       );
 
-    let%bind () = {
+    let* () = {
       let binPath = SandboxSpec.binPath(sandbox.spec);
-      let%bind () = Fs.createDir(binPath);
+      let* () = Fs.createDir(binPath);
 
-      let%bind _ = {
+      let* _ = {
         let f = (seen, dep) => {
-          let%bind bins = LinkBin.link(binPath, dep);
+          let* bins = LinkBin.link(binPath, dep);
           let f = (seen, (name, _)) =>
             switch (StringMap.find_opt(name, seen)) {
             | None => StringMap.add(name, [dep.FetchPackage.pkg], seen)
@@ -1032,10 +1030,10 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
     return();
   };
 
-  let%bind () =
+  let* () =
     if (root.installConfig.pnp) {
       /* Produce _esy/<sandbox>/pnp.js */
-      let%bind () = {
+      let* () = {
         let path = SandboxSpec.pnpJsPath(sandbox.Sandbox.spec);
         let data =
           PnpJs.render(
@@ -1051,7 +1049,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       };
 
       /* place <binPath>/node executable with pnp enabled */
-      let%bind () =
+      let* () =
         installNodeWrapper(
           ~binPath=SandboxSpec.binPath(sandbox.Sandbox.spec),
           ~pnpJsPath=SandboxSpec.pnpJsPath(sandbox.spec),
@@ -1063,7 +1061,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       return();
     };
 
-  let%bind () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
+  let* () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
 
   return();
 };

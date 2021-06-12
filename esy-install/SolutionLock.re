@@ -20,7 +20,7 @@ let override_of_yojson = json =>
       let%map local = Dist.local_of_yojson(json);
       OfPath(local);
     | `Assoc([("opamoverride", path)]) =>
-      let%bind path = DistPath.of_yojson(path);
+      let* path = DistPath.of_yojson(path);
       return(OfOpamOverride({path: path}));
     | `Assoc(_) => return(OfJson({json: json}))
     | _ => error("expected a string or an object")
@@ -72,9 +72,8 @@ module PackageOverride = {
     RunAsync.Syntax.(
       RunAsync.contextf(
         {
-          let%bind json = Fs.readJsonFile(path);
-          let%bind data =
-            RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+          let* json = Fs.readJsonFile(path);
+          let* data = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
           return(data.override);
         },
         "reading package override %a",
@@ -103,7 +102,7 @@ let writeOverride = (sandbox, pkg, gitUsername, gitPassword, override) =>
           / "overrides"
           / Path.safeSeg(id)
         );
-      let%bind () = Fs.copyPath(~src=info.path, ~dst=lockPath);
+      let* () = Fs.copyPath(~src=info.path, ~dst=lockPath);
       let path =
         DistPath.ofPath(
           Path.tryRelativize(~root=sandbox.spec.path, lockPath),
@@ -112,7 +111,7 @@ let writeOverride = (sandbox, pkg, gitUsername, gitPassword, override) =>
     | Override.OfDist({dist: Dist.LocalPath(local), json: _}) =>
       return(OfPath(local))
     | Override.OfDist({dist, json: _}) =>
-      let%bind distPath =
+      let* distPath =
         DistStorage.fetchIntoCache(
           sandbox.cfg,
           sandbox.spec,
@@ -127,8 +126,8 @@ let writeOverride = (sandbox, pkg, gitUsername, gitPassword, override) =>
           / "overrides"
           / Digestv.toHex(digest)
         );
-      let%bind () = Fs.copyPath(~src=distPath, ~dst=lockPath);
-      let%bind () = Fs.rmPath(Path.(lockPath / ".git"));
+      let* () = Fs.copyPath(~src=distPath, ~dst=lockPath);
+      let* () = Fs.rmPath(Path.(lockPath / ".git"));
       let manifest = Dist.manifest(dist);
       let path =
         DistPath.ofPath(
@@ -144,7 +143,7 @@ let readOverride = (sandbox, override) =>
     | OfJson({json}) => return(Override.OfJson({json: json}))
     | OfOpamOverride({path}) =>
       let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
-      let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
+      let* json = Fs.readJsonFile(Path.(path / "package.json"));
       return(Override.OfOpamOverride({json, path}));
     | OfPath(local) =>
       let filename =
@@ -161,7 +160,7 @@ let readOverride = (sandbox, override) =>
           sandbox.Sandbox.spec.path,
           DistPath.(local.path / filename),
         );
-      let%bind json = PackageOverride.ofPath(path);
+      let* json = PackageOverride.ofPath(path);
       return(Override.OfDist({dist, json}));
     }
   );
@@ -192,7 +191,7 @@ let writeOpam = (sandbox, opam: PackageSource.opam) => {
   if (Path.isPrefix(sandboxPath, opampath)) {
     return(opam);
   } else {
-    let%bind () = Fs.copyPath(~src=opam.path, ~dst);
+    let* () = Fs.copyPath(~src=opam.path, ~dst);
     let path = Path.tryRelativize(~root=sandboxPath, dst);
     return({...opam, path});
   };
@@ -207,18 +206,18 @@ let readOpam = (sandbox, opam: PackageSource.opam) => {
 
 let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
-  let%bind source =
+  let* source =
     switch (pkg.source) {
     | Link({path, manifest, kind}) =>
       return(PackageSource.Link({path, manifest, kind}))
     | Install({source, opam: None}) =>
       return(PackageSource.Install({source, opam: None}))
     | Install({source, opam: Some(opam)}) =>
-      let%bind opam = writeOpam(sandbox, opam);
+      let* opam = writeOpam(sandbox, opam);
       return(PackageSource.Install({source, opam: Some(opam)}));
     };
 
-  let%bind overrides =
+  let* overrides =
     writeOverrides(sandbox, pkg, pkg.overrides, gitUsername, gitPassword);
   return({
     id: pkg.id,
@@ -234,18 +233,18 @@ let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
 
 let readPackage = (sandbox, node: node) => {
   open RunAsync.Syntax;
-  let%bind source =
+  let* source =
     switch (node.source) {
     | Link({path, manifest, kind}) =>
       return(PackageSource.Link({path, manifest, kind}))
     | Install({source, opam: None}) =>
       return(PackageSource.Install({source, opam: None}))
     | Install({source, opam: Some(opam)}) =>
-      let%bind opam = readOpam(sandbox, opam);
+      let* opam = readOpam(sandbox, opam);
       return(PackageSource.Install({source, opam: Some(opam)}));
     };
 
-  let%bind overrides = readOverrides(sandbox, node.overrides);
+  let* overrides = readOverrides(sandbox, node.overrides);
   return({
     Package.id: node.id,
     name: node.name,
@@ -261,8 +260,8 @@ let readPackage = (sandbox, node: node) => {
 let solutionOfLock = (sandbox, root, node) => {
   open RunAsync.Syntax;
   let f = (_id, node, solution) => {
-    let%bind solution = solution;
-    let%bind pkg = readPackage(sandbox, node);
+    let* solution = solution;
+    let* pkg = readPackage(sandbox, node);
     return(Solution.add(solution, pkg));
   };
 
@@ -271,10 +270,10 @@ let solutionOfLock = (sandbox, root, node) => {
 
 let lockOfSolution = (sandbox, solution: Solution.t, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
-  let%bind node = {
+  let* node = {
     let f = (pkg, _dependencies, nodes) => {
-      let%bind nodes = nodes;
-      let%bind node = writePackage(sandbox, pkg, gitUsername, gitPassword);
+      let* nodes = nodes;
+      let* node = writePackage(sandbox, pkg, gitUsername, gitPassword);
       return(PackageId.Map.add(pkg.Package.id, node, nodes));
     };
 
@@ -292,7 +291,7 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
           Logs_lwt.debug(m => m("SolutionLock.ofPath %a", Path.pp, path));
         if%bind (Fs.exists(path)) {
           let%lwt lock = {
-            let%bind json = Fs.readJsonFile(Path.(path / indexFilename));
+            let* json = Fs.readJsonFile(Path.(path / indexFilename));
             RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
           };
 
@@ -300,13 +299,11 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
           | Ok(lock) =>
             switch (digest) {
             | None =>
-              let%bind solution =
-                solutionOfLock(sandbox, lock.root, lock.node);
+              let* solution = solutionOfLock(sandbox, lock.root, lock.node);
               return(Some(solution));
             | Some(digest) =>
               if (String.compare(lock.digest, Digestv.toHex(digest)) == 0) {
-                let%bind solution =
-                  solutionOfLock(sandbox, lock.root, lock.node);
+                let* solution = solutionOfLock(sandbox, lock.root, lock.node);
                 return(Some(solution));
               } else {
                 return(None);
@@ -349,24 +346,23 @@ let toPath =
   open RunAsync.Syntax;
   let%lwt () =
     Logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
-  let%bind () = Fs.rmPath(path);
-  let%bind (root, node) =
+  let* () = Fs.rmPath(path);
+  let* (root, node) =
     lockOfSolution(sandbox, solution, gitUsername, gitPassword);
   let lock = {digest: Digestv.toHex(digest), node, root: root.Package.id};
-  let%bind () = Fs.createDir(path);
-  let%bind () =
+  let* () = Fs.createDir(path);
+  let* () =
     Fs.writeJsonFile(~json=to_yojson(lock), Path.(path / indexFilename));
-  let%bind () =
+  let* () =
     Fs.writeFile(~data=gitAttributesContents, Path.(path / ".gitattributes"));
-  let%bind () =
-    Fs.writeFile(~data=gitIgnoreContents, Path.(path / ".gitignore"));
+  let* () = Fs.writeFile(~data=gitIgnoreContents, Path.(path / ".gitignore"));
   return();
 };
 
 let unsafeUpdateChecksum = (~digest, path) => {
   open RunAsync.Syntax;
-  let%bind lock = {
-    let%bind json = Fs.readJsonFile(Path.(path / indexFilename));
+  let* lock = {
+    let* json = Fs.readJsonFile(Path.(path / indexFilename));
     RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
   };
 

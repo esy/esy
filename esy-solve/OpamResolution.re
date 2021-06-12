@@ -12,7 +12,7 @@ let path = ({PackageSource.path, _}) => path;
 let opam = (res: PackageSource.opam) => {
   open RunAsync.Syntax;
   let path = Path.(res.path / "opam");
-  let%bind data = Fs.readFile(path);
+  let* data = Fs.readFile(path);
   let filename = OpamFile.make(OpamFilename.of_string(Path.show(path)));
   try(return(OpamFile.OPAM.read_from_string(~filename, data))) {
   | Failure(msg) =>
@@ -26,9 +26,9 @@ let files = (res: PackageSource.opam) =>
 
 let digest = (res: PackageSource.opam) => {
   open RunAsync.Syntax;
-  let%bind files = files(res);
-  let%bind digests = RunAsync.List.mapAndJoin(~f=File.digest, files);
-  let%bind digest = Digestv.ofFile(Path.(res.path / "opam"));
+  let* files = files(res);
+  let* digests = RunAsync.List.mapAndJoin(~f=File.digest, files);
+  let* digest = Digestv.ofFile(Path.(res.path / "opam"));
   let digests = [digest, ...digests];
   let digests = List.sort(~cmp=Digestv.compare, digests);
   return(List.fold_left(~init=Digestv.empty, ~f=Digestv.combine, digests));

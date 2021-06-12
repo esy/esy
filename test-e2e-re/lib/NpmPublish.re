@@ -36,19 +36,19 @@ let putRc = (path, registry) => {
  */
 let publish = (package, registry) => {
   open Result.Syntax;
-  let%bind root = Shared.getRandomTmpDir(~prefix="esy-publish-", ());
-  let%bind _ = OS.Dir.create(root);
+  let* root = Shared.getRandomTmpDir(~prefix="esy-publish-", ());
+  let* _ = OS.Dir.create(root);
 
   let fixture =
     Fixture.FixtureFile({name: "package.json", data: toString(package)});
-  let%bind () = Fixture.layout(root, fixture);
-  let%bind () = putRc(root, registry);
+  let* () = Fixture.layout(root, fixture);
+  let* () = putRc(root, registry);
 
   let program = Cmd.(npmPublish % "--registry" % registry %% flags);
   let revert = Shared.changeCwd(Path.show(root));
   /* Do not bind here to make sure cleanup gets executed */
   let result = OS.Cmd.(run_out(~err=err_null, program) |> to_null);
   revert();
-  let%bind () = OS.Dir.delete(~must_exist=true, ~recurse=true, root);
+  let* () = OS.Dir.delete(~must_exist=true, ~recurse=true, root);
   result;
 };

@@ -1,6 +1,6 @@
-module Let_syntax = Run.Let_syntax;
-
 module F = OpamFile.Dot_install;
+
+let ( let* ) = Run.( let* );
 
 /* This checks if we should try adding .exe extension */
 let shouldTryAddExeIfNotExist =
@@ -63,8 +63,8 @@ let installFile =
           unsetExecutable(origPerm);
         };
 
-      let%bind () = Run.mkdir(Fpath.parent(dstPath));
-      let%bind () =
+      let* () = Run.mkdir(Fpath.parent(dstPath));
+      let* () =
         if (enableLinkingOptimization && origPerm == perm) {
           switch (EsyLib.System.Platform.host) {
           | Windows => Run.link(~force=true, ~target=srcPath, dstPath)
@@ -110,7 +110,7 @@ let installSection =
           | (None, None) => None
           };
 
-        let%bind () =
+        let* () =
           installFile(
             ~executable,
             ~enableLinkingOptimization,
@@ -128,8 +128,8 @@ let installSection =
 let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
   let rootPath = Fpath.parent(filename);
 
-  let%bind (packageName, spec) = {
-    let%bind data = Run.read(filename);
+  let* (packageName, spec) = {
+    let* data = Run.read(filename);
     let packageName = Fpath.basename(Fpath.rem_ext(filename));
     let spec = {
       let filename =
@@ -147,7 +147,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
    * for explanations on each section.
    */
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -156,7 +156,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.lib(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -165,7 +165,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.lib_root(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=true,
@@ -174,7 +174,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.libexec(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=true,
@@ -183,7 +183,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.libexec_root(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=true,
@@ -192,7 +192,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.bin(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=true,
@@ -201,7 +201,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.sbin(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -210,7 +210,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.toplevel(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -219,7 +219,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.share(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -228,7 +228,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.share_root(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -237,7 +237,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.etc(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=false,
@@ -246,7 +246,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.doc(spec),
     );
 
-  let%bind () =
+  let* () =
     installSection(
       ~enableLinkingOptimization,
       ~executable=true,
@@ -255,7 +255,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, filename) => {
       F.stublibs(spec),
     );
 
-  let%bind () = {
+  let* () = {
     let makeDstFilename = src => {
       let num = Fpath.get_ext(src);
       Fpath.(v("man" ++ num) / basename(src));

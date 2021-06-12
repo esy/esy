@@ -36,7 +36,7 @@ let of_yojson = v_of_yojson =>
     fun
     | `Assoc(items) => {
         let f = (items, (k, json)) => {
-          let%bind v = v_of_yojson(json);
+          let* v = v_of_yojson(json);
           return(add(k, v, items));
         };
 
@@ -96,7 +96,7 @@ module Override: {
             let override = Drop;
             return(add(name, override, map));
           | _ =>
-            let%bind value = value_of_yojson(name, json);
+            let* value = value_of_yojson(name, json);
             let override = Edit(value);
             return(add(name, override, map));
           };

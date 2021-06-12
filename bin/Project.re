@@ -83,7 +83,7 @@ let fetched = proj =>
   Lwt.return(
     {
       open Result.Syntax;
-      let%bind solved = proj.solved;
+      let* solved = proj.solved;
       solved.fetched;
     },
   );
@@ -92,8 +92,8 @@ let configured = proj =>
   Lwt.return(
     {
       open Result.Syntax;
-      let%bind solved = proj.solved;
-      let%bind fetched = solved.fetched;
+      let* solved = proj.solved;
+      let* fetched = solved.fetched;
       fetched.configured;
     },
   );
@@ -101,14 +101,14 @@ let configured = proj =>
 let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   open RunAsync.Syntax;
   let workflow = Workflow.default;
-  let%bind files = {
+  let* files = {
     let paths = SandboxSpec.manifestPaths(projcfg.spec);
     RunAsync.List.mapAndJoin(~f=FileInfo.ofPath, paths);
   };
 
   let files = ref(files);
 
-  let%bind esySolveCmd =
+  let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
     | None =>
@@ -118,7 +118,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       return(cmd);
     };
 
-  let%bind solveCfg =
+  let* solveCfg =
     EsySolve.Config.make(
       ~esySolveCmd,
       ~skipRepositoryUpdate=projcfg.skipRepositoryUpdate,
@@ -137,7 +137,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     );
 
   let installCfg = solveCfg.EsySolve.Config.installCfg;
-  let%bind solveSandbox =
+  let* solveSandbox =
     EsySolve.Sandbox.make(
       ~gitUsername=projcfg.gitUsername,
       ~gitPassword=projcfg.gitPassword,
@@ -154,7 +154,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       m("install config: %a", EsyInstall.Config.pp, installCfg)
     );
 
-  let%bind buildCfg = {
+  let* buildCfg = {
     let storePath =
       switch (projcfg.prefixPath) {
       | None => EsyBuildPackage.Config.StorePathDefault
@@ -183,7 +183,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
     );
   };
 
-  let%bind scripts = Scripts.ofSandbox(projcfg.ProjectConfig.spec);
+  let* scripts = Scripts.ofSandbox(projcfg.ProjectConfig.spec);
   let%lwt solved =
     makeSolved(
       projcfg,
@@ -227,10 +227,9 @@ let makeSolved =
     ) => {
   open RunAsync.Syntax;
   let path = SandboxSpec.solutionLockPath(projcfg.spec);
-  let%bind info = FileInfo.ofPath(Path.(path / "index.json"));
+  let* info = FileInfo.ofPath(Path.(path / "index.json"));
   files := [info, ...files^];
-  let%bind digest =
-    EsySolve.Sandbox.digest(Workflow.default.solvespec, solver);
+  let* digest = EsySolve.Sandbox.digest(Workflow.default.solvespec, solver);
 
   switch%bind (SolutionLock.ofPath(~digest, installer, path)) {
   | Some(solution) =>
@@ -271,8 +270,8 @@ let readSandboxEnv = spec =>
   RunAsync.Syntax.(
     switch (spec.EsyInstall.SandboxSpec.manifest) {
     | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
-      let%bind json = Fs.readJsonFile(Path.(spec.path / filename));
-      let%bind pkgJson =
+      let* json = Fs.readJsonFile(Path.(spec.path / filename));
+      let* pkgJson =
         RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
       return(pkgJson.OfPackageJson.esy.sandboxEnv);
 
@@ -294,7 +293,7 @@ let makeFetched =
     ) => {
   open RunAsync.Syntax;
   let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
-  let%bind info = FileInfo.ofPath(path);
+  let* info = FileInfo.ofPath(path);
   files := [info, ...files^];
   switch%bind (
     EsyInstall.Fetch.maybeInstallationOfSolution(
@@ -310,9 +309,9 @@ let makeFetched =
     )
   | Some(installation) =>
     let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
-    let%bind sandbox = {
-      let%bind sandboxEnv = readSandboxEnv(projcfg.spec);
-      let%bind (sandbox, filesUsedForPlan) =
+    let* sandbox = {
+      let* sandboxEnv = readSandboxEnv(projcfg.spec);
+      let* (sandbox, filesUsedForPlan) =
         BuildSandbox.make(
           ~sandboxEnv,
           buildCfg,
@@ -322,7 +321,7 @@ let makeFetched =
           installation,
         );
 
-      let%bind filesUsedForPlan = FileInfo.ofPathSet(filesUsedForPlan);
+      let* filesUsedForPlan = FileInfo.ofPathSet(filesUsedForPlan);
       files := files^ @ filesUsedForPlan;
       return(sandbox);
     };
@@ -344,11 +343,11 @@ let makeConfigured =
     (_projcfg, workflow, solution, _installation, sandbox, _files) => {
   open RunAsync.Syntax;
 
-  let%bind (root, planForDev) =
+  let* (root, planForDev) =
     RunAsync.ofRun(
       {
         open Run.Syntax;
-        let%bind plan =
+        let* plan =
           BuildSandbox.makePlan(
             workflow.Workflow.buildspec,
             BuildDev,
@@ -373,7 +372,7 @@ let plan = (mode, proj) =>
   RunAsync.Syntax.(
     switch (mode) {
     | BuildSpec.Build =>
-      let%bind fetched = fetched(proj);
+      let* fetched = fetched(proj);
       Lwt.return(
         BuildSandbox.makePlan(
           Workflow.default.buildspec,
@@ -382,7 +381,7 @@ let plan = (mode, proj) =>
         ),
       );
     | BuildSpec.BuildDev =>
-      let%bind configured = configured(proj);
+      let* configured = configured(proj);
       return(configured.planForDev);
     }
   );
@@ -393,8 +392,8 @@ let make = projcfg =>
 let writeAuxCache = proj => {
   open RunAsync.Syntax;
   let info = {
-    let%bind solved = solved(proj);
-    let%bind fetched = fetched(proj);
+    let* solved = solved(proj);
+    let* fetched = fetched(proj);
     return((solved, fetched));
   };
 
@@ -412,12 +411,12 @@ let writeAuxCache = proj => {
         / "bin"
       );
     let root = Solution.root(solved.solution);
-    let%bind commandEnv =
+    let* commandEnv =
       RunAsync.ofRun(
         {
           open Run.Syntax;
           let header = "# Command environment";
-          let%bind commandEnv =
+          let* commandEnv =
             BuildSandbox.env(
               proj.workflow.commandenvspec,
               proj.workflow.buildspec,
@@ -459,14 +458,14 @@ let writeAuxCache = proj => {
     let writeSandboxEnv = binPath =>
       Fs.writeFile(~data=commandEnv, Path.(binPath / "command-env"));
 
-    let%bind () = Fs.createDir(sandboxBin);
-    let%bind () =
+    let* () = Fs.createDir(sandboxBin);
+    let* () =
       RunAsync.List.waitAll([
         writeSandboxEnv(sandboxBin),
         writeCommandExec(sandboxBin),
       ]);
 
-    let%bind () = Fs.createDir(sandboxBinLegacyPath);
+    let* () = Fs.createDir(sandboxBinLegacyPath);
     RunAsync.List.waitAll([
       writeSandboxEnv(sandboxBinLegacyPath),
       writeCommandExec(sandboxBinLegacyPath),
@@ -476,21 +475,21 @@ let writeAuxCache = proj => {
 
 let resolvePackage = (~name, proj: project) => {
   open RunAsync.Syntax;
-  let%bind solved = solved(proj);
-  let%bind fetched = fetched(proj);
-  let%bind configured = configured(proj);
+  let* solved = solved(proj);
+  let* fetched = fetched(proj);
+  let* configured = configured(proj);
 
   switch (Solution.findByName(name, solved.solution)) {
   | None =>
     errorf("package %s is not installed as a part of the project", name)
   | Some(_) =>
-    let%bind (task, sandbox) =
+    let* (task, sandbox) =
       RunAsync.ofRun(
         {
           open Run.Syntax;
           let task = {
             open Option.Syntax;
-            let%bind task =
+            let* task =
               BuildSandbox.Plan.getByName(configured.planForDev, name);
             return(task);
           };
@@ -517,11 +516,11 @@ module OfTerm = {
   let checkStaleness = files => {
     open RunAsync.Syntax;
     let files = files;
-    let%bind checks =
+    let* checks =
       RunAsync.List.joinAll(
         {
           let f = prev => {
-            let%bind next = FileInfo.ofPath(prev.FileInfo.path);
+            let* next = FileInfo.ofPath(prev.FileInfo.path);
             let changed = FileInfo.compare(prev, next) != 0;
             let%lwt () =
               Logs_lwt.debug(m =>
@@ -581,7 +580,7 @@ module OfTerm = {
   let write' = (proj, files, ()) => {
     open RunAsync.Syntax;
     let cachePath = makeCachePath("project", proj.projcfg);
-    let%bind () = {
+    let* () = {
       let f = oc => {
         let%lwt () =
           Lwt_io.write_value(~flags=Marshal.[Closures], oc, (proj, files));
@@ -589,11 +588,11 @@ module OfTerm = {
         return();
       };
 
-      let%bind () = Fs.createDir(Path.parent(cachePath));
+      let* () = Fs.createDir(Path.parent(cachePath));
       Lwt_io.with_file(~mode=Lwt_io.Output, Path.show(cachePath), f);
     };
 
-    let%bind () = writeAuxCache(proj);
+    let* () = writeAuxCache(proj);
     return();
   };
 
@@ -603,12 +602,12 @@ module OfTerm = {
   let promiseTerm = {
     let parse = projcfg => {
       open RunAsync.Syntax;
-      let%bind projcfg = projcfg;
+      let* projcfg = projcfg;
       switch%bind (read(projcfg)) {
       | Some(proj) => return(proj)
       | None =>
-        let%bind (proj, files) = make(projcfg);
-        let%bind () = write(proj, files);
+        let* (proj, files) = make(projcfg);
+        let* () = write(proj, files);
         return(proj);
       };
     };
@@ -624,7 +623,7 @@ include OfTerm;
 
 let withPackage = (proj, pkgArg: PkgArg.t, f) => {
   open RunAsync.Syntax;
-  let%bind solved = solved(proj);
+  let* solved = solved(proj);
   let solution = solved.solution;
   let runWith = pkg =>
     switch (pkg) {
@@ -720,8 +719,8 @@ let buildDependencies =
     (~skipStalenessCheck=false, ~buildLinked, proj: project, plan, pkg) => {
   open RunAsync.Syntax;
   checkSymlinks();
-  let%bind fetched = fetched(proj);
-  let%bind solved = solved(proj);
+  let* fetched = fetched(proj);
+  let* solved = solved(proj);
   let () =
     Logs.info(m =>
       m(
@@ -781,8 +780,8 @@ let printEnv =
     (~name="Environment", proj: project, envspec, mode, asJson, pkgarg, ()) => {
   open RunAsync.Syntax;
 
-  let%bind _solved = solved(proj);
-  let%bind fetched = fetched(proj);
+  let* _solved = solved(proj);
+  let* fetched = fetched(proj);
 
   let f = (pkg: Package.t) => {
     let () =
@@ -797,11 +796,11 @@ let printEnv =
         )
       );
 
-    let%bind source =
+    let* source =
       RunAsync.ofRun(
         {
           open Run.Syntax;
-          let%bind (env, scope) =
+          let* (env, scope) =
             BuildSandbox.configure(
               envspec,
               Workflow.default.buildspec,
@@ -813,7 +812,7 @@ let printEnv =
           let env =
             Scope.SandboxEnvironment.Bindings.render(proj.buildCfg, env);
           if (asJson) {
-            let%bind env = Run.ofStringError(Environment.Bindings.eval(env));
+            let* env = Run.ofStringError(Environment.Bindings.eval(env));
             Ok(env |> Environment.to_yojson |> Yojson.Safe.pretty_to_string);
           } else {
             let mode = Scope.mode(scope);
@@ -870,11 +869,11 @@ let execCommand =
     ) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = fetched(proj);
+  let* fetched = fetched(proj);
 
-  let%bind () =
+  let* () =
     if (checkIfDependenciesAreBuilt) {
-      let%bind plan = plan(mode, proj);
+      let* plan = plan(mode, proj);
       buildDependencies(~buildLinked, proj, plan, pkg);
     } else {
       return();
@@ -894,7 +893,7 @@ let execCommand =
       )
     );
 
-  let%bind status =
+  let* status =
     BuildSandbox.exec(
       ~changeDirectoryToPackageRoot,
       envspec,

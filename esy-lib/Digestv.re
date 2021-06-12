@@ -4,7 +4,7 @@ type part = Digest.t;
 let part_to_yojson = v => Json.Encode.string(Digest.to_hex(v));
 let part_of_yojson = json => {
   open Result.Syntax;
-  let%bind part = Json.Decode.string(json);
+  let* part = Json.Decode.string(json);
   return(Digest.from_hex(part));
 };
 
@@ -23,7 +23,7 @@ let ofJson = v => [json(v)];
 
 let ofFile = path => {
   open RunAsync.Syntax;
-  let%bind data = Fs.readFile(path);
+  let* data = Fs.readFile(path);
   return(ofString(data));
 };
 

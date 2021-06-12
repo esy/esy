@@ -171,7 +171,7 @@ module Make =
         switch (binding.Binding.value) {
         | Value(value) =>
           let value = V.show(value);
-          let%bind value = EsyShellExpansion.render(~scope, value);
+          let* value = EsyShellExpansion.render(~scope, value);
           let value = V.v(value);
           Ok(StringMap.add(binding.name, value, env));
         | ExpandedValue(value) =>
@@ -292,7 +292,7 @@ let renderToShellSource =
         lines;
       };
 
-    let%bind line =
+    let* line =
       switch (value) {
       | Value(value) =>
         let value = escapeDoubleQuote(value);
@@ -314,7 +314,7 @@ let renderToShellSource =
     [@implicit_arity] Ok([line, ...lines], origin);
   };
 
-  let%bind (lines, _) = Run.List.foldLeft(~f, ~init=([], None), bindings);
+  let* (lines, _) = Run.List.foldLeft(~f, ~init=([], None), bindings);
   return(header ++ "\n" ++ (lines |> List.rev |> String.concat("\n")));
 };
 

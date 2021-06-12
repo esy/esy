@@ -229,7 +229,7 @@ module Version = {
   let parser = {
     let p = parse;
     open P;
-    let%bind input = take_while1(_ => true);
+    let* input = take_while1(_ => true);
     switch (p(input)) {
     | Ok(v) => return(v)
     | Error(msg) => fail(msg)
@@ -787,7 +787,7 @@ module Formula = {
   let parserDnf = {
     let p = parse;
     open P;
-    let%bind input = take_while1(_ => true);
+    let* input = take_while1(_ => true);
     switch (p(input)) {
     | Ok(v) => return(v)
     | Error(msg) => fail(msg)

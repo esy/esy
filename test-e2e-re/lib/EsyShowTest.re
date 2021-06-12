@@ -9,21 +9,21 @@ describe("esy show", ({test, _}) => {
   test("shows info about packages hosted on npm", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
-      let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
+      let* sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
       let sandbox: Helpers.sandboxActions = sandboxR;
 
-      let%bind () =
+      let* () =
         sandbox.fixtures([Fixture.defaultProject()])
         >> sandbox.defineNpmPackages([
              NpmPublish.make(~name="react", ~version="1.0.0", ()),
              NpmPublish.make(~name="react", ~version="2.0.0", ()),
            ]);
-      let%bind output = sandbox.esy("show react");
+      let* output = sandbox.esy("show react");
       expect.string(output).toEqual(
         {|{ "name": "react", "versions": [ "2.0.0", "1.0.0" ] }|},
       );
 
-      let%bind output = sandbox.esy("show react@1.0.0");
+      let* output = sandbox.esy("show react@1.0.0");
       expect.string(output).toEqual(
         {|
           {
@@ -44,10 +44,10 @@ describe("esy show", ({test, _}) => {
   test("shows info about packages hosted on opam", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
-      let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
+      let* sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
       let sandbox: Helpers.sandboxActions = sandboxR;
 
-      let%bind () =
+      let* () =
         sandbox.fixtures([Fixture.defaultProject()])
         >> sandbox.defineOpamPackages([
              {
@@ -64,11 +64,11 @@ describe("esy show", ({test, _}) => {
              },
            ]);
 
-      let%bind output = sandbox.esy("show @opam/bos");
+      let* output = sandbox.esy("show @opam/bos");
       expect.string(output).toEqual(
         {|{ "name": "@opam/bos", "versions": [ "2.0.0", "1.0.0" ] }|},
       );
-      let%bind output = sandbox.esy("show @opam/bos@2.0.0");
+      let* output = sandbox.esy("show @opam/bos@2.0.0");
       expect.string(output).toEqual(
         {|
           {
@@ -89,12 +89,12 @@ describe("esy show", ({test, _}) => {
   test("shows info about packages hosted on github", ({expect, _}) =>
     NpmMock.runWith(mockUrl => {
       open Result.Syntax;
-      let%bind sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
+      let* sandboxR = Helpers.createSandbox(~fixture=[], mockUrl);
       let sandbox: Helpers.sandboxActions = sandboxR;
 
-      let%bind () = sandbox.fixtures([Fixture.defaultProject()]);
+      let* () = sandbox.fixtures([Fixture.defaultProject()]);
 
-      let%bind output =
+      let* output =
         sandbox.esy("show example-yarn-package@yarnpkg/example-yarn-package");
       expect.string(output).toEqual(
         {|

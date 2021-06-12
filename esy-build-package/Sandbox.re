@@ -44,7 +44,7 @@ module Darwin = {
   let sandboxExec = config => {
     open Run;
     let configData = renderConfig(config);
-    let%bind configFilename = createTmpFile(configData);
+    let* configFilename = createTmpFile(configData);
     Logs.debug(m =>
       m("sandbox-exec config:@;<0 2>@[<v 2>%a@]", Fmt.lines, configData)
     );
@@ -88,7 +88,7 @@ module Windows = {
        * because we need the current PATH/env to pick up node and run the shell
        */
       let jsonString = convertEnvToJsonString(env);
-      let%bind environmentTempFile = createTmpFile(jsonString);
+      let* environmentTempFile = createTmpFile(jsonString);
       let commandAsList = Cmd.to_list(command);
 
       /* Normalize slashes in the command we send to esy-bash */

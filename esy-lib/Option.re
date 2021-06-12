@@ -32,6 +32,7 @@ let isSome =
 
 module Syntax = {
   let return = v => Some(v);
+  let ( let* ) = (v, f) => bind(~f, v);
   module Let_syntax = {
     let bind = bind;
     let map = map;

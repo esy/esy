@@ -9,22 +9,22 @@ let%test "creates and unpacks a tarball" = {
     let f = tempPath => {
       open RunAsync.Syntax;
       let folderToCreate = Path.(tempPath / "test-folder");
-      let%bind () = Fs.createDir(folderToCreate);
+      let* () = Fs.createDir(folderToCreate);
       let fileToCreate = Path.(folderToCreate / "test-file.txt");
       let data = "test data";
-      let%bind () = Fs.writeFile(~data, fileToCreate);
+      let* () = Fs.writeFile(~data, fileToCreate);
 
       /* package up the file into a tarball */
       let filename = Path.(tempPath / "output.tar.gz");
-      let%bind () = EsyLib.Tarball.create(~filename, folderToCreate);
+      let* () = EsyLib.Tarball.create(~filename, folderToCreate);
 
       /* unpack the tarball */
       let dst = Path.(tempPath / "extract-folder");
-      let%bind () = Fs.createDir(dst);
-      let%bind () = EsyLib.Tarball.unpack(~dst, filename);
+      let* () = Fs.createDir(dst);
+      let* () = EsyLib.Tarball.unpack(~dst, filename);
 
       let expectedOutputFile = Path.(dst / "test-file.txt");
-      let%bind result = Fs.readFile(expectedOutputFile);
+      let* result = Fs.readFile(expectedOutputFile);
       return(result == data);
     };
 
@@ -42,24 +42,24 @@ let%test "unpack tarball with stripcomponents" = {
         Path.(
           tempPath / "test-folder" / "nested-folder-1" / "nested-folder-2"
         );
-      let%bind () = Fs.createDir(folderToCreate);
+      let* () = Fs.createDir(folderToCreate);
       let fileToCreate = Path.(folderToCreate / "test-file.txt");
       let data = "test data";
-      let%bind () = Fs.writeFile(~data, fileToCreate);
+      let* () = Fs.writeFile(~data, fileToCreate);
 
       /* package up the file into a tarball */
       let folderToPackage = Path.(tempPath / "test-folder");
       let filename = Path.(tempPath / "output.tar.gz");
-      let%bind () = EsyLib.Tarball.create(~filename, folderToPackage);
+      let* () = EsyLib.Tarball.create(~filename, folderToPackage);
 
       /* unpack the tarball */
       let dst = Path.(tempPath / "extract-folder");
-      let%bind () = Fs.createDir(dst);
+      let* () = Fs.createDir(dst);
       let stripComponents = 2;
-      let%bind () = EsyLib.Tarball.unpack(~stripComponents, ~dst, filename);
+      let* () = EsyLib.Tarball.unpack(~stripComponents, ~dst, filename);
 
       let expectedOutputFile = Path.(dst / "test-file.txt");
-      let%bind result = Fs.readFile(expectedOutputFile);
+      let* result = Fs.readFile(expectedOutputFile);
       return(result == data);
     };
 

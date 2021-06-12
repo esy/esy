@@ -11,7 +11,7 @@ module Version = {
   let parse = v => Ok(OpamPackage.Version.of_string(v));
   let parser = {
     open Parse;
-    let%bind input = take_while1(_ => true);
+    let* input = take_while1(_ => true);
     try(return(OpamPackage.Version.of_string(input))) {
     | _ => fail("cannot parse opam version")
     };
@@ -45,8 +45,8 @@ let caretRange = v =>
         {...v, major: v.major + 1};
       };
 
-    let%bind v = Version.ofSemver(v);
-    let%bind ve = Version.ofSemver(ve);
+    let* v = Version.ofSemver(v);
+    let* ve = Version.ofSemver(ve);
     [@implicit_arity] Ok(v, ve);
   | Error(_) => Error("^ cannot be applied to: " ++ v)
   };
@@ -56,8 +56,8 @@ let tildaRange = v =>
   | Ok(v) =>
     open Result.Syntax;
     let ve = {...v, minor: v.minor + 1};
-    let%bind v = Version.ofSemver(v);
-    let%bind ve = Version.ofSemver(ve);
+    let* v = Version.ofSemver(v);
+    let* ve = Version.ofSemver(ve);
     [@implicit_arity] Ok(v, ve);
   | Error(_) => Error("~ cannot be applied to: " ++ v)
   };
@@ -97,34 +97,34 @@ module Formula = {
         switch (fst, snd) {
         | (Some('^'), _) =>
           let v = String.Sub.(text |> v(~start=1) |> to_string);
-          let%bind (v, ve) = caretRange(v);
+          let* (v, ve) = caretRange(v);
           return([C.GTE(v), C.LT(ve)]);
         | (Some('~'), _) =>
           let v = String.Sub.(text |> v(~start=1) |> to_string);
-          let%bind (v, ve) = tildaRange(v);
+          let* (v, ve) = tildaRange(v);
           return([C.GTE(v), C.LT(ve)]);
         | (Some('='), _) =>
           let text = String.Sub.(text |> v(~start=1) |> to_string);
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.EQ(v)]);
         | (Some('<'), Some('=')) =>
           let text = String.Sub.(text |> v(~start=2) |> to_string);
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.LTE(v)]);
         | (Some('<'), _) =>
           let text = String.Sub.(text |> v(~start=1) |> to_string);
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.LT(v)]);
         | (Some('>'), Some('=')) =>
           let text = String.Sub.(text |> v(~start=2) |> to_string);
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.GTE(v)]);
         | (Some('>'), _) =>
           let text = String.Sub.(text |> v(~start=1) |> to_string);
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.GT(v)]);
         | (_, _) =>
-          let%bind v = Version.parse(text);
+          let* v = Version.parse(text);
           return([C.EQ(v)]);
         };
       }
@@ -171,7 +171,7 @@ module Formula = {
 
   let parserDnf = {
     open P;
-    let%bind input = take_while1(_ => true);
+    let* input = take_while1(_ => true);
     return(parseExn(input));
   };
 

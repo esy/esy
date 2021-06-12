@@ -72,8 +72,8 @@ let toResult: t('a) => result('a, string);
  * Convenience module which is designed to be openned locally with the
  * code which heavily relies on Run.t.
  *
- * This also brings Let_syntax module into scope and thus compatible with
- * ppx_let.
+ * This also brings monadic let operators and Let_syntax module into scope
+ * and thus compatible with ppx_let.
  *
  * Example
  *
@@ -89,6 +89,7 @@ module Syntax: {
   let return: 'a => t('a);
   let error: string => t('a);
   let errorf: format4('a, Format.formatter, unit, t('v)) => 'a;
+  let ( let* ): (t('a), 'a => t('b)) => t('b);
 
   module Let_syntax: {
     let bind: (~f: 'a => t('b), t('a)) => t('b);

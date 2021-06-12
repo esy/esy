@@ -43,12 +43,12 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
 
   RunAsync.contextf(
     {
-      let%bind resolver = Resolver.make(~cfg, ~sandbox=spec, ());
+      let* resolver = Resolver.make(~cfg, ~sandbox=spec, ());
       switch (spec.manifest) {
       | EsyInstall.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);
         let resolution = makeResolution(source);
-        let%bind sandbox =
+        let* sandbox =
           ofResolution(
             ~gitUsername,
             ~gitPassword,
@@ -60,7 +60,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
         Resolver.setResolutions(sandbox.resolutions, sandbox.resolver);
         return(sandbox);
       | EsyInstall.SandboxSpec.ManifestAggregate(manifests) =>
-        let%bind (resolutions, deps, devDeps) = {
+        let* (resolutions, deps, devDeps) = {
           let f = ((resolutions, deps, devDeps), manifest) => {
             let source = makeSource(manifest);
             let resolution = makeResolution(source);
@@ -213,7 +213,7 @@ let digest = (solvespec, sandbox) => {
   let digest =
     Resolutions.digest(sandbox.root.resolutions) |> rootDigest(sandbox.root);
 
-  let%bind digest = {
+  let* digest = {
     let f = (digest, resolution) => {
       let resolution =
         switch (resolution.Resolution.resolution) {
