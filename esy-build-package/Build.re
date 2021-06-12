@@ -282,36 +282,38 @@ let rec loop = (m: (module Run.T), acc: list(Fpath.t)) =>
   | [] => return(acc)
   | [entry, ...r] => {
       let (module Fs) = m;
-      let* stats = Fs.stat(entry);
-      switch (stats.Unix.st_kind) {
-      | Unix.S_LNK
-      | Unix.S_REG =>
-        let* acc =
-          Fs.withIC(
-            entry,
-            (inputChannel, (entry, acc)) => {
-              let inputFD = Fs.fileDescriptorOfChannel(inputChannel);
-              let buffer = Bytes.create(4);
-              let bytesRead = Fs.readBytes(inputFD, buffer, 0, 4);
-              if (bytesRead != 4) {
-                let _remainingBytes =
-                  Fs.readBytes(inputFD, buffer, bytesRead, 4 - bytesRead);
-                // TODO handle read failure retries
-                ();
-              };
-              switch (Bytes.get_int32_ne(buffer, 0)) {
-              | 0xfeedfacfl => [entry, ...acc]
-              | _ => acc
-              };
-            },
-            (entry, acc),
-          );
-        loop(m, acc, r);
-      | Unix.S_DIR =>
-        let* rest = loop(m, acc, r);
-        getMachOBins(m, rest, entry);
-      | Ok(_)
-      | Error(_) => loop(m, acc, r)
+      switch (Fs.stat(entry)) {
+      | Error(_) /* TODO: handle error? */ => loop(m, acc, r)
+      | Ok(stats) =>
+        switch (stats.Unix.st_kind) {
+        | Unix.S_LNK
+        | Unix.S_REG =>
+          let* acc =
+            Fs.withIC(
+              entry,
+              (inputChannel, (entry, acc)) => {
+                let inputFD = Fs.fileDescriptorOfChannel(inputChannel);
+                let buffer = Bytes.create(4);
+                let bytesRead = Fs.readBytes(inputFD, buffer, 0, 4);
+                if (bytesRead != 4) {
+                  let _remainingBytes =
+                    Fs.readBytes(inputFD, buffer, bytesRead, 4 - bytesRead);
+                  // TODO handle read failure retries
+                  ();
+                };
+                switch (Bytes.get_int32_ne(buffer, 0)) {
+                | 0xfeedfacfl => [entry, ...acc]
+                | _ => acc
+                };
+              },
+              (entry, acc),
+            );
+          loop(m, acc, r);
+        | Unix.S_DIR =>
+          let* rest = loop(m, acc, r);
+          getMachOBins(m, rest, entry);
+        | _ => loop(m, acc, r)
+        }
       };
     }
 and getMachOBins =
