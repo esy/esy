@@ -124,6 +124,7 @@ let cases = [
    // TODO { name: "ppx_has", toolchains: [ocamlVersion] },
    // Blocked by esy/esy#505
    // {name: 'coq', toolchains: [ocamlVersion]},
+   { name: 'libtorch', toolchains: [ocamlVersion] },
 ];
 
 let reposUpdated = false;
