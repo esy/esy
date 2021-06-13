@@ -50,6 +50,8 @@ and node = {
   devDependencies: PackageId.Set.t,
   [@default InstallConfig.empty]
   installConfig: InstallConfig.t,
+  [@default []]
+  extraSources: list(ExtraSource.t),
 };
 
 let indexFilename = "index.json";
@@ -228,6 +230,7 @@ let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
     dependencies: pkg.dependencies,
     devDependencies: pkg.devDependencies,
     installConfig: pkg.installConfig,
+    extraSources: pkg.extraSources,
   });
 };
 
@@ -254,6 +257,7 @@ let readPackage = (sandbox, node: node) => {
     dependencies: node.dependencies,
     devDependencies: node.devDependencies,
     installConfig: node.installConfig,
+    extraSources: node.extraSources,
   });
 };
 

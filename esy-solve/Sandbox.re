@@ -125,6 +125,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
           resolutions,
           kind: Npm,
           installConfig: InstallConfig.empty,
+          extraSources: [],
         };
         return({cfg, spec, root, resolutions: root.resolutions, resolver});
       };

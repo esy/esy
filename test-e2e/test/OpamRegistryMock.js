@@ -119,6 +119,56 @@ async function defineOpamPackage(
   }
 }
 
+async function defineOpamPackageOfExtraSource(
+  registry: OpamRegistry,
+  spec: {
+    name: string,
+    version: string,
+    opam: string,
+    url: ?string,
+  },
+) {
+  await defineOpamPackage(registry, spec);
+
+  const packagePath = path.join(registry.registryPath, 'packages', spec.name);
+  await fs.mkdirp(packagePath);
+
+  const packageVersionPath = path.join(packagePath, `${spec.name}.${spec.version}`);
+  await fs.mkdirp(packageVersionPath);
+
+  const tarballFilename = `${spec.name}@${spec.version}.tgz`;
+
+  const packageSourcePath = await createTemporaryFolder();
+
+  const tarballPath = path.join(registry.packageSourcesPath, tarballFilename);
+  await packToFile(tarballPath, packageSourcePath, {
+    virtualPath: `/${spec.name}-${spec.version}`,
+  });
+
+  const data = await fs.readFile(tarballPath);
+  const hasher = crypto.createHash('md5');
+  hasher.update(data);
+  const checksum = hasher.digest('hex');
+
+  await fs.writeFile(
+    path.join(packageVersionPath, 'opam'),
+    outdent`
+      ${spec.opam}
+      install: [
+        [
+          "sh"
+          "-c"
+          "(mkdir -p %{lib}%/${spec.name} && tar xf ${tarballFilename})"
+        ]
+      ]
+      extra-source "${tarballFilename}" {
+        src: "${registry.serverUrl}/${tarballFilename}"
+        checksum: "md5=${checksum}"
+      }
+    `,
+  );
+}
+
 async function defineOpamPackageOfFixture(
   registry: OpamRegistry,
   spec: {
@@ -162,4 +212,5 @@ module.exports = {
   initialize,
   defineOpamPackage,
   defineOpamPackageOfFixture,
+  defineOpamPackageOfExtraSource,
 };

@@ -259,13 +259,16 @@ module FetchPackage: {
     let rec fetchAny = (errs, alternatives) =>
       switch (alternatives) {
       | [dist, ...rest] =>
+        let extraSources = Package.extraSources(pkg);
         let fetched =
           DistStorage.fetch(
             sandbox.Sandbox.cfg,
             sandbox.spec,
             dist,
+            ~extraSources,
             gitUsername,
             gitPassword,
+            (),
           );
         switch%lwt (fetched) {
         | Ok(fetched) => return(fetched)

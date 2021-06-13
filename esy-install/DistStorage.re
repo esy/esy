@@ -67,7 +67,7 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
+let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
   switch (dist) {
@@ -75,7 +75,42 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
 
-  | Dist.NoSource => return(Empty)
+  | Dist.NoSource =>
+    switch (extraSources) {
+    | Some(extraSources) =>
+      if (extraSources == []) {
+        return(Empty);
+      } else {
+        let path = CachePaths.fetchedDist(sandbox, dist);
+        let* () = Fs.createDir(path);
+        Fs.withTempDir(
+          ~tempPath,
+          stagePath => {
+            let%bind () = Fs.createDir(stagePath);
+            let%bind _ =
+              RunAsync.List.map(
+                ~f=
+                  ({ExtraSource.url, checksum, relativePath}) => {
+                    open RunAsync.Syntax;
+                    let tarballPath = Path.(stagePath / relativePath);
+                    let* _ = Curl.download(~output=tarballPath, url);
+                    let* _ = Checksum.checkFile(~path=tarballPath, checksum);
+                    let* _ =
+                      Fs.rename(
+                        ~skipIfExists=true,
+                        ~src=tarballPath,
+                        Path.(path / relativePath),
+                      );
+                    RunAsync.return();
+                  },
+                extraSources,
+              );
+            return(Path(path));
+          },
+        );
+      }
+    | None => return(Empty)
+    }
 
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
@@ -137,6 +172,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
         let* () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
     );
@@ -166,15 +202,17 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword) => {
         let* () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
     );
   };
 };
 
-let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword) =>
+let fetch =
+    (_cfg, sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist, gitUsername, gitPassword),
+    fetch'(sandbox, dist, gitUsername, gitPassword, ~extraSources?, ()),
     "fetching dist: %a",
     Dist.pp,
     dist,
@@ -198,7 +236,15 @@ let unpack = (fetched, path) =>
 
       return();
     | Tarball({tarballPath, stripComponents}) =>
-      Tarball.unpack(~stripComponents, ~dst=path, tarballPath)
+      let%lwt () =
+        Logs_lwt.debug(m =>
+          m(
+            "tarballPath %s, path %s",
+            Fpath.to_string(tarballPath),
+            Fpath.to_string(path),
+          )
+        );
+      Tarball.unpack(~stripComponents, ~dst=path, tarballPath);
     }
   );
 
@@ -208,7 +254,7 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
   if%bind (Fs.exists(path)) {
     return(path);
   } else {
-    let* fetched = fetch(cfg, sandbox, dist, gitUsername, gitPassword);
+    let* fetched = fetch(cfg, sandbox, dist, gitUsername, gitPassword, ());
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,
