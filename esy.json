@@ -5,13 +5,13 @@
   "license": "MIT",
   "esy": {
     "build": "dune build -p esy",
-    "buildDev": "dune build -p esy",
+    "buildDev": "dune build @install @dev --promote-install-files --root .",
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,
       "bin": ["esy"]
     },
-    "buildsInSource": "_build"
+    "buildsInSource": true
   },
   "//": "Following pesy config can be used to pull cached builds from CI",
   "pesy": {
