@@ -24,6 +24,7 @@ module Syntax: {
   let return: 'v => t('v, _);
   let error: 'err => t(_, 'err);
   let errorf: format4('a, Format.formatter, unit, t(_, string)) => 'a;
+  let ( let* ): (t('a, 'err), 'a => t('b, 'err)) => t('b, 'err);
   let (>>): (t(unit, 'err), unit => t('b, 'err)) => t('b, 'err);
 
   module Let_syntax: {

@@ -125,10 +125,5 @@ To enable that one should set `"esy.release.rewritePrefix"` to `true`:
 
 > **NOTE**
 >
-> Currently releases configured with `"esy.release.rewritePrefix": true` cannot
-> be produced on Windows. This limitation will be lifted in the future.
-
-> **NOTE**
->
 > Releases configured with `"esy.release.rewritePrefix": true` cannot be
 > installed into deep filesystem locations (the limit is around 108 characters).

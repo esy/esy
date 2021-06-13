@@ -102,7 +102,7 @@ module Parse = {
     let path =
       scan(false, (seenPathSep, c) => Some(seenPathSep || c == '/'));
 
-    let%bind (path, seenPathSep) = path;
+    let* (path, seenPathSep) = path;
     if (!requirePathSep || seenPathSep) {
       return(make(path));
     } else {

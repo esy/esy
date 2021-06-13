@@ -41,7 +41,7 @@ let openFile = (~mode, ~perm, path) =>
 
 let readJsonFile = (path: Path.t) => {
   open RunAsync.Syntax;
-  let%bind data = readFile(path);
+  let* data = readFile(path);
   try(return(Yojson.Safe.from_string(data))) {
   | Yojson.Json_error(msg) =>
     errorf("error reading JSON file: %a@\n%s", Path.pp, path, msg)
@@ -349,7 +349,7 @@ let rec copyPathLwt = (~src, ~dst) => {
 
 let copyPath = (~src, ~dst) => {
   open RunAsync.Syntax;
-  let%bind () = createDir(Path.parent(dst));
+  let* () = createDir(Path.parent(dst));
   try%lwt(
     {
       let%lwt () = copyPathLwt(~src, ~dst);
@@ -456,7 +456,7 @@ let withTempDir = (~tempPath=?, f) => {
     | None => Path.v(Filename.get_temp_dir_name())
     };
 
-  let%bind path = createRandomPath(tempPath, "esy-%s");
+  let* path = createRandomPath(tempPath, "esy-%s");
   Lwt.finalize(
     () => f(path),
     () =>
@@ -579,13 +579,13 @@ let realpath = path => {
     if (Fpath.is_root(path)) {
       return(path);
     } else {
-      let%bind isSymlink = isSymlinkAndExists(path);
+      let* isSymlink = isSymlinkAndExists(path);
       if (isSymlink) {
-        let%bind target = readlink(path);
+        let* target = readlink(path);
         aux(target |> Fpath.append(Fpath.parent(path)) |> Fpath.normalize);
       } else {
         let parentPath = path |> Fpath.parent |> Fpath.rem_empty_seg;
-        let%bind parentPath = aux(parentPath);
+        let* parentPath = aux(parentPath);
         return(Path.(parentPath / Fpath.basename(path)));
       };
     };

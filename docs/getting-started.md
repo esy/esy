@@ -300,6 +300,12 @@ cd hello-reason
 esy
 ```
 
+Note: to get intellisense on VSCode, make sure the latest version of
+`@opam/ocaml-lsp-server` is present in `package.json`. OCaml versions
+may differ across projects and a single global `ocamllsp` binary won't
+work across projects. The `hello-reason` template takes care of this
+already.
+
 ## Cheat sheet
 
 ### Install dependencies

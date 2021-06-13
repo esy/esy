@@ -11,7 +11,7 @@ let of_yojson = (json: Json.t) =>
     | `List(commands) =>
       Json.Decode.list(Command.of_yojson, `List(commands))
     | `String(command) =>
-      let%bind command = Command.of_yojson(`String(command));
+      let* command = Command.of_yojson(`String(command));
       return([command]);
     | _ => Error("expected either a null, a string or an array")
     }

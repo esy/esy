@@ -22,8 +22,8 @@ let rec eval = (manifest: InstallManifest.t, spec: t) => {
     | Dependencies(Self) => return(manifest.dependencies)
     | DevDependencies(Self) => return(manifest.devDependencies)
     | Union(a, b) =>
-      let%bind adeps = eval(manifest, a);
-      let%bind bdeps = eval(manifest, b);
+      let* adeps = eval(manifest, a);
+      let* bdeps = eval(manifest, b);
       switch (adeps, bdeps) {
       | (D.NpmFormula(a), D.NpmFormula(b)) =>
         let reqs = NpmFormula.override(a, b);

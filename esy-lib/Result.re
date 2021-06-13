@@ -38,6 +38,11 @@ module Syntax = {
   let return = return;
   let error = error;
   let errorf = errorf;
+  let ( let* ) = (v, f) =>
+    switch (v) {
+    | Ok(v) => f(v)
+    | Error(e) => Error(e)
+    };
 
   let (>>) = (v, f) => {
     switch (v) {
@@ -90,7 +95,7 @@ module List = {
       } else {
         return(xs);
       };
-    let%bind xs = foldLeft(~f, ~init=[], xs);
+    let* xs = foldLeft(~f, ~init=[], xs);
     return(List.rev(xs));
   };
 };

@@ -125,7 +125,7 @@ module Findlib = {
         % "-long-format"
         % lib
       );
-    let%bind out = ChildProcess.runOut(~env, cmd);
+    let* out = ChildProcess.runOut(~env, cmd);
     let lines =
       String.split_on_char('\n', out)
       |> List.map(~f=line => splitBy(line, ':'))
@@ -165,7 +165,7 @@ module Findlib = {
         Astring.String.Map.(empty |> add("OCAMLPATH", ocamlpath)),
       );
     let cmd = Cmd.(v(p(ocamlfind)) % "list");
-    let%bind out = ChildProcess.runOut(~env, cmd);
+    let* out = ChildProcess.runOut(~env, cmd);
     let libs =
       String.split_on_char('\n', out)
       |> List.map(~f=line => splitBy(line, ' '))
@@ -183,7 +183,7 @@ module Findlib = {
     open RunAsync.Syntax;
     let env = ChildProcess.CustomEnv(Astring.String.Map.empty);
     let cmd = Cmd.(v(p(ocamlobjinfo)) % archive);
-    let%bind out = ChildProcess.runOut(~env, cmd);
+    let* out = ChildProcess.runOut(~env, cmd);
     let startsWith = (s1, s2) => {
       let len1 = String.length(s1);
       let len2 = String.length(s2);
@@ -226,7 +226,7 @@ let resolvedPathTerm = {
 let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
   let f = (pkg: Package.t) => {
-    let%bind plan = Project.plan(mode, proj);
+    let* plan = Project.plan(mode, proj);
     Project.buildDependencies(~buildLinked=all, proj, plan, pkg);
   };
 
@@ -236,15 +236,15 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
 let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
   let mode = BuildSpec.BuildDev;
-  let%bind (dirsToKeep, allDirs) =
+  let* (dirsToKeep, allDirs) =
     RunAsync.List.foldLeft(
       ~init=(Path.Set.empty, Path.Set.empty),
       ~f=
         (acc, projCfg) => {
           let (dirsToKeep, allDirs) = acc;
-          let%bind (proj, _) = Project.make(projCfg);
-          let%bind plan = Project.plan(mode, proj);
-          let%bind allProjectDependencies =
+          let* (proj, _) = Project.make(projCfg);
+          let* plan = Project.plan(mode, proj);
+          let* allProjectDependencies =
             BuildSandbox.Plan.all(plan)
             |> List.map(~f=task =>
                  Scope.installPath(task.BuildSandbox.Task.scope)
@@ -252,10 +252,8 @@ let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
                )
             |> Path.Set.of_list
             |> RunAsync.return;
-          let%bind storePath =
-            RunAsync.ofRun(ProjectConfig.storePath(projCfg));
-          let%bind allDirs' =
-            Fs.listDir(Path.(storePath / Store.installTree));
+          let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projCfg));
+          let* allDirs' = Fs.listDir(Path.(storePath / Store.installTree));
           let shortBuildPath =
             Path.(
               ProjectConfig.globalStorePrefixPath(projCfg)
@@ -387,7 +385,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
     | _ => RunAsync.error("fatal error which is ignored by status command")
     };
 
-  let%bind status =
+  let* status =
     switch%lwt (protectRunAsync(maybeProject)) {
     | Error(_) => return(notAProject)
     | Ok(proj) =>
@@ -404,8 +402,8 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
       let%lwt built =
         protectRunAsync(
           {
-            let%bind fetched = Project.fetched(proj);
-            let%bind configured = Project.configured(proj);
+            let* fetched = Project.fetched(proj);
+            let* configured = Project.configured(proj);
             let checkTask = (built, task) =>
               if (built) {
                 switch (Scope.sourceType(task.BuildSandbox.Task.scope)) {
@@ -427,7 +425,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
         );
       let%lwt rootBuildPath = {
         open RunAsync.Syntax;
-        let%bind configured = Project.configured(proj);
+        let* configured = Project.configured(proj);
         let root = configured.Project.root;
         return(
           Some(BuildSandbox.Task.buildPath(proj.Project.buildCfg, root)),
@@ -436,7 +434,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
 
       let%lwt rootInstallPath = {
         open RunAsync.Syntax;
-        let%bind configured = Project.configured(proj);
+        let* configured = Project.configured(proj);
         let root = configured.Project.root;
         return(
           Some(BuildSandbox.Task.installPath(proj.Project.buildCfg, root)),
@@ -469,7 +467,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
 let buildPlan = (mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind plan = Project.plan(mode, proj);
+  let* plan = Project.plan(mode, proj);
 
   let f = (pkg: Package.t) =>
     switch (BuildSandbox.Plan.get(plan, pkg.id)) {
@@ -487,11 +485,11 @@ let buildPlan = (mode, pkgarg, proj: Project.t) => {
 let buildShell = (mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = Project.fetched(proj);
-  let%bind configured = Project.configured(proj);
+  let* fetched = Project.fetched(proj);
+  let* configured = Project.configured(proj);
 
   let f = (pkg: Package.t) => {
-    let%bind () =
+    let* () =
       Project.buildDependencies(
         ~buildLinked=true,
         proj,
@@ -530,13 +528,13 @@ let build =
     ) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = Project.fetched(proj);
-  let%bind plan = Project.plan(mode, proj);
+  let* fetched = Project.fetched(proj);
+  let* plan = Project.plan(mode, proj);
 
   let f = pkg =>
     switch (cmd) {
     | None =>
-      let%bind () =
+      let* () =
         Project.buildDependencies(
           ~buildLinked=true,
           ~skipStalenessCheck,
@@ -555,7 +553,7 @@ let build =
         pkg,
       );
     | Some(cmd) =>
-      let%bind () =
+      let* () =
         Project.buildDependencies(
           ~buildLinked=true,
           ~skipStalenessCheck,
@@ -613,7 +611,7 @@ let execEnv = (asJson, pkgarg, proj: Project.t) =>
 
 let exec = (mode, chdir, pkgarg, disableSandbox, cmd, proj: Project.t) => {
   open RunAsync.Syntax;
-  let%bind () =
+  let* () =
     build(~buildOnly=false, mode, PkgArg.root, disableSandbox, None, proj);
   let f = pkg =>
     Project.execCommand(
@@ -633,8 +631,8 @@ let exec = (mode, chdir, pkgarg, disableSandbox, cmd, proj: Project.t) => {
 let runScript = (script, args, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = Project.fetched(proj);
-  let%bind configured = Project.configured(proj);
+  let* fetched = Project.fetched(proj);
+  let* configured = Project.configured(proj);
 
   let (scriptArgs, envspec) = {
     let peekArgs =
@@ -658,13 +656,13 @@ let runScript = (script, args, proj: Project.t) => {
     };
   };
 
-  let%bind (cmd, cwd) =
+  let* (cmd, cwd) =
     RunAsync.ofRun(
       {
         open Run.Syntax;
 
         let id = configured.Project.root.pkg.id;
-        let%bind (env, scope) =
+        let* (env, scope) =
           BuildSandbox.configure(
             envspec,
             proj.workflow.buildspec,
@@ -673,11 +671,11 @@ let runScript = (script, args, proj: Project.t) => {
             id,
           );
 
-        let%bind env =
+        let* env =
           Run.ofStringError(Scope.SandboxEnvironment.Bindings.eval(env));
 
         let expand = v => {
-          let%bind v =
+          let* v =
             Scope.render(
               ~env,
               ~buildIsInProgress=envspec.buildIsInProgress,
@@ -687,15 +685,15 @@ let runScript = (script, args, proj: Project.t) => {
           return(Scope.SandboxValue.render(proj.buildCfg, v));
         };
 
-        let%bind scriptArgs =
+        let* scriptArgs =
           switch (scriptArgs) {
           | Parsed(args) => Result.List.map(~f=expand, args)
           | Unparsed(line) =>
-            let%bind line = expand(line);
+            let* line = expand(line);
             ShellSplit.split(line);
           };
 
-        let%bind args = Result.List.map(~f=expand, args);
+        let* args = Result.List.map(~f=expand, args);
 
         let cmd =
           Cmd.(
@@ -717,7 +715,7 @@ let runScript = (script, args, proj: Project.t) => {
       },
     );
 
-  let%bind status =
+  let* status =
     ChildProcess.runToStatus(
       ~resolveProgramInEnv=true,
       ~cwd?,
@@ -736,7 +734,7 @@ let runScript = (script, args, proj: Project.t) => {
 
 let runScriptCommand = (cmd, proj: Project.t) => {
   open RunAsync.Syntax;
-  let%bind _ = Project.fetched(proj);
+  let* _ = Project.fetched(proj);
   let script = Cmd.getTool(cmd);
   switch (Scripts.find(script, proj.scripts)) {
   | Some(script) => runScript(script, Cmd.getArgs(cmd), proj)
@@ -784,8 +782,8 @@ let makeLsCommand =
     (~computeTermNode, ~includeTransitive, mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind solved = Project.solved(proj);
-  let%bind plan = Project.plan(mode, proj);
+  let* solved = Project.solved(proj);
+  let* plan = Project.plan(mode, proj);
 
   let seen = ref(PackageId.Set.empty);
 
@@ -799,7 +797,7 @@ let makeLsCommand =
       switch (BuildSandbox.Plan.get(plan, id)) {
       | None => return(None)
       | Some(task) =>
-        let%bind children =
+        let* children =
           if (!includeTransitive && !isRoot) {
             return([]);
           } else {
@@ -842,10 +840,10 @@ let formatPackageInfo = (~built: bool, task: BuildSandbox.Task.t) => {
 
 let lsBuilds = (includeTransitive, mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
-  let%bind fetched = Project.fetched(proj);
+  let* fetched = Project.fetched(proj);
   let computeTermNode = (task, children) => {
-    let%bind built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
-    let%bind line = formatPackageInfo(~built, task);
+    let* built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
+    let* line = formatPackageInfo(~built, task);
     return(Some(TermTree.Node({line, children})));
   };
 
@@ -854,20 +852,20 @@ let lsBuilds = (includeTransitive, mode, pkgarg, proj: Project.t) => {
 
 let lsLibs = (includeTransitive, mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
-  let%bind fetched = Project.fetched(proj);
+  let* fetched = Project.fetched(proj);
 
-  let%bind ocamlfind = {
-    let%bind p = Project.ocamlfind(proj);
+  let* ocamlfind = {
+    let* p = Project.ocamlfind(proj);
     return(Path.(p / "bin" / "ocamlfind"));
   };
 
-  let%bind builtIns = Findlib.libraries(~ocamlfind, proj);
+  let* builtIns = Findlib.libraries(~ocamlfind, proj);
 
   let computeTermNode = (task: BuildSandbox.Task.t, children) => {
-    let%bind built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
-    let%bind line = formatPackageInfo(~built, task);
+    let* built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
+    let* line = formatPackageInfo(~built, task);
 
-    let%bind libs =
+    let* libs =
       if (built) {
         Findlib.libraries(~ocamlfind, ~builtIns, ~task, proj);
       } else {
@@ -890,23 +888,23 @@ let lsLibs = (includeTransitive, mode, pkgarg, proj: Project.t) => {
 let lsModules = (only, mode, pkgarg, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = Project.fetched(proj);
-  let%bind configured = Project.configured(proj);
+  let* fetched = Project.fetched(proj);
+  let* configured = Project.configured(proj);
 
-  let%bind ocamlfind = {
-    let%bind p = Project.ocamlfind(proj);
+  let* ocamlfind = {
+    let* p = Project.ocamlfind(proj);
     return(Path.(p / "bin" / "ocamlfind"));
   };
 
-  let%bind ocamlobjinfo = {
-    let%bind p = Project.ocaml(proj);
+  let* ocamlobjinfo = {
+    let* p = Project.ocaml(proj);
     return(Path.(p / "bin" / "ocamlobjinfo"));
   };
 
-  let%bind builtIns = Findlib.libraries(~ocamlfind, proj);
+  let* builtIns = Findlib.libraries(~ocamlfind, proj);
 
   let formatLibraryModules = (~task, lib) => {
-    let%bind meta = Findlib.query(~ocamlfind, ~task, proj, lib);
+    let* meta = Findlib.query(~ocamlfind, ~task, proj, lib);
     Findlib.(
       if (String.length(meta.archive) === 0) {
         let description = Chalk.dim(meta.description);
@@ -918,7 +916,7 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
           | Ok(archive) =>
             if%bind (Fs.exists(archive)) {
               let archive = Path.show(archive);
-              let%bind lines = Findlib.modules(~ocamlobjinfo, archive);
+              let* lines = Findlib.modules(~ocamlobjinfo, archive);
 
               let modules = {
                 let isPublicModule = name =>
@@ -945,10 +943,10 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
   };
 
   let computeTermNode = (task: BuildSandbox.Task.t, children) => {
-    let%bind built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
-    let%bind line = formatPackageInfo(~built, task);
+    let* built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
+    let* line = formatPackageInfo(~built, task);
 
-    let%bind libs =
+    let* libs =
       if (built) {
         Findlib.libraries(~ocamlfind, ~builtIns, ~task, proj);
       } else {
@@ -963,7 +961,7 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
     if (isNotRoot && constraintsSet && noMatchedLibs) {
       return(None);
     } else {
-      let%bind libs =
+      let* libs =
         libs
         |> List.filter(~f=lib =>
              if (List.length(only) == 0) {
@@ -974,7 +972,7 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
            )
         |> List.map(~f=lib => {
              let line = Chalk.yellow(lib);
-             let%bind children = formatLibraryModules(~task, lib);
+             let* children = formatLibraryModules(~task, lib);
 
              return(TermTree.Node({line, children}));
            })
@@ -997,7 +995,7 @@ let getSandboxSolution =
     (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
-  let%bind solution =
+  let* solution =
     Solver.solve(
       ~gitUsername=proj.projcfg.gitUsername,
       ~gitPassword=proj.projcfg.gitPassword,
@@ -1007,8 +1005,8 @@ let getSandboxSolution =
       proj.solveSandbox,
     );
   let lockPath = SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
-  let%bind () = {
-    let%bind digest = Sandbox.digest(solvespec, proj.solveSandbox);
+  let* () = {
+    let* digest = Sandbox.digest(solvespec, proj.solveSandbox);
 
     EsyInstall.SolutionLock.toPath(
       ~digest,
@@ -1042,7 +1040,7 @@ let getSandboxSolution =
 let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
   open RunAsync.Syntax;
   let run = () => {
-    let%bind _: Solution.t =
+    let* _: Solution.t =
       getSandboxSolution(
         ~dumpCudfInput,
         ~dumpCudfOutput,
@@ -1055,7 +1053,7 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
   if (force) {
     run();
   } else {
-    let%bind digest =
+    let* digest =
       EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
     let path = SandboxSpec.solutionLockPath(proj.solveSandbox.spec);
     switch%bind (
@@ -1086,7 +1084,7 @@ let fetch = (proj: Project.t) => {
 let solveAndFetch = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
-  let%bind digest =
+  let* digest =
     EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
   switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
   | Some(solution) =>
@@ -1101,8 +1099,8 @@ let solveAndFetch = (proj: Project.t) => {
     | None => fetch(proj)
     }
   | None =>
-    let%bind () = solve(false, None, None, proj);
-    let%bind () = fetch(proj);
+    let* () = solve(false, None, None, proj);
+    let* () = fetch(proj);
     return();
   };
 };
@@ -1112,12 +1110,11 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
   open RunAsync.Syntax;
   let opamError = "add dependencies manually when working with opam sandboxes";
 
-  let%bind reqs =
-    RunAsync.ofStringError(Result.List.map(~f=Req.parse, reqs));
+  let* reqs = RunAsync.ofStringError(Result.List.map(~f=Req.parse, reqs));
 
   let solveSandbox = proj.solveSandbox;
 
-  let%bind solveSandbox = {
+  let* solveSandbox = {
     let addReqs = origDeps =>
       InstallManifest.Dependencies.(
         switch (origDeps) {
@@ -1126,7 +1123,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
         }
       );
 
-    let%bind combinedDeps =
+    let* combinedDeps =
       devDependency
         ? addReqs(solveSandbox.root.devDependencies)
         : addReqs(solveSandbox.root.dependencies);
@@ -1141,10 +1138,10 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let proj = {...proj, solveSandbox};
 
-  let%bind solution = getSandboxSolution(proj.workflow.solvespec, proj);
-  let%bind () = fetch(proj);
+  let* solution = getSandboxSolution(proj.workflow.solvespec, proj);
+  let* () = fetch(proj);
 
-  let%bind (addedDependencies, configPath) = {
+  let* (addedDependencies, configPath) = {
     let records = {
       let f = (record: EsyInstall.Package.t, _, map) =>
         StringMap.add(record.name, record, map);
@@ -1174,7 +1171,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
       List.map(~f, reqs);
     };
 
-    let%bind path = {
+    let* path = {
       let spec = proj.solveSandbox.Sandbox.spec;
       switch (spec.manifest) {
       | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, fname) =>
@@ -1187,19 +1184,19 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     return((addedDependencies, path));
   };
 
-  let%bind json = {
+  let* json = {
     let keyToUpdate = devDependency ? "devDependencies" : "dependencies";
 
-    let%bind json = Fs.readJsonFile(configPath);
-    let%bind json =
+    let* json = Fs.readJsonFile(configPath);
+    let* json =
       RunAsync.ofStringError(
         {
           open Result.Syntax;
-          let%bind items = Json.Decode.assoc(json);
-          let%bind items = {
+          let* items = Json.Decode.assoc(json);
+          let* items = {
             let mergeWithExisting = ((key, json)) =>
               if (key == keyToUpdate) {
-                let%bind dependencies = Json.Decode.assoc(json);
+                let* dependencies = Json.Decode.assoc(json);
                 let dependencies =
                   Json.mergeAssoc(dependencies, addedDependencies);
                 return((key, `Assoc(dependencies)));
@@ -1229,10 +1226,10 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     return(json);
   };
 
-  let%bind () = Fs.writeJsonFile(~json, configPath);
+  let* () = Fs.writeJsonFile(~json, configPath);
 
-  let%bind () = {
-    let%bind solveSandbox =
+  let* () = {
+    let* solveSandbox =
       EsySolve.Sandbox.make(
         ~gitUsername=proj.projcfg.gitUsername,
         ~gitPassword=proj.projcfg.gitPassword,
@@ -1241,7 +1238,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
       );
 
     let proj = {...proj, solveSandbox};
-    let%bind digest =
+    let* digest =
       EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
 
     /* we can only do this because we keep invariant that the constraint we
@@ -1263,10 +1260,10 @@ let exportBuild = (buildPath, proj: Project.t) => {
 let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind configured = Project.configured(proj);
-  let%bind plan = Project.plan(mode, proj);
+  let* configured = Project.configured(proj);
+  let* plan = Project.plan(mode, proj);
 
-  let%bind allProjectDependencies =
+  let* allProjectDependencies =
     BuildSandbox.Plan.all(plan)
     |> List.map(~f=task => task.BuildSandbox.Task.pkg)
     |> List.filter(~f=pkg =>
@@ -1310,10 +1307,10 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
 
 let importBuild = (fromPath, buildPaths, projcfg: ProjectConfig.t) => {
   open RunAsync.Syntax;
-  let%bind buildPaths =
+  let* buildPaths =
     switch (fromPath) {
     | Some(fromPath) =>
-      let%bind lines = Fs.readFile(fromPath);
+      let* lines = Fs.readFile(fromPath);
       return(
         buildPaths
         @ (
@@ -1326,7 +1323,7 @@ let importBuild = (fromPath, buildPaths, projcfg: ProjectConfig.t) => {
     | None => return(buildPaths)
     };
 
-  let%bind storePath = RunAsync.ofRun(ProjectConfig.storePath(projcfg));
+  let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projcfg));
 
   RunAsync.List.mapAndWait(
     ~concurrency=8,
@@ -1339,11 +1336,11 @@ let importDependencies =
     (fromPath, mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind fetched = Project.fetched(proj);
-  let%bind configured = Project.configured(proj);
+  let* fetched = Project.fetched(proj);
+  let* configured = Project.configured(proj);
 
-  let%bind plan = Project.plan(mode, proj);
-  let%bind allProjectDependencies =
+  let* plan = Project.plan(mode, proj);
+  let* allProjectDependencies =
     BuildSandbox.Plan.all(plan)
     |> List.map(~f=task => task.BuildSandbox.Task.pkg)
     |> List.filter(~f=pkg =>
@@ -1398,10 +1395,10 @@ let importDependencies =
 let show = (_asJson, req, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
-  let%bind req = RunAsync.ofStringError(Req.parse(req));
-  let%bind resolver =
+  let* req = RunAsync.ofStringError(Req.parse(req));
+  let* resolver =
     Resolver.make(~cfg=proj.solveSandbox.cfg, ~sandbox=proj.spec, ());
-  let%bind resolutions =
+  let* resolutions =
     RunAsync.contextf(
       Resolver.resolve(
         ~gitUsername=proj.projcfg.gitUsername,
@@ -1435,7 +1432,7 @@ let show = (_asJson, req, proj: Project.t) => {
     switch (resolutions) {
     | [] => errorf("No package found for %a", Req.pp, req)
     | [resolution, ..._] =>
-      let%bind pkg =
+      let* pkg =
         RunAsync.contextf(
           Resolver.package(
             ~gitUsername=proj.projcfg.gitUsername,
@@ -1448,7 +1445,7 @@ let show = (_asJson, req, proj: Project.t) => {
           resolution,
         );
 
-      let%bind pkg = RunAsync.ofStringError(pkg);
+      let* pkg = RunAsync.ofStringError(pkg);
       InstallManifest.to_yojson(pkg)
       |> Yojson.Safe.pretty_to_string
       |> print_endline;
@@ -1512,9 +1509,9 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
     devExec(chdir, pkgarg, proj, cmd, ())
   | (Error(_), None) =>
     let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
-    let%bind () = solveAndFetch(proj);
-    let%bind (proj, files) = Project.make(proj.projcfg);
-    let%bind () = Project.write(proj, files);
+    let* () = solveAndFetch(proj);
+    let* (proj, files) = Project.make(proj.projcfg);
+    let* () = Project.write(proj, files);
     build(BuildDev, PkgArg.root, disableSandbox, None, proj);
   | (Error(_) as err, Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {

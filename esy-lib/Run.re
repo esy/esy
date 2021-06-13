@@ -128,6 +128,8 @@ module Syntax = {
   let return = return;
   let error = error;
   let errorf = errorf;
+  let ( let* ) = (v, f) => bind(~f, v);
+
   module Let_syntax = {
     let bind = bind;
     let map = map;

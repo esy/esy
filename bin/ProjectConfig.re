@@ -134,11 +134,11 @@ module ProjectArg = {
         let kind = classifyPath(path);
         switch (kind) {
         | NoProject =>
-          let%bind parent = parentPath(path);
+          let* parent = parentPath(path);
           climb(parent);
         | Project =>
           let next = {
-            let%bind parent = parentPath(path);
+            let* parent = parentPath(path);
             climb(parent);
           };
           switch (next) {
@@ -151,13 +151,13 @@ module ProjectArg = {
       | Some(projectName) =>
         switch (checkPathByProjectName(path, projectName)) {
         | None =>
-          let%bind parent = parentPath(path);
+          let* parent = parentPath(path);
           climb(parent);
         | Some(path) => return((Kind.ProjectForced, path))
         }
       };
 
-    let%bind (_kind, path) = climb(currentPath);
+    let* (_kind, path) = climb(currentPath);
     return(path);
   };
 
@@ -180,7 +180,7 @@ module ProjectArg = {
         };
       };
 
-    let%bind projectPath =
+    let* projectPath =
       switch (project) {
       | Some(ByPath(path)) => return(path)
       | Some(ByName(name)) => climbFrom(Path.currentPath(), Some(name))
@@ -501,14 +501,14 @@ let make =
     ) => {
   open RunAsync.Syntax;
 
-  let%bind projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
-  let%bind spec = EsyInstall.SandboxSpec.ofPath(projectPath);
+  let* projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
+  let* spec = EsyInstall.SandboxSpec.ofPath(projectPath);
 
-  let%bind prefixPath =
+  let* prefixPath =
     switch (prefixPath) {
     | Some(prefixPath) => return(Some(prefixPath))
     | None =>
-      let%bind rc = EsyRc.ofPath(spec.EsyInstall.SandboxSpec.path);
+      let* rc = EsyRc.ofPath(spec.EsyInstall.SandboxSpec.path);
       return(rc.EsyRc.prefixPath);
     };
 

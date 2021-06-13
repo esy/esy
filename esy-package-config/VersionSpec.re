@@ -55,7 +55,7 @@ module Parse = {
   };
 
   let opamConstraint = {
-    let%bind spec = take_while1(_ => true);
+    let* spec = take_while1(_ => true);
     switch (OpamPackageVersion.Formula.parse(spec)) {
     | Ok(v) => return(Opam(v))
     | Error(msg) => fail(msg)
@@ -65,7 +65,7 @@ module Parse = {
   let npmAnyConstraint = return(Npm([[SemverVersion.Constraint.ANY]]));
 
   let npmConstraint = {
-    let%bind spec = take_while1(_ => true);
+    let* spec = take_while1(_ => true);
     switch (SemverVersion.Formula.parse(spec)) {
     | Ok(v) => return(Npm(v))
     | Error(msg) => fail(msg)

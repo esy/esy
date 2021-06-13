@@ -41,20 +41,20 @@ let parse = v => {
     Result.Syntax.(
       switch (split(v)) {
       | Some(("", name)) =>
-        let%bind (name, version) = parseName(name);
+        let* (name, version) = parseName(name);
         return(("@" ++ name, version));
       | Some((name, version)) => return((name, version))
       | None => error("invalid id: missing version")
       }
     );
 
-  let%bind (name, v) = parseName(v);
+  let* (name, v) = parseName(v);
   switch (split(v)) {
   | Some((version, digest)) =>
-    let%bind version = parseVersion(version);
+    let* version = parseVersion(version);
     return({name, version, digest: Some(digest)});
   | None =>
-    let%bind version = parseVersion(v);
+    let* version = parseVersion(v);
     return({name, version, digest: None});
   };
 };
@@ -136,8 +136,8 @@ module Map = {
       fun
       | `Assoc(items) => {
           let f = (map, (k, v)) => {
-            let%bind k = parse(k);
-            let%bind v = v_of_yojson(v);
+            let* k = parse(k);
+            let* v = v_of_yojson(v);
             return(add(k, v, map));
           };
 

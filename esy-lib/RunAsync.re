@@ -63,6 +63,7 @@ module Syntax = {
   let return = return;
   let error = error;
   let errorf = errorf;
+  let ( let* ) = (v, f) => bind(~f, v);
 
   module Let_syntax = {
     let map = map;
@@ -166,7 +167,7 @@ module List = {
         return(None);
       };
     let f = limitWithConccurrency(concurrency, f);
-    let%bind xs = joinAll(List.map(~f, xs));
+    let* xs = joinAll(List.map(~f, xs));
     return(List.filterNone(xs));
   };
 
@@ -177,7 +178,7 @@ module List = {
       fun
       | [] => return()
       | [x, ...xs] => {
-          let%bind () = f(x);
+          let* () = f(x);
           processSeq(~f, xs);
         }
     );

@@ -38,10 +38,10 @@ module OfPackageJson = {
       switch (json) {
       | `String(name) => return(ByName(name))
       | `List(_) =>
-        let%bind names = Json.Decode.(list(string))(json);
+        let* names = Json.Decode.(list(string))(json);
         return(ByList(names));
       | `Assoc(_) =>
-        let%bind names = Json.Decode.(stringMap(string))(json);
+        let* names = Json.Decode.(stringMap(string))(json);
         return(ByNameMany(names));
 
       | _ =>
@@ -95,8 +95,8 @@ let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
       docs,
     )
   | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
-    let%bind json = Fs.readJsonFile(Path.(spec.path / filename));
-    let%bind pkgJson = RunAsync.ofStringError(OfPackageJson.of_yojson(json));
+    let* json = Fs.readJsonFile(Path.(spec.path / filename));
+    let* pkgJson = RunAsync.ofStringError(OfPackageJson.of_yojson(json));
     switch (pkgJson.OfPackageJson.esy.release) {
     | None =>
       errorf(
@@ -104,7 +104,7 @@ let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
         docs,
       )
     | Some(releaseCfg) =>
-      let%bind filterPackages =
+      let* filterPackages =
         switch (
           releaseCfg.includePackages,
           releaseCfg.deleteFromBinaryRelease,
@@ -118,7 +118,7 @@ let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
           )
         };
 
-      let%bind bin =
+      let* bin =
         switch (releaseCfg.bin, releaseCfg.releasedBinaries) {
         | (None, None) => errorf({|missing "esy.release.bin" configuration|})
         | (None, Some(names))
@@ -484,9 +484,9 @@ let make =
   open RunAsync.Syntax;
 
   let%lwt () = Logs_lwt.app(m => m("Creating npm release"));
-  let%bind releaseCfg = configure(spec, ()) /* * Construct a task tree with all tasks marked as immutable. This will make * sure all packages are built into a global store and this is required for * the release tarball as only globally stored artefacts can be relocated * between stores (b/c of a fixed path length). */;
+  let* releaseCfg = configure(spec, ()) /* * Construct a task tree with all tasks marked as immutable. This will make * sure all packages are built into a global store and this is required for * the release tarball as only globally stored artefacts can be relocated * between stores (b/c of a fixed path length). */;
 
-  let%bind plan =
+  let* plan =
     RunAsync.ofRun(
       BuildSandbox.makePlan(~forceImmutable=true, buildspec, Build, sandbox),
     );
@@ -534,7 +534,7 @@ let make =
       filterOut;
     } /* Make sure all packages are built */;
 
-  let%bind () = {
+  let* () = {
     let%lwt () = Logs_lwt.app(m => m("Building packages"));
     BuildSandbox.build(
       ~buildLinked=true,
@@ -546,9 +546,9 @@ let make =
     );
   };
 
-  let%bind () = Fs.createDir(outputPath) /* Export builds */;
+  let* () = Fs.createDir(outputPath) /* Export builds */;
 
-  let%bind () = {
+  let* () = {
     let%lwt () =
       switch (releaseCfg.filterPackages) {
       | IncludeByPkgSpec(specs) =>
@@ -591,13 +591,13 @@ let make =
     RunAsync.List.mapAndWait(~concurrency=8, ~f, tasks);
   };
 
-  let%bind () = {
+  let* () = {
     let%lwt () = Logs_lwt.app(m => m("Configuring release"));
     let binPath = Path.(outputPath / "bin");
-    let%bind () = Fs.createDir(binPath) /* Emit wrappers for released binaries */;
+    let* () = Fs.createDir(binPath) /* Emit wrappers for released binaries */;
 
-    let%bind () = {
-      let%bind bindings =
+    let* () = {
+      let* bindings =
         RunAsync.ofRun(
           BuildSandbox.env(
             ~forceImmutable=true,
@@ -613,8 +613,7 @@ let make =
       let bindings =
         List.filter(~f=binding => !shouldDeleteFromEnv(binding), bindings);
 
-      let%bind env =
-        RunAsync.ofStringError(Environment.Bindings.eval(bindings));
+      let* env = RunAsync.ofStringError(Environment.Bindings.eval(bindings));
 
       let generateBinaryWrapper =
           (stagePath, destPrefix, (publicName, innerName)) => {
@@ -631,7 +630,7 @@ let make =
           RunAsync.ofRun(Run.ofBosError(Cmd.resolveCmd(path, prg)));
         };
 
-        let%bind namePath = resolveBinInEnv(~env, innerName) /* Create the .ml file that we will later compile and write it to disk */;
+        let* namePath = resolveBinInEnv(~env, innerName) /* Create the .ml file that we will later compile and write it to disk */;
         let data =
           makeBinWrapper(
             ~noEnv,
@@ -641,7 +640,7 @@ let make =
           );
 
         let mlPath = Path.(stagePath / (innerName ++ ".ml"));
-        let%bind () = Fs.writeFile(~data, mlPath) /* Compile the wrapper to a binary */;
+        let* () = Fs.writeFile(~data, mlPath) /* Compile the wrapper to a binary */;
         let ocamloptCmd =
           Cmd.(
             createStatic
@@ -661,7 +660,7 @@ let make =
             % "str.cmxa"
             % EsyLib.Path.normalizePathSepOfFilename(p(mlPath))
           ) /* Needs to have ocaml in environment */;
-        let%bind env =
+        let* env =
           switch (System.Platform.host) {
           | Windows =>
             let currentPath = Sys.getenv("PATH");
@@ -703,7 +702,7 @@ let make =
         (cfg.storePath, Path.v(destPrefix));
       };
 
-      let%bind () =
+      let* () =
         Fs.withTempDir(stagePath =>
           RunAsync.List.mapAndWait(
             ~f=generateBinaryWrapper(stagePath, destPrefix),
@@ -711,14 +710,14 @@ let make =
           )
         );
 
-      let%bind () = {
+      let* () = {
         /* Replace the storePath with a string of equal length containing only _ */
-        let%bind () =
+        let* () =
           Fs.writeFile(
             ~data=Path.show(destPrefix),
             Path.(binPath / "_storePath"),
           );
-        let%bind () =
+        let* () =
           RewritePrefix.rewritePrefix(~origPrefix, ~destPrefix, binPath);
         return();
       };
@@ -726,7 +725,7 @@ let make =
       return();
     } /* Emit package.json */;
 
-    let%bind () = {
+    let* () = {
       let postinstall =
         switch (releaseCfg.rewritePrefix) {
         | NoRewrite =>
@@ -801,12 +800,12 @@ let make =
       Fs.writeFile(~data, Path.(outputPath / "package.json"));
     };
 
-    let%bind () =
+    let* () =
       Fs.copyFile(
         ~src=esyInstallReleaseJs,
         ~dst=Path.(outputPath / "esyInstallRelease.js"),
       );
-    let%bind () = {
+    let* () = {
       let f = filename => {
         let src = Path.(spec.path / filename);
         if%bind (Fs.exists(src)) {
@@ -832,7 +831,7 @@ let make =
     return();
   } /*** Cleanup linked packages from global store */;
 
-  let%bind () = cleanupLinksFromGlobalStore(cfg, tasks);
+  let* () = cleanupLinksFromGlobalStore(cfg, tasks);
 
   let%lwt () = Logs_lwt.app(m => m("Done!"));
   return();
@@ -841,21 +840,21 @@ let make =
 let run = (createStatic: bool, noEnv: bool, proj: Project.t) => {
   open RunAsync.Syntax;
 
-  let%bind solved = Project.solved(proj);
-  let%bind fetched = Project.fetched(proj);
-  let%bind configured = Project.configured(proj);
+  let* solved = Project.solved(proj);
+  let* fetched = Project.fetched(proj);
+  let* configured = Project.configured(proj);
   let ocamlPkgName = proj.projcfg.ocamlPkgName;
   let ocamlVersion = proj.projcfg.ocamlVersion;
 
-  let%bind outputPath = {
+  let* outputPath = {
     let outputDir = "_release";
     let outputPath = Path.(proj.buildCfg.projectPath / outputDir);
-    let%bind () = Fs.rmPath(outputPath);
+    let* () = Fs.rmPath(outputPath);
     return(outputPath);
   };
 
-  let%bind ocamlopt = {
-    let%bind () =
+  let* ocamlopt = {
+    let* () =
       Project.buildDependencies(
         ~buildLinked=true,
         proj,
@@ -863,7 +862,7 @@ let run = (createStatic: bool, noEnv: bool, proj: Project.t) => {
         configured.Project.root.pkg,
       );
 
-    let%bind p = Project.ocaml(proj);
+    let* p = Project.ocaml(proj);
     return(Path.(p / "bin" / "ocamlopt"));
   };
 

@@ -29,7 +29,7 @@ let of_yojson =
     fun
     | `Assoc(items) => {
         let f = (items, (name, json)) => {
-          let%bind item = item_of_yojson(name, json);
+          let* item = item_of_yojson(name, json);
           return(StringMap.add(name, item, items));
         };
 

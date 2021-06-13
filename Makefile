@@ -121,37 +121,40 @@ new-openbsd:
 	doas chmod +x /usr/local/bin/shasum
 	doas mkdir -p /app/esy-install && \
 		doas chown -R $(USER):$(USER) /app/esy-install
-	SUDO=doas OPAM_PREFIX_POST=flambda APP_ESY=/app/esy \
+	SUDO=doas APP_ESY=/app/esy MUSL_STATIC_PACKAGES="" \
 			 APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
 APP_ESY ?= $(PWD)
-APP_ESY_INSTALL ?= /usr/local/
+APP_ESY_INSTALL ?= /usr/local
 APP_ESY_RELEASE ?= /app/_release
-OPAM_PREFIX_POST ?= musl+static+flambda
-OPAM_PREFIX ?= 4.12.0+$(OPAM_PREFIX_POST)
-OPAM_PREFIX_POSTDOT = $(subst +,.,$(OPAM_PREFIX_POST))
+RELEASE_ARGS ?= --no-env
+OPAM_COMPILER_BASE_PACKAGES ?= "--packages=ocaml-variants.4.12.0+options,ocaml-option-flambda"
+MUSL_STATIC_PACKAGES = ",ocaml-option-musl,ocaml-option-static"
 SUDO ?= sudo
 
-new-docker:
-	$(SUDO) mkdir -p $(APP_ESY)&& \
-		$(SUDO) chown -R $(USER):$(USER) $(APP_ESY)
-	opam init -y --disable-sandboxing --bare && \
-	opam switch create esy-local-switch $(OPAM_PREFIX) -y && \
-	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#duniverse"
-	cp -rfp esy.opam $(APP_ESY)
-	opam install . --deps-only -y
-	cp -rfp . $(APP_ESY)
+static-link-patch:
 	git -C $(APP_ESY)/esy-solve-cudf apply static-linking.patch && \
 	git -C $(APP_ESY) apply static-linking.patch
+
+# This was conditional earlier. Every platform, including FreeBSD, will try to build a static build
+RELEASE_ARGS += --static
+new-docker: static-link-patch
+
+	opam init -y --disable-sandboxing --bare https://github.com/ocaml/opam-repository.git#6ae77c27c7f831d7190928f9cd9002f95d3b6180 && \
+	opam switch create esy-local-switch $(OPAM_COMPILER_BASE_PACKAGES)$(MUSL_STATIC_PACKAGES)  && \
+	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#dd1b4c13ede8e741b6e626d574c347a5344581d9" # commit from 10 Nov, 2020.
+	opam install . --deps-only -y
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
-	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT) && \
-	$(APP_ESY_INSTALL)/bin/esy release --static --no-env --ocaml-pkg-name ocaml --ocaml-version 4.12.0-$(OPAM_PREFIX_POSTDOT)
+	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
+	opam switch -y remove esy-local-switch
+	opam clean
 
 #
 # Test
@@ -163,6 +166,12 @@ test-unit::
 test-e2e:: ./bin/esy
 	@./node_modules/.bin/jest test-e2e
 
+verdaccio::
+	cd test-e2e-re/lib/verdaccio && npm install
+
+test-e2e-re:: ./bin/esy verdaccio
+	esy test:e2e-re
+
 test-e2e-slow:: ./bin/esy
 	@./node_modules/.bin/jest test-e2e-slow
 
@@ -171,6 +180,8 @@ test::
 	@$(MAKE) test-unit
 	@echo "Running test suite: e2e"
 	@$(MAKE) test-e2e
+	@echo "Running test suite: e2e-re"
+	@$(MAKE) test-e2e-re
 
 ci::
 	@$(MAKE) test

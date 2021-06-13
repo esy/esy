@@ -32,7 +32,7 @@ let readUrlFileOfRegistry = (res, _registry) => {
   open RunAsync.Syntax;
   let path = Path.(OpamResolution.path(res) / "url");
   if%bind (Fs.exists(path)) {
-    let%bind data = Fs.readFile(path);
+    let* data = Fs.readFile(path);
     return(Some(OpamFile.URL.read_from_string(data)));
   } else {
     return(None);
@@ -42,14 +42,14 @@ let readUrlFileOfRegistry = (res, _registry) => {
 let make = (~cfg, ()) => {
   let init = () => {
     open RunAsync.Syntax;
-    let%bind repoPath =
+    let* repoPath =
       switch (cfg.Config.opamRepository) {
       | Config.Local(local) => return(local)
       | Config.Remote(remote, local) =>
         let update = () => {
           let%lwt () =
             Logs_lwt.app(m => m("checking %s for updates...", remote));
-          let%bind () =
+          let* () =
             Git.ShallowClone.update(~branch="master", ~dst=local, remote);
           return(local);
         };
@@ -65,11 +65,11 @@ let make = (~cfg, ()) => {
         };
       };
 
-    let%bind overrides = OpamOverrides.init(~cfg, ());
+    let* overrides = OpamOverrides.init(~cfg, ());
 
-    let%bind repo = {
+    let* repo = {
       let path = Path.(repoPath / "repo");
-      let%bind data = Fs.readFile(path);
+      let* data = Fs.readFile(path);
       let filename = OpamFile.make(OpamFilename.of_string(Path.show(path)));
       let repo = OpamFile.Repo.read_from_string(~filename, data);
       return(repo);
@@ -92,7 +92,7 @@ let initRegistry = (registry: t) => {
       switch (registry.registry) {
       | Some(v) => return(v)
       | None =>
-        let%bind v = registry.init();
+        let* v = registry.init();
         registry.registry = Some(v);
         return(v);
       }
@@ -107,7 +107,7 @@ let getPackageVersionIndex = (registry: registry, ~name: OpamPackage.Name.t) => 
     let name = OpamPackage.Name.to_string(name);
     let path = Path.(registry.repoPath / "packages" / name);
     if%bind (Fs.isDir(path)) {
-      let%bind entries = Fs.listDir(path);
+      let* entries = Fs.listDir(path);
       let f = (index, entry) => {
         let versionPath = Path.(path / entry);
         if%bind (Fs.isDir(versionPath)) {
@@ -123,7 +123,7 @@ let getPackageVersionIndex = (registry: registry, ~name: OpamPackage.Name.t) => 
         };
       };
 
-      let%bind index =
+      let* index =
         RunAsync.List.foldLeft(
           ~init=OpamPackage.Version.Map.empty,
           ~f,
@@ -164,9 +164,9 @@ let resolve =
       registry: registry,
     ) => {
   open RunAsync.Syntax;
-  let%bind path = findPackagePath((name, version), registry);
+  let* path = findPackagePath((name, version), registry);
   let res = OpamResolution.make(name, version, path);
-  let%bind available = {
+  let* available = {
     let env = (var: OpamVariable.Full.t) => {
       let scope = OpamVariable.Full.scope(var);
       let name = OpamVariable.Full.variable(var);
@@ -178,7 +178,7 @@ let resolve =
               return(bool(false))
             | (OpamVariable.Full.Global, "compiler")
             | (OpamVariable.Full.Global, "ocaml-version") =>
-              let%bind ocamlVersion = ocamlVersion;
+              let* ocamlVersion = ocamlVersion;
               return(string(OpamPackage.Version.to_string(ocamlVersion)));
             | (OpamVariable.Full.Global, _) => None
             | (OpamVariable.Full.Self, _) => None
@@ -189,7 +189,7 @@ let resolve =
       v;
     };
 
-    let%bind opam = readOpamFileOfRegistry(res, registry);
+    let* opam = readOpamFileOfRegistry(res, registry);
     let formula = OpamFile.OPAM.available(opam);
     let available = OpamFilter.eval_to_bool(~default=true, env, formula);
     return(available);
@@ -214,11 +214,11 @@ let versions = (~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
     if (!isEnabledForEsy(name)) {
       return([]);
     } else {
-      let%bind registry = initRegistry(registry);
+      let* registry = initRegistry(registry);
       switch%bind (getPackageVersionIndex(registry, ~name)) {
       | None => return([])
       | Some(index) =>
-        let%bind resolutions = {
+        let* resolutions = {
           let getPackageVersion = version =>
             resolve(~ocamlVersion?, ~name, ~version, registry);
 
@@ -239,13 +239,13 @@ let version = (~name: OpamPackage.Name.t, ~version, registry) =>
     if (!isEnabledForEsy(name)) {
       return(None);
     } else {
-      let%bind registry = initRegistry(registry);
+      let* registry = initRegistry(registry);
       switch%bind (resolve(~name, ~version, registry)) {
       | None => return(None)
       | Some(res) =>
-        let%bind manifest = {
-          let%bind opam = readOpamFileOfRegistry(res, registry);
-          let%bind url =
+        let* manifest = {
+          let* opam = readOpamFileOfRegistry(res, registry);
+          let* url =
             switch (OpamFile.OPAM.url(opam)) {
             | Some(url) => return(Some(url))
             | None => readUrlFileOfRegistry(res, registry)

@@ -4,6 +4,8 @@ module System = EsyLib.System;
 
 module Let_syntax = Result.Syntax.Let_syntax;
 
+let ( let* ) = Result.Syntax.( let* );
+
 type err('b) =
   [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
 
@@ -142,27 +144,25 @@ let copyFile = (~perm=?, srcPath, dstPath) => {
       loop(ic, oc, ());
     };
   };
-  let%bind res =
+  let* res =
     Bos.OS.File.with_ic(
       srcPath,
       (ic, ()) =>
         Bos.OS.File.with_oc(~mode=?perm, dstPath, oc => loop(ic, oc), ()),
       (),
     );
-  let%bind res = res;
+  let* res = res;
   res;
 };
 
 let mv = Bos.OS.Path.move;
 
-let bind = Result.Syntax.Let_syntax.bind;
-
 let rec realpath = (p: Fpath.t) => {
-  let%bind p =
+  let* p =
     if (Fpath.is_abs(p)) {
       Ok(p);
     } else {
-      let%bind cwd = Bos.OS.Dir.current();
+      let* cwd = Bos.OS.Dir.current();
       Ok(p |> Fpath.append(cwd) |> Fpath.normalize);
     };
   let _realpath = (p: Fpath.t) => {
@@ -174,15 +174,15 @@ let rec realpath = (p: Fpath.t) => {
     if (Fpath.is_root(p)) {
       Ok(p);
     } else {
-      let%bind isSymlink = isSymlinkAndExists(p);
+      let* isSymlink = isSymlinkAndExists(p);
       if (isSymlink) {
-        let%bind target = readlink(p);
+        let* target = readlink(p);
         realpath(
           target |> Fpath.append(Fpath.parent(p)) |> Fpath.normalize,
         );
       } else {
         let parent = p |> Fpath.parent |> Fpath.rem_empty_seg;
-        let%bind parent = realpath(parent);
+        let* parent = realpath(parent);
         Ok(parent / Fpath.basename(p));
       };
     };
@@ -195,16 +195,16 @@ let rec realpath = (p: Fpath.t) => {
  * filename. This temporary file will be cleaned up at exit.
  */
 let createTmpFile = (contents: string) => {
-  let%bind filename = Bos.OS.File.tmp("%s");
-  let%bind () = Bos.OS.File.write(filename, contents);
+  let* filename = Bos.OS.File.tmp("%s");
+  let* () = Bos.OS.File.write(filename, contents);
   Ok(filename);
 };
 
 let rec traverse = (root, f) => {
-  let%bind stats = Bos.OS.Path.symlink_stat(root);
+  let* stats = Bos.OS.Path.symlink_stat(root);
   switch (stats.Unix.st_kind) {
   | Unix.S_DIR =>
-    let%bind items = Bos.OS.Dir.contents(root);
+    let* items = Bos.OS.Dir.contents(root);
     traverseItems(root, items, f);
   | _ => f(root, stats)
   };
@@ -213,7 +213,7 @@ and traverseItems = (root, items, f) =>
   switch (items) {
   | [] => return()
   | [item, ...items] =>
-    let%bind () = traverse(Fpath.append(root, item), f);
+    let* () = traverse(Fpath.append(root, item), f);
     traverseItems(root, items, f);
   };
 
@@ -247,23 +247,23 @@ let copyContents = (~from, ~ignore=[], dest) => {
                  )) {
         Ok();
       } else {
-        let%bind stats = Bos.OS.Path.stat(path);
+        let* stats = Bos.OS.Path.stat(path);
         let nextPath = rebasePath(path);
         switch (stats.Unix.st_kind) {
         | Unix.S_DIR =>
           let _ = Bos.OS.Dir.create(nextPath);
           Ok();
         | Unix.S_REG =>
-          let%bind data = Bos.OS.File.read(path);
-          let%bind {st_atime: atime, st_mtime: mtime, _}: Unix.stats =
+          let* data = Bos.OS.File.read(path);
+          let* {st_atime: atime, st_mtime: mtime, _}: Unix.stats =
             Bos.OS.Path.stat(path);
-          let%bind () = Bos.OS.File.write(nextPath, data);
+          let* () = Bos.OS.File.write(nextPath, data);
           Unix.utimes(Fpath.to_string(nextPath), atime, mtime);
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
         | Unix.S_LNK =>
           excludePathsWithinSymlink :=
             Path.Set.add(Path.remEmptySeg(path), excludePathsWithinSymlink^);
-          let%bind targetPath = Bos.OS.Path.symlink_target(path);
+          let* targetPath = Bos.OS.Path.symlink_target(path);
           let nextTargetPath = rebasePath(targetPath);
           Bos.OS.Path.symlink(~target=nextTargetPath, nextPath);
         | _ => /* ignore everything else */ Ok()

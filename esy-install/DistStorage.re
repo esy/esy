@@ -28,37 +28,37 @@ let cache = (fetched, tarballPath) =>
   RunAsync.Syntax.(
     switch (fetched) {
     | Empty =>
-      let%bind unpackPath = Fs.randomPathVariation(tarballPath);
-      let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
-      let%bind () = Fs.createDir(unpackPath);
-      let%bind () = Tarball.create(~filename=tempTarballPath, unpackPath);
-      let%bind () =
+      let* unpackPath = Fs.randomPathVariation(tarballPath);
+      let* tempTarballPath = Fs.randomPathVariation(tarballPath);
+      let* () = Fs.createDir(unpackPath);
+      let* () = Tarball.create(~filename=tempTarballPath, unpackPath);
+      let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
-      let%bind () = Fs.rmPath(unpackPath);
+      let* () = Fs.rmPath(unpackPath);
       return(Tarball({tarballPath, stripComponents: 0}));
     | SourcePath(path) =>
-      let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
-      let%bind () = Tarball.create(~filename=tempTarballPath, path);
-      let%bind () =
+      let* tempTarballPath = Fs.randomPathVariation(tarballPath);
+      let* () = Tarball.create(~filename=tempTarballPath, path);
+      let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       return(Tarball({tarballPath, stripComponents: 0}));
     | Path(path) =>
-      let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
-      let%bind () = Tarball.create(~filename=tempTarballPath, path);
-      let%bind () =
+      let* tempTarballPath = Fs.randomPathVariation(tarballPath);
+      let* () = Tarball.create(~filename=tempTarballPath, path);
+      let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
-      let%bind () = Fs.rmPath(path);
+      let* () = Fs.rmPath(path);
       return(Tarball({tarballPath, stripComponents: 0}));
     | Tarball(info) =>
-      let%bind tempTarballPath = Fs.randomPathVariation(tarballPath);
-      let%bind unpackPath = Fs.randomPathVariation(info.tarballPath);
-      let%bind () =
+      let* tempTarballPath = Fs.randomPathVariation(tarballPath);
+      let* unpackPath = Fs.randomPathVariation(info.tarballPath);
+      let* () =
         Tarball.unpack(~stripComponents=1, ~dst=unpackPath, info.tarballPath);
-      let%bind () = Tarball.create(~filename=tempTarballPath, unpackPath);
-      let%bind () =
+      let* () = Tarball.create(~filename=tempTarballPath, unpackPath);
+      let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
-      let%bind () = Fs.rmPath(info.tarballPath);
-      let%bind () = Fs.rmPath(unpackPath);
+      let* () = Fs.rmPath(info.tarballPath);
+      let* () = Fs.rmPath(unpackPath);
       return(Tarball({tarballPath, stripComponents: 0}));
     }
   );
@@ -82,7 +82,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
         return(Empty);
       } else {
         let path = CachePaths.fetchedDist(sandbox, dist);
-        let%bind () = Fs.createDir(path);
+        let* () = Fs.createDir(path);
         Fs.withTempDir(
           ~tempPath,
           stagePath => {
@@ -93,10 +93,9 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
                   ({ExtraSource.url, checksum, relativePath}) => {
                     open RunAsync.Syntax;
                     let tarballPath = Path.(stagePath / relativePath);
-                    let%bind _ = Curl.download(~output=tarballPath, url);
-                    let%bind _ =
-                      Checksum.checkFile(~path=tarballPath, checksum);
-                    let%bind _ =
+                    let* _ = Curl.download(~output=tarballPath, url);
+                    let* _ = Checksum.checkFile(~path=tarballPath, checksum);
+                    let* _ =
                       Fs.rename(
                         ~skipIfExists=true,
                         ~src=tarballPath,
@@ -118,23 +117,23 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
-        let%bind () = Fs.createDir(stagePath);
+        let* () = Fs.createDir(stagePath);
         let tarballPath = Path.(stagePath / "archive");
-        let%bind () = Curl.download(~output=tarballPath, url);
-        let%bind () = Checksum.checkFile(~path=tarballPath, checksum);
-        let%bind () = Fs.createDir(Path.parent(path));
-        let%bind () = Fs.rename(~skipIfExists=true, ~src=tarballPath, path);
+        let* () = Curl.download(~output=tarballPath, url);
+        let* () = Checksum.checkFile(~path=tarballPath, checksum);
+        let* () = Fs.createDir(Path.parent(path));
+        let* () = Fs.rename(~skipIfExists=true, ~src=tarballPath, path);
         return(Tarball({tarballPath: path, stripComponents: 1}));
       },
     );
 
   | Dist.Github(github) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
-    let%bind () = Fs.createDir(Path.parent(path));
+    let* () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
-        let%bind () = Fs.createDir(stagePath);
+        let* () = Fs.createDir(stagePath);
         let remote =
           Printf.sprintf(
             "https://github.com/%s/%s.git",
@@ -156,9 +155,9 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
           | _ => []
           };
         /* Optimisation: if we find that the commit hash is long, we can shallow clone. */
-        let%bind () =
+        let* () =
           if (String.length(github.commit) == 40) {
-            let%bind () =
+            let* () =
               Git.clone(~dst=stagePath, ~config, ~remote, ~depth=1, ());
             Git.fetch(
               ~ref=github.commit,
@@ -170,9 +169,9 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
           } else {
             Git.clone(~config, ~dst=stagePath, ~remote, ());
           };
-        let%bind () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
-        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        let* () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
+        let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
+        let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
@@ -180,7 +179,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
 
   | Dist.Git(git) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
-    let%bind () = Fs.createDir(Path.parent(path));
+    let* () = Fs.createDir(Path.parent(path));
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
@@ -198,12 +197,11 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
             ]
           | _ => []
           };
-        let%bind () = Fs.createDir(stagePath);
-        let%bind () =
-          Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
-        let%bind () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
-        let%bind () = Git.updateSubmodules(~config, ~repo=stagePath, ());
-        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        let* () = Fs.createDir(stagePath);
+        let* () = Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
+        let* () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
+        let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
+        let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
@@ -227,14 +225,14 @@ let unpack = (fetched, path) =>
     | Empty => Fs.createDir(path)
     | SourcePath(srcPath)
     | Path(srcPath) =>
-      let%bind names = Fs.listDir(srcPath);
+      let* names = Fs.listDir(srcPath);
       let copy = name => {
         let src = Path.(srcPath / name);
         let dst = Path.(path / name);
         Fs.copyPath(~src, ~dst);
       };
 
-      let%bind () = RunAsync.List.mapAndWait(~f=copy, names);
+      let* () = RunAsync.List.mapAndWait(~f=copy, names);
 
       return();
     | Tarball({tarballPath, stripComponents}) =>
@@ -256,14 +254,13 @@ let fetchIntoCache = (cfg, sandbox, dist: Dist.t, gitUsername, gitPassword) => {
   if%bind (Fs.exists(path)) {
     return(path);
   } else {
-    let%bind fetched =
-      fetch(cfg, sandbox, dist, gitUsername, gitPassword, ());
+    let* fetched = fetch(cfg, sandbox, dist, gitUsername, gitPassword, ());
     let tempPath = SandboxSpec.tempPath(sandbox);
     Fs.withTempDir(
       ~tempPath,
       stagePath => {
-        let%bind () = unpack(fetched, stagePath);
-        let%bind () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+        let* () = unpack(fetched, stagePath);
+        let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
         return(path);
       },
     );

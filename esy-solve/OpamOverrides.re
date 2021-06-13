@@ -22,14 +22,14 @@ let parseOverridePattern = pattern =>
 
 let init = (~cfg, ()): RunAsync.t(t) => {
   open RunAsync.Syntax;
-  let%bind repoPath =
+  let* repoPath =
     switch (cfg.Config.esyOpamOverride) {
     | Config.Local(path) => return(path)
     | Config.Remote(remote, local) =>
       let update = () => {
         let%lwt () =
           Logs_lwt.app(m => m("checking %s for updates...", remote));
-        let%bind () =
+        let* () =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,
             ~dst=local,
@@ -49,7 +49,7 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     };
   let packagesDir = Path.(repoPath / "packages");
 
-  let%bind names = Fs.listDir(packagesDir);
+  let* names = Fs.listDir(packagesDir);
   module String = Astring.String;
 
   let overrides = {
@@ -89,7 +89,7 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
       switch (byVersion, override.default) {
       | (Some(path), _)
       | (None, Some(path)) =>
-        let%bind json = Fs.readJsonFile(Path.(path / "package.json"));
+        let* json = Fs.readJsonFile(Path.(path / "package.json"));
         let override = Override.OfOpamOverride({json, path});
         return(Some(override));
       | (None, None) => return(None)

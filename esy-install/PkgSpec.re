@@ -45,10 +45,10 @@ let parse =
         | (name, Some(rest)) =>
           switch (split(rest)) {
           | Some(_) =>
-            let%bind id = PackageId.parse(v);
+            let* id = PackageId.parse(v);
             return(ById(id));
           | None =>
-            let%bind version = Version.parse(rest);
+            let* version = Version.parse(rest);
             return([@implicit_arity] ByNameVersion(name, version));
           }
         };

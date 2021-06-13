@@ -39,7 +39,7 @@ let of_yojson = {
   let parseValue = (name, json) =>
     switch (json) {
     | `String(v) =>
-      let%bind version =
+      let* version =
         switch (Astring.String.cut(~sep="/", name)) {
         | Some(("@opam", _)) => Version.parse(~tryAsOpam=true, v)
         | _ => Version.parse(v)
@@ -47,7 +47,7 @@ let of_yojson = {
 
       return({Resolution.name, resolution: Resolution.Version(version)});
     | `Assoc(_) =>
-      let%bind resolution = Resolution.resolution_of_yojson(json);
+      let* resolution = Resolution.resolution_of_yojson(json);
       return({Resolution.name, resolution});
     | _ => Error("expected string")
     };
@@ -55,8 +55,8 @@ let of_yojson = {
   fun
   | `Assoc(items) => {
       let f = (res, (key, json)) => {
-        let%bind key = parseKey(key);
-        let%bind value = parseValue(key, json);
+        let* key = parseKey(key);
+        let* value = parseValue(key, json);
         Ok(StringMap.add(key, value, res));
       };
 

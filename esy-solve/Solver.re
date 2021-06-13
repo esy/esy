@@ -8,14 +8,14 @@ let computeOverrideDigest = (sandbox, override) =>
     | Override.OfJson({json}) => return(Digestv.ofJson(json))
     | OfDist({dist, json: _}) => return(Digestv.ofString(Dist.show(dist)))
     | OfOpamOverride(info) =>
-      let%bind files =
+      let* files =
         EsyInstall.Fetch.fetchOverrideFiles(
           sandbox.Sandbox.cfg.installCfg,
           sandbox.spec,
           override,
         );
 
-      let%bind digests = RunAsync.List.mapAndJoin(~f=File.digest, files);
+      let* digests = RunAsync.List.mapAndJoin(~f=File.digest, files);
       let digest = Digestv.ofJson(info.json);
       let digests = [digest, ...digests];
       let digests = List.sort(~cmp=Digestv.compare, digests);
@@ -27,7 +27,7 @@ let computeOverrideDigest = (sandbox, override) =>
 
 let computeOverridesDigest = (sandbox, overrides) => {
   open RunAsync.Syntax;
-  let%bind digests =
+  let* digests =
     RunAsync.List.mapAndJoin(~f=computeOverrideDigest(sandbox), overrides);
   return(List.fold_left(~init=Digestv.empty, ~f=Digestv.combine, digests));
 };
@@ -36,18 +36,17 @@ let lock = (sandbox, pkg: InstallManifest.t) =>
   RunAsync.Syntax.(
     switch (pkg.source) {
     | Install({source: _, opam: Some(opam)}) =>
-      let%bind id = {
-        let%bind opamDigest = OpamResolution.digest(opam);
-        let%bind overridesDigest =
-          computeOverridesDigest(sandbox, pkg.overrides);
+      let* id = {
+        let* opamDigest = OpamResolution.digest(opam);
+        let* overridesDigest = computeOverridesDigest(sandbox, pkg.overrides);
         let digest = Digestv.(opamDigest + overridesDigest);
         return(PackageId.make(pkg.name, pkg.version, Some(digest)));
       };
 
       return((id, pkg));
     | Install({source: _, opam: None}) =>
-      let%bind id = {
-        let%bind digest = computeOverridesDigest(sandbox, pkg.overrides);
+      let* id = {
+        let* digest = computeOverridesDigest(sandbox, pkg.overrides);
         return(PackageId.make(pkg.name, pkg.version, Some(digest)));
       };
 
@@ -232,7 +231,7 @@ module Explanation = {
       | Error(_) => Dependencies.NpmFormula([])
       };
 
-    let%bind reasons = {
+    let* reasons = {
       let f = reasons =>
         fun
         | Dose_algo.Diagnostic.Conflict((left, right, _)) => {
@@ -332,7 +331,7 @@ module Explanation = {
           Some({result: Dose_algo.Diagnostic.Failure(reasons), _}),
         ) =>
         let reasons = reasons();
-        let%bind reasons =
+        let* reasons =
           collectReasons(
             ~gitUsername,
             ~gitPassword,
@@ -494,9 +493,9 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
       switch (manifest.kind) {
       | InstallManifest.Esy =>
         universe := Universe.add(~pkg=manifest, universe^);
-        let%bind dependencies =
+        let* dependencies =
           RunAsync.ofRun(evalDependencies(solver, manifest));
-        let%bind () =
+        let* () =
           RunAsync.contextf(
             addDependencies(dependencies),
             "resolving %a",
@@ -524,7 +523,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
     }
   and addDependency = (req: Req.t) => {
     let%lwt () = report("%s", req.name);
-    let%bind resolutions =
+    let* resolutions =
       RunAsync.contextf(
         Resolver.resolve(
           ~gitUsername,
@@ -539,9 +538,9 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
         req,
       );
 
-    let%bind packages = {
+    let* packages = {
       let fetchPackage = resolution => {
-        let%bind pkg =
+        let* pkg =
           RunAsync.contextf(
             Resolver.package(
               ~gitUsername,
@@ -568,7 +567,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
       resolutions |> List.map(~f=fetchPackage) |> RunAsync.List.joinAll;
     };
 
-    let%bind () = {
+    let* () = {
       let f = (tasks, manifest) =>
         switch (manifest) {
         | Some(manifest) => [addPackage(manifest), ...tasks]
@@ -581,7 +580,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
     return();
   };
 
-  let%bind () = addDependencies(dependencies);
+  let* () = addDependencies(dependencies);
 
   let%lwt () = finish();
 
@@ -694,16 +693,16 @@ let solveDependencies =
       request,
     );
     let cudfData = printCudfDoc(cudf);
-    let%bind () =
+    let* () =
       switch (dumpCudfInput) {
       | None => return()
       | Some(filename) => EsyLib.DumpToFile.dump(filename, cudfData)
       };
 
     Fs.withTempDir(path => {
-      let%bind filenameIn = {
+      let* filenameIn = {
         let filename = Path.(path / "in.cudf");
-        let%bind () = Fs.writeFile(~data=cudfData, filename);
+        let* () = Fs.writeFile(~data=cudfData, filename);
         return(filename);
       };
 
@@ -711,12 +710,12 @@ let solveDependencies =
       let (report, finish) =
         Cli.createProgressReporter(~name="solving esy constraints", ());
       let%lwt () = report("running solver");
-      let%bind () = runSolver(filenameIn, filenameOut);
+      let* () = runSolver(filenameIn, filenameOut);
       let%lwt () = finish();
-      let%bind result = {
-        let%bind dataOut = Fs.readFile(filenameOut);
+      let* result = {
+        let* dataOut = Fs.readFile(filenameOut);
         let dataOut = normalizeSolutionData(dataOut);
-        let%bind () =
+        let* () =
           switch (dumpCudfOutput) {
           | None => return()
           | Some(filename) => EsyLib.DumpToFile.dump(filename, dataOut)
@@ -811,7 +810,7 @@ let solveDependenciesNaively =
 
   let resolveOfOutside = req => {
     let%lwt () = report("%a", Req.pp, req);
-    let%bind resolutions =
+    let* resolutions =
       Resolver.resolve(
         ~gitUsername,
         ~gitPassword,
@@ -840,7 +839,7 @@ let solveDependenciesNaively =
   };
 
   let resolve = (trace, req: Req.t) => {
-    let%bind pkg =
+    let* pkg =
       switch (resolveOfInstalled(req)) {
       | None =>
         switch%bind (resolveOfOutside(req)) {
@@ -893,9 +892,9 @@ let solveDependenciesNaively =
         reqs;
       };
 
-    let%bind pkgs = {
+    let* pkgs = {
       let f = req => {
-        let%bind manifest =
+        let* manifest =
           RunAsync.contextf(
             resolve(trace, req),
             "resolving request %a",
@@ -933,9 +932,8 @@ let solveDependenciesNaively =
         ? loop(trace, seen, rest)
         : {
           let seen = InstallManifest.Set.add(pkg, seen);
-          let%bind dependencies =
-            RunAsync.ofRun(evalDependencies(solver, pkg));
-          let%bind dependencies =
+          let* dependencies = RunAsync.ofRun(evalDependencies(solver, pkg));
+          let* dependencies =
             RunAsync.contextf(
               solveDependencies([pkg, ...trace], dependencies),
               "solving dependencies of %a",
@@ -948,9 +946,9 @@ let solveDependenciesNaively =
         }
     | [] => return();
 
-  let%bind () = {
-    let%bind dependencies = solveDependencies([root], dependencies);
-    let%bind () = loop([root], InstallManifest.Set.empty, dependencies);
+  let* () = {
+    let* dependencies = solveDependencies([root], dependencies);
+    let* () = loop([root], InstallManifest.Set.empty, dependencies);
     addDependencies(root, dependencies);
     return();
   };
@@ -964,16 +962,16 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
 
   let make = resolution => {
     let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let%bind pkg =
+    let* pkg =
       Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
-    let%bind pkg = RunAsync.ofStringError(pkg);
+    let* pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
 
   switch (req.spec) {
   | VersionSpec.Npm(_)
   | VersionSpec.NpmDistTag(_) =>
-    let%bind resolutions =
+    let* resolutions =
       Resolver.resolve(
         ~gitUsername,
         ~gitPassword,
@@ -1022,10 +1020,10 @@ let solve =
     | Ok(dependencies) => return(dependencies)
     | Error(explanation) => errorf("%a", Explanation.pp, explanation);
 
-  let%bind solver = make(solvespec, sandbox);
+  let* solver = make(solvespec, sandbox);
 
-  let%bind (dependencies, ocamlVersion) = {
-    let%bind rootDependencies =
+  let* (dependencies, ocamlVersion) = {
+    let* rootDependencies =
       RunAsync.ofRun(evalDependencies(solver, sandbox.root));
 
     let ocamlReq =
@@ -1038,7 +1036,7 @@ let solve =
     switch (ocamlReq) {
     | None => return((rootDependencies, None))
     | Some(ocamlReq) =>
-      let%bind (ocamlVersionOrig, ocamlVersion) =
+      let* (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf(
           solveOCamlReq(
             ~gitUsername,
@@ -1051,7 +1049,7 @@ let solve =
           ocamlReq,
         );
 
-      let%bind dependencies =
+      let* dependencies =
         switch (ocamlVersion, rootDependencies) {
         | (
             Some(ocamlVersion),
@@ -1092,15 +1090,15 @@ let solve =
     | None => ()
     };
 
-  let%bind (solver, dependencies) = {
-    let%bind (solver, dependencies) =
+  let* (solver, dependencies) = {
+    let* (solver, dependencies) =
       add(~gitUsername, ~gitPassword, ~dependencies, solver);
     return((solver, dependencies));
   };
 
   /* Solve esy dependencies first. */
-  let%bind installed = {
-    let%bind res =
+  let* installed = {
+    let* res =
       solveDependencies(
         ~gitUsername,
         ~gitPassword,
@@ -1117,7 +1115,7 @@ let solve =
   };
 
   /* Solve npm dependencies now. */
-  let%bind dependenciesMap =
+  let* dependenciesMap =
     solveDependenciesNaively(
       ~gitUsername,
       ~gitPassword,
@@ -1127,12 +1125,12 @@ let solve =
       solver,
     );
 
-  let%bind (packageById, idByPackage, dependenciesById) = {
-    let%bind (packageById, idByPackage) = {
+  let* (packageById, idByPackage, dependenciesById) = {
+    let* (packageById, idByPackage) = {
       let rec aux = ((packageById, idByPackage) as acc) =>
         fun
         | [pkg, ...rest] => {
-            let%bind (id, pkg) = lock(sandbox, pkg);
+            let* (id, pkg) = lock(sandbox, pkg);
             switch (PackageId.Map.find_opt(id, packageById)) {
             | Some(_) => aux(acc, rest)
             | None =>
@@ -1196,7 +1194,7 @@ let solve =
     return((packageById, idByPackage, dependencies));
   };
 
-  let%bind solution = {
+  let* solution = {
     let allDependenciesByName = {
       let f = (_id, deps, map) => {
         let f = (_key, a, b) =>
@@ -1217,11 +1215,11 @@ let solve =
       PackageId.Map.fold(f, dependenciesById, StringMap.empty);
     };
 
-    let%bind solution = {
+    let* solution = {
       let id = InstallManifest.Map.find(sandbox.root, idByPackage);
       let dependenciesByName = PackageId.Map.find(id, dependenciesById);
 
-      let%bind root =
+      let* root =
         lockPackage(
           sandbox.resolver,
           id,
@@ -1238,10 +1236,10 @@ let solve =
       );
     };
 
-    let%bind solution = {
+    let* solution = {
       let f = (solution, (id, dependencies)) => {
         let pkg = PackageId.Map.find(id, packageById);
-        let%bind pkg =
+        let* pkg =
           lockPackage(
             sandbox.resolver,
             id,

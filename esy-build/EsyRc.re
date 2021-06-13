@@ -14,8 +14,8 @@ let ofPath = path => {
     };
 
   let ofFile = filename => {
-    let%bind data = Fs.readFile(filename);
-    let%bind json =
+    let* data = Fs.readFile(filename);
+    let* json =
       switch (Json.parse(data)) {
       | Ok(json) => return(json)
       | Error(err) =>
@@ -28,7 +28,7 @@ let ofPath = path => {
         )
       };
 
-    let%bind rc = RunAsync.ofStringError(of_yojson(json));
+    let* rc = RunAsync.ofStringError(of_yojson(json));
     let rc = {prefixPath: Option.map(~f=normalizePath, rc.prefixPath)};
     return(rc);
   };

@@ -66,7 +66,7 @@ let formatName =
 
 let eval = (~envVar, ~pathSep, ~colon, ~scope, string) => {
   open Result.Syntax;
-  let%bind expr = parse(string);
+  let* expr = parse(string);
 
   let lookupValue = name =>
     switch (scope(name)) {
@@ -103,22 +103,22 @@ let eval = (~envVar, ~pathSep, ~colon, ~scope, string) => {
         eval(e);
       }
     | [@implicit_arity] E.And(a, b) => {
-        let%bind a = evalToBool(a);
-        let%bind b = evalToBool(b);
+        let* a = evalToBool(a);
+        let* b = evalToBool(b);
         return(V.Bool(a && b));
       }
     | [@implicit_arity] E.Or(a, b) => {
-        let%bind a = evalToBool(a);
-        let%bind b = evalToBool(b);
+        let* a = evalToBool(a);
+        let* b = evalToBool(b);
         return(V.Bool(a || b));
       }
     | E.Not(a) => {
-        let%bind a = evalToBool(a);
+        let* a = evalToBool(a);
         return(V.Bool(!a));
       }
     | [@implicit_arity] E.Rel(relop, a, b) => {
-        let%bind a = eval(a);
-        let%bind b = eval(b);
+        let* a = eval(a);
+        let* b = eval(b);
         let r =
           switch (relop) {
           | E.EQ => V.equal(a, b)
@@ -129,11 +129,11 @@ let eval = (~envVar, ~pathSep, ~colon, ~scope, string) => {
       }
     | E.Concat(exprs) => {
         let f = (s, expr) => {
-          let%bind v = evalToString(expr);
+          let* v = evalToString(expr);
           return(s ++ v);
         };
 
-        let%bind v = Result.List.foldLeft(~f, ~init="", exprs);
+        let* v = Result.List.foldLeft(~f, ~init="", exprs);
         return(V.String(v));
       };
 

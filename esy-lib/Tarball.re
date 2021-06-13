@@ -30,8 +30,8 @@ let stripComponentFrom = (~stripComponents=?, out) => {
 
 let copyAll = (~src, ~dst, ()) => {
   open RunAsync.Syntax;
-  let%bind items = Fs.listDir(src);
-  let%bind () = Fs.createDir(dst);
+  let* items = Fs.listDir(src);
+  let* () = Fs.createDir(dst);
   let f = item => Fs.copyPath(~src=Path.(src / item), ~dst=Path.(dst / item));
   RunAsync.List.processSeq(~f, items);
 };
@@ -70,7 +70,7 @@ let run = cmd => {
 let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   open RunAsync.Syntax;
   let unpack = out => {
-    let%bind cmd =
+    let* cmd =
       RunAsync.ofBosError(
         {
           open Result.Syntax;
@@ -86,8 +86,8 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   switch (stripComponents) {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
-      let%bind () = unpack(out);
-      let%bind out = stripComponentFrom(~stripComponents, out);
+      let* () = unpack(out);
+      let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })
   | None => unpack(dst)
@@ -101,8 +101,8 @@ let unpackWithUnzip = (~stripComponents=?, ~dst, filename) => {
   switch (stripComponents) {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
-      let%bind () = unpack(out);
-      let%bind out = stripComponentFrom(~stripComponents, out);
+      let* () = unpack(out);
+      let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })
   | None => unpack(dst)
@@ -156,7 +156,7 @@ let create = (~filename, ~outpath=".", src) =>
       let nf = EsyBash.normalizePathForCygwin(Path.show(filename));
       let ns = EsyBash.normalizePathForCygwin(Path.show(src));
       let cmd = Cmd.(v("tar") % "czf" % nf % "-C" % ns % outpath);
-      let%bind res = EsyBash.run(Cmd.toBosCmd(cmd));
+      let* res = EsyBash.run(Cmd.toBosCmd(cmd));
       return(res);
     },
   );

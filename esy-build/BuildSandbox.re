@@ -39,7 +39,7 @@ let readManifests =
 
     RunAsync.contextf(
       {
-        let%bind (manifest, paths) =
+        let* (manifest, paths) =
           ReadBuildManifest.ofInstallationLocation(cfg, installCfg, pkg, loc);
 
         switch (manifest) {
@@ -70,7 +70,7 @@ let readManifests =
     );
   };
 
-  let%bind items =
+  let* items =
     RunAsync.List.mapAndJoin(
       ~concurrency=100,
       ~f=readManifest,
@@ -107,7 +107,7 @@ let make =
       installation,
     ) => {
   open RunAsync.Syntax;
-  let%bind (paths, manifests) =
+  let* (paths, manifests) =
     readManifests(spec, installCfg, solution, installation);
   return((
     {
@@ -127,7 +127,7 @@ let make =
 
 let renderExpression = (sandbox, scope, expr) => {
   open Run.Syntax;
-  let%bind expr = Scope.render(~buildIsInProgress=false, scope, expr);
+  let* expr = Scope.render(~buildIsInProgress=false, scope, expr);
   return(Scope.SandboxValue.render(sandbox.cfg, expr));
 };
 
@@ -205,7 +205,7 @@ let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
     };
 
   let renderArg = v => {
-    let%bind v = Scope.render(~buildIsInProgress, scope, v);
+    let* v = Scope.render(~buildIsInProgress, scope, v);
     let v = Scope.SandboxValue.show(v);
     Run.ofStringError(EsyShellExpansion.render(~scope=envScope, v));
   };
@@ -214,15 +214,15 @@ let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
     fun
     | Command.Parsed(args) => {
         let f = arg => {
-          let%bind arg = renderArg(arg);
+          let* arg = renderArg(arg);
           return(Scope.SandboxValue.v(arg));
         };
 
         Result.List.map(~f, args);
       }
     | Command.Unparsed(line) => {
-        let%bind line = renderArg(line);
-        let%bind args = ShellSplit.split(line);
+        let* line = renderArg(line);
+        let* args = ShellSplit.split(line);
         return(List.map(~f=Scope.SandboxValue.v, args));
       };
 
@@ -269,14 +269,14 @@ let renderOpamPatchesToCommands = (opamEnv, patches) =>
           fun
           | (path, None) => return((path, true))
           | (path, Some(filter)) => {
-              let%bind filter =
+              let* filter =
                 try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
                 | Failure(msg) => error(msg)
                 };
               return((path, filter));
             };
 
-        let%bind filtered = Result.List.map(~f=evalFilter, patches);
+        let* filtered = Result.List.map(~f=evalFilter, patches);
 
         let toCommand = ((path, _)) => {
           let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
@@ -332,16 +332,16 @@ let makeScope =
     switch (Hashtbl.find_opt(cache, id)) {
     | Some(None) => return(None)
     | Some(Some(res)) =>
-      let%bind _: list(PackageId.t) = updateSeen(seen, id);
+      let* _: list(PackageId.t) = updateSeen(seen, id);
       return(Some(res));
     | None =>
-      let%bind res =
+      let* res =
         switch (PackageId.Map.find_opt(id, sandbox.manifests)) {
         | Some(build) =>
-          let%bind seen = updateSeen(seen, id);
+          let* seen = updateSeen(seen, id);
           Run.contextf(
             {
-              let%bind (scope, idrepr, directDependencies) =
+              let* (scope, idrepr, directDependencies) =
                 visit'(envspec, seen, id, build);
               return(Some((scope, build, idrepr, directDependencies)));
             },
@@ -381,7 +381,7 @@ let makeScope =
         (Reason.ForScope, pkgid);
       };
 
-    let%bind dependencies = {
+    let* dependencies = {
       module Seen =
         Set.Make({
           [@deriving ord]
@@ -668,8 +668,8 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
     ) {
     | None => return(None)
     | Some((scope, build, idrepr, _dependencies)) =>
-      let%bind env = {
-        let%bind bindings =
+      let* env = {
+        let* bindings =
           Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, scope);
         Run.context(
           Run.ofStringError(
@@ -681,29 +681,29 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
 
       let opamEnv = Scope.toOpamEnv(~buildIsInProgress=true, scope);
 
-      let%bind buildCommands = {
+      let* buildCommands = {
         let commands = BuildSpec.buildCommands(mode, pkg, build);
 
         Run.context(
           switch (commands) {
           | BuildManifest.EsyCommands(commands) =>
-            let%bind commands =
+            let* commands =
               renderEsyCommands(
                 ~buildIsInProgress=true,
                 ~env,
                 scope,
                 commands,
               );
-            let%bind applySubstsCommands =
+            let* applySubstsCommands =
               renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let%bind applyPatchesCommands =
+            let* applyPatchesCommands =
               renderOpamPatchesToCommands(opamEnv, build.patches);
             return(applySubstsCommands @ applyPatchesCommands @ commands);
           | OpamCommands(commands) =>
-            let%bind commands = renderOpamCommands(opamEnv, commands);
-            let%bind applySubstsCommands =
+            let* commands = renderOpamCommands(opamEnv, commands);
+            let* applySubstsCommands =
               renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let%bind applyPatchesCommands =
+            let* applyPatchesCommands =
               renderOpamPatchesToCommands(opamEnv, build.patches);
             return(applySubstsCommands @ applyPatchesCommands @ commands);
           | NoCommands => return([])
@@ -712,11 +712,11 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
         );
       };
 
-      let%bind installCommands =
+      let* installCommands =
         Run.context(
           switch (build.BuildManifest.install) {
           | EsyCommands(commands) =>
-            let%bind cmds =
+            let* cmds =
               renderEsyCommands(
                 ~buildIsInProgress=true,
                 ~env,
@@ -725,7 +725,7 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
               );
             return(Some(cmds));
           | OpamCommands(commands) =>
-            let%bind cmds = renderOpamCommands(opamEnv, commands);
+            let* cmds = renderOpamCommands(opamEnv, commands);
             return(Some(cmds));
           | NoCommands => return(None)
           },
@@ -744,7 +744,7 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
       return(Some(task));
     };
 
-  let%bind tasks = {
+  let* tasks = {
     let root = Solution.root(sandbox.solution);
     let rec visit = tasks =>
       fun
@@ -754,7 +754,7 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
         | Some(_) => visit(tasks, ids)
         | None =>
           let pkg = Solution.getExn(sandbox.solution, id);
-          let%bind task =
+          let* task =
             Run.contextf(
               makeTask(pkg),
               "creating task for %a",
@@ -783,7 +783,7 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
 
 let task = (buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let%bind tasks = RunAsync.ofRun(makePlan(buildspec, mode, sandbox));
+  let* tasks = RunAsync.ofRun(makePlan(buildspec, mode, sandbox));
   switch (Plan.get(tasks, id)) {
   | None => errorf("no build found for %a", PackageId.pp, id)
   | Some(task) => return(task)
@@ -792,7 +792,7 @@ let task = (buildspec, mode, sandbox, id) => {
 
 let buildShell = (buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let%bind task = task(buildspec, mode, sandbox, id);
+  let* task = task(buildspec, mode, sandbox, id);
   let plan = Task.plan(task);
   EsyBuildPackageApi.buildShell(sandbox.cfg, plan);
 };
@@ -816,7 +816,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
   module Env = Scope.SandboxEnvironment.Bindings;
   module Val = Scope.SandboxValue;
 
-  let%bind env = {
+  let* env = {
     let scope =
       if (includeCurrentEnv) {
         scope |> Scope.exposeUserEnvWith(Env.value, "SHELL");
@@ -893,7 +893,8 @@ let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) =
   open Run.Syntax;
   let cache = Hashtbl.create(100);
 
-  let%bind scope = {
+  let* scope = {
+    open EnvSpec;
     let scope =
       makeScope(
         ~cache,
@@ -932,25 +933,24 @@ let exec =
       cmd,
     ) => {
   open RunAsync.Syntax;
-  let%bind (env, scope) =
+  let* (env, scope) =
     RunAsync.ofRun(
       {
         open Run.Syntax;
-        let%bind (env, scope) =
-          configure(envspec, buildspec, mode, sandbox, id);
-        let%bind env =
+        let* (env, scope) = configure(envspec, buildspec, mode, sandbox, id);
+        let* env =
           Run.ofStringError(Scope.SandboxEnvironment.Bindings.eval(env));
         return((env, scope));
       },
     );
 
-  let%bind cmd =
+  let* cmd =
     RunAsync.ofRun(
       {
         open Run.Syntax;
 
         let expand = v => {
-          let%bind v =
+          let* v =
             Scope.render(
               ~env,
               ~buildIsInProgress=envspec.EnvSpec.buildIsInProgress,
@@ -961,14 +961,14 @@ let exec =
         };
 
         let (tool, args) = Cmd.getToolAndArgs(cmd);
-        let%bind tool = expand(tool);
-        let%bind args = Result.List.map(~f=expand, args);
+        let* tool = expand(tool);
+        let* args = Result.List.map(~f=expand, args);
         return(Cmd.ofToolAndArgs((tool, args)));
       },
     );
 
   if (envspec.EnvSpec.buildIsInProgress) {
-    let%bind task = task(buildspec, mode, sandbox, id);
+    let* task = task(buildspec, mode, sandbox, id);
     let plan = Task.plan(~env, task);
     EsyBuildPackageApi.buildExec(sandbox.cfg, plan, cmd);
   } else {
@@ -1039,7 +1039,7 @@ let findMaxModifyTime = path => {
   let rec f = (value, filepath, stat) =>
     switch (stat.Unix.st_kind) {
     | Unix.S_LNK =>
-      let%bind targetpath = Fs.readlink(filepath);
+      let* targetpath = Fs.readlink(filepath);
       let targetpath =
         Path.(normalize(append(parent(filepath), targetpath)));
       /* check first if link itself has modified mtime, if not - traverse it */
@@ -1058,7 +1058,7 @@ let findMaxModifyTime = path => {
     ~label,
     () => {
       let value = (path, 0.0);
-      let%bind (path, mtime) = Fs.fold(~skipTraverse, ~f, ~init=value, path);
+      let* (path, mtime) = Fs.fold(~skipTraverse, ~f, ~init=value, path);
       return((path, BuildInfo.ModTime.v(mtime)));
     },
   );
@@ -1091,13 +1091,13 @@ let makeSymlinksToStore = (sandbox, task) => {
     | BuildDev => p
     | Build => Path.v(Path.show(p) ++ "-release")
     };
-  let%bind () =
+  let* () =
     Fs.symlink(
       ~force=true,
       ~src=Task.buildPath(sandbox.cfg, task),
       addSuffix(EsyInstall.SandboxSpec.buildPath(sandbox.spec)),
     );
-  let%bind () =
+  let* () =
     Fs.symlink(
       ~force=true,
       ~src=Task.installPath(sandbox.cfg, task),
@@ -1112,7 +1112,7 @@ let buildTask =
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
   let label = Fmt.strf("build %a", Task.pp, task);
-  let%bind () =
+  let* () =
     Perf.measureLwt(~label, () =>
       EsyBuildPackageApi.build(
         ~quiet?,
@@ -1123,7 +1123,7 @@ let buildTask =
         plan,
       )
     );
-  let%bind () =
+  let* () =
     switch (
       Solution.isRoot(sandbox.solution, task.pkg),
       System.Platform.host,
@@ -1200,7 +1200,7 @@ let build' =
         _exn => return(None),
       );
 
-    let%bind (mpath, mtime) = findMaxModifyTimeMem(sourcePath);
+    let* (mpath, mtime) = findMaxModifyTimeMem(sourcePath);
     switch%bind (prevmtime) {
     | None =>
       let%lwt () =
@@ -1239,7 +1239,7 @@ let build' =
       };
 
     let logPath = Task.logPath(sandbox.cfg, task);
-    let%bind () = buildTask(~logPath, sandbox, task);
+    let* () = buildTask(~logPath, sandbox, task);
     let%lwt () =
       if (!quiet) {
         Logs_lwt.app(m => m("building %a: done", Task.pp, task));
@@ -1254,12 +1254,11 @@ let build' =
   let runIfNeeded = (changesInDependencies, task) => {
     let infoPath = Task.buildInfoPath(sandbox.cfg, task);
     let sourcePath = Task.sourcePath(sandbox.cfg, task);
-    let%bind isBuilt = isBuilt(sandbox, task);
+    let* isBuilt = isBuilt(sandbox, task);
 
     let runAndRecordSourceModTime = sourceModTime => {
-      let%bind timeSpent =
-        LwtTaskQueue.submit(queue, run(~quiet=false, task));
-      let%bind () =
+      let* timeSpent = LwtTaskQueue.submit(queue, run(~quiet=false, task));
+      let* () =
         BuildInfo.toFile(
           infoPath,
           {BuildInfo.idInfo: task.idrepr, timeSpent, sourceModTime},
@@ -1270,10 +1269,10 @@ let build' =
     switch (Scope.sourceType(task.scope)) {
     | SourceType.Transient =>
       if (skipStalenessCheck) {
-        let%bind () = runAndRecordSourceModTime(None);
+        let* () = runAndRecordSourceModTime(None);
         return(Changes.Yes);
       } else {
-        let%bind (changesInSources, mtime) =
+        let* (changesInSources, mtime) =
           checkFreshModifyTime(infoPath, sourcePath);
         switch (isBuilt, Changes.(changesInDependencies + changesInSources)) {
         | (true, Changes.No) =>
@@ -1292,7 +1291,7 @@ let build' =
           return(Changes.No);
         | (true, Changes.Yes)
         | (false, _) =>
-          let%bind () = runAndRecordSourceModTime(Some(mtime));
+          let* () = runAndRecordSourceModTime(Some(mtime));
           return(Changes.Yes);
         };
       }
@@ -1312,14 +1311,14 @@ let build' =
         return(Changes.No);
       | (true, Changes.Yes)
       | (false, _) =>
-        let%bind () = runAndRecordSourceModTime(None);
+        let* () = runAndRecordSourceModTime(None);
         return(Changes.Yes);
       }
     | SourceType.Immutable =>
       if (isBuilt) {
         return(Changes.No);
       } else {
-        let%bind () = runAndRecordSourceModTime(None);
+        let* () = runAndRecordSourceModTime(None);
         return(Changes.No);
       }
     };
@@ -1343,7 +1342,7 @@ let build' =
             );
           };
 
-          let%bind changes = processMany(dependencies);
+          let* changes = processMany(dependencies);
           switch (buildLinked, task.Task.pkg.source) {
           | (false, Link(_)) => return(changes)
           | (_, _) =>
@@ -1363,12 +1362,12 @@ let build' =
     };
   }
   and processMany = dependencies => {
-    let%bind changes = RunAsync.List.mapAndJoin(~f=process, dependencies);
+    let* changes = RunAsync.List.mapAndJoin(~f=process, dependencies);
     let changes = List.fold_left(~f=Changes.(+), ~init=Changes.No, changes);
     return(changes);
   };
 
-  let%bind pkgs =
+  let* pkgs =
     RunAsync.ofRun(
       {
         open Run.Syntax;
@@ -1382,7 +1381,7 @@ let build' =
       },
     );
 
-  let%bind _: Changes.t = processMany(pkgs);
+  let* _: Changes.t = processMany(pkgs);
   return();
 };
 
@@ -1405,8 +1404,8 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
   let%lwt () = Logs_lwt.app(m => m("Exporting %s", buildId));
   let outputPath =
     Path.(outputPrefixPath / Printf.sprintf("%s.tar.gz", buildId));
-  let%bind (origPrefix, destPrefix) = {
-    let%bind prevStorePrefix =
+  let* (origPrefix, destPrefix) = {
+    let* prevStorePrefix =
       Fs.readFile(Path.(buildPath / "_esy" / "storePrefix"));
     let nextStorePrefix =
       switch (System.Platform.host) {
@@ -1421,17 +1420,16 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
     return((Path.v(prevStorePrefix), Path.v(nextStorePrefix)));
   };
 
-  let%bind stagePath = {
+  let* stagePath = {
     let path = Path.(cfg.EsyBuildPackage.Config.storePath / "s" / buildId);
-    let%bind () = Fs.rmPath(path);
-    let%bind () = Fs.copyPath(~src=buildPath, ~dst=path);
+    let* () = Fs.rmPath(path);
+    let* () = Fs.copyPath(~src=buildPath, ~dst=path);
     return(path);
   };
 
-  let%bind () =
-    RewritePrefix.rewritePrefix(~origPrefix, ~destPrefix, stagePath);
-  let%bind () = Fs.createDir(Path.parent(outputPath));
-  let%bind () =
+  let* () = RewritePrefix.rewritePrefix(~origPrefix, ~destPrefix, stagePath);
+  let* () = Fs.createDir(Path.parent(outputPath));
+  let* () =
     Tarball.create(
       ~filename=outputPath,
       ~outpath=buildId,
@@ -1445,7 +1443,7 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
    * Temporarily commenting `Fs.rmPath` and using the Bos
    * equivalent as a stopgap.
    */
-  /* let%bind () = Fs.rmPath(stagePath); */
+  /* let* () = Fs.rmPath(stagePath); */
   let%lwt () =
     switch (Bos.OS.Path.delete(~must_exist=false, ~recurse=true, stagePath)) {
     | Ok () => Lwt.return()
@@ -1476,36 +1474,36 @@ let importBuild = (storePath, buildPath) => {
     return();
   } else {
     let importFromDir = buildPath => {
-      let%bind origPrefix = {
-        let%bind v = Fs.readFile(Path.(buildPath / "_esy" / "storePrefix"));
+      let* origPrefix = {
+        let* v = Fs.readFile(Path.(buildPath / "_esy" / "storePrefix"));
         return(Path.v(v));
       };
 
-      let%bind () =
+      let* () =
         RewritePrefix.rewritePrefix(
           ~origPrefix,
           ~destPrefix=storePath,
           buildPath,
         );
 
-      let%bind () = Fs.rename(~skipIfExists=true, ~src=buildPath, outputPath);
+      let* () = Fs.rename(~skipIfExists=true, ~src=buildPath, outputPath);
       let%lwt () = Logs_lwt.app(m => m("Import %s: done", buildId));
       return();
     };
 
     switch (kind) {
     | `Dir =>
-      let%bind stagePath = {
+      let* stagePath = {
         let path = Path.(storePath / "s" / buildId);
-        let%bind () = Fs.rmPath(path);
-        let%bind () = Fs.copyPath(~src=buildPath, ~dst=path);
+        let* () = Fs.rmPath(path);
+        let* () = Fs.copyPath(~src=buildPath, ~dst=path);
         return(path);
       };
 
       importFromDir(stagePath);
     | `Archive =>
       let stagePath = Path.(storePath / Store.stageTree / buildId);
-      let%bind () = {
+      let* () = {
         let cmd =
           Cmd.(
             v("tar")

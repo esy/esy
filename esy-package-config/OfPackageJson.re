@@ -90,14 +90,14 @@ module InstallManifestV1 = {
         json,
       ) => {
     open Run.Syntax;
-    let%bind pkgJson = Json.parseJsonWith(Manifest.of_yojson, json);
+    let* pkgJson = Json.parseJsonWith(Manifest.of_yojson, json);
     let originalVersion =
       switch (pkgJson.Manifest.version) {
       | Some(version) => Some(Version.Npm(version))
       | None => None
       };
 
-    let%bind source =
+    let* source =
       switch (source, pkgJson.dist) {
       | (Some(source), _) => return(source)
       | (None, Some(dist)) =>
@@ -128,25 +128,24 @@ module InstallManifestV1 = {
       List.filter(~f, dependencies);
     };
 
-    let%bind dependencies = rebaseDependencies(source, dependencies);
+    let* dependencies = rebaseDependencies(source, dependencies);
 
-    let%bind devDependencies =
+    let* devDependencies =
       switch (parseDevDependencies) {
       | false => return(NpmFormula.empty)
       | true =>
-        let%bind {DevDependenciesOfManifest.devDependencies} =
+        let* {DevDependenciesOfManifest.devDependencies} =
           Json.parseJsonWith(DevDependenciesOfManifest.of_yojson, json);
 
-        let%bind devDependencies =
-          rebaseDependencies(source, devDependencies);
+        let* devDependencies = rebaseDependencies(source, devDependencies);
         return(devDependencies);
       };
 
-    let%bind resolutions =
+    let* resolutions =
       switch (parseResolutions) {
       | false => return(Resolutions.empty)
       | true =>
-        let%bind {ResolutionsOfManifest.resolutions} =
+        let* {ResolutionsOfManifest.resolutions} =
           Json.parseJsonWith(ResolutionsOfManifest.of_yojson, json);
 
         return(resolutions);
@@ -213,7 +212,7 @@ module BuildManifestV1 = {
 
   let ofJson = json => {
     open Run.Syntax;
-    let%bind pkgJson = Json.parseJsonWith(packageJson_of_yojson, json);
+    let* pkgJson = Json.parseJsonWith(packageJson_of_yojson, json);
     switch (pkgJson.esy) {
     | Some(m) =>
       let warnings = [];
@@ -245,8 +244,8 @@ module EsyVersion = {
 
   let of_yojson = json => {
     open Result.Syntax;
-    let%bind constr = Json.Decode.string(json);
-    let%bind constr = SemverVersion.Formula.parse(constr);
+    let* constr = Json.Decode.string(json);
+    let* constr = SemverVersion.Formula.parse(constr);
     switch (constr) {
     | [
         [
@@ -281,7 +280,7 @@ module EsyVersion = {
           let f = ((key, _json)) => key == "esy";
           switch (List.find_opt(~f, items)) {
           | Some((_, json)) =>
-            let%bind esy = of_yojson(json);
+            let* esy = of_yojson(json);
             return({esy: Some(esy)});
           | None => return({esy: None})
           };
@@ -332,7 +331,7 @@ let installManifest =
       json,
     ) => {
   open Run.Syntax;
-  let%bind esyVersion = EsyVersion.OfPackageJson.parse(json);
+  let* esyVersion = EsyVersion.OfPackageJson.parse(json);
   switch (esyVersion) {
   | Some(1) =>
     InstallManifestV1.ofJson(
@@ -345,7 +344,7 @@ let installManifest =
     )
   | Some(v) => unknownEsyVersionError(v)
   | None =>
-    let%bind (m, warnings) =
+    let* (m, warnings) =
       InstallManifestV1.ofJson(
         ~parseResolutions,
         ~parseDevDependencies,
@@ -361,7 +360,7 @@ let installManifest =
 
 let buildManifest = json => {
   open Run.Syntax;
-  let%bind esyVersion = EsyVersion.OfPackageJson.parse(json);
+  let* esyVersion = EsyVersion.OfPackageJson.parse(json);
   switch (esyVersion) {
   | Some(1) => BuildManifestV1.ofJson(json)
   | Some(v) => unknownEsyVersionError(v)

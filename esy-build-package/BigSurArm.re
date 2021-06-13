@@ -19,7 +19,7 @@ open Bos.OS.Cmd;
  [sign'] does exactly that. */
 
 let codesign = fpath => {
-  let%bind status =
+  let* status =
     run_status(
       ~quiet=true,
       Cmd.(
@@ -52,14 +52,14 @@ let codesign = fpath => {
 };
 
 let sign' = path => {
-  let%bind () = codesign(path);
+  let* () = codesign(path);
   let tmpDir = Filename.get_temp_dir_name();
   let fileBeingCopied = path |> Fpath.to_string |> Filename.basename;
   let workAroundFilePath = Fpath.(v(tmpDir) / "workaround" / fileBeingCopied);
-  let%bind () = mkdir(Fpath.(v(tmpDir) / "workaround"));
-  let%bind () = copyFile(path, workAroundFilePath);
-  let%bind () = rm(path);
-  let%bind () = copyFile(~perm=0o775, workAroundFilePath, path);
+  let* () = mkdir(Fpath.(v(tmpDir) / "workaround"));
+  let* () = copyFile(path, workAroundFilePath);
+  let* () = rm(path);
+  let* () = copyFile(~perm=0o775, workAroundFilePath, path);
   codesign(path);
 };
 
@@ -67,6 +67,6 @@ let rec sign =
   fun
   | [] => return()
   | [h, ...rest] => {
-      let%bind () = sign'(h);
+      let* () = sign'(h);
       sign(rest);
     };

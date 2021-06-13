@@ -108,13 +108,13 @@ let checkIfExecutable = path =>
     /* In particular, the Unix.stat implementation emulates this on Windows by checking the extension for `exe`/`com`/`cmd`/`bat` */
     /* But in our case, since we're deferring to the Cygwin layer, it's possible to have executables that don't confirm to that rule */
     | Windows =>
-      let%bind exists = Bos.OS.Path.exists(path);
+      let* exists = Bos.OS.Path.exists(path);
       switch (exists) {
       | true => Ok(Some(path))
       | _ => Ok(None)
       };
     | _ =>
-      let%bind stats = Bos.OS.Path.stat(path);
+      let* stats = Bos.OS.Path.stat(path);
       switch (stats.Unix.st_kind, isExecutable(stats)) {
       | (Unix.S_REG, true) => Ok(Some(path))
       | _ => Ok(None)
@@ -177,7 +177,7 @@ let resolveCmd = (path, cmd) => {
 
 let resolveInvocation = (path, (tool, args)) => {
   open Result.Syntax;
-  let%bind tool = resolveCmd(path, tool);
+  let* tool = resolveCmd(path, tool);
   return((tool, args));
 };
 

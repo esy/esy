@@ -66,7 +66,7 @@ let rec layout = p =>
   | FixtureDir(spec) => {
       open Result.Syntax;
       let newPath = Path.addSeg(p, spec.name);
-      let%bind _ = Dir.create(newPath);
+      let* _ = Dir.create(newPath);
       layoutMany(newPath, spec.items);
     }
 and layoutMany = p =>

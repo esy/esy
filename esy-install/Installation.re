@@ -25,9 +25,8 @@ let entries = PackageId.Map.bindings;
 let ofPath = path => {
   open RunAsync.Syntax;
   if%bind (Fs.exists(path)) {
-    let%bind json = Fs.readJsonFile(path);
-    let%bind installation =
-      RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+    let* json = Fs.readJsonFile(path);
+    let* installation = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
     return(Some(installation));
   } else {
     return(None);

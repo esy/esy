@@ -275,11 +275,11 @@ let packageOfSource =
     RunAsync.Syntax.(
       switch (kind) {
       | ManifestSpec.Esy =>
-        let%bind (manifest, _warnings) =
+        let* (manifest, _warnings) =
           RunAsync.ofRun(
             {
               open Run.Syntax;
-              let%bind json = Json.parse(data);
+              let* json = Json.parse(data);
               OfPackageJson.installManifest(
                 ~parseResolutions=true,
                 ~parseDevDependencies=true,
@@ -292,9 +292,8 @@ let packageOfSource =
           );
         return(Ok(manifest));
       | ManifestSpec.Opam =>
-        let%bind opamname =
-          RunAsync.ofRun(ensureOpamName(suggestedPackageName));
-        let%bind manifest =
+        let* opamname = RunAsync.ofRun(ensureOpamName(suggestedPackageName));
+        let* manifest =
           RunAsync.ofRun(
             {
               let version = OpamPackage.Version.of_string("dev");
@@ -311,12 +310,7 @@ let packageOfSource =
     );
 
   let pkg = {
-    let%bind {
-      EsyInstall.DistResolver.overrides,
-      dist: resolvedDist,
-      manifest,
-      _,
-    } =
+    let* {EsyInstall.DistResolver.overrides, dist: resolvedDist, manifest, _} =
       EsyInstall.DistResolver.resolve(
         ~gitUsername,
         ~gitPassword,
@@ -326,7 +320,7 @@ let packageOfSource =
         Source.toDist(source),
       );
 
-    let%bind resolvedSource =
+    let* resolvedSource =
       switch (source, resolvedDist) {
       | (Source.Dist(_), _) => return(Source.Dist(resolvedDist))
       | (Source.Link({kind, _}), Dist.LocalPath({path, manifest})) =>
@@ -335,7 +329,7 @@ let packageOfSource =
         errorf("unable to link to %a", Dist.pp, dist)
       };
 
-    let%bind pkg =
+    let* pkg =
       switch (manifest) {
       | Some(manifest) =>
         readManifest(~name, ~source=resolvedSource, manifest)
@@ -497,7 +491,7 @@ let package =
   let ofVersion = (version: Version.t) =>
     switch (version) {
     | Version.Npm(version) =>
-      let%bind pkg =
+      let* pkg =
         NpmRegistry.package(
           ~name=resolution.name,
           ~version,
@@ -509,7 +503,7 @@ let package =
     | Version.Opam(version) =>
       switch%bind (
         {
-          let%bind name = RunAsync.ofRun(requireOpamName(resolution.name));
+          let* name = RunAsync.ofRun(requireOpamName(resolution.name));
           OpamRegistry.version(~name, ~version, resolver.opamRegistry);
         }
       ) {
@@ -537,7 +531,7 @@ let package =
     resolver.pkgCache,
     key,
     _ => {
-      let%bind pkg =
+      let* pkg =
         switch (resolution.resolution) {
         | Version(version) => ofVersion(version)
         | SourceOverride({source, override}) =>
@@ -555,7 +549,7 @@ let package =
 
       switch (pkg) {
       | Ok(pkg) =>
-        let%bind pkg =
+        let* pkg =
           Overrides.foldWithInstallOverrides(
             ~f=applyOverride,
             ~init=pkg,
@@ -610,13 +604,12 @@ let resolveSource =
         Logs_lwt.debug(m =>
           m("resolving %s@%a", name, SourceSpec.pp, sourceSpec)
         );
-      let%bind source =
+      let* source =
         switch (sourceSpec) {
         | SourceSpec.Github({user, repo, ref, manifest}) =>
           let remote =
             Printf.sprintf("https://github.com/%s/%s.git", user, repo);
-          let%bind commit =
-            Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
+          let* commit = Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
             return(Source.Dist(Github({user, repo, commit, manifest})))
@@ -632,8 +625,7 @@ let resolveSource =
           };
 
         | SourceSpec.Git({remote, ref, manifest}) =>
-          let%bind commit =
-            Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
+          let* commit = Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
             return(Source.Dist(Git({remote, commit, manifest})))
@@ -676,7 +668,7 @@ let resolve' =
     switch (spec) {
     | VersionSpec.Npm(_)
     | VersionSpec.NpmDistTag(_) =>
-      let%bind resolutions =
+      let* resolutions =
         switch%bind (
           NpmRegistry.versions(~fullMetadata, ~name, resolver.npmRegistry, ())
         ) {
@@ -718,7 +710,7 @@ let resolve' =
       return(resolutions);
 
     | VersionSpec.Opam(_) =>
-      let%bind resolutions =
+      let* resolutions =
         ResolutionCache.compute(
           resolver.resolutionCache,
           name,
@@ -727,8 +719,8 @@ let resolve' =
               Logs_lwt.debug(m =>
                 m("resolving %s %a", name, VersionSpec.pp, spec)
               );
-            let%bind versions = {
-              let%bind name = RunAsync.ofRun(requireOpamName(name));
+            let* versions = {
+              let* name = RunAsync.ofRun(requireOpamName(name));
               OpamRegistry.versions(
                 ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
                 ~name,
@@ -766,7 +758,7 @@ let resolve' =
       return(resolutions);
 
     | VersionSpec.Source(sourceSpec) =>
-      let%bind source =
+      let* source =
         resolveSource(
           ~gitUsername,
           ~gitPassword,

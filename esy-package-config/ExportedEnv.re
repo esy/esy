@@ -59,7 +59,7 @@ let unset = (~exclusive=?, scope, name) => {
 
 let item_of_yojson = (name, json) => {
   open Result.Syntax;
-  let%bind {Item.value, scope, exclusive} = Item.of_yojson(json);
+  let* {Item.value, scope, exclusive} = Item.of_yojson(json);
   let value =
     switch (value) {
     | Some(value) => Set(value)
@@ -73,7 +73,7 @@ let of_yojson =
   | `Assoc(items) => {
       open Result.Syntax;
       let f = (items, (name, json)) => {
-        let%bind item = item_of_yojson(name, json);
+        let* item = item_of_yojson(name, json);
         return(StringMap.add(name, item, items));
       };
 

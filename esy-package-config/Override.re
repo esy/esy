@@ -62,15 +62,15 @@ let json = override =>
 
 let build = override => {
   open RunAsync.Syntax;
-  let%bind json = json(override);
-  let%bind override = RunAsync.ofStringError(build_of_yojson(json));
+  let* json = json(override);
+  let* override = RunAsync.ofStringError(build_of_yojson(json));
   return(Some(override));
 };
 
 let install = override => {
   open RunAsync.Syntax;
-  let%bind json = json(override);
-  let%bind override = RunAsync.ofStringError(install_of_yojson(json));
+  let* json = json(override);
+  let* override = RunAsync.ofStringError(install_of_yojson(json));
   return(Some(override));
 };
 

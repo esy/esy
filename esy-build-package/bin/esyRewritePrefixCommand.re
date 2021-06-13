@@ -11,7 +11,7 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
   Result.Syntax.(
     switch (System.Platform.host) {
     | Windows =>
-      let%bind _ =
+      let* _ =
         Result.List.map(
           ~f=
             ((origPrefix, destPrefix)) => {
@@ -35,12 +35,12 @@ let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
 
 let rewriteTargetInSymlink = (~origPrefix, ~destPrefix, path) => {
   open Result.Syntax;
-  let%bind targetPath = Run.readlink(path);
+  let* targetPath = Run.readlink(path);
   switch (Path.remPrefix(origPrefix, targetPath)) {
   | Some(basePath) =>
     let nextTargetPath = Path.append(destPrefix, basePath);
-    let%bind () = Run.rm(path);
-    let%bind () = Run.symlink(~target=nextTargetPath, path);
+    let* () = Run.rm(path);
+    let* () = Run.symlink(~target=nextTargetPath, path);
     return();
   | None => return()
   };

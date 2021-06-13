@@ -12,7 +12,7 @@ let parseStdout = stdout =>
   Run.Syntax.(
     switch (String.cut(~rev=true, ~sep="\n", stdout)) {
     | Some((stdout, httpcode)) =>
-      let%bind httpcode =
+      let* httpcode =
         try(return(int_of_string(httpcode))) {
         | Failure(_) => errorf("unable to parse HTTP code: %s", httpcode)
         };
