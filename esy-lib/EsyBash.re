@@ -48,10 +48,8 @@ let normalizePathForCygwin = path =>
   switch (System.Platform.host) {
   | System.Platform.Windows =>
     let rootPath = getCygPath();
-    let ic =
-      Unix.open_process_in(
-        Fpath.to_string(rootPath) ++ " \"" ++ path ++ " \"",
-      );
+    let binary = Fpath.to_string(rootPath);
+    let ic = Unix.open_process_args_in(binary, [|binary, path|]);
     let result = String.trim(input_line(ic));
     let () = close_in(ic);
     result;
@@ -91,11 +89,16 @@ let normalizePathForWindows = (path: Fpath.t) =>
     | '\\' =>
       let rootPath = getCygPath();
       /* Use the `cygpath` utility with the `-w` flag to resolve to a Windows path */
-      let commandToRun =
-        String.trim(Fpath.to_string(rootPath))
-        ++ " -w "
-        ++ Path.normalizePathSepOfFilename(Fpath.to_string(path));
-      let ic = Unix.open_process_in(commandToRun);
+      let binary = String.trim(Fpath.to_string(rootPath));
+      let ic =
+        Unix.open_process_args_in(
+          binary,
+          [|
+            binary,
+            "-w",
+            Path.normalizePathSepOfFilename(Fpath.to_string(path)),
+          |],
+        );
       let result = Fpath.v(String.trim(input_line(ic)));
       let () = close_in(ic);
       result;
