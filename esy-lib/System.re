@@ -91,15 +91,14 @@ module Arch = {
 
   let host = {
     let uname = () => {
-      let cmd =
-        switch (Platform.host) {
-        | Windows => "echo %PROCESSOR_ARCHITECTURE%"
-        | _ => "uname -m"
-        };
+      let ic = Unix.open_process_in("uname -m");
 
-      let ic = Unix.open_process_in(cmd);
       let uname = input_line(ic);
       let () = close_in(ic);
+      uname;
+    };
+
+    let convert = uname => {
       switch (String.trim(String.lowercase_ascii(uname))) {
       /* Return values for Windows PROCESSOR_ARCHITECTURE environment variable */
       | "x86" => X86_32
@@ -114,7 +113,11 @@ module Arch = {
       };
     };
 
-    uname();
+    switch (Platform.host) {
+    // Should be defined at session statup globally
+    | Windows => convert(Sys.getenv("PROCESSOR_ARCHITECTURE"))
+    | _ => convert(uname())
+    };
   };
 };
 
