@@ -128,7 +128,6 @@ module JbuilderHack = {
 };
 
 let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
-  Logs.app(m => m(">>> configureBuild()"));
   let* env = {
     let f = (k, v) =>
       fun
@@ -261,22 +260,16 @@ let withLock = (lockPath: Path.t, f) => {
       )
     );
   let release = () => {
-    Logs.app(m => m(">>> Lock released"));
     UnixLabels.(lockf(fd, ~mode=F_ULOCK, ~len=0));
     Unix.close(fd);
   };
-  Logs.app(m => m(">>> acquring lock"));
   UnixLabels.(lockf(fd, ~mode=F_TLOCK, ~len=0));
   let res =
-    try(
-      {
-        Logs.app(m => m(">>> before perform"));
-        let res = f();
-        Logs.app(m => m(">>> after perform"));
-        release();
-        res;
-      }
-    ) {
+    try({
+      let res = f();
+      release();
+      res;
+    }) {
     | e =>
       release();
       raise(e);
@@ -415,15 +408,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
   let* () = initStoreAt(cfg.localStorePath);
 
   let perform = () => {
-    Logs.app(m => m(">>> perform() 1"));
-    Logs.app(m =>
-      m(">>> Build Path : %s", Fpath.to_string(build.buildPath))
-    );
-    Logs.app(m =>
-      m(">>> Stage Path : %s", Fpath.to_string(build.stagePath))
-    );
-    Logs.app(m => m(">>> Lock Path  : %s", Fpath.to_string(build.lockPath)));
-
     let* () = rm(build.installPath);
     let* () = rm(build.stagePath);
     /* remove buildPath only if we build into a global store, otherwise we keep
@@ -448,8 +432,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
     let* () = mkdir(build.buildPath);
     let* () = mkdir(build.buildPath / "_esy");
 
-    Logs.app(m => m(">>> perform() 2"));
-
     let* () =
       if (Path.compare(build.sourcePath, build.rootPath) == 0) {
         ok;
@@ -457,7 +439,6 @@ let withBuild = (~commit=false, ~cfg: Config.t, plan: Plan.t, f) => {
         relocateSourcePath(build.sourcePath, build.rootPath);
       };
 
-    Logs.app(m => m(">>> perform() 3"));
     Ok(build);
   };
 
@@ -576,7 +557,6 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
 
   let runBuildAndInstall = (build: build) => {
-    Logs.app(m => m(">>> runBuildAndInstall() 1"));
     let enableLinkingOptimization =
       switch (build.plan.sourceType) {
       | Transient => true
