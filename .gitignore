@@ -14,3 +14,4 @@ yarn-error.log
 .esy-bash-path
 test-e2e-re/lib/verdaccio/storage
 *~
+/.vscode

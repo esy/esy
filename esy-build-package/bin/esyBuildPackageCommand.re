@@ -119,6 +119,7 @@ let shell = (copts: commonOpts) => {
   };
 
   let runShell = build => {
+    Logs.app(m => m(">>> runShell()"));
     ppBanner(build);
     let* rcFilename =
       createTmpFile(
@@ -146,7 +147,9 @@ let exec = (copts, command) => {
   let planPath = Option.orDefault(~default=v("build.json"), planPath);
   let* cfg = createConfig(copts);
   let runCommand = build => {
+    Logs.app(m => m(">>> runCommand()"));
     let cmd = Cmd.of_list(command);
+    Logs.app(m => m(">>> runCommand() %s", Cmd.to_string(cmd)));
     Build.runCommandInteractive(build, cmd);
   };
   let* plan = Plan.ofFile(planPath);
