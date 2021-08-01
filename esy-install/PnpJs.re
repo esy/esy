@@ -140,7 +140,10 @@ module PackageInformation = {
 };
 
 module LocatorsByLocations = {
-  type t = StringMap.t(info)
+  type t = {
+    topLevelLocatorPath: string,
+    map: StringMap.t(info),
+  }
   and info =
     | Pkg({
         name: string,
@@ -163,8 +166,8 @@ module LocatorsByLocations = {
     };
 
   let jspp: Fmt.t(t) = (
-    (fmt, map) => {
-      let bindings = StringMap.bindings(map);
+    (fmt, t) => {
+      let bindings = StringMap.bindings(t.map);
       jsppStringMap(jsppString, jsppInfo, fmt, bindings);
     }:
       Fmt.t(t)
@@ -183,12 +186,14 @@ module LocatorsByLocations = {
         StringMap.add(path, Pkg({name, reference}), map);
       };
 
+    let topLevelLocatorPath = pnpRelativePath(basePath, rootPath);
     let init =
       StringMap.(
         empty |> add(pnpRelativePath(basePath, rootPath), TopLevel)
       );
 
-    List.fold_left(~f, ~init, Installation.entries(installation));
+    let map = List.fold_left(~f, ~init, Installation.entries(installation));
+    {topLevelLocatorPath, map};
   };
 };
 
@@ -249,6 +254,23 @@ let generatePackageLocator = (~basePath, store: PackageInformation.t) => {
   ++ locators
   ++ {|
 
+    /*
+      this can only happen if inside the _esy
+      as any other path will implies the opposite
+
+      topLevelLocatorPath = ../../
+
+      | folder              | relativeLocation |
+      | ------------------- | ---------------- |
+      | /workspace/app      | ../../           |
+      | /workspace          | ../../../        |
+      | /workspace/app/x    | ../../x/         |
+      | /workspace/app/_esy | ../              |
+
+    */
+    if (!relativeLocation.startsWith(topLevelLocatorPath)) {
+      return topLevelLocator;
+    }
     return null;
   };
   |};
@@ -372,6 +394,7 @@ function blacklistCheck(locator) {
 
 let packageInformationStores = %a;
 
+let topLevelLocatorPath = "%s";
 let locatorsByLocations = %a;
 
 %s
@@ -1158,6 +1181,7 @@ if (process.mainModule === module) {
 |},
     PackageInformation.jspp,
     packageInformation,
+    locatorsByLocations.topLevelLocatorPath,
     LocatorsByLocations.jspp,
     locatorsByLocations,
     packageLocator,
