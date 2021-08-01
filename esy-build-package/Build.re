@@ -263,7 +263,13 @@ let withLock = (lockPath: Path.t, f) => {
     UnixLabels.(lockf(fd, ~mode=F_ULOCK, ~len=0));
     Unix.close(fd);
   };
-  UnixLabels.(lockf(fd, ~mode=F_TLOCK, ~len=0));
+  try(UnixLabels.(lockf(fd, ~mode=F_TEST, ~len=0))) {
+  | _ =>
+    Logs.app(m =>
+      m("# esy-build-package: waiting for other process to finish building")
+    )
+  };
+  UnixLabels.(lockf(fd, ~mode=F_LOCK, ~len=0));
   let res =
     try({
       let res = f();
