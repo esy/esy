@@ -10,7 +10,7 @@ they are released.
 ## With esy packages
 
 To use an unreleased version of an esy package specify a dependency resolution
-in [`resolutions`][cfg-resolutions] field alongside the depedency declaration:
+in [`resolutions`][cfg-resolutions] field alongside the dependency declaration:
 
 ```json
 "dependencies": {
