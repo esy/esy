@@ -163,7 +163,7 @@ switch (platform) {
 
     copyPlatformBinaries("windows-x64");
     console.log('Installing native compiler toolchain for Windows...');
-    cp.execSync(`npm install esy-bash@0.3.19 --prefix "${__dirname}"`);
+    cp.execSync(`npm install esy-bash@0.3.20 --prefix "${__dirname}"`);
     console.log('Native compiler toolchain installed successfully.');
     break;
     break;
