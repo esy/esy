@@ -1,6 +1,44 @@
 # CHANGELOG
 
-## 0.6.10 @ latest
+## 0.6.11 @ latest
+
+- Feature: Support for Windows developer mode. If you're are logged
+  into their developer accounts, esy will no longer ask for a shell
+  with elevated privileges. 
+  
+  This also makes launchin VSCode instances in admin mode unnecessary
+  
+  PR #1292 by @Eduardorfs
+  
+- Docker images: A new Centos docker image has been
+  added. (unreleased)
+  
+  PR #1271 by @rohitkg98
+  
+- Bugfix: Resolves circular dependencies by dropping opam `post`
+  variable.
+  
+  PR #1319 by @phated
+  
+- Feature: Adds support for opam's `extra-sources` field.
+
+  PR #1318 by @melwyn95
+  
+- Bugfix: Fixes installation and usage crashes on Windows machines
+  where usernames have spaces.
+  
+  PR #1332 by @Et7f3
+  
+- Bugfix: `esy build` waits when a lock has been acquired - this
+  allows multiple esy processes to be run together without crashing
+  
+  PR #1334 by @melwyn95
+  
+- Bugfix: Fixes `require()` in js scripts when inside $cur__target
+
+  PR #1336 by @Eduardorfs
+
+## 0.6.10 
 
 - Bug Fix: packages that have invalid symlink now builds again. This
   was introduced on `0.6.8` because of the to support macOS ARM64
