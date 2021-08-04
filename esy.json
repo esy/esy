@@ -33,14 +33,12 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "@opam/bos": {
-      "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
-      "override": {"dependencies": {"@opam/mtime": "*"}}
-    },
+    "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
     "@opam/bigstringaf": "0.6.1",
     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
     "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
-    "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61"
+    "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
+    "@opam/parmap": "1.2.1"
   },
   "dependencies": {
     "@opam/mccs": "*",

@@ -10,7 +10,7 @@ bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
 depends: [
   "dune" {>= "2.8"}
   "ocaml" {>= "4.08" & < "4.13"}
-  "ocaml-version"
+  "ocaml-version" {>= "3.1.0"}
   "alcotest" {with-test}
   "base" {>= "v0.12.0" & < "v0.15"}
   "base-unix"
@@ -25,7 +25,7 @@ depends: [
   "bisect_ppx" {with-test & >= "2.5.0"}
   "odoc" {>= "1.4.2"}
   "ppxlib" {>= "0.22.0"}
-  "re"
+  "re" {>= "1.7.2"}
   "stdio" {< "v0.15"}
   "uuseg" {>= "10.0.0"}
   "uutf" {>= "1.0.1"}

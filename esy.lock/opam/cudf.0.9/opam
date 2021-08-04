@@ -8,6 +8,7 @@ build: [make "all" "opt" "DOC="]
 depends: [
   "ocaml"
   ("extlib" | "extlib-compat")
+  "ocamlfind" {build}
   "ocamlbuild" {build}
 ]
 install: [
