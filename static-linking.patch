@@ -31,14 +31,14 @@ index 47148185..f9533d73 100644
     (-w -39)))
   (preprocess
 diff --git a/esy.json b/esy.json
-index c0fa547e..681e8187 100644
+index 29586322..c6e9634d 100644
 --- a/esy.json
 +++ b/esy.json
-@@ -32,6 +32,7 @@
+@@ -33,6 +33,7 @@
      "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
    },
    "resolutions": {
 +    "ocaml": "4.12.0-musl.static.flambda",
-     "@opam/bos": {
-       "source": "github:esy-ocaml/bos:opam#a241814516fbe2",
-       "override": {"dependencies": {"@opam/mtime": "*"}}
+     "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
+     "@opam/bigstringaf": "0.6.1",
+     "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
