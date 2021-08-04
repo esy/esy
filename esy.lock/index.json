@@ -1,5 +1,5 @@
 {
-  "checksum": "ac37c4e72c1ddb3ddaae2c8748840d6f",
+  "checksum": "c2000b380f71647557acc75aa2aa9618",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#db3a0b63883606dd57c54a7158d560d6cba8cd79@d41d8cd9": {
@@ -1288,23 +1288,28 @@
         "ocaml@4.12.0@d41d8cd9", "@opam/dune@opam:2.9.0@489e77a9"
       ]
     },
-    "@opam/parmap@opam:1.2.3@ae107f1f": {
-      "id": "@opam/parmap@opam:1.2.3@ae107f1f",
+    "@opam/parmap@opam:1.2.1@b55d8bc2": {
+      "id": "@opam/parmap@opam:1.2.1@b55d8bc2",
       "name": "@opam/parmap",
-      "version": "opam:1.2.3",
+      "version": "opam:1.2.1",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/5b/5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1#sha256:5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1",
-          "archive:https://github.com/rdicosmo/parmap/releases/download/1.2.3/parmap-1.2.3.tbz#sha256:5bb4f4bdc6ceb0d8abbeb8d8e068052190d365db3f83f84064721472a90ee8f1"
+          "archive:https://opam.ocaml.org/cache/sha256/70/701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd#sha256:701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd",
+          "archive:https://github.com/rdicosmo/parmap/releases/download/1.2.1/parmap-1.2.1.tbz#sha256:701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd"
         ],
         "opam": {
           "name": "parmap",
-          "version": "1.2.3",
-          "path": "esy.lock/opam/parmap.1.2.3"
+          "version": "1.2.1",
+          "path": "esy.lock/opam/parmap.1.2.1"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride":
+            "esy.lock/overrides/opam__s__parmap_opam__c__1.2.1_opam_override"
+        }
+      ],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9",
         "@opam/dune-configurator@opam:2.9.0@40e837e7",
@@ -2590,7 +2595,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/stdlib-shims@opam:0.3.0@0d088929",
-        "@opam/re@opam:1.9.0@9373f267", "@opam/parmap@opam:1.2.3@ae107f1f",
+        "@opam/re@opam:1.9.0@9373f267", "@opam/parmap@opam:1.2.1@b55d8bc2",
         "@opam/ocamlgraph@opam:2.0.0@929b9eba",
         "@opam/extlib@opam:1.7.8@24e7b47b", "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/cudf@opam:0.9@fd225e7d", "@opam/camlzip@opam:1.10@ac17c991",
@@ -2600,7 +2605,7 @@
       ],
       "devDependencies": [
         "ocaml@4.12.0@d41d8cd9", "@opam/stdlib-shims@opam:0.3.0@0d088929",
-        "@opam/re@opam:1.9.0@9373f267", "@opam/parmap@opam:1.2.3@ae107f1f",
+        "@opam/re@opam:1.9.0@9373f267", "@opam/parmap@opam:1.2.1@b55d8bc2",
         "@opam/ocamlgraph@opam:2.0.0@929b9eba",
         "@opam/extlib@opam:1.7.8@24e7b47b", "@opam/dune@opam:2.9.0@489e77a9",
         "@opam/cudf@opam:0.9@fd225e7d", "@opam/camlzip@opam:1.10@ac17c991",
