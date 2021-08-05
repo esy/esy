@@ -108,7 +108,7 @@ obvious items) with further explanations:
 To make changes to `esy` and test them locally:
 
 ```
-% git clone git://github.com/esy/esy.git
+% git clone  --recurse-submodules git://github.com/esy/esy.git
 % cd esy # Change to the cloned directory
 % esy # install and build dependencies 
 ```
