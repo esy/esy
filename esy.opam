@@ -50,6 +50,7 @@ depends: [
   "re"
   "mccs"
   "yojson"
+  "digestif"
   "ocaml" {= "4.12.0"}
   "extlib" {= "1.7.8"}
 ]
