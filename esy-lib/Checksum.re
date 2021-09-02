@@ -69,8 +69,7 @@ let withFoldFile = (f, init, path) => {
   final;
 };
 
-let hashFile = (path, m: (module Digestif.S)) => {
-  module M = (val m);
+let hashFile = (module M: Digestif.S, path) => {
   let ctx = M.empty;
   let f = (ctx, buf, off, len) => M.feed_bytes(ctx, ~off, ~len, buf);
   let ctx = withFoldFile(f, ctx, path);
@@ -78,17 +77,16 @@ let hashFile = (path, m: (module Digestif.S)) => {
   M.to_hex(hash);
 };
 
-let hashOfPath = (path, kind) => {
+let hashOfPath = (~kind) =>
   switch (kind) {
-  | Md5 => hashFile(path, (module Digestif.MD5))
-  | Sha1 => hashFile(path, (module Digestif.SHA1))
-  | Sha256 => hashFile(path, (module Digestif.SHA256))
-  | Sha512 => hashFile(path, (module Digestif.SHA3_512))
+  | Md5 => hashFile((module Digestif.MD5))
+  | Sha1 => hashFile((module Digestif.SHA1))
+  | Sha256 => hashFile((module Digestif.SHA256))
+  | Sha512 => hashFile((module Digestif.SHA3_512))
   };
-};
 
 let computeOfFile = (~kind=Sha256, path) => {
-  let hash = hashOfPath(path, kind);
+  let hash = hashOfPath(~kind, path);
   RunAsync.return((kind, hash));
 };
 
@@ -96,7 +94,7 @@ let checkFile = (~path, checksum: t) => {
   open RunAsync.Syntax;
 
   let (kind, cvalue) = checksum;
-  let value = hashOfPath(path, kind);
+  let value = hashOfPath(~kind, path);
 
   if (cvalue == value) {
     return();
