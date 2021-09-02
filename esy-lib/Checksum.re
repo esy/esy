@@ -51,30 +51,16 @@ let of_yojson = json =>
   | _ => Error("expected string")
   };
 
-let withFoldFile = (f, init, path) => {
-  let buf = Bytes.create(4096);
-  let rec fold = (init, ic) => {
-    let read = input(ic, buf, 0, 4096);
-    if (read == 0) {
-      init;
-    } else {
-      fold(f(init, buf, 0, read), ic);
-    };
-  };
-
-  let filename = Fpath.to_string(path);
-  let ic = open_in_bin(filename);
-  let final = fold(init, ic);
-  close_in(ic);
-  final;
-};
-
 let hashFile = (module M: Digestif.S, path) => {
-  let ctx = M.empty;
-  let f = (ctx, buf, off, len) => M.feed_bytes(ctx, ~off, ~len, buf);
-  let ctx = withFoldFile(f, ctx, path);
+  open RunAsync.Syntax;
+  let* ctx =
+    Fs.withFoldFile(
+      ~f=(~acc, ~len, ~buf) => M.feed_bytes(acc, ~off=0, ~len, buf),
+      ~init=M.empty,
+      path,
+    );
   let hash = M.get(ctx);
-  M.to_hex(hash);
+  return(M.to_hex(hash));
 };
 
 let hashOfPath = (~kind) =>
@@ -86,15 +72,16 @@ let hashOfPath = (~kind) =>
   };
 
 let computeOfFile = (~kind=Sha256, path) => {
-  let hash = hashOfPath(~kind, path);
-  RunAsync.return((kind, hash));
+  open RunAsync.Syntax;
+  let* hash = hashOfPath(~kind, path);
+  return((kind, hash));
 };
 
 let checkFile = (~path, checksum: t) => {
   open RunAsync.Syntax;
 
   let (kind, cvalue) = checksum;
-  let value = hashOfPath(~kind, path);
+  let* value = hashOfPath(~kind, path);
 
   if (cvalue == value) {
     return();
