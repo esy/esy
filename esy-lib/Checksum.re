@@ -63,10 +63,10 @@ let withFoldFile = (f, init, path) => {
   };
 
   let filename = Fpath.to_string(path);
-  let ic = open_in_bin(filename)
+  let ic = open_in_bin(filename);
   let final = fold(init, ic);
   close_in(ic);
-  final
+  final;
 };
 
 let hashFile = (path, m: (module Digestif.S)) => {
