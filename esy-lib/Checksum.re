@@ -55,21 +55,21 @@ let rec foldFile = (f, init, ic) => {
   let buf = Bytes.create(4096);
   let read = input(ic, buf, 0, 4096);
   if (read == 0) {
-    init
+    init;
   } else {
-    foldFile (f, f(init, buf, 0, read), ic)
-  }
-}
+    foldFile(f, f(init, buf, 0, read), ic);
+  };
+};
 
 let hashFile = (filename, m: (module Digestif.S)) => {
-  let module M = (val m);
+  module M = (val m);
   let ic = open_in_bin(filename);
   let ctx = M.empty;
-  let f = (ctx, buf, off, len) => M.feed_bytes (ctx, ~off, ~len, buf);
+  let f = (ctx, buf, off, len) => M.feed_bytes(ctx, ~off, ~len, buf);
   let ctx = foldFile(f, ctx, ic);
   let hash = M.get(ctx);
-  M.to_hex(hash)
-}
+  M.to_hex(hash);
+};
 
 let hashOfPath = (path, kind) => {
   let filename = Fpath.to_string(path);
@@ -79,7 +79,7 @@ let hashOfPath = (path, kind) => {
   | Sha256 => hashFile(filename, (module Digestif.SHA256))
   | Sha512 => hashFile(filename, (module Digestif.SHA3_512))
   };
-}
+};
 
 let computeOfFile = (~kind=Sha256, path) => {
   let hash = hashOfPath(path, kind);
