@@ -4,7 +4,7 @@
   (:standard
    (-w -39)))
  (inline_tests)
- (libraries angstrom lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
+ (libraries digestif.c angstrom lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
    logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime str astring
    EsyShellExpansion)
  (foreign_stubs

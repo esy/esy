@@ -4,7 +4,7 @@ homepage: "https://github.com/ygrek/ocaml-extlib"
 dev-repo: "git://github.com/ygrek/ocaml-extlib.git"
 bug-reports: "https://github.com/ygrek/ocaml-extlib/issues"
 doc: ["https://ygrek.org/p/extlib/doc/"]
-license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
+license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
 authors: [
   "Nicolas Cannasse"
   "Brian Hurt"
