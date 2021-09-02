@@ -52,8 +52,8 @@ let of_yojson = json =>
   };
 
 let withFoldFile = (f, init, path) => {
+  let buf = Bytes.create(4096);
   let rec fold = (init, ic) => {
-    let buf = Bytes.create(4096);
     let read = input(ic, buf, 0, 4096);
     if (read == 0) {
       init;
