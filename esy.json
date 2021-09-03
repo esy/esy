@@ -69,6 +69,7 @@
     "@opam/re": "*",
     "@opam/reason": "*",
     "@opam/yojson": "*",
+    "@opam/digestif": "*",
     "ocaml": "4.12.0"
   },
   "devDependencies": {

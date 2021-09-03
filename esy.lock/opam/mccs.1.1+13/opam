@@ -6,7 +6,7 @@ authors: [
 ]
 homepage: "http://www.i3s.unice.fr/~cpjm/misc/"
 bug-reports: "https://github.com/AltGr/ocaml-mccs/issues"
-license: ["LGPL-2.1-only with OCaml-LGPL-linking-exception" "BSD-3-clause" "GPL-3.0"]
+license: ["LGPL-2.1-only WITH OCaml-LGPL-linking-exception" "BSD-3-clause" "GPL-3.0-only"]
 dev-repo: "git+https://github.com/AltGr/ocaml-mccs.git"
 build: [
   ["dune" "build" "-p" name "-j" jobs]

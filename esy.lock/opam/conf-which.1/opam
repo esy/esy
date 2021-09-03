@@ -8,10 +8,12 @@ build: [["which" "which"]]
 depexts: [
   ["which"] {os-distribution = "centos"}
   ["which"] {os-distribution = "fedora"}
+  ["which"] {os-distribution = "ol"}
   ["which"] {os-family = "suse"}
   ["debianutils"] {os-family = "debian"}
+  ["debianutils"] {os-family = "ubuntu"}
   ["which"] {os-distribution = "nixos"}
-  ["which"] {os-distribution = "arch"}
+  ["which"] {os-family = "arch"}
 ]
 synopsis: "Virtual package relying on which"
 description:
