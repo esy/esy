@@ -87,6 +87,19 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
       let* () = unpack(out);
+      let normalizedOut = EsyBash.normalizePathForCygwin(Path.show(out));
+      let normalizedOut =
+        Fpath.of_string(normalizedOut) |> Stdlib.Result.get_ok;
+      let* _ =
+        Fs.traverse(
+          ~f=
+            (path, _) => {
+              // Logs.app(m => m("%s\n", Fpath.to_string(path)));
+              Unix.chmod(Fpath.to_string(path), 0o777);
+              RunAsync.return();
+            },
+          normalizedOut,
+        );
       let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })

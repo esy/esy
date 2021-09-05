@@ -206,7 +206,13 @@ let fold =
       return(acc);
     } else {
       let spath = Path.show(path);
-      let%lwt stat = Lwt_unix.lstat(spath);
+      let%lwt stat =
+        try%lwt(Lwt_unix.lstat(spath)) {
+        | Unix.Unix_error(Unix.EACCES, _, _) =>
+          let parent = Fpath.to_string @@ Fpath.parent(path)
+          Unix.chmod(parent, 0o777);
+          Lwt_unix.lstat(spath);
+        };
       switch (stat.Unix.st_kind) {
       | Unix.S_DIR =>
         let%lwt dir = Lwt_unix.opendir(spath);
