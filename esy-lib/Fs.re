@@ -206,13 +206,7 @@ let fold =
       return(acc);
     } else {
       let spath = Path.show(path);
-      let%lwt stat =
-        try%lwt(Lwt_unix.lstat(spath)) {
-        | Unix.Unix_error(Unix.EACCES, _, _) =>
-          let parent = Fpath.to_string @@ Fpath.parent(path)
-          Unix.chmod(parent, 0o777);
-          Lwt_unix.lstat(spath);
-        };
+      let%lwt stat = Lwt_unix.lstat(spath);
       switch (stat.Unix.st_kind) {
       | Unix.S_DIR =>
         let%lwt dir = Lwt_unix.opendir(spath);
@@ -227,7 +221,7 @@ let fold =
   visitPath(init, path);
 };
 
-let listDir = path =>
+let rec listDir = path =>
   switch%lwt (Lwt_unix.opendir(Path.show(path))) {
   | exception (Unix.Unix_error(Unix.ENOENT, "opendir", _)) =>
     RunAsync.errorf("cannot read the directory: %s", Fpath.to_string(path))
@@ -362,6 +356,11 @@ let copyPath = (~src, ~dst) => {
       RunAsync.return();
     }
   ) {
+  | Unix.Unix_error(Unix.EACCES, _, _) =>
+    Unix.chmod(Path.show(Fpath.parent(src)), 0o777);
+    Unix.chmod(Path.show(src), 0o777);
+    let%lwt () = copyPathLwt(~src, ~dst);
+    RunAsync.return();
   | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
