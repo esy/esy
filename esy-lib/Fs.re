@@ -221,7 +221,7 @@ let fold =
   visitPath(init, path);
 };
 
-let rec listDir = path =>
+let listDir = path =>
   switch%lwt (Lwt_unix.opendir(Path.show(path))) {
   | exception (Unix.Unix_error(Unix.ENOENT, "opendir", _)) =>
     RunAsync.errorf("cannot read the directory: %s", Fpath.to_string(path))
@@ -311,7 +311,13 @@ let copyFile = (~src, ~dst) =>
 let rec copyPathLwt = (~src, ~dst) => {
   let origPathS = Path.show(src);
   let destPathS = Path.show(dst);
-  let%lwt stat = Lwt_unix.lstat(origPathS);
+  let%lwt stat =
+    try%lwt(Lwt_unix.lstat(origPathS)) {
+    | Unix.Unix_error(Unix.EACCES, _, _) =>
+      let%lwt () = Lwt_unix.chmod(Path.show(Fpath.parent(src)), 0o777);
+      let%lwt () = Lwt_unix.chmod(Path.show(src), 0o777);
+      Lwt_unix.lstat(origPathS);
+    };
   switch (stat.st_kind) {
   | S_REG =>
     let%lwt () = copyFileLwt(~src, ~dst);
@@ -356,11 +362,6 @@ let copyPath = (~src, ~dst) => {
       RunAsync.return();
     }
   ) {
-  | Unix.Unix_error(Unix.EACCES, _, _) =>
-    Unix.chmod(Path.show(Fpath.parent(src)), 0o777);
-    Unix.chmod(Path.show(src), 0o777);
-    let%lwt () = copyPathLwt(~src, ~dst);
-    RunAsync.return();
   | Unix.Unix_error(error, _, _) =>
     RunAsync.error(Unix.error_message(error))
   };
