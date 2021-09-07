@@ -21,13 +21,12 @@ const cases = [
       require('webpack');
     `,
   },
-  // TODO: fails with Permissions denied while installing char-regex@1.0.2
-  // {
-  //   name: 'jest-cli',
-  //   test: `
-  //     require('jest-cli');
-  //   `,
-  // },
+  {
+    name: 'jest-cli',
+    test: `
+      require('jest-cli');
+    `,
+  },
   {
     name: 'flow-bin',
     test: `
@@ -44,6 +43,13 @@ const cases = [
   //     require('react-scripts/bin/react-scripts.js');
   //   `,
   // },
+  {
+    name: 'char-regex',
+    test: `
+      require('char-regex');
+    `,
+    version: '2.0.0'
+  }
 ];
 
 // All of these tests are blocked by issue #506 on Windows
@@ -68,7 +74,7 @@ for (let c of cases) {
     version: '0.0.0',
     esy: {build: ['true']},
     dependencies: {
-      [c.name]: '*',
+      [c.name]: c.version || '*',
     },
   };
 
