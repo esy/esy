@@ -68,8 +68,6 @@ let run = cmd => {
 };
 
 let fixFilePermissionsAfterUnTar = out => {
-  let normalizedOut = EsyBash.normalizePathForCygwin(Path.show(out));
-  let%lwt () = Lwt_unix.chmod(normalizedOut, 0o755);
   Fs.traverse(
     ~f=
       (p, s) => {
