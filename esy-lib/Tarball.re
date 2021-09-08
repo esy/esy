@@ -67,6 +67,27 @@ let run = cmd => {
   };
 };
 
+let fixFilePermissionsAfterUnTar = out => {
+  let normalizedOut = EsyBash.normalizePathForCygwin(Path.show(out));
+  let%lwt () = Lwt_unix.chmod(normalizedOut, 0o755);
+  Fs.traverse(
+    ~f=
+      (p, s) => {
+        let p = EsyBash.normalizePathForCygwin(Path.show(p));
+        switch (s.st_kind) {
+        | Unix.S_REG =>
+          let%lwt () = Lwt_unix.chmod(p, 0o644);
+          Lwt.return(Run.return());
+        | Unix.S_DIR =>
+          let%lwt () = Lwt_unix.chmod(p, 0o755);
+          Lwt.return(Run.return());
+        | _ => Lwt.return(Run.return())
+        };
+      },
+    out,
+  );
+};
+
 let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   open RunAsync.Syntax;
   let unpack = out => {
@@ -87,6 +108,7 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
       let* () = unpack(out);
+      let* () = fixFilePermissionsAfterUnTar(out);
       let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })

@@ -209,6 +209,7 @@ let fold =
       let%lwt stat = Lwt_unix.lstat(spath);
       switch (stat.Unix.st_kind) {
       | Unix.S_DIR =>
+        let%lwt _ = f(acc, path, stat);
         let%lwt dir = Lwt_unix.opendir(spath);
         Lwt.finalize(
           () => visitPathItems(acc, path, dir),
@@ -311,15 +312,7 @@ let copyFile = (~src, ~dst) =>
 let rec copyPathLwt = (~src, ~dst) => {
   let origPathS = Path.show(src);
   let destPathS = Path.show(dst);
-  let%lwt stat =
-    // We have observed NPM tarballs contain root directories with no x bit set,
-    // because of which lstat fails. The following line set the x bit of the root directory,
-    // so that the directory contents are searchable
-    try%lwt(Lwt_unix.lstat(origPathS)) {
-    | Unix.Unix_error(Unix.EACCES, _, _) =>
-      let%lwt () = Lwt_unix.chmod(Path.show(Fpath.parent(src)), 0o777);
-      Lwt_unix.lstat(origPathS);
-    };
+  let%lwt stat = Lwt_unix.lstat(origPathS);
   switch (stat.st_kind) {
   | S_REG =>
     let%lwt () = copyFileLwt(~src, ~dst);
