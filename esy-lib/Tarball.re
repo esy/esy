@@ -72,13 +72,17 @@ let fixFilePermissionsAfterUnTar = out => {
     ~f=
       (p, s) => {
         let p = EsyBash.normalizePathForCygwin(Path.show(p));
-        switch (s.st_kind) {
-        | Unix.S_REG =>
-          let%lwt () = Lwt_unix.chmod(p, 0o644);
-          Lwt.return(Run.return());
-        | Unix.S_DIR =>
-          let%lwt () = Lwt_unix.chmod(p, 0o755);
-          Lwt.return(Run.return());
+        try%lwt(
+          switch (s.st_kind) {
+          | Unix.S_REG =>
+            let%lwt () = Lwt_unix.chmod(p, 0o644);
+            Lwt.return(Run.return());
+          | Unix.S_DIR =>
+            let%lwt () = Lwt_unix.chmod(p, 0o755);
+            Lwt.return(Run.return());
+          | _ => Lwt.return(Run.return())
+          }
+        ) {
         | _ => Lwt.return(Run.return())
         };
       },
