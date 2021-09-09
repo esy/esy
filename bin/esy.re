@@ -1417,7 +1417,8 @@ let show = (_asJson, req, proj: Project.t) => {
   | VersionSpec.Opam([[OpamPackageVersion.Constraint.ANY]]) =>
     let f = (res: Resolution.t) =>
       switch (res.resolution) {
-      | Version(v) => `String(Version.showSimple(v))
+      | VersionOverride({version, override: _}) =>
+        `String(Version.showSimple(version))
       | _ => failwith("unreachable")
       };
 

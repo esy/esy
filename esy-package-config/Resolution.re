@@ -5,7 +5,10 @@ type t = {
   resolution,
 }
 and resolution =
-  | Version(Version.t)
+  | VersionOverride({
+      version: Version.t,
+      override: option(Json.t),
+    })
   | SourceOverride({
       source: Source.t,
       override: Json.t,
@@ -14,16 +17,21 @@ and resolution =
 
 let source = r =>
   switch (r.resolution) {
-  | Version(Version.Source(source)) => Some(source)
-  | Version(_) => None
+  | VersionOverride({version: Version.Source(source), _})
   | SourceOverride({source, _}) => Some(source)
+  | VersionOverride(_) => None
   };
 
 let resolution_to_yojson = resolution =>
   switch (resolution) {
-  | Version(v) => `String(Version.show(v))
+  | VersionOverride({version, override: None}) => Version.to_yojson(version)
   | SourceOverride({source, override}) =>
     `Assoc([("source", Source.to_yojson(source)), ("override", override)])
+  | VersionOverride({version, override: Some(override)}) =>
+    `Assoc([
+      ("version", Version.to_yojson(version)),
+      ("override", override),
+    ])
   };
 
 let resolution_of_yojson = json =>
@@ -31,13 +39,26 @@ let resolution_of_yojson = json =>
     switch (json) {
     | `String(v) =>
       let* version = Version.parse(v);
-      return(Version(version));
+      return(VersionOverride({version, override: None}));
     | `Assoc(_) =>
+      let* version =
+        Json.Decode.fieldOptWith(~name="version", Version.of_yojson, json);
       let* source =
-        Json.Decode.fieldWith(~name="source", Source.relaxed_of_yojson, json);
+        Json.Decode.fieldOptWith(
+          ~name="source",
+          Source.relaxed_of_yojson,
+          json,
+        );
       let* override =
         Json.Decode.fieldWith(~name="override", Json.of_yojson, json);
-      return(SourceOverride({source, override}));
+      switch (version, source) {
+      | (Some(_), Some(_)) =>
+        Error("expected only version or source but both were provided")
+      | (Some(version), None) =>
+        return(VersionOverride({version, override: Some(override)}))
+      | (None, Some(source)) => return(SourceOverride({source, override}))
+      | (None, None) => Error("expected version or source")
+      };
     | _ => Error("expected string or object")
     }
   );
@@ -52,7 +73,7 @@ let digest = ({name, resolution}) =>
 let show = ({name, resolution} as r) => {
   let resolution =
     switch (resolution) {
-    | Version(version) => Version.show(version)
+    | VersionOverride({version, override: _}) => Version.show(version)
     | SourceOverride({source, override: _}) =>
       Source.show(source) ++ "@" ++ Digestv.toHex(digest(r))
     };

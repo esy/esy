@@ -3,7 +3,10 @@ type t = {
   resolution,
 }
 and resolution =
-  | Version(Version.t)
+  | VersionOverride({
+      version: Version.t,
+      override: option(Json.t),
+    })
   | SourceOverride({
       source: Source.t,
       override: Json.t,
