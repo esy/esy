@@ -48,6 +48,8 @@ let supportsLongPaths: unit => bool;
 
 let ensureMinimumFileDescriptors: unit => unit;
 
+let getumask: unit => int;
+
 module Environment: {
   /** Environment variable separator which is used for $PATH and etc */
 

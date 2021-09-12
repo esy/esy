@@ -127,6 +127,9 @@ external checkLongPathRegistryKey: unit => bool =
 external ensureMinimumFileDescriptors: unit => unit =
   "esy_ensure_minimum_file_descriptors";
 
+external getumask: unit => int =
+  "esy_getumask";
+
 let supportsLongPaths = () =>
   switch (Sys.win32) {
   | false => true

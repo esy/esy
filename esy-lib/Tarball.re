@@ -68,6 +68,7 @@ let run = cmd => {
 };
 
 let fixFilePermissionsAfterUnTar = out => {
+  let umask = lnot(System.getumask());
   Fs.traverse(
     ~f=
       (p, s) => {
@@ -76,10 +77,10 @@ let fixFilePermissionsAfterUnTar = out => {
           switch (s.st_kind) {
           | Unix.S_LNK
           | Unix.S_REG =>
-            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o644);
+            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o644 land umask);
             Lwt.return(Run.return());
           | Unix.S_DIR =>
-            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o755);
+            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o755 land umask);
             Lwt.return(Run.return());
           | _ => Lwt.return(Run.return())
           }
