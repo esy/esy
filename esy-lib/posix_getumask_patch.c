@@ -15,7 +15,6 @@ mode_t getumask(void) {
 int windows_getumask() {
     int oldmask, err, dontcare;
 
-    /* Create read-only files: */
     err = _umask_s( _S_IWRITE, &oldmask );
     if (err)
     {
