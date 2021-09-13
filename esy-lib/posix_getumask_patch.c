@@ -7,12 +7,13 @@
 #if __APPLE__ || __linux__
 #else 
 #include <io.h>
+#include <string.h>
 #endif
 
 
 CAMLprim value
-esy_getumask(value unit) {
-    CAMLparam1( unit );
+esy_getumask() {
+    CAMLparam0();
     CAMLlocal1( result );
 #if __APPLE__ || __linux__
     // Reference: https://man7.org/linux/man-pages/man3/getumask.3.html
@@ -27,13 +28,13 @@ esy_getumask(value unit) {
     err = _umask_s( _S_IWRITE, &oldmask );
     if (err) {
         result = caml_alloc( 1, 1 );
-        char *msg = "Error setting the umask.\n";
+        char *msg = strerror(err);
         Store_field( result, 0, caml_copy_string(msg) ); // Error(msg)
     } else {
         err = _umask_s( oldmask, &dontcare );
         if (err) {
             result = caml_alloc( 1, 1 );
-            char *msg = "Error setting the umask.\n";
+            char *msg = strerror(err);
             Store_field( result, 0, caml_copy_string(msg) ); // Error(msg)
         } else {
             result = caml_alloc( 1, 0 );
