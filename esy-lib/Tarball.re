@@ -68,7 +68,12 @@ let run = cmd => {
 };
 
 let fixFilePermissionsAfterUnTar = out => {
-  let umask = lnot(System.getumask());
+  let umask =
+    switch (System.getumask()) {
+    | Ok(umask) => umask
+    | Error(_) => 0o002
+    };
+  let umask = lnot(umask);
   Fs.traverse(
     ~f=
       (p, s) => {
