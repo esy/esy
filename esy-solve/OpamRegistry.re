@@ -180,6 +180,26 @@ let resolve =
             | (OpamVariable.Full.Global, "ocaml-version") =>
               let* ocamlVersion = ocamlVersion;
               return(string(OpamPackage.Version.to_string(ocamlVersion)));
+            | (OpamVariable.Full.Global, "os") =>
+              switch (System.Platform.host) {
+              | Darwin => return(string("macos"))
+              | Linux => return(string("linux"))
+              // Only 12 opam files reference "cygwin" as an `os`, so we use win32
+              | Cygwin => return(string("win32"))
+              | Windows => return(string("win32"))
+              | Unix => return(string("unix"))
+              | Unknown => None
+              }
+            | (OpamVariable.Full.Global, "arch") =>
+              switch (System.Arch.host) {
+              | X86_32 => return(string("x86_32"))
+              | X86_64 => return(string("x86_64"))
+              | Ppc32 => return(string("ppc32"))
+              | Ppc64 => return(string("ppc64"))
+              | Arm32 => return(string("arm32"))
+              | Arm64 => return(string("arm64"))
+              | Unknown => None
+              }
             | (OpamVariable.Full.Global, _) => None
             | (OpamVariable.Full.Self, _) => None
             | (OpamVariable.Full.Package(_), _) => None
