@@ -20,6 +20,8 @@ module Platform: {
 
   let host: t;
 
+  let isWindows: bool;
+
   include S.JSONABLE with type t := t;
   include S.PRINTABLE with type t := t;
   include S.COMPARABLE with type t := t;

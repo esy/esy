@@ -112,7 +112,10 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
       let* () = unpack(out);
-      let* () = fixFilePermissionsAfterUnTar(out);
+      // Only in case of Linux & OSX fix file permissions
+      let* () =
+        System.Platform.isWindows
+          ? Lwt.return(Run.return()) : fixFilePermissionsAfterUnTar(out);
       let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })

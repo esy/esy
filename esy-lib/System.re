@@ -50,6 +50,12 @@ module Platform = {
     | _ => Unknown
     };
   };
+
+  let isWindows =
+    switch (host) {
+    | Windows => true
+    | _ => false
+    };
 };
 
 module Arch = {
