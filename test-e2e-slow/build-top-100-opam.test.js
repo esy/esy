@@ -125,6 +125,7 @@ let cases = [
    // Blocked by esy/esy#505
    // {name: 'coq', toolchains: [ocamlVersion]},
    { name: 'libtorch', toolchains: [ocamlVersion] },
+   { name: 'cloudi', toolchains: [ocamlVersion] },
 ];
 
 let reposUpdated = false;
