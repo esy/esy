@@ -1,7 +1,8 @@
 (library
  (name Test)
+ (inline_tests)
  (library_flags (-linkall))
- (libraries EsyBuild EsyLib ppx_inline_test.runtime-lib)
+ (libraries EsyLib ppx_inline_test.runtime-lib)
  (modules (:standard))
  (preprocess
   (pps lwt_ppx ppx_let ppx_inline_test ppxlib.runner ppx_deriving.std)))
