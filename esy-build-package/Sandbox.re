@@ -29,7 +29,7 @@ module Darwin = {
       );
     let doc =
       [
-        v([I("version"), N(1.0)]),
+        v([I("version"), NI(1)]),
         v([I("allow"), I("default")]),
         v([I("deny"), I("file-write*"), L([I("subpath"), S("/")])]),
         v([
