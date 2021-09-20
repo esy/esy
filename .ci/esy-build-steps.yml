@@ -33,6 +33,7 @@ steps:
     condition: ne(variables['AGENT.OS'], 'Windows_NT')
   - script: 'esy b dune runtest test'
     displayName: 'esy b dune runtest test'
+    condition: ne(variables['AGENT.OS'], 'Windows_NT')
   - script: 'node ./node_modules/jest-cli/bin/jest.js'
     displayName: 'esy test:e2e'
   - script: 'npm install'
