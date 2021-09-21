@@ -11,6 +11,7 @@ and item =
 and value =
   | S(string)
   | N(float)
+  | NI(int)
   | I(string)
   | L(list(value));
 

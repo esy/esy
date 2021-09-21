@@ -9,6 +9,7 @@ and item =
 and value =
   | S(string)
   | N(float)
+  | NI(int)
   | I(string)
   | L(list(value));
 
@@ -23,6 +24,7 @@ let render = doc => {
         emit("\"");
       }
     | N(v) => emit(string_of_float(v))
+    | NI(v) => emit(string_of_int(v))
     | I(v) => emit(v)
     | L(v) => {
         let f = item => {
