@@ -75,17 +75,13 @@ let fixFilePermissionsAfterUnTar = out => {
         let p = EsyBash.normalizePathForCygwin(Path.show(p));
         try%lwt(
           switch (s.st_kind) {
-          | Unix.S_LNK
-          | Unix.S_REG =>
-            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o644 land umask);
-            Lwt.return(Run.return());
           | Unix.S_DIR =>
             let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o755 land umask);
-            Lwt.return(Run.return());
-          | _ => Lwt.return(Run.return())
+            RunAsync.return();
+          | _ => RunAsync.return()
           }
         ) {
-        | _ => Lwt.return(Run.return())
+        | _ => RunAsync.return()
         };
       },
     out,
@@ -115,7 +111,7 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
       // Only in case of Linux & OSX fix file permissions
       let* () =
         System.Platform.isWindows
-          ? Lwt.return(Run.return()) : fixFilePermissionsAfterUnTar(out);
+          ? RunAsync.return() : fixFilePermissionsAfterUnTar(out);
       let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })
