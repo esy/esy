@@ -20,6 +20,8 @@ module Platform: {
 
   let host: t;
 
+  let isWindows: bool;
+
   include S.JSONABLE with type t := t;
   include S.PRINTABLE with type t := t;
   include S.COMPARABLE with type t := t;
@@ -47,6 +49,8 @@ module Arch: {
 let supportsLongPaths: unit => bool;
 
 let ensureMinimumFileDescriptors: unit => unit;
+
+let getumask: unit => int;
 
 module Environment: {
   /** Environment variable separator which is used for $PATH and etc */

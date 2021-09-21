@@ -209,6 +209,7 @@ let fold =
       let%lwt stat = Lwt_unix.lstat(spath);
       switch (stat.Unix.st_kind) {
       | Unix.S_DIR =>
+        let%lwt _ = f(acc, path, stat);
         let%lwt dir = Lwt_unix.opendir(spath);
         Lwt.finalize(
           () => visitPathItems(acc, path, dir),
