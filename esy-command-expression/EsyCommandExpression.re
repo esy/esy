@@ -638,19 +638,19 @@ let%test_module "CommandExpr" =
        && expectRenderOk(scope, "#{os == 'OS/2' ? 'ok' : 'oops'}", "ok")
        && expectRenderOk(scope, "#{os != 'macOs' ? 'ok' : 'oops'}", "ok");
 
-    // Note: There is no rule in lexer to match %{ So these get parsed as String
-    //       (Don't know what is the pupose of these) if un-commented these tests fail
-    //  let%test "render opam" =
-    //    expectRenderOk(scope, "Hello, %{os}%!", "Hello, MSDOS!")
-    //    && expectRenderOk(scope, "%{pkg:lib}%", "store/opam-pkg/lib")
-    //    && expectRenderOk(scope, "%{pkg1:enable}%", "enable")
-    //    && expectRenderOk(scope, "%{pkg-not:enable}%", "disable")
-    //    && expectRenderOk(scope, "%{pkg1+pkg2:enable}%", "enable")
-    //    && expectRenderOk(scope, "%{pkg1+pkg-not:enable}%", "disable")
-    //    && expectRenderOk(scope, "%{pkg1:installed}%", "true")
-    //    && expectRenderOk(scope, "%{pkg-not:installed}%", "false")
-    //    && expectRenderOk(scope, "%{pkg1+pkg2:installed}%", "true")
-    //    && expectRenderOk(scope, "%{pkg1+pkg-not:installed}%", "false");
+     // Note: There is no rule in lexer to match %{ So these get parsed as String
+     //       (Don't know what is the pupose of these) if un-commented these tests fail
+     //  let%test "render opam" =
+     //    expectRenderOk(scope, "Hello, %{os}%!", "Hello, MSDOS!")
+     //    && expectRenderOk(scope, "%{pkg:lib}%", "store/opam-pkg/lib")
+     //    && expectRenderOk(scope, "%{pkg1:enable}%", "enable")
+     //    && expectRenderOk(scope, "%{pkg-not:enable}%", "disable")
+     //    && expectRenderOk(scope, "%{pkg1+pkg2:enable}%", "enable")
+     //    && expectRenderOk(scope, "%{pkg1+pkg-not:enable}%", "disable")
+     //    && expectRenderOk(scope, "%{pkg1:installed}%", "true")
+     //    && expectRenderOk(scope, "%{pkg-not:installed}%", "false")
+     //    && expectRenderOk(scope, "%{pkg1+pkg2:installed}%", "true")
+     //    && expectRenderOk(scope, "%{pkg1+pkg-not:installed}%", "false");
 
      let%test "render errors" =
        expectRenderError(
