@@ -343,7 +343,7 @@ esy x Hello
 When a compiled binary is run with `esy x Hello`, esy creates a local install sandbox with `/bin`, `/lib`, `/etc` and other directories found globally where binaries are meant to be installed. If you're curious, you could peek into them, running
 
 ```shell
-esy echo #{self.install}
+esy echo '#{self.install}'
 ```
 
 and inspect the contents yourself. You'll find the binaries in the `bin` directory.
