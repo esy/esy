@@ -255,9 +255,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
                  )) {
         Ok();
       } else {
-        let* stats = Bos.OS.Path.stat(path);
+        // Using Unix.lstat here because for a symlink pointing to a directory
+        // Unix.stat gives the st_kind as S_DIR, whereas Unix.lstat gives to correct kind S_LNK
+        let stats = Unix.lstat(Fpath.to_string(path));
         let nextPath = rebasePath(path);
-        switch (stats.Unix.st_kind) {
+        switch (stats.st_kind) {
         | Unix.S_DIR =>
           let _ = Bos.OS.Dir.create(nextPath);
           Ok();
