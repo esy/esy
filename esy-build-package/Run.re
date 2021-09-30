@@ -225,7 +225,15 @@ let copyContents = (~from, ~ignore=[], dest) => {
         Path.Set.empty,
         ignore,
       );
-    `Sat(path => Ok(!Path.Set.mem(path, ignoreSet)));
+    `Sat(
+      path => {
+        let stats = Unix.lstat(Fpath.to_string(path));
+        switch (stats.st_kind) {
+        | Unix.S_LNK => Ok(false)
+        | _ => Ok(!Path.Set.mem(path, ignoreSet))
+        };
+      },
+    );
   };
 
   let excludePathsWithinSymlink = ref(Path.Set.empty);
