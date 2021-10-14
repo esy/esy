@@ -225,11 +225,24 @@ let copyContents = (~from, ~ignore=[], dest) => {
         Path.Set.empty,
         ignore,
       );
+    let visited = ref(Path.Set.empty);
     `Sat(
       path => {
         let stats = Unix.lstat(Fpath.to_string(path));
+        visited := Path.Set.add(path, visited^);
         switch (stats.st_kind) {
-        | Unix.S_LNK => Ok(false)
+        | Unix.S_LNK =>
+          let linkContents = Unix.readlink(Fpath.to_string(path));
+          if (Path.Set.mem(
+                Fpath.rem_empty_seg(
+                  Fpath.normalize(Path.(path / linkContents)),
+                ),
+                visited^,
+              )) {
+            Ok(false);
+          } else {
+            Ok(true);
+          };
         | _ => Ok(!Path.Set.mem(path, ignoreSet))
         };
       },
