@@ -1,0 +1,12 @@
+{
+  "build": [
+    ["make", "ZLIB_I_OPT=-ccopt '$CFLAGS'", "ZLIB_L_OPT=$LDFLAGS", "all"],
+    ["make", "ZLIB_I_OPT=-ccopt '$CFLAGS'", "ZLIB_L_OPT=$LDFLAGS", "allopt"]
+  ],
+  "exportedEnv": {
+    "CAML_LD_LIBRARY_PATH": {
+      "val": "#{self.lib / 'zip' : $CAML_LD_LIBRARY_PATH}",
+      "scope": "global"
+    }
+  }
+}

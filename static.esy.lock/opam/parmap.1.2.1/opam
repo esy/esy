@@ -1,0 +1,38 @@
+opam-version: "2.0"
+build: [
+  ["dune" "subst"] {dev}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "-p" name "@doc"] {with-doc}
+]
+maintainer: ["Roberto Di Cosmo <roberto@dicosmo.org>"]
+authors: ["Roberto Di Cosmo <roberto@dicosmo.org>"]
+bug-reports: "https://github.com/rdicosmo/parmap/issues"
+homepage: "https://github.com/rdicosmo/parmap"
+license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+dev-repo: "git+https://github.com/rdicosmo/parmap.git"
+synopsis: "Minimalistic library allowing to exploit multicore architecture"
+description: """
+Parmap is a minimalistic library allowing to exploit multicore
+architecture for OCaml programs with minimal modifications: if you
+want to use your many cores to accelerate an operation which happens
+to be a map, fold or map/fold (map-reduce), just use Parmap’s parmap,
+parfold and parmapfold primitives in place of the standard List.map
+and friends, and specify the number of subprocesses to use by the
+optional parameter ~ncores."""
+depends: [
+  "dune" {>= "1.10"}
+  "dune-configurator"
+  "base-bigarray"
+  "base-unix"
+  "ocaml" {>= "4.03.0"}
+]
+x-commit-hash: "36089bc12f3560faffeeb66d3f38594978561c70"
+url {
+  src:
+    "https://github.com/rdicosmo/parmap/releases/download/1.2.1/parmap-1.2.1.tbz"
+  checksum: [
+    "sha256=701a8440d756e723634636e9bd5801dd35afe0e5e490ef851fd8d141525870dd"
+    "sha512=91bfce97898e01afa24363f1e83726f5bbae3d18b3b1b80178592092c1bc8881438a3c528581d40c971df7e233de29b707c083a809a2b4c7c131159be35146da"
+  ]
+}

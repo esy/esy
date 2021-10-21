@@ -1,0 +1,2 @@
+(lang dune 2.0)
+(env (release-static (flags (:standard -ccopt -static))))
