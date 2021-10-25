@@ -138,24 +138,39 @@ static-link-patch:
 
 # This was conditional earlier. Every platform, including FreeBSD, will try to build a static build
 RELEASE_ARGS += --static
-new-docker: static-link-patch
-
-	opam init -y --disable-sandboxing --bare https://github.com/ocaml/opam-repository.git#6ae77c27c7f831d7190928f9cd9002f95d3b6180 && \
-	opam switch create esy-local-switch $(OPAM_COMPILER_BASE_PACKAGES)$(MUSL_STATIC_PACKAGES)  && \
+opam-setup:
+	opam init -y --disable-sandboxing --bare https://github.com/ocaml/opam-repository.git#6ae77c27c7f831d7190928f9cd9002f95d3b6180
+	opam switch create esy-local-switch $(OPAM_COMPILER_BASE_PACKAGES)$(MUSL_STATIC_PACKAGES)
 	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#dd1b4c13ede8e741b6e626d574c347a5344581d9" # commit from 10 Nov, 2020.
 	opam install . --deps-only -y
+
+# ideally, build-with-opam should depend on opam-setup, but opam-setup cannot be run twice. opam switch create fails when repeated
+build-with-opam:
 	opam exec -- dune build -p esy
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
+
+build-with-esy: build-with-opam
 	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
 	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
 	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
+
+opam-cleanup: build-with-opam
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
-	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
-	mv _release $(APP_ESY_RELEASE)
 	opam switch -y remove esy-local-switch
 	opam clean
 
+install-esy-artifacts: build-with-esy
+	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
+	mv _release $(APP_ESY_RELEASE)
+
+build-and-clean: build-with-esy
+	make opam-cleanup
+	make install-esy-artifacts
+
+new-docker: static-link-patch
+	make opam-setup
+	make build-and-clean
 #
 # Test
 #
