@@ -1,0 +1,37 @@
+opam-version: "2.0"
+synopsis: "Repository library for opam 2.1"
+description:
+  "This library includes repository and remote sources handling, including curl/wget, rsync, git, mercurial, darcs backends."
+maintainer: "opam-devel@lists.ocaml.org"
+authors: [
+  "Vincent Bernardoff <vb@luminar.eu.org>"
+  "Raja Boujbel <raja.boujbel@ocamlpro.com>"
+  "Roberto Di Cosmo <roberto@dicosmo.org>"
+  "Thomas Gazagnaire <thomas@gazagnaire.org>"
+  "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  "Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>"
+  "Anil Madhavapeddy <anil@recoil.org>"
+  "Guillem Rieu <guillem.rieu@ocamlpro.com>"
+  "Ralf Treinen <ralf.treinen@pps.jussieu.fr>"
+  "Frederic Tuong <tuong@users.gforge.inria.fr>"
+]
+license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam/issues"
+depends: [
+  "ocaml" {>= "4.02.3"}
+  "opam-format" {= version}
+  "dune" {>= "1.11.0"}
+]
+build: [
+  ["./configure" "--disable-checks" "--prefix" prefix]
+  ["dune" "build" "-p" name "-j" jobs]
+]
+dev-repo: "git+https://github.com/ocaml/opam.git"
+url {
+  src: "https://github.com/ocaml/opam/archive/2.1.0.tar.gz"
+  checksum: [
+    "md5=c48e9f56ad418827e3af37d2415213a4"
+    "sha512=c0060e609c49a12dc8f64accef990aa593db818b72df3984fb9b4b22d8678b46c515916c84134a62dab614c716b61788eadc954d295f32c1f27d38aec22b3edf"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "esy",
+  "version": "0.6.11",
+  "source": "./esy.json",
+  "esy": {
+    "release": {
+      "rewritePrefix": false,
+      "bin": ["esy"]
+    }
+  },
+  "override": {
+    "build": "dune build -p #{self.name} --profile release-static",
+    "release": {
+      "rewritePrefix": false,
+      "bin": ["esy"]
+    },
+    "dependencies": {
+      "ocaml": "*"
+    },
+    "//": "HACK! We shouldn't have to resolve to no-source like this for npm-release. It shouldn't try to build them in the first place!",
+    "resolutions": {
+      "ocaml": "4.12.0-musl.static.flambda",
+      "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
+      "@opam/bigstringaf": "opam:0.6.1",
+      "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
+      "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
+      "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
+      "@opam/parmap": "opam:1.2.1",
+      "@opam/rresult": "opam:0.6.0",
+      "@opam/merlin": {
+        "source": "no-source:",
+        "override": {
+          "build": "true"
+        }
+      },
+      "@opam/ocaml-lsp-server": {
+        "source": "no-source:",
+        "override": {
+          "build": "true"
+        }
+      },
+      "@opam/utop": {
+        "source": "no-source:",
+        "override": {
+          "build": "true"
+        }
+      }
+    }
+  }
+}

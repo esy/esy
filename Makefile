@@ -150,27 +150,26 @@ build-with-opam:
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
 
-build-with-esy: build-with-opam
-	$(APP_ESY_INSTALL)/bin/esy i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
-	$(APP_ESY_INSTALL)/bin/esy b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
-	$(APP_ESY_INSTALL)/bin/esy release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
+build-with-esy:
+	$(APP_ESY_INSTALL)/bin/esy @static i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy @static b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	$(APP_ESY_INSTALL)/bin/esy @static release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
 
-opam-cleanup: build-with-opam
+opam-cleanup:
 	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
 	opam switch -y remove esy-local-switch
 	opam clean
 
-install-esy-artifacts: build-with-esy
+install-esy-artifacts:
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
 
-build-and-clean: build-with-esy
-	make opam-cleanup
-	make install-esy-artifacts
-
 new-docker: static-link-patch
 	make opam-setup
-	make build-and-clean
+	make build-with-opam
+	make build-with-esy
+	make opam-cleanup
+	make install-esy-artifacts
 #
 # Test
 #

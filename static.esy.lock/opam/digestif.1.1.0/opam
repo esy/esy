@@ -1,0 +1,71 @@
+opam-version: "2.0"
+maintainer:   [ "Eyyüb Sari <eyyub.sari@epitech.eu>"
+                "Romain Calascibetta <romain.calascibetta@gmail.com>" ]
+authors:      [ "Eyyüb Sari <eyyub.sari@epitech.eu>"
+                "Romain Calascibetta <romain.calascibetta@gmail.com>" ]
+homepage:     "https://github.com/mirage/digestif"
+bug-reports:  "https://github.com/mirage/digestif/issues"
+dev-repo:     "git+https://github.com/mirage/digestif.git"
+doc:          "https://mirage.github.io/digestif/"
+license:      "MIT"
+synopsis:     "Hashes implementations (SHA*, RIPEMD160, BLAKE2* and MD5)"
+description: """
+Digestif is a toolbox to provide hashes implementations in C and OCaml.
+
+It uses the linking trick and user can decide at the end to use the C implementation or the OCaml implementation.
+
+We provides implementation of:
+ * MD5
+ * SHA1
+ * SHA224
+ * SHA256
+ * SHA384
+ * SHA512
+ * BLAKE2B
+ * BLAKE2S
+ * RIPEMD160
+"""
+
+build: [
+  [ "dune" "build" "-p" name "-j" jobs ]
+  [ "./install/install.ml" ]
+  [ "dune" "runtest" "-p" name "-j" jobs ] {with-test}
+]
+install:  [
+  [ "dune" "install" "-p" name ] {with-test}
+  [ "./test/test_runes.ml" ] {with-test}
+]
+
+depends: [
+  "ocaml"           {>= "4.05.0"}
+  "dune"            {>= "2.6.0"}
+  "conf-pkg-config" {build}
+  "eqaf"
+  "base-bytes"
+  "bigarray-compat"
+  "stdlib-shims"
+  "fmt"            {with-test}
+  "alcotest"       {with-test}
+  "bos"            {with-test}
+  "astring"        {with-test}
+  "fpath"          {with-test}
+  "rresult"        {with-test}
+  "ocamlfind"      {with-test}
+]
+depopts: [
+  "ocaml-freestanding"
+]
+
+conflicts: [
+  "mirage-xen" {< "6.0.0"}
+  "ocaml-freestanding" {< "0.6.0"}
+]
+url {
+  src:
+    "https://github.com/mirage/digestif/releases/download/v1.1.0/digestif-v1.1.0.tbz"
+  checksum: [
+    "sha256=654b195c668f2d1e35b8b06a8932d058fcc8f4d39e70be58eb2432fbf39afc05"
+    "sha512=229218b0a66c9e8809ff960b5bcfb4499bcbdc1da70ca6aff7f4676e51f60c5947516f510f2fe68cee380b0a2aab5a2c270d06da055ca0b583948abce2418845"
+  ]
+}
+x-commit-hash: "ecee3ed464a62b9f96be1eaf81d5bcdde53d8e6c"
