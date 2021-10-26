@@ -122,6 +122,8 @@ new-openbsd:
 	doas mkdir -p /app/esy-install && \
 		doas chown -R $(USER):$(USER) /app/esy-install
 	SUDO=doas APP_ESY=/app/esy MUSL_STATIC_PACKAGES="" \
+			 APP_ESY_INSTALL=/app/esy-install gmake opam-setup
+	SUDO=doas APP_ESY=/app/esy MUSL_STATIC_PACKAGES="" \
 			 APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
 APP_ESY ?= $(PWD)
@@ -138,10 +140,13 @@ static-link-patch:
 
 # This was conditional earlier. Every platform, including FreeBSD, will try to build a static build
 RELEASE_ARGS += --static
+
 opam-setup:
 	opam init -y --disable-sandboxing --bare https://github.com/ocaml/opam-repository.git#6ae77c27c7f831d7190928f9cd9002f95d3b6180
 	opam switch create esy-local-switch $(OPAM_COMPILER_BASE_PACKAGES)$(MUSL_STATIC_PACKAGES)
 	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#dd1b4c13ede8e741b6e626d574c347a5344581d9" # commit from 10 Nov, 2020.
+
+opam-install-deps:
 	opam install . --deps-only -y
 
 # ideally, build-with-opam should depend on opam-setup, but opam-setup cannot be run twice. opam switch create fails when repeated
@@ -165,7 +170,7 @@ install-esy-artifacts:
 	mv _release $(APP_ESY_RELEASE)
 
 new-docker: static-link-patch
-	make opam-setup
+	make opam-install-deps
 	make build-with-opam
 	make build-with-esy
 	make opam-cleanup
