@@ -77,7 +77,6 @@ jobs:
           PathtoPublish: "$(esy__project_name)-docker-image.tar.gz"
           ArtifactName: AlpineLinuxDockerBuiltNPM
       - task: Docker@2
-        condition: ne(variables['Build.Reason'], 'PullRequest')
         displayName: 'Push esydev/esy:nightly-alpine-latest to Docker Hub'
         inputs:
           containerRegistry: |
