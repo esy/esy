@@ -593,26 +593,3 @@ let realpath = path => {
 
   aux(Path.normalize(path));
 };
-
-let withFoldFile = (~buffer_size=4096, ~f, ~init, path) => {
-  open RunAsync.Syntax;
-
-  let rec fold = (buf, ic, acc) => {
-    let%lwt read = Lwt_io.read_into(ic, buf, 0, buffer_size);
-    if (read == 0) {
-      return(acc);
-    } else {
-      let acc = f(~acc, ~len=read, ~buf);
-      fold(buf, ic, acc);
-    };
-  };
-
-  Lwt_io.with_file(
-    ~mode=Input,
-    Fpath.to_string(path),
-    ic => {
-      let buf = Bytes.create(buffer_size);
-      fold(buf, ic, init);
-    },
-  );
-};
