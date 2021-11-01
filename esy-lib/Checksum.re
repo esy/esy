@@ -68,7 +68,7 @@ let hashOfPath = (~kind) =>
   | Md5 => hashFile((module Digestif.MD5))
   | Sha1 => hashFile((module Digestif.SHA1))
   | Sha256 => hashFile((module Digestif.SHA256))
-  | Sha512 => hashFile((module Digestif.SHA512))
+  | Sha512 => hashFile((module Digestif.SHA3_512))
   };
 
 let computeOfFile = (~kind=Sha256, path) => {
