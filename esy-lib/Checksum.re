@@ -51,38 +51,69 @@ let of_yojson = json =>
   | _ => Error("expected string")
   };
 
-let hashFile = (module M: Digestif.S, path) => {
-  open RunAsync.Syntax;
-  let* ctx =
-    Fs.withFoldFile(
-      ~f=(~acc, ~len, ~buf) => M.feed_bytes(acc, ~off=0, ~len, buf),
-      ~init=M.empty,
-      path,
-    );
-  let hash = M.get(ctx);
-  return(M.to_hex(hash));
-};
-
-let hashOfPath = (~kind) =>
-  switch (kind) {
-  | Md5 => hashFile((module Digestif.MD5))
-  | Sha1 => hashFile((module Digestif.SHA1))
-  | Sha256 => hashFile((module Digestif.SHA256))
-  | Sha512 => hashFile((module Digestif.SHA512))
+let md5sum =
+  switch (System.Platform.host) {
+  | System.Platform.Unix
+  | System.Platform.Darwin => Cmd.(v("md5") % "-q")
+  | System.Platform.Linux
+  | System.Platform.Cygwin
+  | System.Platform.Windows
+  | System.Platform.Unknown => Cmd.(v("md5sum"))
   };
+let sha1sum = Cmd.(v("shasum") % "--algorithm" % "1");
+let sha256sum = Cmd.(v("shasum") % "--algorithm" % "256");
+let sha512sum = Cmd.(v("shasum") % "--algorithm" % "512");
 
 let computeOfFile = (~kind=Sha256, path) => {
-  open RunAsync.Syntax;
-  let* hash = hashOfPath(~kind, path);
-  return((kind, hash));
+  let cmd =
+    switch (kind) {
+    | Md5 => md5sum
+    | Sha1 => sha1sum
+    | Sha256 => sha256sum
+    | Sha512 => sha512sum
+    };
+
+  /* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths */
+  RunAsync.ofBosError(
+    {
+      open Result.Syntax;
+      let path = EsyBash.normalizePathForCygwin(Path.show(path));
+      let* out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
+      switch (Astring.String.cut(~sep=" ", out)) {
+      | Some((v, _)) => return((kind, v))
+      | None => return((kind, String.trim(out)))
+      };
+    },
+  );
 };
 
 let checkFile = (~path, checksum: t) => {
   open RunAsync.Syntax;
 
-  let (kind, cvalue) = checksum;
-  let* value = hashOfPath(~kind, path);
+  let* value = {
+    let cmd =
+      switch (checksum) {
+      | (Md5, _) => md5sum
+      | (Sha1, _) => sha1sum
+      | (Sha256, _) => sha256sum
+      | (Sha512, _) => sha512sum
+      };
 
+    /* On Windows, the checksum tools packaged with Cygwin require cygwin-style paths */
+    RunAsync.ofBosError(
+      {
+        open Result.Syntax;
+        let path = EsyBash.normalizePathForCygwin(Path.show(path));
+        let* out = EsyBash.runOut(Cmd.(cmd % path |> toBosCmd));
+        switch (Astring.String.cut(~sep=" ", out)) {
+        | Some((v, _)) => return(v)
+        | None => return(String.trim(out))
+        };
+      },
+    );
+  };
+
+  let (_, cvalue) = checksum;
   if (cvalue == value) {
     return();
   } else {

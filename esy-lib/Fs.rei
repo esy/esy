@@ -72,12 +72,3 @@ let withTempDir:
 let withTempFile: (~data: string, Path.t => Lwt.t('a)) => Lwt.t('a);
 
 let randomPathVariation: Fpath.t => RunAsync.t(Fpath.t);
-
-let withFoldFile:
-  (
-    ~buffer_size: int=?,
-    ~f: (~acc: 'a, ~len: int, ~buf: bytes) => 'a,
-    ~init: 'a,
-    Path.t
-  ) =>
-  RunAsync.t('a);

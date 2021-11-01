@@ -77,10 +77,10 @@ let%test "rename - can rename a directory" = {
     let f = (srcTempPath, dstTempPath) => {
       open RunAsync.Syntax;
       let src = Path.(srcTempPath / "test.txt");
-      let dst = dstTempPath;
+      let dst = Path.(dstTempPath / "");
       let data = "test";
       let* () = Fs.writeFile(~data, src);
-      let src = srcTempPath;
+      let src = Path.(srcTempPath / "");
       let* () = Fs.rename(~src, dst);
       return(true);
     };
