@@ -18,3 +18,4 @@ FROM alpine:latest
 
 COPY --from=builder /usr/local /usr/local
 COPY --from=builder /app/_release /app/_release
+RUN apk add nodejs npm linux-headers curl git perl-utils bash gcc g++ musl-dev make m4 patch
