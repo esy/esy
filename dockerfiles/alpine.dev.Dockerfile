@@ -4,6 +4,5 @@ RUN apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils libbz2 z
 
 RUN mkdir -p /app
 COPY . /app/esy
-COPY esy.opam /app/esy
 WORKDIR /app/esy
 RUN env LD_LIBRARY_PATH=/usr/lib make opam-setup SUDO=''
