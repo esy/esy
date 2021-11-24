@@ -347,6 +347,12 @@
       "version-0.6.11-using-repo-sources-workflow": {
         "title": "Using Unreleased Packages"
       },
+      "version-0.6.12-faqs": {
+        "title": "Frequently Asked Questions"
+      },
+      "version-0.6.12-getting-started": {
+        "title": "Getting started"
+      },
       "version-0.6.2-development": {
         "title": "Development"
       },
