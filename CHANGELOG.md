@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## 0.6.11 @ latest
+## 0.6.12 @ latest
+
+- Feature: Allow subfolders in github source URLs by @EduardoRFS in #1196
+- Fix EACCES during `esy i --cache-tarballs-path` by @ManasJayanth in #1182
+- Feature: Allow spaces in usernames on Windows by bumping esy-bash to 3.20 by @Et7f3 in #1340
+- Fix EACCES encountered in certain NPM packages by addressing EACCESS while copying source after untarring by @melwyn95 in #1347
+- Fix sandbox error on Monterey by @rolandpeelen in #1353 (New contributor! Thank you so much!)
+- Infra: Publish Docker images regularly (every commit on main branch) by @ManasJayanth in #1368
+- Feature: Support overrides on version resolutions by @EduardoRFS in #1348
+
+## 0.6.11
 
 - Feature: Support for Windows developer mode. If you're are logged
   into their developer accounts, esy will no longer ask for a shell
