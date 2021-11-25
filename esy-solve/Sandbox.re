@@ -10,7 +10,7 @@ type t = {
 
 let makeResolution = source => {
   Resolution.name: "root",
-  resolution: Version(Version.Source(source)),
+  resolution: VersionOverride({version: Source(source), override: None}),
 };
 
 let ofResolution =
@@ -82,7 +82,11 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
                 };
 
               let resolutions = {
-                let resolution = Resolution.Version(Version.Source(source));
+                let resolution =
+                  Resolution.VersionOverride({
+                    version: Source(source),
+                    override: None,
+                  });
                 Resolutions.add(name, resolution, resolutions);
               };
 
@@ -218,11 +222,14 @@ let digest = (solvespec, sandbox) => {
     let f = (digest, resolution) => {
       let resolution =
         switch (resolution.Resolution.resolution) {
-        | SourceOverride({source: Source.Link(_), override: _}) =>
+        | SourceOverride({source: Source.Link(_), override: _})
+        | VersionOverride({
+            version: Version.Source(Source.Link(_)),
+            override: _,
+          }) =>
           Some(resolution)
+        | VersionOverride(_)
         | SourceOverride(_) => None
-        | Version(Version.Source(Source.Link(_))) => Some(resolution)
-        | Version(_) => None
         };
 
       switch (resolution) {

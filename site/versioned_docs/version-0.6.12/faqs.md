@@ -1,6 +1,7 @@
 ---
-id: faqs
+id: version-0.6.12-faqs
 title: Frequently Asked Questions
+original_id: faqs
 ---
 
 This is a running list of frequently asked questions (recommendations are very welcome)

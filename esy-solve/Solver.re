@@ -351,7 +351,7 @@ let rec findResolutionForRequest = (resolver, req) =>
   | [res, ...rest] => {
       let version =
         switch (res.Resolution.resolution) {
-        | Version(version) => version
+        | VersionOverride({version, override: _}) => version
         | SourceOverride({source, _}) => Version.Source(source)
         };
 

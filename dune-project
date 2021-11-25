@@ -56,8 +56,7 @@ Easy package management for native Reason, OCaml and more
     ppx_sexp_conv  
     re  
     mccs
-    yojson
-    digestif  
+    yojson  
     (ocaml (= 4.12.0))
     (extlib (= 1.7.8))))
 
