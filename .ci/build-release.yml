@@ -118,7 +118,9 @@ jobs:
           repository: 'esydev/esy'
           command: 'buildAndPush'
           Dockerfile: 'dockerfiles/alpine.Dockerfile'
-          tags: 'nightly-alpine-latest'
+          tags: |
+            nightly-alpine-latest
+            nightly-alpine
 
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
