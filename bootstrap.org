@@ -1,0 +1,117 @@
+* Bootstrapping esy from just OCaml, Dune and Bash utils.
+
+** Links
+
+https://gist.github.com/mihow/9c7f559807069a03e302605691f85572
+
+We're trying to build esy from source without requiring itself. The
+mechanism can be extended to any esy project.
+
+** Dumping the Makefile
+
+#+begin_src js :dir .
+  let cp = require('child_process');
+  let fs = require('fs');
+  let path = require('path');
+
+  let cwd;
+
+  // Build plan variables
+  let globalStorePrefix, localStore, store, project;
+
+  path = require('path');
+  cwd = process.cwd();
+  localStore = path.join(cwd, "_esy-local-store")
+  store = path.join(cwd, "_esy-store")
+  globalStorePrefix = path.join(cwd, "_esy-global-store")
+  project = cwd;
+
+  let Package, esyBuildPlanStr, esyBuildPlan, lockFile, makeFile, Compile;
+  Package = {
+    nameOfLockEntry: (entry) => {
+    let parts = entry.split('@');
+      if (parts[0]) { return parts[0]; } else { return '@' + parts[1]; }
+    }
+  };
+
+  esyBuildPlanStr = cp.execSync('esy build-plan').toString('utf-8');
+
+  esyBuildPlan = JSON.parse(esyBuildPlanStr);
+
+  lockFile = require(process.cwd() + '/esy.lock/index.json');
+  Object.keys(lockFile);
+  Package.nameOfLockEntry(lockFile.root);
+
+  /* type rule = { target, deps, build } */
+  makeFile /* list(rule) */ = [];
+
+  Compile = {
+    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}
+    ${buildCommands.map((command) => '\t' + command.join(' ')).join('\n')}`,
+  };
+
+  Compile.rule({
+    target: 'foo',
+    deps: ['bar', 'baz'],
+    buildCommands: [
+      ['dune', 'build', '-p', 'foo'],
+      ['dune', 'build', '-p', 'bar'],
+    ],
+  });
+
+  // packageID as in esy's package ID
+
+  function throwError(message) {
+    throw message;
+  }
+
+  function renderEnv(env) {
+    return Object.keys(env).map(key => `${key}=${env[key]}`.replace("%{globalStorePrefix}%", globalStorePrefix).replace('%{localStore}%', localStore).replace('%{store}%', store).replace('%{project}%', project)).join(' ');
+  }
+
+  function traverse(makeFile, lockFile, packageID) {
+    let {dependencies} = lockFile.node[packageID] || throwError(`Package name not found: ${packageID}`);
+    let packageName = Package.nameOfLockEntry(packageID);
+    let buildPlan = JSON.parse(cp.execSync(`esy build-plan -p ${packageName}`).toString());
+      let buildCommands = buildPlan.build.map(args => { return ["env", "-i", "-S", renderEnv(buildPlan.env)].concat(args); });
+    return dependencies
+      .reduce((makeFile, dep) => makeFile.concat(traverse([], lockFile, dep)), makeFile)
+      .concat([
+	{
+	  target: packageID,
+	  deps: dependencies,
+	  buildCommands
+	},
+      ]);
+  }
+
+  fs.writeFileSync(
+    'boot.Makefile',
+    traverse([], lockFile, lockFile.root).map(Compile.rule).join('\n\n'),
+  );
+#+end_src
+
+#+RESULTS:
+: undefined
+
+
+** Preparing the sources directory
+
+#+begin_src sh
+  esy i --cache-tarballs-path=_esy-sources
+  cd _esy-sources
+  for i in $(ls *.tgz);
+  do
+      mkdir ${i%.tgz};
+      tar -xf ${i} -C ${i%.tgz};
+  done
+#+end_src
+
+** Parsing build-plans
+
+
+#+begin_src js
+
+#+end_src
+
+
