@@ -627,7 +627,8 @@ module LinkBin = {
     let* () = Fs.chmod(0o777, origPath);
     let destPath = Path.(binPath / name);
     if%bind (Fs.exists(destPath)) {
-      return();
+      let* () = Fs.unlink(destPath);
+      Fs.symlink(~force=true, ~src=origPath, destPath);
     } else {
       Fs.symlink(~force=true, ~src=origPath, destPath);
     };
