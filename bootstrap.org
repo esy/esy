@@ -17,13 +17,14 @@ mechanism can be extended to any esy project.
   let cwd;
 
   // Build plan variables
-  let globalStorePrefix, localStore, store, project;
+  let globalStorePrefix, localStore, store, project, sources;
 
   path = require('path');
   cwd = process.cwd();
   localStore = path.join(cwd, "_esy-local-store")
   store = path.join(cwd, "_esy-store")
   globalStorePrefix = path.join(cwd, "_esy-global-store")
+  sources = path.join(cwd, "_esy-sources")
   project = cwd;
 
   let Package, esyBuildPlanStr, esyBuildPlan, lockFile, makeFile, Compile;
@@ -46,12 +47,11 @@ mechanism can be extended to any esy project.
   makeFile /* list(rule) */ = [];
 
   Compile = {
-    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}
-    ${buildCommands.map((command) => '\t' + command.join(' ')).join('\n')}`,
+    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}\n${buildCommands.map((command) => '\t' + command.join(' ')).join('\n')}`,
   };
 
   Compile.rule({
-    target: 'foo',
+    target: 'fkkkkkkkkk`oo',
     deps: ['bar', 'baz'],
     buildCommands: [
       ['dune', 'build', '-p', 'foo'],
@@ -65,21 +65,38 @@ mechanism can be extended to any esy project.
     throw message;
   }
 
-  function renderEnv(env) {
-    return Object.keys(env).map(key => `${key}=${env[key]}`.replace("%{globalStorePrefix}%", globalStorePrefix).replace('%{localStore}%', localStore).replace('%{store}%', store).replace('%{project}%', project)).join(' ');
+  Env = {
+    render(env) {
+    return Object.keys(env).reduce((acc, key) => {
+      acc[key] = env[key].replace("%{globalStorePrefix}%", globalStorePrefix).replace('%{localStore}%', localStore).replace('%{store}%', store).replace('%{project}%', project);
+      return acc;
+    }, {})
+    },
+    toString(env) {
+      return Object.keys(env).map(key => `${key}=${env[key]}`).join(' ');
+    }
   }
 
   function traverse(makeFile, lockFile, packageID) {
     let {dependencies} = lockFile.node[packageID] || throwError(`Package name not found: ${packageID}`);
     let packageName = Package.nameOfLockEntry(packageID);
     let buildPlan = JSON.parse(cp.execSync(`esy build-plan -p ${packageName}`).toString());
-      let buildCommands = buildPlan.build.map(args => { return ["env", "-i", "-S", renderEnv(buildPlan.env)].concat(args); });
+    let renderedEnv = Env.render(buildPlan.env);
+    let renderedEnvStr = Env.toString(renderedEnv);
+    let buildCommands = buildPlan.build.map(args => { return ["env", "-i", "-S", renderedEnvStr].concat(args); });
+    let buildsInSource = buildPlan.buildType == "in-source" || buildPlan.buildPlan == "_build";
+    let curRoot = renderedEnv["cur__root"].replace(path.join(process.env['HOME'],'.esy', 'source', 'i'), sources);
+    let curOriginalRoot = renderedEnv["cur__original_root"].replace(path.join(process.env['HOME'],'.esy', 'source', 'i'), sources);
+    buildCommands = [["cd", curRoot]].concat(buildCommands);
+    if (buildsInSource) {
+      buildCommands = [["cp", "-R", curOriginalRoot, curRoot]].concat(buildCommands);
+    }
     return dependencies
       .reduce((makeFile, dep) => makeFile.concat(traverse([], lockFile, dep)), makeFile)
       .concat([
 	{
-	  target: packageID,
-	  deps: dependencies,
+	  target: packageName,
+	  deps: dependencies.map(Package.nameOfLockEntry),
 	  buildCommands
 	},
       ]);
