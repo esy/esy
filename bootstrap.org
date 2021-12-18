@@ -91,10 +91,25 @@ mechanism can be extended to any esy project.
     let buildsInSource = buildPlan.buildType == "in-source" || buildPlan.buildPlan == "_build";
     let curRoot = renderedEnv["cur__root"].replace(path.join(process.env['HOME'],'.esy', 'source', 'i'), sources);
     let curOriginalRoot = renderedEnv["cur__original_root"].replace(path.join(process.env['HOME'],'.esy', 'source', 'i'), sources);
+    let curToplevel = renderedEnv["cur__toplevel"];
+    let curTargetDir = renderedEnv["cur__target_dir"];
+    let curStublibs = renderedEnv["cur__stublibs"];
+    let curShare = renderedEnv["cur__share"];
+    let curSbin = renderedEnv["cur__sbin"];
+    let curMan = renderedEnv["cur__man"];
+    let curLib = renderedEnv["cur__lib"];
+    let curEtc = renderedEnv["cur__etc"];
+    let curDoc = renderedEnv["cur__doc"];
+    let curBin = renderedEnv["cur__bin"];
     buildCommands = [["cd", curRoot]].concat(buildCommands);
     if (buildsInSource) {
       buildCommands = [["cp", "-R", curOriginalRoot,  curRoot]].concat(buildCommands);
+    } else {
+      buildCommands = [["mkdir", "-p", curTargetDir]].concat(buildCommands);
     }
+    buildCommands = [["mkdir", "-p", curTargetDir], ["mkdir", "-p", curStublibs], ["mkdir", "-p", curShare],
+    ["mkdir", "-p", curSbin], ["mkdir", "-p", curMan], ["mkdir", "-p", curLib],
+    ["mkdir", "-p", curEtc], ["mkdir", "-p", curDoc], ["mkdir", "-p", curBin]].concat(buildCommands);
     return dependencies
       .reduce((makeFile, dep) => makeFile.concat(traverse([], lockFile, dep)), makeFile)
       .concat([
