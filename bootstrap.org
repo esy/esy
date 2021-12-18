@@ -47,7 +47,7 @@ mechanism can be extended to any esy project.
   makeFile /* list(rule) */ = [];
 
   Compile = {
-    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}\n${buildCommands.map((command) => '\t' + command.join(' ')).join('\n')}`,
+    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}\n\t${buildCommands.map((command) => command.join(' ')).join(' && ')}`,
   };
 
   Compile.rule({
@@ -77,7 +77,7 @@ mechanism can be extended to any esy project.
     }, {})
     },
     toString(env) {
-      return Object.keys(env).map(key => `${key}=${env[key]}`).join(' ');
+      return Object.keys(env).map(key => `${key}="${env[key]}"`).join(' ');
     }
   }
 
@@ -93,7 +93,7 @@ mechanism can be extended to any esy project.
     let curOriginalRoot = renderedEnv["cur__original_root"].replace(path.join(process.env['HOME'],'.esy', 'source', 'i'), sources);
     buildCommands = [["cd", curRoot]].concat(buildCommands);
     if (buildsInSource) {
-      buildCommands = [["cp", "-R", curOriginalRoot, curRoot]].concat(buildCommands);
+      buildCommands = [["cp", "-R", curOriginalRoot,  curRoot]].concat(buildCommands);
     }
     return dependencies
       .reduce((makeFile, dep) => makeFile.concat(traverse([], lockFile, dep)), makeFile)
@@ -127,6 +127,7 @@ mechanism can be extended to any esy project.
       mkdir ${i%.tgz};
       tar -xf ${i} -C ${i%.tgz};
   done
+  mkdir -p _esy-store/3/{i,b,s}
 #+end_src
 
 #+RESULTS:
