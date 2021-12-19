@@ -10,7 +10,7 @@ type t = {
   installCfg: EsyFetch.Config.t,
   esySolveCmd: Cmd.t,
   esyOpamOverride: checkout,
-  opamRepository: checkout,
+  opamRepositories: list(checkout),
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
@@ -51,6 +51,7 @@ let make =
       ~solveTimeout=60.0,
       ~esySolveCmd,
       ~skipRepositoryUpdate,
+      ~opamRepositories,
       (),
     ) => {
   open RunAsync.Syntax;
@@ -66,29 +67,50 @@ let make =
       ),
     );
 
-  let opamRepository = {
-    let defaultRemote = "https://github.com/ocaml/opam-repository";
-    let defaultLocal = Path.(prefixPath / "opam-repository");
+  let opamRepositories =
+    List.map(
+      ~f=
+        opamRepository => {
+          switch (opamRepository) {
+          | OpamRepository.Remote(location) =>
+            let hash = s => s |> Digestv.ofString |> Digestv.toHex;
+            Remote(
+              location,
+              Path.(prefixPath / ("opam-repository-" ++ hash(location))),
+            );
+          | Local(location) => Local(location)
+          }
+        },
+      opamRepositories,
+    );
 
-    switch (opamRepositoryRemote, opamRepositoryLocal) {
-    /***
-      * If no opamRepositoryRemote nor opamRepositoryLocal options are provided,
-      * we fallback to the deprecated opamRepository option.
-     */
-    | (None, None) =>
-      configureDeprecatedCheckout(
-        ~defaultRemote,
-        ~defaultLocal,
-        opamRepository,
-      )
-    | _ =>
-      configureCheckout(
-        ~defaultLocal,
-        ~defaultRemote,
-        (opamRepositoryRemote, opamRepositoryLocal),
-      )
-    };
-  };
+  let opamRepository = [
+    {
+      let defaultRemote = "https://github.com/ocaml/opam-repository";
+      let defaultLocal = Path.(prefixPath / "opam-repository");
+
+      switch (opamRepositoryRemote, opamRepositoryLocal) {
+      /***
+        * If no opamRepositoryRemote nor opamRepositoryLocal options are provided,
+        * we fallback to the deprecated opamRepository option.
+       */
+      | (None, None) =>
+        configureDeprecatedCheckout(
+          ~defaultRemote,
+          ~defaultLocal,
+          opamRepository,
+        )
+      | _ =>
+        configureCheckout(
+          ~defaultLocal,
+          ~defaultRemote,
+          (opamRepositoryRemote, opamRepositoryLocal),
+        )
+      };
+    },
+  ];
+
+  let opamRepositories = opamRepositories @ opamRepository;
 
   let esyOpamOverride = {
     let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
@@ -129,7 +151,7 @@ let make =
   return({
     installCfg,
     esySolveCmd,
-    opamRepository,
+    opamRepositories,
     esyOpamOverride,
     npmRegistry,
     skipRepositoryUpdate,

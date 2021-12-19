@@ -15,7 +15,7 @@ type t =
     installCfg: EsyFetch.Config.t,
     esySolveCmd: Cmd.t,
     esyOpamOverride: checkout,
-    opamRepository: checkout,
+    opamRepositories: list(checkout),
     npmRegistry: string,
     solveTimeout: float,
     skipRepositoryUpdate: bool,
@@ -45,6 +45,7 @@ let make:
     ~solveTimeout: float=?,
     ~esySolveCmd: Cmd.t,
     ~skipRepositoryUpdate: bool,
+    ~opamRepositories: list(OpamRepository.t),
     unit
   ) =>
   RunAsync.t(t);

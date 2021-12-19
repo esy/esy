@@ -70,7 +70,7 @@ type t = {
   sandbox: EsyFetch.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
-  opamRegistry: OpamRegistry.t,
+  opamRegistries: list(OpamRegistry.t),
   npmRegistry: NpmRegistry.t,
   mutable ocamlVersion: option(Version.t),
   mutable resolutions: Resolutions.t,
@@ -121,7 +121,7 @@ let make = (~cfg, ~sandbox, ()) =>
     sandbox,
     pkgCache: PackageCache.make(),
     srcCache: SourceCache.make(),
-    opamRegistry: OpamRegistry.make(~cfg, ()),
+    opamRegistries: OpamRegistries.make(~cfg, ()),
     npmRegistry: NpmRegistry.make(~url=cfg.Config.npmRegistry, ()),
     ocamlVersion: None,
     resolutions: Resolutions.empty,
@@ -149,8 +149,9 @@ let getUnusedResolutions = resolver => {
     ~f=nameIfUnused(resolver.resolutionUsage),
     Resolutions.entries(resolver.resolutions),
   );
-} /* This function increments the resolution usage count of that resolution */;
+};
 
+/* This function increments the resolution usage count of that resolution */
 let markResolutionAsUsed = (resolver, resolution) =>
   Hashtbl.replace(resolver.resolutionUsage, resolution, true);
 
@@ -259,6 +260,7 @@ let packageOfSource =
       resolver,
     ) => {
   open RunAsync.Syntax;
+
   let readManifest =
       (
         ~name,
@@ -396,8 +398,9 @@ let applyOverride = (pkg, override: Override.install) => {
                | [] => false
                | _ => true,
            );
-      } /* now add all edits */;
+      };
 
+      /* now add all edits */
       let formula = {
         let edits = {
           let f = (_name, override, edits) =>
@@ -505,7 +508,21 @@ let package =
       switch%bind (
         {
           let* name = RunAsync.ofRun(requireOpamName(resolution.name));
-          OpamRegistry.version(~name, ~version, resolver.opamRegistry);
+          let rec aux = opamRegistries => {
+            switch (opamRegistries) {
+            | [] => RunAsync.return(None)
+            | [opamRegistry, ...opamRegistries] =>
+              let%lwt version =
+                OpamRegistry.version(~name, ~version, opamRegistry);
+              switch (version) {
+              | Error(e) =>
+                opamRegistries == []
+                  ? Lwt.return(Error(e)) : aux(opamRegistries)
+              | Ok(version) => Lwt.return(Ok(version))
+              };
+            };
+          };
+          aux(resolver.opamRegistries);
         }
       ) {
       | Some(manifest) =>
@@ -709,7 +726,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          } /* do not filter them out yet */;
+          }; /* do not filter them out yet */
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))
@@ -730,10 +747,22 @@ let resolve' =
               );
             let* versions = {
               let* name = RunAsync.ofRun(requireOpamName(name));
-              OpamRegistry.versions(
-                ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
-                ~name,
-                resolver.opamRegistry,
+              let* f =
+                RunAsync.return(
+                  OpamRegistry.versions(
+                    ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
+                    ~name,
+                  ),
+                );
+              List.fold_left(
+                ~f=
+                  (versions, opamRegistry) => {
+                    let* versions = versions;
+                    let* versions' = f(opamRegistry);
+                    RunAsync.return(versions @ versions');
+                  },
+                ~init=RunAsync.return([]),
+                resolver.opamRegistries,
               );
             };
 
@@ -760,7 +789,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          } /* do not filter them out yet */;
+          }; /* do not filter them out yet */
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))
