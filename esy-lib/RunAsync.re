@@ -4,6 +4,14 @@ let return = v => Lwt.return(Ok(v));
 
 let error = msg => Lwt.return(Run.error(msg));
 
+let is_error = (e: t('a)) => {
+  let%lwt x = e;
+  switch (x) {
+  | Error(_) => return(true)
+  | _ => return(false)
+  };
+};
+
 let errorf = fmt => {
   let kerr = _ => Lwt.return(Run.error(Format.flush_str_formatter()));
   Format.kfprintf(kerr, Format.str_formatter, fmt);

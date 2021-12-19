@@ -8,7 +8,7 @@ type t;
 
 /** Configure a new opam registry instance. */
 
-let make: (~cfg: Config.t, unit) => t;
+let make: (~cfg: Config.t, unit) => list(t);
 
 /** Return a list of resolutions for a given opam package name. */
 

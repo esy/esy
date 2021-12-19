@@ -97,6 +97,31 @@ let configured = proj =>
       fetched.configured;
     },
   );
+module OfPackageJsonOpamRepositories = {
+  [@deriving of_yojson({strict: false})]
+  type t = {
+    [@default []]
+    opamRepositories: list(EsySolve.OpamRepository.t),
+  };
+};
+
+let opamRepositories = (projcfg: ProjectConfig.t) => {
+  let spec = projcfg.spec;
+  let manifest = spec.manifest;
+  RunAsync.Syntax.(
+    switch (manifest) {
+    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+      let* json = Fs.readJsonFile(Path.(spec.path / filename));
+      let* pkgJson =
+        RunAsync.ofRun(
+          Json.parseJsonWith(OfPackageJsonOpamRepositories.of_yojson, json),
+        );
+      return(pkgJson.OfPackageJsonOpamRepositories.opamRepositories);
+    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _)
+    | EsyInstall.SandboxSpec.ManifestAggregate(_) => return([])
+    }
+  );
+};
 
 let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   open RunAsync.Syntax;
@@ -107,6 +132,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   };
 
   let files = ref(files);
+
+  let* opamRepositories = opamRepositories(projcfg);
 
   let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
@@ -133,6 +160,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~esyOpamOverrideLocal=?projcfg.esyOpamOverrideLocal,
       ~esyOpamOverrideRemote=?projcfg.esyOpamOverrideRemote,
       ~solveTimeout=?projcfg.solveTimeout,
+      ~opamRepositories,
       (),
     );
 

@@ -70,7 +70,7 @@ type t = {
   sandbox: EsyInstall.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
-  opamRegistry: OpamRegistry.t,
+  opamRegistry: list(OpamRegistry.t),
   npmRegistry: NpmRegistry.t,
   mutable ocamlVersion: option(Version.t),
   mutable resolutions: Resolutions.t,
@@ -483,6 +483,31 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
+let rec aux = (~opamRegistries, ~f, ~empty, ~isEmpty) => {
+  // Logs.app(m => m("# Opam Registries = %d\n", List.length(opamRegistries)));
+  RunAsync.Syntax.(
+    switch (opamRegistries) {
+    | [] =>
+      // error("TODO: Package not found some meaning full error")
+      RunAsync.return(empty)
+    | [opamRegistry, ...opamRegistries] =>
+      // Logs.app(m => m("Trying opam regiestry... \n"));
+      let opamManifest = f(opamRegistry);
+      let* x = RunAsync.is_error(opamManifest);
+      if (x) {
+        aux(~opamRegistries, ~f, ~empty, ~isEmpty);
+      } else {
+        let* opamManifest = opamManifest;
+        if (isEmpty(opamManifest)) {
+          aux(~opamRegistries, ~f, ~empty, ~isEmpty);
+        } else {
+          RunAsync.return(opamManifest);
+        };
+      };
+    }
+  );
+};
+
 let package =
     (~gitUsername, ~gitPassword, ~resolution: Resolution.t, resolver) => {
   open RunAsync.Syntax;
@@ -512,7 +537,12 @@ let package =
       switch%bind (
         {
           let* name = RunAsync.ofRun(requireOpamName(resolution.name));
-          OpamRegistry.version(~name, ~version, resolver.opamRegistry);
+          aux(
+            ~opamRegistries=resolver.opamRegistry,
+            ~f=OpamRegistry.version(~name, ~version),
+            ~empty=None,
+            ~isEmpty=Option.isNone,
+          );
         }
       ) {
       | Some(manifest) =>
@@ -737,10 +767,19 @@ let resolve' =
               );
             let* versions = {
               let* name = RunAsync.ofRun(requireOpamName(name));
-              OpamRegistry.versions(
-                ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
-                ~name,
-                resolver.opamRegistry,
+              let* f =
+                RunAsync.return(
+                  OpamRegistry.versions(
+                    ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
+                    ~name,
+                  ),
+                );
+              aux(
+                ~opamRegistries=resolver.opamRegistry,
+                ~f,
+                ~empty=[],
+                ~isEmpty=x =>
+                x == []
               );
             };
 

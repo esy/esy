@@ -40,50 +40,55 @@ let readUrlFileOfRegistry = (res, _registry) => {
 };
 
 let make = (~cfg, ()) => {
-  let init = () => {
-    open RunAsync.Syntax;
-    let* repoPath =
-      switch (cfg.Config.opamRepository) {
-      | Config.Local(local) => return(local)
-      | Config.Remote(remote, local) =>
-        let update = () => {
-          let%lwt () =
-            Logs_lwt.app(m => m("checking %s for updates...", remote));
-          let* () =
-            Git.ShallowClone.update(~branch="master", ~dst=local, remote);
-          return(local);
-        };
-
-        if (cfg.skipRepositoryUpdate) {
-          if%bind (Fs.exists(local)) {
+  let opamRepository = cfg.Config.opamRepository;
+  let f = opamRepository => {
+    let init = () => {
+      open RunAsync.Syntax;
+      let* repoPath =
+        switch (opamRepository) {
+        | Config.Local(local) => return(local)
+        | Config.Remote(remote, local) =>
+          let update = () => {
+            let%lwt () =
+              Logs_lwt.app(m => m("checking %s for updates...", remote));
+            let* () =
+              Git.ShallowClone.update(~branch="master", ~dst=local, remote);
             return(local);
+          };
+
+          if (cfg.skipRepositoryUpdate) {
+            if%bind (Fs.exists(local)) {
+              return(local);
+            } else {
+              update();
+            };
           } else {
             update();
           };
-        } else {
-          update();
         };
+
+      let* overrides = OpamOverrides.init(~cfg, ());
+
+      let* repo = {
+        let path = Path.(repoPath / "repo");
+        let* data = Fs.readFile(path);
+        let filename =
+          OpamFile.make(OpamFilename.of_string(Path.show(path)));
+        let repo = OpamFile.Repo.read_from_string(~filename, data);
+        return(repo);
       };
 
-    let* overrides = OpamOverrides.init(~cfg, ());
-
-    let* repo = {
-      let path = Path.(repoPath / "repo");
-      let* data = Fs.readFile(path);
-      let filename = OpamFile.make(OpamFilename.of_string(Path.show(path)));
-      let repo = OpamFile.Repo.read_from_string(~filename, data);
-      return(repo);
+      return({
+        version: OpamFile.Repo.opam_version(repo),
+        repoPath,
+        pathsCache: OpamPathsByVersion.make(),
+        opamCache: OpamManifest.File.Cache.make(),
+        overrides,
+      });
     };
-
-    return({
-      version: OpamFile.Repo.opam_version(repo),
-      repoPath,
-      pathsCache: OpamPathsByVersion.make(),
-      opamCache: OpamManifest.File.Cache.make(),
-      overrides,
-    });
+    {init, lock: Lwt_mutex.create(), registry: None};
   };
-  {init, lock: Lwt_mutex.create(), registry: None};
+  List.map(~f, opamRepository);
 };
 
 let initRegistry = (registry: t) => {

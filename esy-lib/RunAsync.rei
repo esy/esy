@@ -10,6 +10,8 @@ type t('a) = Lwt.t(Run.t('a));
 
 let return: 'a => t('a);
 
+let is_error: t('a) => Lwt.t(Run.t(bool));
+
 /**
  * Computation which results in an error.
  */

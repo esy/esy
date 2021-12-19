@@ -69,11 +69,16 @@
     "@opam/re": "*",
     "@opam/reason": "*",
     "@opam/yojson": "*",
+    "@opam/kcas": "0.1.4",
     "ocaml": "4.12.0"
   },
   "devDependencies": {
-    "@opam/ocaml-lsp-server": "*",
-    "@opam/merlin": "^3.3.3",
     "@opam/utop": "^2.4.2"
-  }
+  },
+  "opamRepositories": [
+    {
+      "type": "remote",
+      "location": "https://github.com/ocaml-multicore/multicore-opam"
+    }
+  ]
 }
