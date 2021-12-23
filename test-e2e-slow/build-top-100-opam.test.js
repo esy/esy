@@ -125,6 +125,8 @@ let cases = [
    // Blocked by esy/esy#505
    // {name: 'coq', toolchains: [ocamlVersion]},
    { name: 'libtorch', toolchains: [ocamlVersion] },
+   { name: 'cloudi', toolchains: [ocamlVersion] },
+   { name: 'dune-deps', version: "1.3.0", toolchains: [ocamlVersion] },
 ];
 
 let reposUpdated = false;
@@ -174,7 +176,7 @@ for (let c of selectCases(cases)) {
       version: '0.0.0',
       esy: {build: ['true']},
       dependencies: {
-        ['@opam/' + c.name]: '*',
+        ['@opam/' + c.name]: c.version || '*',
       },
       devDependencies: {
         ocaml: toolchain,

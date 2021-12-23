@@ -225,7 +225,28 @@ let copyContents = (~from, ~ignore=[], dest) => {
         Path.Set.empty,
         ignore,
       );
-    `Sat(path => Ok(!Path.Set.mem(path, ignoreSet)));
+    let visited = ref(Path.Set.empty);
+    `Sat(
+      path => {
+        let stats = Unix.lstat(Fpath.to_string(path));
+        visited := Path.Set.add(path, visited^);
+        switch (stats.st_kind) {
+        | Unix.S_LNK =>
+          let linkContents = Unix.readlink(Fpath.to_string(path));
+          if (Path.Set.mem(
+                Fpath.rem_empty_seg(
+                  Fpath.normalize(Path.(path / linkContents)),
+                ),
+                visited^,
+              )) {
+            Ok(false);
+          } else {
+            Ok(true);
+          };
+        | _ => Ok(!Path.Set.mem(path, ignoreSet))
+        };
+      },
+    );
   };
 
   let excludePathsWithinSymlink = ref(Path.Set.empty);
@@ -247,9 +268,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
                  )) {
         Ok();
       } else {
-        let* stats = Bos.OS.Path.stat(path);
+        // Using Unix.lstat here because for a symlink pointing to a directory
+        // Unix.stat gives the st_kind as S_DIR, whereas Unix.lstat gives to correct kind S_LNK
+        let stats = Unix.lstat(Fpath.to_string(path));
         let nextPath = rebasePath(path);
-        switch (stats.Unix.st_kind) {
+        switch (stats.st_kind) {
         | Unix.S_DIR =>
           let _ = Bos.OS.Dir.create(nextPath);
           Ok();
