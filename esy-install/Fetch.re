@@ -574,7 +574,8 @@ module FetchPackage: {
 
 module LinkBin = {
   let installNodeBinWrapper = (binPath, (name, origPath)) => {
-    let (data, path) =
+    open RunAsync.Syntax;
+    let* () =
       switch (System.Platform.host) {
       | Windows =>
         let data =
@@ -586,21 +587,21 @@ module LinkBin = {
             Path.pp,
             origPath,
           );
-
-        (data, Path.(binPath / name |> addExt(".cmd")));
-      | _ =>
-        let data =
-          Format.asprintf(
-            {|#!/bin/sh
-  exec node "%a" "$@"
-              |},
-            Path.pp,
-            origPath,
-          );
-
-        (data, Path.(binPath / name));
+        let path = Path.(binPath / name |> addExt(".cmd"));
+        Fs.writeFile(~perm=0o755, ~data, path);
+      | _ => RunAsync.return()
       };
 
+    let data =
+      Format.asprintf(
+        {|#!/bin/sh
+  exec node "%a" "$@"
+              |},
+        Path.pp,
+        origPath,
+      );
+
+    let path = Path.(binPath / name);
     Fs.writeFile(~perm=0o755, ~data, path);
   };
 
