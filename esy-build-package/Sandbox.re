@@ -67,7 +67,12 @@ module Darwin = {
 
 let convertEnvToJsonString = env => {
   let json = {
-    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let f = (k, v, items) => {
+      switch (k) {
+      | "" => items
+      | k => [(k, `String(v)), ...items]
+      };
+    };
     let items = Astring.String.Map.fold(f, env, []);
     `Assoc(items);
   };
