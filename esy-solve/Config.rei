@@ -15,7 +15,7 @@ type t =
     installCfg: EsyInstall.Config.t,
     esySolveCmd: Cmd.t,
     esyOpamOverride: checkout,
-    opamRepository: list(checkout),
+    opamRepositories: list(checkout),
     npmRegistry: string,
     solveTimeout: float,
     skipRepositoryUpdate: bool,

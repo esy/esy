@@ -10,7 +10,7 @@ type t = {
   installCfg: EsyInstall.Config.t,
   esySolveCmd: Cmd.t,
   esyOpamOverride: checkout,
-  opamRepository: list(checkout),
+  opamRepositories: list(checkout),
   npmRegistry: string,
   solveTimeout: float,
   skipRepositoryUpdate: bool,
@@ -111,7 +111,7 @@ let make =
     },
   ];
 
-  let opamRepository = opamRepositories @ opamRepository;
+  let opamRepositories = opamRepositories @ opamRepository;
 
   let esyOpamOverride = {
     let defaultRemote = "https://github.com/esy-ocaml/esy-opam-override";
@@ -152,7 +152,7 @@ let make =
   return({
     installCfg,
     esySolveCmd,
-    opamRepository,
+    opamRepositories,
     esyOpamOverride,
     npmRegistry,
     skipRepositoryUpdate,

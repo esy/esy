@@ -70,7 +70,7 @@ type t = {
   sandbox: EsyInstall.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
-  opamRegistry: list(OpamRegistry.t),
+  opamRegistries: list(OpamRegistry.t),
   npmRegistry: NpmRegistry.t,
   mutable ocamlVersion: option(Version.t),
   mutable resolutions: Resolutions.t,
@@ -121,7 +121,7 @@ let make = (~cfg, ~sandbox, ()) =>
     sandbox,
     pkgCache: PackageCache.make(),
     srcCache: SourceCache.make(),
-    opamRegistry: OpamRegistry.make(~cfg, ()),
+    opamRegistries: OpamRegistries.make(~cfg, ()),
     npmRegistry: NpmRegistry.make(~url=cfg.Config.npmRegistry, ()),
     ocamlVersion: None,
     resolutions: Resolutions.empty,
@@ -483,6 +483,8 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
+// Write tests
+// Redo this ...
 let rec aux = (~opamRegistries, ~f, ~empty, ~isEmpty) => {
   // Logs.app(m => m("# Opam Registries = %d\n", List.length(opamRegistries)));
   RunAsync.Syntax.(
@@ -538,7 +540,7 @@ let package =
         {
           let* name = RunAsync.ofRun(requireOpamName(resolution.name));
           aux(
-            ~opamRegistries=resolver.opamRegistry,
+            ~opamRegistries=resolver.opamRegistries,
             ~f=OpamRegistry.version(~name, ~version),
             ~empty=None,
             ~isEmpty=Option.isNone,
@@ -775,7 +777,7 @@ let resolve' =
                   ),
                 );
               aux(
-                ~opamRegistries=resolver.opamRegistry,
+                ~opamRegistries=resolver.opamRegistries,
                 ~f,
                 ~empty=[],
                 ~isEmpty=x =>
