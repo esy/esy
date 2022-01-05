@@ -483,33 +483,6 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
-// Write tests
-// Redo this ...
-let rec aux = (~opamRegistries, ~f, ~empty, ~isEmpty) => {
-  // Logs.app(m => m("# Opam Registries = %d\n", List.length(opamRegistries)));
-  RunAsync.Syntax.(
-    switch (opamRegistries) {
-    | [] =>
-      // error("TODO: Package not found some meaning full error")
-      RunAsync.return(empty)
-    | [opamRegistry, ...opamRegistries] =>
-      // Logs.app(m => m("Trying opam regiestry... \n"));
-      let opamManifest = f(opamRegistry);
-      let* x = RunAsync.is_error(opamManifest);
-      if (x) {
-        aux(~opamRegistries, ~f, ~empty, ~isEmpty);
-      } else {
-        let* opamManifest = opamManifest;
-        if (isEmpty(opamManifest)) {
-          aux(~opamRegistries, ~f, ~empty, ~isEmpty);
-        } else {
-          RunAsync.return(opamManifest);
-        };
-      };
-    }
-  );
-};
-
 let package =
     (~gitUsername, ~gitPassword, ~resolution: Resolution.t, resolver) => {
   open RunAsync.Syntax;
@@ -539,12 +512,21 @@ let package =
       switch%bind (
         {
           let* name = RunAsync.ofRun(requireOpamName(resolution.name));
-          aux(
-            ~opamRegistries=resolver.opamRegistries,
-            ~f=OpamRegistry.version(~name, ~version),
-            ~empty=None,
-            ~isEmpty=Option.isNone,
-          );
+          let rec aux = opamRegistries => {
+            switch (opamRegistries) {
+            | [] => RunAsync.return(None)
+            | [opamRegistry, ...opamRegistries] =>
+              let%lwt version =
+                OpamRegistry.version(~name, ~version, opamRegistry);
+              switch (version) {
+              | Error(e) =>
+                opamRegistries == []
+                  ? Lwt.return(Error(e)) : aux(opamRegistries)
+              | Ok(version) => Lwt.return(Ok(version))
+              };
+            };
+          };
+          aux(resolver.opamRegistries);
         }
       ) {
       | Some(manifest) =>
@@ -776,12 +758,15 @@ let resolve' =
                     ~name,
                   ),
                 );
-              aux(
-                ~opamRegistries=resolver.opamRegistries,
-                ~f,
-                ~empty=[],
-                ~isEmpty=x =>
-                x == []
+              List.fold_left(
+                ~f=
+                  (versions, opamRegistry) => {
+                    let* versions = versions;
+                    let* versions' = f(opamRegistry);
+                    RunAsync.return(versions @ versions');
+                  },
+                ~init=RunAsync.return([]),
+                resolver.opamRegistries,
               );
             };
 
