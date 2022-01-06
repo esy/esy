@@ -145,14 +145,14 @@ let unlink = (path: Path.t) => {
   RunAsync.return();
 };
 
-let rename = (~skipIfExists=false, ~src, target) => {
+let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
   let%lwt () =
     Logs_lwt.debug(m => m("rename %a -> %a", Path.pp, src, Path.pp, target));
-  let src = Path.show(src);
-  let target = Path.show(target);
+  let srcString = Path.show(src);
+  let targetString = Path.show(target);
   try%lwt(
     {
-      let%lwt () = Lwt_unix.rename(src, target);
+      let%lwt () = Lwt_unix.rename(srcString, targetString);
       RunAsync.return();
     }
   ) {
@@ -170,12 +170,16 @@ let rename = (~skipIfExists=false, ~src, target) => {
       Logs_lwt.debug(m =>
         m("rename of %s failed with EXDEV, trying `mv`", filename)
       );
-    let cmd = Printf.sprintf("mv %s %s", src, target);
+    let cmd = Printf.sprintf("mv %s %s", srcString, targetString);
     if (Sys.command(cmd) == 0) {
       RunAsync.return();
     } else {
-      RunAsync.errorf("Unable to rename %s to %s", src, target);
+      RunAsync.errorf("Unable to rename %s to %s", srcString, targetString);
     };
+  | Unix.Unix_error(Unix.EACCES, "rename", _) when attempts > 1 =>
+    let%lwt () = Lwt_unix.sleep(1.);
+    let attempts = attempts - 1;
+    rename(~attempts, ~skipIfExists, ~src, target);
   };
 };
 
