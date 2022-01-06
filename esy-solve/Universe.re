@@ -105,10 +105,9 @@ module CudfVersionMap: {
   };
 
   let make = (~size=100, ()) => {
-    let versionToCudfVersion = VersionToCudfVersionMap.empty;
     {
       cudfVersionToVersion: Hashtbl.create(size),
-      versionToCudfVersion,
+      versionToCudfVersion: VersionToCudfVersionMap.empty,
       versions: Hashtbl.create(size),
     };
   };
