@@ -19,9 +19,9 @@ open Bos.OS.Cmd;
  [sign'] does exactly that. */
 
 let codesign = fpath => {
-  let* status =
-    run_status(
-      ~quiet=true,
+  let* (outputString, (_runInfo, status)) =
+    run_out(
+      ~err=err_run_out,
       Cmd.(
         v("codesign")
         % "--sign"
@@ -30,17 +30,70 @@ let codesign = fpath => {
         % "--preserve-metadata=entitlements,requirements,flags,runtime"
         % p(fpath)
       ),
-    );
+    )
+    |> out_string;
   switch (status) {
   | `Exited(exitCode) =>
-    if (exitCode != 0) {
+    switch (exitCode) {
+    | 0 => return()
+    | 1 =>
+      if (Str.search_forward(
+            Str.regexp("Permission denied"),
+            outputString,
+            0,
+          )
+          != (-1)) {
+        print_newline();
+        print_newline();
+        print_endline(
+          "# esy-build-package: codesigning failed due to insufficient permission. Re-running with sudo",
+        );
+        let* (outputString, (_runInfo, status)) =
+          run_out(
+            ~err=err_run_out,
+            Cmd.(
+              v("sudo")
+              % "codesign"
+              % "--sign"
+              % "-"
+              % "--force"
+              % "--preserve-metadata=entitlements,requirements,flags,runtime"
+              % p(fpath)
+            ),
+          )
+          |> out_string;
+        switch (status) {
+        | `Exited(exitCode) =>
+          switch (exitCode) {
+          | 0 => return()
+          | exitCode =>
+            errorf(
+              "codesigning %s failed with exit code %d",
+              Fpath.to_string(fpath),
+              exitCode,
+            )
+          }
+        | `Signaled(signal) =>
+          errorf(
+            "codesigning %s killed by signal %d",
+            Fpath.to_string(fpath),
+            signal,
+          )
+        };
+      } else {
+        errorf(
+          "codesigning %s failed with exit code %d\n Stdout and stderr %s",
+          Fpath.to_string(fpath),
+          exitCode,
+          outputString,
+        );
+      }
+    | exitCode =>
       errorf(
         "codesigning %s failed with exit code %d",
         Fpath.to_string(fpath),
         exitCode,
-      );
-    } else {
-      return();
+      )
     }
   | `Signaled(signal) =>
     errorf(
