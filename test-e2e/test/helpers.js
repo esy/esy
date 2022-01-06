@@ -61,6 +61,7 @@ export type TestSandbox = {
   npmPrefixPath: string,
   npmRegistry: PackageRegistry,
   opamRegistry: OpamRegistry,
+  secondaryOpamRegistries: OpamRegistry[],
 
   fixture: (...fixture: Fixture) => Promise<void>,
 
@@ -107,6 +108,17 @@ export type TestSandbox = {
     },
     fixture: Fixture,
   ) => Promise<void>,
+
+  createSecondaryOpamRegistry: () => Promise<number>,
+
+  defineOpamPackageOfFixtureInSecondaryRegistry: (number, 
+    spec: {
+      name: string,
+      version: string,
+      opam: string,
+    },
+    fixture: Fixture
+  ) => Promise<void>
 };
 
 function exe(name) {
@@ -164,6 +176,8 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   await FixtureUtils.initialize(projectPath, fixture);
   const npmRegistry = await NpmRegistryMock.initialize();
   const opamRegistry = await OpamRegistryMock.initialize();
+
+  const secondaryOpamRegistries = [];
 
   const envForTests = {
     ESY__PREFIX: esyPrefixPath,
@@ -292,6 +306,14 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     npm,
     npmRegistry,
     opamRegistry,
+    secondaryOpamRegistries,
+    createSecondaryOpamRegistry: async () => {
+      const opamRegistry = await OpamRegistryMock.initialize();
+      secondaryOpamRegistries.push(opamRegistry);
+      return secondaryOpamRegistries.length - 1
+    },
+    defineOpamPackageOfFixtureInSecondaryRegistry: (registryIndex, spec, fixture: Fixture) =>
+      OpamRegistryMock.defineOpamPackageOfFixture(secondaryOpamRegistries[registryIndex], spec, fixture),
     normalizePathsForSnapshot,
     fixture: async (...fixture) => {
       await FixtureUtils.initialize(projectPath, fixture);
