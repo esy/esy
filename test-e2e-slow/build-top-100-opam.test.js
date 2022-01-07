@@ -127,6 +127,7 @@ let cases = [
    { name: 'libtorch', toolchains: [ocamlVersion] },
    { name: 'cloudi', toolchains: [ocamlVersion] },
    { name: 'dune-deps', version: "1.3.0", toolchains: [ocamlVersion] },
+   { name: 'pgocaml', version: "4.3.0", toolchains: [ocamlVersion] },
 ];
 
 let reposUpdated = false;
