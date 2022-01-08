@@ -79,6 +79,12 @@ let findVersions = (~name, univ: t) =>
     versions |> Version.Map.bindings |> List.map(~f=((_, pkg)) => pkg)
   };
 
+module VersionToCudfVersionMap =
+  Map.Make({
+    [@deriving ord]
+    type t = (string, Version.t);
+  });
+
 module CudfVersionMap: {
   type t;
 
@@ -94,18 +100,25 @@ module CudfVersionMap: {
 } = {
   type t = {
     cudfVersionToVersion: Hashtbl.t((CudfName.t, int), Version.t),
-    versionToCudfVersion: Hashtbl.t((string, Version.t), int),
+    mutable versionToCudfVersion: VersionToCudfVersionMap.t(int),
     versions: Hashtbl.t(string, Version.Set.t),
   };
 
   let make = (~size=100, ()) => {
-    cudfVersionToVersion: Hashtbl.create(size),
-    versionToCudfVersion: Hashtbl.create(size),
-    versions: Hashtbl.create(size),
+    {
+      cudfVersionToVersion: Hashtbl.create(size),
+      versionToCudfVersion: VersionToCudfVersionMap.empty,
+      versions: Hashtbl.create(size),
+    };
   };
 
   let update = (map, name, version, cudfVersion) => {
-    Hashtbl.replace(map.versionToCudfVersion, (name, version), cudfVersion);
+    map.versionToCudfVersion =
+      VersionToCudfVersionMap.update(
+        (name, version),
+        t => Some(cudfVersion),
+        map.versionToCudfVersion,
+      );
     Hashtbl.replace(
       map.cudfVersionToVersion,
       (CudfName.encode(name), cudfVersion),
@@ -134,7 +147,9 @@ module CudfVersionMap: {
     };
 
   let findCudfVersion = (~name, ~version, map) =>
-    switch (Hashtbl.find(map.versionToCudfVersion, (name, version))) {
+    switch (
+      VersionToCudfVersionMap.find((name, version), map.versionToCudfVersion)
+    ) {
     | exception Not_found => None
     | version => Some(version)
     };
