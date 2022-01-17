@@ -124,9 +124,14 @@ let withProcess =
     | _ => executeCmd()
     }
   ) {
-  | [@implicit_arity] Unix.Unix_error(err, _, _) =>
-    let msg = Unix.error_message(err);
-    error(msg);
+  | [@implicit_arity] Unix.Unix_error(code, unixFunctionName, parameter) =>
+    let msg = Unix.error_message(code);
+    errorf(
+      "Error occured during ChildProcess.executeCmd: %s %s %s",
+      msg,
+      unixFunctionName,
+      parameter,
+    );
   | _ => error("error running subprocess")
   };
 };
