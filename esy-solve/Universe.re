@@ -116,7 +116,7 @@ module CudfVersionMap: {
     map.versionToCudfVersion =
       VersionToCudfVersionMap.update(
         (name, version),
-        t => Some(cudfVersion),
+        _ => Some(cudfVersion),
         map.versionToCudfVersion,
       );
     Hashtbl.replace(
