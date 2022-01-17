@@ -54,5 +54,5 @@ let of_yojson = json =>
 let inferPackageName =
   fun
   | (Opam, "opam") => None
-  | (Opam, fname) => Some("@opam/" ++ Path.(v(fname) |> remExt |> show))
+  | (Opam, fname) => Some("@opam/" ++ Path.(v(fname) |> Fpath.filename |> v |> remExt |> show))
   | (Esy, fname) => Some(Path.(v(fname) |> remExt |> show));
