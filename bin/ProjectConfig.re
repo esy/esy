@@ -531,7 +531,7 @@ let make =
   let* projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
   let* spec = EsyInstall.SandboxSpec.ofPath(projectPath);
 
-  let* registryConfig = registryConfig(projectPath, spec.manifest);
+  let* registryConfig = registryConfig(spec.path, spec.manifest);
 
   let esyOpamOverrideLocal =
     switch (registryConfig.esyOpamOverrideLocal) {
