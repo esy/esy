@@ -250,33 +250,6 @@ let storePath = cfg => {
 
 module FindProject = {};
 
-module RegistryConfig = {
-  [@deriving of_yojson({strict: false})]
-  type t = {
-    [@default None]
-    esyOpamOverrideRemote: option(string),
-    [@default None]
-    esyOpamOverrideLocal: option(Path.t),
-  };
-
-  let empty = {esyOpamOverrideRemote: None, esyOpamOverrideLocal: None};
-};
-
-let registryConfig = (path, manifest) => {
-  RunAsync.Syntax.(
-    switch (manifest) {
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
-      let* json = Fs.readJsonFile(Path.(path / filename));
-      let* pkgJson =
-        RunAsync.ofRun(Json.parseJsonWith(RegistryConfig.of_yojson, json));
-      return(pkgJson);
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _)
-    | EsyInstall.SandboxSpec.ManifestAggregate(_) =>
-      return(RegistryConfig.empty)
-    }
-  );
-};
-
 let commonOptionsSection = Manpage.s_common_options;
 
 let ocamlPkgName = {
@@ -530,20 +503,6 @@ let make =
 
   let* projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
   let* spec = EsyInstall.SandboxSpec.ofPath(projectPath);
-
-  let* registryConfig = registryConfig(spec.path, spec.manifest);
-
-  let esyOpamOverrideLocal =
-    switch (registryConfig.esyOpamOverrideLocal) {
-    | Some(_) as l => l
-    | None => esyOpamOverrideLocal
-    };
-
-  let esyOpamOverrideRemote =
-    switch (registryConfig.esyOpamOverrideRemote) {
-    | Some(_) as r => r
-    | None => esyOpamOverrideRemote
-    };
 
   let* prefixPath =
     switch (prefixPath) {
