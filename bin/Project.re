@@ -334,7 +334,7 @@ let makeFetched =
   | Some(installation) =>
     let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let* sandbox = {
-      let sandboxEnv = OfPackageJson.(esy.sandboxEnv); //readSandboxEnv(projcfg.spec);
+      let sandboxEnv = OfPackageJson.(esy.sandboxEnv);
       let* (sandbox, filesUsedForPlan) =
         BuildSandbox.make(
           ~sandboxEnv,
