@@ -2,8 +2,8 @@ opam-version: "2.0"
 maintainer: "roberto@dicosmo.org"
 authors: ["Roberto di Cosmo <roberto@dicosmo.org>" "Stefano Zacchiroli" "Pietro Abate"]
 homepage: "http://www.mancoosi.org/cudf/"
-bug-reports: "https://gforge.inria.fr/tracker/?atid=13811&group_id=4385&func=browse"
-dev-repo: "git+https://scm.gforge.inria.fr/anonscm/git/cudf/cudf.git"
+bug-reports: "https://gitlab.com/irill/cudf/-/issues"
+dev-repo: "git+https://gitlab.com/irill/cudf.git"
 build: [make "all" "opt" "DOC="]
 depends: [
   "ocaml"
@@ -26,6 +26,6 @@ CUDF (for Common Upgradeability Description Format) is a format for
 describing upgrade scenarios in package-based Free and Open Source
 Software distribution."""
 url {
-  src: "https://github.com/ocaml/opam-source-archives/raw/main/cudf-0.9.tar.gz"
-  checksum: "md5=a4c0e652e56e74c7b388a43f9258d119"
+  src: "https://gitlab.com/irill/cudf/-/archive/v0.9/cudf-v0.9.tar.gz"
+  checksum: "md5=04f49e3227dc78a21fe32c3beab8c56e"
 }

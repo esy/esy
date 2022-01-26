@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.6.12",
+  "version": "0.6.13-dev",
   "description": "Package builder for esy.",
   "license": "MIT",
   "esy": {
