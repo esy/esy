@@ -1,7 +1,7 @@
 opam-version: "2.0"
 maintainer: "ygrek@autistici.org"
 homepage: "https://github.com/ygrek/ocaml-extlib"
-dev-repo: "git://github.com/ygrek/ocaml-extlib.git"
+dev-repo: "git+https://github.com/ygrek/ocaml-extlib.git"
 bug-reports: "https://github.com/ygrek/ocaml-extlib/issues"
 doc: ["https://ygrek.org/p/extlib/doc/"]
 license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"

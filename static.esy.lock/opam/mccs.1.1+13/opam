@@ -17,7 +17,7 @@ depends: [
   "ocaml"
   "dune" {>= "1.0"}
   "cudf" {>= "0.7"}
-  "conf-g++"
+  "conf-c++" {build}
 ]
 synopsis: "MCCS (which stands for Multi Criteria CUDF Solver) is a CUDF problem solver
 developed at UNS during the European MANCOOSI project"
