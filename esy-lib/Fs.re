@@ -146,40 +146,54 @@ let unlink = (path: Path.t) => {
 };
 
 let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
-  let%lwt () =
-    Logs_lwt.debug(m => m("rename %a -> %a", Path.pp, src, Path.pp, target));
+  open RunAsync.Syntax;
   let srcString = Path.show(src);
   let targetString = Path.show(target);
-  try%lwt(
-    {
-      let%lwt () = Lwt_unix.rename(srcString, targetString);
-      RunAsync.return();
-    }
-  ) {
-  | Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
-    RunAsync.errorf("no such file: %s", filename)
-  | Unix.Unix_error(Unix.ENOTEMPTY, "rename", filename)
-  | Unix.Unix_error(Unix.EEXIST, "rename", filename) =>
-    if (skipIfExists) {
-      RunAsync.return();
-    } else {
-      RunAsync.errorf("destination already exists: %s", filename);
-    }
-  | Unix.Unix_error(Unix.EXDEV, "rename", filename) =>
+  let%bind destExists = exists(target);
+  if (skipIfExists && destExists) {
+    let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+    RunAsync.return();
+  } else {
     let%lwt () =
       Logs_lwt.debug(m =>
-        m("rename of %s failed with EXDEV, trying `mv`", filename)
+        m("rename %a -> %a", Path.pp, src, Path.pp, target)
       );
-    let cmd = Printf.sprintf("mv %s %s", srcString, targetString);
-    if (Sys.command(cmd) == 0) {
-      RunAsync.return();
-    } else {
-      RunAsync.errorf("Unable to rename %s to %s", srcString, targetString);
+    try%lwt(
+      {
+        let%lwt () = Lwt_unix.rename(srcString, targetString);
+        RunAsync.return();
+      }
+    ) {
+    | Unix.Unix_error(Unix.ENOENT, "rename", filename) =>
+      RunAsync.errorf("no such file: %s", filename)
+    | Unix.Unix_error(Unix.ENOTEMPTY, "rename", filename)
+    | Unix.Unix_error(Unix.EEXIST, "rename", filename) =>
+      if (skipIfExists) {
+        RunAsync.return();
+      } else {
+        RunAsync.errorf("destination already exists: %s", filename);
+      }
+    | Unix.Unix_error(Unix.EXDEV, "rename", filename) =>
+      let%lwt () =
+        Logs_lwt.debug(m =>
+          m("rename of %s failed with EXDEV, trying `mv`", filename)
+        );
+      let cmd = Printf.sprintf("mv %s %s", srcString, targetString);
+      if (Sys.command(cmd) == 0) {
+        RunAsync.return();
+      } else {
+        RunAsync.errorf("Unable to rename %s to %s", srcString, targetString);
+      };
+    | Unix.Unix_error(Unix.EACCES, "rename", _) when attempts > 1 =>
+      if%bind (exists(target)) {
+        let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+        RunAsync.return();
+      } else {
+        let%lwt () = Lwt_unix.sleep(1.);
+        let attempts = attempts - 1;
+        rename(~attempts, ~skipIfExists, ~src, target);
+      }
     };
-  | Unix.Unix_error(Unix.EACCES, "rename", _) when attempts > 1 =>
-    let%lwt () = Lwt_unix.sleep(1.);
-    let attempts = attempts - 1;
-    rename(~attempts, ~skipIfExists, ~src, target);
   };
 };
 
