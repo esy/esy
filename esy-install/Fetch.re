@@ -606,14 +606,10 @@ module LinkBin = {
 
   let installBinWrapperAsBatch = (binPath, (name, origPath)) => {
     let data =
-      Fmt.str(
-        {|@ECHO off
+      Fmt.str({|@ECHO off
 @SETLOCAL
 "%a" %%*
-          |},
-        Path.pp,
-        origPath,
-      );
+          |}, Path.pp, origPath);
 
     Fs.writeFile(
       ~perm=0o755,
