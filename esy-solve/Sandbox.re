@@ -145,13 +145,13 @@ let digest = (solvespec, sandbox) => {
     let ppOpamDependencies = (fmt, deps) => {
       let ppDisj = (fmt, disj) =>
         switch (disj) {
-        | [] => Fmt.unit("true", fmt, ())
+        | [] => Fmt.any("true", fmt, ())
         | [dep] => InstallManifest.Dep.pp(fmt, dep)
         | deps =>
           Fmt.pf(
             fmt,
             "(%a)",
-            Fmt.(list(~sep=unit(" || "), InstallManifest.Dep.pp)),
+            Fmt.(list(~sep=any(" || "), InstallManifest.Dep.pp)),
             deps,
           )
         };
@@ -159,15 +159,15 @@ let digest = (solvespec, sandbox) => {
       Fmt.pf(
         fmt,
         "@[<h>[@;%a@;]@]",
-        Fmt.(list(~sep=unit(" && "), ppDisj)),
+        Fmt.(list(~sep=any(" && "), ppDisj)),
         deps,
       );
     };
 
     let ppNpmDependencies = (fmt, deps) => {
       let ppDnf = (ppConstr, fmt, f) => {
-        let ppConj = Fmt.(list(~sep=unit(" && "), ppConstr));
-        Fmt.(list(~sep=unit(" || "), ppConj))(fmt, f);
+        let ppConj = Fmt.(list(~sep=any(" && "), ppConstr));
+        Fmt.(list(~sep=any(" || "), ppConj))(fmt, f);
       };
 
       let ppVersionSpec = (fmt, spec) =>
@@ -185,7 +185,7 @@ let digest = (solvespec, sandbox) => {
       Fmt.pf(
         fmt,
         "@[<hov>[@;%a@;]@]",
-        Fmt.list(~sep=Fmt.unit(", "), ppReq),
+        Fmt.list(~sep=Fmt.any(", "), ppReq),
         deps,
       );
     };

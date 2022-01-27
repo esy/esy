@@ -22,9 +22,9 @@ module Version = {
     | W(v) => Fmt.string(fmt, v)
     | N(v) => Fmt.int(fmt, v);
 
-  let ppPrerelease = Fmt.(list(~sep=unit("."), ppSegment));
+  let ppPrerelease = Fmt.(list(~sep=any("."), ppSegment));
 
-  let ppBuild = Fmt.(list(~sep=unit("."), string));
+  let ppBuild = Fmt.(list(~sep=any("."), string));
 
   let compareSegment = (a, b) =>
     switch (a, b) {

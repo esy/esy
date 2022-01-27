@@ -219,7 +219,7 @@ module Formula = {
       };
 
       let pp = (fmt, f) => {
-        let ppConjDefault = Fmt.(list(~sep=unit(" "), Constraint.pp));
+        let ppConjDefault = Fmt.(list(~sep=any(" "), Constraint.pp));
         let ppConj = (fmt, conj) =>
           switch (conj) {
           | [Constraint.GTE(a), Constraint.LT(b)] =>
@@ -239,7 +239,7 @@ module Formula = {
           | _ => ppConjDefault(fmt, conj)
           };
 
-        Fmt.(list(~sep=unit(" || "), ppConj))(fmt, f);
+        Fmt.(list(~sep=any(" || "), ppConj))(fmt, f);
       };
 
       let show = f => Format.asprintf("%a", pp, f);
@@ -274,17 +274,17 @@ module Formula = {
       let pp = (fmt, f) => {
         let ppDisj = fmt =>
           fun
-          | [] => Fmt.unit("true", fmt, ())
+          | [] => Fmt.any("true", fmt, ())
           | [disj] => Constraint.pp(fmt, disj)
           | disjs =>
             Fmt.pf(
               fmt,
               "(%a)",
-              Fmt.(list(~sep=unit(" || "), Constraint.pp)),
+              Fmt.(list(~sep=any(" || "), Constraint.pp)),
               disjs,
             );
 
-        Fmt.(list(~sep=unit(" && "), ppDisj))(fmt, f);
+        Fmt.(list(~sep=any(" && "), ppDisj))(fmt, f);
       };
 
       let show = f => Format.asprintf("%a", pp, f);

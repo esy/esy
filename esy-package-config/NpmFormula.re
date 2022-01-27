@@ -4,7 +4,7 @@ type t = list(Req.t);
 let empty = [];
 
 let pp = (fmt, deps) =>
-  Fmt.pf(fmt, "@[<h>%a@]", Fmt.list(~sep=Fmt.unit(", "), Req.pp), deps);
+  Fmt.pf(fmt, "@[<h>%a@]", Fmt.list(~sep=Fmt.any(", "), Req.pp), deps);
 
 let of_yojson = json => {
   open Result.Syntax;

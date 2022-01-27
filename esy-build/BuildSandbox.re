@@ -1077,8 +1077,8 @@ module Changes = {
 
   let pp = fmt =>
     fun
-    | Yes => Fmt.unit("yes", fmt, ())
-    | No => Fmt.unit("no", fmt, ());
+    | Yes => Fmt.any("yes", fmt, ())
+    | No => Fmt.any("no", fmt, ());
 };
 
 let isBuilt = (sandbox, task) =>
@@ -1111,7 +1111,7 @@ let buildTask =
   open RunAsync.Syntax;
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
-  let label = Fmt.strf("build %a", Task.pp, task);
+  let label = Fmt.str("build %a", Task.pp, task);
   let* () =
     Perf.measureLwt(~label, () =>
       EsyBuildPackageApi.build(

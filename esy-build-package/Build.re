@@ -231,7 +231,7 @@ let configureBuild = (~cfg: Config.t, plan: Plan.t) => {
 };
 
 let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
-  let label = Fmt.(strf("esy-installer: %a", Path.pp, installFilename));
+  let label = Fmt.(str("esy-installer: %a", Path.pp, installFilename));
   EsyLib.Perf.measure(
     ~label,
     () => {

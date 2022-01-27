@@ -8,7 +8,7 @@ type env =
 
 let pp_env = (fmt, env) =>
   switch (env) {
-  | CurrentEnv => Fmt.unit("CurrentEnv", fmt, ())
+  | CurrentEnv => Fmt.any("CurrentEnv", fmt, ())
   | CurrentEnvOverride(env) =>
     Fmt.pf(
       fmt,

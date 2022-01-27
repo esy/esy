@@ -107,7 +107,7 @@ let pp = {
   let ppItem = (fmt, (name, item)) =>
     Fmt.pf(fmt, "%s: %a", name, pp_item, item);
 
-  StringMap.pp(~sep=Fmt.unit(", "), ppItem);
+  StringMap.pp(~sep=Fmt.any(", "), ppItem);
 };
 
 let show = env => Format.asprintf("%a", pp, env);

@@ -16,7 +16,7 @@ let ppContextItem = fmt =>
     Fmt.pf(fmt, "@[<h 2>%s@\n%a@]", filename, Fmt.text, out);
 
 let ppContext = (fmt, context) =>
-  Fmt.(list(~sep=unit("@\n"), ppContextItem))(fmt, List.rev(context));
+  Fmt.(list(~sep=any("@\n"), ppContextItem))(fmt, List.rev(context));
 
 let ppError = (fmt, (msg, context)) =>
   Fmt.pf(

@@ -17,7 +17,7 @@ let jsppStringMap = (jsppKey, jsppValue, fmt, bindings) => {
   Fmt.pf(
     fmt,
     "new Map([@[<v 2>%a@]])",
-    Fmt.(list(~sep=unit(",@,"), jsppItem)),
+    Fmt.(list(~sep=any(",@,"), jsppItem)),
     bindings,
   );
 };
@@ -31,7 +31,7 @@ module PackageInformation = {
   let jsppStringOrNull = (fmt, v) =>
     switch (v) {
     | String(s) => jsppString(fmt, s)
-    | Null => Fmt.unit("null", fmt, ())
+    | Null => Fmt.any("null", fmt, ())
     };
 
   module StringOrNullMap =
