@@ -80,6 +80,7 @@
     "@reason-native/rely": "*",
     "@opam/ocaml-lsp-server": "*",
     "@opam/merlin": "^3.3.3",
+    "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
   }
 }
