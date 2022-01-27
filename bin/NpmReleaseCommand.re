@@ -564,7 +564,7 @@ let make =
           Logs_lwt.warn(m =>
             m(
               {|found unused package specs in "esy.release.includePackages": %a|},
-              Fmt.(list(~sep=unit(", "), PkgSpec.pp)),
+              Fmt.(list(~sep=any(", "), PkgSpec.pp)),
               unused,
             )
           )

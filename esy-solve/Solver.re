@@ -115,7 +115,7 @@ module Reason: {
       Fmt.string(fmt, name);
     };
 
-    let sep = Fmt.unit(" -> ");
+    let sep = Fmt.any(" -> ");
     Fmt.(hbox(list(~sep, ppPkgName)))(fmt, List.rev(path));
   };
 
@@ -163,7 +163,7 @@ module Explanation = {
 
   let pp = (fmt, reasons) => {
     let ppReasons = (fmt, reasons) => {
-      let sep = Fmt.unit("@;@;");
+      let sep = Fmt.any("@;@;");
       Fmt.pf(fmt, "@[<v>%a@;@]", Fmt.list(~sep, Reason.pp), reasons);
     };
 

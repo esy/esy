@@ -8,7 +8,7 @@ type t =
 
 let pp = fmt =>
   fun
-  | Root => Fmt.unit("root", fmt, ())
+  | Root => Fmt.any("root", fmt, ())
   | ByName(name) => Fmt.string(fmt, name)
   | [@implicit_arity] ByNameVersion(name, version) =>
     Fmt.pf(fmt, "%s@%a", name, Version.pp, version)
