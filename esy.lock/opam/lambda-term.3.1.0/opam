@@ -3,7 +3,7 @@ maintainer: "jeremie@dimino.org"
 authors: ["Jérémie Dimino"]
 homepage: "https://github.com/ocaml-community/lambda-term"
 bug-reports: "https://github.com/ocaml-community/lambda-term/issues"
-dev-repo: "git://github.com/ocaml-community/lambda-term.git"
+dev-repo: "git+https://github.com/ocaml-community/lambda-term.git"
 license: "BSD-3-Clause"
 build: [
   ["dune" "build" "-p" name "-j" jobs]

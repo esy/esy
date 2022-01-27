@@ -3,7 +3,7 @@ maintainer: "7895506+MSoegtropIMC@users.noreply.github.com"
 homepage: "https://www.gnu.org/software/automake"
 authors: ["Jim Meyering" "David J. MacKenzie" "https://git.savannah.gnu.org/cgit/automake.git/tree/THANKS"]
 bug-reports: "https://www.gnu.org/software/automake/manual/html_node/Reporting-Bugs.html"
-license: "GPL-2.0+"
+license: "GPL-2.0-or-later"
 build: [ "automake" "--help" ]
 depends: "conf-autoconf"
 depexts: [

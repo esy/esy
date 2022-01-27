@@ -34,7 +34,7 @@ authors: [
   "Jakub Zwolakowski"
   "Olivier Rosello"
 ]
-license: "LGPL-3.0-or-later with OCaml-LGPL-linking-exception"
+license: "LGPL-3.0-or-later WITH OCaml-LGPL-linking-exception"
 homepage: "http://www.mancoosi.org/software/"
 doc: "https://irill.gitlab.io/dose3"
 bug-reports: "https://gitlab.com/irill/dose3/issues/"
