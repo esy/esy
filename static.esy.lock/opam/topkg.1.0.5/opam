@@ -8,14 +8,14 @@ dev-repo: "git+https://erratique.ch/repos/topkg.git"
 bug-reports: "https://github.com/dbuenzli/topkg/issues"
 license: ["ISC"]
 tags: ["packaging" "ocamlbuild" "org:erratique"]
-depends: ["ocaml" {>= "4.03.0"}
+depends: ["ocaml" {>= "4.05.0"}
           "ocamlfind" {build & >= "1.6.1"}
           "ocamlbuild"]
 build: [["ocaml" "pkg/pkg.ml" "build" "--pkg-name" name
                                       "--dev-pkg" "%{dev}%"]]
 url {
-  src: "https://erratique.ch/software/topkg/releases/topkg-1.0.4.tbz"
-  checksum: "sha512=5baa1bf0105397589b741acd0195069823548b2051e453dffd641e5d00536b7a5f41b38d005b2b063f9e7cfb9a3b627bec3e6ad48e56769cc35a71f97a897f1b"}
+  src: "https://erratique.ch/software/topkg/releases/topkg-1.0.5.tbz"
+  checksum: "sha512=9450e9139209aacd8ddb4ba18e4225770837e526a52a56d94fd5c9c4c9941e83e0e7102e2292b440104f4c338fabab47cdd6bb51d69b41cc92cc7a551e6fefab"}
 description: """
 Topkg is a packager for distributing OCaml software. It provides an
 API to describe the files a package installs in a given build

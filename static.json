@@ -39,6 +39,12 @@
           "build": "true"
         }
       },
+      "@opam/rtop": {
+        "source": "no-source:",
+        "override": {
+          "build": "true"
+        }
+      },
       "@opam/utop": {
         "source": "no-source:",
         "override": {
