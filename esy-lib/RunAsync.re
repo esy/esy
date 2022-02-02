@@ -18,11 +18,6 @@ let contextf = (v, fmt) => {
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
-let withContextOfLog = (~header=?, content, v) => {
-  let%lwt v = v;
-  Lwt.return(Run.withContextOfLog(~header?, content, v));
-};
-
 let map = (~f, v) => {
   let waitForPromise =
     fun

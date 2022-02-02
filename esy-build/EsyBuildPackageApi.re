@@ -143,11 +143,11 @@ let build =
   | (Unix.WSTOPPED(code), Some((logPath, fd))) =>
     UnixLabels.close(fd);
     let* log = Fs.readFile(logPath);
-    RunAsync.withContextOfLog(
+    Run.withContextOfLog(
       ~header="build log:",
       log,
-      errorf("build failed with exit code: %i", code),
-    );
+      Run.errorf("build failed with exit code: %i", code),
+    ) |> RunAsync.ofRun
 
   | (Unix.WEXITED(code), None)
   | (Unix.WSIGNALED(code), None)

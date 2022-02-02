@@ -35,13 +35,6 @@ let context: (string, t('v)) => t('v);
 let contextf: (t('v), format4('a, Format.formatter, unit, t('v))) => 'a;
 
 /**
- * Same as with the [withContext] but will be formatted as differently, as a
- * single block of text.
- */
-
-let withContextOfLog: (~header: string=?, string, t('a)) => t('a);
-
-/**
  * [cleanup comp handler] executes [handler] in case of any error happens during
  * [comp] execution. Note that [handler] sometimes can fire two times.
  */
