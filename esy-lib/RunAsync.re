@@ -37,15 +37,17 @@ let bind = (~f, v) => {
 };
 
 let both = (a, b) => {
-  let%lwt a = a
-  and b = b;
-  Lwt.return(
-    switch (a, b) {
-    | (Ok(a), Ok(b)) => [@implicit_arity] Ok(a, b)
-    | (Ok(_), Error(err)) => Error(err)
-    | (Error(err), Ok(_)) => Error(err)
-    | (Error(err), Error(_)) => Error(err)
-    },
+  Lwt.bind(a, a =>
+    Lwt.map(
+      b =>
+        switch (a, b) {
+        | (Ok(a), Ok(b)) => [@implicit_arity] Ok(a, b)
+        | (Ok(_), Error(err)) => Error(err)
+        | (Error(err), Ok(_)) => Error(err)
+        | (Error(err), Error(_)) => Error(err)
+        },
+      b,
+    )
   );
 };
 
