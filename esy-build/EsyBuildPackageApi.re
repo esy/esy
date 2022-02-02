@@ -147,7 +147,8 @@ let build =
       ~header="build log:",
       log,
       Run.errorf("build failed with exit code: %i", code),
-    ) |> RunAsync.ofRun
+    )
+    |> RunAsync.ofRun;
 
   | (Unix.WEXITED(code), None)
   | (Unix.WSIGNALED(code), None)
