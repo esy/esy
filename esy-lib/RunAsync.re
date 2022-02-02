@@ -85,22 +85,6 @@ let runExn = (~err=?, v) => {
   Run.runExn(~err?, v);
 };
 
-let cleanup = (comp, handler) => {
-  let res =
-    switch%lwt (comp) {
-    | Ok(res) => return(res)
-    | Error(_) as err =>
-      let%lwt () = handler();
-      Lwt.return(err);
-    };
-
-  try%lwt(res) {
-  | err =>
-    let%lwt () = handler();
-    raise(err);
-  };
-};
-
 module List = {
   let foldLeft = (~f: ('a, 'b) => t('a), ~init: 'a, xs: list('b)) => {
     let rec fold = (acc, xs) =>
