@@ -9,13 +9,12 @@ let errorf = fmt => {
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
-let context = (v, msg) => {
-  let%lwt v = v;
-  Lwt.return(Run.context(v, msg));
+let context = msg => {
+  Lwt.map(Run.context(msg));
 };
 
 let contextf = (v, fmt) => {
-  let kerr = _ => context(v, Format.flush_str_formatter());
+  let kerr = _ => context(Format.flush_str_formatter(), v);
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
