@@ -77,12 +77,14 @@ module OfPackageJson = {
     sandboxEnv: BuildEnv.t,
     opamOverrideRemote: [@default None] option(string),
     opamOverrideLocal: [@default None] option(Path.t),
+    opamRepositories: [@default []] list(EsySolve.OpamRepository.t),
   };
 
   let empty = {
     sandboxEnv: BuildEnv.empty,
     opamOverrideRemote: None,
     opamOverrideLocal: None,
+    opamRepositories: [],
   };
 
   [@deriving of_yojson({strict: false})]
@@ -132,31 +134,6 @@ let configured = proj =>
       fetched.configured;
     },
   );
-module OfPackageJsonOpamRepositories = {
-  [@deriving of_yojson({strict: false})]
-  type t = {
-    [@default []]
-    opamRepositories: list(EsySolve.OpamRepository.t),
-  };
-};
-
-let opamRepositories = (projcfg: ProjectConfig.t) => {
-  let spec = projcfg.spec;
-  let manifest = spec.manifest;
-  RunAsync.Syntax.(
-    switch (manifest) {
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
-      let* json = Fs.readJsonFile(Path.(spec.path / filename));
-      let* pkgJson =
-        RunAsync.ofRun(
-          Json.parseJsonWith(OfPackageJsonOpamRepositories.of_yojson, json),
-        );
-      return(pkgJson.OfPackageJsonOpamRepositories.opamRepositories);
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _)
-    | EsyInstall.SandboxSpec.ManifestAggregate(_) => return([])
-    }
-  );
-};
 
 let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   open RunAsync.Syntax;
@@ -206,7 +183,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~esyOpamOverrideLocal?,
       ~esyOpamOverrideRemote?,
       ~solveTimeout=?projcfg.solveTimeout,
-      ~opamRepositories,
+      ~opamRepositories=esy.opamRepositories,
       (),
     );
 

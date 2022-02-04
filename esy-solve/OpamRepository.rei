@@ -1,5 +1,5 @@
 type t =
-  | Local(string)
+  | Local(Fpath.t)
   | Remote(string);
 
 include S.COMPARABLE with type t := t;

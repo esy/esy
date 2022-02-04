@@ -67,19 +67,18 @@ let make =
       ),
     );
 
-  let hash = s => s |> Digestv.ofString |> Digestv.toHex;
   let opamRepositories =
     List.map(
       ~f=
         opamRepository => {
           switch (opamRepository) {
           | OpamRepository.Remote(location) =>
-            // TODO: figure out the path of custom opam repositories
+            let hash = s => s |> Digestv.ofString |> Digestv.toHex;
             Remote(
               location,
               Path.(prefixPath / ("opam-repository-" ++ hash(location))),
-            )
-          | Local(location) => Local(Path.v(location))
+            );
+          | Local(location) => Local(location)
           }
         },
       opamRepositories,
