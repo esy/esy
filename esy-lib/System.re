@@ -133,6 +133,8 @@ external checkLongPathRegistryKey: unit => bool =
 external ensureMinimumFileDescriptors: unit => unit =
   "esy_ensure_minimum_file_descriptors";
 
+external moveFile: (string, string) => unit = "esy_move_file";
+
 let getumask = () =>
   try({
     let oldMask = Unix.umask(0);

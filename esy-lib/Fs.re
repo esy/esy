@@ -160,7 +160,13 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
       );
     try%lwt(
       {
-        let%lwt () = Lwt_unix.rename(srcString, targetString);
+        let%lwt () =
+          if (Sys.unix) {
+            Lwt_unix.rename(srcString, targetString);
+          } else {
+            System.moveFile(srcString, targetString);
+            Lwt.return();
+          };
         RunAsync.return();
       }
     ) {
