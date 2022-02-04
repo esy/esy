@@ -9,8 +9,8 @@ module DepSpec = {
 
     let pp = fmt =>
       fun
-      | Self => Fmt.unit("self", fmt, ())
-      | Root => Fmt.unit("root", fmt, ());
+      | Self => Fmt.any("self", fmt, ())
+      | Root => Fmt.any("root", fmt, ());
   };
 
   include DepSpecAst.Make(Id);

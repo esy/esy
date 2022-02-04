@@ -190,6 +190,9 @@ executable in the store is exactly 128 characters.
 > shebang line (first line of executable which starts with `#!`) is limited to
 > 128 characters. Thus the current limit ensure that OCaml bytecode executables
 > can be run from the store.
+> Note, however, that global build store doesn't need the underscores. With large source trees,
+> artifacts get created at very deep paths, and this can cause failures on Windows.
+> This is why we eventually shortened build paths to just `~/.esy/3/b` in [PR#969](https://github.com/esy/esy/pull/969)
 
 The padding is needed to allow relocating built artifacts between stores.
 

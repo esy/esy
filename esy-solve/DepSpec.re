@@ -7,7 +7,7 @@ module Id = {
 
   let pp = fmt =>
     fun
-    | Self => Fmt.unit("self", fmt, ());
+    | Self => Fmt.any("self", fmt, ());
 };
 
 include EsyInstall.DepSpecAst.Make(Id);

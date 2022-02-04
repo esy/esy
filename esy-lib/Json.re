@@ -169,7 +169,7 @@ module Print: {
 
   let ppRegular: Fmt.t(t);
 } = {
-  let ppComma = Fmt.unit(",@ ");
+  let ppComma = Fmt.any(",@ ");
 
   /* from yojson */
   let hex = n =>
@@ -211,7 +211,7 @@ module Print: {
       | `Int(v) => Fmt.int(fmt, v)
       | `Intlit(v) => Fmt.string(fmt, v)
       | `String(v) => ppString(fmt, v)
-      | `Null => Fmt.unit("null", fmt, ())
+      | `Null => Fmt.any("null", fmt, ())
       | `Variant(tag, args) =>
         switch (args) {
         | None => ppSyn(fmt, `List([`String(tag)]))

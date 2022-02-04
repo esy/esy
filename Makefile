@@ -123,6 +123,7 @@ new-openbsd:
 		doas chown -R $(USER):$(USER) /app/esy-install
 	SUDO=doas APP_ESY=/app/esy MUSL_STATIC_PACKAGES="" \
 			 APP_ESY_INSTALL=/app/esy-install gmake opam-setup
+	SUDO=doas gmake static-link-patch
 	SUDO=doas APP_ESY=/app/esy MUSL_STATIC_PACKAGES="" \
 			 APP_ESY_INSTALL=/app/esy-install gmake new-docker
 
@@ -169,7 +170,7 @@ install-esy-artifacts:
 	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
 	mv _release $(APP_ESY_RELEASE)
 
-new-docker: static-link-patch
+new-docker:
 	make opam-install-deps
 	make build-with-opam
 	make build-with-esy

@@ -70,6 +70,41 @@ module TermPp = {
   };
 };
 
+module OfPackageJson = {
+  [@deriving of_yojson({strict: false})]
+  type esy = {
+    [@default BuildEnv.empty]
+    sandboxEnv: BuildEnv.t,
+    opamOverrideRemote: [@default None] option(string),
+    opamOverrideLocal: [@default None] option(Path.t),
+  };
+
+  let empty = {
+    sandboxEnv: BuildEnv.empty,
+    opamOverrideRemote: None,
+    opamOverrideLocal: None,
+  };
+
+  [@deriving of_yojson({strict: false})]
+  type t = {
+    [@default empty]
+    esy,
+  };
+
+  let read = spec =>
+    RunAsync.Syntax.(
+      switch (spec.EsyInstall.SandboxSpec.manifest) {
+      | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
+        let* json = Fs.readJsonFile(Path.(spec.path / filename));
+        let* pkgJson = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+        return(pkgJson.esy);
+
+      | EsyInstall.SandboxSpec.Manifest((Opam, _))
+      | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(empty)
+      }
+    );
+};
+
 let makeCachePath = (prefix, projcfg: ProjectConfig.t) => {
   let json = ProjectConfig.to_yojson(projcfg);
   let hash = Yojson.Safe.to_string(json) |> Digest.string |> Digest.to_hex;
@@ -133,7 +168,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
 
   let files = ref(files);
 
-  let* opamRepositories = opamRepositories(projcfg);
+  let* esy = OfPackageJson.read(projcfg.spec);
 
   let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
@@ -144,6 +179,17 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         Path.(dir / "lib" / "esy" / "esySolveCudfCommand") |> Cmd.ofPath;
       return(cmd);
     };
+
+  let esyOpamOverrideRemote =
+    Option.orOther(
+      ~other=esy.opamOverrideRemote,
+      projcfg.esyOpamOverrideRemote,
+    );
+  let esyOpamOverrideLocal =
+    Option.orOther(
+      ~other=esy.opamOverrideLocal,
+      projcfg.esyOpamOverrideLocal,
+    );
 
   let* solveCfg =
     EsySolve.Config.make(
@@ -157,8 +203,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~esyOpamOverride=?projcfg.esyOpamOverride,
       ~opamRepositoryLocal=?projcfg.opamRepositoryLocal,
       ~opamRepositoryRemote=?projcfg.opamRepositoryRemote,
-      ~esyOpamOverrideLocal=?projcfg.esyOpamOverrideLocal,
-      ~esyOpamOverrideRemote=?projcfg.esyOpamOverrideRemote,
+      ~esyOpamOverrideLocal?,
+      ~esyOpamOverrideRemote?,
       ~solveTimeout=?projcfg.solveTimeout,
       ~opamRepositories,
       (),
@@ -220,6 +266,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       solveSandbox,
       installSandbox,
       files,
+      esy,
     );
   return((
     {
@@ -252,6 +299,7 @@ let makeSolved =
       solver,
       installer,
       files,
+      esy,
     ) => {
   open RunAsync.Syntax;
   let path = SandboxSpec.solutionLockPath(projcfg.spec);
@@ -270,6 +318,7 @@ let makeSolved =
         installer,
         solution,
         files,
+        esy,
       );
     return({solution, fetched});
   | None =>
@@ -279,34 +328,6 @@ let makeSolved =
     )
   };
 };
-
-module OfPackageJson = {
-  [@deriving of_yojson({strict: false})]
-  type esy = {
-    [@default BuildEnv.empty]
-    sandboxEnv: BuildEnv.t,
-  };
-
-  [@deriving of_yojson({strict: false})]
-  type t = {
-    [@default {sandboxEnv: BuildEnv.empty}]
-    esy,
-  };
-};
-
-let readSandboxEnv = spec =>
-  RunAsync.Syntax.(
-    switch (spec.EsyInstall.SandboxSpec.manifest) {
-    | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
-      let* json = Fs.readJsonFile(Path.(spec.path / filename));
-      let* pkgJson =
-        RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
-      return(pkgJson.OfPackageJson.esy.sandboxEnv);
-
-    | EsyInstall.SandboxSpec.Manifest((Opam, _))
-    | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(BuildEnv.empty)
-    }
-  );
 
 let makeFetched =
     (
@@ -318,6 +339,7 @@ let makeFetched =
       installer,
       solution,
       files,
+      esy,
     ) => {
   open RunAsync.Syntax;
   let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
@@ -338,7 +360,7 @@ let makeFetched =
   | Some(installation) =>
     let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let* sandbox = {
-      let* sandboxEnv = readSandboxEnv(projcfg.spec);
+      let sandboxEnv = OfPackageJson.(esy.sandboxEnv);
       let* (sandbox, filesUsedForPlan) =
         BuildSandbox.make(
           ~sandboxEnv,

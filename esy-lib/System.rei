@@ -50,6 +50,8 @@ let supportsLongPaths: unit => bool;
 
 let ensureMinimumFileDescriptors: unit => unit;
 
+let moveFile: (string, string) => unit;
+
 let getumask: unit => int;
 
 module Environment: {

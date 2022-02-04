@@ -291,7 +291,7 @@ module FetchPackage: {
               "unable to fetch %a:@[<v 2>@\n%a@]",
               Package.pp,
               pkg,
-              Fmt.(list(~sep=unit("@\n"), ppErr)),
+              Fmt.(list(~sep=any("@\n"), ppErr)),
               errs,
             );
           });
@@ -606,14 +606,10 @@ module LinkBin = {
 
   let installBinWrapperAsBatch = (binPath, (name, origPath)) => {
     let data =
-      Fmt.strf(
-        {|@ECHO off
+      Fmt.str({|@ECHO off
 @SETLOCAL
 "%a" %%*
-          |},
-        Path.pp,
-        origPath,
-      );
+          |}, Path.pp, origPath);
 
     Fs.writeFile(
       ~perm=0o755,
@@ -1010,7 +1006,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
                 m(
                   "executable '%s' is installed by several packages: @[<h>%a@]@;",
                   name,
-                  Fmt.(list(~sep=unit(", "), Package.pp)),
+                  Fmt.(list(~sep=any(", "), Package.pp)),
                   pkgs,
                 )
               );

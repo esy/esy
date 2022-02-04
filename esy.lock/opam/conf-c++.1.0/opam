@@ -1,0 +1,19 @@
+opam-version: "2.0"
+maintainer: "https://github.com/ocaml/opam-repository/issues"
+authors: "C++ compiler developers"
+homepage: "https://github.com/ocaml/opam-repository"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+license: "GPL-2.0-or-later"
+build: ["c++" "--version"]
+depexts: [
+  ["gcc-c++"] {os-distribution = "centos"}
+  ["gcc-c++"] {os-distribution = "fedora"}
+  ["gcc-c++"] {os-family = "suse"}
+  ["g++"] {os-family = "debian"}
+  ["gcc"] {os-distribution = "nixos"}
+  ["gcc"] {os-distribution = "arch"}
+]
+synopsis: "Virtual package relying on the c++ compiler"
+description:
+  "This package can only install if the c++ compiler is installed on the system."
+flags: conf

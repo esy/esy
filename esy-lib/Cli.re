@@ -163,11 +163,11 @@ let cmdOptionTerm = (~doc, ~docv) => {
 let setupLogTerm = {
   let pp_header = (ppf, (lvl: Logs.level, _header)) =>
     switch (lvl) {
-    | Logs.App => Fmt.(styled(`Blue, unit("info ")))(ppf, ())
-    | Logs.Error => Fmt.(styled(`Red, unit("error ")))(ppf, ())
-    | Logs.Warning => Fmt.(styled(`Yellow, unit("warn ")))(ppf, ())
-    | Logs.Info => Fmt.(styled(`Blue, unit("info ")))(ppf, ())
-    | Logs.Debug => Fmt.(unit("debug "))(ppf, ())
+    | Logs.App => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Logs.Error => Fmt.(styled(`Red, any("error ")))(ppf, ())
+    | Logs.Warning => Fmt.(styled(`Yellow, any("warn ")))(ppf, ())
+    | Logs.Info => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Logs.Debug => Fmt.(any("debug "))(ppf, ())
     };
 
   let lwt_reporter = () => {

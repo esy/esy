@@ -201,9 +201,22 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
         let* () = Git.clone(~config, ~dst=stagePath, ~remote=git.remote, ());
         let* () = Git.checkout(~ref=git.commit, ~repo=stagePath, ());
         let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
-        let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-        // TODO: handle extraSouces for Git repos
-        return(Path(path));
+        switch (git.manifest) {
+        | Some((_manifestType, manifestFile)) =>
+          switch (Path.ofString(Filename.dirname(manifestFile))) {
+          | Ok(manifestFilePath) =>
+            let packagePath =
+              DistPath.toPath(stagePath, DistPath.ofPath(manifestFilePath));
+            let* () = Fs.rename(~skipIfExists=true, ~src=packagePath, path);
+            // TODO: handle extraSouces for Git repos
+            return(Path(path));
+          | Error(`Msg(msg)) => errorf("%s", msg)
+          }
+        | None =>
+          let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
+          // TODO: handle extraSouces for Git repos
+          return(Path(path));
+        };
       },
     );
   };

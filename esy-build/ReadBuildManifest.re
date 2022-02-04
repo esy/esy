@@ -223,10 +223,10 @@ let ofPath = (~manifest=?, path: Path.t) => {
     | Some(spec) =>
       switch (spec) {
       | (ManifestSpec.Esy, fname) =>
-        let path = Path.(path / fname);
+        let path = Path.(path / Filename.basename(fname));
         ofPackageJson(path);
       | (ManifestSpec.Opam, fname) =>
-        let path = Path.(path / fname);
+        let path = Path.(path / Filename.basename(fname));
         OpamBuild.ofFile(path);
       }
     };

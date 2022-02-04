@@ -180,7 +180,7 @@ let pp = (fmt, spec) =>
   switch (spec.manifest) {
   | Manifest(filename) => ManifestSpec.pp(fmt, filename)
   | ManifestAggregate(filenames) =>
-    Fmt.(list(~sep=unit(", "), ManifestSpec.pp))(fmt, filenames)
+    Fmt.(list(~sep=any(", "), ManifestSpec.pp))(fmt, filenames)
   };
 
 let show = spec => Format.asprintf("%a", pp, spec);

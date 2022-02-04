@@ -90,7 +90,7 @@ let shell = (copts: commonOpts) => {
       let pp =
         vbox(
           ~indent=2,
-          pair(string, const(prefix(cut, vbox(ppItems)), items)),
+          pair(string, const(append(cut, vbox(ppItems)), items)),
         );
       pp(ppf, (title, ()));
     };

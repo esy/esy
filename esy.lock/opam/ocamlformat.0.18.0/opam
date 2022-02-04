@@ -22,9 +22,9 @@ depends: [
   "menhirLib" {>= "20200624"}
   "menhirSdk" {>= "20200624"}
   "ocp-indent" {with-test}
-  "bisect_ppx" {with-test & >= "2.5.0"}
-  "odoc" {>= "1.4.2"}
-  "ppxlib" {>= "0.22.0"}
+  "bisect_ppx" {dev & >= "2.5.0"}
+  "odoc" {>= "1.4.2" & < "2.0.0"}
+  "ppxlib" {>= "0.22.0" & < "0.23.0"}
   "re" {>= "1.7.2"}
   "stdio" {< "v0.15"}
   "uuseg" {>= "10.0.0"}

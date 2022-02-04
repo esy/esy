@@ -1,6 +1,6 @@
 {
   "name": "esy",
-  "version": "0.6.12",
+  "version": "0.6.13-dev",
   "source": "./esy.json",
   "esy": {
     "release": {
@@ -34,6 +34,12 @@
         }
       },
       "@opam/ocaml-lsp-server": {
+        "source": "no-source:",
+        "override": {
+          "build": "true"
+        }
+      },
+      "@opam/rtop": {
         "source": "no-source:",
         "override": {
           "build": "true"
