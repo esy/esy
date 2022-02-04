@@ -55,20 +55,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '*',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -98,20 +99,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg2': '*',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -143,22 +145,23 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '*',
                     '@opam/pkg2': '*',
                     '@opam/pkg3': '*',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -199,20 +202,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '1.0.0',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -247,20 +251,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '1.0.0',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -295,20 +300,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '2.0.0',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
@@ -343,20 +349,21 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
-                esy: {},
+                esy: {
+                    opamRepositories: [
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
+                        },
+                        {
+                            type: "local",
+                            location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
+                        }
+                    ]
+                },
                 dependencies: {
                     '@opam/pkg1': '3.0.0',
-                },
-                opamRepositories: [
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryA].registryPath
-                    },
-                    {
-                        type: "local",
-                        location: p.secondaryOpamRegistries[opamRegirstryB].registryPath
-                    }
-                ]
+                }
             }),
         );
 
