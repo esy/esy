@@ -574,7 +574,6 @@ module FetchPackage: {
 
 module LinkBin = {
   let installNodeBinWrapper = (binPath, (name, origPath)) => {
-    open RunAsync.Syntax;
     let (data, path) =
       switch (System.Platform.host) {
       | Windows =>
