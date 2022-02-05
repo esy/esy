@@ -992,8 +992,6 @@ let exec =
 
     switch (System.Platform.host) {
     | System.Platform.Windows =>
-      open Run;
-
       /*
        * `esy-bash` takes an optional `--env` parameter with the
        * environment variables that should be used for the bash session.
