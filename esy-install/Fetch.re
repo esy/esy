@@ -574,6 +574,7 @@ module FetchPackage: {
 
 module LinkBin = {
   let installNodeBinWrapper = (binPath, (name, origPath)) => {
+    open RunAsync.Syntax;
     let (data, path) =
       switch (System.Platform.host) {
       | Windows =>
@@ -586,8 +587,8 @@ module LinkBin = {
             Path.pp,
             origPath,
           );
-
-        (data, Path.(binPath / name |> addExt(".cmd")));
+        let path = Path.(binPath / name |> addExt(".cmd"));
+        (data, path);
       | _ =>
         let data =
           Format.asprintf(
@@ -598,7 +599,8 @@ module LinkBin = {
             origPath,
           );
 
-        (data, Path.(binPath / name));
+        let path = Path.(binPath / name);
+        (data, path);
       };
 
     Fs.writeFile(~perm=0o755, ~data, path);
@@ -714,7 +716,7 @@ let installNodeWrapper = (~binPath, ~pnpJsPath, ()) =>
       let* nodeCmd = Fs.realpath(Path.v(nodeCmd));
       let nodeCmd = Path.show(nodeCmd);
 
-      let (data, path) =
+      let* () =
         switch (System.Platform.host) {
         | Windows =>
           let data =
@@ -731,24 +733,26 @@ let installNodeWrapper = (~binPath, ~pnpJsPath, ()) =>
               pnpJsPath,
             );
 
-          (data, Path.(binPath / "node.cmd"));
-        | _ =>
-          let data =
-            Format.asprintf(
-              {|#!/bin/sh
-export ESY__NODE_BIN_PATH="%a"
-exec "%s" -r "%a" "$@"
-              |},
-              Path.pp,
-              binPath,
-              nodeCmd,
-              Path.pp,
-              pnpJsPath,
-            );
-
-          (data, Path.(binPath / "node"));
+          let path = Path.(binPath / "node.cmd");
+          Fs.writeFile(~perm=0o755, ~data, path);
+        | _ => RunAsync.return()
         };
 
+      let normalizer = Sys.unix ? (x => x) : EsyBash.normalizePathForCygwin;
+      let data =
+        Format.asprintf(
+          {|#!/bin/sh
+export ESY__NODE_BIN_PATH='%a'
+exec '%s' -r '%a' "$@"
+              |},
+          Path.pp,
+          binPath,
+          normalizer(nodeCmd),
+          Path.pp,
+          pnpJsPath,
+        );
+
+      let path = Path.(binPath / "node");
       Fs.writeFile(~perm=0o755, ~data, path);
     | Error(_) =>
       /* no node available in $PATH, just skip this then */

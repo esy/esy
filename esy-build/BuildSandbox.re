@@ -990,18 +990,87 @@ let exec =
 
     let env = Scope.SandboxEnvironment.render(sandbox.cfg, env);
 
-    /* TODO: make sure we resolve 'esy' to the current executable, needed nested
-     * invokations */
-    ChildProcess.withProcess(
-      ~env=CustomEnv(env),
-      ~resolveProgramInEnv=true,
-      ~cwd?,
-      ~stderr=`FD_copy(Unix.stderr),
-      ~stdout=`FD_copy(Unix.stdout),
-      ~stdin=`FD_copy(Unix.stdin),
-      cmd,
-      waitForProcess,
-    );
+    switch (System.Platform.host) {
+    | System.Platform.Windows =>
+      open Run;
+
+      /*
+       * `esy-bash` takes an optional `--env` parameter with the
+       * environment variables that should be used for the bash session.
+       *
+       * Just passing the env directly to esy-bash doesn't work,
+       * because we need the current PATH/env to pick up node and run the shell
+       */
+      let json = {
+        let f = (k, v, items) => {
+          switch (k) {
+          | "" => items
+          | "PATH" => [
+              (
+                k,
+                `String(
+                  v
+                  |> String.split_on_char(System.Environment.sep().[0])
+                  |> Stdlib.List.map(p =>
+                       p != "" ? EsyBash.normalizePathForCygwin(p) : p
+                     )
+                  |> String.concat(":"),
+                ),
+              ),
+              ...items,
+            ]
+          | k => [(k, `String(v)), ...items]
+          };
+        };
+        let items = Astring.String.Map.fold(f, env, []);
+        `Assoc(items);
+      };
+      let jsonString = Yojson.Safe.to_string(json);
+      let* environmentTempFile = RunAsync.ofBosError @@ Bos.OS.File.tmp("%s");
+      let* () =
+        RunAsync.ofBosError @@
+        Bos.OS.File.write(environmentTempFile, jsonString);
+      let commandAsList = Bos.Cmd.to_list(Cmd.toBosCmd(cmd));
+
+      /* Normalize slashes in the command we send to esy-bash */
+      let normalizedCommands =
+        Bos.Cmd.of_list(
+          Stdlib.List.map(
+            EsyLib.Path.normalizePathSepOfFilename,
+            commandAsList,
+          ),
+        );
+      let augmentedEsyCommand =
+        EsyLib.EsyBash.toEsyBashCommand(
+          ~env=Some(Fpath.to_string(environmentTempFile)),
+          normalizedCommands,
+        );
+
+      let* cmd = RunAsync.ofBosError @@ Cmd.ofBosCmd(augmentedEsyCommand);
+      ChildProcess.withProcess(
+        ~env=CustomEnv(env),
+        ~resolveProgramInEnv=true,
+        ~cwd?,
+        ~stderr=`FD_copy(Unix.stderr),
+        ~stdout=`FD_copy(Unix.stdout),
+        ~stdin=`FD_copy(Unix.stdin),
+        cmd,
+        waitForProcess,
+      );
+    | _ =>
+      /* TODO: make sure we resolve 'esy' to the current executable, needed nested
+       * invokations */
+      ChildProcess.withProcess(
+        ~env=CustomEnv(env),
+        ~resolveProgramInEnv=true,
+        ~cwd?,
+        ~stderr=`FD_copy(Unix.stderr),
+        ~stdout=`FD_copy(Unix.stdout),
+        ~stdin=`FD_copy(Unix.stdin),
+        cmd,
+        waitForProcess,
+      )
+    };
   };
 };
 
