@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const outdent = require('outdent');
 const childProcess = require('child_process');
+const isCi = require("is-ci");
 
 const {setup, isWindows} = require('./setup.js');
 const {npmPrefix, sandbox, npm, exec} = setup();
@@ -82,7 +83,7 @@ sandbox.esy('npm-release');
 const releasePath = path.join(sandbox.path, '_release');
 
 npm(releasePath, 'pack');
-npm(releasePath, '-g install ./release-0.1.0.tgz');
+npm(releasePath, '-g install ./release-0.1.0.tgz' + (process.platform !== 'win32' && isCi ? ' --prefix /usr/local': ''));
 
 if (!isWindows) {
   const stdout = exec(path.join(npmPrefix, 'bin', 'r'), {
