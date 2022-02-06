@@ -24,7 +24,7 @@ function getTempDir() {
   // The appveyor temp folder has some permission issues -
   // so in that environment, we'll run these tests from a root folder.
   const appVeyorTempFolder = "C:/esy-ci-temp";
-  return isWindows ? (isCi ? appVeyorTempFolder : os.tmpdir()) : '/tmp';
+  return isWindows && isCi ? appVeyorTempFolder : os.tmpdir();
 }
 
 const esyPrefixPath =
