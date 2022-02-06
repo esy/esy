@@ -5,8 +5,7 @@ const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
 const FixtureUtils = require('../test/FixtureUtils.js');
-
-helpers.skipSuiteOnWindows();
+const rimraf = require('rimraf');
 
 describe(`'esy install': Cache invalidation`, () => {
   test(`opam override updates should be picked up`, async () => {
@@ -46,14 +45,20 @@ describe(`'esy install': Cache invalidation`, () => {
 
     // check what we have w/o override
     {
-      const {stdout} = await p.esy(`cat '#{@opam/dep.lib}/hello'`);
+      // Because of the way we split the args, on Windows, we need not quote esy command expressions
+      let command =
+        process.platform == 'win32'
+          ? `cat #{@opam/dep.lib}/hello`
+          : `cat '#{@opam/dep.lib}/hello'`;
+
+      const {stdout} = await p.esy(command);
       expect(stdout.trim()).toBe('not-overridden');
     }
 
     // add new opam override
 
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await FixtureUtils.initialize(path.join(p.opamRegistry.overridePath, 'packages'), [
       helpers.dir(
@@ -65,25 +70,37 @@ describe(`'esy install': Cache invalidation`, () => {
 
     // drop local caches but not lock and see we still "locked" to an non
     // overridden package
-    await p.run(`rm -rf ./_esy`);
+    rimraf.sync(path.join(p.projectPath, '_esy'));
     await p.esy(`install`);
     await p.esy(`build`);
 
     {
-      const {stdout} = await p.esy(`cat '#{@opam/dep.lib}/hello'`);
+      // Because of the way we split the args, on Windows, we need not quote esy command expressions
+      let command =
+        process.platform == 'win32'
+          ? `cat #{@opam/dep.lib}/hello`
+          : `cat '#{@opam/dep.lib}/hello'`;
+
+      const {stdout} = await p.esy(command);
       expect(stdout.trim()).toBe('not-overridden');
     }
 
     // drop local caches and lock and see we are picking up the overridden
     // package.
-    await p.run(`rm -rf ./_esy`);
-    await p.run(`rm -rf ./esy.lock`);
+    rimraf.sync(path.join(p.projectPath, '_esy'));
+    rimraf.sync(path.join(p.projectPath, 'esy.lock'));
 
     await p.esy(`install`);
     await p.esy(`build`);
 
     {
-      const {stdout} = await p.esy(`cat '#{@opam/dep.lib}/hello'`);
+      // Because of the way we split the args, on Windows, we need not quote esy command expressions
+      let command =
+        process.platform == 'win32'
+          ? `cat #{@opam/dep.lib}/hello`
+          : `cat '#{@opam/dep.lib}/hello'`;
+
+      const {stdout} = await p.esy(command);
       expect(stdout.trim()).toBe('overridden');
     }
   });
@@ -121,14 +138,18 @@ describe(`'esy install': Cache invalidation`, () => {
 
     // check what we have w/o override
     {
-      const {stdout} = await p.esy(`cat '#{dep.lib}/hello'`);
+      // Because of the way we split the args, on Windows, we need not quote esy command expressions
+      let command =
+        process.platform == 'win32' ? `cat #{dep.lib}/hello` : `cat '#{dep.lib}/hello'`;
+
+      const {stdout} = await p.esy(command);
       expect(stdout.trim()).toBe('ok');
     }
 
     // add new override
 
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await FixtureUtils.initialize(p.projectPath, [
       helpers.packageJson({
@@ -152,7 +173,10 @@ describe(`'esy install': Cache invalidation`, () => {
     await p.esy(`build`);
 
     {
-      const {stdout} = await p.esy(`cat '#{dep.lib}/hello2'`);
+      let command =
+        process.platform == 'win32' ? `cat #{dep.lib}/hello2` : `cat '#{dep.lib}/hello2'`;
+
+      const {stdout} = await p.esy(command);
       expect(stdout.trim()).toBe('ok');
     }
   });
@@ -176,7 +200,7 @@ describe(`'esy install': Cache invalidation`, () => {
     await expect(p.esy('')).rejects.toThrow();
 
     // wait, on macOS sometimes it doesn't pick up changes
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await FixtureUtils.initialize(p.projectPath, [
       helpers.packageJson({
