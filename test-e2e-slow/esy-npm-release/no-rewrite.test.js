@@ -83,15 +83,25 @@ sandbox.esy('npm-release');
 const releasePath = path.join(sandbox.path, '_release');
 
 npm(releasePath, 'pack');
-npm(releasePath, '-g install ./release-0.1.0.tgz' + (process.platform !== 'win32' && isCi ? ' --prefix /usr/local': ''));
+npm(releasePath, '-g install ./release-0.1.0.tgz' + (process.platform !== 'win32' && isCi ? ' --prefix /usr/local': '') + ' --force');
 
 if (!isWindows) {
-  const stdout = exec(path.join(npmPrefix, 'bin', 'r'), {
-    env: {
-      ...process.env,
-      NAME: 'ME',
-    },
-  });
+  let stdout;
+  if (isCi) {
+    stdout = exec('r', {
+      env: {
+        ...process.env,
+        NAME: 'ME',
+      },
+    });
+  } else {
+    stdout = exec(path.join(npmPrefix, 'bin', 'r'), {
+      env: {
+        ...process.env,
+        NAME: 'ME',
+      },
+    });
+  }
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-ME\n');
 } else {
   const stdout = exec(path.join(npmPrefix, 'r.cmd'), {
@@ -104,8 +114,14 @@ if (!isWindows) {
 }
 
 if (!isWindows) {
-  const stdout = exec(path.join(npmPrefix, 'bin', 'rd'));
-  assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
+  let stdout;
+  if (isCi) {
+    stdout = exec('rd');
+    assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
+  } else {
+    stdout = exec(path.join(npmPrefix, 'bin', 'rd'));
+    assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\n');
+  }
 } else {
   const stdout = exec(path.join(npmPrefix, 'rd.cmd'));
   assert.equal(stdout.toString(), 'RELEASE-DEP-HELLO\r\n');
@@ -114,7 +130,12 @@ if (!isWindows) {
 // check that `release ----where` returns a path to a real `release` binary
 
 if (!isWindows) {
-  const releaseBin = exec(path.join(npmPrefix, 'bin', 'r') + ' ----where');
+  let releaseBin;
+  if (isCi) {
+    releaseBin = exec('r ----where');
+  } else {
+    releaseBin = exec(path.join(npmPrefix, 'bin', 'r') + ' ----where');
+  }
   const stdout = exec(releaseBin.toString());
   assert.equal(stdout.toString(), 'RELEASE-HELLO-FROM-name\n');
 } else {
