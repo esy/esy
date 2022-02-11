@@ -90,10 +90,9 @@ let versions = (~fullMetadata=false, ~name, registry, ()) => {
     | Curl.NotFound => return(None)
     | Curl.Success(data) =>
       let* packument =
-        RunAsync.context(
-          Json.parseStringWith(Packument.of_yojson, data) |> RunAsync.ofRun,
-          "parsing packument",
-        );
+        Json.parseStringWith(Packument.of_yojson, data)
+        |> RunAsync.ofRun
+        |> RunAsync.context("parsing packument");
 
       let* versions =
         RunAsync.ofStringError(

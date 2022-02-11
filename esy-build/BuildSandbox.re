@@ -263,34 +263,30 @@ let renderOpamSubstsAsCommands = (_opamEnv, substs) => {
 
 let renderOpamPatchesToCommands = (opamEnv, patches) =>
   Run.Syntax.(
-    Run.context(
-      {
-        let evalFilter =
-          fun
-          | (path, None) => return((path, true))
-          | (path, Some(filter)) => {
-              let* filter =
-                try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
-                | Failure(msg) => error(msg)
-                };
-              return((path, filter));
-            };
+    {
+      let evalFilter =
+        fun
+        | (path, None) => return((path, true))
+        | (path, Some(filter)) => {
+            let* filter =
+              try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
+              | Failure(msg) => error(msg)
+              };
+            return((path, filter));
+          };
 
-        let* filtered = Result.List.map(~f=evalFilter, patches);
+      let* filtered = Result.List.map(~f=evalFilter, patches);
 
-        let toCommand = ((path, _)) => {
-          let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
-          List.map(~f=Scope.SandboxValue.v, cmd);
-        };
+      let toCommand = ((path, _)) => {
+        let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
+        List.map(~f=Scope.SandboxValue.v, cmd);
+      };
 
-        return(
-          filtered
-          |> List.filter(~f=((_, v)) => v)
-          |> List.map(~f=toCommand),
-        );
-      },
-      "processing patch field",
-    )
+      return(
+        filtered |> List.filter(~f=((_, v)) => v) |> List.map(~f=toCommand),
+      )
+      |> Run.context("processing patch field");
+    }
   );
 
 module Reason = {
@@ -671,49 +667,47 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
       let* env = {
         let* bindings =
           Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, scope);
-        Run.context(
-          Run.ofStringError(
-            Scope.SandboxEnvironment.Bindings.eval(bindings),
-          ),
-          "evaluating environment",
-        );
+        Scope.SandboxEnvironment.Bindings.eval(bindings)
+        |> Run.ofStringError
+        |> Run.context("evaluating environment");
       };
 
       let opamEnv = Scope.toOpamEnv(~buildIsInProgress=true, scope);
 
-      let* buildCommands = {
-        let commands = BuildSpec.buildCommands(mode, pkg, build);
-
+      let* buildCommands =
         Run.context(
-          switch (commands) {
-          | BuildManifest.EsyCommands(commands) =>
-            let* commands =
-              renderEsyCommands(
-                ~buildIsInProgress=true,
-                ~env,
-                scope,
-                commands,
-              );
-            let* applySubstsCommands =
-              renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let* applyPatchesCommands =
-              renderOpamPatchesToCommands(opamEnv, build.patches);
-            return(applySubstsCommands @ applyPatchesCommands @ commands);
-          | OpamCommands(commands) =>
-            let* commands = renderOpamCommands(opamEnv, commands);
-            let* applySubstsCommands =
-              renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let* applyPatchesCommands =
-              renderOpamPatchesToCommands(opamEnv, build.patches);
-            return(applySubstsCommands @ applyPatchesCommands @ commands);
-          | NoCommands => return([])
-          },
           "processing build commands",
+          {
+            let commands = BuildSpec.buildCommands(mode, pkg, build);
+            switch (commands) {
+            | BuildManifest.EsyCommands(commands) =>
+              let* commands =
+                renderEsyCommands(
+                  ~buildIsInProgress=true,
+                  ~env,
+                  scope,
+                  commands,
+                );
+              let* applySubstsCommands =
+                renderOpamSubstsAsCommands(opamEnv, build.substs);
+              let* applyPatchesCommands =
+                renderOpamPatchesToCommands(opamEnv, build.patches);
+              return(applySubstsCommands @ applyPatchesCommands @ commands);
+            | OpamCommands(commands) =>
+              let* commands = renderOpamCommands(opamEnv, commands);
+              let* applySubstsCommands =
+                renderOpamSubstsAsCommands(opamEnv, build.substs);
+              let* applyPatchesCommands =
+                renderOpamPatchesToCommands(opamEnv, build.patches);
+              return(applySubstsCommands @ applyPatchesCommands @ commands);
+            | NoCommands => return([])
+            };
+          },
         );
-      };
 
       let* installCommands =
         Run.context(
+          "processing esy.install",
           switch (build.BuildManifest.install) {
           | EsyCommands(commands) =>
             let* cmds =
@@ -729,7 +723,6 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
             return(Some(cmds));
           | NoCommands => return(None)
           },
-          "processing esy.install",
         );
 
       let task = {
