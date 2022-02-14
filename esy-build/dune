@@ -7,7 +7,7 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries EsyLib EsyInstall EsyCommandExpression EsyShellExpansion
-   EsyBuildPackage lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
-   logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime str astring
-   opam-format opam-state))
+ (libraries EsyPrimitives EsyLib EsyInstall EsyCommandExpression
+   EsyShellExpansion EsyBuildPackage lwt lwt.unix cmdliner yojson bos logs
+   logs.fmt logs.lwt logs.cli re fmt fmt.cli fmt.tty
+   ppx_deriving_yojson.runtime str astring opam-format opam-state))

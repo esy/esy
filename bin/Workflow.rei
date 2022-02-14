@@ -1,5 +1,7 @@
+open EsyPrimitives;
 open EsyInstall;
 open EsyBuild;
+open DepSpec;
 
 type t = {
   solvespec: EsySolve.SolveSpec.t,
@@ -10,7 +12,7 @@ type t = {
   buildenvspec: EnvSpec.t,
 };
 
-let buildAll: Solution.DepSpec.t;
-let buildDev: Solution.DepSpec.t;
+let buildAll: FetchDepSpec.t;
+let buildDev: FetchDepSpec.t;
 
 let default: t;

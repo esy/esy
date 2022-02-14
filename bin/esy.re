@@ -1,5 +1,7 @@
+open EsyPrimitives;
 open EsyBuild;
 open EsyPackageConfig;
+open DepSpec;
 
 module SandboxSpec = EsyInstall.SandboxSpec;
 module Installation = EsyInstall.Installation;
@@ -68,19 +70,15 @@ let depspecConv = {
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
-    try(
-      return(
-        EsyInstall.DepSpecParser.start(EsyInstall.DepSpecLexer.read, lexbuf),
-      )
-    ) {
-    | EsyInstall.DepSpecLexer.Error(msg) =>
+    try(return(DepSpecParser.start(DepSpecLexer.read, lexbuf))) {
+    | DepSpecLexer.Error(msg) =>
       let msg = Printf.sprintf("error parsing DEPSPEC: %s", msg);
       error(`Msg(msg));
-    | EsyInstall.DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
+    | DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
     };
   };
 
-  let pp = EsyInstall.Solution.DepSpec.pp;
+  let pp = FetchDepSpec.pp;
   Arg.conv(~docv="DEPSPEC", (parse, pp));
 };
 

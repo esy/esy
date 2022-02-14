@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
 open EsyInstall;
 open EsyBuild;
+open DepSpec;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -54,7 +56,7 @@ module TermPp = {
     Fmt.pf(
       fmt,
       "%a%a%a%a%a%a",
-      ppOption("--envspec", Fmt.quote(~mark="'", Solution.DepSpec.pp)),
+      ppOption("--envspec", Fmt.quote(~mark="'", FetchDepSpec.pp)),
       augmentDeps,
       ppFlag("--build-context"),
       buildIsInProgress,
@@ -856,11 +858,11 @@ let printEnv =
                 name,
                 Package.pp,
                 pkg,
-                Solution.DepSpec.pp,
+                FetchDepSpec.pp,
                 depspec,
                 BuildSpec.pp_mode,
                 mode,
-                Fmt.option(Solution.DepSpec.pp),
+                Fmt.option(FetchDepSpec.pp),
                 envspec.EnvSpec.augmentDeps,
                 envspec.buildIsInProgress,
                 envspec.includeBuildEnv,

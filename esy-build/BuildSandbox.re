@@ -1,3 +1,5 @@
+open DepSpec;
+open EsyPrimitives;
 open EsyPackageConfig;
 
 module Solution = EsyInstall.Solution;
@@ -157,11 +159,7 @@ module Task = {
 
     let env = Option.orDefault(~default=t.env, env);
     let depspec =
-      Format.asprintf(
-        "%a",
-        EsyInstall.Solution.DepSpec.pp,
-        Scope.depspec(t.scope),
-      );
+      Format.asprintf("%a", FetchDepSpec.pp, Scope.depspec(t.scope));
 
     {
       EsyBuildPackage.Plan.id: BuildId.show(Scope.id(t.scope)),

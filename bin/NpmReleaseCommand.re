@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
 open EsyInstall;
 open EsyBuild;
+open DepSpec;
 
 let esyInstallReleaseJs =
   switch (NodeResolution.resolve("./esyInstallRelease.js")) {
@@ -445,14 +447,14 @@ let envspec = {
   includeEsyIntrospectionEnv: false,
   augmentDeps:
     Some(
-      Solution.DepSpec.(
+      FetchDepSpec.(
         package(self) + dependencies(self) + devDependencies(self)
       ),
     ),
 };
 let buildspec = {
-  BuildSpec.all: Solution.DepSpec.(dependencies(self)),
-  dev: Solution.DepSpec.(dependencies(self)),
+  BuildSpec.all: FetchDepSpec.(dependencies(self)),
+  dev: FetchDepSpec.(dependencies(self)),
 };
 let cleanupLinksFromGlobalStore = (cfg, tasks) => {
   open RunAsync.Syntax;

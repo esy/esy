@@ -1,25 +1,26 @@
-module type DEPSPEC = {
+module type T = {
+  /** Package id. */
   type id;
 
   type t =
     pri
       | Package(id) | Dependencies(id) | DevDependencies(id) | Union(t, t);
-  /* term */
+  /* terms of depspec expression */
 
   let package: id => t;
-  /* refer to a package defined by source */
+  /** [package(id)] refers to a package by its [id] defined by source. */
 
   let dependencies: id => t;
-  /* refer to dependencies defined by source */
+  /** [dependencies(id)] refers all dependencies of the package with [id] defined by source. */
 
   let devDependencies: id => t;
-  /* refer to devDependencies defined by source */
+  /** [dependencies(id)] refers all devDependencies of the package with [id] defined by source. */
 
   /** [union a b] produces a new term with all packages defined by [a] and * [b] */
 
   let union: (t, t) => t;
 
-  /** [a + b] is the same as [union a b] */
+  /** [a + b] is the same as [union a b] - ie all packages in [a] and in [b] */
 
   let (+): (t, t) => t;
 
@@ -34,7 +35,7 @@ module type ID = {
   let pp: (Format.formatter, t) => unit;
 };
 
-module Make = (Id: ID) : (DEPSPEC with type id = Id.t) => {
+module Make = (Id: ID) : (T with type id = Id.t) => {
   type id = Id.t;
   [@deriving ord]
   type t =

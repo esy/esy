@@ -1,3 +1,4 @@
+open EsyPrimitives;
 open EsyPackageConfig;
 
 module EsyIntrospectionEnv: {let rootPackageConfigPath: string;};

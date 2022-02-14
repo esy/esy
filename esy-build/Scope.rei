@@ -1,3 +1,4 @@
+open DepSpec;
 open EsyPackageConfig;
 
 module SandboxPath: (module type of EsyBuildPackage.Config.Path);
@@ -16,7 +17,7 @@ let make:
     ~name: string,
     ~version: Version.t,
     ~mode: BuildSpec.mode,
-    ~depspec: EsyInstall.Solution.DepSpec.t,
+    ~depspec: FetchDepSpec.t,
     ~sourceType: SourceType.t,
     ~sourcePath: SandboxPath.t,
     ~globalPathVariable: option(string),
@@ -32,7 +33,7 @@ let add: (~direct: bool, ~dep: t, t) => t;
 let pkg: t => EsyInstall.Package.t;
 let id: t => BuildId.t;
 let mode: t => BuildSpec.mode;
-let depspec: t => EsyInstall.Solution.DepSpec.t;
+let depspec: t => FetchDepSpec.t;
 let name: t => string;
 let version: t => Version.t;
 let sourceType: t => SourceType.t;

@@ -1,3 +1,4 @@
+open DepSpec;
 open EsyPackageConfig;
 
 module Package = EsyInstall.Package;
@@ -332,7 +333,7 @@ type t = {
   platform: System.Platform.t,
   pkg: Package.t,
   mode: BuildSpec.mode,
-  depspec: EsyInstall.Solution.DepSpec.t,
+  depspec: FetchDepSpec.t,
   children: PackageId.Map.t(bool),
   self: PackageScope.t,
   dependencies: list(t),

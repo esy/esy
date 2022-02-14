@@ -1,10 +1,11 @@
+open DepSpec;
 /** This describes how to construct environment for command invocations. */;
 
 type t = {
   /***
    Defines what packages we should bring into the command env.
    */
-  augmentDeps: option(EsyInstall.Solution.DepSpec.t),
+  augmentDeps: option(FetchDepSpec.t),
   /***
    If we should init the build environment (enable sandboxing, do source
    relloc).
