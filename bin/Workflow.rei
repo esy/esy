@@ -5,7 +5,7 @@ open DepSpec;
 
 type t = {
   solvespec: EsySolve.SolveSpec.t,
-  installspec: Solution.Spec.t,
+  fetchDepsSubset: Solution.Spec.t,
   buildspec: BuildSpec.t,
   execenvspec: EnvSpec.t,
   commandenvspec: EnvSpec.t,

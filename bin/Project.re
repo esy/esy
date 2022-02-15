@@ -323,7 +323,7 @@ let makeFetched =
   files := [info, ...files^];
   switch%bind (
     EsyFetch.Fetch.maybeInstallationOfSolution(
-      workflow.Workflow.installspec,
+      workflow.Workflow.fetchDepsSubset,
       installer,
       solution,
     )

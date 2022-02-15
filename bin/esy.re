@@ -1069,7 +1069,7 @@ let fetch = (proj: Project.t) => {
   switch%bind (SolutionLock.ofPath(proj.installSandbox, lockPath)) {
   | Some(solution) =>
     EsyFetch.Fetch.fetch(
-      proj.workflow.installspec,
+      proj.workflow.fetchDepsSubset,
       proj.installSandbox,
       solution,
       proj.projcfg.gitUsername,
@@ -1088,7 +1088,7 @@ let solveAndFetch = (proj: Project.t) => {
   | Some(solution) =>
     switch%bind (
       EsyFetch.Fetch.maybeInstallationOfSolution(
-        proj.workflow.installspec,
+        proj.workflow.fetchDepsSubset,
         proj.installSandbox,
         solution,
       )

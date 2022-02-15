@@ -11,7 +11,6 @@ module Id = {
     | Self => Fmt.any("self", fmt, ());
 
   let self = Self;
-
 };
 
 include DepSpecF.Make(Id);

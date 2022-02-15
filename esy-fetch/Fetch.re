@@ -675,7 +675,7 @@ module LinkBin = {
     );
 };
 
-let collectPackagesOfSolution = (installspec, solution) => {
+let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
   let (pkgs, root) = {
     let root = Solution.root(solution);
 
@@ -690,7 +690,7 @@ let collectPackagesOfSolution = (installspec, solution) => {
       }
     and collectDependencies = ((seen, topo), pkg) => {
       let dependencies =
-        Solution.dependenciesBySpec(solution, installspec, pkg);
+        Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg);
       List.fold_left(~f=collect, ~init=(seen, topo), dependencies);
     };
 
@@ -760,7 +760,7 @@ exec '%s' -r '%a' "$@"
   );
 
 let isInstalledWithInstallation =
-    (installspec, sandbox: Sandbox.t, solution: Solution.t, installation) => {
+    (fetchDepsSubset, sandbox: Sandbox.t, solution: Solution.t, installation) => {
   open RunAsync.Syntax;
   let rec checkSourcePaths =
     fun
@@ -800,7 +800,7 @@ let isInstalledWithInstallation =
         false;
       };
 
-  let (pkgs, _root) = collectPackagesOfSolution(installspec, solution);
+  let (pkgs, _root) = collectPackagesOfSolution(fetchDepsSubset, solution);
   if%bind (checkSourcePaths(pkgs)) {
     if%bind (checkCachedTarballPaths(pkgs)) {
       return(checkInstallationEntry(Installation.entries(installation)));
@@ -813,7 +813,7 @@ let isInstalledWithInstallation =
 };
 
 let maybeInstallationOfSolution =
-    (installspec, sandbox: Sandbox.t, solution: Solution.t) => {
+    (fetchDepsSubset, sandbox: Sandbox.t, solution: Solution.t) => {
   open RunAsync.Syntax;
   let installationPath = SandboxSpec.installationPath(sandbox.spec);
   switch%lwt (Installation.ofPath(installationPath)) {
@@ -821,7 +821,7 @@ let maybeInstallationOfSolution =
   | Ok(None) => return(None)
   | Ok(Some(installation)) =>
     if%bind (isInstalledWithInstallation(
-               installspec,
+               fetchDepsSubset,
                sandbox,
                solution,
                installation,
@@ -833,11 +833,12 @@ let maybeInstallationOfSolution =
   };
 };
 
-let fetchPackages = (installspec, sandbox, solution, gitUsername, gitPassword) => {
+let fetchPackages =
+    (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
   /* Collect packages which from the solution */
-  let (pkgs, _root) = collectPackagesOfSolution(installspec, solution);
+  let (pkgs, _root) = collectPackagesOfSolution(fetchDepsSubset, solution);
 
   let (report, finish) = Cli.createProgressReporter(~name="fetching", ());
   let* items = {
@@ -865,15 +866,21 @@ let fetchPackages = (installspec, sandbox, solution, gitUsername, gitPassword) =
   return(fetched);
 };
 
-let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
+let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
   /* Collect packages which from the solution */
-  let (pkgs, root) = collectPackagesOfSolution(installspec, solution);
+  let (pkgs, root) = collectPackagesOfSolution(fetchDepsSubset, solution);
 
   /* Fetch all packages. */
   let* fetched =
-    fetchPackages(installspec, sandbox, solution, gitUsername, gitPassword);
+    fetchPackages(
+      fetchDepsSubset,
+      sandbox,
+      solution,
+      gitUsername,
+      gitPassword,
+    );
 
   /* Produce _esy/<sandbox>/installation.json */
   let* installation = {
@@ -969,7 +976,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
       let* dependencies =
         RunAsync.List.mapAndJoin(
           ~f=visit(seen),
-          Solution.dependenciesBySpec(solution, installspec, pkg),
+          Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg),
         );
 
       let%lwt () = report("%a", PackageId.pp, pkg.Package.id);
@@ -990,7 +997,7 @@ let fetch = (installspec, sandbox, solution, gitUsername, gitPassword) => {
     let* rootDependencies =
       RunAsync.List.mapAndJoin(
         ~f=visit(PackageId.Set.empty),
-        Solution.dependenciesBySpec(solution, installspec, root),
+        Solution.dependenciesBySpec(solution, fetchDepsSubset, root),
       );
 
     let* () = {

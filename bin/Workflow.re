@@ -5,7 +5,7 @@ open DepSpec;
 
 type t = {
   solvespec: EsySolve.SolveSpec.t,
-  installspec: Solution.Spec.t,
+  fetchDepsSubset: Solution.Spec.t,
   buildspec: BuildSpec.t,
   execenvspec: EnvSpec.t,
   commandenvspec: EnvSpec.t,
@@ -23,7 +23,7 @@ let default = {
       solveAll: SolveDepSpec.(dependencies(self)),
     };
 
-  let installspec = {
+  let fetchDepsSubset = {
     Solution.Spec.dev:
       FetchDepSpec.(dependencies(self) + devDependencies(self)),
     all: FetchDepSpec.(dependencies(self)),
@@ -79,7 +79,7 @@ let default = {
 
   {
     solvespec,
-    installspec,
+    fetchDepsSubset,
     buildspec,
     execenvspec,
     commandenvspec,
