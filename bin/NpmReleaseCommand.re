@@ -1,6 +1,6 @@
 open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
 open DepSpec;
 
@@ -86,17 +86,17 @@ module OfPackageJson = {
   };
 };
 
-let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
+let configure = (spec: EsyFetch.SandboxSpec.t, ()) => {
   open RunAsync.Syntax;
   let docs = "https://esy.sh/docs/release.html";
   switch (spec.manifest) {
-  | EsyInstall.SandboxSpec.ManifestAggregate(_)
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _) =>
+  | EsyFetch.SandboxSpec.ManifestAggregate(_)
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
     errorf(
       "could not create releases without package.json, see %s for details",
       docs,
     )
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
     let* json = Fs.readJsonFile(Path.(spec.path / filename));
     let* pkgJson = RunAsync.ofStringError(OfPackageJson.of_yojson(json));
     switch (pkgJson.OfPackageJson.esy.release) {
@@ -479,7 +479,7 @@ let make =
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
-      spec: EsyInstall.SandboxSpec.t,
+      spec: EsyFetch.SandboxSpec.t,
       sandbox: BuildSandbox.t,
       root,
     ) => {

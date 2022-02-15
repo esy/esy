@@ -9,10 +9,10 @@ let make:
   (
     ~sandboxEnv: SandboxEnv.t=?,
     EsyBuildPackage.Config.t,
-    EsyInstall.SandboxSpec.t,
-    EsyInstall.Config.t,
-    EsyInstall.Solution.t,
-    EsyInstall.Installation.t
+    EsyFetch.SandboxSpec.t,
+    EsyFetch.Config.t,
+    EsyFetch.Solution.t,
+    EsyFetch.Installation.t
   ) =>
   RunAsync.t((t, Fpath.set));
 
@@ -55,7 +55,7 @@ let exec:
 module Task: {
   type t = {
     idrepr: BuildId.Repr.t,
-    pkg: EsyInstall.Package.t,
+    pkg: EsyFetch.Package.t,
     scope: Scope.t,
     env: Scope.SandboxEnvironment.t,
     build: list(list(Scope.SandboxValue.t)),
@@ -74,7 +74,7 @@ module Plan: {
 
   type t;
 
-  let spec: t => EsyInstall.Solution.Spec.t;
+  let spec: t => EsyFetch.Solution.Spec.t;
 
   let get: (t, PackageId.t) => option(Task.t);
   let getByName: (t, string) => option(Task.t);

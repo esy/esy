@@ -1,5 +1,5 @@
 open EsyPrimitives;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
 open DepSpec;
 

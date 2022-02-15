@@ -1,9 +1,9 @@
 open DepSpec;
 open EsyPackageConfig;
-module Package = EsyInstall.Package;
+module Package = EsyFetch.Package;
 
 type t =
-  EsyInstall.Solution.Spec.t = {
+  EsyFetch.Solution.Spec.t = {
     all: FetchDepSpec.t,
     dev: FetchDepSpec.t,
   };

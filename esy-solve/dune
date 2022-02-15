@@ -6,7 +6,7 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries EsyPrimitives EsyLib EsyInstall angstrom str cudf
+ (libraries EsyPrimitives EsyLib EsyFetch angstrom str cudf
    ppx_deriving_yojson.runtime yojson logs logs.lwt dose3.algo opam-format
    opam-state opam-file-format)
  (preprocess

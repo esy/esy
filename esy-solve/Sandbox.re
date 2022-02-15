@@ -2,7 +2,7 @@ open EsyPackageConfig;
 
 type t = {
   cfg: Config.t,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   root: InstallManifest.t,
   resolutions: Resolutions.t,
   resolver: Resolver.t,
@@ -24,7 +24,7 @@ let ofResolution =
       let name =
         switch (root.InstallManifest.originalName) {
         | Some(name) => name
-        | None => EsyInstall.SandboxSpec.projectName(spec)
+        | None => EsyFetch.SandboxSpec.projectName(spec)
         };
 
       {...root, name};
@@ -35,7 +35,7 @@ let ofResolution =
   };
 };
 
-let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) => {
+let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
   open RunAsync.Syntax;
   let path = DistPath.make(~base=spec.path, spec.path);
   let makeSource = manifest =>
@@ -45,7 +45,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
     {
       let* resolver = Resolver.make(~cfg, ~sandbox=spec, ());
       switch (spec.manifest) {
-      | EsyInstall.SandboxSpec.Manifest(manifest) =>
+      | EsyFetch.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);
         let resolution = makeResolution(source);
         let* sandbox =
@@ -59,7 +59,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
           );
         Resolver.setResolutions(sandbox.resolutions, sandbox.resolver);
         return(sandbox);
-      | EsyInstall.SandboxSpec.ManifestAggregate(manifests) =>
+      | EsyFetch.SandboxSpec.ManifestAggregate(manifests) =>
         let* (resolutions, deps, devDeps) = {
           let f = ((resolutions, deps, devDeps), manifest) => {
             let source = makeSource(manifest);

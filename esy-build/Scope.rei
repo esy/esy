@@ -21,7 +21,7 @@ let make:
     ~sourceType: SourceType.t,
     ~sourcePath: SandboxPath.t,
     ~globalPathVariable: option(string),
-    EsyInstall.Package.t,
+    EsyFetch.Package.t,
     BuildManifest.t
   ) =>
   t;
@@ -30,7 +30,7 @@ let make:
 
 let add: (~direct: bool, ~dep: t, t) => t;
 
-let pkg: t => EsyInstall.Package.t;
+let pkg: t => EsyFetch.Package.t;
 let id: t => BuildId.t;
 let mode: t => BuildSpec.mode;
 let depspec: t => FetchDepSpec.t;

@@ -1,5 +1,5 @@
 (library
- (name EsyInstall)
+ (name EsyFetch)
  (inline_tests)
  (flags
   (:standard
