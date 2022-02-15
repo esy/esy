@@ -1,4 +1,5 @@
 open EsyPackageConfig;
+open EsyPrimitives;
 
 let jsppString = Fmt.(quote(string));
 
@@ -107,7 +108,7 @@ module PackageInformation = {
           let dependencies =
             Solution.dependenciesBySpec(
               solution,
-              Solution.Spec.everything,
+              FetchDepsSubset.everything,
               package,
             );
 

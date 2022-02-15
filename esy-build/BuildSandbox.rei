@@ -74,7 +74,7 @@ module Plan: {
 
   type t;
 
-  let spec: t => EsyFetch.Solution.Spec.t;
+  let spec: t => FetchDepsSubset.t;
 
   let get: (t, PackageId.t) => option(Task.t);
   let getByName: (t, string) => option(Task.t);

@@ -1,9 +1,10 @@
 /** This describes how a project should be built. */;
 open DepSpec;
 open EsyPackageConfig;
+open EsyPrimitives;
 
 type t =
-  EsyFetch.Solution.Spec.t = {
+  FetchDepsSubset.t = {
     all: FetchDepSpec.t,
     dev: FetchDepSpec.t,
   };

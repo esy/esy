@@ -1,30 +1,15 @@
 open DepSpec;
 open EsyPackageConfig;
-
-/* REVIEW SolutionSpec?? Should this be a new type? `type spec`??
-   Looks odd. This isn't like other specs. When is value of all
-   and/or dev change?? */
-
-module Spec = {
-  type t = {
-    all: FetchDepSpec.t,
-    dev: FetchDepSpec.t,
-  };
-
-  let depspec = (spec, pkg) =>
-    switch (pkg.Package.source) {
-    | PackageSource.Link({kind: LinkDev, _}) => spec.dev
-    | PackageSource.Link({kind: LinkRegular, _})
-    | PackageSource.Install(_) => spec.all
-    };
-
-  let everything = {
-    let all = FetchDepSpec.(dependencies(self) + devDependencies(self));
-    {all, dev: all};
-  };
-};
+open EsyPrimitives;
 
 let traverse = pkg => PackageId.Set.elements(pkg.Package.dependencies);
+
+let depSpecOfFetchDepsSubset = (spec, pkg) =>
+  switch (pkg.Package.source) {
+  | PackageSource.Link({kind: LinkDev, _}) => spec.FetchDepsSubset.dev
+  | PackageSource.Link({kind: LinkRegular, _})
+  | PackageSource.Install(_) => spec.FetchDepsSubset.all
+  };
 
 module Graph =
   Graph.Make({
@@ -88,7 +73,7 @@ let collect = (solution, depspec, root) =>
   collect'(solution, depspec, PackageId.Set.empty, root);
 
 let dependenciesBySpec = (solution, spec, self) => {
-  let depspec = Spec.depspec(spec, self);
+  let depspec = depSpecOfFetchDepsSubset(spec, self);
   let ids = eval(solution, depspec, self.id);
   let ids = PackageId.Set.elements(ids);
   List.map(~f=getExn(solution), ids);

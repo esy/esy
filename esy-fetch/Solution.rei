@@ -1,24 +1,10 @@
 open DepSpec;
 open EsyPackageConfig;
+open EsyPrimitives;
 
 /**
  * This module represents a solution.
  */;
-
-module Spec: {
-  type t = {
-    /***
-     Define how we traverse packages.
-     */
-    all: FetchDepSpec.t,
-    /***
-     Define how we traverse packages "in-dev".
-     */
-    dev: FetchDepSpec.t,
-  };
-
-  let everything: t;
-};
 
 type id = PackageId.t;
 type pkg = Package.t;
@@ -32,7 +18,7 @@ let nodes: t => list(pkg);
 let root: t => pkg;
 let isRoot: (t, pkg) => bool;
 
-let dependenciesBySpec: (t, Spec.t, pkg) => list(pkg);
+let dependenciesBySpec: (t, FetchDepsSubset.t, pkg) => list(pkg);
 let dependenciesByDepSpec: (t, FetchDepSpec.t, pkg) => list(pkg);
 
 let mem: (t, id) => bool;
