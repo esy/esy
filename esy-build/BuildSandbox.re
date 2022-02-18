@@ -657,7 +657,7 @@ module Plan = {
   let mode = plan => plan.mode;
 };
 
-let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
+let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) => {
   open Run.Syntax;
 
   let cache = Hashtbl.create(100);
@@ -679,7 +679,8 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
         );
       };
 
-      let opamEnv = Scope.toOpamEnv(~buildIsInProgress=true, scope);
+      let opamEnv =
+        Scope.toOpamEnv(~buildIsInProgress=true, ~concurrency, scope);
 
       let* buildCommands = {
         let commands = BuildSpec.buildCommands(mode, pkg, build);
@@ -781,18 +782,19 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
   return({Plan.mode, tasks, buildspec});
 };
 
-let task = (buildspec, mode, sandbox, id) => {
+let task = (~concurrency, buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let* tasks = RunAsync.ofRun(makePlan(buildspec, mode, sandbox));
+  let* tasks =
+    RunAsync.ofRun(makePlan(~concurrency, buildspec, mode, sandbox));
   switch (Plan.get(tasks, id)) {
   | None => errorf("no build found for %a", PackageId.pp, id)
   | Some(task) => return(task)
   };
 };
 
-let buildShell = (buildspec, mode, sandbox, id) => {
+let buildShell = (~concurrency, buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let* task = task(buildspec, mode, sandbox, id);
+  let* task = task(~concurrency, buildspec, mode, sandbox, id);
   let plan = Task.plan(task);
   EsyBuildPackageApi.buildShell(sandbox.cfg, plan);
 };
@@ -925,6 +927,7 @@ let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
 let exec =
     (
       ~changeDirectoryToPackageRoot=false,
+      ~concurrency,
       envspec,
       buildspec,
       mode,
@@ -968,7 +971,7 @@ let exec =
     );
 
   if (envspec.EnvSpec.buildIsInProgress) {
-    let* task = task(buildspec, mode, sandbox, id);
+    let* task = task(~concurrency, buildspec, mode, sandbox, id);
     let plan = Task.plan(~env, task);
     EsyBuildPackageApi.buildExec(sandbox.cfg, plan, cmd);
   } else {

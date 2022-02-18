@@ -364,7 +364,7 @@ let makeFetched =
 };
 
 let makeConfigured =
-    (_projcfg, workflow, solution, _installation, sandbox, _files) => {
+    (projcfg, workflow, solution, _installation, sandbox, _files) => {
   open RunAsync.Syntax;
 
   let* (root, planForDev) =
@@ -373,6 +373,8 @@ let makeConfigured =
         open Run.Syntax;
         let* plan =
           BuildSandbox.makePlan(
+            ~concurrency=
+              EsyRuntime.concurrency(projcfg.ProjectConfig.buildConcurrency),
             workflow.Workflow.buildspec,
             BuildDev,
             sandbox,
@@ -399,6 +401,10 @@ let plan = (mode, proj) =>
       let* fetched = fetched(proj);
       Lwt.return(
         BuildSandbox.makePlan(
+          ~concurrency=
+            EsyRuntime.concurrency(
+              proj.projcfg.ProjectConfig.buildConcurrency,
+            ),
           Workflow.default.buildspec,
           Build,
           fetched.sandbox,
@@ -775,6 +781,27 @@ let buildDependencies =
   };
 };
 
+let buildShell = (proj, mode, sandbox, pkg) => {
+  let () =
+    Logs.info(m =>
+      m(
+        "running:@[<v>@;%s build-shell \\@;%a@]",
+        proj.projcfg.ProjectConfig.mainprg,
+        PackageId.pp,
+        pkg.Package.id,
+      )
+    );
+
+  BuildSandbox.buildShell(
+    ~concurrency=
+      EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
+    proj.workflow.buildspec,
+    mode,
+    sandbox,
+    pkg.id,
+  );
+};
+
 let buildPackage =
     (~quiet, ~disableSandbox, ~buildOnly, projcfg, sandbox, plan, pkg) => {
   checkSymlinks();
@@ -920,6 +947,8 @@ let execCommand =
   let* status =
     BuildSandbox.exec(
       ~changeDirectoryToPackageRoot,
+      ~concurrency=
+        EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
       envspec,
       Workflow.default.buildspec,
       mode,
