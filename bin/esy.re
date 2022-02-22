@@ -497,13 +497,7 @@ let buildShell = (mode, pkgarg, proj: Project.t) => {
         pkg,
       );
 
-    let p =
-      BuildSandbox.buildShell(
-        proj.Project.workflow.buildspec,
-        mode,
-        fetched.Project.sandbox,
-        pkg.id,
-      );
+    let p = Project.buildShell(proj, mode, fetched.Project.sandbox, pkg);
 
     switch%bind (p) {
     | Unix.WEXITED(0) => return()

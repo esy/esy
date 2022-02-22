@@ -42,6 +42,7 @@ let env:
 let exec:
   (
     ~changeDirectoryToPackageRoot: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -84,12 +85,19 @@ module Plan: {
 };
 
 let makePlan:
-  (~forceImmutable: bool=?, BuildSpec.t, BuildSpec.mode, t) => Run.t(Plan.t);
+  (
+    ~forceImmutable: bool=?,
+    ~concurrency: int,
+    BuildSpec.t,
+    BuildSpec.mode,
+    t
+  ) =>
+  Run.t(Plan.t);
 
 /** [shell task ()] shells into [task]'s build environment. */
 
 let buildShell:
-  (BuildSpec.t, BuildSpec.mode, t, PackageId.t) =>
+  (~concurrency: int, BuildSpec.t, BuildSpec.mode, t, PackageId.t) =>
   RunAsync.t(Unix.process_status);
 
 /** [build task ()] builds the [task]. */

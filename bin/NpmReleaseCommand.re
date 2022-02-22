@@ -488,7 +488,13 @@ let make =
 
   let* plan =
     RunAsync.ofRun(
-      BuildSandbox.makePlan(~forceImmutable=true, buildspec, Build, sandbox),
+      BuildSandbox.makePlan(
+        ~forceImmutable=true,
+        ~concurrency,
+        buildspec,
+        Build,
+        sandbox,
+      ),
     );
   let tasks = BuildSandbox.Plan.all(plan);
 

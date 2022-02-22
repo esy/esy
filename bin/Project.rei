@@ -67,6 +67,10 @@ let buildDependencies:
   ) =>
   RunAsync.t(unit);
 
+let buildShell:
+  (project, BuildSpec.mode, BuildSandbox.t, Package.t) =>
+  RunAsync.t(Unix.process_status);
+
 let renderSandboxPath: (SandboxPath.ctx, SandboxPath.t) => Path.t;
 
 let buildPackage:

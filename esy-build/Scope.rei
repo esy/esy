@@ -62,7 +62,8 @@ let render:
   ) =>
   Run.t(SandboxValue.t);
 
-let toOpamEnv: (~buildIsInProgress: bool, t) => OpamFilter.env;
+let toOpamEnv:
+  (~buildIsInProgress: bool, ~concurrency: int, t) => OpamFilter.env;
 
 let exposeUserEnvWith:
   (
