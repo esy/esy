@@ -144,14 +144,29 @@ let copyFile = (~perm=?, srcPath, dstPath) => {
       loop(ic, oc, ());
     };
   };
+  let dstExists =
+    switch (exists(dstPath)) {
+    | Error(_) => false
+    | Ok(exists) => exists
+    };
   let* res =
-    Bos.OS.File.with_ic(
-      srcPath,
-      (ic, ()) =>
-        Bos.OS.File.with_oc(~mode=?perm, dstPath, oc => loop(ic, oc), ()),
-      (),
-    );
-  let* res = res;
+    if (!dstExists) {
+      let* res =
+        Bos.OS.File.with_ic(
+          srcPath,
+          (ic, ()) =>
+            Bos.OS.File.with_oc(
+              ~mode=?perm,
+              dstPath,
+              oc => loop(ic, oc),
+              (),
+            ),
+          (),
+        );
+      res;
+    } else {
+      Ok(Ok());
+    };
   res;
 };
 
