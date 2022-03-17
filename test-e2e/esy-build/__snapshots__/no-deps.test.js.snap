@@ -15,6 +15,7 @@ exports[`'esy build': simple executable with no deps out of source build macos |
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
 export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
 export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
