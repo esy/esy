@@ -668,7 +668,12 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
     | Some((scope, build, idrepr, _dependencies)) =>
       let* env = {
         let* bindings =
-          Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, ~concurrency, scope);
+          Scope.env(
+            ~buildIsInProgress=true,
+            ~includeBuildEnv=true,
+            ~concurrency,
+            scope,
+          );
         Scope.SandboxEnvironment.Bindings.eval(bindings)
         |> Run.ofStringError
         |> Run.context("evaluating environment");
