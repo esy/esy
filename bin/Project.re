@@ -448,6 +448,10 @@ let writeAuxCache = proj => {
           let header = "# Command environment";
           let* commandEnv =
             BuildSandbox.env(
+              ~concurrency=
+                EsyRuntime.concurrency(
+                  proj.projcfg.ProjectConfig.buildConcurrency,
+                ),
               proj.workflow.commandenvspec,
               proj.workflow.buildspec,
               BuildDev,
@@ -853,6 +857,10 @@ let printEnv =
           open Run.Syntax;
           let* (env, scope) =
             BuildSandbox.configure(
+              ~concurrency=
+                EsyRuntime.concurrency(
+                  proj.projcfg.ProjectConfig.buildConcurrency,
+                ),
               envspec,
               Workflow.default.buildspec,
               mode,

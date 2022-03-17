@@ -164,5 +164,10 @@ describe('esy command-env', () => {
     // dev deps are present in command env
     expect(env.devDep__local).toBe('devDep__local__value');
     expect(env.devDep__global).toBe('devDep__global__value');
+
+    // jobs
+    expect(typeof Number(env.cur__jobs)).toBe('number');
+    expect(Number(env.cur__jobs) >= 4).toBeTruthy();
+
   });
 });

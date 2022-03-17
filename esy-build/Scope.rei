@@ -49,7 +49,7 @@ let logPath: t => SandboxPath.t;
 let pp: Fmt.t(t);
 
 let env:
-  (~includeBuildEnv: bool, ~buildIsInProgress: bool, t) =>
+  (~includeBuildEnv: bool, ~buildIsInProgress: bool, ~concurrency: int, t) =>
   Run.t(SandboxEnvironment.Bindings.t);
 
 let render:
@@ -57,6 +57,7 @@ let render:
     ~env: SandboxEnvironment.t=?,
     ~environmentVariableName: string=?,
     ~buildIsInProgress: bool,
+    ~concurrency: int,
     t,
     string
   ) =>

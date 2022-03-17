@@ -125,9 +125,10 @@ let make =
   ));
 };
 
-let renderExpression = (sandbox, scope, expr) => {
+let renderExpression = (~concurrency, sandbox, scope, expr) => {
   open Run.Syntax;
-  let* expr = Scope.render(~buildIsInProgress=false, scope, expr);
+  let* expr =
+    Scope.render(~buildIsInProgress=false, ~concurrency, scope, expr);
   return(Scope.SandboxValue.render(sandbox.cfg, expr));
 };
 
@@ -196,7 +197,8 @@ module Task = {
   let pp = (fmt, task) => PackageId.pp(fmt, task.pkg.id);
 };
 
-let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
+let renderEsyCommands =
+    (~env, ~buildIsInProgress, ~concurrency, scope, commands) => {
   open Run.Syntax;
   let envScope = name =>
     switch (Scope.SandboxEnvironment.find(name, env)) {
@@ -205,7 +207,7 @@ let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
     };
 
   let renderArg = v => {
-    let* v = Scope.render(~buildIsInProgress, scope, v);
+    let* v = Scope.render(~buildIsInProgress, ~concurrency, scope, v);
     let v = Scope.SandboxValue.show(v);
     Run.ofStringError(EsyShellExpansion.render(~scope=envScope, v));
   };
@@ -666,7 +668,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
     | Some((scope, build, idrepr, _dependencies)) =>
       let* env = {
         let* bindings =
-          Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, scope);
+          Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, ~concurrency, scope);
         Scope.SandboxEnvironment.Bindings.eval(bindings)
         |> Run.ofStringError
         |> Run.context("evaluating environment");
@@ -685,6 +687,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
               let* commands =
                 renderEsyCommands(
                   ~buildIsInProgress=true,
+                  ~concurrency,
                   ~env,
                   scope,
                   commands,
@@ -714,6 +717,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
             let* cmds =
               renderEsyCommands(
                 ~buildIsInProgress=true,
+                ~concurrency,
                 ~env,
                 scope,
                 commands,
@@ -796,7 +800,8 @@ module EsyIntrospectionEnv = {
   let rootPackageConfigPath = "ESY__ROOT_PACKAGE_CONFIG_PATH";
 };
 
-let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
+let augmentEnvWithOptions =
+    (~concurrency: int, envspec: EnvSpec.t, sandbox, scope) => {
   open Run.Syntax;
 
   let {
@@ -819,7 +824,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
         scope;
       };
 
-    Scope.env(~includeBuildEnv, ~buildIsInProgress, scope);
+    Scope.env(~includeBuildEnv, ~buildIsInProgress, ~concurrency, scope);
   };
 
   let env =
@@ -884,7 +889,16 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
   return((env, scope));
 };
 
-let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) => {
+let configure =
+    (
+      ~concurrency,
+      ~forceImmutable=false,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+    ) => {
   open Run.Syntax;
   let cache = Hashtbl.create(100);
 
@@ -907,13 +921,22 @@ let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) =
     };
   };
 
-  augmentEnvWithOptions(envspec, sandbox, scope);
+  augmentEnvWithOptions(~concurrency, envspec, sandbox, scope);
 };
 
-let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
+let env =
+    (~concurrency, ~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
   open Run.Syntax;
   let%map (env, _scope) =
-    configure(~forceImmutable?, envspec, buildspec, mode, sandbox, id);
+    configure(
+      ~concurrency,
+      ~forceImmutable?,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+    );
   env;
 };
 
@@ -933,7 +956,8 @@ let exec =
     RunAsync.ofRun(
       {
         open Run.Syntax;
-        let* (env, scope) = configure(envspec, buildspec, mode, sandbox, id);
+        let* (env, scope) =
+          configure(~concurrency, envspec, buildspec, mode, sandbox, id);
         let* env =
           Run.ofStringError(Scope.SandboxEnvironment.Bindings.eval(env));
         return((env, scope));
@@ -950,6 +974,7 @@ let exec =
             Scope.render(
               ~env,
               ~buildIsInProgress=envspec.EnvSpec.buildIsInProgress,
+              ~concurrency,
               scope,
               v,
             );

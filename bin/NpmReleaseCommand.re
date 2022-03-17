@@ -606,6 +606,7 @@ let make =
       let* bindings =
         RunAsync.ofRun(
           BuildSandbox.env(
+            ~concurrency,
             ~forceImmutable=true,
             envspec,
             buildspec,

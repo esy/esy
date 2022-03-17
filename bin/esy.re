@@ -658,6 +658,10 @@ let runScript = (script, args, proj: Project.t) => {
         let id = configured.Project.root.pkg.id;
         let* (env, scope) =
           BuildSandbox.configure(
+            ~concurrency=
+              EsyRuntime.concurrency(
+                proj.projcfg.ProjectConfig.buildConcurrency,
+              ),
             envspec,
             proj.workflow.buildspec,
             BuildDev,
@@ -673,6 +677,10 @@ let runScript = (script, args, proj: Project.t) => {
             Scope.render(
               ~env,
               ~buildIsInProgress=envspec.buildIsInProgress,
+              ~concurrency=
+                EsyRuntime.concurrency(
+                  proj.projcfg.ProjectConfig.buildConcurrency,
+                ),
               scope,
               v,
             );
