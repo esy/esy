@@ -5,6 +5,7 @@ module SandboxPath = EsyBuildPackage.Config.Path;
 module SandboxValue = EsyBuildPackage.Config.Value;
 module SandboxEnvironment = EsyBuildPackage.Config.Environment;
 
+let jobs = concurrency => string_of_int(max(concurrency / 2, 4));
 /** Scope exported by a package. */
 module PackageScope: {
   type t;
@@ -243,10 +244,7 @@ module PackageScope: {
         | Transient => true
         },
       )
-    | "jobs" =>
-      let jobs = max(concurrency / 2, 4);
-      let jobs = string_of_int(jobs);
-      s(jobs);
+    | "jobs" => s(jobs(concurrency))
     | _ => None
     };
   };
@@ -259,9 +257,6 @@ module PackageScope: {
       } else {
         installPath(scope);
       };
-
-    let jobs = max(concurrency / 2, 4);
-    let jobs = string_of_int(jobs);
 
     let p = v => SandboxValue.show(SandboxPath.toValue(v));
     [
@@ -281,7 +276,7 @@ module PackageScope: {
       set("cur__toplevel", p(SandboxPath.(installPath / "toplevel"))),
       set("cur__share", p(SandboxPath.(installPath / "share"))),
       set("cur__etc", p(SandboxPath.(installPath / "etc"))),
-      set("cur__jobs", jobs),
+      set("cur__jobs", jobs(concurrency)),
     ];
   };
 
@@ -865,10 +860,7 @@ let toOpamEnv =
   | (Full.Global, "arch") => Some(string(opamArch))
   | (Full.Global, "opam-version") => Some(string("2"))
   | (Full.Global, "make") => Some(string("make"))
-  | (Full.Global, "jobs") =>
-    let jobs = max(concurrency / 2, 4);
-    let jobs = string_of_int(jobs);
-    Some(string(jobs));
+  | (Full.Global, "jobs") => Some(string(jobs(concurrency)))
   | (Full.Global, "pinned") => Some(bool(false))
   | (Full.Global, "dev") =>
     Some(
