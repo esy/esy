@@ -5,7 +5,6 @@ module SandboxPath = EsyBuildPackage.Config.Path;
 module SandboxValue = EsyBuildPackage.Config.Value;
 module SandboxEnvironment = EsyBuildPackage.Config.Environment;
 
-let jobs = concurrency => string_of_int(max(concurrency / 2, 4));
 /** Scope exported by a package. */
 module PackageScope: {
   type t;
@@ -17,6 +16,7 @@ module PackageScope: {
       ~version: Version.t,
       ~sourceType: SourceType.t,
       ~sourcePath: SandboxPath.t,
+      ~concurrency: int,
       BuildManifest.t
     ) =>
     t;
@@ -36,16 +36,17 @@ module PackageScope: {
   let installPath: t => SandboxPath.t;
   let logPath: t => SandboxPath.t;
 
+  let jobs: t => int;
+
   let buildEnv:
     (~buildIsInProgress: bool, BuildSpec.mode, t) => list(BuildEnv.item);
   let buildEnvAuto:
-    (~buildIsInProgress: bool, ~concurrency: int, ~dev: bool, t) =>
-    list(BuildEnv.item);
+    (~buildIsInProgress: bool, ~dev: bool, t) => list(BuildEnv.item);
   let exportedEnvLocal: t => list(ExportedEnv.item);
   let exportedEnvGlobal: t => list(ExportedEnv.item);
 
   let var:
-    (~buildIsInProgress: bool, ~concurrency: int, t, string) =>
+    (~buildIsInProgress: bool, t, string) =>
     option(EsyCommandExpression.Value.t);
 } = {
   type t = {
@@ -57,10 +58,19 @@ module PackageScope: {
     build: BuildManifest.t,
     exportedEnvLocal: list(ExportedEnv.item),
     exportedEnvGlobal: list(ExportedEnv.item),
+    jobs: int,
   };
 
   let make =
-      (~id, ~name, ~version, ~sourceType, ~sourcePath, build: BuildManifest.t) => {
+      (
+        ~id,
+        ~name,
+        ~version,
+        ~sourceType,
+        ~sourcePath,
+        ~concurrency,
+        build: BuildManifest.t,
+      ) => {
     let (exportedEnvGlobal, exportedEnvLocal) = {
       open ExportedEnv;
       let (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal) = {
@@ -104,6 +114,8 @@ module PackageScope: {
       (exportedEnvGlobal, exportedEnvLocal);
     };
 
+    let jobs = max(concurrency / 2, 4);
+
     {
       id,
       name,
@@ -113,6 +125,7 @@ module PackageScope: {
       build,
       exportedEnvLocal,
       exportedEnvGlobal,
+      jobs,
     };
   };
 
@@ -181,6 +194,8 @@ module PackageScope: {
     SandboxPath.(storePath / Store.buildTree / basename);
   };
 
+  let jobs = scope => scope.jobs;
+
   let rootPath = scope =>
     switch (scope.build.buildType, scope.sourceType) {
     | (InSource, Immutable)
@@ -203,7 +218,7 @@ module PackageScope: {
   let exportedEnvLocal = scope => scope.exportedEnvLocal;
   let exportedEnvGlobal = scope => scope.exportedEnvGlobal;
 
-  let var = (~buildIsInProgress, ~concurrency, scope, id) => {
+  let var = (~buildIsInProgress, scope, id) => {
     let b = v => Some(EsyCommandExpression.bool(v));
     let s = v => Some(EsyCommandExpression.string(v));
     let p = v =>
@@ -244,12 +259,12 @@ module PackageScope: {
         | Transient => true
         },
       )
-    | "jobs" => s(jobs(concurrency))
+    | "jobs" => s(string_of_int(scope.jobs))
     | _ => None
     };
   };
 
-  let buildEnvAuto = (~buildIsInProgress, ~concurrency, ~dev, scope) => {
+  let buildEnvAuto = (~buildIsInProgress, ~dev, scope) => {
     open BuildEnv;
     let installPath =
       if (buildIsInProgress) {
@@ -276,7 +291,7 @@ module PackageScope: {
       set("cur__toplevel", p(SandboxPath.(installPath / "toplevel"))),
       set("cur__share", p(SandboxPath.(installPath / "share"))),
       set("cur__etc", p(SandboxPath.(installPath / "etc"))),
-      set("cur__jobs", jobs(concurrency)),
+      set("cur__jobs", string_of_int(scope.jobs)),
     ];
   };
 
@@ -357,6 +372,7 @@ let make =
       ~sourceType,
       ~sourcePath,
       ~globalPathVariable,
+      ~concurrency,
       pkg,
       buildManifest,
     ) => {
@@ -367,6 +383,7 @@ let make =
       ~version,
       ~sourceType,
       ~sourcePath,
+      ~concurrency,
       buildManifest,
     );
 
@@ -475,14 +492,7 @@ let renderEnv = (env, name) =>
   };
 
 let render =
-    (
-      ~env=?,
-      ~environmentVariableName=?,
-      ~buildIsInProgress,
-      ~concurrency,
-      scope,
-      expr,
-    ) => {
+    (~env=?, ~environmentVariableName=?, ~buildIsInProgress, scope, expr) => {
   open Run.Syntax;
   let envVar = Option.map(~f=env => renderEnv(env), env);
   let pathSep =
@@ -505,10 +515,10 @@ let render =
   let lookup = ((namespace, name)) =>
     switch (namespace, name) {
     | (Some("self"), name) =>
-      PackageScope.var(~buildIsInProgress, ~concurrency, scope.self, name)
+      PackageScope.var(~buildIsInProgress, scope.self, name)
     | (Some(namespace), name) =>
       if (namespace == PackageScope.name(scope.self)) {
-        PackageScope.var(~buildIsInProgress, ~concurrency, scope.self, name);
+        PackageScope.var(~buildIsInProgress, scope.self, name);
       } else {
         switch (
           StringMap.find_opt(namespace, scope.directDependencies),
@@ -516,12 +526,7 @@ let render =
         ) {
         | (Some(_), "installed") => Some(EsyCommandExpression.bool(true))
         | (Some(scope), name) =>
-          PackageScope.var(
-            ~buildIsInProgress=false,
-            ~concurrency,
-            scope.self,
-            name,
-          )
+          PackageScope.var(~buildIsInProgress=false, scope.self, name)
         | (None, "installed") => Some(EsyCommandExpression.bool(false))
         | (None, _) => None
         };
@@ -546,18 +551,11 @@ let render =
   return(SandboxValue.v(v));
 };
 
-let makeSetBinding =
-    (~buildIsInProgress, ~concurrency, ~origin=?, scope, (name, value)) => {
+let makeSetBinding = (~buildIsInProgress, ~origin=?, scope, (name, value)) => {
   open Run.Syntax;
   let* value =
     Run.contextf(
-      render(
-        ~buildIsInProgress,
-        ~environmentVariableName=name,
-        ~concurrency,
-        scope,
-        value,
-      ),
+      render(~buildIsInProgress, ~environmentVariableName=name, scope, value),
       "processing exportedEnv $%s",
       name,
     );
@@ -571,51 +569,36 @@ let makeUnsetBinding = (~buildIsInProgress as _, ~origin=?, _scope, name) => {
   );
 };
 
-let makeExportedEnvBindings =
-    (~buildIsInProgress, ~concurrency, ~origin=?, bindings, scope) => {
+let makeExportedEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
   let f = ({ExportedEnv.name, value, _}) =>
     switch (value) {
     | Set(value) =>
-      makeSetBinding(
-        ~buildIsInProgress,
-        ~concurrency,
-        ~origin?,
-        scope,
-        (name, value),
-      )
+      makeSetBinding(~buildIsInProgress, ~origin?, scope, (name, value))
     | Unset => makeUnsetBinding(~buildIsInProgress, ~origin?, scope, name)
     };
 
   Result.List.map(~f, bindings);
 };
-let makeBuildEnvBindings =
-    (~buildIsInProgress, ~concurrency, ~origin=?, bindings, scope) => {
+let makeBuildEnvBindings = (~buildIsInProgress, ~origin=?, bindings, scope) => {
   let f = ({BuildEnv.name, value}) =>
     switch (value) {
     | Set(value) =>
-      makeSetBinding(
-        ~buildIsInProgress,
-        ~concurrency,
-        ~origin?,
-        scope,
-        (name, value),
-      )
+      makeSetBinding(~buildIsInProgress, ~origin?, scope, (name, value))
     | Unset => makeUnsetBinding(~buildIsInProgress, ~origin?, scope, name)
     };
 
   Result.List.map(~f, bindings);
 };
 
-let buildEnv = (~buildIsInProgress, ~concurrency, scope) => {
+let buildEnv = (~buildIsInProgress, scope) => {
   open Run.Syntax;
   let bindings =
     PackageScope.buildEnv(~buildIsInProgress, scope.mode, scope.self);
-  let* env =
-    makeBuildEnvBindings(~buildIsInProgress, ~concurrency, bindings, scope);
+  let* env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
-let buildEnvAuto = (~buildIsInProgress, ~concurrency, scope) => {
+let buildEnvAuto = (~buildIsInProgress, scope) => {
   open Run.Syntax;
   let dev =
     switch (scope.pkg.source, scope.mode) {
@@ -626,25 +609,18 @@ let buildEnvAuto = (~buildIsInProgress, ~concurrency, scope) => {
     };
 
   let bindings =
-    PackageScope.buildEnvAuto(
-      ~buildIsInProgress,
-      ~concurrency,
-      ~dev,
-      scope.self,
-    );
-  let* env =
-    makeBuildEnvBindings(~buildIsInProgress, ~concurrency, bindings, scope);
+    PackageScope.buildEnvAuto(~buildIsInProgress, ~dev, scope.self);
+  let* env = makeBuildEnvBindings(~buildIsInProgress, bindings, scope);
   return(env);
 };
 
-let exportedEnvGlobal = (~concurrency, scope) => {
+let exportedEnvGlobal = scope => {
   open Run.Syntax;
   let bindings = PackageScope.exportedEnvGlobal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
   let* env =
     makeExportedEnvBindings(
       ~buildIsInProgress=false,
-      ~concurrency,
       ~origin,
       bindings,
       scope,
@@ -652,14 +628,13 @@ let exportedEnvGlobal = (~concurrency, scope) => {
   return(env);
 };
 
-let exportedEnvLocal = (~concurrency, scope) => {
+let exportedEnvLocal = scope => {
   open Run.Syntax;
   let bindings = PackageScope.exportedEnvLocal(scope.self);
   let origin = PackageId.show(scope.pkg.id);
   let* env =
     makeExportedEnvBindings(
       ~buildIsInProgress=false,
-      ~concurrency,
       ~origin,
       bindings,
       scope,
@@ -667,7 +642,7 @@ let exportedEnvLocal = (~concurrency, scope) => {
   return(env);
 };
 
-let env = (~includeBuildEnv, ~buildIsInProgress, ~concurrency, scope) => {
+let env = (~includeBuildEnv, ~buildIsInProgress, scope) => {
   open Run.Syntax;
 
   let* dependenciesEnv = {
@@ -675,11 +650,11 @@ let env = (~includeBuildEnv, ~buildIsInProgress, ~concurrency, scope) => {
       let name = dep.pkg.name;
       let isDirect = StringMap.mem(name, scope.directDependencies);
       if (isDirect) {
-        let* g = exportedEnvGlobal(~concurrency, dep);
-        let* l = exportedEnvLocal(~concurrency, dep);
+        let* g = exportedEnvGlobal(dep);
+        let* l = exportedEnvLocal(dep);
         return(env @ g @ l);
       } else {
-        let* g = exportedEnvGlobal(~concurrency, dep);
+        let* g = exportedEnvGlobal(dep);
         return(env @ g);
       };
     };
@@ -689,14 +664,14 @@ let env = (~includeBuildEnv, ~buildIsInProgress, ~concurrency, scope) => {
 
   let* buildEnv =
     if (includeBuildEnv) {
-      buildEnv(~buildIsInProgress, ~concurrency, scope);
+      buildEnv(~buildIsInProgress, scope);
     } else {
       return([]);
     };
 
   let* buildEnvAuto =
     if (includeBuildEnv) {
-      buildEnvAuto(~buildIsInProgress, ~concurrency, scope);
+      buildEnvAuto(~buildIsInProgress, scope);
     } else {
       return([]);
     };
@@ -745,8 +720,7 @@ let ocamlVersion = scope => {
   return(toOCamlVersion(PackageScope.version(ocaml.self)));
 };
 
-let toOpamEnv =
-    (~buildIsInProgress, ~concurrency, scope: t, name: OpamVariable.Full.t) => {
+let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
   open OpamVariable;
 
   let ocamlVersion = ocamlVersion(scope);
@@ -860,7 +834,8 @@ let toOpamEnv =
   | (Full.Global, "arch") => Some(string(opamArch))
   | (Full.Global, "opam-version") => Some(string("2"))
   | (Full.Global, "make") => Some(string("make"))
-  | (Full.Global, "jobs") => Some(string(jobs(concurrency)))
+  | (Full.Global, "jobs") =>
+    Some(string(string_of_int(PackageScope.jobs(scope.self))))
   | (Full.Global, "pinned") => Some(bool(false))
   | (Full.Global, "dev") =>
     Some(

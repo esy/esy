@@ -15,13 +15,12 @@ let make:
   ) =>
   RunAsync.t((t, Fpath.set));
 
-let renderExpression:
-  (~concurrency: int, t, Scope.t, string) => Run.t(string);
+let renderExpression: (t, Scope.t, string) => Run.t(string);
 
 let configure:
   (
-    ~concurrency: int,
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -32,8 +31,8 @@ let configure:
 
 let env:
   (
-    ~concurrency: int,
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,

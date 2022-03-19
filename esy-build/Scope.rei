@@ -20,6 +20,7 @@ let make:
     ~sourceType: SourceType.t,
     ~sourcePath: SandboxPath.t,
     ~globalPathVariable: option(string),
+    ~concurrency: int,
     EsyInstall.Package.t,
     BuildManifest.t
   ) =>
@@ -49,7 +50,7 @@ let logPath: t => SandboxPath.t;
 let pp: Fmt.t(t);
 
 let env:
-  (~includeBuildEnv: bool, ~buildIsInProgress: bool, ~concurrency: int, t) =>
+  (~includeBuildEnv: bool, ~buildIsInProgress: bool, t) =>
   Run.t(SandboxEnvironment.Bindings.t);
 
 let render:
@@ -57,14 +58,12 @@ let render:
     ~env: SandboxEnvironment.t=?,
     ~environmentVariableName: string=?,
     ~buildIsInProgress: bool,
-    ~concurrency: int,
     t,
     string
   ) =>
   Run.t(SandboxValue.t);
 
-let toOpamEnv:
-  (~buildIsInProgress: bool, ~concurrency: int, t) => OpamFilter.env;
+let toOpamEnv: (~buildIsInProgress: bool, t) => OpamFilter.env;
 
 let exposeUserEnvWith:
   (

@@ -677,10 +677,6 @@ let runScript = (script, args, proj: Project.t) => {
             Scope.render(
               ~env,
               ~buildIsInProgress=envspec.buildIsInProgress,
-              ~concurrency=
-                EsyRuntime.concurrency(
-                  proj.projcfg.ProjectConfig.buildConcurrency,
-                ),
               scope,
               v,
             );
