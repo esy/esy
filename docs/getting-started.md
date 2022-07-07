@@ -210,7 +210,7 @@ By install, we mean installing it to a location local to the project,
 but for all intents and purposes, it behaves like as it it were a
 global location. A virtualised environment. 
 
-To do so, tweak the build command to ask Dune to not just compile, to
+To do so, tweak the build command to ask Dune to not just compile, but also to
 generate some special files that would help in installing the
 binary.
 
