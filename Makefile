@@ -145,7 +145,7 @@ RELEASE_ARGS += --static
 opam-setup:
 	opam init -y --disable-sandboxing --bare https://github.com/ocaml/opam-repository.git#6ae77c27c7f831d7190928f9cd9002f95d3b6180
 	opam switch create esy-local-switch $(OPAM_COMPILER_BASE_PACKAGES)$(MUSL_STATIC_PACKAGES)
-	opam repository add duniverse "https://github.com/dune-universe/opam-repository.git#dd1b4c13ede8e741b6e626d574c347a5344581d9" # commit from 10 Nov, 2020.
+	opam repository add duniverse "https://github.com/dune-universe/opam-overlays.git#c8f6ef0fc5272f254df4a971a47de7848cc1c8a4" # commit from 2 Jun, 2022.
 
 opam-install-deps:
 	opam install . --deps-only -y
