@@ -3,7 +3,7 @@
   esy,
 }:
 pkgs.buildFHSUserEnv {
-  name = "esy-fhs";
+  name = "esy";
   targetPkgs = pkgs: (with pkgs; [
     binutils
     coreutils
