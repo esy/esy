@@ -77,12 +77,14 @@ module OfPackageJson = {
     sandboxEnv: BuildEnv.t,
     opamOverrideRemote: [@default None] option(string),
     opamOverrideLocal: [@default None] option(Path.t),
+    opamRepositories: [@default []] list(EsySolve.OpamRepository.t),
   };
 
   let empty = {
     sandboxEnv: BuildEnv.empty,
     opamOverrideRemote: None,
     opamOverrideLocal: None,
+    opamRepositories: [],
   };
 
   [@deriving of_yojson({strict: false})]
@@ -181,6 +183,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~esyOpamOverrideLocal?,
       ~esyOpamOverrideRemote?,
       ~solveTimeout=?projcfg.solveTimeout,
+      ~opamRepositories=esy.opamRepositories,
       (),
     );
 
