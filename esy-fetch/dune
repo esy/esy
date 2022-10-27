@@ -1,21 +1,14 @@
 (library
- (name EsyInstall)
+ (name EsyFetch)
  (inline_tests)
  (flags
   (:standard
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries EsyLib EsyPackageConfig angstrom str cudf
+ (libraries EsyPrimitives EsyLib EsyPackageConfig angstrom str cudf
    ppx_deriving_yojson.runtime yojson logs logs.lwt dose3.algo opam-format
    opam-state opam-file-format)
  (preprocess
   (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppxlib ppx_expect
     ppx_inline_test ppx_sexp_conv)))
-
-(ocamllex
- (modules DepSpecLexer))
-
-(menhir
- (flags "--explain")
- (modules DepSpecParser))

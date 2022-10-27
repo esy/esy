@@ -200,7 +200,7 @@ type t = {
   mainprg: string,
   path: Path.t,
   esyVersion: string,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   prefixPath: option(Path.t),
   ocamlPkgName: string,
   ocamlVersion: string,
@@ -502,13 +502,13 @@ let make =
   open RunAsync.Syntax;
 
   let* projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
-  let* spec = EsyInstall.SandboxSpec.ofPath(projectPath);
+  let* spec = EsyFetch.SandboxSpec.ofPath(projectPath);
 
   let* prefixPath =
     switch (prefixPath) {
     | Some(prefixPath) => return(Some(prefixPath))
     | None =>
-      let* rc = EsyRc.ofPath(spec.EsyInstall.SandboxSpec.path);
+      let* rc = EsyRc.ofPath(spec.EsyFetch.SandboxSpec.path);
       return(rc.EsyRc.prefixPath);
     };
 

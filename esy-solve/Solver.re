@@ -9,7 +9,7 @@ let computeOverrideDigest = (sandbox, override) =>
     | OfDist({dist, json: _}) => return(Digestv.ofString(Dist.show(dist)))
     | OfOpamOverride(info) =>
       let* files =
-        EsyInstall.Fetch.fetchOverrideFiles(
+        EsyFetch.Fetch.fetchOverrideFiles(
           sandbox.Sandbox.cfg.installCfg,
           sandbox.spec,
           override,
@@ -463,7 +463,7 @@ let lockPackage =
     };
 
   return({
-    EsyInstall.Package.id,
+    EsyFetch.Package.id,
     name,
     version,
     source,
@@ -1230,8 +1230,8 @@ let solve =
 
       return(
         {
-          let solution = EsyInstall.Solution.empty(root.EsyInstall.Package.id);
-          EsyInstall.Solution.add(solution, root);
+          let solution = EsyFetch.Solution.empty(root.EsyFetch.Package.id);
+          EsyFetch.Solution.add(solution, root);
         },
       );
     };
@@ -1248,7 +1248,7 @@ let solve =
             allDependenciesByName,
           );
 
-        return(EsyInstall.Solution.add(solution, pkg));
+        return(EsyFetch.Solution.add(solution, pkg));
       };
 
       dependenciesById

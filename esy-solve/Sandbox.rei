@@ -5,7 +5,7 @@ open EsyPackageConfig;
 type t = {
   /*** Configuration. */
   cfg: Config.t,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   /*** Root package. */
   root: InstallManifest.t,
   /*** A set of resolutions. */
@@ -19,7 +19,7 @@ let make:
     ~gitUsername: option(string),
     ~gitPassword: option(string),
     ~cfg: Config.t,
-    EsyInstall.SandboxSpec.t
+    EsyFetch.SandboxSpec.t
   ) =>
   RunAsync.t(t);
 let digest: (SolveSpec.t, t) => RunAsync.t(Digestv.t);

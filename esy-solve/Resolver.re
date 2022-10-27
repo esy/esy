@@ -67,7 +67,7 @@ let toOpamOcamlVersion = version =>
 
 type t = {
   cfg: Config.t,
-  sandbox: EsyInstall.SandboxSpec.t,
+  sandbox: EsyFetch.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
   opamRegistry: OpamRegistry.t,
@@ -265,12 +265,7 @@ let packageOfSource =
       (
         ~name,
         ~source,
-        {
-          EsyInstall.DistResolver.kind,
-          filename: _,
-          data,
-          suggestedPackageName,
-        },
+        {EsyFetch.DistResolver.kind, filename: _, data, suggestedPackageName},
       ) =>
     RunAsync.Syntax.(
       switch (kind) {
@@ -310,8 +305,8 @@ let packageOfSource =
     );
 
   let pkg = {
-    let* {EsyInstall.DistResolver.overrides, dist: resolvedDist, manifest, _} =
-      EsyInstall.DistResolver.resolve(
+    let* {EsyFetch.DistResolver.overrides, dist: resolvedDist, manifest, _} =
+      EsyFetch.DistResolver.resolve(
         ~gitUsername,
         ~gitPassword,
         ~cfg=resolver.cfg.installCfg,

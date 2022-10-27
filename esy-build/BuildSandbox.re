@@ -1,13 +1,15 @@
+open DepSpec;
+open EsyPrimitives;
 open EsyPackageConfig;
 
-module Solution = EsyInstall.Solution;
-module Package = EsyInstall.Package;
-module Installation = EsyInstall.Installation;
+module Solution = EsyFetch.Solution;
+module Package = EsyFetch.Package;
+module Installation = EsyFetch.Installation;
 
 type t = {
   cfg: EsyBuildPackage.Config.t,
-  spec: EsyInstall.SandboxSpec.t,
-  installCfg: EsyInstall.Config.t,
+  spec: EsyFetch.SandboxSpec.t,
+  installCfg: EsyFetch.Config.t,
   arch: System.Arch.t,
   platform: System.Platform.t,
   sandboxEnv: SandboxEnv.t,
@@ -157,11 +159,7 @@ module Task = {
 
     let env = Option.orDefault(~default=t.env, env);
     let depspec =
-      Format.asprintf(
-        "%a",
-        EsyInstall.Solution.DepSpec.pp,
-        Scope.depspec(t.scope),
-      );
+      Format.asprintf("%a", FetchDepSpec.pp, Scope.depspec(t.scope));
 
     {
       EsyBuildPackage.Plan.id: BuildId.show(Scope.id(t.scope)),
@@ -361,13 +359,13 @@ let makeScope =
     let buildCommands = BuildSpec.buildCommands(mode, pkg, buildManifest);
 
     let matchedForBuild =
-      EsyInstall.Solution.eval(sandbox.solution, depspec, pkg.Package.id);
+      EsyFetch.Solution.eval(sandbox.solution, depspec, pkg.Package.id);
 
     let matchedForScope =
       switch (envspec) {
       | None => matchedForBuild
       | Some(envspec) =>
-        EsyInstall.Solution.eval(sandbox.solution, envspec, pkg.Package.id)
+        EsyFetch.Solution.eval(sandbox.solution, envspec, pkg.Package.id)
       };
 
     let annotateWithReason = pkgid =>
@@ -824,7 +822,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
 
   let env =
     if (includeNpmBin) {
-      let npmBin = Path.show(EsyInstall.SandboxSpec.binPath(sandbox.spec));
+      let npmBin = Path.show(EsyFetch.SandboxSpec.binPath(sandbox.spec));
       [Env.prefixValue("PATH", Val.v(npmBin)), ...env];
     } else {
       env;
@@ -839,7 +837,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
 
   let env =
     if (includeEsyIntrospectionEnv) {
-      switch (EsyInstall.SandboxSpec.manifestPath(sandbox.spec)) {
+      switch (EsyFetch.SandboxSpec.manifestPath(sandbox.spec)) {
       | None => env
       | Some(path) => [
           Env.value(
@@ -860,7 +858,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
     | None => env
     | Some(depspec) =>
       let matched =
-        EsyInstall.Solution.collect(
+        EsyFetch.Solution.collect(
           sandbox.solution,
           depspec,
           Scope.pkg(scope).id,
@@ -1158,13 +1156,13 @@ let makeSymlinksToStore = (sandbox, task) => {
     Fs.symlink(
       ~force=true,
       ~src=Task.buildPath(sandbox.cfg, task),
-      addSuffix(EsyInstall.SandboxSpec.buildPath(sandbox.spec)),
+      addSuffix(EsyFetch.SandboxSpec.buildPath(sandbox.spec)),
     );
   let* () =
     Fs.symlink(
       ~force=true,
       ~src=Task.installPath(sandbox.cfg, task),
-      addSuffix(EsyInstall.SandboxSpec.installPath(sandbox.spec)),
+      addSuffix(EsyFetch.SandboxSpec.installPath(sandbox.spec)),
     );
   return();
 };

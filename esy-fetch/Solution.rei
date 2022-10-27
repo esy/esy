@@ -1,55 +1,10 @@
+open DepSpec;
 open EsyPackageConfig;
+open EsyPrimitives;
 
 /**
  * This module represents a solution.
  */;
-
-module DepSpec: {
-  /** Package id. */
-
-  type id;
-
-  let root: id;
-  let self: id;
-
-  /** Dependency expression, */
-
-  type t;
-
-  /** [package id] refers to a package by its [id]. */
-
-  let package: id => t;
-
-  /** [dependencies id] refers all dependencies of the package with [id]. */
-
-  let dependencies: id => t;
-
-  /** [dependencies id] refers all devDependencies of the package with [id]. */
-
-  let devDependencies: id => t;
-
-  /** [a + b] refers to all packages in [a] and in [b]. */
-
-  let (+): (t, t) => t;
-
-  let compare: (t, t) => int;
-  let pp: Fmt.t(t);
-};
-
-module Spec: {
-  type t = {
-    /***
-     Define how we traverse packages.
-     */
-    all: DepSpec.t,
-    /***
-     Define how we traverse packages "in-dev".
-     */
-    dev: DepSpec.t,
-  };
-
-  let everything: t;
-};
 
 type id = PackageId.t;
 type pkg = Package.t;
@@ -63,8 +18,8 @@ let nodes: t => list(pkg);
 let root: t => pkg;
 let isRoot: (t, pkg) => bool;
 
-let dependenciesBySpec: (t, Spec.t, pkg) => list(pkg);
-let dependenciesByDepSpec: (t, DepSpec.t, pkg) => list(pkg);
+let dependenciesBySpec: (t, FetchDepsSubset.t, pkg) => list(pkg);
+let dependenciesByDepSpec: (t, FetchDepSpec.t, pkg) => list(pkg);
 
 let mem: (t, id) => bool;
 let get: (t, id) => option(pkg);
@@ -86,11 +41,11 @@ let traverse: pkg => list(id);
  * current package id [self].
  */
 
-let eval: (t, DepSpec.t, PackageId.t) => PackageId.Set.t;
+let eval: (t, FetchDepSpec.t, PackageId.t) => PackageId.Set.t;
 
 /**
  * [collect solution depspec id] collects all package ids found in the
  * [solution] starting with [id] using [depspec] expression for traverse.
  */
 
-let collect: (t, DepSpec.t, PackageId.t) => PackageId.Set.t;
+let collect: (t, FetchDepSpec.t, PackageId.t) => PackageId.Set.t;

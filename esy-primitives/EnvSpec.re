@@ -1,5 +1,7 @@
+open DepSpec;
+
 type t = {
-  augmentDeps: option(EsyInstall.Solution.DepSpec.t),
+  augmentDeps: option(FetchDepSpec.t),
   buildIsInProgress: bool,
   includeCurrentEnv: bool,
   includeBuildEnv: bool,

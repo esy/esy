@@ -4,9 +4,10 @@
  * Project can be in multiple states and in multiple configurations.
  */;
 
+open EsyPrimitives;
 open EsyBuild;
 open EsyBuild.Scope;
-open EsyInstall;
+open EsyFetch;
 
 type project = {
   projcfg: ProjectConfig.t,

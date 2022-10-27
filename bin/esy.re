@@ -1,11 +1,13 @@
+open EsyPrimitives;
 open EsyBuild;
 open EsyPackageConfig;
+open DepSpec;
 
-module SandboxSpec = EsyInstall.SandboxSpec;
-module Installation = EsyInstall.Installation;
-module Solution = EsyInstall.Solution;
-module SolutionLock = EsyInstall.SolutionLock;
-module Package = EsyInstall.Package;
+module SandboxSpec = EsyFetch.SandboxSpec;
+module Installation = EsyFetch.Installation;
+module Solution = EsyFetch.Solution;
+module SolutionLock = EsyFetch.SolutionLock;
+module Package = EsyFetch.Package;
 
 let splitBy = (line, ch) =>
   switch (String.index(line, ch)) {
@@ -68,19 +70,15 @@ let depspecConv = {
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
-    try(
-      return(
-        EsyInstall.DepSpecParser.start(EsyInstall.DepSpecLexer.read, lexbuf),
-      )
-    ) {
-    | EsyInstall.DepSpecLexer.Error(msg) =>
+    try(return(DepSpecParser.start(DepSpecLexer.read, lexbuf))) {
+    | DepSpecLexer.Error(msg) =>
       let msg = Printf.sprintf("error parsing DEPSPEC: %s", msg);
       error(`Msg(msg));
-    | EsyInstall.DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
+    | DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
     };
   };
 
-  let pp = EsyInstall.Solution.DepSpec.pp;
+  let pp = FetchDepSpec.pp;
   Arg.conv(~docv="DEPSPEC", (parse, pp));
 };
 
@@ -442,7 +440,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
       };
 
       let rootPackageConfigPath =
-        EsyInstall.SandboxSpec.manifestPath(proj.projcfg.spec);
+        EsyFetch.SandboxSpec.manifestPath(proj.projcfg.spec);
 
       return({
         isProject: true,
@@ -1002,7 +1000,7 @@ let getSandboxSolution =
   let* () = {
     let* digest = Sandbox.digest(solvespec, proj.solveSandbox);
 
-    EsyInstall.SolutionLock.toPath(
+    EsyFetch.SolutionLock.toPath(
       ~digest,
       proj.installSandbox,
       solution,
@@ -1020,7 +1018,7 @@ let getSandboxSolution =
           "resolution %a is unused (defined in %a)",
           Fmt.(quote(string)),
           resolution,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           proj.installSandbox.spec,
         )
       );
@@ -1051,7 +1049,7 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
       EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
     let path = SandboxSpec.solutionLockPath(proj.solveSandbox.spec);
     switch%bind (
-      EsyInstall.SolutionLock.ofPath(~digest, proj.installSandbox, path)
+      EsyFetch.SolutionLock.ofPath(~digest, proj.installSandbox, path)
     ) {
     | Some(_) => return()
     | None => run()
@@ -1064,8 +1062,8 @@ let fetch = (proj: Project.t) => {
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   switch%bind (SolutionLock.ofPath(proj.installSandbox, lockPath)) {
   | Some(solution) =>
-    EsyInstall.Fetch.fetch(
-      proj.workflow.installspec,
+    EsyFetch.Fetch.fetch(
+      proj.workflow.fetchDepsSubset,
       proj.installSandbox,
       solution,
       proj.projcfg.gitUsername,
@@ -1083,8 +1081,8 @@ let solveAndFetch = (proj: Project.t) => {
   switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
   | Some(solution) =>
     switch%bind (
-      EsyInstall.Fetch.maybeInstallationOfSolution(
-        proj.workflow.installspec,
+      EsyFetch.Fetch.maybeInstallationOfSolution(
+        proj.workflow.fetchDepsSubset,
         proj.installSandbox,
         solution,
       )
@@ -1137,7 +1135,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let* (addedDependencies, configPath) = {
     let records = {
-      let f = (record: EsyInstall.Package.t, _, map) =>
+      let f = (record: EsyFetch.Package.t, _, map) =>
         StringMap.add(record.name, record, map);
 
       Solution.fold(~f, ~init=StringMap.empty, solution);
@@ -1148,14 +1146,14 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
         switch (StringMap.find(name, records)) {
         | Some(record) =>
           let constr =
-            switch (record.EsyInstall.Package.version) {
+            switch (record.EsyFetch.Package.version) {
             | Version.Npm(version) =>
               SemverVersion.Formula.DNF.show(
                 SemverVersion.caretRangeOfVersion(version),
               )
             | Version.Opam(version) => OpamPackage.Version.to_string(version)
             | Version.Source(_) =>
-              Version.show(record.EsyInstall.Package.version)
+              Version.show(record.EsyFetch.Package.version)
             };
 
           (name, `String(constr));
@@ -1168,7 +1166,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     let* path = {
       let spec = proj.solveSandbox.Sandbox.spec;
       switch (spec.manifest) {
-      | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, fname) =>
+      | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, fname) =>
         return(Path.(spec.SandboxSpec.path / fname))
       | [@implicit_arity] Manifest(Opam, _) => error(opamError)
       | ManifestAggregate(_) => error(opamError)
@@ -1237,7 +1235,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
     /* we can only do this because we keep invariant that the constraint we
      * save in manifest covers the installed version */
-    EsyInstall.SolutionLock.unsafeUpdateChecksum(
+    EsyFetch.SolutionLock.unsafeUpdateChecksum(
       ~digest,
       SandboxSpec.solutionLockPath(solveSandbox.spec),
     );
@@ -1454,7 +1452,7 @@ let printHeader = (~spec=?, name) =>
   | Some(spec) =>
     let needReportProjectPath =
       Path.compare(
-        spec.EsyInstall.SandboxSpec.path,
+        spec.EsyFetch.SandboxSpec.path,
         EsyRuntime.currentWorkingDir,
       )
       != 0;
@@ -1465,7 +1463,7 @@ let printHeader = (~spec=?, name) =>
           "%s %s (using %a)@;found project at %a",
           name,
           EsyRuntime.version,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           spec,
           Path.ppPretty,
           spec.path,
@@ -1477,7 +1475,7 @@ let printHeader = (~spec=?, name) =>
           "%s %s (using %a)",
           name,
           EsyRuntime.version,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           spec,
         )
       );

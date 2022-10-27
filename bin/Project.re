@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
+open DepSpec;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -8,7 +10,7 @@ type project = {
   workflow: Workflow.t,
   buildCfg: EsyBuildPackage.Config.t,
   solveSandbox: EsySolve.Sandbox.t,
-  installSandbox: EsyInstall.Sandbox.t,
+  installSandbox: EsyFetch.Sandbox.t,
   scripts: Scripts.t,
   solved: Run.t(solved),
 }
@@ -54,7 +56,7 @@ module TermPp = {
     Fmt.pf(
       fmt,
       "%a%a%a%a%a%a",
-      ppOption("--envspec", Fmt.quote(~mark="'", Solution.DepSpec.pp)),
+      ppOption("--envspec", Fmt.quote(~mark="'", FetchDepSpec.pp)),
       augmentDeps,
       ppFlag("--build-context"),
       buildIsInProgress,
@@ -93,14 +95,14 @@ module OfPackageJson = {
 
   let read = spec =>
     RunAsync.Syntax.(
-      switch (spec.EsyInstall.SandboxSpec.manifest) {
-      | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
+      switch (spec.EsyFetch.SandboxSpec.manifest) {
+      | EsyFetch.SandboxSpec.Manifest((Esy, filename)) =>
         let* json = Fs.readJsonFile(Path.(spec.path / filename));
         let* pkgJson = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
         return(pkgJson.esy);
 
-      | EsyInstall.SandboxSpec.Manifest((Opam, _))
-      | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(empty)
+      | EsyFetch.SandboxSpec.Manifest((Opam, _))
+      | EsyFetch.SandboxSpec.ManifestAggregate(_) => return(empty)
       }
     );
 };
@@ -192,14 +194,14 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~cfg=solveCfg,
       projcfg.spec,
     );
-  let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
+  let installSandbox = EsyFetch.Sandbox.make(installCfg, projcfg.spec);
 
   let%lwt () =
     Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
 
   let%lwt () =
     Logs_lwt.debug(m =>
-      m("install config: %a", EsyInstall.Config.pp, installCfg)
+      m("install config: %a", EsyFetch.Config.pp, installCfg)
     );
 
   let* buildCfg = {
@@ -223,7 +225,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         ~disableSandbox=false,
         ~globalStorePrefix,
         ~storePath,
-        ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
+        ~localStorePath=EsyFetch.SandboxSpec.storePath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
         ~globalPathVariable=projcfg.globalPathVariable,
         (),
@@ -316,12 +318,12 @@ let makeFetched =
       esy,
     ) => {
   open RunAsync.Syntax;
-  let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
+  let path = EsyFetch.SandboxSpec.installationPath(projcfg.spec);
   let* info = FileInfo.ofPath(path);
   files := [info, ...files^];
   switch%bind (
-    EsyInstall.Fetch.maybeInstallationOfSolution(
-      workflow.Workflow.installspec,
+    EsyFetch.Fetch.maybeInstallationOfSolution(
+      workflow.Workflow.fetchDepsSubset,
       installer,
       solution,
     )
@@ -340,7 +342,7 @@ let makeFetched =
           ~sandboxEnv,
           buildCfg,
           projcfg.spec,
-          installer.EsyInstall.Sandbox.cfg,
+          installer.EsyFetch.Sandbox.cfg,
           solution,
           installation,
         );
@@ -380,7 +382,7 @@ let makeConfigured =
             sandbox,
           );
 
-        let pkg = EsyInstall.Solution.root(solution);
+        let pkg = EsyFetch.Solution.root(solution);
         let root =
           switch (BuildSandbox.Plan.get(plan, pkg.Package.id)) {
           | None => failwith("missing build for the root package")
@@ -883,11 +885,11 @@ let printEnv =
                 name,
                 Package.pp,
                 pkg,
-                Solution.DepSpec.pp,
+                FetchDepSpec.pp,
                 depspec,
                 BuildSpec.pp_mode,
                 mode,
-                Fmt.option(Solution.DepSpec.pp),
+                Fmt.option(FetchDepSpec.pp),
                 envspec.EnvSpec.augmentDeps,
                 envspec.buildIsInProgress,
                 envspec.includeBuildEnv,

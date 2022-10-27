@@ -7,7 +7,7 @@ type t;
 /** Make new resolver */
 
 let make:
-  (~cfg: Config.t, ~sandbox: EsyInstall.SandboxSpec.t, unit) => RunAsync.t(t);
+  (~cfg: Config.t, ~sandbox: EsyFetch.SandboxSpec.t, unit) => RunAsync.t(t);
 
 let setOCamlVersion: (Version.t, t) => unit;
 let setResolutions: (Resolutions.t, t) => unit;

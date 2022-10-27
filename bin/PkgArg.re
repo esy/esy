@@ -1,4 +1,4 @@
-open EsyInstall;
+open EsyFetch;
 
 type t =
   | ByPkgSpec(PkgSpec.t)
