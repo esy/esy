@@ -255,6 +255,10 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
   let isSourcePackage = pkg => StringMap.mem(pkg, sourceVersions^);
 
   let buildVersionMap = () => {
+    print_endline("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+    print_endline("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+    print_endline("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+    print_endline("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     let addSourceVersion = (name, source: Source.t) => {
       let sources =
         switch (StringMap.find_opt(name, sourceVersions^)) {
@@ -267,8 +271,20 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
     };
 
     let addVersion = (name, version) => {
+      /* print_endline( */
+      /*   "Adding (version) " ++ name ++ ":::" ++ Version.show(version), */
+      /* ); */
       switch (version) {
-      | Version.Source(source) => addSourceVersion(name, source)
+      | Version.Source(source) =>
+        print_endline(
+          "Adding (version -> source) "
+          ++ name
+          ++ ":::"
+          ++ Source.show(source),
+        );
+        addSourceVersion(name, source);
+        print_endline(">>>>");
+        print_endline(Printexc.get_callstack(5) |> Printexc.raw_backtrace_to_string);
       | _ =>
         let versions =
           switch (StringMap.find_opt(name, allVersions^)) {
@@ -302,7 +318,14 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | GT(version)
       | GTE(version)
       | LT(version)
-      | LTE(version) => addVersion(name, Version.Opam(version))
+      | LTE(version) =>
+        print_endline(
+          "Adding opam constraint "
+          ++ name
+          ++ " @ "
+          ++ OpamPackage.Version.to_string(version),
+        );
+        addVersion(name, Version.Opam(version));
       | ANY => ()
       };
 
@@ -322,7 +345,14 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
           "1 cannot find source by spec, TODO: better error reporting :: "
           ++ name,
         )
-      | Some(source) => addSourceVersion(name, source)
+      | Some(source) =>
+        print_endline(
+          "Adding (sourcePackage -> source) "
+          ++ name
+          ++ ":::"
+          ++ Source.show(source),
+        );
+        addSourceVersion(name, source);
       };
 
     StringMap.iter(
@@ -330,6 +360,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
         Version.Map.iter(
           (version, pkg) => {
             addVersion(name, version);
+          print_endline ("-----------------" ++ name);
             let dependencies: Dependencies.t =
               switch (SolveSpec.eval(solvespec, pkg)) {
               | Error(err) =>
@@ -351,7 +382,14 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
                          dep.name,
                        )
                      ) {
-                     | Some(version) => addVersion(dep.name, version)
+                     | Some(version) =>
+                       print_endline(
+                         "Adding source (while crawling dependencies)"
+                         ++ name
+                         ++ " @ "
+                         ++ Version.show(version),
+                       );
+                       addVersion(dep.name, version);
                      | None => addSourcePackage(dep.name, spec)
                      }
                    }
@@ -462,6 +500,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
       | ANY => (e(dep.name), None)
       }
     | Source(spec) =>
+      print_endline("getVersionByResolutions " ++ dep.name);
       switch (Resolver.getVersionByResolutions(univ.resolver, dep.name)) {
       | Some(version) => v(`Eq, version)
       | None =>
@@ -470,7 +509,7 @@ let toCudf = (~installed=InstallManifest.Set.empty, solvespec, univ) => {
           failwith("2 Cannot locate source by spec, TODO: better reporting")
         | Some(source) => v(`Eq, Source(source))
         }
-      }
+      };
     };
   };
 

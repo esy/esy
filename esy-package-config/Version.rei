@@ -4,6 +4,7 @@ type t =
   | Source(Source.t);
 
 include S.COMMON with type t := t;
+// Ergo, Version.t is comparable, printable and jsonable
 
 let parse: (~tryAsOpam: bool=?, string) => result(t, string);
 let parseExn: string => t;

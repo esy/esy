@@ -523,6 +523,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
     }
   and addDependency = (req: Req.t) => {
     let%lwt () = report("%s", req.name);
+    print_endline("Adding dependency " ++ req.name);
     let* resolutions =
       RunAsync.contextf(
         Resolver.resolve(

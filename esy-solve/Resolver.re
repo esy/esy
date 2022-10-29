@@ -177,10 +177,10 @@ let versionByNpmDistTag = (resolver: t, package: string, tag: string) =>
 
 let sourceBySpec = (resolver: t, spec: SourceSpec.t) =>
   switch (Hashtbl.find_opt(resolver.sourceSpecToSource, spec)) {
-  | None => None
+  | None => { print_endline("Not found in resolver map for " ++ SourceSpec.show(spec)); None }
   | Some(source) =>
     switch (Hashtbl.find_opt(resolver.sourceToSource, source)) {
-    | None => Some(source)
+    | None => { print_endline("Not found in resolver.sourcetosource " ++ Source.show(source)); Some(source) }
     | Some(source) => Some(source)
     }
   };
@@ -260,13 +260,14 @@ let packageOfSource =
       resolver,
     ) => {
   open RunAsync.Syntax;
-
+print_endline("packageOfSource " ++ name);
   let readManifest =
       (
         ~name,
         ~source,
         {EsyFetch.DistResolver.kind, filename: _, data, suggestedPackageName},
       ) =>
+
     RunAsync.Syntax.(
       switch (kind) {
       | ManifestSpec.Esy =>
@@ -305,6 +306,7 @@ let packageOfSource =
     );
 
   let pkg = {
+    print_endline("Going to resolve " ++ Source.show(source));
     let* {EsyFetch.DistResolver.overrides, dist: resolvedDist, manifest, _} =
       EsyFetch.DistResolver.resolve(
         ~gitUsername,
@@ -332,9 +334,11 @@ let packageOfSource =
         if (!Overrides.isEmpty(overrides)) {
           switch (source) {
           | Source.Link({path, manifest, kind}) =>
+            print_endline("empty link for " ++ DistPath.show(path));
             let pkg = emptyLink(~name, ~path, ~manifest, ~kind, ());
             return(Ok(pkg));
           | _ =>
+            print_endline("empty install for " ++ name);
             let pkg = emptyInstall(~name, ~source=resolvedDist, ());
             return(Ok(pkg));
           };
@@ -546,7 +550,7 @@ let package =
           let override = Override.ofJson(override);
           let overrides = Overrides.(add(override, empty));
           packageOfSource(
-            ~gitUsername,
+            ~gitUsername,
             ~gitPassword,
             ~name=resolution.name,
             ~overrides,

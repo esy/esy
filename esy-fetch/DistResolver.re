@@ -139,26 +139,78 @@ let ofPath = (~manifest=?, path: Path.t) => {
         ~fallback=Path.(path |> normalize |> remEmptySeg |> basename),
         (kind, filename),
       );
+    print_endline(
+      "manifest path ------------=================="
+      ++ Path.show(manifestPath),
+    );
 
     if%bind (Fs.exists(manifestPath)) {
-      let* data = Fs.readFile(manifestPath);
-      switch (kind) {
-      | ManifestSpec.Esy =>
-        switch (Json.parseStringWith(PackageOverride.of_yojson, data)) {
-        | Ok(override) => return(Some(Override(override)))
-        | Error(err) =>
-          let%lwt () =
-            Logs_lwt.debug(m =>
-              m("not an override %a: %a", Path.pp, path, Run.ppError, err)
-            );
-
-          return(
-            Some(Manifest({data, filename, kind, suggestedPackageName})),
+      Lwt.catch(
+        () => {
+          print_endline(
+            "++++++++++++++++++++++++++++++++++++" ++ Path.show(manifestPath),
           );
-        }
-      | ManifestSpec.Opam =>
-        return(Some(Manifest({data, filename, kind, suggestedPackageName})))
-      };
+          Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(manifestPath), ic =>
+            Lwt.Infix.(
+              Lwt_io.read(ic)
+              >>= (
+                data => {
+                  switch (kind) {
+                  | ManifestSpec.Esy =>
+                    switch (
+                      Json.parseStringWith(PackageOverride.of_yojson, data)
+                    ) {
+                    | Ok(override) => return(Some(Override(override)))
+                    | Error(err) =>
+                      let%lwt () =
+                        Logs_lwt.debug(m =>
+                          m(
+                            "not an override %a: %a",
+                            Path.pp,
+                            path,
+                            Run.ppError,
+                            err,
+                          )
+                        );
+
+                      return(
+                        Some(
+                          Manifest({
+                            data,
+                            filename,
+                            kind,
+                            suggestedPackageName,
+                          }),
+                        ),
+                      );
+                    }
+                  | ManifestSpec.Opam =>
+                    return(
+                      Some(
+                        Manifest({
+                          data,
+                          filename,
+                          kind,
+                          suggestedPackageName,
+                        }),
+                      ),
+                    )
+                  };
+                }
+              )
+            )
+          );
+        },
+        e => {
+          let emsg =
+            "errrrrrrrrrrr"
+            ++ Printexc.to_string(e)
+            ++ "while reading "
+            ++ Path.show(manifestPath);
+          print_endline(emsg);
+          RunAsync.return(None: option(state));
+        },
+      );
     } else {
       return(None);
     };
@@ -192,6 +244,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
         (ManifestSpec.Esy, "esy.json"),
         (ManifestSpec.Esy, "package.json"),
         (ManifestSpec.Opam, "opam"),
+        (ManifestSpec.Opam, "opam/" ++ Path.basename(path) ++ ".opam"),
         (ManifestSpec.Opam, Path.basename(path) ++ ".opam"),
       ],
     )

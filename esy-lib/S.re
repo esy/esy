@@ -18,6 +18,10 @@ module type COMPARABLE = {
   let compare: (t, t) => int;
 };
 
+/**
+ * COMMON is an interface that represents 
+ * modules that are comparable, printable and jsonable
+ */
 module type COMMON = {
   type t;
 
