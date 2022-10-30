@@ -278,8 +278,9 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
                   | _ => pkgName
                   };
                 return(
-                  String.(length(trim(data))) > 0
-                  && opamPkgName == Path.basename(Path.v(filename)),
+                  opamPkgName
+                  ++ ".opam" == filename
+                  && String.(length(trim(data))) > 0,
                 );
               } else {
                 return(false);
@@ -288,7 +289,7 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
             RunAsync.List.filter(~f, StringSet.elements(fnames));
           };
           switch (filenames) {
-          | [] => errorf("no manifests found at %a", Path.pp, path)
+          | [] => return()
           | [filename] =>
             candidates :=
               [(ManifestSpec.Opam, Path.(path / filename)), ...candidates^];
@@ -310,7 +311,6 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
     print_endline(">>>>>> " ++ pkgName ++ ">>>>>>>>>>>>>>>>>>");
     print_endline(">>>>>>>>>>>>>>>>>>>>>>>>");
     let* fns = discoverOfDir(path);
-    List.iter(((_, a)) => print_endline(a |> Path.show), fns);
 
     tryManifests(
       Path.Set.empty,
@@ -318,8 +318,7 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
         (ManifestSpec.Esy, "esy.json"),
         (ManifestSpec.Esy, "package.json"),
         (ManifestSpec.Opam, "opam"),
-        (ManifestSpec.Opam, "opam/" ++ Path.basename(path) ++ ".opam"),
-        (ManifestSpec.Opam, Path.basename(path) ++ ".opam"),
+        ...fns |> List.map(~f=((k, fn)) => (k, Path.show(fn))),
       ],
     );
   };
