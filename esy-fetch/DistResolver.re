@@ -130,7 +130,7 @@ let ofGithub = (~manifest=?, user, repo, ref) => {
   tryFilename(filenames);
 };
 
-let ofPath = (~manifest=?, path: Path.t) => {
+let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
   open RunAsync.Syntax;
 
   let readManifest = ((kind, filename), manifestPath) => {
@@ -272,7 +272,15 @@ let ofPath = (~manifest=?, path: Path.t) => {
               let path = Path.(path / filename);
               if (Path.(hasExt(".opam", path))) {
                 let* data = Fs.readFile(path);
-                return(String.(length(trim(data))) > 0);
+                let opamPkgName /* without @opam/ prefix */ =
+                  switch (Astring.String.cut(~sep="/", pkgName)) {
+                  | Some(("@opam", n)) => n
+                  | _ => pkgName
+                  };
+                return(
+                  String.(length(trim(data))) > 0
+                  && opamPkgName == Path.basename(Path.v(filename)),
+                );
               } else {
                 return(false);
               };
@@ -299,8 +307,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
     };
 
     print_endline(">>>>>>>>>>>>>>>>>>>>>>>>");
-    print_endline(">>>>>>>>>>>>>>>>>>>>>>>>");
-    print_endline(">>>>>>>>>>>>>>>>>>>>>>>>");
+    print_endline(">>>>>> " ++ pkgName ++ ">>>>>>>>>>>>>>>>>>");
     print_endline(">>>>>>>>>>>>>>>>>>>>>>>>");
     let* fns = discoverOfDir(path);
     List.iter(((_, a)) => print_endline(a |> Path.show), fns);
@@ -325,6 +332,7 @@ let resolve =
       ~overrides=Overrides.empty,
       ~cfg,
       ~sandbox,
+      ~pkgName,
       dist: Dist.t,
     ) => {
   open RunAsync.Syntax;
@@ -352,7 +360,7 @@ let resolve =
       switch%bind (Fs.exists(realpath)) {
       | false => errorf("%a doesn't exist", DistPath.pp, path)
       | true =>
-        let* (tried, pkg) = ofPath(~manifest?, realpath);
+        let* (tried, pkg) = ofPath(~pkgName, ~manifest?, realpath);
         return((pkg, tried));
       };
     | Git({remote, commit, manifest}) =>
@@ -360,7 +368,7 @@ let resolve =
         let* () = Git.clone(~config, ~dst=repo, ~remote, ());
         let* () = Git.checkout(~ref=commit, ~repo, ());
         let* () = Git.updateSubmodules(~config, ~repo, ());
-        let* (_, pkg) = ofPath(~manifest?, repo);
+        let* (_, pkg) = ofPath(~pkgName, ~manifest?, repo);
         return((pkg, Path.Set.empty));
       })
     | Github({user, repo, commit, manifest}) =>
@@ -374,14 +382,14 @@ let resolve =
           let* () = Git.clone(~config, ~dst=repo, ~remote, ());
           let* () = Git.checkout(~ref=commit, ~repo, ());
           let* () = Git.updateSubmodules(~config, ~repo, ());
-          let* (_, pkg) = ofPath(~manifest?, repo);
+          let* (_, pkg) = ofPath(~pkgName, ~manifest?, repo);
           return((pkg, Path.Set.empty));
         });
       | pkg => return((pkg, Path.Set.empty))
       };
     | Archive(_) =>
       let* path = DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);
-      let* (_, pkg) = ofPath(path);
+      let* (_, pkg) = ofPath(~pkgName, path);
       return((pkg, Path.Set.empty));
 
     | NoSource => return((EmptyManifest, Path.Set.empty))

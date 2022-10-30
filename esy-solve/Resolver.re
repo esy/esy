@@ -260,7 +260,7 @@ let packageOfSource =
       resolver,
     ) => {
   open RunAsync.Syntax;
-print_endline("packageOfSource " ++ name);
+  print_endline("packageOfSource " ++ name);
   let readManifest =
       (
         ~name,
@@ -314,6 +314,7 @@ print_endline("packageOfSource " ++ name);
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
+        ~pkgName=name,
         Source.toDist(source),
       );
 

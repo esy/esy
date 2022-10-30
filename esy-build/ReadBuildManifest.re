@@ -257,6 +257,7 @@ let ofInstallationLocation =
           ~cfg=installCfg,
           ~sandbox=spec,
           dist,
+          ~pkgName=pkg.name
         ); /* Git creds are None. Since link resolutions are local, git creds (which are only used over HTTPS) are not needed */
 
       let overrides =
