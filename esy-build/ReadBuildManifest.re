@@ -175,13 +175,12 @@ module OpamBuild = {
   };
 };
 
-let discoverManifest = path => {
+let discoverManifest = (path, pkgName) => {
   open RunAsync.Syntax;
 
-  let filenames = [
-    (ManifestSpec.Esy, "esy.json"),
-    (ManifestSpec.Esy, "package.json"),
-  ];
+  let* filenames = ManifestDiscovery.discover(path, pkgName);
+
+  let filenames = List.map(((a, b)) => (a, Path.show(b)), filenames);
 
   let rec tryLoad =
     fun
@@ -205,7 +204,7 @@ let discoverManifest = path => {
   tryLoad(filenames);
 };
 
-let ofPath = (~manifest=?, path: Path.t) => {
+let ofPath = (~manifest=?, path: Path.t, pkgName) => {
   let%lwt () =
     Logs_lwt.debug(m =>
       m(
@@ -219,7 +218,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
 
   let manifest =
     switch (manifest) {
-    | None => discoverManifest(path)
+    | None => discoverManifest(path, pkgName)
     | Some(spec) =>
       switch (spec) {
       | (ManifestSpec.Esy, fname) =>
@@ -257,6 +256,7 @@ let ofInstallationLocation =
           ~cfg=installCfg,
           ~sandbox=spec,
           dist,
+          ~pkgName=pkg.name,
         ); /* Git creds are None. Since link resolutions are local, git creds (which are only used over HTTPS) are not needed */
 
       let overrides =
@@ -336,7 +336,7 @@ let ofInstallationLocation =
         return((Some(manifest), Path.Set.empty));
       | None =>
         let manifest = Dist.manifest(source);
-        let* (manifest, paths) = ofPath(~manifest?, loc);
+        let* (manifest, paths) = ofPath(~manifest?, loc, pkg.name);
         let* manifest =
           switch (manifest) {
           | Some((manifest, _warnings)) =>

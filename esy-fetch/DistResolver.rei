@@ -42,6 +42,7 @@ let resolve:
     ~overrides: Overrides.t=?,
     ~cfg: Config.t,
     ~sandbox: SandboxSpec.t,
+    ~pkgName: string,
     Dist.t
   ) =>
   RunAsync.t(resolution);
