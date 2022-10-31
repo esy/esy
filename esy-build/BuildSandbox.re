@@ -318,13 +318,13 @@ let makeScope =
 
   let cache =
     switch (cache) {
-    | None => Hashtbl.create(100)
-    | Some(cache) => cache
+    | None => { print_endline("empty cache"); Hashtbl.create(100) }
+    | Some(cache) => { print_endline("Found cache"); cache}
     };
 
   let rec visit = (envspec, seen, id: PackageId.t) =>
     switch (Hashtbl.find_opt(cache, id)) {
-    | Some(None) => return(None)
+    | Some(None) => { print_endline("---------> makescope's cache returned None for " ++ PackageId.show(id)); return(None);  }
     | Some(Some(res)) =>
       let* _: list(PackageId.t) = updateSeen(seen, id);
       return(Some(res));
@@ -343,7 +343,7 @@ let makeScope =
             PackageId.ppNoHash,
             id,
           );
-        | None => return(None)
+        | None => {print_endline("Failed to find sandbox.manifest for " ++ PackageId.show(id)); return(None); }
         };
 
       Hashtbl.replace(cache, id, res);
@@ -602,8 +602,8 @@ module Plan = {
 
   let get = (plan, id) =>
     switch (PackageId.Map.find_opt(id, plan.tasks)) {
-    | None => None
-    | Some(None) => None
+    | None => { print_endline("Nothing in there"); None }
+    | Some(None) => { print_endline("Found None in map"); None }
     | Some(Some(task)) => Some(task)
     };
 
@@ -741,30 +741,39 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
     let rec visit = tasks =>
       fun
       | [] => return(tasks)
-      | [id, ...ids] =>
-        switch (PackageId.Map.find_opt(id, tasks)) {
-        | Some(_) => visit(tasks, ids)
-        | None =>
-          let pkg = Solution.getExn(sandbox.solution, id);
-          let* task =
-            Run.contextf(
-              makeTask(pkg),
-              "creating task for %a",
-              Package.pp,
-              pkg,
-            );
+      | [id, ...ids] => {
+          print_endline("Visting >>>" ++ PackageId.show(id));
+          switch (PackageId.Map.find_opt(id, tasks)) {
+          | Some(_) => visit(tasks, ids)
+          | None =>
+            print_endline("Didn't find task for " ++ PackageId.show(id));
+            let pkg = Solution.getExn(sandbox.solution, id);
+            Format.printf("Found %a: %a\n", PackageId.pp, id, Package.pp, pkg);
+            let* task =
+              Run.contextf(
+                makeTask(pkg),
+                "creating task for %a",
+                Package.pp,
+                pkg,
+              );
 
-          let tasks = PackageId.Map.add(id, task, tasks);
-          let ids = {
-            let dependencies = {
-              let depspec = BuildSpec.depspec(buildspec, mode, pkg);
-              Solution.dependenciesByDepSpec(sandbox.solution, depspec, pkg);
+            let tasks = PackageId.Map.add(id, task, tasks);
+            print_endline(">> added task for " ++ PackageId.show(id));
+            let ids = {
+              let dependencies = {
+                let depspec = BuildSpec.depspec(buildspec, mode, pkg);
+                Solution.dependenciesByDepSpec(
+                  sandbox.solution,
+                  depspec,
+                  pkg,
+                );
+              };
+
+              List.map(~f=Package.id, dependencies) @ ids;
             };
 
-            List.map(~f=Package.id, dependencies) @ ids;
+            visit(tasks, ids);
           };
-
-          visit(tasks, ids);
         };
 
     visit(PackageId.Map.empty, [root.id]);
@@ -778,7 +787,7 @@ let task = (~concurrency, buildspec, mode, sandbox, id) => {
   let* tasks =
     RunAsync.ofRun(makePlan(~concurrency, buildspec, mode, sandbox));
   switch (Plan.get(tasks, id)) {
-  | None => errorf("no build found for %a", PackageId.pp, id)
+  | None => errorf("----no build found for %a", PackageId.pp, id)
   | Some(task) => return(task)
   };
 };
@@ -900,7 +909,7 @@ let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) =
       );
 
     switch%bind (scope) {
-    | None => errorf("no build found for %a", PackageId.pp, id)
+    | None => errorf(">>>>no build found for %a", PackageId.pp, id)
     | Some((scope, _, _, _)) => return(scope)
     };
   };
