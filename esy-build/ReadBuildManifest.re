@@ -180,7 +180,7 @@ let discoverManifest = (path, pkgName) => {
 
   let* filenames = ManifestDiscovery.discover(path, pkgName);
 
-  let filenames = List.map(((a, b)) => (a, Path.show(b)), filenames);
+  let filenames = List.map(~f=((a, b)) => (a, Path.show(b)), filenames);
 
   let rec tryLoad =
     fun
