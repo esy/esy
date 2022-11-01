@@ -11,7 +11,7 @@
 %}
 
 %start start
-%type <Solution.DepSpec.t> start
+%type <FetchDepSpec.t> start
 
 %%
 
@@ -26,30 +26,30 @@ expr:
 id:
   id = ID; {
     match id with
-    | "root" -> Solution.DepSpec.root
-    | "self" -> Solution.DepSpec.self
+    | "root" -> FetchDepSpec.root
+    | "self" -> FetchDepSpec.self
     | _ -> $syntaxerror
   }
 
 package:
   id = ID; {
     match id with
-    | "root" -> Solution.DepSpec.(package root)
-    | "self" -> Solution.DepSpec.(package self)
+    | "root" -> FetchDepSpec.(package root)
+    | "self" -> FetchDepSpec.(package self)
     | _ -> $syntaxerror
   }
 
 select:
   select = ID; LPAREN; id = id; RPAREN {
     match select with
-    | "dependencies" -> Solution.DepSpec.dependencies id
-    | "devDependencies" -> Solution.DepSpec.devDependencies id
+    | "dependencies" -> FetchDepSpec.dependencies id
+    | "devDependencies" -> FetchDepSpec.devDependencies id
     | _ -> $syntaxerror
   }
 
 union:
   a = expr; PLUS; b = expr {
-    Solution.DepSpec.(a + b)
+    FetchDepSpec.(a + b)
   }
 
 %%

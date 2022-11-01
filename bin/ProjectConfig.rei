@@ -9,7 +9,7 @@ type t = {
   mainprg: string,
   path: Path.t,
   esyVersion: string,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   prefixPath: option(Path.t),
   ocamlPkgName: string,
   ocamlVersion: string,

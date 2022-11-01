@@ -1,6 +1,7 @@
+open DepSpec;
 open EsyPackageConfig;
 
-module Package = EsyInstall.Package;
+module Package = EsyFetch.Package;
 module SandboxPath = EsyBuildPackage.Config.Path;
 module SandboxValue = EsyBuildPackage.Config.Value;
 module SandboxEnvironment = EsyBuildPackage.Config.Environment;
@@ -351,7 +352,7 @@ type t = {
   platform: System.Platform.t,
   pkg: Package.t,
   mode: BuildSpec.mode,
-  depspec: EsyInstall.Solution.DepSpec.t,
+  depspec: FetchDepSpec.t,
   children: PackageId.Map.t(bool),
   self: PackageScope.t,
   dependencies: list(t),

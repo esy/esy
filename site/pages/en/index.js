@@ -34,7 +34,7 @@ const quickStart = `${pre}bash
 % npm install -g esy
 
 # Clone example, install dependencies, then build
-% git clone git@github.com:esy-ocaml/hello-reason.git
+% git clone https://github.com/esy-ocaml/hello-reason.git
 % cd hello-reason
 % esy
 ${pre}`;

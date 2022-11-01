@@ -7,7 +7,7 @@ type checkoutCfg = [
 
 [@deriving show]
 type t = {
-  installCfg: EsyInstall.Config.t,
+  installCfg: EsyFetch.Config.t,
   esySolveCmd: Cmd.t,
   esyOpamOverride: checkout,
   opamRepository: checkout,
@@ -118,7 +118,7 @@ let make =
     Option.orDefault(~default="http://registry.npmjs.org/", npmRegistry);
 
   let* installCfg =
-    EsyInstall.Config.make(
+    EsyFetch.Config.make(
       ~prefixPath,
       ~cacheTarballsPath?,
       ~cacheSourcesPath?,

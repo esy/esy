@@ -1,8 +1,9 @@
+open DepSpec;
 open EsyPackageConfig;
 
 type t = {
-  solveDev: DepSpec.t,
-  solveAll: DepSpec.t,
+  solveDev: SolveDepSpec.t,
+  solveAll: SolveDepSpec.t,
 };
 
 let eval: (t, InstallManifest.t) => Run.t(InstallManifest.Dependencies.t);

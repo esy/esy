@@ -1,44 +1,15 @@
+open DepSpec;
 open EsyPackageConfig;
-
-module DepSpec = {
-  module Id = {
-    [@deriving ord]
-    type t =
-      | Self
-      | Root;
-
-    let pp = fmt =>
-      fun
-      | Self => Fmt.any("self", fmt, ())
-      | Root => Fmt.any("root", fmt, ());
-  };
-
-  include DepSpecAst.Make(Id);
-
-  let root = Id.Root;
-  let self = Id.Self;
-};
-
-module Spec = {
-  type t = {
-    all: DepSpec.t,
-    dev: DepSpec.t,
-  };
-
-  let depspec = (spec, pkg) =>
-    switch (pkg.Package.source) {
-    | PackageSource.Link({kind: LinkDev, _}) => spec.dev
-    | PackageSource.Link({kind: LinkRegular, _})
-    | PackageSource.Install(_) => spec.all
-    };
-
-  let everything = {
-    let all = DepSpec.(dependencies(self) + devDependencies(self));
-    {all, dev: all};
-  };
-};
+open EsyPrimitives;
 
 let traverse = pkg => PackageId.Set.elements(pkg.Package.dependencies);
+
+let depSpecOfFetchDepsSubset = (spec, pkg) =>
+  switch (pkg.Package.source) {
+  | PackageSource.Link({kind: LinkDev, _}) => spec.FetchDepsSubset.dev
+  | PackageSource.Link({kind: LinkRegular, _})
+  | PackageSource.Install(_) => spec.FetchDepsSubset.all
+  };
 
 module Graph =
   Graph.Make({
@@ -67,23 +38,22 @@ type pkg = Package.t;
 
 let resolve = (solution, self, id) =>
   switch (id) {
-  | DepSpec.Id.Root => Graph.root(solution).id
-  | DepSpec.Id.Self => self
+  | FetchDepSpec.Root => Graph.root(solution).id
+  | FetchDepSpec.Self => self
   };
 
 let eval = (solution, depspec, self) => {
   let resolve = id => resolve(solution, self, id);
   let rec eval' = expr =>
     switch (expr) {
-    | DepSpec.Package(id) => PackageId.Set.singleton(resolve(id))
-    | DepSpec.Dependencies(id) =>
+    | FetchDepSpec.Package(id) => PackageId.Set.singleton(resolve(id))
+    | FetchDepSpec.Dependencies(id) =>
       let pkg = Graph.getExn(solution, resolve(id));
       pkg.dependencies;
-    | DepSpec.DevDependencies(id) =>
+    | FetchDepSpec.DevDependencies(id) =>
       let pkg = Graph.getExn(solution, resolve(id));
       pkg.devDependencies;
-    | [@implicit_arity] DepSpec.Union(a, b) =>
-      PackageId.Set.union(eval'(a), eval'(b))
+    | FetchDepSpec.Union(a, b) => PackageId.Set.union(eval'(a), eval'(b))
     };
 
   eval'(depspec);
@@ -103,7 +73,7 @@ let collect = (solution, depspec, root) =>
   collect'(solution, depspec, PackageId.Set.empty, root);
 
 let dependenciesBySpec = (solution, spec, self) => {
-  let depspec = Spec.depspec(spec, self);
+  let depspec = depSpecOfFetchDepsSubset(spec, self);
   let ids = eval(solution, depspec, self.id);
   let ids = PackageId.Set.elements(ids);
   List.map(~f=getExn(solution), ids);

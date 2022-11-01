@@ -15,4 +15,4 @@ let solve:
     SolveSpec.t,
     Sandbox.t
   ) =>
-  RunAsync.t(EsyInstall.Solution.t);
+  RunAsync.t(EsyFetch.Solution.t);
