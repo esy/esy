@@ -1,7 +1,7 @@
 /* @flow */
 
 const helpers = require('../test/helpers.js');
-const isCi = require("is-ci");
+const isCi = require('is-ci');
 
 const {test} = helpers;
 
@@ -170,7 +170,7 @@ describe(`Tests for installations from custom sources`, () => {
       await assertLayoutCorrect(p.projectPath);
     });
 
-    test('install from git:// with no ref', async () => {
+    test.skip('install from git:// with no ref', async () => {
       const fixture = [
         helpers.packageJson({
           name: 'root',
@@ -189,7 +189,7 @@ describe(`Tests for installations from custom sources`, () => {
       await assertLayoutCorrect(p.projectPath);
     });
 
-    test('install from git:// with branch as ref', async () => {
+    test.skip('install from git:// with branch as ref', async () => {
       const fixture = [
         helpers.packageJson({
           name: 'root',
@@ -208,7 +208,7 @@ describe(`Tests for installations from custom sources`, () => {
       await assertLayoutCorrect(p.projectPath);
     });
 
-    test('install from git:// with commit as ref', async () => {
+    test.skip('install from git:// with commit as ref', async () => {
       const fixture = [
         helpers.packageJson({
           name: 'root',
@@ -249,7 +249,7 @@ describe(`Tests for installations from custom sources`, () => {
   });
 });
 
-describe('resolutions', function() {
+describe('resolutions', function () {
   test.disableIf(isCi)('github ssh URL', async () => {
     const fixture = [
       helpers.packageJson({
@@ -319,7 +319,6 @@ describe('resolutions', function() {
     await assertLayoutCorrect(p.projectPath);
   });
 
-
   test.disableIf(isCi)('github ssh URL with manifest', async () => {
     const fixture = [
       helpers.packageJson({
@@ -388,7 +387,6 @@ describe('resolutions', function() {
     await p.esy('install --skip-repository-update');
     await assertLayoutCorrect(p.projectPath);
   });
-
 
   test('github https URL', async () => {
     const fixture = [
