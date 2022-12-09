@@ -303,8 +303,9 @@ let render = (~basePath, ~rootPath, ~rootId, ~solution, ~installation, ()) => {
 
   Format.asprintf(
     {|#!/usr/bin/env node
+
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
-/* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
+/* global packageInformationStores, null, $$SETUP_STATIC_TABLES */
 
 // Used for the resolveUnqualified part of the resolution (ie resolving folder/index.js & file extensions)
 // Deconstructed so that they aren't affected by any fs monkeypatching occuring later during the execution
@@ -314,8 +315,7 @@ const Module = require('module');
 const path = require('path');
 const StringDecoder = require('string_decoder');
 
-const $$BLACKLIST = null;
-const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
+const ignorePattern = null ? new RegExp(null) : null;
 
 const pnpFile = path.resolve(__dirname, __filename);
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
@@ -324,7 +324,7 @@ const topLevelLocator = {name: null, reference: null};
 const blacklistedLocator = {name: NaN, reference: NaN};
 
 // Used for compatibility purposes - cf setupCompatibilityLayer
-const patchedModules = new Map();
+const patchedModules = [];
 const fallbackLocators = [topLevelLocator];
 
 // Matches backslashes of Windows paths
@@ -335,10 +335,10 @@ const isDirRegExp = /\/$/;
 
 // Matches if the path starts with a valid path qualifier (./, ../, /)
 // eslint-disable-next-line no-unused-vars
-const isStrictRegExp = /^\.{0,2}/;
+const isStrictRegExp = /^\.{0,2}\//;
 
 // Splits a require request into its components, or return null if the request is a file path
-const pathRegExp = /^(?![A-Za-z]:)(?!\.{0,2}(?:\/|$))((?:@@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+const pathRegExp = /^(?![a-zA-Z]:[\\\/]|\\\\|\.{0,2}(?:\/|$))((?:@@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 // Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
@@ -393,12 +393,13 @@ function blacklistCheck(locator) {
   return locator;
 }
 
-let packageInformationStores = %a;
+let packageInformationStores = %a
 
 let topLevelLocatorPath = "%s";
-let locatorsByLocations = %a;
+let locatorsByLocations = %a
 
 %s
+
 
 /**
  * Returns the module that should be used to resolve require calls. It's usually the direct parent, except if we're
@@ -549,7 +550,6 @@ function makeFakeModule(path) {
  * Normalize path to posix format.
  */
 
-// eslint-disable-next-line no-unused-vars
 function normalizePath(fsPath) {
   fsPath = path.normalize(fsPath);
 
@@ -654,10 +654,10 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
     if (result === false) {
       throw makeError(
         `BUILTIN_NODE_RESOLUTION_FAIL`,
-        `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitely ignored by the regexp "$$BLACKLIST")`,
+        `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitely ignored by the regexp "null")`,
         {
           request,
-          issuer
+          issuer,
         }
       );
     }
@@ -701,8 +701,8 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer doesn't seem to be part of the Yarn-managed dependency tree)`,
           {
             request,
-            issuer
-          },
+            issuer,
+          }
         );
       }
 
@@ -734,13 +734,13 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           throw makeError(
             `MISSING_PEER_DEPENDENCY`,
             `You seem to be requiring a peer dependency ("${dependencyName}"), but it is not installed (which might be because you're the top-level package)`,
-            {request, issuer, dependencyName},
+            {request, issuer, dependencyName}
           );
         } else {
           throw makeError(
             `MISSING_PEER_DEPENDENCY`,
-            `Package "${issuerLocator.name}@@${issuerLocator.reference}" is trying to access a peer dependency ("${dependencyName}") that should be provided by its direct ancestor but isn't`,
-            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName},
+            `Package "${issuerLocator.name}@${issuerLocator.reference}" is trying to access a peer dependency ("${dependencyName}") that should be provided by its direct ancestor but isn't`,
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName}
           );
         }
       } else {
@@ -748,16 +748,16 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           throw makeError(
             `UNDECLARED_DEPENDENCY`,
             `You cannot require a package ("${dependencyName}") that is not declared in your dependencies (via "${issuer}")`,
-            {request, issuer, dependencyName},
+            {request, issuer, dependencyName}
           );
         } else {
           const candidates = Array.from(issuerInformation.packageDependencies.keys());
           throw makeError(
             `UNDECLARED_DEPENDENCY`,
-            `Package "${issuerLocator.name}@@${issuerLocator.reference}" (via "${issuer}") is trying to require the package "${dependencyName}" (via "${request}") without it being listed in its dependencies (${candidates.join(
-              `, `,
+            `Package "${issuerLocator.name}@${issuerLocator.reference}" (via "${issuer}") is trying to require the package "${dependencyName}" (via "${request}") without it being listed in its dependencies (${candidates.join(
+              `, `
             )})`,
-            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName, candidates},
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName, candidates}
           );
         }
       }
@@ -772,8 +772,8 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
     if (!dependencyLocation) {
       throw makeError(
         `MISSING_DEPENDENCY`,
-        `Package "${dependencyLocator.name}@@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required (it might be caused if you install a partial tree, such as on production environments)`,
-        {request, issuer, dependencyLocator: Object.assign({}, dependencyLocator)},
+        `Package "${dependencyLocator.name}@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required (it might be caused if you install a partial tree, such as on production environments)`,
+        {request, issuer, dependencyLocator: Object.assign({}, dependencyLocator)}
       );
     }
 
@@ -796,7 +796,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
 
 exports.resolveUnqualified = function resolveUnqualified(
   unqualifiedPath,
-  {extensions = Object.keys(Module._extensions)} = {},
+  {extensions = Object.keys(Module._extensions)} = {}
 ) {
   const qualifiedPath = applyNodeExtensionResolution(unqualifiedPath, {extensions});
 
@@ -806,7 +806,7 @@ exports.resolveUnqualified = function resolveUnqualified(
     throw makeError(
       `QUALIFIED_PATH_RESOLUTION_FAILED`,
       `Couldn't find a suitable Node resolution for unqualified path "${unqualifiedPath}"`,
-      {unqualifiedPath},
+      {unqualifiedPath}
     );
   }
 };
@@ -843,7 +843,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
         }
 
         try {
-          exports.resolveToUnqualified(request, realIssuer, {extensions});
+          exports.resolveToUnqualified(request, realIssuer, {considerBuiltins});
         } catch (error) {
           // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
           // can just throw the original error which was legit.
@@ -859,8 +859,8 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
           {
             request,
             issuer,
-            realIssuer
-          },
+            realIssuer,
+          }
         );
       }
     }
@@ -872,7 +872,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
   }
 
   try {
-    return exports.resolveUnqualified(unqualifiedPath);
+    return exports.resolveUnqualified(unqualifiedPath, {extensions});
   } catch (resolutionError) {
     if (resolutionError.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
       Object.assign(resolutionError.data, {request, issuer});
@@ -958,8 +958,10 @@ exports.setup = function setup() {
 
     // Some modules might have to be patched for compatibility purposes
 
-    if (patchedModules.has(request)) {
-      module.exports = patchedModules.get(request)(module.exports);
+    for (const [filter, patchFn] of patchedModules) {
+      if (filter.test(request)) {
+        module.exports = patchFn(exports.findPackageLocator(parent.filename), module.exports);
+      }
     }
 
     return module.exports;
@@ -972,11 +974,47 @@ exports.setup = function setup() {
       return originalModuleResolveFilename.call(Module, request, parent, isMain, options);
     }
 
-    const issuerModule = getIssuerModule(parent);
-    const issuer = issuerModule ? issuerModule.filename : process.cwd() + '/';
+    let issuers;
 
-    const resolution = exports.resolveRequest(request, issuer);
-    return resolution !== null ? resolution : request;
+    if (options) {
+      const optionNames = new Set(Object.keys(options));
+      optionNames.delete('paths');
+
+      if (optionNames.size > 0) {
+        throw makeError(
+          `UNSUPPORTED`,
+          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`
+        );
+      }
+
+      if (options.paths) {
+        issuers = options.paths.map(entry => `${path.normalize(entry)}/`);
+      }
+    }
+
+    if (!issuers) {
+      const issuerModule = getIssuerModule(parent);
+      const issuer = issuerModule ? issuerModule.filename : `${process.cwd()}/`;
+
+      issuers = [issuer];
+    }
+
+    let firstError;
+
+    for (const issuer of issuers) {
+      let resolution;
+
+      try {
+        resolution = exports.resolveRequest(request, issuer);
+      } catch (error) {
+        firstError = firstError || error;
+        continue;
+      }
+
+      return resolution !== null ? resolution : request;
+    }
+
+    throw firstError;
   };
 
   const originalFindPath = Module._findPath;
@@ -1004,25 +1042,9 @@ exports.setup = function setup() {
   };
 
   process.versions.pnp = String(exports.VERSIONS.std);
-
-  if (process.env.ESY__NODE_BIN_PATH != null) {
-    const delimiter = require('path').delimiter;
-    process.env.PATH = `${process.env.ESY__NODE_BIN_PATH}${delimiter}${process.env.PATH}`;
-  }
 };
 
 exports.setupCompatibilityLayer = () => {
-  // see https://github.com/browserify/resolve/blob/master/lib/caller.js
-  const getCaller = () => {
-    const origPrepareStackTrace = Error.prepareStackTrace;
-
-    Error.prepareStackTrace = (_, stack) => stack;
-    const stack = new Error().stack;
-    Error.prepareStackTrace = origPrepareStackTrace;
-
-    return stack[2].getFileName();
-  };
-
   // ESLint currently doesn't have any portable way for shared configs to specify their own
   // plugins that should be used (https://github.com/eslint/eslint/issues/10125). This will
   // likely get fixed at some point, but it'll take time and in the meantime we'll just add
@@ -1037,84 +1059,52 @@ exports.setupCompatibilityLayer = () => {
     }
   }
 
-  // We need to shim the "resolve" module, because Liftoff uses it in order to find the location
-  // of the module in the dependency tree. And Liftoff is used to power Gulp, which doesn't work
-  // at all unless modulePath is set, which we cannot configure from any other way than through
-  // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
+  // Modern versions of `resolve` support a specific entry point that custom resolvers can use
+  // to inject a specific resolution logic without having to patch the whole package.
+  //
+  // Cf: https://github.com/browserify/resolve/pull/174
 
-  patchedModules.set(/^resolve$/, realResolve => {
-    const mustBeShimmed = caller => {
-      const callerLocator = exports.findPackageLocator(caller);
-
-      return callerLocator && callerLocator.name === 'liftoff';
-    };
-
-    const attachCallerToOptions = (caller, options) => {
-      if (!options.basedir) {
-        options.basedir = path.dirname(caller);
+  patchedModules.push([
+    /^\.\/normalize-options\.js$/,
+    (issuer, normalizeOptions) => {
+      if (!issuer || issuer.name !== 'resolve') {
+        return normalizeOptions;
       }
-    };
 
-    const resolveSyncShim = (request, {basedir}) => {
-      return exports.resolveRequest(request, basedir, {
-        considerBuiltins: false,
-      });
-    };
+      return (request, opts) => {
+        opts = opts || {};
 
-    const resolveShim = (request, options, callback) => {
-      setImmediate(() => {
-        let error;
-        let result;
-
-        try {
-          result = resolveSyncShim(request, options);
-        } catch (thrown) {
-          error = thrown;
+        if (opts.forceNodeResolution) {
+          return opts;
         }
 
-        callback(error, result);
-      });
-    };
+        opts.preserveSymlinks = true;
+        opts.paths = function(request, basedir, getNodeModulesDir, opts) {
+          // Extract the name of the package being requested (1=full name, 2=scope name, 3=local name)
+          const parts = request.match(/^((?:(@@[^\/]+)\/)?([^\/]+))/);
 
-    return Object.assign(
-      (request, options, callback) => {
-        if (typeof options === 'function') {
-          callback = options;
-          options = {};
-        } else if (!options) {
-          options = {};
-        }
+          // make sure that basedir ends with a slash
+          if (basedir.charAt(basedir.length - 1) !== '/') {
+            basedir = path.join(basedir, '/');
+          }
+          // This is guaranteed to return the path to the "package.json" file from the given package
+          const manifestPath = exports.resolveToUnqualified(`${parts[1]}/package.json`, basedir);
 
-        const caller = getCaller();
-        attachCallerToOptions(caller, options);
+          // The first dirname strips the package.json, the second strips the local named folder
+          let nodeModules = path.dirname(path.dirname(manifestPath));
 
-        if (mustBeShimmed(caller)) {
-          return resolveShim(request, options, callback);
-        } else {
-          return realResolve.sync(request, options, callback);
-        }
-      },
-      {
-        sync: (request, options) => {
-          if (!options) {
-            options = {};
+          // Strips the scope named folder if needed
+          if (parts[2]) {
+            nodeModules = path.dirname(nodeModules);
           }
 
-          const caller = getCaller();
-          attachCallerToOptions(caller, options);
+          return [nodeModules];
+        };
 
-          if (mustBeShimmed(caller)) {
-            return resolveSyncShim(request, options);
-          } else {
-            return realResolve.sync(request, options);
-          }
-        },
-        isCore: request => {
-          return realResolve.isCore(request);
-        }
-      }
-    );
-  });
+        return opts;
+      };
+    },
+  ]);
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
@@ -1178,8 +1168,7 @@ if (process.mainModule === module) {
       } while (true);
     });
   }
-}
-|},
+}|},
     PackageInformation.jspp,
     packageInformation,
     locatorsByLocations.topLevelLocatorPath,
