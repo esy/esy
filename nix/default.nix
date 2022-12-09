@@ -14,7 +14,7 @@ in
   with esyOcamlPkgs;
     stdenv.mkDerivation {
       pname = "esy";
-      version = "0.6.13-dev";
+      version = "0.6.14";
 
       src = with nix-filter.lib;
         filter {

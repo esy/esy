@@ -1,7 +1,7 @@
 let currentWorkingDir = Path.v(Sys.getcwd());
 let currentExecutable = Path.v(Sys.executable_name);
 
-let version = "0.6.13-dev";
+let version = "0.6.14";
 
 let detect_concurrency_from_env = () => {
   let to_int =
