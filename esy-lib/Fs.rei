@@ -19,6 +19,7 @@ let exists: Path.t => RunAsync.t(bool);
 
 /** Check if the path exists and is a directory */
 let isDir: Path.t => RunAsync.t(bool);
+let isDirSync: Path.t => bool;
 
 let unlink: Path.t => RunAsync.t(unit);
 
