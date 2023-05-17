@@ -59,7 +59,7 @@ let pp = {
     | Unset => Fmt.pf(fmt, "unset %s", name)
     };
 
-  StringMap.pp(~sep=Fmt.unit(", "), ppItem);
+  StringMap.pp(~sep=Fmt.any(", "), ppItem);
 };
 
 let show = env => Format.asprintf("%a", pp, env);

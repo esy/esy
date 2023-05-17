@@ -46,7 +46,7 @@ type install = {
 
 let pp = fmt =>
   fun
-  | OfJson(_) => Fmt.unit("<inline override>", fmt, ())
+  | OfJson(_) => Fmt.any("<inline override>", fmt, ())
   | OfDist({dist, json: _}) => Fmt.pf(fmt, "override:%a", Dist.pp, dist)
   | OfOpamOverride(info) =>
     Fmt.pf(fmt, "opam-override:%a", Path.pp, info.path);

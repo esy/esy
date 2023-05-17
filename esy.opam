@@ -71,4 +71,8 @@ dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
   ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
+  ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
+  ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
+  ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
+  ["rely.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
 ]

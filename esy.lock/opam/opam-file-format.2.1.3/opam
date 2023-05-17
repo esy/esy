@@ -1,0 +1,29 @@
+opam-version: "2.0"
+synopsis: "Parser and printer for the opam file syntax"
+maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+authors: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam-file-format/issues"
+license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+dev-repo: "git+https://github.com/ocaml/opam-file-format"
+build: [
+  [make "byte" {!ocaml:native} "all" {ocaml:native}] {!dune:installed}
+  ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}] {dune:installed}
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test & dune:installed}
+]
+install: [make "install" "PREFIX=%{prefix}%"] {!dune:installed}
+depends: [
+  "ocaml"
+  "alcotest" {with-test}
+]
+depopts: [
+  "dune"
+]
+conflicts: "dune" {< "1.3.0"}
+url {
+  src: "https://github.com/ocaml/opam-file-format/archive/2.1.3.tar.gz"
+  checksum: [
+    "md5=b805562dd2d86fc3c8e6d47884fd1da6"
+    "sha512=90da53a2b19eb97c17ec71d3ac00969863ef3458f421189413b3ec2d96f8822da9fba51ef95f55064bbb17f1729104a1fe4fed1d61d5006568b53165f0c6931f"
+  ]
+}

@@ -1,30 +1,31 @@
-open EsyInstall;
+open EsyPrimitives;
 open EsyBuild;
+open DepSpec;
 
 type t = {
   solvespec: EsySolve.SolveSpec.t,
-  installspec: Solution.Spec.t,
+  fetchDepsSubset: FetchDepsSubset.t,
   buildspec: BuildSpec.t,
   execenvspec: EnvSpec.t,
   commandenvspec: EnvSpec.t,
   buildenvspec: EnvSpec.t,
 };
 
-let buildAll = Solution.DepSpec.(dependencies(self));
-let buildDev = Solution.DepSpec.(dependencies(self) + devDependencies(self));
+let buildAll = FetchDepSpec.(dependencies(self));
+let buildDev = FetchDepSpec.(dependencies(self) + devDependencies(self));
 
 let default = {
   let solvespec =
     EsySolve.{
       SolveSpec.solveDev:
-        DepSpec.(dependencies(self) + devDependencies(self)),
-      solveAll: DepSpec.(dependencies(self)),
+        SolveDepSpec.(dependencies(self) + devDependencies(self)),
+      solveAll: SolveDepSpec.(dependencies(self)),
     };
 
-  let installspec = {
-    Solution.Spec.dev:
-      Solution.DepSpec.(dependencies(self) + devDependencies(self)),
-    all: Solution.DepSpec.(dependencies(self)),
+  let fetchDepsSubset = {
+    FetchDepsSubset.dev:
+      FetchDepSpec.(dependencies(self) + devDependencies(self)),
+    all: FetchDepSpec.(dependencies(self)),
   };
 
   /* This defines how project is built. */
@@ -46,7 +47,7 @@ let default = {
     /* Environment contains dependencies, devDependencies and package itself. */
     augmentDeps:
       Some(
-        Solution.DepSpec.(
+        FetchDepSpec.(
           package(self) + dependencies(self) + devDependencies(self)
         ),
       ),
@@ -61,7 +62,7 @@ let default = {
     includeNpmBin: true,
     /* Environment contains dependencies and devDependencies. */
     augmentDeps:
-      Some(Solution.DepSpec.(dependencies(self) + devDependencies(self))),
+      Some(FetchDepSpec.(dependencies(self) + devDependencies(self))),
   };
 
   /* This defines environment for "esy build CMD" invocation. */
@@ -77,7 +78,7 @@ let default = {
 
   {
     solvespec,
-    installspec,
+    fetchDepsSubset,
     buildspec,
     execenvspec,
     commandenvspec,

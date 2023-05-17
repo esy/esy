@@ -41,16 +41,16 @@ type script = Scripts.script = {command: Command.t};
 let empty = Scripts.empty;
 let find = Scripts.find;
 
-let ofSandbox = (spec: EsyInstall.SandboxSpec.t) =>
+let ofSandbox = (spec: EsyFetch.SandboxSpec.t) =>
   RunAsync.Syntax.(
     switch (spec.manifest) {
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
       let* json = Fs.readJsonFile(Path.(spec.path / filename));
       let* pkgJson =
         RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
       return(pkgJson.OfPackageJson.scripts);
 
-    | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _)
-    | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(Scripts.empty)
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _)
+    | EsyFetch.SandboxSpec.ManifestAggregate(_) => return(Scripts.empty)
     }
   );

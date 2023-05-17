@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
+open DepSpec;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -8,7 +10,7 @@ type project = {
   workflow: Workflow.t,
   buildCfg: EsyBuildPackage.Config.t,
   solveSandbox: EsySolve.Sandbox.t,
-  installSandbox: EsyInstall.Sandbox.t,
+  installSandbox: EsyFetch.Sandbox.t,
   scripts: Scripts.t,
   solved: Run.t(solved),
 }
@@ -54,7 +56,7 @@ module TermPp = {
     Fmt.pf(
       fmt,
       "%a%a%a%a%a%a",
-      ppOption("--envspec", Fmt.quote(~mark="'", Solution.DepSpec.pp)),
+      ppOption("--envspec", Fmt.quote(~mark="'", FetchDepSpec.pp)),
       augmentDeps,
       ppFlag("--build-context"),
       buildIsInProgress,
@@ -68,6 +70,41 @@ module TermPp = {
       includeBuildEnv,
     );
   };
+};
+
+module OfPackageJson = {
+  [@deriving of_yojson({strict: false})]
+  type esy = {
+    [@default BuildEnv.empty]
+    sandboxEnv: BuildEnv.t,
+    opamOverrideRemote: [@default None] option(string),
+    opamOverrideLocal: [@default None] option(Path.t),
+  };
+
+  let empty = {
+    sandboxEnv: BuildEnv.empty,
+    opamOverrideRemote: None,
+    opamOverrideLocal: None,
+  };
+
+  [@deriving of_yojson({strict: false})]
+  type t = {
+    [@default empty]
+    esy,
+  };
+
+  let read = spec =>
+    RunAsync.Syntax.(
+      switch (spec.EsyFetch.SandboxSpec.manifest) {
+      | EsyFetch.SandboxSpec.Manifest((Esy, filename)) =>
+        let* json = Fs.readJsonFile(Path.(spec.path / filename));
+        let* pkgJson = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+        return(pkgJson.esy);
+
+      | EsyFetch.SandboxSpec.Manifest((Opam, _))
+      | EsyFetch.SandboxSpec.ManifestAggregate(_) => return(empty)
+      }
+    );
 };
 
 let makeCachePath = (prefix, projcfg: ProjectConfig.t) => {
@@ -108,6 +145,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
 
   let files = ref(files);
 
+  let* esy = OfPackageJson.read(projcfg.spec);
+
   let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
@@ -117,6 +156,17 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         Path.(dir / "lib" / "esy" / "esySolveCudfCommand") |> Cmd.ofPath;
       return(cmd);
     };
+
+  let esyOpamOverrideRemote =
+    Option.orOther(
+      ~other=esy.opamOverrideRemote,
+      projcfg.esyOpamOverrideRemote,
+    );
+  let esyOpamOverrideLocal =
+    Option.orOther(
+      ~other=esy.opamOverrideLocal,
+      projcfg.esyOpamOverrideLocal,
+    );
 
   let* solveCfg =
     EsySolve.Config.make(
@@ -130,8 +180,8 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~esyOpamOverride=?projcfg.esyOpamOverride,
       ~opamRepositoryLocal=?projcfg.opamRepositoryLocal,
       ~opamRepositoryRemote=?projcfg.opamRepositoryRemote,
-      ~esyOpamOverrideLocal=?projcfg.esyOpamOverrideLocal,
-      ~esyOpamOverrideRemote=?projcfg.esyOpamOverrideRemote,
+      ~esyOpamOverrideLocal?,
+      ~esyOpamOverrideRemote?,
       ~solveTimeout=?projcfg.solveTimeout,
       (),
     );
@@ -144,14 +194,14 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~cfg=solveCfg,
       projcfg.spec,
     );
-  let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
+  let installSandbox = EsyFetch.Sandbox.make(installCfg, projcfg.spec);
 
   let%lwt () =
     Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
 
   let%lwt () =
     Logs_lwt.debug(m =>
-      m("install config: %a", EsyInstall.Config.pp, installCfg)
+      m("install config: %a", EsyFetch.Config.pp, installCfg)
     );
 
   let* buildCfg = {
@@ -175,7 +225,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         ~disableSandbox=false,
         ~globalStorePrefix,
         ~storePath,
-        ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
+        ~localStorePath=EsyFetch.SandboxSpec.storePath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
         ~globalPathVariable=projcfg.globalPathVariable,
         (),
@@ -192,6 +242,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       solveSandbox,
       installSandbox,
       files,
+      esy,
     );
   return((
     {
@@ -224,6 +275,7 @@ let makeSolved =
       solver,
       installer,
       files,
+      esy,
     ) => {
   open RunAsync.Syntax;
   let path = SandboxSpec.solutionLockPath(projcfg.spec);
@@ -242,6 +294,7 @@ let makeSolved =
         installer,
         solution,
         files,
+        esy,
       );
     return({solution, fetched});
   | None =>
@@ -251,34 +304,6 @@ let makeSolved =
     )
   };
 };
-
-module OfPackageJson = {
-  [@deriving of_yojson({strict: false})]
-  type esy = {
-    [@default BuildEnv.empty]
-    sandboxEnv: BuildEnv.t,
-  };
-
-  [@deriving of_yojson({strict: false})]
-  type t = {
-    [@default {sandboxEnv: BuildEnv.empty}]
-    esy,
-  };
-};
-
-let readSandboxEnv = spec =>
-  RunAsync.Syntax.(
-    switch (spec.EsyInstall.SandboxSpec.manifest) {
-    | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
-      let* json = Fs.readJsonFile(Path.(spec.path / filename));
-      let* pkgJson =
-        RunAsync.ofRun(Json.parseJsonWith(OfPackageJson.of_yojson, json));
-      return(pkgJson.OfPackageJson.esy.sandboxEnv);
-
-    | EsyInstall.SandboxSpec.Manifest((Opam, _))
-    | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(BuildEnv.empty)
-    }
-  );
 
 let makeFetched =
     (
@@ -290,14 +315,15 @@ let makeFetched =
       installer,
       solution,
       files,
+      esy,
     ) => {
   open RunAsync.Syntax;
-  let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
+  let path = EsyFetch.SandboxSpec.installationPath(projcfg.spec);
   let* info = FileInfo.ofPath(path);
   files := [info, ...files^];
   switch%bind (
-    EsyInstall.Fetch.maybeInstallationOfSolution(
-      workflow.Workflow.installspec,
+    EsyFetch.Fetch.maybeInstallationOfSolution(
+      workflow.Workflow.fetchDepsSubset,
       installer,
       solution,
     )
@@ -310,13 +336,13 @@ let makeFetched =
   | Some(installation) =>
     let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let* sandbox = {
-      let* sandboxEnv = readSandboxEnv(projcfg.spec);
+      let sandboxEnv = OfPackageJson.(esy.sandboxEnv);
       let* (sandbox, filesUsedForPlan) =
         BuildSandbox.make(
           ~sandboxEnv,
           buildCfg,
           projcfg.spec,
-          installer.EsyInstall.Sandbox.cfg,
+          installer.EsyFetch.Sandbox.cfg,
           solution,
           installation,
         );
@@ -340,7 +366,7 @@ let makeFetched =
 };
 
 let makeConfigured =
-    (_projcfg, workflow, solution, _installation, sandbox, _files) => {
+    (projcfg, workflow, solution, _installation, sandbox, _files) => {
   open RunAsync.Syntax;
 
   let* (root, planForDev) =
@@ -349,12 +375,14 @@ let makeConfigured =
         open Run.Syntax;
         let* plan =
           BuildSandbox.makePlan(
+            ~concurrency=
+              EsyRuntime.concurrency(projcfg.ProjectConfig.buildConcurrency),
             workflow.Workflow.buildspec,
             BuildDev,
             sandbox,
           );
 
-        let pkg = EsyInstall.Solution.root(solution);
+        let pkg = EsyFetch.Solution.root(solution);
         let root =
           switch (BuildSandbox.Plan.get(plan, pkg.Package.id)) {
           | None => failwith("missing build for the root package")
@@ -375,6 +403,10 @@ let plan = (mode, proj) =>
       let* fetched = fetched(proj);
       Lwt.return(
         BuildSandbox.makePlan(
+          ~concurrency=
+            EsyRuntime.concurrency(
+              proj.projcfg.ProjectConfig.buildConcurrency,
+            ),
           Workflow.default.buildspec,
           Build,
           fetched.sandbox,
@@ -751,6 +783,27 @@ let buildDependencies =
   };
 };
 
+let buildShell = (proj, mode, sandbox, pkg) => {
+  let () =
+    Logs.info(m =>
+      m(
+        "running:@[<v>@;%s build-shell \\@;%a@]",
+        proj.projcfg.ProjectConfig.mainprg,
+        PackageId.pp,
+        pkg.Package.id,
+      )
+    );
+
+  BuildSandbox.buildShell(
+    ~concurrency=
+      EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
+    proj.workflow.buildspec,
+    mode,
+    sandbox,
+    pkg.id,
+  );
+};
+
 let buildPackage =
     (~quiet, ~disableSandbox, ~buildOnly, projcfg, sandbox, plan, pkg) => {
   checkSymlinks();
@@ -832,11 +885,11 @@ let printEnv =
                 name,
                 Package.pp,
                 pkg,
-                Solution.DepSpec.pp,
+                FetchDepSpec.pp,
                 depspec,
                 BuildSpec.pp_mode,
                 mode,
-                Fmt.option(Solution.DepSpec.pp),
+                Fmt.option(FetchDepSpec.pp),
                 envspec.EnvSpec.augmentDeps,
                 envspec.buildIsInProgress,
                 envspec.includeBuildEnv,
@@ -896,6 +949,8 @@ let execCommand =
   let* status =
     BuildSandbox.exec(
       ~changeDirectoryToPackageRoot,
+      ~concurrency=
+        EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
       envspec,
       Workflow.default.buildspec,
       mode,

@@ -2,7 +2,7 @@ open EsyPackageConfig;
 
 type t = {
   cfg: Config.t,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   root: InstallManifest.t,
   resolutions: Resolutions.t,
   resolver: Resolver.t,
@@ -10,7 +10,7 @@ type t = {
 
 let makeResolution = source => {
   Resolution.name: "root",
-  resolution: Version(Version.Source(source)),
+  resolution: VersionOverride({version: Source(source), override: None}),
 };
 
 let ofResolution =
@@ -24,7 +24,7 @@ let ofResolution =
       let name =
         switch (root.InstallManifest.originalName) {
         | Some(name) => name
-        | None => EsyInstall.SandboxSpec.projectName(spec)
+        | None => EsyFetch.SandboxSpec.projectName(spec)
         };
 
       {...root, name};
@@ -35,7 +35,7 @@ let ofResolution =
   };
 };
 
-let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) => {
+let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
   open RunAsync.Syntax;
   let path = DistPath.make(~base=spec.path, spec.path);
   let makeSource = manifest =>
@@ -45,7 +45,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
     {
       let* resolver = Resolver.make(~cfg, ~sandbox=spec, ());
       switch (spec.manifest) {
-      | EsyInstall.SandboxSpec.Manifest(manifest) =>
+      | EsyFetch.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);
         let resolution = makeResolution(source);
         let* sandbox =
@@ -59,7 +59,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
           );
         Resolver.setResolutions(sandbox.resolutions, sandbox.resolver);
         return(sandbox);
-      | EsyInstall.SandboxSpec.ManifestAggregate(manifests) =>
+      | EsyFetch.SandboxSpec.ManifestAggregate(manifests) =>
         let* (resolutions, deps, devDeps) = {
           let f = ((resolutions, deps, devDeps), manifest) => {
             let source = makeSource(manifest);
@@ -82,7 +82,11 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyInstall.SandboxSpec.t) =>
                 };
 
               let resolutions = {
-                let resolution = Resolution.Version(Version.Source(source));
+                let resolution =
+                  Resolution.VersionOverride({
+                    version: Source(source),
+                    override: None,
+                  });
                 Resolutions.add(name, resolution, resolutions);
               };
 
@@ -141,13 +145,13 @@ let digest = (solvespec, sandbox) => {
     let ppOpamDependencies = (fmt, deps) => {
       let ppDisj = (fmt, disj) =>
         switch (disj) {
-        | [] => Fmt.unit("true", fmt, ())
+        | [] => Fmt.any("true", fmt, ())
         | [dep] => InstallManifest.Dep.pp(fmt, dep)
         | deps =>
           Fmt.pf(
             fmt,
             "(%a)",
-            Fmt.(list(~sep=unit(" || "), InstallManifest.Dep.pp)),
+            Fmt.(list(~sep=any(" || "), InstallManifest.Dep.pp)),
             deps,
           )
         };
@@ -155,15 +159,15 @@ let digest = (solvespec, sandbox) => {
       Fmt.pf(
         fmt,
         "@[<h>[@;%a@;]@]",
-        Fmt.(list(~sep=unit(" && "), ppDisj)),
+        Fmt.(list(~sep=any(" && "), ppDisj)),
         deps,
       );
     };
 
     let ppNpmDependencies = (fmt, deps) => {
       let ppDnf = (ppConstr, fmt, f) => {
-        let ppConj = Fmt.(list(~sep=unit(" && "), ppConstr));
-        Fmt.(list(~sep=unit(" || "), ppConj))(fmt, f);
+        let ppConj = Fmt.(list(~sep=any(" && "), ppConstr));
+        Fmt.(list(~sep=any(" || "), ppConj))(fmt, f);
       };
 
       let ppVersionSpec = (fmt, spec) =>
@@ -181,7 +185,7 @@ let digest = (solvespec, sandbox) => {
       Fmt.pf(
         fmt,
         "@[<hov>[@;%a@;]@]",
-        Fmt.list(~sep=Fmt.unit(", "), ppReq),
+        Fmt.list(~sep=Fmt.any(", "), ppReq),
         deps,
       );
     };
@@ -218,11 +222,14 @@ let digest = (solvespec, sandbox) => {
     let f = (digest, resolution) => {
       let resolution =
         switch (resolution.Resolution.resolution) {
-        | SourceOverride({source: Source.Link(_), override: _}) =>
+        | SourceOverride({source: Source.Link(_), override: _})
+        | VersionOverride({
+            version: Version.Source(Source.Link(_)),
+            override: _,
+          }) =>
           Some(resolution)
+        | VersionOverride(_)
         | SourceOverride(_) => None
-        | Version(Version.Source(Source.Link(_))) => Some(resolution)
-        | Version(_) => None
         };
 
       switch (resolution) {

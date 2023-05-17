@@ -5,6 +5,20 @@ title: Frequently Asked Questions
 
 This is a running list of frequently asked questions (recommendations are very welcome)
 
+## Dynamic linking issues with npm release: "Library not loaded /opt/homebrew/.../esy_openssl-93ba2454/lib/libssl.1.1.dylib"
+
+TLDR; Ensure that required package, in this case `esy-openssl`, in present in `esy.release.includePackages` property of `esy.json`/`package.json`
+
+Binaries often rely on dynamic libraries (esp. on MacOS). HTTP servers relying on popular frameworks to implement https would often rely on openssl, which is often dynamically linked on MacOS (Linux too by default). These need to be present in the sandbox when the binary runs (example, the HTTP server). This happens easily when one runs `esy x my-http-server.exe`. But, when packaged as an npm package, `esy-openssl` must be present in the binary's environment. `esy` already ensures present during `esy x ...` is also present in binaries exported as NPM package. But it doesn't, by default, export all the packages - they have to be opted in as and when needed. To ensure such dynamically linked library packages are included in the environment of the exported NPM packages, use `includePackages` property (as explained [here](https://esy.sh/docs/en/npm-release.html#including-dependencies))
+
+```diff
+      "includePackages": [
+        "root",
+        "esy-gmp",
++       "esy-openssl"
+      ],
+```
+
 ## Why doesn't Esy support Dune operations like opam file generation or copying of JS files in the source tree?
 
 TLDR; If you're looking to generate opam files with Dune, use `esy dune build <project opam file>`. For substitution, use `esy dune substs`.

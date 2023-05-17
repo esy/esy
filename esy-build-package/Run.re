@@ -144,14 +144,29 @@ let copyFile = (~perm=?, srcPath, dstPath) => {
       loop(ic, oc, ());
     };
   };
+  let dstExists =
+    switch (exists(dstPath)) {
+    | Error(_) => false
+    | Ok(exists) => exists
+    };
   let* res =
-    Bos.OS.File.with_ic(
-      srcPath,
-      (ic, ()) =>
-        Bos.OS.File.with_oc(~mode=?perm, dstPath, oc => loop(ic, oc), ()),
-      (),
-    );
-  let* res = res;
+    if (!dstExists) {
+      let* res =
+        Bos.OS.File.with_ic(
+          srcPath,
+          (ic, ()) =>
+            Bos.OS.File.with_oc(
+              ~mode=?perm,
+              dstPath,
+              oc => loop(ic, oc),
+              (),
+            ),
+          (),
+        );
+      res;
+    } else {
+      Ok(Ok());
+    };
   res;
 };
 
@@ -225,7 +240,28 @@ let copyContents = (~from, ~ignore=[], dest) => {
         Path.Set.empty,
         ignore,
       );
-    `Sat(path => Ok(!Path.Set.mem(path, ignoreSet)));
+    let visited = ref(Path.Set.empty);
+    `Sat(
+      path => {
+        let stats = Unix.lstat(Fpath.to_string(path));
+        visited := Path.Set.add(path, visited^);
+        switch (stats.st_kind) {
+        | Unix.S_LNK =>
+          let linkContents = Unix.readlink(Fpath.to_string(path));
+          if (Path.Set.mem(
+                Fpath.rem_empty_seg(
+                  Fpath.normalize(Path.(path / linkContents)),
+                ),
+                visited^,
+              )) {
+            Ok(false);
+          } else {
+            Ok(true);
+          };
+        | _ => Ok(!Path.Set.mem(path, ignoreSet))
+        };
+      },
+    );
   };
 
   let excludePathsWithinSymlink = ref(Path.Set.empty);
@@ -247,9 +283,11 @@ let copyContents = (~from, ~ignore=[], dest) => {
                  )) {
         Ok();
       } else {
-        let* stats = Bos.OS.Path.stat(path);
+        // Using Unix.lstat here because for a symlink pointing to a directory
+        // Unix.stat gives the st_kind as S_DIR, whereas Unix.lstat gives to correct kind S_LNK
+        let stats = Unix.lstat(Fpath.to_string(path));
         let nextPath = rebasePath(path);
-        switch (stats.Unix.st_kind) {
+        switch (stats.st_kind) {
         | Unix.S_DIR =>
           let _ = Bos.OS.Dir.create(nextPath);
           Ok();
@@ -257,6 +295,26 @@ let copyContents = (~from, ~ignore=[], dest) => {
           let* data = Bos.OS.File.read(path);
           let* {st_atime: atime, st_mtime: mtime, _}: Unix.stats =
             Bos.OS.Path.stat(path);
+
+          /* When both source and dest are in /tmp, regular files are being created before their */
+          /*   parent directories. Specifically seen when dune-deps is being installed during slow tests. */
+          /**************************************************************************************************/
+          /* build log:                                                                                                                                                                  */
+          /* # esy-build-package: building: @opam/dune-deps@opam:1.3.0                                                                                                                   */
+          /* # esy-build-package: pwd: /tmp/436dec11be7d2221/3/b/opam__s__dune_deps-opam__c__1.3.0-a64e84db                                                                              */
+          /* esyBuildPackageCommand: [ERROR] /tmp/436dec11be7d2221/source/i/opam__s__dune_deps__opam__c__1.3.0__cb1cddae/test/proj/empty/dune: No such file or directory                 */
+          /* esy-build-package: create temporary file                                                                                                                                    */
+          /*                 /tmp/436dec11be7d2221/3/b/opam__s__dune_deps-opam__c__1.3.0-a64e84db/test/proj/link-to-foo/test/bos-3a5afe.tmp:                                             */
+          /*                 No such file or directory                                                                                                                                   */
+          /**************************************************************************************************/
+          /* The tmp file is created during Bos.OS.File.write: https://github.com/dbuenzli/bos/blob/5140cd0b463ce02841ce8f380821b1376ea28341/src/bos_os_file.ml#L258 */
+          /* Repro case: */
+          /* let.result from = */
+          /*   Fpath.of_string("/tmp/624134d113be14f4/source/i/opam__s__dune_deps__opam__c__1.3.0__cb1cddae"); */
+          /* let.result dest = Fpath.of_string("/tmp/624134d113be14f4/3/b/opam__s__dune_deps-opam__c__1.3.0-a64e84db"); */
+          /* copyContents(~from, dest); */
+
+          let _ = Bos.OS.Dir.create(~path=true, Fpath.parent(nextPath));
           let* () = Bos.OS.File.write(nextPath, data);
           Unix.utimes(Fpath.to_string(nextPath), atime, mtime);
           Bos.OS.Path.Mode.set(nextPath, stats.Unix.st_perm);
@@ -276,6 +334,7 @@ let copyContents = (~from, ~ignore=[], dest) => {
     Bos.OS.Path.fold(~dotfiles=true, ~traverse, f, Ok(), [from]),
   );
 };
+
 module Dir = {
   let contents = Bos.OS.Dir.contents;
 };

@@ -1,6 +1,7 @@
+open DepSpec;
 open EsyPackageConfig;
 
-module Package = EsyInstall.Package;
+module Package = EsyFetch.Package;
 module SandboxPath = EsyBuildPackage.Config.Path;
 module SandboxValue = EsyBuildPackage.Config.Value;
 module SandboxEnvironment = EsyBuildPackage.Config.Environment;
@@ -332,7 +333,7 @@ type t = {
   platform: System.Platform.t,
   pkg: Package.t,
   mode: BuildSpec.mode,
-  depspec: EsyInstall.Solution.DepSpec.t,
+  depspec: FetchDepSpec.t,
   children: PackageId.Map.t(bool),
   self: PackageScope.t,
   dependencies: list(t),
@@ -699,7 +700,8 @@ let ocamlVersion = scope => {
   return(toOCamlVersion(PackageScope.version(ocaml.self)));
 };
 
-let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
+let toOpamEnv =
+    (~buildIsInProgress, ~concurrency, scope: t, name: OpamVariable.Full.t) => {
   open OpamVariable;
 
   let ocamlVersion = ocamlVersion(scope);
@@ -813,7 +815,10 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
   | (Full.Global, "arch") => Some(string(opamArch))
   | (Full.Global, "opam-version") => Some(string("2"))
   | (Full.Global, "make") => Some(string("make"))
-  | (Full.Global, "jobs") => Some(string("4"))
+  | (Full.Global, "jobs") =>
+    let jobs = max(concurrency / 2, 4);
+    let jobs = string_of_int(jobs);
+    Some(string(jobs));
   | (Full.Global, "pinned") => Some(bool(false))
   | (Full.Global, "dev") =>
     Some(

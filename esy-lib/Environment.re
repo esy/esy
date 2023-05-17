@@ -97,7 +97,7 @@ module Make =
     [@deriving ord]
     type t = list(Binding.t(V.t));
 
-    let pp = Fmt.(vbox(list(~sep=unit("@;"), Binding.pp(V.pp))));
+    let pp = Fmt.(vbox(list(~sep=any("@;"), Binding.pp(V.pp))));
 
     let empty = [];
     let value = (~origin=?, name, value) => {

@@ -1,10 +1,12 @@
+open DepSpec;
 open EsyPackageConfig;
-module Package = EsyInstall.Package;
+open EsyPrimitives;
+module Package = EsyFetch.Package;
 
 type t =
-  EsyInstall.Solution.Spec.t = {
-    all: EsyInstall.Solution.DepSpec.t,
-    dev: EsyInstall.Solution.DepSpec.t,
+  FetchDepsSubset.t = {
+    all: FetchDepSpec.t,
+    dev: FetchDepSpec.t,
   };
 
 type mode =

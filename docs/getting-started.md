@@ -210,7 +210,7 @@ By install, we mean installing it to a location local to the project,
 but for all intents and purposes, it behaves like as it it were a
 global location. A virtualised environment. 
 
-To do so, tweak the build command to ask Dune to not just compile, to
+To do so, tweak the build command to ask Dune to not just compile, but also to
 generate some special files that would help in installing the
 binary.
 
@@ -343,7 +343,7 @@ esy x Hello
 When a compiled binary is run with `esy x Hello`, esy creates a local install sandbox with `/bin`, `/lib`, `/etc` and other directories found globally where binaries are meant to be installed. If you're curious, you could peek into them, running
 
 ```shell
-esy echo #{self.install}
+esy echo '#{self.install}'
 ```
 
 and inspect the contents yourself. You'll find the binaries in the `bin` directory.

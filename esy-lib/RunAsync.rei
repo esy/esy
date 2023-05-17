@@ -26,27 +26,13 @@ let errorf: format4('a, Format.formatter, unit, t('v)) => 'a;
  * Wrap computation with a context which will be reported in case of error
  */
 
-let context: (t('v), string) => t('v);
+let context: (string, t('v)) => t('v);
 
 /**
  * Same as [context] but defined with a formatter.
  */
 
 let contextf: (t('v), format4('a, Format.formatter, unit, t('v))) => 'a;
-
-/**
- * Same as with the [withContext] but will be formatted as differently, as a
- * single block of text.
- */
-
-let withContextOfLog: (~header: string=?, string, t('a)) => t('a);
-
-/**
- * [cleanup comp handler] executes [handler] in case of any error happens during
- * [comp] execution. Note that [handler] sometimes can fire two times.
- */
-
-let cleanup: (t('a), unit => Lwt.t(unit)) => t('a);
 
 /**
  * Run computation and throw an exception in case of a failure.

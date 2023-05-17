@@ -1,0 +1,17 @@
+{
+  "build": [
+    [
+      "bash",
+      "-c",
+      "patch -p1 < 0001-Patch-missing-win32-implementation-for-gettimeofday.patch"
+    ],
+    [
+      "dune",
+      "build",
+      "-p",
+      "time_now",
+      "-j",
+      "4"
+    ]
+  ]
+}

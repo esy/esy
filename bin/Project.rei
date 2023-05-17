@@ -4,9 +4,10 @@
  * Project can be in multiple states and in multiple configurations.
  */;
 
+open EsyPrimitives;
 open EsyBuild;
 open EsyBuild.Scope;
-open EsyInstall;
+open EsyFetch;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -66,6 +67,10 @@ let buildDependencies:
     Package.t
   ) =>
   RunAsync.t(unit);
+
+let buildShell:
+  (project, BuildSpec.mode, BuildSandbox.t, Package.t) =>
+  RunAsync.t(Unix.process_status);
 
 let renderSandboxPath: (SandboxPath.ctx, SandboxPath.t) => Path.t;
 

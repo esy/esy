@@ -45,7 +45,10 @@ let of_yojson = {
         | _ => Version.parse(v)
         };
 
-      return({Resolution.name, resolution: Resolution.Version(version)});
+      return({
+        Resolution.name,
+        resolution: VersionOverride({version, override: None}),
+      });
     | `Assoc(_) =>
       let* resolution = Resolution.resolution_of_yojson(json);
       return({Resolution.name, resolution});

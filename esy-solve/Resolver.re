@@ -67,7 +67,7 @@ let toOpamOcamlVersion = version =>
 
 type t = {
   cfg: Config.t,
-  sandbox: EsyInstall.SandboxSpec.t,
+  sandbox: EsyFetch.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
   opamRegistry: OpamRegistry.t,
@@ -149,9 +149,8 @@ let getUnusedResolutions = resolver => {
     ~f=nameIfUnused(resolver.resolutionUsage),
     Resolutions.entries(resolver.resolutions),
   );
-};
+} /* This function increments the resolution usage count of that resolution */;
 
-/* This function increments the resolution usage count of that resolution */
 let markResolutionAsUsed = (resolver, resolution) =>
   Hashtbl.replace(resolver.resolutionUsage, resolution, true);
 
@@ -260,17 +259,11 @@ let packageOfSource =
       resolver,
     ) => {
   open RunAsync.Syntax;
-
   let readManifest =
       (
         ~name,
         ~source,
-        {
-          EsyInstall.DistResolver.kind,
-          filename: _,
-          data,
-          suggestedPackageName,
-        },
+        {EsyFetch.DistResolver.kind, filename: _, data, suggestedPackageName},
       ) =>
     RunAsync.Syntax.(
       switch (kind) {
@@ -310,13 +303,14 @@ let packageOfSource =
     );
 
   let pkg = {
-    let* {EsyInstall.DistResolver.overrides, dist: resolvedDist, manifest, _} =
-      EsyInstall.DistResolver.resolve(
+    let* {EsyFetch.DistResolver.overrides, dist: resolvedDist, manifest, _} =
+      EsyFetch.DistResolver.resolve(
         ~gitUsername,
         ~gitPassword,
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
+        ~pkgName=name,
         Source.toDist(source),
       );
 
@@ -402,9 +396,8 @@ let applyOverride = (pkg, override: Override.install) => {
                | [] => false
                | _ => true,
            );
-      };
+      } /* now add all edits */;
 
-      /* now add all edits */
       let formula = {
         let edits = {
           let f = (_name, override, edits) =>
@@ -488,7 +481,15 @@ let package =
   open RunAsync.Syntax;
   let key = (resolution.name, resolution.resolution);
 
-  let ofVersion = (version: Version.t) =>
+  let ofVersion = (~override=?, version: Version.t) => {
+    let patch_overrides = (pkg: InstallManifest.t) =>
+      switch (override) {
+      | Some(override) => {
+          ...pkg,
+          overrides: Overrides.add(override, pkg.overrides),
+        }
+      | None => pkg
+      };
     switch (version) {
     | Version.Npm(version) =>
       let* pkg =
@@ -498,7 +499,7 @@ let package =
           resolver.npmRegistry,
           (),
         );
-
+      let pkg = patch_overrides(pkg);
       return(Ok(pkg));
     | Version.Opam(version) =>
       switch%bind (
@@ -508,14 +509,15 @@ let package =
         }
       ) {
       | Some(manifest) =>
-        OpamManifest.toInstallManifest(
-          ~name=resolution.name,
-          ~version=Version.Opam(version),
-          manifest,
-        )
+        let* pkg_result =
+          OpamManifest.toInstallManifest(
+            ~name=resolution.name,
+            ~version=Version.Opam(version),
+            manifest,
+          );
+        return(Result.map(~f=patch_overrides, pkg_result));
       | None => errorf("no such opam package: %a", Resolution.pp, resolution)
       }
-
     | Version.Source(source) =>
       packageOfSource(
         ~gitUsername,
@@ -526,6 +528,7 @@ let package =
         resolver,
       )
     };
+  };
 
   PackageCache.compute(
     resolver.pkgCache,
@@ -533,7 +536,10 @@ let package =
     _ => {
       let* pkg =
         switch (resolution.resolution) {
-        | Version(version) => ofVersion(version)
+        | VersionOverride({version, override: None}) => ofVersion(version)
+        | VersionOverride({version, override: Some(override)}) =>
+          let override = Override.ofJson(override);
+          ofVersion(~override, version);
         | SourceOverride({source, override}) =>
           let override = Override.ofJson(override);
           let overrides = Overrides.(add(override, empty));
@@ -678,7 +684,10 @@ let resolve' =
           let resolutions = {
             let f = version => {
               let version = Version.Npm(version);
-              {Resolution.name, resolution: Version(version)};
+              {
+                Resolution.name,
+                resolution: VersionOverride({version, override: None}),
+              };
             };
 
             List.map(~f, versions);
@@ -692,7 +701,7 @@ let resolve' =
       let resolutions = {
         let tryCheckConformsToSpec = resolution =>
           switch (resolution.Resolution.resolution) {
-          | Version(version) =>
+          | VersionOverride({version, override: _}) =>
             versionMatchesReq(
               resolver,
               Req.make(~name, ~spec),
@@ -700,7 +709,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          }; /* do not filter them out yet */
+          } /* do not filter them out yet */;
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))
@@ -730,7 +739,10 @@ let resolve' =
 
             let f = (resolution: OpamResolution.t) => {
               let version = OpamResolution.version(resolution);
-              {Resolution.name, resolution: Version(version)};
+              {
+                Resolution.name,
+                resolution: VersionOverride({version, override: None}),
+              };
             };
 
             return(List.map(~f, versions));
@@ -740,7 +752,7 @@ let resolve' =
       let resolutions = {
         let tryCheckConformsToSpec = resolution =>
           switch (resolution.Resolution.resolution) {
-          | Version(version) =>
+          | VersionOverride({version, override: _}) =>
             versionMatchesReq(
               resolver,
               Req.make(~name, ~spec),
@@ -748,7 +760,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          }; /* do not filter them out yet */
+          } /* do not filter them out yet */;
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))
@@ -769,7 +781,7 @@ let resolve' =
       let version = Version.Source(source);
       let resolution = {
         Resolution.name,
-        resolution: Resolution.Version(version),
+        resolution: VersionOverride({version, override: None}),
       };
       return([resolution]);
     }
@@ -816,13 +828,16 @@ let resolve =
 let getResolutions = (resolver: t) => resolver.resolutions;
 let getVersionByResolutions = (resolver: t, name) => {
   switch (Resolutions.find(resolver.resolutions, name)) {
-  | Some({resolution: Version(Version.Source(source)), _})
+  | Some({
+      resolution: VersionOverride({version: Version.Source(source), _}),
+      _,
+    })
   | Some({resolution: SourceOverride({source, _}), _}) =>
     switch (Hashtbl.find_opt(resolver.sourceToSource, source)) {
     | Some(source) => Some(Version.Source(source))
     | None => Some(Version.Source(source))
     }
-  | Some({resolution: Version(version), _}) => Some(version)
+  | Some({resolution: VersionOverride({version, _}), _}) => Some(version)
   | None => None
   };
 };

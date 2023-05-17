@@ -6,6 +6,7 @@
 
 #ifdef WIN32
 #include <Windows.h>
+#include <winbase.h>
 #endif
 
 CAMLprim value
@@ -46,3 +47,12 @@ esy_win32_check_long_path_regkey(value unit) {
     }
 #endif
 }
+
+CAMLprim value
+esy_move_file(value src, value dst) {
+#ifndef WIN32
+  rename(String_val(src), String_val(dst));
+#else
+  MoveFileExA(String_val(src), String_val(dst), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH);
+#endif
+}  

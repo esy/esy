@@ -1,0 +1,5 @@
+(library
+ (name EsyPrimitives)
+ (libraries DepSpec fmt)
+ (preprocess
+  (pps ppx_deriving.std)))

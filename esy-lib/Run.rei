@@ -27,7 +27,7 @@ let errorf: format4('a, Format.formatter, unit, t('v)) => 'a;
  * Wrap computation with a context which will be reported in case of error
  */
 
-let context: (t('v), string) => t('v);
+let context: (string, t('v)) => t('v);
 
 /**
  * Same as [context] but defined with a formatter.

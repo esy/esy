@@ -1,13 +1,15 @@
+open DepSpec;
+open EsyPrimitives;
 open EsyPackageConfig;
 
-module Solution = EsyInstall.Solution;
-module Package = EsyInstall.Package;
-module Installation = EsyInstall.Installation;
+module Solution = EsyFetch.Solution;
+module Package = EsyFetch.Package;
+module Installation = EsyFetch.Installation;
 
 type t = {
   cfg: EsyBuildPackage.Config.t,
-  spec: EsyInstall.SandboxSpec.t,
-  installCfg: EsyInstall.Config.t,
+  spec: EsyFetch.SandboxSpec.t,
+  installCfg: EsyFetch.Config.t,
   arch: System.Arch.t,
   platform: System.Platform.t,
   sandboxEnv: SandboxEnv.t,
@@ -157,11 +159,7 @@ module Task = {
 
     let env = Option.orDefault(~default=t.env, env);
     let depspec =
-      Format.asprintf(
-        "%a",
-        EsyInstall.Solution.DepSpec.pp,
-        Scope.depspec(t.scope),
-      );
+      Format.asprintf("%a", FetchDepSpec.pp, Scope.depspec(t.scope));
 
     {
       EsyBuildPackage.Plan.id: BuildId.show(Scope.id(t.scope)),
@@ -263,34 +261,30 @@ let renderOpamSubstsAsCommands = (_opamEnv, substs) => {
 
 let renderOpamPatchesToCommands = (opamEnv, patches) =>
   Run.Syntax.(
-    Run.context(
-      {
-        let evalFilter =
-          fun
-          | (path, None) => return((path, true))
-          | (path, Some(filter)) => {
-              let* filter =
-                try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
-                | Failure(msg) => error(msg)
-                };
-              return((path, filter));
-            };
+    {
+      let evalFilter =
+        fun
+        | (path, None) => return((path, true))
+        | (path, Some(filter)) => {
+            let* filter =
+              try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
+              | Failure(msg) => error(msg)
+              };
+            return((path, filter));
+          };
 
-        let* filtered = Result.List.map(~f=evalFilter, patches);
+      let* filtered = Result.List.map(~f=evalFilter, patches);
 
-        let toCommand = ((path, _)) => {
-          let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
-          List.map(~f=Scope.SandboxValue.v, cmd);
-        };
+      let toCommand = ((path, _)) => {
+        let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
+        List.map(~f=Scope.SandboxValue.v, cmd);
+      };
 
-        return(
-          filtered
-          |> List.filter(~f=((_, v)) => v)
-          |> List.map(~f=toCommand),
-        );
-      },
-      "processing patch field",
-    )
+      return(
+        filtered |> List.filter(~f=((_, v)) => v) |> List.map(~f=toCommand),
+      )
+      |> Run.context("processing patch field");
+    }
   );
 
 module Reason = {
@@ -365,13 +359,13 @@ let makeScope =
     let buildCommands = BuildSpec.buildCommands(mode, pkg, buildManifest);
 
     let matchedForBuild =
-      EsyInstall.Solution.eval(sandbox.solution, depspec, pkg.Package.id);
+      EsyFetch.Solution.eval(sandbox.solution, depspec, pkg.Package.id);
 
     let matchedForScope =
       switch (envspec) {
       | None => matchedForBuild
       | Some(envspec) =>
-        EsyInstall.Solution.eval(sandbox.solution, envspec, pkg.Package.id)
+        EsyFetch.Solution.eval(sandbox.solution, envspec, pkg.Package.id)
       };
 
     let annotateWithReason = pkgid =>
@@ -657,7 +651,7 @@ module Plan = {
   let mode = plan => plan.mode;
 };
 
-let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
+let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) => {
   open Run.Syntax;
 
   let cache = Hashtbl.create(100);
@@ -671,49 +665,48 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
       let* env = {
         let* bindings =
           Scope.env(~buildIsInProgress=true, ~includeBuildEnv=true, scope);
-        Run.context(
-          Run.ofStringError(
-            Scope.SandboxEnvironment.Bindings.eval(bindings),
-          ),
-          "evaluating environment",
-        );
+        Scope.SandboxEnvironment.Bindings.eval(bindings)
+        |> Run.ofStringError
+        |> Run.context("evaluating environment");
       };
 
-      let opamEnv = Scope.toOpamEnv(~buildIsInProgress=true, scope);
+      let opamEnv =
+        Scope.toOpamEnv(~buildIsInProgress=true, ~concurrency, scope);
 
-      let* buildCommands = {
-        let commands = BuildSpec.buildCommands(mode, pkg, build);
-
+      let* buildCommands =
         Run.context(
-          switch (commands) {
-          | BuildManifest.EsyCommands(commands) =>
-            let* commands =
-              renderEsyCommands(
-                ~buildIsInProgress=true,
-                ~env,
-                scope,
-                commands,
-              );
-            let* applySubstsCommands =
-              renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let* applyPatchesCommands =
-              renderOpamPatchesToCommands(opamEnv, build.patches);
-            return(applySubstsCommands @ applyPatchesCommands @ commands);
-          | OpamCommands(commands) =>
-            let* commands = renderOpamCommands(opamEnv, commands);
-            let* applySubstsCommands =
-              renderOpamSubstsAsCommands(opamEnv, build.substs);
-            let* applyPatchesCommands =
-              renderOpamPatchesToCommands(opamEnv, build.patches);
-            return(applySubstsCommands @ applyPatchesCommands @ commands);
-          | NoCommands => return([])
-          },
           "processing build commands",
+          {
+            let commands = BuildSpec.buildCommands(mode, pkg, build);
+            switch (commands) {
+            | BuildManifest.EsyCommands(commands) =>
+              let* commands =
+                renderEsyCommands(
+                  ~buildIsInProgress=true,
+                  ~env,
+                  scope,
+                  commands,
+                );
+              let* applySubstsCommands =
+                renderOpamSubstsAsCommands(opamEnv, build.substs);
+              let* applyPatchesCommands =
+                renderOpamPatchesToCommands(opamEnv, build.patches);
+              return(applySubstsCommands @ applyPatchesCommands @ commands);
+            | OpamCommands(commands) =>
+              let* commands = renderOpamCommands(opamEnv, commands);
+              let* applySubstsCommands =
+                renderOpamSubstsAsCommands(opamEnv, build.substs);
+              let* applyPatchesCommands =
+                renderOpamPatchesToCommands(opamEnv, build.patches);
+              return(applySubstsCommands @ applyPatchesCommands @ commands);
+            | NoCommands => return([])
+            };
+          },
         );
-      };
 
       let* installCommands =
         Run.context(
+          "processing esy.install",
           switch (build.BuildManifest.install) {
           | EsyCommands(commands) =>
             let* cmds =
@@ -729,7 +722,6 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
             return(Some(cmds));
           | NoCommands => return(None)
           },
-          "processing esy.install",
         );
 
       let task = {
@@ -781,18 +773,19 @@ let makePlan = (~forceImmutable=false, buildspec, mode, sandbox) => {
   return({Plan.mode, tasks, buildspec});
 };
 
-let task = (buildspec, mode, sandbox, id) => {
+let task = (~concurrency, buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let* tasks = RunAsync.ofRun(makePlan(buildspec, mode, sandbox));
+  let* tasks =
+    RunAsync.ofRun(makePlan(~concurrency, buildspec, mode, sandbox));
   switch (Plan.get(tasks, id)) {
   | None => errorf("no build found for %a", PackageId.pp, id)
   | Some(task) => return(task)
   };
 };
 
-let buildShell = (buildspec, mode, sandbox, id) => {
+let buildShell = (~concurrency, buildspec, mode, sandbox, id) => {
   open RunAsync.Syntax;
-  let* task = task(buildspec, mode, sandbox, id);
+  let* task = task(~concurrency, buildspec, mode, sandbox, id);
   let plan = Task.plan(task);
   EsyBuildPackageApi.buildShell(sandbox.cfg, plan);
 };
@@ -829,7 +822,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
 
   let env =
     if (includeNpmBin) {
-      let npmBin = Path.show(EsyInstall.SandboxSpec.binPath(sandbox.spec));
+      let npmBin = Path.show(EsyFetch.SandboxSpec.binPath(sandbox.spec));
       [Env.prefixValue("PATH", Val.v(npmBin)), ...env];
     } else {
       env;
@@ -844,7 +837,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
 
   let env =
     if (includeEsyIntrospectionEnv) {
-      switch (EsyInstall.SandboxSpec.manifestPath(sandbox.spec)) {
+      switch (EsyFetch.SandboxSpec.manifestPath(sandbox.spec)) {
       | None => env
       | Some(path) => [
           Env.value(
@@ -865,7 +858,7 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
     | None => env
     | Some(depspec) =>
       let matched =
-        EsyInstall.Solution.collect(
+        EsyFetch.Solution.collect(
           sandbox.solution,
           depspec,
           Scope.pkg(scope).id,
@@ -925,6 +918,7 @@ let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
 let exec =
     (
       ~changeDirectoryToPackageRoot=false,
+      ~concurrency,
       envspec,
       buildspec,
       mode,
@@ -968,7 +962,7 @@ let exec =
     );
 
   if (envspec.EnvSpec.buildIsInProgress) {
-    let* task = task(buildspec, mode, sandbox, id);
+    let* task = task(~concurrency, buildspec, mode, sandbox, id);
     let plan = Task.plan(~env, task);
     EsyBuildPackageApi.buildExec(sandbox.cfg, plan, cmd);
   } else {
@@ -990,18 +984,85 @@ let exec =
 
     let env = Scope.SandboxEnvironment.render(sandbox.cfg, env);
 
-    /* TODO: make sure we resolve 'esy' to the current executable, needed nested
-     * invokations */
-    ChildProcess.withProcess(
-      ~env=CustomEnv(env),
-      ~resolveProgramInEnv=true,
-      ~cwd?,
-      ~stderr=`FD_copy(Unix.stderr),
-      ~stdout=`FD_copy(Unix.stdout),
-      ~stdin=`FD_copy(Unix.stdin),
-      cmd,
-      waitForProcess,
-    );
+    switch (System.Platform.host) {
+    | System.Platform.Windows =>
+      /*
+       * `esy-bash` takes an optional `--env` parameter with the
+       * environment variables that should be used for the bash session.
+       *
+       * Just passing the env directly to esy-bash doesn't work,
+       * because we need the current PATH/env to pick up node and run the shell
+       */
+      let json = {
+        let f = (k, v, items) => {
+          switch (k) {
+          | "" => items
+          | "PATH" => [
+              (
+                k,
+                `String(
+                  v
+                  |> String.split_on_char(System.Environment.sep().[0])
+                  |> Stdlib.List.map(p =>
+                       p != "" ? EsyBash.normalizePathForCygwin(p) : p
+                     )
+                  |> String.concat(":"),
+                ),
+              ),
+              ...items,
+            ]
+          | k => [(k, `String(v)), ...items]
+          };
+        };
+        let items = Astring.String.Map.fold(f, env, []);
+        `Assoc(items);
+      };
+      let jsonString = Yojson.Safe.to_string(json);
+      let* environmentTempFile = RunAsync.ofBosError @@ Bos.OS.File.tmp("%s");
+      let* () =
+        RunAsync.ofBosError @@
+        Bos.OS.File.write(environmentTempFile, jsonString);
+      let commandAsList = Bos.Cmd.to_list(Cmd.toBosCmd(cmd));
+
+      /* Normalize slashes in the command we send to esy-bash */
+      let normalizedCommands =
+        Bos.Cmd.of_list(
+          Stdlib.List.map(
+            EsyLib.Path.normalizePathSepOfFilename,
+            commandAsList,
+          ),
+        );
+      let augmentedEsyCommand =
+        EsyLib.EsyBash.toEsyBashCommand(
+          ~env=Some(Fpath.to_string(environmentTempFile)),
+          normalizedCommands,
+        );
+
+      let* cmd = RunAsync.ofBosError @@ Cmd.ofBosCmd(augmentedEsyCommand);
+      ChildProcess.withProcess(
+        ~env=CustomEnv(env),
+        ~resolveProgramInEnv=true,
+        ~cwd?,
+        ~stderr=`FD_copy(Unix.stderr),
+        ~stdout=`FD_copy(Unix.stdout),
+        ~stdin=`FD_copy(Unix.stdin),
+        cmd,
+        waitForProcess,
+      );
+    | _ =>
+      /* TODO: make sure we resolve 'esy' to the current executable, needed nested
+       * invokations */
+      ChildProcess.withProcess(
+        ~env=CustomEnv(env),
+        ~resolveProgramInEnv=true,
+        ~cwd?,
+        ~stderr=`FD_copy(Unix.stderr),
+        ~stdout=`FD_copy(Unix.stdout),
+        ~stdin=`FD_copy(Unix.stdin),
+        cmd,
+        waitForProcess,
+      )
+    };
   };
 };
 
@@ -1077,8 +1138,8 @@ module Changes = {
 
   let pp = fmt =>
     fun
-    | Yes => Fmt.unit("yes", fmt, ())
-    | No => Fmt.unit("no", fmt, ());
+    | Yes => Fmt.any("yes", fmt, ())
+    | No => Fmt.any("no", fmt, ());
 };
 
 let isBuilt = (sandbox, task) =>
@@ -1095,13 +1156,13 @@ let makeSymlinksToStore = (sandbox, task) => {
     Fs.symlink(
       ~force=true,
       ~src=Task.buildPath(sandbox.cfg, task),
-      addSuffix(EsyInstall.SandboxSpec.buildPath(sandbox.spec)),
+      addSuffix(EsyFetch.SandboxSpec.buildPath(sandbox.spec)),
     );
   let* () =
     Fs.symlink(
       ~force=true,
       ~src=Task.installPath(sandbox.cfg, task),
-      addSuffix(EsyInstall.SandboxSpec.installPath(sandbox.spec)),
+      addSuffix(EsyFetch.SandboxSpec.installPath(sandbox.spec)),
     );
   return();
 };
@@ -1111,7 +1172,7 @@ let buildTask =
   open RunAsync.Syntax;
   let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
-  let label = Fmt.strf("build %a", Task.pp, task);
+  let label = Fmt.str("build %a", Task.pp, task);
   let* () =
     Perf.measureLwt(~label, () =>
       EsyBuildPackageApi.build(

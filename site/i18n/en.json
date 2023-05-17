@@ -338,6 +338,21 @@
       "version-0.6.10-getting-started": {
         "title": "Getting started"
       },
+      "version-0.6.11-concepts": {
+        "title": "Concepts"
+      },
+      "version-0.6.11-npm-release": {
+        "title": "Building npm Releases"
+      },
+      "version-0.6.11-using-repo-sources-workflow": {
+        "title": "Using Unreleased Packages"
+      },
+      "version-0.6.12-faqs": {
+        "title": "Frequently Asked Questions"
+      },
+      "version-0.6.12-getting-started": {
+        "title": "Getting started"
+      },
       "version-0.6.2-development": {
         "title": "Development"
       },
@@ -354,6 +369,9 @@
         "title": "Environment"
       },
       "version-0.6.7-getting-started": {
+        "title": "Getting started"
+      },
+      "version-0.6.8-getting-started": {
         "title": "Getting started"
       }
     },

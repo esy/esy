@@ -50,6 +50,12 @@ module Platform = {
     | _ => Unknown
     };
   };
+
+  let isWindows =
+    switch (host) {
+    | Windows => true
+    | _ => false
+    };
 };
 
 module Arch = {
@@ -126,6 +132,18 @@ external checkLongPathRegistryKey: unit => bool =
 
 external ensureMinimumFileDescriptors: unit => unit =
   "esy_ensure_minimum_file_descriptors";
+
+external moveFile: (string, string) => unit = "esy_move_file";
+
+let getumask = () =>
+  try({
+    let oldMask = Unix.umask(0);
+    ignore(Unix.umask(oldMask));
+    oldMask;
+  }) {
+  // In case of windows Unix.umask is not implemented
+  | Invalid_argument(_) => 0
+  };
 
 let supportsLongPaths = () =>
   switch (Sys.win32) {

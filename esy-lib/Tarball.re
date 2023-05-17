@@ -67,6 +67,27 @@ let run = cmd => {
   };
 };
 
+let fixFilePermissionsAfterUnTar = out => {
+  let umask = lnot(System.getumask());
+  Fs.traverse(
+    ~f=
+      (p, s) => {
+        let p = EsyBash.normalizePathForCygwin(Path.show(p));
+        try%lwt(
+          switch (s.st_kind) {
+          | Unix.S_DIR =>
+            let%lwt () = Lwt_unix.chmod(p, s.st_perm lor 0o755 land umask);
+            RunAsync.return();
+          | _ => RunAsync.return()
+          }
+        ) {
+        | _ => RunAsync.return()
+        };
+      },
+    out,
+  );
+};
+
 let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   open RunAsync.Syntax;
   let unpack = out => {
@@ -87,6 +108,10 @@ let unpackWithTar = (~stripComponents=?, ~dst, filename) => {
   | Some(stripComponents) =>
     Fs.withTempDir(out => {
       let* () = unpack(out);
+      // Only in case of Linux & OSX fix file permissions
+      let* () =
+        System.Platform.isWindows
+          ? RunAsync.return() : fixFilePermissionsAfterUnTar(out);
       let* out = stripComponentFrom(~stripComponents, out);
       copyAll(~src=out, ~dst, ());
     })

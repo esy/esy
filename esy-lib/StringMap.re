@@ -122,12 +122,12 @@ module Override: {
   let pp = pp_value => {
     let ppOverride = (fmt, override) =>
       switch (override) {
-      | Drop => Fmt.unit("remove", fmt, ())
+      | Drop => Fmt.any("remove", fmt, ())
       | Edit(v) => pp_value(fmt, v)
       };
 
-    let ppItem = Fmt.(pair(~sep=unit(": "), string, ppOverride));
-    Fmt.braces(pp(~sep=Fmt.unit(", "), ppItem));
+    let ppItem = Fmt.(pair(~sep=any(": "), string, ppOverride));
+    Fmt.braces(pp(~sep=Fmt.any(", "), ppItem));
   };
 
   let%test "apply: add key" = {

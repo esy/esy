@@ -83,13 +83,13 @@ module Dependencies = {
     | OpamFormula(deps) =>
       let ppDisj = (fmt, disj) =>
         switch (disj) {
-        | [] => Fmt.unit("true", fmt, ())
+        | [] => Fmt.any("true", fmt, ())
         | [dep] => Dep.pp(fmt, dep)
         | deps =>
-          Fmt.pf(fmt, "(%a)", Fmt.(list(~sep=unit(" || "), Dep.pp)), deps)
+          Fmt.pf(fmt, "(%a)", Fmt.(list(~sep=any(" || "), Dep.pp)), deps)
         };
 
-      Fmt.pf(fmt, "@[<h>%a@]", Fmt.(list(~sep=unit(" && "), ppDisj)), deps);
+      Fmt.pf(fmt, "@[<h>%a@]", Fmt.(list(~sep=any(" && "), ppDisj)), deps);
     | NpmFormula(deps) => NpmFormula.pp(fmt, deps)
     };
 

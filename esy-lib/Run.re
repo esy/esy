@@ -16,7 +16,7 @@ let ppContextItem = fmt =>
     Fmt.pf(fmt, "@[<h 2>%s@\n%a@]", filename, Fmt.text, out);
 
 let ppContext = (fmt, context) =>
-  Fmt.(list(~sep=unit("@\n"), ppContextItem))(fmt, List.rev(context));
+  Fmt.(list(~sep=any("@\n"), ppContextItem))(fmt, List.rev(context));
 
 let ppError = (fmt, (msg, context)) =>
   Fmt.pf(
@@ -37,15 +37,14 @@ let errorf = fmt => {
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
-let context = (v, line) =>
+let context = (line, v) =>
   switch (v) {
   | Ok(v) => Ok(v)
-  | [@implicit_arity] Error(msg, context) =>
-    [@implicit_arity] Error(msg, [Line(line), ...context])
+  | Error((msg, context)) => Error((msg, [Line(line), ...context]))
   };
 
 let contextf = (v, fmt) => {
-  let kerr = _ => context(v, Format.flush_str_formatter());
+  let kerr = _ => context(Format.flush_str_formatter(), v);
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 

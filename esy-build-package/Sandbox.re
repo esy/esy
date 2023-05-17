@@ -29,7 +29,7 @@ module Darwin = {
       );
     let doc =
       [
-        v([I("version"), N(1.0)]),
+        v([I("version"), NI(1)]),
         v([I("allow"), I("default")]),
         v([I("deny"), I("file-write*"), L([I("subpath"), S("/")])]),
         v([
@@ -67,7 +67,12 @@ module Darwin = {
 
 let convertEnvToJsonString = env => {
   let json = {
-    let f = (k, v, items) => [(k, `String(v)), ...items];
+    let f = (k, v, items) => {
+      switch (k) {
+      | "" => items
+      | k => [(k, `String(v)), ...items]
+      };
+    };
     let items = Astring.String.Map.fold(f, env, []);
     `Assoc(items);
   };

@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
+open DepSpec;
 
 let esyNativeInstallNpmReleasePath = {
   Path.(
@@ -87,17 +89,17 @@ module OfPackageJson = {
   };
 };
 
-let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
+let configure = (spec: EsyFetch.SandboxSpec.t, ()) => {
   open RunAsync.Syntax;
   let docs = "https://esy.sh/docs/release.html";
   switch (spec.manifest) {
-  | EsyInstall.SandboxSpec.ManifestAggregate(_)
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _) =>
+  | EsyFetch.SandboxSpec.ManifestAggregate(_)
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
     errorf(
       "could not create releases without package.json, see %s for details",
       docs,
     )
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
     let* json = Fs.readJsonFile(Path.(spec.path / filename));
     let* pkgJson = RunAsync.ofStringError(OfPackageJson.of_yojson(json));
     switch (pkgJson.OfPackageJson.esy.release) {
@@ -448,14 +450,14 @@ let envspec = {
   includeEsyIntrospectionEnv: false,
   augmentDeps:
     Some(
-      Solution.DepSpec.(
+      FetchDepSpec.(
         package(self) + dependencies(self) + devDependencies(self)
       ),
     ),
 };
 let buildspec = {
-  BuildSpec.all: Solution.DepSpec.(dependencies(self)),
-  dev: Solution.DepSpec.(dependencies(self)),
+  BuildSpec.all: FetchDepSpec.(dependencies(self)),
+  dev: FetchDepSpec.(dependencies(self)),
 };
 let cleanupLinksFromGlobalStore = (cfg, tasks) => {
   open RunAsync.Syntax;
@@ -480,7 +482,7 @@ let make =
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
-      spec: EsyInstall.SandboxSpec.t,
+      spec: EsyFetch.SandboxSpec.t,
       sandbox: BuildSandbox.t,
       root,
     ) => {
@@ -491,7 +493,13 @@ let make =
 
   let* plan =
     RunAsync.ofRun(
-      BuildSandbox.makePlan(~forceImmutable=true, buildspec, Build, sandbox),
+      BuildSandbox.makePlan(
+        ~forceImmutable=true,
+        ~concurrency,
+        buildspec,
+        Build,
+        sandbox,
+      ),
     );
   let tasks = BuildSandbox.Plan.all(plan);
 
@@ -567,7 +575,7 @@ let make =
           Logs_lwt.warn(m =>
             m(
               {|found unused package specs in "esy.release.includePackages": %a|},
-              Fmt.(list(~sep=unit(", "), PkgSpec.pp)),
+              Fmt.(list(~sep=any(", "), PkgSpec.pp)),
               unused,
             )
           )
