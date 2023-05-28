@@ -6,8 +6,9 @@
    (-w -39)))
  (preprocess
   (pps ppx_let))
- (libraries EsyBuildPackage cmdliner yojson bos logs logs.fmt logs.cli re fmt
-   fmt.cli fmt.tty ppx_deriving_yojson.runtime rresult))
+ (libraries EsyBuildPackage esy.cmdliner yojson bos esy.logs esy.logs.fmt
+   esy.logs.cli re esy.fmt esy.fmt.cli esy.fmt.tty
+   ppx_deriving_yojson.runtime rresult))
 
 (executable
  (name esyRewritePrefixCommand)
@@ -17,7 +18,7 @@
    (-w -39)))
  (preprocess
   (pps ppx_let))
- (libraries EsyBuildPackage fastreplacestring cmdliner bos))
+ (libraries EsyBuildPackage fastreplacestring esy.cmdliner bos))
 
 (install
  (section libexec)

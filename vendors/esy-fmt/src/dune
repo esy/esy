@@ -1,0 +1,16 @@
+(library
+ (name esy_fmt)
+ (public_name esy.fmt)
+ (modules esy_fmt))
+
+(library
+ (name esy_fmt_cli)
+ (public_name esy.fmt.cli)
+ (modules esy_fmt_cli)
+ (libraries esy.fmt esy.cmdliner))
+
+(library
+ (name esy_fmt_tty)
+ (public_name esy.fmt.tty)
+ (libraries esy.fmt)
+ (modules esy_fmt_tty))

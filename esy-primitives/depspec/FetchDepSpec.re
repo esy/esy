@@ -9,8 +9,8 @@ module Id = {
 
   let pp = fmt =>
     fun
-    | Self => Fmt.any("self", fmt, ())
-    | Root => Fmt.any("root", fmt, ());
+    | Self => Esy_fmt.any("self", fmt, ())
+    | Root => Esy_fmt.any("root", fmt, ());
 
   let self = Self;
   let root = Root;

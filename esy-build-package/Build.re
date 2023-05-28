@@ -235,7 +235,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
   EsyLib.Perf.measure(
     ~label,
     () => {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m("# esy-build-package: installing using built-in installer")
       );
       let res =
@@ -265,7 +265,7 @@ let withLock = (lockPath: Path.t, f) => {
   };
   try(UnixLabels.(lockf(fd, ~mode=F_TEST, ~len=0))) {
   | _ =>
-    Logs.app(m =>
+    Esy_logs.app(m =>
       m("# esy-build-package: waiting for other process to finish building")
     )
   };
@@ -338,12 +338,12 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     );
   let* () =
     if (Path.compare(build.stagePath, build.installPath) == 0) {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m("# esy-build-package: stage path and install path are the same")
       );
       return();
     } else {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m(
           "# esy-build-package: rewriting prefix: %a -> %a",
           Path.pp,
@@ -369,7 +369,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
             % p(build.stagePath)
           ),
         );
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m(
           "# esy-build-package: committing: %a -> %a",
           Path.pp,
@@ -546,16 +546,18 @@ let runCommandInteractive = (build, cmd) => {
 
 let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   let* build = configureBuild(~cfg, plan);
-  Logs.debug(m => m("start %s", build.plan.id));
-  Logs.debug(m => m("building"));
-  Logs.app(m =>
+  Esy_logs.debug(m => m("start %s", build.plan.id));
+  Esy_logs.debug(m => m("building"));
+  Esy_logs.app(m =>
     m(
       "# esy-build-package: building: %s@%s",
       build.plan.name,
       build.plan.version,
     )
   );
-  Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
+  Esy_logs.app(m =>
+    m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath)
+  );
 
   let runBuildAndInstall = (build: build) => {
     let enableLinkingOptimization =
@@ -652,7 +654,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         switch (cmds) {
         | [] => Ok()
         | [cmd, ...cmds] =>
-          Logs.app(m =>
+          Esy_logs.app(m =>
             m("# esy-build-package: running: %s", Cmd.to_string(cmd))
           );
           let* () = runCommand(cmd);

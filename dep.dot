@@ -1,0 +1,4 @@
+digraph G {
+  size="7.5,10" ;
+  rankdir = TB ;
+}

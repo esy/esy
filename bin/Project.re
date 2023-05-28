@@ -197,10 +197,12 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   let installSandbox = EsyFetch.Sandbox.make(installCfg, projcfg.spec);
 
   let%lwt () =
-    Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
+    Esy_logs_lwt.debug(m =>
+      m("solve config: %a", EsySolve.Config.pp, solveCfg)
+    );
 
   let%lwt () =
-    Logs_lwt.debug(m =>
+    Esy_logs_lwt.debug(m =>
       m("install config: %a", EsyFetch.Config.pp, installCfg)
     );
 
@@ -334,7 +336,8 @@ let makeFetched =
       getInstallCommand(projcfg.spec),
     )
   | Some(installation) =>
-    let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
+    let%lwt () =
+      Esy_logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let* sandbox = {
       let sandboxEnv = OfPackageJson.(esy.sandboxEnv);
       let* (sandbox, filesUsedForPlan) =
@@ -555,7 +558,7 @@ module OfTerm = {
             let* next = FileInfo.ofPath(prev.FileInfo.path);
             let changed = FileInfo.compare(prev, next) != 0;
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m(
                   "checkStaleness %a: %b",
                   Path.pp,
@@ -583,10 +586,11 @@ module OfTerm = {
           );
           let v = {...v, projcfg};
           if%bind (checkStaleness(files)) {
-            let%lwt () = Logs_lwt.debug(m => m("cache is stale, discarding"));
+            let%lwt () =
+              Esy_logs_lwt.debug(m => m("cache is stale, discarding"));
             return(None);
           } else {
-            let%lwt () = Logs_lwt.debug(m => m("using cache"));
+            let%lwt () = Esy_logs_lwt.debug(m => m("using cache"));
             return(Some(v));
           };
         }
@@ -594,14 +598,14 @@ module OfTerm = {
       | Failure(_)
       | End_of_file =>
         let%lwt () =
-          Logs_lwt.debug(m => m("unable to read the cache, skipping..."));
+          Esy_logs_lwt.debug(m => m("unable to read the cache, skipping..."));
         return(None);
       };
 
     try%lwt(Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(cachePath), f)) {
     | Unix.Unix_error(_) =>
       let%lwt () =
-        Logs_lwt.debug(m => m("unable to find the cache, skipping..."));
+        Esy_logs_lwt.debug(m => m("unable to find the cache, skipping..."));
       return(None);
     };
   };
@@ -644,11 +648,13 @@ module OfTerm = {
       };
     };
 
-    Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
+    Esy_cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
   };
 
   let term =
-    Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+    Esy_cmdliner.Term.(
+      ret(const(Cli.runAsyncToEsy_cmdlinerRet) $ promiseTerm)
+    );
 };
 
 include OfTerm;
@@ -661,7 +667,7 @@ let withPackage = (proj, pkgArg: PkgArg.t, f) => {
     switch (pkg) {
     | Some(pkg) =>
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("PkgArg %a resolves to %a", PkgArg.pp, pkgArg, Package.pp, pkg)
         );
       f(pkg);
@@ -754,7 +760,7 @@ let buildDependencies =
   let* fetched = fetched(proj);
   let* solved = solved(proj);
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s build-dependencies \\@;%a%a@]",
         proj.projcfg.ProjectConfig.mainprg,
@@ -785,7 +791,7 @@ let buildDependencies =
 
 let buildShell = (proj, mode, sandbox, pkg) => {
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s build-shell \\@;%a@]",
         proj.projcfg.ProjectConfig.mainprg,
@@ -808,7 +814,7 @@ let buildPackage =
     (~quiet, ~disableSandbox, ~buildOnly, projcfg, sandbox, plan, pkg) => {
   checkSymlinks();
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s build-package (disable-sandbox: %s)\\@;%a@]",
         projcfg.ProjectConfig.mainprg,
@@ -838,7 +844,7 @@ let printEnv =
 
   let f = (pkg: Package.t) => {
     let () =
-      Logs.info(m =>
+      Esy_logs.info(m =>
         m(
           "running:@[<v>@;%s print-env \\@;%a%a@]",
           proj.projcfg.ProjectConfig.mainprg,
@@ -933,7 +939,7 @@ let execCommand =
     };
 
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s exec-command \\@;%a%a \\@;-- %a@]",
         proj.projcfg.ProjectConfig.mainprg,

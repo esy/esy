@@ -54,9 +54,9 @@ module Make = (Id: ID) : (T with type id = Id.t) => {
 
   let rec pp = (fmt, spec) =>
     switch (spec) {
-    | Package(id) => Fmt.pf(fmt, "%a", Id.pp, id)
-    | Dependencies(id) => Fmt.pf(fmt, "dependencies(%a)", Id.pp, id)
-    | DevDependencies(id) => Fmt.pf(fmt, "devDependencies(%a)", Id.pp, id)
-    | [@implicit_arity] Union(a, b) => Fmt.pf(fmt, "%a+%a", pp, a, pp, b)
+    | Package(id) => Esy_fmt.pf(fmt, "%a", Id.pp, id)
+    | Dependencies(id) => Esy_fmt.pf(fmt, "dependencies(%a)", Id.pp, id)
+    | DevDependencies(id) => Esy_fmt.pf(fmt, "devDependencies(%a)", Id.pp, id)
+    | [@implicit_arity] Union(a, b) => Esy_fmt.pf(fmt, "%a+%a", pp, a, pp, b)
     };
 };

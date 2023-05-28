@@ -1,0 +1,480 @@
+./_build/default/esy-build-package/BigSurArm.cmo : ./esy-lib/Run.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-build-package/BigSurArm.cmx : ./esy-lib/Run.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-build-package/Build.cmo : ./esy-install/Sandbox.cmo ./esy-lib/Run.cmo ./_build/default/esy-build-package/Plan.cmo ./esy-package-config/PackageName.cmo ./esy-lib/List.cmo ./_build/default/esy-build-package/Install.cmo ./esy-install/Config.cmo ./esy-lib/Cmd.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build-package/BigSurArm.cmo
+./_build/default/esy-build-package/Build.cmx : ./esy-install/Sandbox.cmx ./esy-lib/Run.cmx ./_build/default/esy-build-package/Plan.cmx ./esy-package-config/PackageName.cmx ./esy-lib/List.cmx ./_build/default/esy-build-package/Install.cmx ./esy-install/Config.cmx ./esy-lib/Cmd.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build-package/BigSurArm.cmx
+./_build/default/esy-build-package/Cmd.cmo : ./esy-lib/List.cmo
+./_build/default/esy-build-package/Cmd.cmx : ./esy-lib/List.cmx
+./_build/default/esy-build-package/Config.cmo : ./esy-lib/Run.cmo
+./_build/default/esy-build-package/Config.cmx : ./esy-lib/Run.cmx
+./_build/default/esy-build-package/Install.cmo : ./esy-lib/Run.cmo
+./_build/default/esy-build-package/Install.cmx : ./esy-lib/Run.cmx
+./_build/default/esy-build-package/Plan.cmo : ./esy-package-config/SourceType.cmo ./esy-lib/Run.cmo ./esy-install/Config.cmo ./esy-package-config/BuildType.cmo
+./_build/default/esy-build-package/Plan.cmx : ./esy-package-config/SourceType.cmx ./esy-lib/Run.cmx ./esy-install/Config.cmx ./esy-package-config/BuildType.cmx
+./_build/default/esy-build-package/Run.cmo : ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-build-package/Run.cmx : ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-build-package/Sandbox.cmo : ./esy-lib/Run.cmo ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-build-package/Sandbox.cmx : ./esy-lib/Run.cmx ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-build/BuildId.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-build/BuildId.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-build/BuildInfo.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo ./_build/default/esy-build/BuildId.cmo
+./_build/default/esy-build/BuildInfo.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx ./_build/default/esy-build/BuildId.cmx
+./_build/default/esy-build/BuildSandbox.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceType.cmo ./_build/default/esy-lib/ShellSplit.cmo ./_build/default/esy-build/Scope.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Perf.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-shell-expansion/EsyShellExpansion.cmo ./_build/default/esy-build/EsyBuildPackageApi.cmo ./esy-lib/Environment.cmo ./_build/default/esy-build/EnvSpec.cmo ./esy-package-config/Command.cmo ./esy-lib/Cmd.cmo ./esy-lib/ChildProcess.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./_build/default/esy-build/BuildInfo.cmo ./_build/default/esy-build/BuildId.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-build/BuildSandbox.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceType.cmx ./_build/default/esy-lib/ShellSplit.cmx ./_build/default/esy-build/Scope.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Perf.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-shell-expansion/EsyShellExpansion.cmx ./_build/default/esy-build/EsyBuildPackageApi.cmx ./esy-lib/Environment.cmx ./_build/default/esy-build/EnvSpec.cmx ./esy-package-config/Command.cmx ./esy-lib/Cmd.cmx ./esy-lib/ChildProcess.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./_build/default/esy-build/BuildInfo.cmx ./_build/default/esy-build/BuildId.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-build/BuildSpec.cmo : ./esy-lib/Result.cmo ./esy-package-config/BuildManifest.cmo
+./_build/default/esy-build/BuildSpec.cmx : ./esy-lib/Result.cmx ./esy-package-config/BuildManifest.cmx
+./_build/default/esy-build/EnvSpec.cmo :
+./_build/default/esy-build/EnvSpec.cmx :
+./_build/default/esy-build/EsyBuildPackageApi.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/Cmd.cmo ./esy-lib/ChildProcess.cmo
+./_build/default/esy-build/EsyBuildPackageApi.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/Cmd.cmx ./esy-lib/ChildProcess.cmx
+./_build/default/esy-build/EsyRc.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-build/EsyRc.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-build/ReadBuildManifest.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-package-config/OfPackageJson.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/Dist.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-build/ReadBuildManifest.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-package-config/OfPackageJson.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/Dist.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-build/Scope.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/Store.cmo ./esy-package-config/SourceType.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-package-config/ExportedEnv.cmo ./esy-command-expression/EsyCommandExpression.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./_build/default/esy-build/BuildId.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-build/Scope.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/Store.cmx ./esy-package-config/SourceType.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-package-config/ExportedEnv.cmx ./esy-command-expression/EsyCommandExpression.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./_build/default/esy-build/BuildId.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-command-expression/EsyCommandExpression.cmo : ./esy-shell-expansion/Types.cmo ./esy-lib/Result.cmo ./_build/default/esy-command-expression/Parser.cmi ./_build/default/esy-shell-expansion/Lexer.cmo
+./_build/default/esy-command-expression/EsyCommandExpression.cmx : ./esy-shell-expansion/Types.cmx ./esy-lib/Result.cmx ./_build/default/esy-command-expression/Parser.cmx ./_build/default/esy-shell-expansion/Lexer.cmx
+./_build/default/esy-command-expression/Types.cmo :
+./_build/default/esy-command-expression/Types.cmx :
+./_build/default/esy-install/Config.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-install/Config.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-install/DepSpecAst.cmo :
+./_build/default/esy-install/DepSpecAst.cmx :
+./_build/default/esy-install/DistResolver.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/Json.cmo ./esy-lib/Exn.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Curl.cmo
+./_build/default/esy-install/DistResolver.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/Json.cmx ./esy-lib/Exn.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Curl.cmx
+./_build/default/esy-install/DistStorage.cmo : ./esy-lib/Tarball.cmo ./esy-install/SandboxSpec.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Git.cmo ./esy-lib/Fs.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Curl.cmo ./esy-install/Config.cmo ./esy-lib/Checksum.cmo
+./_build/default/esy-install/DistStorage.cmx : ./esy-lib/Tarball.cmx ./esy-install/SandboxSpec.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Git.cmx ./esy-lib/Fs.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Curl.cmx ./esy-install/Config.cmx ./esy-lib/Checksum.cmx
+./_build/default/esy-install/Fetch.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-install/Solution.cmo ./esy-install/SandboxSpec.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-lib/RewritePrefix.cmo ./esy-lib/Result.cmo ./esy-install/PnpJs.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/Option.cmo ./esy-lib/Memoize.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-install/Installation.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-install/DistStorage.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Digestv.cmo ./esy-lib/Cmd.cmo ./esy-lib/Cli.cmo ./esy-lib/ChildProcess.cmo
+./_build/default/esy-install/Fetch.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-install/Solution.cmx ./esy-install/SandboxSpec.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-lib/RewritePrefix.cmx ./esy-lib/Result.cmx ./esy-install/PnpJs.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/Option.cmx ./esy-lib/Memoize.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-install/Installation.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-install/DistStorage.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Digestv.cmx ./esy-lib/Cmd.cmx ./esy-lib/Cli.cmx ./esy-lib/ChildProcess.cmx
+./_build/default/esy-install/Installation.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-install/Installation.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-install/Package.cmo : ./esy-package-config/Version.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo
+./_build/default/esy-install/Package.cmx : ./esy-package-config/Version.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx
+./_build/default/esy-install/PkgSpec.cmo : ./esy-package-config/Version.cmo ./esy-lib/Result.cmo ./esy-package-config/PackageId.cmo
+./_build/default/esy-install/PkgSpec.cmx : ./esy-package-config/Version.cmx ./esy-lib/Result.cmx ./esy-package-config/PackageId.cmx
+./_build/default/esy-install/PnpJs.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-install/Solution.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/List.cmo ./esy-install/Installation.cmo
+./_build/default/esy-install/PnpJs.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-install/Solution.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/List.cmx ./esy-install/Installation.cmx
+./_build/default/esy-install/Sandbox.cmo : ./esy-install/SandboxSpec.cmo ./esy-install/Config.cmo
+./_build/default/esy-install/Sandbox.cmx : ./esy-install/SandboxSpec.cmx ./esy-install/Config.cmx
+./_build/default/esy-install/SandboxSpec.cmo : ./esy-lib/StringSet.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-install/SandboxSpec.cmx : ./esy-lib/StringSet.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-install/Solution.cmo : ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/Option.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Graph.cmo ./esy-package-config/DistPath.cmo ./esy-install/DepSpecAst.cmo
+./_build/default/esy-install/Solution.cmx : ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/Option.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Graph.cmx ./esy-package-config/DistPath.cmx ./esy-install/DepSpecAst.cmx
+./_build/default/esy-install/SolutionLock.cmo : ./esy-package-config/Version.cmo ./esy-install/Solution.cmo ./esy-install/SandboxSpec.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-package-config/Override.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo ./esy-install/DistStorage.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-install/SolutionLock.cmx : ./esy-package-config/Version.cmx ./esy-install/Solution.cmx ./esy-install/SandboxSpec.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-package-config/Override.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx ./esy-install/DistStorage.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-lib/Abstract.cmo : ./esy-lib/S.cmo ./esy-lib/Path.cmo ./esy-lib/Json.cmo
+./_build/default/esy-lib/Abstract.cmx : ./esy-lib/S.cmx ./esy-lib/Path.cmx ./esy-lib/Json.cmx
+./_build/default/esy-lib/Chalk.cmo : ./esy-lib/List.cmo
+./_build/default/esy-lib/Chalk.cmx : ./esy-lib/List.cmx
+./_build/default/esy-lib/Checksum.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Parse.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-lib/Checksum.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Parse.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-lib/ChildProcess.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/ChildProcess.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Cli.cmo : ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/Cli.cmx : ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Cmd.cmo : ./esy-lib/System.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo
+./_build/default/esy-lib/Cmd.cmx : ./esy-lib/System.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx
+./_build/default/esy-lib/Curl.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/Curl.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Digestv.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-lib/Digestv.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-lib/DumpToFile.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo
+./_build/default/esy-lib/DumpToFile.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx
+./_build/default/esy-lib/Environment.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/S.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-shell-expansion/EsyShellExpansion.cmo ./esy-lib/Abstract.cmo
+./_build/default/esy-lib/Environment.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/S.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-shell-expansion/EsyShellExpansion.cmx ./esy-lib/Abstract.cmx
+./_build/default/esy-lib/EsyBash.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/Path.cmo ./esy-lib/NodeResolution.cmo ./esy-lib/List.cmo ./esy-lib/Exn.cmo
+./_build/default/esy-lib/EsyBash.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/Path.cmx ./esy-lib/NodeResolution.cmx ./esy-lib/List.cmx ./esy-lib/Exn.cmx
+./_build/default/esy-lib/EsyBashLwt.cmo : ./esy-lib/Exn.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/EsyBashLwt.cmx : ./esy-lib/Exn.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Exn.cmo :
+./_build/default/esy-lib/Exn.cmx :
+./_build/default/esy-lib/FileInfo.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo
+./_build/default/esy-lib/FileInfo.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx
+./_build/default/esy-lib/Fs.cmo : ./esy-lib/System.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo
+./_build/default/esy-lib/Fs.cmx : ./esy-lib/System.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx
+./_build/default/esy-lib/Git.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/Git.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Graph.cmo : ./esy-lib/S.cmo ./esy-lib/List.cmo
+./_build/default/esy-lib/Graph.cmx : ./esy-lib/S.cmx ./esy-lib/List.cmx
+./_build/default/esy-lib/Json.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Run.cmo ./esy-lib/List.cmo
+./_build/default/esy-lib/Json.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Run.cmx ./esy-lib/List.cmx
+./_build/default/esy-lib/List.cmo :
+./_build/default/esy-lib/List.cmx :
+./_build/default/esy-lib/LwtTaskQueue.cmo :
+./_build/default/esy-lib/LwtTaskQueue.cmx :
+./_build/default/esy-lib/Memoize.cmo :
+./_build/default/esy-lib/Memoize.cmx :
+./_build/default/esy-lib/NodeResolution.cmo : ./esy-lib/System.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo
+./_build/default/esy-lib/NodeResolution.cmx : ./esy-lib/System.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx
+./_build/default/esy-lib/Option.cmo :
+./_build/default/esy-lib/Option.cmx :
+./_build/default/esy-lib/Parse.cmo :
+./_build/default/esy-lib/Parse.cmx :
+./_build/default/esy-lib/Patch.cmo : ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/Patch.cmx : ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Path.cmo : ./esy-lib/System.cmo
+./_build/default/esy-lib/Path.cmx : ./esy-lib/System.cmx
+./_build/default/esy-lib/PathSet.cmo : ./esy-lib/Path.cmo
+./_build/default/esy-lib/PathSet.cmx : ./esy-lib/Path.cmx
+./_build/default/esy-lib/PathSyntax.cmo :
+./_build/default/esy-lib/PathSyntax.cmx :
+./_build/default/esy-lib/Perf.cmo :
+./_build/default/esy-lib/Perf.cmx :
+./_build/default/esy-lib/Result.cmo : ./esy-lib/List.cmo
+./_build/default/esy-lib/Result.cmx : ./esy-lib/List.cmx
+./_build/default/esy-lib/RewritePrefix.cmo : ./esy-lib/Path.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/RewritePrefix.cmx : ./esy-lib/Path.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/Run.cmo : ./esy-lib/List.cmo
+./_build/default/esy-lib/Run.cmx : ./esy-lib/List.cmx
+./_build/default/esy-lib/RunAsync.cmo : ./esy-lib/Run.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/List.cmo
+./_build/default/esy-lib/RunAsync.cmx : ./esy-lib/Run.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/List.cmx
+./_build/default/esy-lib/S.cmo :
+./_build/default/esy-lib/S.cmx :
+./_build/default/esy-lib/Sexp.cmo : ./esy-lib/List.cmo
+./_build/default/esy-lib/Sexp.cmx : ./esy-lib/List.cmx
+./_build/default/esy-lib/Store.cmo : ./esy-lib/System.cmo
+./_build/default/esy-lib/Store.cmx : ./esy-lib/System.cmx
+./_build/default/esy-lib/StringMap.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./_build/default/esy-lib/StringMap.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./_build/default/esy-lib/StringSet.cmo : ./esy-lib/Result.cmo ./esy-lib/Json.cmo
+./_build/default/esy-lib/StringSet.cmx : ./esy-lib/Result.cmx ./esy-lib/Json.cmx
+./_build/default/esy-lib/System.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo
+./_build/default/esy-lib/System.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx
+./_build/default/esy-lib/Tarball.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-lib/Tarball.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-lib/TermTree.cmo : ./esy-lib/List.cmo
+./_build/default/esy-lib/TermTree.cmx : ./esy-lib/List.cmx
+./_build/default/esy-package-config/BuildEnv.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/BuildEnv.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/BuildManifest.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-package-config/BuildManifest.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-package-config/BuildType.cmo :
+./_build/default/esy-package-config/BuildType.cmx :
+./_build/default/esy-package-config/Command.cmo : ./esy-lib/List.cmo ./esy-lib/Json.cmo
+./_build/default/esy-package-config/Command.cmx : ./esy-lib/List.cmx ./esy-lib/Json.cmx
+./_build/default/esy-package-config/CommandList.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/Command.cmo
+./_build/default/esy-package-config/CommandList.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/Command.cmx
+./_build/default/esy-package-config/Dist.cmo : ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Checksum.cmo
+./_build/default/esy-package-config/Dist.cmx : ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Checksum.cmx
+./_build/default/esy-package-config/DistPath.cmo : ./esy-lib/Path.cmo
+./_build/default/esy-package-config/DistPath.cmx : ./esy-lib/Path.cmx
+./_build/default/esy-package-config/ExportedEnv.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/ExportedEnv.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/ExtraSource.cmo : ./esy-lib/Checksum.cmo
+./_build/default/esy-package-config/ExtraSource.cmx : ./esy-lib/Checksum.cmx
+./_build/default/esy-package-config/File.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-package-config/File.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-package-config/InstallConfig.cmo :
+./_build/default/esy-package-config/InstallConfig.cmx :
+./_build/default/esy-package-config/InstallManifest.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/ExtraSource.cmo
+./_build/default/esy-package-config/InstallManifest.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/ExtraSource.cmx
+./_build/default/esy-package-config/ManifestSpec.cmo : ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/Parse.cmo
+./_build/default/esy-package-config/ManifestSpec.cmx : ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/Parse.cmx
+./_build/default/esy-package-config/NpmFormula.cmo : ./esy-package-config/VersionSpec.cmo ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-package-config/Req.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo
+./_build/default/esy-package-config/NpmFormula.cmx : ./esy-package-config/VersionSpec.cmx ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-package-config/Req.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx
+./_build/default/esy-package-config/OfPackageJson.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-lib/Option.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/CommandList.cmo ./esy-lib/Checksum.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-package-config/OfPackageJson.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-lib/Option.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/CommandList.cmx ./esy-lib/Checksum.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-package-config/OpamPackageVersion.cmo : ./esy-package-config/VersionBase.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Result.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/OpamPackageVersion.cmx : ./esy-package-config/VersionBase.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Result.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/Override.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-package-config/Resolution.cmo ./esy-lib/Path.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/Dist.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-package-config/Override.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-package-config/Resolution.cmx ./esy-lib/Path.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/Dist.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-package-config/Overrides.cmo : ./esy-lib/RunAsync.cmo ./esy-package-config/Override.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/Overrides.cmx : ./esy-lib/RunAsync.cmx ./esy-package-config/Override.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/PackageId.cmo : ./esy-package-config/Version.cmo ./esy-lib/Result.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-package-config/PackageId.cmx : ./esy-package-config/Version.cmx ./esy-lib/Result.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-package-config/PackageName.cmo :
+./_build/default/esy-package-config/PackageName.cmx :
+./_build/default/esy-package-config/PackagePath.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/PackagePath.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/PackageSource.cmo : ./esy-package-config/Source.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/Json.cmo ./esy-package-config/File.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo
+./_build/default/esy-package-config/PackageSource.cmx : ./esy-package-config/Source.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/Json.cmx ./esy-package-config/File.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx
+./_build/default/esy-package-config/Req.cmo : ./esy-package-config/VersionSpec.cmo ./esy-lib/Parse.cmo
+./_build/default/esy-package-config/Req.cmx : ./esy-package-config/VersionSpec.cmx ./esy-lib/Parse.cmx
+./_build/default/esy-package-config/Resolution.cmo : ./esy-package-config/Version.cmo ./esy-package-config/Source.cmo ./esy-lib/Result.cmo ./esy-lib/Json.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-package-config/Resolution.cmx : ./esy-package-config/Version.cmx ./esy-package-config/Source.cmx ./esy-lib/Result.cmx ./esy-lib/Json.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-package-config/Resolutions.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/PackagePath.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-package-config/Resolutions.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/PackagePath.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-package-config/SandboxEnv.cmo : ./esy-package-config/BuildEnv.cmo
+./_build/default/esy-package-config/SandboxEnv.cmx : ./esy-package-config/BuildEnv.cmx
+./_build/default/esy-package-config/SemverVersion.cmo : ./esy-package-config/VersionBase.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/SemverVersion.cmx : ./esy-package-config/VersionBase.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/Source.cmo : ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./_build/default/esy-package-config/Source.cmx : ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./_build/default/esy-package-config/SourceSpec.cmo : ./esy-package-config/Source.cmo ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./_build/default/esy-package-config/SourceSpec.cmx : ./esy-package-config/Source.cmx ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./_build/default/esy-package-config/SourceType.cmo : ./esy-lib/Json.cmo
+./_build/default/esy-package-config/SourceType.cmx : ./esy-lib/Json.cmx
+./_build/default/esy-package-config/Version.cmo : ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Result.cmo ./esy-lib/Parse.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/Json.cmo
+./_build/default/esy-package-config/Version.cmx : ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Result.cmx ./esy-lib/Parse.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/Json.cmx
+./_build/default/esy-package-config/VersionBase.cmo : ./esy-lib/S.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./_build/default/esy-package-config/VersionBase.cmx : ./esy-lib/S.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./_build/default/esy-package-config/VersionSpec.cmo : ./esy-package-config/Version.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Parse.cmo ./esy-package-config/OpamPackageVersion.cmo
+./_build/default/esy-package-config/VersionSpec.cmx : ./esy-package-config/Version.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Parse.cmx ./esy-package-config/OpamPackageVersion.cmx
+./_build/default/esy-shell-expansion/EsyShellExpansion.cmo : ./esy-shell-expansion/Types.cmo ./esy-lib/List.cmo ./_build/default/esy-shell-expansion/Lexer.cmo
+./_build/default/esy-shell-expansion/EsyShellExpansion.cmx : ./esy-shell-expansion/Types.cmx ./esy-lib/List.cmx ./_build/default/esy-shell-expansion/Lexer.cmx
+./_build/default/esy-shell-expansion/Types.cmo :
+./_build/default/esy-shell-expansion/Types.cmx :
+./_build/default/esy-solve/Config.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-lib/Cmd.cmo
+./_build/default/esy-solve/Config.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-lib/Cmd.cmx
+./_build/default/esy-solve/DepSpec.cmo : ./esy-lib/Run.cmo ./esy-package-config/NpmFormula.cmo ./esy-package-config/InstallManifest.cmo
+./_build/default/esy-solve/DepSpec.cmx : ./esy-lib/Run.cmx ./esy-package-config/NpmFormula.cmx ./esy-package-config/InstallManifest.cmx
+./_build/default/esy-solve/NpmRegistry.cmo : ./esy-lib/StringMap.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Memoize.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-lib/Curl.cmo
+./_build/default/esy-solve/NpmRegistry.cmx : ./esy-lib/StringMap.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Memoize.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-lib/Curl.cmx
+./_build/default/esy-solve/OpamManifest.cmo : ./esy-lib/StringSet.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolutions.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Memoize.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./_build/default/esy-solve/OpamManifest.cmx : ./esy-lib/StringSet.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolutions.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Memoize.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./_build/default/esy-solve/OpamOverrides.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/Override.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-install/Config.cmo
+./_build/default/esy-solve/OpamOverrides.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/Override.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-install/Config.cmx
+./_build/default/esy-solve/OpamRegistry.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-solve/OpamOverrides.cmo ./esy-solve/OpamManifest.cmo ./esy-lib/Memoize.cmo ./esy-lib/Fs.cmo ./esy-install/Config.cmo
+./_build/default/esy-solve/OpamRegistry.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-solve/OpamOverrides.cmx ./esy-solve/OpamManifest.cmx ./esy-lib/Memoize.cmx ./esy-lib/Fs.cmx ./esy-install/Config.cmx
+./_build/default/esy-solve/OpamResolution.cmo : ./esy-package-config/Version.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-lib/Digestv.cmo
+./_build/default/esy-solve/OpamResolution.cmx : ./esy-package-config/Version.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-lib/Digestv.cmx
+./_build/default/esy-solve/Resolver.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-solve/OpamRegistry.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-solve/OpamManifest.cmo ./esy-package-config/OfPackageJson.cmo ./esy-solve/NpmRegistry.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Memoize.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/Dist.cmo ./esy-install/Config.cmo
+./_build/default/esy-solve/Resolver.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-solve/OpamRegistry.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-solve/OpamManifest.cmx ./esy-package-config/OfPackageJson.cmx ./esy-solve/NpmRegistry.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Memoize.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/Dist.cmx ./esy-install/Config.cmx
+./_build/default/esy-solve/Sandbox.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Digestv.cmo ./esy-install/Config.cmo
+./_build/default/esy-solve/Sandbox.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Digestv.cmx ./esy-install/Config.cmx
+./_build/default/esy-solve/SolveSpec.cmo : ./esy-package-config/InstallManifest.cmo ./esy-solve/DepSpec.cmo
+./_build/default/esy-solve/SolveSpec.cmx : ./esy-package-config/InstallManifest.cmx ./esy-solve/DepSpec.cmx
+./_build/default/esy-solve/Solver.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-solve/Universe.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-lib/Exn.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Digestv.cmo ./esy-install/Config.cmo ./esy-lib/Cmd.cmo ./esy-lib/Cli.cmo
+./_build/default/esy-solve/Solver.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-solve/Universe.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-lib/Exn.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Digestv.cmx ./esy-install/Config.cmx ./esy-lib/Cmd.cmx ./esy-lib/Cli.cmx
+./_build/default/esy-solve/Universe.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Run.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Req.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-lib/Exn.cmo
+./_build/default/esy-solve/Universe.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Run.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Req.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-lib/Exn.cmx
+./esy-build-package/BigSurArm.cmo : ./esy-lib/Run.cmo ./esy-lib/Cmd.cmo
+./esy-build-package/BigSurArm.cmx : ./esy-lib/Run.cmx ./esy-lib/Cmd.cmx
+./esy-build-package/Build.cmo : ./esy-install/Sandbox.cmo ./esy-lib/Run.cmo ./_build/default/esy-build-package/Plan.cmo ./esy-package-config/PackageName.cmo ./esy-lib/List.cmo ./_build/default/esy-build-package/Install.cmo ./esy-install/Config.cmo ./esy-lib/Cmd.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build-package/BigSurArm.cmo
+./esy-build-package/Build.cmx : ./esy-install/Sandbox.cmx ./esy-lib/Run.cmx ./_build/default/esy-build-package/Plan.cmx ./esy-package-config/PackageName.cmx ./esy-lib/List.cmx ./_build/default/esy-build-package/Install.cmx ./esy-install/Config.cmx ./esy-lib/Cmd.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build-package/BigSurArm.cmx
+./esy-build-package/Cmd.cmo : ./esy-lib/List.cmo
+./esy-build-package/Cmd.cmx : ./esy-lib/List.cmx
+./esy-build-package/Config.cmo : ./esy-lib/Run.cmo
+./esy-build-package/Config.cmx : ./esy-lib/Run.cmx
+./esy-build-package/Install.cmo : ./esy-lib/Run.cmo
+./esy-build-package/Install.cmx : ./esy-lib/Run.cmx
+./esy-build-package/Plan.cmo : ./esy-package-config/SourceType.cmo ./esy-lib/Run.cmo ./esy-install/Config.cmo ./esy-package-config/BuildType.cmo
+./esy-build-package/Plan.cmx : ./esy-package-config/SourceType.cmx ./esy-lib/Run.cmx ./esy-install/Config.cmx ./esy-package-config/BuildType.cmx
+./esy-build-package/Run.cmo : ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./esy-build-package/Run.cmx : ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./esy-build-package/Sandbox.cmo : ./esy-lib/Run.cmo ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./esy-build-package/Sandbox.cmx : ./esy-lib/Run.cmx ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./esy-build/BuildId.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./esy-build/BuildId.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./esy-build/BuildInfo.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo ./_build/default/esy-build/BuildId.cmo
+./esy-build/BuildInfo.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx ./_build/default/esy-build/BuildId.cmx
+./esy-build/BuildSandbox.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceType.cmo ./_build/default/esy-lib/ShellSplit.cmo ./_build/default/esy-build/Scope.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Perf.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-shell-expansion/EsyShellExpansion.cmo ./_build/default/esy-build/EsyBuildPackageApi.cmo ./esy-lib/Environment.cmo ./_build/default/esy-build/EnvSpec.cmo ./esy-package-config/Command.cmo ./esy-lib/Cmd.cmo ./esy-lib/ChildProcess.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./_build/default/esy-build/BuildInfo.cmo ./_build/default/esy-build/BuildId.cmo ./esy-package-config/BuildEnv.cmo
+./esy-build/BuildSandbox.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceType.cmx ./_build/default/esy-lib/ShellSplit.cmx ./_build/default/esy-build/Scope.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Perf.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-shell-expansion/EsyShellExpansion.cmx ./_build/default/esy-build/EsyBuildPackageApi.cmx ./esy-lib/Environment.cmx ./_build/default/esy-build/EnvSpec.cmx ./esy-package-config/Command.cmx ./esy-lib/Cmd.cmx ./esy-lib/ChildProcess.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./_build/default/esy-build/BuildInfo.cmx ./_build/default/esy-build/BuildId.cmx ./esy-package-config/BuildEnv.cmx
+./esy-build/BuildSpec.cmo : ./esy-lib/Result.cmo ./esy-package-config/BuildManifest.cmo
+./esy-build/BuildSpec.cmx : ./esy-lib/Result.cmx ./esy-package-config/BuildManifest.cmx
+./esy-build/EnvSpec.cmo :
+./esy-build/EnvSpec.cmx :
+./esy-build/EsyBuildPackageApi.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/Cmd.cmo ./esy-lib/ChildProcess.cmo
+./esy-build/EsyBuildPackageApi.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/Cmd.cmx ./esy-lib/ChildProcess.cmx
+./esy-build/EsyRc.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo
+./esy-build/EsyRc.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx
+./esy-build/ReadBuildManifest.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-package-config/OfPackageJson.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/Dist.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./esy-build/ReadBuildManifest.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-package-config/OfPackageJson.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/Dist.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./esy-build/Scope.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/Store.cmo ./esy-package-config/SourceType.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-package-config/ExportedEnv.cmo ./esy-command-expression/EsyCommandExpression.cmo ./esy-package-config/BuildType.cmo ./_build/default/esy-build/BuildSpec.cmo ./esy-package-config/BuildManifest.cmo ./_build/default/esy-build/BuildId.cmo ./esy-package-config/BuildEnv.cmo
+./esy-build/Scope.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/Store.cmx ./esy-package-config/SourceType.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-package-config/ExportedEnv.cmx ./esy-command-expression/EsyCommandExpression.cmx ./esy-package-config/BuildType.cmx ./_build/default/esy-build/BuildSpec.cmx ./esy-package-config/BuildManifest.cmx ./_build/default/esy-build/BuildId.cmx ./esy-package-config/BuildEnv.cmx
+./esy-command-expression/EsyCommandExpression.cmo : ./esy-shell-expansion/Types.cmo ./esy-lib/Result.cmo ./_build/default/esy-command-expression/Parser.cmi ./_build/default/esy-shell-expansion/Lexer.cmo
+./esy-command-expression/EsyCommandExpression.cmx : ./esy-shell-expansion/Types.cmx ./esy-lib/Result.cmx ./_build/default/esy-command-expression/Parser.cmx ./_build/default/esy-shell-expansion/Lexer.cmx
+./esy-command-expression/Types.cmo :
+./esy-command-expression/Types.cmx :
+./esy-install/Config.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo
+./esy-install/Config.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx
+./esy-install/DepSpecAst.cmo :
+./esy-install/DepSpecAst.cmx :
+./esy-install/DistResolver.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/Json.cmo ./esy-lib/Exn.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Curl.cmo
+./esy-install/DistResolver.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/Json.cmx ./esy-lib/Exn.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Curl.cmx
+./esy-install/DistStorage.cmo : ./esy-lib/Tarball.cmo ./esy-install/SandboxSpec.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Git.cmo ./esy-lib/Fs.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Curl.cmo ./esy-install/Config.cmo ./esy-lib/Checksum.cmo
+./esy-install/DistStorage.cmx : ./esy-lib/Tarball.cmx ./esy-install/SandboxSpec.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Git.cmx ./esy-lib/Fs.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Curl.cmx ./esy-install/Config.cmx ./esy-lib/Checksum.cmx
+./esy-install/Fetch.cmo : ./esy-package-config/Version.cmo ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-install/Solution.cmo ./esy-install/SandboxSpec.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-lib/RewritePrefix.cmo ./esy-lib/Result.cmo ./esy-install/PnpJs.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/Option.cmo ./esy-lib/Memoize.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-install/Installation.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-install/DistStorage.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Digestv.cmo ./esy-lib/Cmd.cmo ./esy-lib/Cli.cmo ./esy-lib/ChildProcess.cmo
+./esy-install/Fetch.cmx : ./esy-package-config/Version.cmx ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-install/Solution.cmx ./esy-install/SandboxSpec.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-lib/RewritePrefix.cmx ./esy-lib/Result.cmx ./esy-install/PnpJs.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/Option.cmx ./esy-lib/Memoize.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-install/Installation.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-install/DistStorage.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Digestv.cmx ./esy-lib/Cmd.cmx ./esy-lib/Cli.cmx ./esy-lib/ChildProcess.cmx
+./esy-install/Installation.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-lib/Fs.cmo
+./esy-install/Installation.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-lib/Fs.cmx
+./esy-install/Package.cmo : ./esy-package-config/Version.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo
+./esy-install/Package.cmx : ./esy-package-config/Version.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx
+./esy-install/PkgSpec.cmo : ./esy-package-config/Version.cmo ./esy-lib/Result.cmo ./esy-package-config/PackageId.cmo
+./esy-install/PkgSpec.cmx : ./esy-package-config/Version.cmx ./esy-lib/Result.cmx ./esy-package-config/PackageId.cmx
+./esy-install/PnpJs.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-install/Solution.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/List.cmo ./esy-install/Installation.cmo
+./esy-install/PnpJs.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-install/Solution.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/List.cmx ./esy-install/Installation.cmx
+./esy-install/Sandbox.cmo : ./esy-install/SandboxSpec.cmo ./esy-install/Config.cmo
+./esy-install/Sandbox.cmx : ./esy-install/SandboxSpec.cmx ./esy-install/Config.cmx
+./esy-install/SandboxSpec.cmo : ./esy-lib/StringSet.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo
+./esy-install/SandboxSpec.cmx : ./esy-lib/StringSet.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx
+./esy-install/Solution.cmo : ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-lib/Option.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Graph.cmo ./esy-package-config/DistPath.cmo ./esy-install/DepSpecAst.cmo
+./esy-install/Solution.cmx : ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-lib/Option.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Graph.cmx ./esy-package-config/DistPath.cmx ./esy-install/DepSpecAst.cmx
+./esy-install/SolutionLock.cmo : ./esy-package-config/Version.cmo ./esy-install/Solution.cmo ./esy-install/SandboxSpec.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-install/Package.cmo ./esy-package-config/Override.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo ./esy-install/DistStorage.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Digestv.cmo
+./esy-install/SolutionLock.cmx : ./esy-package-config/Version.cmx ./esy-install/Solution.cmx ./esy-install/SandboxSpec.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-install/Package.cmx ./esy-package-config/Override.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx ./esy-install/DistStorage.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Digestv.cmx
+./esy-lib/Abstract.cmo : ./esy-lib/S.cmo ./esy-lib/Path.cmo ./esy-lib/Json.cmo
+./esy-lib/Abstract.cmx : ./esy-lib/S.cmx ./esy-lib/Path.cmx ./esy-lib/Json.cmx
+./esy-lib/Chalk.cmo : ./esy-lib/List.cmo
+./esy-lib/Chalk.cmx : ./esy-lib/List.cmx
+./esy-lib/Checksum.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Parse.cmo ./esy-lib/Fs.cmo
+./esy-lib/Checksum.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Parse.cmx ./esy-lib/Fs.cmx
+./esy-lib/ChildProcess.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo ./esy-lib/Cmd.cmo
+./esy-lib/ChildProcess.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Cli.cmo : ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Cmd.cmo
+./esy-lib/Cli.cmx : ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Cmd.cmo : ./esy-lib/System.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo
+./esy-lib/Cmd.cmx : ./esy-lib/System.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx
+./esy-lib/Curl.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./esy-lib/Curl.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Digestv.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-lib/Fs.cmo
+./esy-lib/Digestv.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-lib/Fs.cmx
+./esy-lib/DumpToFile.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo
+./esy-lib/DumpToFile.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx
+./esy-lib/Environment.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/S.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-shell-expansion/EsyShellExpansion.cmo ./esy-lib/Abstract.cmo
+./esy-lib/Environment.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/S.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-shell-expansion/EsyShellExpansion.cmx ./esy-lib/Abstract.cmx
+./esy-lib/EsyBash.cmo : ./esy-lib/System.cmo ./esy-lib/StringMap.cmo ./esy-lib/Path.cmo ./esy-lib/NodeResolution.cmo ./esy-lib/List.cmo ./esy-lib/Exn.cmo
+./esy-lib/EsyBash.cmx : ./esy-lib/System.cmx ./esy-lib/StringMap.cmx ./esy-lib/Path.cmx ./esy-lib/NodeResolution.cmx ./esy-lib/List.cmx ./esy-lib/Exn.cmx
+./esy-lib/EsyBashLwt.cmo : ./esy-lib/Exn.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./esy-lib/EsyBashLwt.cmx : ./esy-lib/Exn.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Exn.cmo :
+./esy-lib/Exn.cmx :
+./esy-lib/FileInfo.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo
+./esy-lib/FileInfo.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx
+./esy-lib/Fs.cmo : ./esy-lib/System.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo
+./esy-lib/Fs.cmx : ./esy-lib/System.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx
+./esy-lib/Git.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./esy-lib/Git.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Graph.cmo : ./esy-lib/S.cmo ./esy-lib/List.cmo
+./esy-lib/Graph.cmx : ./esy-lib/S.cmx ./esy-lib/List.cmx
+./esy-lib/Json.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Run.cmo ./esy-lib/List.cmo
+./esy-lib/Json.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Run.cmx ./esy-lib/List.cmx
+./esy-lib/List.cmo :
+./esy-lib/List.cmx :
+./esy-lib/LwtTaskQueue.cmo :
+./esy-lib/LwtTaskQueue.cmx :
+./esy-lib/Memoize.cmo :
+./esy-lib/Memoize.cmx :
+./esy-lib/NodeResolution.cmo : ./esy-lib/System.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo
+./esy-lib/NodeResolution.cmx : ./esy-lib/System.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx
+./esy-lib/Option.cmo :
+./esy-lib/Option.cmx :
+./esy-lib/Parse.cmo :
+./esy-lib/Parse.cmx :
+./esy-lib/Patch.cmo : ./esy-lib/Cmd.cmo
+./esy-lib/Patch.cmx : ./esy-lib/Cmd.cmx
+./esy-lib/Path.cmo : ./esy-lib/System.cmo
+./esy-lib/Path.cmx : ./esy-lib/System.cmx
+./esy-lib/PathSet.cmo : ./esy-lib/Path.cmo
+./esy-lib/PathSet.cmx : ./esy-lib/Path.cmx
+./esy-lib/PathSyntax.cmo :
+./esy-lib/PathSyntax.cmx :
+./esy-lib/Perf.cmo :
+./esy-lib/Perf.cmx :
+./esy-lib/Result.cmo : ./esy-lib/List.cmo
+./esy-lib/Result.cmx : ./esy-lib/List.cmx
+./esy-lib/RewritePrefix.cmo : ./esy-lib/Path.cmo ./esy-lib/Cmd.cmo
+./esy-lib/RewritePrefix.cmx : ./esy-lib/Path.cmx ./esy-lib/Cmd.cmx
+./esy-lib/Run.cmo : ./esy-lib/List.cmo
+./esy-lib/Run.cmx : ./esy-lib/List.cmx
+./esy-lib/RunAsync.cmo : ./esy-lib/Run.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/List.cmo
+./esy-lib/RunAsync.cmx : ./esy-lib/Run.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/List.cmx
+./esy-lib/S.cmo :
+./esy-lib/S.cmx :
+./esy-lib/Sexp.cmo : ./esy-lib/List.cmo
+./esy-lib/Sexp.cmx : ./esy-lib/List.cmx
+./esy-lib/Store.cmo : ./esy-lib/System.cmo
+./esy-lib/Store.cmx : ./esy-lib/System.cmx
+./esy-lib/StringMap.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./esy-lib/StringMap.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./esy-lib/StringSet.cmo : ./esy-lib/Result.cmo ./esy-lib/Json.cmo
+./esy-lib/StringSet.cmx : ./esy-lib/Result.cmx ./esy-lib/Json.cmx
+./esy-lib/System.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo
+./esy-lib/System.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx
+./esy-lib/Tarball.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/EsyBash.cmo ./esy-lib/Cmd.cmo
+./esy-lib/Tarball.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/EsyBash.cmx ./esy-lib/Cmd.cmx
+./esy-lib/TermTree.cmo : ./esy-lib/List.cmo
+./esy-lib/TermTree.cmx : ./esy-lib/List.cmx
+./esy-package-config/BuildEnv.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./esy-package-config/BuildEnv.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./esy-package-config/BuildManifest.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-lib/Path.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildEnv.cmo
+./esy-package-config/BuildManifest.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-lib/Path.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildEnv.cmx
+./esy-package-config/BuildType.cmo :
+./esy-package-config/BuildType.cmx :
+./esy-package-config/Command.cmo : ./esy-lib/List.cmo ./esy-lib/Json.cmo
+./esy-package-config/Command.cmx : ./esy-lib/List.cmx ./esy-lib/Json.cmx
+./esy-package-config/CommandList.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/Command.cmo
+./esy-package-config/CommandList.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/Command.cmx
+./esy-package-config/Dist.cmo : ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Checksum.cmo
+./esy-package-config/Dist.cmx : ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Checksum.cmx
+./esy-package-config/DistPath.cmo : ./esy-lib/Path.cmo
+./esy-package-config/DistPath.cmx : ./esy-lib/Path.cmx
+./esy-package-config/ExportedEnv.cmo : ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-lib/Option.cmo ./esy-lib/List.cmo
+./esy-package-config/ExportedEnv.cmx : ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-lib/Option.cmx ./esy-lib/List.cmx
+./esy-package-config/ExtraSource.cmo : ./esy-lib/Checksum.cmo
+./esy-package-config/ExtraSource.cmx : ./esy-lib/Checksum.cmx
+./esy-package-config/File.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Fs.cmo ./esy-lib/Digestv.cmo
+./esy-package-config/File.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Fs.cmx ./esy-lib/Digestv.cmx
+./esy-package-config/InstallConfig.cmo :
+./esy-package-config/InstallConfig.cmx :
+./esy-package-config/InstallManifest.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/ExtraSource.cmo
+./esy-package-config/InstallManifest.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/ExtraSource.cmx
+./esy-package-config/ManifestSpec.cmo : ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-lib/Parse.cmo
+./esy-package-config/ManifestSpec.cmx : ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-lib/Parse.cmx
+./esy-package-config/NpmFormula.cmo : ./esy-package-config/VersionSpec.cmo ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-package-config/Req.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo
+./esy-package-config/NpmFormula.cmx : ./esy-package-config/VersionSpec.cmx ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-package-config/Req.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx
+./esy-package-config/OfPackageJson.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-package-config/SandboxEnv.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-lib/Option.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/CommandList.cmo ./esy-lib/Checksum.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildManifest.cmo ./esy-package-config/BuildEnv.cmo
+./esy-package-config/OfPackageJson.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-package-config/SandboxEnv.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-lib/Option.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/CommandList.cmx ./esy-lib/Checksum.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildManifest.cmx ./esy-package-config/BuildEnv.cmx
+./esy-package-config/OpamPackageVersion.cmo : ./esy-package-config/VersionBase.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Result.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./esy-package-config/OpamPackageVersion.cmx : ./esy-package-config/VersionBase.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Result.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./esy-package-config/Override.cmo : ./esy-lib/StringMap.cmo ./esy-lib/RunAsync.cmo ./esy-package-config/Resolution.cmo ./esy-lib/Path.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Json.cmo ./esy-package-config/ExportedEnv.cmo ./esy-package-config/Dist.cmo ./esy-package-config/CommandList.cmo ./esy-package-config/BuildType.cmo ./esy-package-config/BuildEnv.cmo
+./esy-package-config/Override.cmx : ./esy-lib/StringMap.cmx ./esy-lib/RunAsync.cmx ./esy-package-config/Resolution.cmx ./esy-lib/Path.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Json.cmx ./esy-package-config/ExportedEnv.cmx ./esy-package-config/Dist.cmx ./esy-package-config/CommandList.cmx ./esy-package-config/BuildType.cmx ./esy-package-config/BuildEnv.cmx
+./esy-package-config/Overrides.cmo : ./esy-lib/RunAsync.cmo ./esy-package-config/Override.cmo ./esy-lib/List.cmo
+./esy-package-config/Overrides.cmx : ./esy-lib/RunAsync.cmx ./esy-package-config/Override.cmx ./esy-lib/List.cmx
+./esy-package-config/PackageId.cmo : ./esy-package-config/Version.cmo ./esy-lib/Result.cmo ./esy-lib/Digestv.cmo
+./esy-package-config/PackageId.cmx : ./esy-package-config/Version.cmx ./esy-lib/Result.cmx ./esy-lib/Digestv.cmx
+./esy-package-config/PackageName.cmo :
+./esy-package-config/PackageName.cmx :
+./esy-package-config/PackagePath.cmo : ./esy-lib/Result.cmo ./esy-lib/List.cmo
+./esy-package-config/PackagePath.cmx : ./esy-lib/Result.cmx ./esy-lib/List.cmx
+./esy-package-config/PackageSource.cmo : ./esy-package-config/Source.cmo ./esy-lib/Result.cmo ./esy-lib/Path.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/Json.cmo ./esy-package-config/File.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo
+./esy-package-config/PackageSource.cmx : ./esy-package-config/Source.cmx ./esy-lib/Result.cmx ./esy-lib/Path.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/Json.cmx ./esy-package-config/File.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx
+./esy-package-config/Req.cmo : ./esy-package-config/VersionSpec.cmo ./esy-lib/Parse.cmo
+./esy-package-config/Req.cmx : ./esy-package-config/VersionSpec.cmx ./esy-lib/Parse.cmx
+./esy-package-config/Resolution.cmo : ./esy-package-config/Version.cmo ./esy-package-config/Source.cmo ./esy-lib/Result.cmo ./esy-lib/Json.cmo ./esy-lib/Digestv.cmo
+./esy-package-config/Resolution.cmx : ./esy-package-config/Version.cmx ./esy-package-config/Source.cmx ./esy-lib/Result.cmx ./esy-lib/Json.cmx ./esy-lib/Digestv.cmx
+./esy-package-config/Resolutions.cmo : ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/PackagePath.cmo ./esy-lib/Digestv.cmo
+./esy-package-config/Resolutions.cmx : ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/PackagePath.cmx ./esy-lib/Digestv.cmx
+./esy-package-config/SandboxEnv.cmo : ./esy-package-config/BuildEnv.cmo
+./esy-package-config/SandboxEnv.cmx : ./esy-package-config/BuildEnv.cmx
+./esy-package-config/SemverVersion.cmo : ./esy-package-config/VersionBase.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./esy-package-config/SemverVersion.cmx : ./esy-package-config/VersionBase.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./esy-package-config/Source.cmo : ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./esy-package-config/Source.cmx : ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./esy-package-config/SourceSpec.cmo : ./esy-package-config/Source.cmo ./esy-lib/Path.cmo ./esy-lib/Parse.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./esy-package-config/SourceSpec.cmx : ./esy-package-config/Source.cmx ./esy-lib/Path.cmx ./esy-lib/Parse.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./esy-package-config/SourceType.cmo : ./esy-lib/Json.cmo
+./esy-package-config/SourceType.cmx : ./esy-lib/Json.cmx
+./esy-package-config/Version.cmo : ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Result.cmo ./esy-lib/Parse.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/Json.cmo
+./esy-package-config/Version.cmx : ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Result.cmx ./esy-lib/Parse.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/Json.cmx
+./esy-package-config/VersionBase.cmo : ./esy-lib/S.cmo ./esy-lib/Parse.cmo ./esy-lib/List.cmo
+./esy-package-config/VersionBase.cmx : ./esy-lib/S.cmx ./esy-lib/Parse.cmx ./esy-lib/List.cmx
+./esy-package-config/VersionSpec.cmo : ./esy-package-config/Version.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Parse.cmo ./esy-package-config/OpamPackageVersion.cmo
+./esy-package-config/VersionSpec.cmx : ./esy-package-config/Version.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Parse.cmx ./esy-package-config/OpamPackageVersion.cmx
+./esy-shell-expansion/EsyShellExpansion.cmo : ./esy-shell-expansion/Types.cmo ./esy-lib/List.cmo ./_build/default/esy-shell-expansion/Lexer.cmo
+./esy-shell-expansion/EsyShellExpansion.cmx : ./esy-shell-expansion/Types.cmx ./esy-lib/List.cmx ./_build/default/esy-shell-expansion/Lexer.cmx
+./esy-shell-expansion/Types.cmo :
+./esy-shell-expansion/Types.cmx :
+./esy-solve/Config.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-lib/Cmd.cmo
+./esy-solve/Config.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-lib/Cmd.cmx
+./esy-solve/DepSpec.cmo : ./esy-lib/Run.cmo ./esy-package-config/NpmFormula.cmo ./esy-package-config/InstallManifest.cmo
+./esy-solve/DepSpec.cmx : ./esy-lib/Run.cmx ./esy-package-config/NpmFormula.cmx ./esy-package-config/InstallManifest.cmx
+./esy-solve/NpmRegistry.cmo : ./esy-lib/StringMap.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Memoize.cmo ./esy-lib/LwtTaskQueue.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-lib/Curl.cmo
+./esy-solve/NpmRegistry.cmx : ./esy-lib/StringMap.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Memoize.cmx ./esy-lib/LwtTaskQueue.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-lib/Curl.cmx
+./esy-solve/OpamManifest.cmo : ./esy-lib/StringSet.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-lib/Result.cmo ./esy-package-config/Resolutions.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Memoize.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/ExtraSource.cmo ./esy-package-config/Dist.cmo ./esy-lib/Checksum.cmo
+./esy-solve/OpamManifest.cmx : ./esy-lib/StringSet.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-lib/Result.cmx ./esy-package-config/Resolutions.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Memoize.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/ExtraSource.cmx ./esy-package-config/Dist.cmx ./esy-lib/Checksum.cmx
+./esy-solve/OpamOverrides.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/Override.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-install/Config.cmo
+./esy-solve/OpamOverrides.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/Override.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-install/Config.cmx
+./esy-solve/OpamRegistry.cmo : ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-solve/OpamOverrides.cmo ./esy-solve/OpamManifest.cmo ./esy-lib/Memoize.cmo ./esy-lib/Fs.cmo ./esy-install/Config.cmo
+./esy-solve/OpamRegistry.cmx : ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-solve/OpamOverrides.cmx ./esy-solve/OpamManifest.cmx ./esy-lib/Memoize.cmx ./esy-lib/Fs.cmx ./esy-install/Config.cmx
+./esy-solve/OpamResolution.cmo : ./esy-package-config/Version.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-lib/List.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-lib/Digestv.cmo
+./esy-solve/OpamResolution.cmx : ./esy-package-config/Version.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-lib/List.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-lib/Digestv.cmx
+./esy-solve/Resolver.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-lib/Run.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-solve/OpamRegistry.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-solve/OpamManifest.cmo ./esy-package-config/OfPackageJson.cmo ./esy-solve/NpmRegistry.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/Memoize.cmo ./esy-package-config/ManifestSpec.cmo ./esy-lib/List.cmo ./esy-lib/Json.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/Dist.cmo ./esy-install/Config.cmo
+./esy-solve/Resolver.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-lib/Run.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-solve/OpamRegistry.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-solve/OpamManifest.cmx ./esy-package-config/OfPackageJson.cmx ./esy-solve/NpmRegistry.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/Memoize.cmx ./esy-package-config/ManifestSpec.cmx ./esy-lib/List.cmx ./esy-lib/Json.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/Dist.cmx ./esy-install/Config.cmx
+./esy-solve/Sandbox.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringSet.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/RunAsync.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-package-config/DistPath.cmo ./esy-lib/Digestv.cmo ./esy-install/Config.cmo
+./esy-solve/Sandbox.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringSet.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/RunAsync.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-package-config/DistPath.cmx ./esy-lib/Digestv.cmx ./esy-install/Config.cmx
+./esy-solve/SolveSpec.cmo : ./esy-package-config/InstallManifest.cmo ./esy-solve/DepSpec.cmo
+./esy-solve/SolveSpec.cmx : ./esy-package-config/InstallManifest.cmx ./esy-solve/DepSpec.cmx
+./esy-solve/Solver.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-solve/Universe.cmo ./esy-lib/StringSet.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-install/Sandbox.cmo ./esy-lib/RunAsync.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Resolutions.cmo ./esy-package-config/Resolution.cmo ./esy-package-config/Req.cmo ./esy-lib/Path.cmo ./esy-package-config/PackageSource.cmo ./esy-package-config/PackageId.cmo ./esy-package-config/Overrides.cmo ./esy-package-config/Override.cmo ./esy-lib/Option.cmo ./esy-solve/OpamResolution.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-package-config/NpmFormula.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-package-config/InstallConfig.cmo ./esy-lib/Fs.cmo ./esy-package-config/File.cmo ./esy-lib/Exn.cmo ./esy-package-config/DistPath.cmo ./esy-package-config/Dist.cmo ./esy-lib/Digestv.cmo ./esy-install/Config.cmo ./esy-lib/Cmd.cmo ./esy-lib/Cli.cmo
+./esy-solve/Solver.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-solve/Universe.cmx ./esy-lib/StringSet.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-install/Sandbox.cmx ./esy-lib/RunAsync.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Resolutions.cmx ./esy-package-config/Resolution.cmx ./esy-package-config/Req.cmx ./esy-lib/Path.cmx ./esy-package-config/PackageSource.cmx ./esy-package-config/PackageId.cmx ./esy-package-config/Overrides.cmx ./esy-package-config/Override.cmx ./esy-lib/Option.cmx ./esy-solve/OpamResolution.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-package-config/NpmFormula.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-package-config/InstallConfig.cmx ./esy-lib/Fs.cmx ./esy-package-config/File.cmx ./esy-lib/Exn.cmx ./esy-package-config/DistPath.cmx ./esy-package-config/Dist.cmx ./esy-lib/Digestv.cmx ./esy-install/Config.cmx ./esy-lib/Cmd.cmx ./esy-lib/Cli.cmx
+./esy-solve/Universe.cmo : ./esy-package-config/VersionSpec.cmo ./esy-package-config/Version.cmo ./esy-lib/StringMap.cmo ./esy-package-config/SourceSpec.cmo ./esy-package-config/Source.cmo ./esy-solve/SolveSpec.cmo ./esy-package-config/SemverVersion.cmo ./esy-lib/Run.cmo ./esy-solve/Resolver.cmo ./esy-package-config/Req.cmo ./esy-package-config/OpamPackageVersion.cmo ./esy-lib/List.cmo ./esy-package-config/InstallManifest.cmo ./esy-lib/Exn.cmo
+./esy-solve/Universe.cmx : ./esy-package-config/VersionSpec.cmx ./esy-package-config/Version.cmx ./esy-lib/StringMap.cmx ./esy-package-config/SourceSpec.cmx ./esy-package-config/Source.cmx ./esy-solve/SolveSpec.cmx ./esy-package-config/SemverVersion.cmx ./esy-lib/Run.cmx ./esy-solve/Resolver.cmx ./esy-package-config/Req.cmx ./esy-package-config/OpamPackageVersion.cmx ./esy-lib/List.cmx ./esy-package-config/InstallManifest.cmx ./esy-lib/Exn.cmx

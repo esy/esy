@@ -1,0 +1,72 @@
+description = "Logging infrastructure for OCaml"
+version = "0.7.0"
+requires = ""
+archive(byte) = "esy_logs.cma"
+archive(native) = "esy_logs.cmxa"
+plugin(byte) = "esy_logs.cma"
+plugin(native) = "esy_logs.cmxs"
+
+package "fmt" (
+  description = "Format reporter for Esy_logs"
+  version = "0.7.0"
+  requires = "esy_logs fmt"
+  archive(byte) = "esy_logs_fmt.cma"
+  archive(native) = "esy_logs_fmt.cmxa"
+  plugin(byte) = "esy_logs_fmt.cma"
+  plugin(native) = "esy_logs_fmt.cmxs"
+  exists_if = "esy_logs_fmt.cma"
+)
+
+package "browser" (
+  description = "Browser console reporter for Esy_logs"
+  version = "0.7.0"
+  requires = "esy_logs js_of_ocaml"
+  archive(byte) = "esy_logs_browser.cma"
+  archive(native) = "esy_logs_browser.cmxa"
+  plugin(byte) = "esy_logs_browser.cma"
+  plugin(native) = "esy_logs_browser.cmxs"
+  exists_if = "esy_logs_browser.cma"
+)
+
+package "cli" (
+  description = "Cmdliner support for Esy_logs"
+  version = "0.7.0"
+  requires = "esy_logs cmdliner"
+  archive(byte) = "esy_logs_cli.cma"
+  archive(native) = "esy_logs_cli.cmxa"
+  plugin(byte) = "esy_logs_cli.cma"
+  plugin(native) = "esy_logs_cli.cmxs"
+  exists_if = "esy_logs_cli.cma"
+)
+
+package "lwt" (
+  description = "Lwt support for Esy_logs"
+  version = "0.7.0"
+  requires = "esy_logs lwt"
+  archive(byte) = "esy_logs_lwt.cma"
+  archive(native) = "esy_logs_lwt.cmxa"
+  plugin(byte) = "esy_logs_lwt.cma"
+  plugin(native) = "esy_logs_lwt.cmxs"
+  exists_if = "esy_logs_lwt.cma"
+)
+
+package "threaded" (
+  description = "Thread safe logging"
+  version = "0.7.0"
+  requires = "esy_logs threads"
+  archive(byte) = "esy_logs_threaded.cma"
+  archive(native) = "esy_logs_threaded.cmxa"
+  plugin(byte) = "esy_logs_threaded.cma"
+  plugin(native) = "esy_logs_threaded.cmxs"
+  exists_if = "esy_logs_threaded.cma"
+)
+
+package "top" (
+  description = "Esy_logs toplevel support"
+  version = "0.7.0"
+  requires = "esy_logs"
+  archive(byte) = "esy_logs_top.cma"
+  archive(native) = "esy_logs_top.cmxa"
+  plugin(byte) = "esy_logs_top.cma"
+  plugin(native) = "esy_logs_top.cmxs"
+)

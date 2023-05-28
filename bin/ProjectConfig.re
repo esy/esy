@@ -1,5 +1,5 @@
 open EsyBuild;
-open Cmdliner;
+open Esy_cmdliner;
 
 module ProjectArg = {
   type t =
@@ -31,7 +31,7 @@ module ProjectArg = {
   let ofPath = p => ByPath(p);
 
   let conv = {
-    open Cmdliner;
+    open Esy_cmdliner;
     let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
     Arg.conv(~docv="PROJECT", (parse, pp));
   };
@@ -589,7 +589,7 @@ let promiseTerm = {
       globalPathVariable,
     );
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(parse)
     $ main_name
     $ projectPath
@@ -617,7 +617,9 @@ let promiseTerm = {
 };
 
 let term =
-  Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+  Esy_cmdliner.Term.(
+    ret(const(Cli.runAsyncToEsy_cmdlinerRet) $ promiseTerm)
+  );
 
 let promiseTermForMultiplePaths = resolvedPathTerm => {
   let parse =
@@ -671,7 +673,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
        )
     |> RunAsync.List.joinAll;
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(parse)
     $ main_name
     $ Arg.(
@@ -705,8 +707,9 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
 };
 
 let multipleProjectConfigsTerm = paths =>
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     ret(
-      const(Cli.runAsyncToCmdlinerRet) $ promiseTermForMultiplePaths(paths),
+      const(Cli.runAsyncToEsy_cmdlinerRet)
+      $ promiseTermForMultiplePaths(paths),
     )
   );
