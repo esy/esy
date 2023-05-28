@@ -26,7 +26,7 @@ jobs:
   - template: build-platform.yml
     parameters:
       platform: Linux
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-latest
 
   # - template: build-platform.yml
   #   parameters:
@@ -51,7 +51,7 @@ jobs:
   - job: Alpine_Dev_Environment
     displayName: Setting up Alpine Dev Environment
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-latest
     steps:
       - checkout: self
         submodules: true
@@ -79,7 +79,7 @@ jobs:
     dependsOn:
       - Alpine_Dev_Environment
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-latest
     steps:
       - checkout: self
         submodules: true
