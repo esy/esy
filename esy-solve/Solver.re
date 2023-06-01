@@ -557,7 +557,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
         | Ok(pkg) => return(Some(pkg))
         | Error(reason) =>
           let%lwt () =
-            Logs_lwt.info(m =>
+            Esy_logs_lwt.info(m =>
               m("skipping package %a: %s", Resolution.pp, resolution, reason)
             );
           return(None);
@@ -961,7 +961,8 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
-    let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
+    let%lwt () =
+      Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
     let* pkg =
       Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
     let* pkg = RunAsync.ofStringError(pkg);
@@ -983,7 +984,7 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
     | Some(resolution) => make(resolution)
     | None =>
       let%lwt () =
-        Logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
+        Esy_logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
       return((None, None));
     };
   | VersionSpec.Opam(_) =>

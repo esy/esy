@@ -8,8 +8,9 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries lwt lwt.unix cmdliner logs logs.fmt logs.lwt logs.cli fmt fmt.cli
-   fmt.tty str astring ppx_deriving_yojson.runtime EsyBuild EsyFetch EsySolve))
+ (libraries lwt lwt.unix esy.cmdliner esy.logs esy.logs.fmt esy.logs.lwt
+   esy.logs.cli esy.fmt esy.fmt.cli esy.fmt.tty str astring
+   ppx_deriving_yojson.runtime EsyBuild EsyFetch EsySolve))
 
 (install
  (package esy)

@@ -187,7 +187,7 @@ let discoverManifest = (path, pkgName) => {
     | [] => return((None, Path.Set.empty))
     | [(kind, fname), ...rest] => {
         let%lwt () =
-          Logs_lwt.debug(m =>
+          Esy_logs_lwt.debug(m =>
             m("trying %a %a", Path.pp, path, ManifestSpec.pp, (kind, fname))
           );
         let fname = Path.(path / fname);
@@ -206,7 +206,7 @@ let discoverManifest = (path, pkgName) => {
 
 let ofPath = (~manifest=?, path: Path.t, pkgName) => {
   let%lwt () =
-    Logs_lwt.debug(m =>
+    Esy_logs_lwt.debug(m =>
       m(
         "ReadBuildManifest.ofPath %a %a",
         Fmt.(option(ManifestSpec.pp)),

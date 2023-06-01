@@ -15,7 +15,7 @@ build: [
   [make]
 ]
 depends: [
-  "ocaml"
+  "ocaml" {< "5.0"}
   "ocamlfind"
   "conf-autoconf"
   "conf-aclocal"
