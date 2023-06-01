@@ -38,7 +38,7 @@ let rec retryInCaseOfError = (~num, ~desc, f) =>
   | Ok(resp) => RunAsync.return(resp)
   | Error(_) when num > 0 =>
     let%lwt () =
-      Logs_lwt.warn(m =>
+      Esy_logs_lwt.warn(m =>
         m("failed to %s, retrying (attempts left: %i)", desc, num)
       );
 

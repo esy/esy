@@ -14,7 +14,7 @@
     "jest-pnp-resolver": "^1.0.1",
     "jest-junit": "^5.0.0",
     "klaw": "^2.1.1",
-    "minimatch": "^3.0.4",
+    "minimatch": "^3.0.5",
     "outdent": "^0.3.0",
     "prettier": "^1.13.7",
     "invariant": "^2.2.4",

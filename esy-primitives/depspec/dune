@@ -1,6 +1,6 @@
 (library
  (name DepSpec)
- (libraries fmt)
+ (libraries esy.fmt)
  (preprocess
   (pps ppx_deriving.std)))
 

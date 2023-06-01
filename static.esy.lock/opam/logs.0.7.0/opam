@@ -48,7 +48,7 @@ the API easily allows to implement your own.
 `Logs` has no dependencies. The optional `Logs_fmt` reporter on OCaml
 formatters depends on [Fmt][fmt].  The optional `Logs_browser`
 reporter that reports to the web browser console depends on
-[js_of_ocaml][jsoo]. The optional `Logs_cli` library that provides
+[js_of_ocaml][jsoo]. The optional `Esy_logs_cli` library that provides
 command line support for controlling Logs depends on
 [`Cmdliner`][cmdliner]. The optional `Logs_lwt` library that provides
 Lwt logging functions depends on [`Lwt`][lwt]

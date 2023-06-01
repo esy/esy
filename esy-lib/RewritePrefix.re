@@ -5,7 +5,7 @@ let cmd = {
 
 let rewritePrefix = (~origPrefix, ~destPrefix, path) => {
   let%lwt () =
-    Logs_lwt.debug(m =>
+    Esy_logs_lwt.debug(m =>
       m(
         "rewritePrefix %a: %a -> %a",
         Path.pp,

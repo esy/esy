@@ -86,28 +86,28 @@ let createProgressReporter = (~name, ()) => {
 
   let finish = () => {
     let%lwt () = ProgressReporter.clearStatus();
-    Logs_lwt.app(m => m("%s: done", name));
+    Esy_logs_lwt.app(m => m("%s: done", name));
   };
 
   (progress, finish);
 };
 
 let pathConv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = Path.ofString;
   let print = Path.pp;
   Arg.conv(~docv="PATH", (parse, print));
 };
 
 let cmdConv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v => Ok(Cmd.v(v));
   let print = Cmd.pp;
   Arg.conv(~docv="COMMAND", (parse, print));
 };
 
 let checkoutConv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v => {
     switch (Astring.String.cut(~sep=":", v)) {
     | Some((remote, "")) => Ok(`Remote(remote))
@@ -129,7 +129,7 @@ let checkoutConv = {
 };
 
 let cmdTerm = (~doc, ~docv, makeconv) => {
-  open Cmdliner;
+  open Esy_cmdliner;
   let commandTerm =
     Arg.(non_empty & makeconv(string, []) & info([], ~doc, ~docv));
 
@@ -145,7 +145,7 @@ let cmdTerm = (~doc, ~docv, makeconv) => {
 };
 
 let cmdOptionTerm = (~doc, ~docv) => {
-  open Cmdliner;
+  open Esy_cmdliner;
   let commandTerm =
     Arg.(value & pos_all(string, []) & info([], ~doc, ~docv));
 
@@ -161,13 +161,13 @@ let cmdOptionTerm = (~doc, ~docv) => {
 };
 
 let setupLogTerm = {
-  let pp_header = (ppf, (lvl: Logs.level, _header)) =>
+  let pp_header = (ppf, (lvl: Esy_logs.level, _header)) =>
     switch (lvl) {
-    | Logs.App => Fmt.(styled(`Blue, any("info ")))(ppf, ())
-    | Logs.Error => Fmt.(styled(`Red, any("error ")))(ppf, ())
-    | Logs.Warning => Fmt.(styled(`Yellow, any("warn ")))(ppf, ())
-    | Logs.Info => Fmt.(styled(`Blue, any("info ")))(ppf, ())
-    | Logs.Debug => Fmt.(any("debug "))(ppf, ())
+    | Esy_logs.App => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Esy_logs.Error => Fmt.(styled(`Red, any("error ")))(ppf, ())
+    | Esy_logs.Warning => Fmt.(styled(`Yellow, any("warn ")))(ppf, ())
+    | Esy_logs.Info => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Esy_logs.Debug => Fmt.(any("debug "))(ppf, ())
     };
 
   let lwt_reporter = () => {
@@ -186,13 +186,13 @@ let setupLogTerm = {
     let mutex = Lwt_mutex.create();
     let (app, app_flush) = buf_fmt(~like=Fmt.stderr);
     let (dst, dst_flush) = buf_fmt(~like=Fmt.stderr);
-    let reporter = Logs_fmt.reporter(~pp_header, ~app, ~dst, ());
+    let reporter = Esy_logs_fmt.reporter(~pp_header, ~app, ~dst, ());
     let report = (src, level, ~over, k, msgf) => {
       let k = () => {
         let write = () => {
           let%lwt () =
             switch (level) {
-            | Logs.App =>
+            | Esy_logs.App =>
               let msg = app_flush();
               let%lwt () = Lwt_io.write(Lwt_io.stderr, msg);
               let%lwt () = Lwt_io.flush(Lwt_io.stderr);
@@ -229,10 +229,10 @@ let setupLogTerm = {
         k();
       };
 
-      reporter.Logs.report(src, level, ~over=() => (), k, msgf);
+      reporter.Esy_logs.report(src, level, ~over=() => (), k, msgf);
     };
 
-    {Logs.report: report};
+    {Esy_logs.report: report};
   };
 
   let setupLog = (style_renderer, level) => {
@@ -242,17 +242,20 @@ let setupLogTerm = {
       | Some(renderer) => renderer
       };
 
-    Fmt_tty.setup_std_outputs(~style_renderer, ());
-    Logs.set_level(level);
-    Logs.set_reporter(lwt_reporter());
+    Esy_fmt_tty.setup_std_outputs(~style_renderer, ());
+    Esy_logs.set_level(level);
+    Esy_logs.set_reporter(lwt_reporter());
   };
 
-  Cmdliner.(
+  Esy_cmdliner.(
     Term.(
       const(setupLog)
-      $ Fmt_cli.style_renderer(~docs=Cmdliner.Manpage.s_common_options, ())
-      $ Logs_cli.level(
-          ~docs=Cmdliner.Manpage.s_common_options,
+      $ Esy_fmt_cli.style_renderer(
+          ~docs=Esy_cmdliner.Manpage.s_common_options,
+          (),
+        )
+      $ Esy_logs_cli.level(
+          ~docs=Esy_cmdliner.Manpage.s_common_options,
           ~env=Arg.env_var("ESY__LOG"),
           (),
         )
@@ -260,7 +263,7 @@ let setupLogTerm = {
   );
 };
 
-let runAsyncToCmdlinerRet = res =>
+let runAsyncToEsy_cmdlinerRet = res =>
   switch (Lwt_main.run(res)) {
   | Ok(v) => `Ok(v)
   | Error(error) =>

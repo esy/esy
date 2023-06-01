@@ -1,0 +1,22 @@
+(library
+ (name esy_logs)
+ (public_name esy.logs)
+ (modules esy_logs))
+
+(library
+ (name esy_logs_fmt)
+ (public_name esy.logs.fmt)
+ (modules esy_logs_fmt)
+ (libraries esy.logs esy.fmt))
+
+(library
+ (name esy_logs_cli)
+ (public_name esy.logs.cli)
+ (modules esy_logs_cli)
+ (libraries esy.logs esy.cmdliner))
+
+(library
+ (name esy_logs_lwt)
+ (public_name esy.logs.lwt)
+ (libraries esy.logs lwt)
+ (modules esy_logs_lwt))
