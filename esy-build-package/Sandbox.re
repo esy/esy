@@ -45,7 +45,7 @@ module Darwin = {
     open Run;
     let configData = renderConfig(config);
     let* configFilename = createTmpFile(configData);
-    Logs.debug(m =>
+    Esy_logs.debug(m =>
       m("sandbox-exec config:@;<0 2>@[<v 2>%a@]", Fmt.lines, configData)
     );
     let prepare = (~env, command) => {

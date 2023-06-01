@@ -7,8 +7,8 @@
    "-open"
    "EsyLib"))
  (libraries EsyPrimitives EsyLib EsyFetch angstrom str cudf
-   ppx_deriving_yojson.runtime yojson logs logs.lwt dose3.algo opam-format
-   opam-state opam-file-format)
+   ppx_deriving_yojson.runtime yojson esy.logs esy.logs.lwt dose3.algo
+   opam-format opam-state opam-file-format)
  (preprocess
   (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppxlib ppx_expect
     ppx_inline_test ppx_sexp_conv)))

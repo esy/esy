@@ -9,7 +9,7 @@ type t =
   | File(Path.t);
 
 let conv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v =>
     switch (v) {
     | "-" => Ok(Stdout)

@@ -33,15 +33,18 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
+    "@opam/uuseg": "opam:14.0.0",
+    "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
+    "@opam/uuseg": "opam:14.0.0",
     "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
     "@opam/bigstringaf": "opam:0.6.1",
-    "@opam/cmdliner": "github:esy-ocaml/cmdliner:cmdliner.opam#e9316bc",
     "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
-    "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/pastel": "git+https://github.com/reasonml/reason-native.git:pastel.opam#aec0ac68",
     "@opam/cli": "git+https://github.com/reasonml/reason-native.git:cli.opam#aec0ac68",
     "@opam/file-context-printer": "git+https://github.com/reasonml/reason-native.git:file-context-printer.opam#aec0ac68",
     "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#aec0ac68",
+    "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
+    "@opam/lwt_ppx": "github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/rresult": "opam:0.6.0",
     "@opam/parmap": "opam:1.2.1"
   },
@@ -49,18 +52,14 @@
     "@opam/mccs": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
-    "@opam/cmdliner": "*",
     "@opam/cudf": "0.9",
     "@opam/dose3": "6.1",
-    "@opam/dune": "*",
-    "@opam/fmt": "*",
+    "@opam/dune": "3.6.2",
     "@opam/fpath": "*",
-    "@opam/lambda-term": "*",
-    "@opam/logs": "*",
     "@opam/lwt": "*",
     "@opam/lwt_ppx": "*",
     "@opam/menhir": "20210419",
-    "@opam/ocamlformat": "0.18.0",
+    "@opam/ocamlformat": "*",
     "@opam/opam-core": "*",
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",
@@ -74,12 +73,11 @@
     "@opam/re": "*",
     "@opam/reason": "*",
     "@opam/yojson": "*",
-    "ocaml": "4.12.0"
+    "ocaml": "4.14.0"
   },
   "devDependencies": {
     "@reason-native/rely": "*",
     "@opam/ocaml-lsp-server": "*",
-    "@opam/merlin": "^3.3.3",
     "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
   }

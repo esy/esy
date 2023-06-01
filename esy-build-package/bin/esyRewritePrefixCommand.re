@@ -58,7 +58,7 @@ let rewritePrefix = (~origPrefix, ~destPrefix, rootPath) => {
 };
 
 module CLI = {
-  open Cmdliner;
+  open Esy_cmdliner;
 
   let exits = Term.default_exits;
   let docs = Manpage.s_common_options;

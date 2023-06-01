@@ -1,0 +1,5 @@
+(library
+ (name esy_cmdliner)
+ (public_name esy.cmdliner)
+ (flags :standard -w -3-6-27-32-35)
+ (wrapped false))

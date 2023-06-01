@@ -22,11 +22,11 @@ let readManifests =
     (cfg, installCfg, solution: Solution.t, installation: Installation.t) => {
   open RunAsync.Syntax;
 
-  let%lwt () = Logs_lwt.debug(m => m("reading manifests: start"));
+  let%lwt () = Esy_logs_lwt.debug(m => m("reading manifests: start"));
 
   let readManifest = ((id, loc)) => {
     let%lwt () =
-      Logs_lwt.debug(m =>
+      Esy_logs_lwt.debug(m =>
         m(
           "reading manifest: %a %a",
           PackageId.pp,
@@ -94,7 +94,7 @@ let readManifests =
     List.fold_left(~f, ~init=(Path.Set.empty, PackageId.Map.empty), items);
   };
 
-  let%lwt () = Logs_lwt.debug(m => m("reading manifests: done"));
+  let%lwt () = Esy_logs_lwt.debug(m => m("reading manifests: done"));
 
   return((paths, manifests));
 };
@@ -1170,7 +1170,7 @@ let makeSymlinksToStore = (sandbox, task) => {
 let buildTask =
     (~quiet=?, ~buildOnly=?, ~logPath=?, ~disableSandbox=?, sandbox, task) => {
   open RunAsync.Syntax;
-  let%lwt () = Logs_lwt.debug(m => m("build %a", Task.pp, task));
+  let%lwt () = Esy_logs_lwt.debug(m => m("build %a", Task.pp, task));
   let plan = Task.plan(task);
   let label = Fmt.str("build %a", Task.pp, task);
   let* () =
@@ -1241,7 +1241,9 @@ let build' =
     (~skipStalenessCheck, ~concurrency, ~buildLinked, sandbox, plan, ids) => {
   open RunAsync.Syntax;
   let%lwt () =
-    Logs_lwt.debug(m => m("buildDependencies ~concurrency:%i", concurrency));
+    Esy_logs_lwt.debug(m =>
+      m("buildDependencies ~concurrency:%i", concurrency)
+    );
 
   let findMaxModifyTimeMem = {
     let mem = Memoize.make();
@@ -1265,12 +1267,12 @@ let build' =
     switch%bind (prevmtime) {
     | None =>
       let%lwt () =
-        Logs_lwt.debug(m => m("no mtime info found: %a", Path.pp, mpath));
+        Esy_logs_lwt.debug(m => m("no mtime info found: %a", Path.pp, mpath));
       return((Changes.Yes, mtime));
     | Some(prevmtime) =>
       if (!BuildInfo.ModTime.equal(mtime, prevmtime)) {
         let%lwt () =
-          Logs_lwt.debug(m =>
+          Esy_logs_lwt.debug(m =>
             m(
               "path changed: %a %a (prev %a)",
               Path.pp,
@@ -1294,7 +1296,7 @@ let build' =
     let start = Unix.gettimeofday();
     let%lwt () =
       if (!quiet) {
-        Logs_lwt.app(m => m("building %a", Task.pp, task));
+        Esy_logs_lwt.app(m => m("building %a", Task.pp, task));
       } else {
         Lwt.return();
       };
@@ -1303,7 +1305,7 @@ let build' =
     let* () = buildTask(~logPath, sandbox, task);
     let%lwt () =
       if (!quiet) {
-        Logs_lwt.app(m => m("building %a: done", Task.pp, task));
+        Esy_logs_lwt.app(m => m("building %a: done", Task.pp, task));
       } else {
         Lwt.return();
       };
@@ -1338,7 +1340,7 @@ let build' =
         switch (isBuilt, Changes.(changesInDependencies + changesInSources)) {
         | (true, Changes.No) =>
           let%lwt () =
-            Logs_lwt.debug(m =>
+            Esy_logs_lwt.debug(m =>
               m(
                 "building %a: skipping (changesInDependencies: %a, changesInSources: %a)",
                 Task.pp,
@@ -1360,7 +1362,7 @@ let build' =
       switch (isBuilt, changesInDependencies) {
       | (true, Changes.No) =>
         let%lwt () =
-          Logs_lwt.debug(m =>
+          Esy_logs_lwt.debug(m =>
             m(
               "building %a: skipping (changesInDependencies: %a)",
               Task.pp,
@@ -1462,7 +1464,7 @@ let build =
 let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
   open RunAsync.Syntax;
   let buildId = Path.basename(buildPath);
-  let%lwt () = Logs_lwt.app(m => m("Exporting %s", buildId));
+  let%lwt () = Esy_logs_lwt.app(m => m("Exporting %s", buildId));
   let outputPath =
     Path.(outputPrefixPath / Printf.sprintf("%s.tar.gz", buildId));
   let* (origPrefix, destPrefix) = {
@@ -1497,7 +1499,7 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
       Path.parent(stagePath),
     );
 
-  let%lwt () = Logs_lwt.app(m => m("Exporting %s: done", buildId));
+  let%lwt () = Esy_logs_lwt.app(m => m("Exporting %s: done", buildId));
   /* `Fs.rmPath` needs the same fix we made for `Bos.OS.Path.delete`
    * readonly files need to have their readonly bit off just before
    * deleting. (https://github.com/esy/esy/pull/1122)
@@ -1510,7 +1512,7 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
     | Ok () => Lwt.return()
     | Error(e) =>
       switch (e) {
-      | `Msg(message) => Logs_lwt.debug(m => m("%s", message))
+      | `Msg(message) => Esy_logs_lwt.debug(m => m("%s", message))
       }
     };
   return();
@@ -1525,11 +1527,11 @@ let importBuild = (storePath, buildPath) => {
       (buildPath |> Path.basename, `Dir);
     };
 
-  let%lwt () = Logs_lwt.app(m => m("Import %s", buildId));
+  let%lwt () = Esy_logs_lwt.app(m => m("Import %s", buildId));
   let outputPath = Path.(storePath / Store.installTree / buildId);
   if%bind (Fs.exists(outputPath)) {
     let%lwt () =
-      Logs_lwt.app(m =>
+      Esy_logs_lwt.app(m =>
         m("Import %s: already in store, skipping...", buildId)
       );
     return();
@@ -1548,7 +1550,7 @@ let importBuild = (storePath, buildPath) => {
         );
 
       let* () = Fs.rename(~skipIfExists=true, ~src=buildPath, outputPath);
-      let%lwt () = Logs_lwt.app(m => m("Import %s: done", buildId));
+      let%lwt () = Esy_logs_lwt.app(m => m("Import %s: done", buildId));
       return();
     };
 

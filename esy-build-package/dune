@@ -5,6 +5,6 @@
    (-w -39)))
  (preprocess
   (pps ppx_let ppx_deriving_yojson ppx_deriving.std))
- (libraries EsyLib EsyPackageConfig cmdliner yojson bos logs logs.fmt
-   logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime rresult
-   opam-format))
+ (libraries EsyLib EsyPackageConfig esy.cmdliner yojson bos esy.logs
+   esy.logs.fmt esy.logs.cli re esy.fmt esy.fmt.cli esy.fmt.tty
+   ppx_deriving_yojson.runtime rresult opam-format))
