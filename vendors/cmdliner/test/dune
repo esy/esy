@@ -10,4 +10,4 @@
         test_stop_on_pos
         test_term_dups
         test_with_used_args)
- (libraries esy.cmdliner))
+ (libraries esy_cmdliner))

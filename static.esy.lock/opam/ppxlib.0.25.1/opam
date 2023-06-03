@@ -1,0 +1,63 @@
+opam-version: "2.0"
+synopsis: "Standard library for ppx rewriters"
+description: """
+Ppxlib is the standard library for ppx rewriters and other programs
+that manipulate the in-memory reprensation of OCaml programs, a.k.a
+the "Parsetree".
+
+It also comes bundled with two ppx rewriters that are commonly used to
+write tools that manipulate and/or generate Parsetree values;
+`ppxlib.metaquot` which allows to construct Parsetree values using the
+OCaml syntax directly and `ppxlib.traverse` which provides various
+ways of automatically traversing values of a given type, in particular
+allowing to inject a complex structured value into generated code.
+"""
+maintainer: ["opensource@janestreet.com"]
+authors: ["Jane Street Group, LLC <opensource@janestreet.com>"]
+license: "MIT"
+homepage: "https://github.com/ocaml-ppx/ppxlib"
+doc: "https://ocaml-ppx.github.io/ppxlib/"
+bug-reports: "https://github.com/ocaml-ppx/ppxlib/issues"
+depends: [
+  "dune" {>= "2.7"}
+  "ocaml" {>= "4.04.1" & < "5.1.0"}
+  "ocaml-compiler-libs" {>= "v0.11.0"}
+  "ppx_derivers" {>= "1.0"}
+  "sexplib0" {>= "v0.12"}
+  "sexplib0" {with-test & < "v0.15"}
+  "stdlib-shims"
+  "ocamlfind" {with-test}
+  "re" {with-test & >= "1.9.0"}
+  "cinaps" {with-test & >= "v0.12.1"}
+  "base" {with-test}
+  "stdio" {with-test}
+  "odoc" {with-doc}
+]
+conflicts: [
+  "ocaml-migrate-parsetree" {< "2.0.0"}
+  "base-effects"
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://github.com/ocaml-ppx/ppxlib.git"
+url {
+  src:
+    "https://github.com/ocaml-ppx/ppxlib/releases/download/0.25.1/ppxlib-0.25.1.tbz"
+  checksum: [
+    "sha256=a51b3868029e62ff14a0f2bd8d278dacfc0c3fc5b22d484a296be90c53e4ffd7"
+    "sha512=6a6d9af49344e901cc9e6da7bcf38c2973705c8cee4cff1c64c0393e9ccc55a6abec1f58d5b56d0807939a3741bec722ee7bfc244f94619167a30438f182488a"
+  ]
+}
+x-commit-hash: "15e70402feadd98365f36e0a255e78dcd168e6bb"

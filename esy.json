@@ -25,7 +25,6 @@
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
-    "release:platform-release": "node ./scripts/make-platform-release.js",
     "fmt": "dune build @fmt --auto-promote",
     "test:unit": "esy b dune runtest",
     "test:e2e": "npm run jest test-e2e",
@@ -33,7 +32,6 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "@opam/uuseg": "opam:14.0.0",
     "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
     "@opam/uuseg": "opam:14.0.0",
     "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
