@@ -75,6 +75,7 @@ jobs:
           containerRegistry: 'Docker Esy (nightly)'
           repository: 'esydev/esy'
           command: 'buildAndPush'
+          buildContext: '.'
           Dockerfile: 'dockerfiles/alpine.Dockerfile'
           tags: |
             nightly-alpine-latest
