@@ -1,3 +1,32 @@
+
+########################################################################################################
+#                                                                                                      #
+# TODO:												       #
+# 												       #
+#   This script is not usable in its current state. It assumes the NPM				       #
+#   tarball contains binaries that dont need binary relocation[1]. This				       #
+#   is not true any more.									       #
+# 												       #
+#   This script could however be reused once we start publishing built				       #
+#   artifacts directly to Github as a part of releases.						       #
+# 												       #
+#   A script like this is useful to provide sh/pwsh scripts that a user				       #
+#   can directly run to install esy.								       #
+# 												       #
+#   The docs could say,										       #
+# 												       #
+#   Run the following in your terminal, then follow the onscreen instructions.			       #
+# 												       #
+#   curl --proto '=https' -sSf https://esy.sh/install | sh					       #
+#   												       #
+#   Note that this would work only because esy doesn't have dynamic                                    #
+#   library deps with specific version constraints, or hardcoded paths                                 #
+# 												       #
+#   References:											       #
+#   1. Binary Relocation - https://esy.sh/docs/en/npm-release.html#relocating-artifacts-path-rewriting #
+#   												       #
+########################################################################################################
+
 #!/bin/bash
 
 set -e
