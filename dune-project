@@ -30,7 +30,7 @@ Easy package management for native Reason, OCaml and more
     angstrom
     cmdliner
     bos 
-    (cudf (= 0.9+dune))  
+    (cudf (= 0.9))
     (dose3 (= 6.1))
     (ocamlgraph (= 2.0.0))
     dune  
