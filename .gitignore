@@ -1,3 +1,7 @@
+# docusaurus
+.log
+.nojekyll
+
 node_modules
 /coverage
 /lib

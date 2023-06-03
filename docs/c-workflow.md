@@ -1,6 +1,6 @@
 ---
 id: c-workflow
-title: Workflow for C/C++ Packages
+title: "Workflow for C/C++ Packages"
 ---
 
 esy providing a workflow for native development couldn't skip supporting C/C++

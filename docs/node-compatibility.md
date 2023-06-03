@@ -1,6 +1,6 @@
 ---
 id: node-compatibility
-title: Node/npm Compatibility
+title: "Node/npm Compatibility"
 ---
 
 esy can install packages from npm registry.
