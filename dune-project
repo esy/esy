@@ -4,7 +4,7 @@
 
 (allow_approximate_merlin)
 
-(license MIT)
+(license BSD-2-Clause)
 (maintainers
  "Manas Jayanth <prometheansacrifice@gmail.com>"
  "Andrey Popp <8mayday@gmail.com>")
