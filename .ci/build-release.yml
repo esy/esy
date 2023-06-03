@@ -41,80 +41,10 @@ jobs:
       platform: macOS
       vmImage: macOS-latest
 
-  # A separate Linux (non-alpine) matters because thats
-  # where the source is actually built and tested end-to-end.
-  - job: Alpine_Dev_Environment
-    displayName: Setting up Alpine Dev Environment
-    pool:
+  - template: docker.yml
+    parameters:
+      platform: Docker
       vmImage: ubuntu-latest
-    steps:
-      - checkout: self
-        submodules: true
-      - template: utils/use-node.yml
-      - script: sudo apt install jq gzip
-        displayName: Install deps
-      - bash: |
-          ESY__PROJECT_NAME=$(jq -r .name package.json)
-          ESY__PROJECT_VERSION=$(jq -r .version package.json)
-          echo "##vso[task.setvariable variable=esy__project_name]$ESY__PROJECT_NAME"
-          echo "##vso[task.setvariable variable=esy__project_version]$ESY__PROJECT_VERSION"
-      - task: Docker@2
-        displayName: 'Build and push esydev/esy-dev:alpine to Docker Hub'
-        inputs:
-          buildContext: '$(Build.SourcesDirectory)'
-          containerRegistry: 'Docker Esy (nightly)'
-          repository: 'esydev/esy-dev'
-          command: 'buildAndPush'
-          Dockerfile: 'dockerfiles/alpine.dev.Dockerfile'
-          tags: 'alpine'
-
-  - job: Alpine_Build
-    displayName: Alpine Build
-    dependsOn:
-      - Alpine_Dev_Environment
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-      - checkout: self
-        submodules: true
-      - template: utils/use-node.yml
-      - script: sudo apt install jq gzip
-        displayName: Install deps
-      - bash: |
-          ESY__PROJECT_NAME=$(jq -r .name package.json)
-          ESY__PROJECT_VERSION=$(jq -r .version package.json)
-          echo "##vso[task.setvariable variable=esy__project_name]$ESY__PROJECT_NAME"
-          echo "##vso[task.setvariable variable=esy__project_version]$ESY__PROJECT_VERSION"
-      - script: docker build . -f dockerfiles/alpine.Dockerfile --network=host -t esydev/esy:nightly-alpine-latest
-        displayName: "Docker Build (Alpine)"
-      - script: docker container run -itd --network=host --name esy-container esydev/esy:nightly-alpine-latest
-        displayName: "Run Docker Container"
-      - script:  docker cp esy-container:/app/_release $PWD/_container_release
-        displayName: "Copy _release from container"
-      - task: PublishBuildArtifacts@1
-        displayName: "Publish Docker built artifact"
-        inputs:
-          PathtoPublish: "_container_release"
-          ArtifactName: AlpineLinux
-      - script: docker save $(esy__project_name) | gzip > $(esy__project_name)-docker-image.tar.gz
-        displayName: "Save Docker image as tarball"
-      - task: PublishBuildArtifacts@1
-        displayName: "Upload Docker production image (as Azure artifacts)"
-        inputs:
-          PathtoPublish: "$(esy__project_name)-docker-image.tar.gz"
-          ArtifactName: AlpineLinuxDockerBuiltNPM
-
-      - task: Docker@2
-        displayName: 'Push esydev/esy:nightly-alpine-latest to Docker Hub'
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-        inputs:
-          containerRegistry: 'Docker Esy (nightly)'
-          repository: 'esydev/esy'
-          command: 'buildAndPush'
-          Dockerfile: 'dockerfiles/alpine.Dockerfile'
-          tags: |
-            nightly-alpine-latest
-            nightly-alpine
 
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
