@@ -25,7 +25,6 @@
     "build:esy": "esy build",
     "build:postinstall-esy-bash": "cd node_modules/esy-bash && npm install",
     "build:postinstall-esy-solve-cudf": "cd node_modules/esy-solve-cudf && npm install",
-    "release:platform-release": "node ./scripts/make-platform-release.js",
     "fmt": "dune build @fmt --auto-promote",
     "test:unit": "esy b dune runtest",
     "test:e2e": "npm run jest test-e2e",
