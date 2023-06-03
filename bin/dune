@@ -1,3 +1,8 @@
+(env
+ (release-static
+  (flags
+   (-ccopt -static))))
+
 (executable
  (name esy)
  (public_name esy)

@@ -2,10 +2,11 @@ node_modules
 coverage
 lib
 _export
-_esy
+_esy*
 _build
 _release
 _platformrelease
+_opam
 bin/fastreplacestring
 .merlin
 npm-debug.log

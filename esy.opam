@@ -23,7 +23,7 @@ depends: [
   "angstrom"
   "cmdliner"
   "bos"
-  "cudf" {= "0.9+dune"}
+  "cudf" 
   "dose3" {= "6.1"}
   "ocamlgraph" {= "2.0.0"}
   "dune"
@@ -36,7 +36,8 @@ depends: [
   "lwt_ppx"
   "junit"
   "menhir" {= "20210419"}
-  "ocamlformat" {= "0.18.0"}
+  "ocamlformat" {dev}
+  "ocaml-lsp-server" {dev}
   "opam-core"
   "opam-file-format"
   "opam-format"
@@ -51,10 +52,10 @@ depends: [
   "mccs"
   "yojson"
   "ocaml" {= "4.12.0"}
-  "extlib" {= "1.7.8"}
+  "extlib"
+  "uuseg" {<= "14.0.0"}
 ]
 build: [
-  ["dune" "subst"] {pinned}
   [
     "dune"
     "build"
@@ -69,8 +70,6 @@ build: [
 ]
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
-  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
