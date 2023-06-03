@@ -4,8 +4,8 @@
   (:standard
    (-w -39)))
  (inline_tests)
- (libraries angstrom lwt lwt.unix esy.cmdliner yojson bos esy.logs
-   esy.logs.fmt esy.logs.lwt esy.logs.cli re esy.fmt esy.fmt.cli esy.fmt.tty
+ (libraries angstrom lwt lwt.unix esy_cmdliner yojson bos esy_logs
+   esy_logs_fmt esy_logs_lwt esy_logs_cli re esy_fmt esy_fmt_cli esy_fmt_tty
    ppx_deriving_yojson.runtime str astring EsyShellExpansion)
  (foreign_stubs
   (language c)
