@@ -28,10 +28,8 @@ jobs:
       platform: Linux
       vmImage: ubuntu-latest
 
-  # - template: build-platform.yml
-  #   parameters:
-  #     platform: Ubuntu_16_04
-  #     vmImage: ubuntu-16.04
+  # Platforms we no longer run on:
+  #  - ubuntu-16.04
 
   - template: build-platform.yml
     parameters:
