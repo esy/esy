@@ -15,6 +15,9 @@ yarn-error.log
 test-e2e-re/lib/verdaccio/storage
 *~
 
+# from docker ops
+extracted-alpine-artifacts
+
 # script files to automate local testing
 dev.sh
 dev.ps1

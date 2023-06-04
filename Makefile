@@ -46,24 +46,21 @@ build-with-opam:
 	opam exec -- dune build @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
 
-build-with-esy:
-	$(APP_ESY_INSTALL)/bin/esy @static i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
-	$(APP_ESY_INSTALL)/bin/esy @static b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
-	$(APP_ESY_INSTALL)/bin/esy @static release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
-
 dune-cleanup:
-	opam exec -- dune uninstall --prefix $(APP_ESY_INSTALL)
+	opam exec -- dune clean
 
 opam-cleanup:
 	opam switch -y remove . || true
 	opam clean
 	rm -rf _opam
 
-install-esy-artifacts:
-	CXX=c++ yarn global --prefix=$(APP_ESY_INSTALL) --force add ${PWD}/_release
+alpine-docker-image:
+	docker build . -f dockerfiles/alpine.Dockerfile --network=host -t esydev/esy:nightly-alpine-latest
 
-docker:
-	make build-with-opam
-	make build-with-esy
-	make dune-cleanup
-	make opam-cleanup
+extracted-alpine-artifacts:
+	docker container run -itd --network=host --name esy-container esydev/esy:nightly-alpine-latest
+	docker cp esy-container:$(APP_ESY_INSTALL) $@
+
+static:
+	make alpine-docker-image
+	make extracted-alpine-artifacts

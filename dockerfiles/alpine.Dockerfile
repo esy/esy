@@ -42,11 +42,9 @@ COPY static.json /app/static.json
 COPY static.esy.lock /app/static.esy.lock
 COPY ./vendors /app/vendors
 COPY ./fastreplacestring /app/fastreplacestring
-RUN make docker
-RUN make install-esy-artifacts
+RUN make build-with-opam && make dune-cleanup && make opam-cleanup
 
 FROM alpine:latest
 
 COPY --from=builder /usr/local /usr/local
-COPY --from=builder /app/_release /app/_release
 RUN apk add nodejs npm linux-headers curl git perl-utils bash gcc g++ musl-dev make m4 patch
