@@ -14,11 +14,7 @@ jobs:
 
   # Platforms we no longer run on:
   #  - ubuntu-16.04
-
-  - template: build-platform.yml
-    parameters:
-      platform: macOS_10_12
-      vmImage: macOS-latest
+  #  - macos 10.12
 
   - template: build-platform.yml
     parameters:
