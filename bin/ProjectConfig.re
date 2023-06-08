@@ -670,9 +670,9 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     |> List.map(~f=path =>
          make(
            Some(ProjectArg.ofPath(path)),
-           mainprg,
            "ocaml", /* specifying ocaml package name for multiple paths is unsupported */
            "n.00.0000", /* specifying ocaml version for multiple paths is unsupported */
+           mainprg,
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
