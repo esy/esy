@@ -98,7 +98,7 @@ let ofGithub = (~manifest=?, user, repo, ref) => {
             let suggestedPackageName =
               suggestPackageName(~fallback=repo, (kind, filename));
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m(
                   "not an override %s/%s:%s: %a",
                   user,
@@ -155,7 +155,7 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
           | Ok(override) => return(Some(Override(override)))
           | Error(err) =>
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m("not an override %a: %a", Path.pp, path, Run.ppError, err)
               );
 
@@ -223,7 +223,7 @@ let resolve =
 
   let resolve' = (dist: Dist.t) => {
     let%lwt () =
-      Logs_lwt.debug(m => m("fetching metadata %a", Dist.pp, dist));
+      Esy_logs_lwt.debug(m => m("fetching metadata %a", Dist.pp, dist));
     let config =
       switch (gitUsername, gitPassword) {
       | (Some(gitUsername), Some(gitPassword)) => [
@@ -300,7 +300,7 @@ let resolve =
       let override = Override.ofDist(json, dist);
       let* nextDist = RunAsync.ofRun(rebase(~base=dist, nextDist));
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("override: %a -> %a@.", Dist.pp, dist, Dist.pp, nextDist)
         );
       let overrides = Overrides.add(override, overrides);

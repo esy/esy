@@ -4,9 +4,9 @@
   (:standard
    (-w -39)))
  (inline_tests)
- (libraries angstrom lwt lwt.unix cmdliner yojson bos logs logs.fmt logs.lwt
-   logs.cli re fmt fmt.cli fmt.tty ppx_deriving_yojson.runtime str astring
-   EsyShellExpansion)
+ (libraries angstrom lwt lwt.unix esy_cmdliner yojson bos esy_logs
+   esy_logs_fmt esy_logs_lwt esy_logs_cli re esy_fmt esy_fmt_cli esy_fmt_tty
+   ppx_deriving_yojson.runtime str astring EsyShellExpansion)
  (foreign_stubs
   (language c)
   (names unix_rlimit_patch win32_path))

@@ -4,7 +4,7 @@ let measure = (~label, f) => {
   let after = Unix.gettimeofday();
   let () = {
     let spent = 1000.0 *. (after -. before);
-    Logs.info(m => m(~header="time", "%s: %fms", label, spent));
+    Esy_logs.info(m => m(~header="time", "%s: %fms", label, spent));
   };
 
   res;
@@ -16,7 +16,7 @@ let measureLwt = (~label, f) => {
   let after = Unix.gettimeofday();
   let%lwt () = {
     let spent = 1000.0 *. (after -. before);
-    Logs_lwt.debug(m => m(~header="time", "%s: %fms", label, spent));
+    Esy_logs_lwt.debug(m => m(~header="time", "%s: %fms", label, spent));
   };
 
   Lwt.return(res);

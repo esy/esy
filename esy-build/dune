@@ -8,6 +8,6 @@
    "-open"
    "EsyLib"))
  (libraries EsyPrimitives EsyLib EsyFetch EsyCommandExpression
-   EsyShellExpansion EsyBuildPackage lwt lwt.unix cmdliner yojson bos logs
-   logs.fmt logs.lwt logs.cli re fmt fmt.cli fmt.tty
-   ppx_deriving_yojson.runtime str astring opam-format opam-state))
+   EsyShellExpansion EsyBuildPackage lwt lwt.unix esy_cmdliner yojson bos
+   esy_logs esy_logs_fmt esy_logs_lwt esy_logs_cli re esy_fmt esy_fmt_cli
+   esy_fmt_tty ppx_deriving_yojson.runtime str astring opam-format opam-state))

@@ -6,7 +6,7 @@ bug-reports: "https://gitlab.com/irill/cudf/-/issues"
 dev-repo: "git+https://gitlab.com/irill/cudf.git"
 build: [make "all" "opt" "DOC="]
 depends: [
-  "ocaml"
+  "ocaml" {< "5.0"}
   ("extlib" | "extlib-compat")
   "ocamlfind" {build}
   "ocamlbuild" {build}
