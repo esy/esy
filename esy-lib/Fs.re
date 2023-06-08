@@ -139,6 +139,11 @@ let isDir = (path: Path.t) =>
   | Error(_) => RunAsync.return(false)
   };
 
+let isDirSync = path =>
+  try(Sys.is_directory(Path.show(path))) {
+  | _ => false
+  };
+
 let unlink = (path: Path.t) => {
   let path = Path.show(path);
   let%lwt () = Lwt_unix.unlink(path);

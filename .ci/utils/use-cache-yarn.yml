@@ -4,7 +4,8 @@ steps:
     echo "##vso[task.setvariable variable=YARN_CACHE_DIR]$YARN_CACHE_DIR"
 - task: Cache@2
   inputs:
-    key: 'yarn | "$(Agent.OS)" | "$(Build.SourcesDirectory)/npm-cli/yarn.lock"'
+    condition: ne(variables['Build.SourceBranch'], 'refs/heads/master')
+    key: 'yarn | "$(Agent.OS)" | "$(Build.SourcesDirectory)/yarn.lock"'
     restoreKeys: |
        yarn | "$(Agent.OS)"
        yarn
