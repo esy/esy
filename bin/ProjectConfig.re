@@ -655,15 +655,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
           | None => EsyBuildPackage.Config.storePrefixDefault
           };
 
-        let projectsPath = Path.(prefixPath / "projects.json");
-        let%bind json = Fs.readJsonFile(projectsPath);
-        let%bind json =
-          switch (Json.Decode.(list(string, json))) {
-          | Ok(json) => return(json)
-          | Error(err) =>
-            errorf("%s cannot be parsed", projectsPath |> Path.show)
-          };
-        json |> List.map(~f=Path.v) |> return;
+        EsyFetch.ProjectList.get(prefixPath);
       | _ => return(paths)
       };
     paths

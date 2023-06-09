@@ -234,11 +234,12 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
 let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
   let getAllCacheEntries = globalStorePath => {
-    let* allCacheEntries' = Fs.listDir(Path.(globalStorePath / Store.installTree));
+    let* allCacheEntries' =
+      Fs.listDir(Path.(globalStorePath / Store.installTree));
     allCacheEntries'
     |> List.map(~f=x => Path.(globalStorePath / Store.installTree / x))
     |> Path.Set.of_list
-    |> RunAsync.return
+    |> RunAsync.return;
   };
   let mode = BuildSpec.BuildDev;
   /* projects.json is local to every esy prefix. Every project found
@@ -1077,30 +1078,13 @@ let fetch = (proj: Project.t) => {
 };
 
 let addProjectToGCRoot = (proj: Project.t) => {
-  let projectsPath =
+  let prefixPath =
     switch (proj.projcfg.prefixPath) {
-    | Some(prefixPath) => Path.(prefixPath / "projects.json")
-    | None =>
-      Path.(EsyBuildPackage.Config.storePrefixDefault / "projects.json")
+    | Some(prefixPath) => prefixPath
+    | None => EsyBuildPackage.Config.storePrefixDefault
     };
-  let currentProj = Path.show(proj.projcfg.path);
-  open RunAsync.Syntax;
-  let%bind json = Fs.readJsonFile(projectsPath);
-  open Json;
-  let%bind projects =
-    switch (Decode.(list(string, json))) {
-    | Ok(projects) =>
-      let projects =
-        if (List.mem(currentProj, projects)) {
-          projects;
-        } else {
-          [currentProj, ...projects];
-        };
-      Encode.(list(string, projects)) |> return;
-    | Error(err) => errorf("%s cannot be parsed", projectsPath |> Path.show)
-    };
-
-  Fs.writeJsonFile(projects, projectsPath);
+  let currentProjectPath = Path.show(proj.projcfg.path);
+  EsyFetch.ProjectList.update(prefixPath, currentProjectPath);
 };
 
 let solveAndFetch = (proj: Project.t) => {
