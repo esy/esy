@@ -16,14 +16,14 @@ authors: [
   "Bryan Phelps <bryphe@outrunlabs.com>"
   "Eduardo Rafael <theeduardorfs@gmail.com>"
 ]
-license: "MIT"
+license: "BSD-2-Clause"
 homepage: "https://github.com/esy/esy"
 bug-reports: "https://github.com/esy/esy/issues"
 depends: [
   "angstrom"
   "cmdliner"
   "bos"
-  "cudf" {= "0.9+dune"}
+  "cudf" {= "0.9"}
   "dose3" {= "6.1"}
   "ocamlgraph" {= "2.0.0"}
   "dune"
@@ -70,7 +70,6 @@ build: [
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
