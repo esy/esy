@@ -233,52 +233,51 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
 
 let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
   open RunAsync.Syntax;
+  let getAllCacheEntries = globalStorePath => {
+    let* allCacheEntries' = Fs.listDir(Path.(globalStorePath / Store.installTree));
+    allCacheEntries'
+    |> List.map(~f=x => Path.(globalStorePath / Store.installTree / x))
+    |> Path.Set.of_list
+    |> RunAsync.return
+  };
   let mode = BuildSpec.BuildDev;
-  let* (dirsToKeep, allDirs) =
-    RunAsync.List.foldLeft(
-      ~init=(Path.Set.empty, Path.Set.empty),
-      ~f=
-        (acc, projCfg) => {
-          let (dirsToKeep, allDirs) = acc;
-          let* (proj, _) = Project.make(projCfg);
-          let* plan = Project.plan(mode, proj);
-          let* allProjectDependencies =
-            BuildSandbox.Plan.all(plan)
-            |> List.map(~f=task =>
-                 Scope.installPath(task.BuildSandbox.Task.scope)
-                 |> Project.renderSandboxPath(proj.Project.buildCfg)
-               )
-            |> Path.Set.of_list
-            |> RunAsync.return;
-          let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projCfg));
-          let* allDirs' = Fs.listDir(Path.(storePath / Store.installTree));
-          let shortBuildPath =
-            Path.(
-              ProjectConfig.globalStorePrefixPath(projCfg)
-              / Store.version
-              / Store.buildTree
-            );
-          RunAsync.return((
-            Path.Set.union(dirsToKeep, allProjectDependencies),
-            Path.Set.union(
-              allDirs,
-              Path.Set.of_list([
-                Path.(storePath / Store.buildTree),
-                Path.(storePath / Store.stageTree),
-                shortBuildPath,
-                ...allDirs'
-                   |> List.map(~f=x =>
-                        Path.(storePath / Store.installTree / x)
-                      ),
-              ]),
-            ),
-          ));
-        },
-      projCfgs,
+  /* projects.json is local to every esy prefix. Every project found
+     there would use the same global store path. We can safely pick any
+     project and get it's store path */
+  let randomProjCfg = projCfgs |> List.hd;
+  let* globalStorePath =
+    randomProjCfg |> ProjectConfig.storePath |> RunAsync.ofRun;
+  let* allCacheEntries = getAllCacheEntries(globalStorePath);
+  let shortBuildPath =
+    Path.(
+      ProjectConfig.globalStorePrefixPath(randomProjCfg)
+      / Store.version
+      / Store.buildTree
     );
-
-  let buildsToBePurged = Path.Set.diff(allDirs, dirsToKeep);
-
+  let pathsToBeRemoved = [
+    // staging area before installed artifacts can be installed
+    Path.(globalStorePath / Store.stageTree),
+    // Ex: ~/.esy/3/b - this usually contains build cache. Usually cold, and can be removed
+    shortBuildPath,
+    // Older versions used the longer ~/.esy/3____.../b to store build cache
+    Path.(globalStorePath / Store.buildTree),
+  ];
+  let f = (cacheEntriesToKeep, projCfg) => {
+    let* (proj, _) = Project.make(projCfg);
+    let* plan = Project.plan(mode, proj);
+    let* allProjectDependencies =
+      BuildSandbox.Plan.all(plan)
+      |> List.map(~f=task =>
+           Scope.installPath(task.BuildSandbox.Task.scope)
+           |> Project.renderSandboxPath(proj.Project.buildCfg)
+         )
+      |> RunAsync.return;
+    RunAsync.return(cacheEntriesToKeep @ allProjectDependencies);
+  };
+  let* cacheEntriesToKeep =
+    RunAsync.List.foldLeft(~init=pathsToBeRemoved, ~f, projCfgs);
+  let buildsToBePurged =
+    cacheEntriesToKeep |> Path.Set.of_list |> Path.Set.diff(allCacheEntries);
   if (dryRun) {
     print_endline("Will be purging the following");
     Path.Set.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
@@ -1078,12 +1077,13 @@ let fetch = (proj: Project.t) => {
 };
 
 let addProjectToGCRoot = (proj: Project.t) => {
-  let projectsPath = switch(proj.projcfg.prefixPath) {
-  | Some(prefixPath) => Path.(prefixPath / "projects.json")
-  | None => Path.(EsyBuildPackage.Config.storePrefixDefault / "projects.json")
-  };
+  let projectsPath =
+    switch (proj.projcfg.prefixPath) {
+    | Some(prefixPath) => Path.(prefixPath / "projects.json")
+    | None =>
+      Path.(EsyBuildPackage.Config.storePrefixDefault / "projects.json")
+    };
   let currentProj = Path.show(proj.projcfg.path);
-
   open RunAsync.Syntax;
   let%bind json = Fs.readJsonFile(projectsPath);
   open Json;
@@ -1097,8 +1097,7 @@ let addProjectToGCRoot = (proj: Project.t) => {
           [currentProj, ...projects];
         };
       Encode.(list(string, projects)) |> return;
-    | Error(err) =>
-      errorf("%s cannot be parsed", projectsPath |> Path.show)
+    | Error(err) => errorf("%s cannot be parsed", projectsPath |> Path.show)
     };
 
   Fs.writeJsonFile(projects, projectsPath);
@@ -1109,23 +1108,24 @@ let solveAndFetch = (proj: Project.t) => {
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   let* digest =
     EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
-  let%bind () = switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
-  | Some(solution) =>
-    switch%bind (
-      EsyFetch.Fetch.maybeInstallationOfSolution(
-        proj.workflow.fetchDepsSubset,
-        proj.installSandbox,
-        solution,
-      )
-    ) {
-    | Some(_installation) => return()
-    | None => fetch(proj)
-    }
-  | None =>
-    let* () = solve(false, None, None, proj);
-    let* () = fetch(proj);
-    return();
-  };
+  let%bind () =
+    switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
+    | Some(solution) =>
+      switch%bind (
+        EsyFetch.Fetch.maybeInstallationOfSolution(
+          proj.workflow.fetchDepsSubset,
+          proj.installSandbox,
+          solution,
+        )
+      ) {
+      | Some(_installation) => return()
+      | None => fetch(proj)
+      }
+    | None =>
+      let* () = solve(false, None, None, proj);
+      let* () = fetch(proj);
+      return();
+    };
   addProjectToGCRoot(proj);
 };
 
