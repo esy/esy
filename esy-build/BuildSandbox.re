@@ -195,7 +195,7 @@ module Task = {
 };
 
 let renderEsyCommands =
-    (~env, ~buildIsInProgress, ~concurrency, scope, commands) => {
+    (~env, ~buildIsInProgress, ~concurrency as _, scope, commands) => {
   open Run.Syntax;
   let envScope = name =>
     switch (Scope.SandboxEnvironment.find(name, env)) {
