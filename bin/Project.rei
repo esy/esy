@@ -52,8 +52,8 @@ let ocaml: project => RunAsync.t(Fpath.t);
 
 let ocamlfind: project => RunAsync.t(Fpath.t);
 
-let term: Cmdliner.Term.t(project);
-let promiseTerm: Cmdliner.Term.t(RunAsync.t(project));
+let term: Esy_cmdliner.Term.t(project);
+let promiseTerm: Esy_cmdliner.Term.t(RunAsync.t(project));
 
 let withPackage:
   (project, PkgArg.t, Package.t => Lwt.t(Run.t('a))) => RunAsync.t('a);

@@ -292,7 +292,7 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
     RunAsync.contextf(
       {
         let%lwt () =
-          Logs_lwt.debug(m => m("SolutionLock.ofPath %a", Path.pp, path));
+          Esy_logs_lwt.debug(m => m("SolutionLock.ofPath %a", Path.pp, path));
         if%bind (Fs.exists(path)) {
           let%lwt lock = {
             let* json = Fs.readJsonFile(Path.(path / indexFilename));
@@ -349,7 +349,7 @@ let toPath =
     ) => {
   open RunAsync.Syntax;
   let%lwt () =
-    Logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
+    Esy_logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
   let* () = Fs.rmPath(path);
   let* (root, node) =
     lockOfSolution(sandbox, solution, gitUsername, gitPassword);

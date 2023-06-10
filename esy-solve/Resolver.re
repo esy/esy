@@ -149,9 +149,8 @@ let getUnusedResolutions = resolver => {
     ~f=nameIfUnused(resolver.resolutionUsage),
     Resolutions.entries(resolver.resolutions),
   );
-};
+} /* This function increments the resolution usage count of that resolution */;
 
-/* This function increments the resolution usage count of that resolution */
 let markResolutionAsUsed = (resolver, resolution) =>
   Hashtbl.replace(resolver.resolutionUsage, resolution, true);
 
@@ -260,7 +259,6 @@ let packageOfSource =
       resolver,
     ) => {
   open RunAsync.Syntax;
-
   let readManifest =
       (
         ~name,
@@ -312,6 +310,7 @@ let packageOfSource =
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
+        ~pkgName=name,
         Source.toDist(source),
       );
 
@@ -397,9 +396,8 @@ let applyOverride = (pkg, override: Override.install) => {
                | [] => false
                | _ => true,
            );
-      };
+      } /* now add all edits */;
 
-      /* now add all edits */
       let formula = {
         let edits = {
           let f = (_name, override, edits) =>
@@ -609,7 +607,7 @@ let resolveSource =
     sourceSpec,
     _ => {
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("resolving %s@%a", name, SourceSpec.pp, sourceSpec)
         );
       let* source =
@@ -711,7 +709,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          }; /* do not filter them out yet */
+          } /* do not filter them out yet */;
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))
@@ -727,7 +725,7 @@ let resolve' =
           name,
           () => {
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m("resolving %s %a", name, VersionSpec.pp, spec)
               );
             let* versions = {
@@ -762,7 +760,7 @@ let resolve' =
               version,
             )
           | SourceOverride(_) => true
-          }; /* do not filter them out yet */
+          } /* do not filter them out yet */;
 
         resolutions
         |> List.sort(~cmp=(a, b) => Resolution.compare(b, a))

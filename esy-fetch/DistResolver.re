@@ -98,7 +98,7 @@ let ofGithub = (~manifest=?, user, repo, ref) => {
             let suggestedPackageName =
               suggestPackageName(~fallback=repo, (kind, filename));
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m(
                   "not an override %s/%s:%s: %a",
                   user,
@@ -130,7 +130,7 @@ let ofGithub = (~manifest=?, user, repo, ref) => {
   tryFilename(filenames);
 };
 
-let ofPath = (~manifest=?, path: Path.t) => {
+let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
   open RunAsync.Syntax;
 
   let readManifest = ((kind, filename), manifestPath) => {
@@ -140,27 +140,37 @@ let ofPath = (~manifest=?, path: Path.t) => {
         (kind, filename),
       );
 
-    if%bind (Fs.exists(manifestPath)) {
-      let* data = Fs.readFile(manifestPath);
-      switch (kind) {
-      | ManifestSpec.Esy =>
-        switch (Json.parseStringWith(PackageOverride.of_yojson, data)) {
-        | Ok(override) => return(Some(Override(override)))
-        | Error(err) =>
-          let%lwt () =
-            Logs_lwt.debug(m =>
-              m("not an override %a: %a", Path.pp, path, Run.ppError, err)
-            );
+    if%bind (Fs.isDir(manifestPath)) {
+      // manifestPath could be directory in the current state of things
+      // We, ideally, make sure it's never a directory
+      return(
+        None,
+      );
+    } else {
+      if%bind (Fs.exists(manifestPath)) {
+        let* data = Fs.readFile(manifestPath);
+        switch (kind) {
+        | ManifestSpec.Esy =>
+          switch (Json.parseStringWith(PackageOverride.of_yojson, data)) {
+          | Ok(override) => return(Some(Override(override)))
+          | Error(err) =>
+            let%lwt () =
+              Esy_logs_lwt.debug(m =>
+                m("not an override %a: %a", Path.pp, path, Run.ppError, err)
+              );
 
+            return(
+              Some(Manifest({data, filename, kind, suggestedPackageName})),
+            );
+          }
+        | ManifestSpec.Opam =>
           return(
             Some(Manifest({data, filename, kind, suggestedPackageName})),
-          );
-        }
-      | ManifestSpec.Opam =>
-        return(Some(Manifest({data, filename, kind, suggestedPackageName})))
+          )
+        };
+      } else {
+        return(None);
       };
-    } else {
-      return(None);
     };
   };
 
@@ -186,15 +196,16 @@ let ofPath = (~manifest=?, path: Path.t) => {
     | state => return((tried, state))
     };
   | None =>
+    let* fns = ManifestDiscovery.discover(path, pkgName);
     tryManifests(
       Path.Set.empty,
       [
         (ManifestSpec.Esy, "esy.json"),
         (ManifestSpec.Esy, "package.json"),
         (ManifestSpec.Opam, "opam"),
-        (ManifestSpec.Opam, Path.basename(path) ++ ".opam"),
+        ...fns |> List.map(~f=((k, fn)) => (k, Path.show(fn))),
       ],
-    )
+    );
   };
 };
 
@@ -205,13 +216,14 @@ let resolve =
       ~overrides=Overrides.empty,
       ~cfg,
       ~sandbox,
+      ~pkgName,
       dist: Dist.t,
     ) => {
   open RunAsync.Syntax;
 
   let resolve' = (dist: Dist.t) => {
     let%lwt () =
-      Logs_lwt.debug(m => m("fetching metadata %a", Dist.pp, dist));
+      Esy_logs_lwt.debug(m => m("fetching metadata %a", Dist.pp, dist));
     let config =
       switch (gitUsername, gitPassword) {
       | (Some(gitUsername), Some(gitPassword)) => [
@@ -232,7 +244,7 @@ let resolve =
       switch%bind (Fs.exists(realpath)) {
       | false => errorf("%a doesn't exist", DistPath.pp, path)
       | true =>
-        let* (tried, pkg) = ofPath(~manifest?, realpath);
+        let* (tried, pkg) = ofPath(~pkgName, ~manifest?, realpath);
         return((pkg, tried));
       };
     | Git({remote, commit, manifest}) =>
@@ -240,7 +252,7 @@ let resolve =
         let* () = Git.clone(~config, ~dst=repo, ~remote, ());
         let* () = Git.checkout(~ref=commit, ~repo, ());
         let* () = Git.updateSubmodules(~config, ~repo, ());
-        let* (_, pkg) = ofPath(~manifest?, repo);
+        let* (_, pkg) = ofPath(~pkgName, ~manifest?, repo);
         return((pkg, Path.Set.empty));
       })
     | Github({user, repo, commit, manifest}) =>
@@ -254,14 +266,14 @@ let resolve =
           let* () = Git.clone(~config, ~dst=repo, ~remote, ());
           let* () = Git.checkout(~ref=commit, ~repo, ());
           let* () = Git.updateSubmodules(~config, ~repo, ());
-          let* (_, pkg) = ofPath(~manifest?, repo);
+          let* (_, pkg) = ofPath(~pkgName, ~manifest?, repo);
           return((pkg, Path.Set.empty));
         });
       | pkg => return((pkg, Path.Set.empty))
       };
     | Archive(_) =>
       let* path = DistStorage.fetchIntoCache(cfg, sandbox, dist, None, None);
-      let* (_, pkg) = ofPath(path);
+      let* (_, pkg) = ofPath(~pkgName, path);
       return((pkg, Path.Set.empty));
 
     | NoSource => return((EmptyManifest, Path.Set.empty))
@@ -288,7 +300,7 @@ let resolve =
       let override = Override.ofDist(json, dist);
       let* nextDist = RunAsync.ofRun(rebase(~base=dist, nextDist));
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("override: %a -> %a@.", Dist.pp, dist, Dist.pp, nextDist)
         );
       let overrides = Overrides.add(override, overrides);

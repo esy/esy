@@ -276,7 +276,7 @@ module FetchPackage: {
         };
       | [] =>
         let%lwt () =
-          Logs_lwt.err(m => {
+          Esy_logs_lwt.err(m => {
             let ppErr = (fmt, (source, err)) =>
               Fmt.pf(
                 fmt,
@@ -316,14 +316,14 @@ module FetchPackage: {
             | Some(cachedTarballPath) =>
               if%bind (Fs.exists(cachedTarballPath)) {
                 let%lwt () =
-                  Logs_lwt.debug(m =>
+                  Esy_logs_lwt.debug(m =>
                     m("fetching %a: found cached tarball", Package.pp, pkg)
                   );
                 let dist = DistStorage.ofCachedTarball(cachedTarballPath);
                 return(Some((pkg, Fetched(dist))));
               } else {
                 let%lwt () =
-                  Logs_lwt.debug(m =>
+                  Esy_logs_lwt.debug(m =>
                     m("fetching %a: making cached tarball", Package.pp, pkg)
                   );
                 let dists = [main, ...mirrors];
@@ -337,7 +337,7 @@ module FetchPackage: {
           let path = PackagePaths.installPath(sandbox, pkg);
           if%bind (Fs.exists(path)) {
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m("fetching %a: installed", Package.pp, pkg)
               );
             return((pkg, Installed(path)));
@@ -346,7 +346,7 @@ module FetchPackage: {
             | Some(cached) => return(cached)
             | None =>
               let%lwt () =
-                Logs_lwt.debug(m =>
+                Esy_logs_lwt.debug(m =>
                   m("fetching %a: fetching", Package.pp, pkg)
                 );
               let dists = [main, ...mirrors];
@@ -365,7 +365,7 @@ module FetchPackage: {
   module Lifecycle = {
     let runScript = (~env=?, ~lifecycleName, pkg, sourcePath, script) => {
       let%lwt () =
-        Logs_lwt.app(m =>
+        Esy_logs_lwt.app(m =>
           m(
             "%a: running %a lifecycle",
             Package.pp,
@@ -434,12 +434,12 @@ module FetchPackage: {
             switch%lwt (p#status) {
             | Unix.WEXITED(0) =>
               let%lwt () =
-                Logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
+                Esy_logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
               RunAsync.return();
             | _ =>
               let%lwt output = readAndCloseFile(logFilePath);
               let%lwt () =
-                Logs_lwt.err(m =>
+                Esy_logs_lwt.err(m =>
                   m(
                     "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]",
                     script,
@@ -525,7 +525,8 @@ module FetchPackage: {
     };
 
     let* () = {
-      let%lwt () = Logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
+      let%lwt () =
+        Esy_logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
       RunAsync.contextf(
         DistStorage.unpack(fetched, stagePath),
         "unpacking %a",
@@ -634,7 +635,7 @@ module LinkBin = {
   let installBinWrapper = (binPath, (name, origPath)) => {
     open RunAsync.Syntax;
     let%lwt () =
-      Logs_lwt.debug(m =>
+      Esy_logs_lwt.debug(m =>
         m(
           "Fetch:installBinWrapper: %a / %s -> %a",
           Path.pp,
@@ -655,7 +656,7 @@ module LinkBin = {
       };
     } else {
       let%lwt () =
-        Logs_lwt.warn(m =>
+        Esy_logs_lwt.warn(m =>
           m("missing %a defined as binary", Path.pp, origPath)
         );
       return();
@@ -1012,7 +1013,7 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
             | None => StringMap.add(name, [dep.FetchPackage.pkg], seen)
             | Some(pkgs) =>
               let pkgs = [dep.FetchPackage.pkg, ...pkgs];
-              Logs.warn(m =>
+              Esy_logs.warn(m =>
                 m(
                   "executable '%s' is installed by several packages: @[<h>%a@]@;",
                   name,

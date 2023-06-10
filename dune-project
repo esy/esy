@@ -4,7 +4,7 @@
 
 (allow_approximate_merlin)
 
-(license MIT)
+(license BSD-2-Clause)
 (maintainers
  "Manas Jayanth <prometheansacrifice@gmail.com>"
  "Andrey Popp <8mayday@gmail.com>")
@@ -30,7 +30,7 @@ Easy package management for native Reason, OCaml and more
     angstrom
     cmdliner
     bos 
-    (cudf (= 0.9+dune))  
+    (cudf (= 0.9))
     (dose3 (= 6.1))
     (ocamlgraph (= 2.0.0))
     dune  

@@ -48,7 +48,7 @@ let make = (~cfg, ()) => {
       | Config.Remote(remote, local) =>
         let update = () => {
           let%lwt () =
-            Logs_lwt.app(m => m("checking %s for updates...", remote));
+            Esy_logs_lwt.app(m => m("checking %s for updates...", remote));
           let* () =
             Git.ShallowClone.update(~branch="master", ~dst=local, remote);
           return(local);

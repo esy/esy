@@ -22,6 +22,7 @@ depexts: [
   ["bzip2"] {os = "freebsd"}
   ["bzip2"] {os = "openbsd"}
   ["bzip2"] {os = "netbsd"}
+  ["bzip2"] {os = "win32" & os-distribution = "cygwinports"}
   ["bzip2"] {os = "macos" & os-distribution = "homebrew"}
   ["bzip2"] {os = "macos" & os-distribution = "macports"}
 ]

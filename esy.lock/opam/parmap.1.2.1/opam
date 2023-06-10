@@ -25,7 +25,7 @@ depends: [
   "dune-configurator"
   "base-bigarray"
   "base-unix"
-  "ocaml" {>= "4.03.0"}
+  "ocaml" {>= "4.03.0" & < "5.0.0"}
 ]
 x-commit-hash: "36089bc12f3560faffeeb66d3f38594978561c70"
 url {

@@ -20,7 +20,7 @@ let splitBy = (line, ch) =>
   };
 
 let chdirTerm =
-  Cmdliner.Arg.(
+  Esy_cmdliner.Arg.(
     value
     & flag
     & info(
@@ -30,7 +30,7 @@ let chdirTerm =
   );
 
 let pkgTerm =
-  Cmdliner.Arg.(
+  Esy_cmdliner.Arg.(
     value
     & opt(PkgArg.conv, PkgArg.ByDirectoryPath(Path.currentPath()))
     & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -44,7 +44,7 @@ let cmdAndPkgTerm = {
     );
 
   let pkg =
-    Cmdliner.Arg.(
+    Esy_cmdliner.Arg.(
       value
       & opt(some(PkgArg.conv), None)
       & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -62,11 +62,11 @@ let cmdAndPkgTerm = {
       ))
     };
 
-  Cmdliner.Term.(ret(const(make) $ pkg $ cmd));
+  Esy_cmdliner.Term.(ret(const(make) $ pkg $ cmd));
 };
 
 let depspecConv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
@@ -86,9 +86,9 @@ let modeTerm = {
   let make = release =>
     if (release) {BuildSpec.Build} else {BuildSpec.BuildDev};
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(make)
-    $ Cmdliner.Arg.(
+    $ Esy_cmdliner.Arg.(
         value & flag & info(["release"], ~doc="Build in release mode")
       )
   );
@@ -205,7 +205,7 @@ module Findlib = {
 };
 
 let resolvedPathTerm = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v =>
     switch (Path.ofString(v)) {
     | Ok(path) =>
@@ -1017,7 +1017,7 @@ let getSandboxSolution =
   let unused = Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
   let%lwt () = {
     let log = resolution =>
-      Logs_lwt.warn(m =>
+      Esy_logs_lwt.warn(m =>
         m(
           "resolution %a is unused (defined in %a)",
           Fmt.(quote(string)),
@@ -1277,7 +1277,7 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
     | None => return()
     | Some(task) =>
       let%lwt () =
-        Logs_lwt.app(m =>
+        Esy_logs_lwt.app(m =>
           m("Exporting %s@%a", pkg.name, Version.pp, pkg.version)
         );
       let buildPath = BuildSandbox.Task.installPath(proj.buildCfg, task);
@@ -1371,7 +1371,7 @@ let importDependencies =
             BuildSandbox.importBuild(proj.buildCfg.storePath, pathTgz);
           } else {
             let%lwt () =
-              Logs_lwt.warn(m =>
+              Esy_logs_lwt.warn(m =>
                 m("no prebuilt artifact found for %a", BuildId.pp, id)
               );
             return();
@@ -1462,7 +1462,7 @@ let printHeader = (~spec=?, name) =>
       != 0;
 
     if (needReportProjectPath) {
-      Logs_lwt.app(m =>
+      Esy_logs_lwt.app(m =>
         m(
           "%s %s (using %a)@;found project at %a",
           name,
@@ -1474,7 +1474,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     } else {
-      Logs_lwt.app(m =>
+      Esy_logs_lwt.app(m =>
         m(
           "%s %s (using %a)",
           name,
@@ -1484,7 +1484,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     };
-  | None => Logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
+  | None => Esy_logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
   };
 
 let default = (chdir, cmdAndPkg, proj: Project.t) => {
@@ -1528,8 +1528,8 @@ let otherSection = "OTHER COMMANDS";
 let makeCommand =
     (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=false, ~name, cmd) => {
   let info =
-    Cmdliner.Term.info(
-      ~exits=Cmdliner.Term.default_exits,
+    Esy_cmdliner.Term.info(
+      ~exits=Esy_cmdliner.Term.default_exits,
       ~docs?,
       ~doc?,
       ~stop_on_pos,
@@ -1545,10 +1545,10 @@ let makeCommand =
         | `No => ()
         };
 
-      Cli.runAsyncToCmdlinerRet(comp);
+      Cli.runAsyncToEsy_cmdlinerRet(comp);
     };
 
-    Cmdliner.Term.(ret(app(const(f), cmd)));
+    Esy_cmdliner.Term.(ret(app(const(f), cmd)));
   };
 
   (cmd, info);
@@ -1556,10 +1556,10 @@ let makeCommand =
 
 let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
   let (term, info) = command;
-  let name = Cmdliner.Term.name(info);
+  let name = Esy_cmdliner.Term.name(info);
   let doc = Printf.sprintf("An alias for $(b,%s) command", name);
   let info =
-    Cmdliner.Term.info(
+    Esy_cmdliner.Term.info(
       alias,
       ~version=EsyRuntime.version,
       ~doc,
@@ -1571,7 +1571,7 @@ let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
 };
 
 let commandsConfig = {
-  open Cmdliner;
+  open Esy_cmdliner;
 
   let makeProjectCommand =
       (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=?, ~name, cmd) => {
@@ -1589,7 +1589,7 @@ let commandsConfig = {
         cmd(project);
       };
 
-      Cmdliner.Term.(pure(run) $ cmd $ Project.term);
+      Esy_cmdliner.Term.(pure(run) $ cmd $ Project.term);
     };
 
     makeCommand(~header=`No, ~docs?, ~doc?, ~stop_on_pos?, ~name, cmd);
@@ -1682,7 +1682,7 @@ let commandsConfig = {
       );
 
     let staticArg =
-      Cmdliner.Arg.(
+      Esy_cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1693,7 +1693,7 @@ let commandsConfig = {
       );
 
     let noEnv =
-      Cmdliner.Arg.(
+      Esy_cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1745,7 +1745,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
               ~docv="COMMAND",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -1760,7 +1760,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Script to execute within the project environment.",
               ~docv="SCRIPT",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2094,7 +2094,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the environment.",
               ~docv="COMMAND",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2209,12 +2209,12 @@ let () = {
 
         esy --project projectPath
 
-     which we can't parse with cmdliner
+     which we can't parse with Esy_cmdliner
    */
   let argv = {
     let commandNames = {
       let f = (names, (_term, info)) => {
-        let name = Cmdliner.Term.name(info);
+        let name = Esy_cmdliner.Term.name(info);
         StringSet.add(name, names);
       };
       List.fold_left(~f, ~init=StringSet.empty, commands);
@@ -2241,7 +2241,7 @@ let () = {
     Array.of_list(argv);
   };
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     exit @@ eval_choice(~main_on_err=true, ~argv, defaultCommand, commands)
   );
 };
