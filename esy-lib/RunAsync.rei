@@ -49,6 +49,12 @@ let runExn: (~err: string=?, t('a)) => 'a;
 let ofRun: Run.t('a) => t('a);
 
 /**
+ * Convert [Lwt.t] into [t].
+ */
+
+let ofLwt: Lwt.t('a) => t('a);
+
+/**
  * Convert an Rresult into [t]
  */
 
