@@ -112,8 +112,8 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
     }
   ) {
   | Ok () => RunAsync.return()
-  | Error(e) =>
-      RunAsync.ofLwt @@ Esy_logs_lwt.info(m => m("%s", Run.formatError(e)));
+  | Error((msg, _context)) =>
+      RunAsync.ofLwt @@ Esy_logs_lwt.app(m => m("%s", msg));
   };
 };
 

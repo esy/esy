@@ -3,7 +3,11 @@
  */
 
 type t('v) = result('v, error)
-and error;
+and error = (string, context)
+and context = list(contextItem)
+and contextItem =
+  | Line(string)
+  | LogOutput((string, string));
 
 /**
  * Failied computation with an error specified by a message.
