@@ -124,7 +124,7 @@ describe(`'esy build': simple executable with no deps`, () => {
       withProject(async function(p) {
         await p.esy('build');
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
-        const {stdout} = await p.esy('build-env');
+        const {stdout} = await p.esy('build-env --build-concurrency 16');
         expect(p.normalizePathsForSnapshot(stdout, {id: id})).toMatchSnapshot();
       }),
     );

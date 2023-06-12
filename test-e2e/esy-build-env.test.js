@@ -203,6 +203,10 @@ describe(`'esy build-env' command`, () => {
     // unset dep global should have been removed
     expect(env.unsetDep__global).toBe(undefined);
     expect(env.exportDep__global).toBe(undefined);
+
+    // jobs
+    expect(typeof Number(env.cur__jobs)).toBe('number');
+    expect(Number(env.cur__jobs) >= 4).toBeTruthy();
   });
 
   it('generates an environment in JSON (--release)', async () => {
@@ -260,6 +264,10 @@ describe(`'esy build-env' command`, () => {
     // dev deps are not present in build env
     expect(env.devDep__local).toBe(undefined);
     expect(env.devDep__global).toBe(undefined);
+
+    // jobs
+    expect(typeof Number(env.cur__jobs)).toBe('number');
+    expect(Number(env.cur__jobs) >= 4).toBeTruthy();
   });
 
   it('allows to query build env for a dep (by name)', async () => {

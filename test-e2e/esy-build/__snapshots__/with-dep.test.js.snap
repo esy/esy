@@ -15,6 +15,7 @@ exports[`Build with dep out of source build macos || linux: build-env dep snapsh
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -69,6 +70,7 @@ exports[`Build with dep out of source build macos || linux: build-env snapshot 1
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
 export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
 export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"

@@ -21,6 +21,7 @@ let make:
     ~sourceType: SourceType.t,
     ~sourcePath: SandboxPath.t,
     ~globalPathVariable: option(string),
+    ~concurrency: int,
     EsyFetch.Package.t,
     BuildManifest.t
   ) =>
@@ -63,8 +64,7 @@ let render:
   ) =>
   Run.t(SandboxValue.t);
 
-let toOpamEnv:
-  (~buildIsInProgress: bool, ~concurrency: int, t) => OpamFilter.env;
+let toOpamEnv: (~buildIsInProgress: bool, t) => OpamFilter.env;
 
 let exposeUserEnvWith:
   (

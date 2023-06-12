@@ -194,7 +194,8 @@ module Task = {
   let pp = (fmt, task) => PackageId.pp(fmt, task.pkg.id);
 };
 
-let renderEsyCommands = (~env, ~buildIsInProgress, scope, commands) => {
+let renderEsyCommands =
+    (~env, ~buildIsInProgress, ~concurrency as _, scope, commands) => {
   open Run.Syntax;
   let envScope = name =>
     switch (Scope.SandboxEnvironment.find(name, env)) {
@@ -302,7 +303,16 @@ module Reason = {
 };
 
 let makeScope =
-    (~cache=?, ~envspec=?, ~forceImmutable, buildspec, mode, sandbox, id) => {
+    (
+      ~cache=?,
+      ~envspec=?,
+      ~forceImmutable,
+      ~concurrency,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+    ) => {
   open Run.Syntax;
 
   let updateSeen = (seen, id) =>
@@ -557,6 +567,7 @@ let makeScope =
         ~mode,
         ~depspec,
         ~globalPathVariable=sandbox.cfg.globalPathVariable,
+        ~concurrency,
         pkg,
         buildManifest,
       );
@@ -658,7 +669,15 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
 
   let makeTask = pkg =>
     switch%bind (
-      makeScope(~cache, ~forceImmutable, buildspec, mode, sandbox, pkg.id)
+      makeScope(
+        ~cache,
+        ~forceImmutable,
+        ~concurrency,
+        buildspec,
+        mode,
+        sandbox,
+        pkg.id,
+      )
     ) {
     | None => return(None)
     | Some((scope, build, idrepr, _dependencies)) =>
@@ -670,8 +689,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
         |> Run.context("evaluating environment");
       };
 
-      let opamEnv =
-        Scope.toOpamEnv(~buildIsInProgress=true, ~concurrency, scope);
+      let opamEnv = Scope.toOpamEnv(~buildIsInProgress=true, scope);
 
       let* buildCommands =
         Run.context(
@@ -683,6 +701,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
               let* commands =
                 renderEsyCommands(
                   ~buildIsInProgress=true,
+                  ~concurrency,
                   ~env,
                   scope,
                   commands,
@@ -712,6 +731,7 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
             let* cmds =
               renderEsyCommands(
                 ~buildIsInProgress=true,
+                ~concurrency,
                 ~env,
                 scope,
                 commands,
@@ -882,7 +902,16 @@ let augmentEnvWithOptions = (envspec: EnvSpec.t, sandbox, scope) => {
   return((env, scope));
 };
 
-let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) => {
+let configure =
+    (
+      ~forceImmutable=false,
+      ~concurrency,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+    ) => {
   open Run.Syntax;
   let cache = Hashtbl.create(100);
 
@@ -893,6 +922,7 @@ let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) =
         ~cache,
         ~forceImmutable,
         ~envspec=?envspec.augmentDeps,
+        ~concurrency,
         buildspec,
         mode,
         sandbox,
@@ -908,10 +938,19 @@ let configure = (~forceImmutable=false, envspec, buildspec, mode, sandbox, id) =
   augmentEnvWithOptions(envspec, sandbox, scope);
 };
 
-let env = (~forceImmutable=?, envspec, buildspec, mode, sandbox, id) => {
+let env =
+    (~forceImmutable=?, ~concurrency, envspec, buildspec, mode, sandbox, id) => {
   open Run.Syntax;
   let%map (env, _scope) =
-    configure(~forceImmutable?, envspec, buildspec, mode, sandbox, id);
+    configure(
+      ~concurrency,
+      ~forceImmutable?,
+      envspec,
+      buildspec,
+      mode,
+      sandbox,
+      id,
+    );
   env;
 };
 
@@ -931,7 +970,8 @@ let exec =
     RunAsync.ofRun(
       {
         open Run.Syntax;
-        let* (env, scope) = configure(envspec, buildspec, mode, sandbox, id);
+        let* (env, scope) =
+          configure(~concurrency, envspec, buildspec, mode, sandbox, id);
         let* env =
           Run.ofStringError(Scope.SandboxEnvironment.Bindings.eval(env));
         return((env, scope));

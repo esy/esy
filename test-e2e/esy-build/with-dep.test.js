@@ -163,7 +163,7 @@ describe('Build with dep', () => {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depId = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
-        const {stdout} = await p.esy('build-env');
+        const {stdout} = await p.esy('build-env --build-concurrency 16');
         expect(
           p.normalizePathsForSnapshot(stdout, {id, depId, depOfDepId}),
         ).toMatchSnapshot();
@@ -215,7 +215,7 @@ describe('Build with dep', () => {
       withProject(async function(p) {
         const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const depOfDepId = JSON.parse((await p.esy('build-plan -p depOfDep')).stdout).id;
-        const {stdout} = await p.esy('build-env -p dep');
+        const {stdout} = await p.esy('build-env -p dep --build-concurrency 16');
         expect(p.normalizePathsForSnapshot(stdout, {id, depOfDepId})).toMatchSnapshot();
       }),
     );

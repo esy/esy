@@ -17,6 +17,7 @@ module PackageScope: {
       ~version: Version.t,
       ~sourceType: SourceType.t,
       ~sourcePath: SandboxPath.t,
+      ~concurrency: int,
       BuildManifest.t
     ) =>
     t;
@@ -35,6 +36,8 @@ module PackageScope: {
   let stagePath: t => SandboxPath.t;
   let installPath: t => SandboxPath.t;
   let logPath: t => SandboxPath.t;
+
+  let jobs: t => int;
 
   let buildEnv:
     (~buildIsInProgress: bool, BuildSpec.mode, t) => list(BuildEnv.item);
@@ -56,10 +59,19 @@ module PackageScope: {
     build: BuildManifest.t,
     exportedEnvLocal: list(ExportedEnv.item),
     exportedEnvGlobal: list(ExportedEnv.item),
+    jobs: int,
   };
 
   let make =
-      (~id, ~name, ~version, ~sourceType, ~sourcePath, build: BuildManifest.t) => {
+      (
+        ~id,
+        ~name,
+        ~version,
+        ~sourceType,
+        ~sourcePath,
+        ~concurrency,
+        build: BuildManifest.t,
+      ) => {
     let (exportedEnvGlobal, exportedEnvLocal) = {
       open ExportedEnv;
       let (injectCamlLdLibraryPath, exportedEnvGlobal, exportedEnvLocal) = {
@@ -103,6 +115,8 @@ module PackageScope: {
       (exportedEnvGlobal, exportedEnvLocal);
     };
 
+    let jobs = max(concurrency / 2, 4);
+
     {
       id,
       name,
@@ -112,6 +126,7 @@ module PackageScope: {
       build,
       exportedEnvLocal,
       exportedEnvGlobal,
+      jobs,
     };
   };
 
@@ -180,6 +195,8 @@ module PackageScope: {
     SandboxPath.(storePath / Store.buildTree / basename);
   };
 
+  let jobs = scope => scope.jobs;
+
   let rootPath = scope =>
     switch (scope.build.buildType, scope.sourceType) {
     | (InSource, Immutable)
@@ -243,6 +260,7 @@ module PackageScope: {
         | Transient => true
         },
       )
+    | "jobs" => s(string_of_int(scope.jobs))
     | _ => None
     };
   };
@@ -274,6 +292,7 @@ module PackageScope: {
       set("cur__toplevel", p(SandboxPath.(installPath / "toplevel"))),
       set("cur__share", p(SandboxPath.(installPath / "share"))),
       set("cur__etc", p(SandboxPath.(installPath / "etc"))),
+      set("cur__jobs", string_of_int(scope.jobs)),
     ];
   };
 
@@ -354,6 +373,7 @@ let make =
       ~sourceType,
       ~sourcePath,
       ~globalPathVariable,
+      ~concurrency,
       pkg,
       buildManifest,
     ) => {
@@ -364,6 +384,7 @@ let make =
       ~version,
       ~sourceType,
       ~sourcePath,
+      ~concurrency,
       buildManifest,
     );
 
@@ -700,8 +721,7 @@ let ocamlVersion = scope => {
   return(toOCamlVersion(PackageScope.version(ocaml.self)));
 };
 
-let toOpamEnv =
-    (~buildIsInProgress, ~concurrency, scope: t, name: OpamVariable.Full.t) => {
+let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
   open OpamVariable;
 
   let ocamlVersion = ocamlVersion(scope);
@@ -816,9 +836,7 @@ let toOpamEnv =
   | (Full.Global, "opam-version") => Some(string("2"))
   | (Full.Global, "make") => Some(string("make"))
   | (Full.Global, "jobs") =>
-    let jobs = max(concurrency / 2, 4);
-    let jobs = string_of_int(jobs);
-    Some(string(jobs));
+    Some(string(string_of_int(PackageScope.jobs(scope.self))))
   | (Full.Global, "pinned") => Some(bool(false))
   | (Full.Global, "dev") =>
     Some(

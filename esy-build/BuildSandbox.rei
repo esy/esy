@@ -21,6 +21,7 @@ let renderExpression: (t, Scope.t, string) => Run.t(string);
 let configure:
   (
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -32,6 +33,7 @@ let configure:
 let env:
   (
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,

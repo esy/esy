@@ -15,6 +15,7 @@ exports[`Project with "devDependencies" macos || linux: build-env dep snapshot 1
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -52,6 +53,7 @@ exports[`Project with "devDependencies" macos || linux: build-env devDep snapsho
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%esyStorePath%/s/%id%/etc\\"
 export cur__share=\\"%esyStorePath%/s/%id%/share\\"
 export cur__toplevel=\\"%esyStorePath%/s/%id%/toplevel\\"
@@ -101,6 +103,7 @@ exports[`Project with "devDependencies" macos || linux: build-env snapshot 1`] =
 #
 # Built-in
 #
+export cur__jobs=\\"8\\"
 export cur__etc=\\"%projectPath%/_esy/default/store/i/%id%/etc\\"
 export cur__share=\\"%projectPath%/_esy/default/store/i/%id%/share\\"
 export cur__toplevel=\\"%projectPath%/_esy/default/store/i/%id%/toplevel\\"
