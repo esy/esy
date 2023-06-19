@@ -658,7 +658,13 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         EsyFetch.ProjectList.get(prefixPath);
       | _ => return(paths)
       };
-    paths
+    let%bind pathsThatExist =
+      paths
+      |> RunAsync.List.filter(
+           /* What the appropriate ~concurrency here? */
+           ~f=Fs.exists,
+         );
+    pathsThatExist
     |> List.map(~f=path =>
          make(
            Some(ProjectArg.ofPath(path)),

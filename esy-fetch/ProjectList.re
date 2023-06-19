@@ -18,12 +18,12 @@ let get = prefixPath => {
   let* json =
     switch (Json.Decode.(list(string, json))) {
     | Ok(json) => return(json)
-    | Error(err) => errorf("%s cannot be parsed", projectsPath |> Path.show)
+    | Error(_err) => errorf("%s cannot be parsed", projectsPath |> Path.show)
     };
   json |> List.map(~f=Path.v) |> return;
 };
 
-let update = (prefixPath, currentProj) => {
+let sync = (prefixPath, currentProj) => {
   open Json;
   let* () = init(prefixPath);
   let projectsPath = Path.(prefixPath / "projects.json");
@@ -57,4 +57,10 @@ let update = (prefixPath, currentProj) => {
     | Error(_err) => errorf("%s cannot be parsed", projectsPath |> Path.show)
     };
   Fs.writeJsonFile(~json=projects, projectsPath);
+};
+
+let update = (prefixPath, activeProjectPaths) => {
+  let* () = init(prefixPath);
+  let projectsPath = Path.(prefixPath / "projects.json");
+  Fs.writeJsonFile(~json=`List(activeProjectPaths |> List.map(~f=path => `String(Path.show(path)))), projectsPath);
 };

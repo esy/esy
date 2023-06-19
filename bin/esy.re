@@ -1024,7 +1024,7 @@ let addProjectToGCRoot = (proj: Project.t) => {
     | None => EsyBuildPackage.Config.storePrefixDefault
     };
   let currentProjectPath = Path.show(proj.projcfg.path);
-  EsyFetch.ProjectList.update(prefixPath, currentProjectPath);
+  EsyFetch.ProjectList.sync(prefixPath, currentProjectPath);
 };
 
 let solveAndFetch = (proj: Project.t) => {
