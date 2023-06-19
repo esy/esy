@@ -7,7 +7,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "del": "^3.0.0",
-    "esy-bash": "0.3.20",
+    "@prometheansacrifice/esy-bash": "0.1.0-dev-688d8923b7369084a2743e08372ad7e26666a5ab",
     "flow-bin": "^0.77.0",
     "fs-extra": "^7.0.0",
     "jest-cli": "^23.4.1",

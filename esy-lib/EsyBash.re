@@ -5,7 +5,8 @@ let getEsyBashRootPath = () =>
   switch (Sys.getenv_opt("ESY__ESY_BASH")) {
   | Some(path) => Path.v(path)
   | None =>
-    let resolution = NodeResolution.resolve("esy-bash/package.json");
+    let resolution =
+      NodeResolution.resolve("@prometheansacrifice/esy-bash/package.json");
     switch (resolution) {
     | Ok(path) => Path.parent(path)
     | Error(`Msg(msg)) => Exn.fail(msg)

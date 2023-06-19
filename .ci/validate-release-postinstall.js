@@ -6,15 +6,17 @@ let releasePostInstallJs = fs
   .toString();
 
 // Extracting esy-bash version being installed
-let matchResults = releasePostInstallJs.match(/npm install esy-bash@([^\s]+)/);
+let matchResults = releasePostInstallJs.match(
+  /npm install @prometheansacrifice\/esy-bash@([^\s]+)/,
+);
 if (matchResults !== null && matchResults.length >= 2) {
   let version = matchResults[1];
-  if (version !== npmManifest.devDependencies['esy-bash']) {
+  if (version !== npmManifest.devDependencies['@prometheansacrifice/esy-bash']) {
     console.log(
       "Version in development manifest, esy.json and release-postinstall.js don't match",
     );
     console.log(`
-esy.json - ${npmManifest.devDependencies['esy-bash']}
+esy.json - ${npmManifest.devDependencies['@prometheansacrifice/esy-bash']}
 release-postinstall.js - ${version}
 `);
     process.exit(1);

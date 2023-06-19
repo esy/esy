@@ -149,7 +149,7 @@ in the cygwin shall and add them to your github profile.
 1. Enter cygwin installed by esy (not the global one)
 
 ```sh
-.\node_modules\esy-bash\re\_build\default\bin\EsyBash.exe bash
+.\node_modules\@prometheansacrifice\esy-bash\re\_build\default\bin\EsyBash.exe bash
 ```
 
 2. Generate ssh keys
