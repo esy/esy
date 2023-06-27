@@ -13,8 +13,8 @@ steps:
     parameters:
       platform: ${{ parameters.platform }}
       vmImage: ${{ parameters.vmImage }}
-  - script: 'npm install'
-    displayName: 'npm install'
+  - script: yarn
+    displayName:  'Install node.js dependencies via yarn'
   - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
     - script: npm i -g esy@0.6.4
       displayName: 'Install esy@0.6.4 for Ubuntu 16.04 (bootstrapping)'
