@@ -9,25 +9,25 @@
  * bits in the right place.
  */
 
-var path = require("path");
-var cp = require("child_process");
-var fs = require("fs");
-var os = require("os");
+var path = require('path');
+var cp = require('child_process');
+var fs = require('fs');
+var os = require('os');
 var platform = process.platform;
 
-var packageJson = require("./package.json");
+var packageJson = require('./package.json');
 var binariesToCopy = Object.keys(packageJson.bin)
-  .map(function(name) {
+  .map(function (name) {
     return packageJson.bin[name];
   })
-  .concat(["esyInstallRelease.js"]);
-var foldersToCopy = ["bin", "_export"];
+  .concat(['esyInstallRelease.js']);
+var foldersToCopy = ['bin', '_export'];
 
 function copyRecursive(srcDir, dstDir) {
   var results = [];
   var list = fs.readdirSync(srcDir);
   var src, dst;
-  list.forEach(function(file) {
+  list.forEach(function (file) {
     src = path.join(srcDir, file);
     dst = path.join(dstDir, file);
 
@@ -36,7 +36,7 @@ function copyRecursive(srcDir, dstDir) {
       try {
         fs.mkdirSync(dst);
       } catch (e) {
-        console.log("directory already exists: " + dst);
+        console.log('directory already exists: ' + dst);
         console.error(e);
       }
       results = results.concat(copyRecursive(src, dst));
@@ -63,15 +63,15 @@ function arch() {
   /**
    * The running binary is 64-bit, so the OS is clearly 64-bit.
    */
-  if (process.arch === "x64") {
-    return "x64";
+  if (process.arch === 'x64') {
+    return 'x64';
   }
 
   /**
    * All recent versions of Mac OS are 64-bit.
    */
-  if (process.platform === "darwin") {
-    return "x64";
+  if (process.platform === 'darwin') {
+    return 'x64';
   }
 
   /**
@@ -79,37 +79,35 @@ function arch() {
    * app is based on the presence of a WOW64 file: %SystemRoot%\SysNative.
    * See: https://twitter.com/feross/status/776949077208510464
    */
-  if (process.platform === "win32") {
+  if (process.platform === 'win32') {
     var useEnv = false;
     try {
-      useEnv = !!(
-        process.env.SYSTEMROOT && fs.statSync(process.env.SYSTEMROOT)
-      );
+      useEnv = !!(process.env.SYSTEMROOT && fs.statSync(process.env.SYSTEMROOT));
     } catch (err) {}
 
-    var sysRoot = useEnv ? process.env.SYSTEMROOT : "C:\\Windows";
+    var sysRoot = useEnv ? process.env.SYSTEMROOT : 'C:\\Windows';
 
     // If %SystemRoot%\SysNative exists, we are in a WOW64 FS Redirected application.
     var isWOW64 = false;
     try {
-      isWOW64 = !!fs.statSync(path.join(sysRoot, "sysnative"));
+      isWOW64 = !!fs.statSync(path.join(sysRoot, 'sysnative'));
     } catch (err) {}
 
-    return isWOW64 ? "x64" : "x86";
+    return isWOW64 ? 'x64' : 'x86';
   }
 
   /**
    * On Linux, use the `getconf` command to get the architecture.
    */
-  if (process.platform === "linux") {
-    var output = cp.execSync("getconf LONG_BIT", { encoding: "utf8" });
-    return output === "64\n" ? "x64" : "x86";
+  if (process.platform === 'linux') {
+    var output = cp.execSync('getconf LONG_BIT', {encoding: 'utf8'});
+    return output === '64\n' ? 'x64' : 'x86';
   }
 
   /**
    * If none of the above, assume the architecture is 32-bit.
    */
-  return "x86";
+  return 'x86';
 }
 
 // implementing it b/c we don't want to depend on fs.copyFileSync which appears
@@ -119,26 +117,26 @@ function copyFileSync(sourcePath, destPath) {
   try {
     data = fs.readFileSync(sourcePath);
   } catch (e) {
-    data = fs.readFileSync(sourcePath + ".exe");
-    sourcePath = sourcePath + ".exe";
-    destPath = destPath + ".exe";
+    data = fs.readFileSync(sourcePath + '.exe');
+    sourcePath = sourcePath + '.exe';
+    destPath = destPath + '.exe';
   }
   var stat = fs.statSync(sourcePath);
   fs.writeFileSync(destPath, data);
   fs.chmodSync(destPath, 0755);
 }
 
-var copyPlatformBinaries = platformPath => {
-  var platformBuildPath = path.join(__dirname, "platform-" + platformPath);
+var copyPlatformBinaries = (platformPath) => {
+  var platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
-  foldersToCopy.forEach(folderPath => {
+  foldersToCopy.forEach((folderPath) => {
     var sourcePath = path.join(platformBuildPath, folderPath);
     var destPath = path.join(__dirname, folderPath);
 
     copyRecursive(sourcePath, destPath);
   });
 
-  binariesToCopy.forEach(binaryPath => {
+  binariesToCopy.forEach((binaryPath) => {
     var sourcePath = path.join(platformBuildPath, binaryPath);
     var destPath = path.join(__dirname, binaryPath);
     if (fs.existsSync(destPath)) {
@@ -149,33 +147,33 @@ var copyPlatformBinaries = platformPath => {
 };
 
 try {
-  fs.mkdirSync("_export");
+  fs.mkdirSync('_export');
 } catch (e) {
-  console.log("Could not create _export folder");
+  console.log('Could not create _export folder');
 }
 
 switch (platform) {
-  case "win32":
-    if (arch() !== "x64") {
-      console.warn("error: x86 is currently not supported on Windows");
+  case 'win32':
+    if (arch() !== 'x64') {
+      console.warn('error: x86 is currently not supported on Windows');
       process.exit(1);
     }
 
-    copyPlatformBinaries("windows-x64");
+    copyPlatformBinaries('windows-x64');
     console.log('Installing native compiler toolchain for Windows...');
     cp.execSync(
-      `npm install @prometheansacrifice/esy-bash@0.1.0-dev-688d8923b7369084a2743e08372ad7e26666a5ab --prefix "${__dirname}"`,
+      `npm install @prometheansacrifice/esy-bash@0.1.0-dev-f03ff6325d49f638bb1dfba219a179bec4b776e6 --prefix "${__dirname}"`,
     );
     console.log('Native compiler toolchain installed successfully.');
     break;
     break;
-  case "linux":
-  case "darwin":
-    copyPlatformBinaries(platform + (process.arch === "x64" ? "": "-arm64"));
+  case 'linux':
+  case 'darwin':
+    copyPlatformBinaries(platform + (process.arch === 'x64' ? '' : '-arm64'));
     break;
   default:
-    console.warn("error: no release built for the " + platform + " platform");
+    console.warn('error: no release built for the ' + platform + ' platform');
     process.exit(1);
 }
 
-require("./esyInstallRelease");
+require('./esyInstallRelease');
