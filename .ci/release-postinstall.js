@@ -162,7 +162,7 @@ switch (platform) {
     copyPlatformBinaries('windows-x64');
     console.log('Installing native compiler toolchain for Windows...');
     cp.execSync(
-      `npm install @prometheansacrifice/esy-bash@0.1.0-dev-f03ff6325d49f638bb1dfba219a179bec4b776e6 --prefix "${__dirname}"`,
+      `npm install @prometheansacrifice/esy-bash@0.1.0-dev-8a8fd9ccc62d63c093c20f6f0ab570cf8b71fb76 --prefix "${__dirname}"`,
     );
     console.log('Native compiler toolchain installed successfully.');
     break;
