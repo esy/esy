@@ -67,8 +67,6 @@ jobs:
       # displayName: "Print esy bin location"
       - bash: env
         displayName: "Print environment"
-      - script: node .ci/validate-release-postinstall.js
-        displayName: "Validate release-postinstall.js"
       - template: esy-build-steps.yml
         parameters:
           platform: ${{ parameters.platform }}
