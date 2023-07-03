@@ -92,6 +92,8 @@ module Windows = {
        * Just passing the env directly to esy-bash doesn't work,
        * because we need the current PATH/env to pick up node and run the shell
        */
+      let env =
+        Astring.String.Map.add("CYGWIN", "winsymlinks:nativestrict", env);
       let jsonString = convertEnvToJsonString(env);
       let* environmentTempFile = createTmpFile(jsonString);
       let commandAsList = Cmd.to_list(command);
