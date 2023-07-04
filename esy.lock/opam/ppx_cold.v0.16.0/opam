@@ -1,0 +1,25 @@
+opam-version: "2.0"
+maintainer: "Jane Street developers"
+authors: ["Jane Street Group, LLC"]
+homepage: "https://github.com/janestreet/ppx_cold"
+bug-reports: "https://github.com/janestreet/ppx_cold/issues"
+dev-repo: "git+https://github.com/janestreet/ppx_cold.git"
+doc: "https://ocaml.janestreet.com/ocaml-core/latest/doc/ppx_cold/index.html"
+license: "MIT"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml"  {>= "4.14.0"}
+  "base"   {>= "v0.16" & < "v0.17"}
+  "dune"   {>= "2.0.0"}
+  "ppxlib" {>= "0.28.0"}
+]
+synopsis: "Expands [@cold] into [@inline never][@specialise never][@local never]"
+description: "
+Part of the Jane Street's PPX rewriters collection.
+"
+url {
+src: "https://ocaml.janestreet.com/ocaml-core/v0.16/files/ppx_cold-v0.16.0.tar.gz"
+checksum: "sha256=803bdb583b501aa246d8ae34be0c16b892d8ae96852bb593f3e355232e6aa4da"
+}

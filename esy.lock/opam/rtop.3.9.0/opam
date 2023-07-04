@@ -1,0 +1,44 @@
+opam-version: "2.0"
+synopsis: "Reason toplevel"
+description:
+  "rtop is the toplevel (or REPL) for Reason, based on utop (https://github.com/diml/utop)."
+maintainer: [
+  "Jordan Walke <jordojw@gmail.com>"
+  "Antonio Nuno Monteiro <anmonteiro@gmail.com>"
+]
+authors: ["Jordan Walke <jordojw@gmail.com>"]
+license: "MIT"
+homepage: "https://reasonml.github.io/"
+bug-reports: "https://github.com/reasonml/reason/issues"
+depends: [
+  "dune" {>= "2.9"}
+  "ocaml" {>= "4.03" & < "5.1"}
+  "reason" {= version}
+  "utop" {>= "2.0"}
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "--promote-install-files=false"
+    "@install"
+    "@doc" {with-doc}
+  ]
+  ["dune" "install" "-p" name "--create-install-files" name]
+]
+dev-repo: "git+https://github.com/reasonml/reason.git"
+url {
+  src:
+    "https://github.com/reasonml/reason/releases/download/3.9.0/reason-3.9.0.tbz"
+  checksum: [
+    "sha256=bcf0081ecf3d05ce68e82876a1bc2a48497c78225b8b310f2cf24b33f3568416"
+    "sha512=388a0d8970b83423bb79978e4df3a558c27e043fc216a8d288ca7aab9babd8a3db45219ba53c9db09d791c07017f26ceba3a7d714c8ce9bf369d2e8b796d6d81"
+  ]
+}
+x-commit-hash: "0da0be2a8c44a0dd492a4a6b47601cdad1da4194"
