@@ -55,4 +55,5 @@ esy_move_file(value src, value dst) {
 #else
   MoveFileExA(String_val(src), String_val(dst), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH);
 #endif
+  return Val_unit;
 }  
