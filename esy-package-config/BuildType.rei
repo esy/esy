@@ -20,6 +20,4 @@ include S.COMPARABLE with type t := t;
 include S.JSONABLE with type t := t;
 
 /** JSON repr which is used in package.json */
-module AsInPackageJson: {
-  include S.JSONABLE with type t := t;
-};
+module AsInPackageJson: {include S.JSONABLE with type t := t;};

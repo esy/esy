@@ -1,9 +1,7 @@
 open EsyPrimitives;
 open EsyPackageConfig;
 
-module EsyIntrospectionEnv: {
-  let rootPackageConfigPath: string;
-};
+module EsyIntrospectionEnv: {let rootPackageConfigPath: string;};
 
 type t;
 
