@@ -12,12 +12,12 @@ let matchResults = releasePostInstallJs.match(`npm install ${packageName}@([^\\s
 
 if (matchResults !== null && matchResults.length >= 2) {
   let version = matchResults[1];
-  if (version !== npmManifest.devDependencies[packageName]) {
+  if (version !== npmManifest.optionalDependencies[packageName]) {
     console.log(
       "Version in development manifest, esy.json and release-postinstall.js don't match",
     );
     console.log(`
-esy.json - ${npmManifest.devDependencies['${packageName}']}
+esy.json - ${npmManifest.optionalDependencies['${packageName}']}
 release-postinstall.js - ${version}
 `);
     process.exit(1);
