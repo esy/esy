@@ -1,0 +1,42 @@
+opam-version: "2.0"
+synopsis: "Format library for opam 2.2"
+description: "Definition of opam datastructures and its file interface."
+maintainer: "opam-devel@lists.ocaml.org"
+authors: [
+  "David Allsopp <david@tarides.com>"
+  "Vincent Bernardoff <vb@luminar.eu.org>"
+  "Raja Boujbel <raja.boujbel@ocamlpro.com>"
+  "Kate Deplaix <kit.ty.kate@disroot.org>"
+  "Roberto Di Cosmo <roberto@dicosmo.org>"
+  "Thomas Gazagnaire <thomas@gazagnaire.org>"
+  "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  "Fabrice Le Fessant <Fabrice.Le_fessant@inria.fr>"
+  "Anil Madhavapeddy <anil@recoil.org>"
+  "Guillem Rieu <guillem.rieu@ocamlpro.com>"
+  "Ralf Treinen <ralf.treinen@pps.jussieu.fr>"
+  "Frederic Tuong <tuong@users.gforge.inria.fr>"
+]
+license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam/issues"
+depends: [
+  "ocaml" {>= "4.08.0"}
+  "opam-core" {= version}
+  "opam-file-format" {>= "2.1.4"}
+  "re" {>= "1.9.0"}
+  "dune" {>= "2.0.0"}
+]
+build: [
+  ["./configure" "--disable-checks" "--prefix" prefix]
+  ["dune" "build" "-p" name "-j" jobs]
+]
+dev-repo: "git+https://github.com/ocaml/opam.git"
+url {
+  src: "https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz"
+  checksum: [
+    "md5=6a69d82228899f73c5e3c04a3fb590f3"
+    "sha512=b7899244ab620213f2997409c9d8ac63e1a7ba99ff36abdd0acf41ae545ca7e0534e5e2f6c01a9700c10abf2df4f07944cc64fb5dd315a566f6c5b6b19464729"
+  ]
+}
+available: opam-version >= "2.1.0"
+flags: avoid-version
