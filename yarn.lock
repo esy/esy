@@ -18,10 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@prometheansacrifice/esy-bash@0.1.0-dev-8a8fd9ccc62d63c093c20f6f0ab570cf8b71fb76":
-  version "0.1.0-dev-8a8fd9ccc62d63c093c20f6f0ab570cf8b71fb76"
-  resolved "https://registry.yarnpkg.com/@prometheansacrifice/esy-bash/-/esy-bash-0.1.0-dev-8a8fd9ccc62d63c093c20f6f0ab570cf8b71fb76.tgz#a1caf17f30553090769063ec8a63aae25e8e04a5"
-  integrity sha512-L01CnPWIOI5LKFzL3qS4dalfjkJVClg68SnM6CwXHexeXlo6ER0W6JzkmnKkQ7XcrUWqQYR4keJKIzhYndlPlQ==
+"@prometheansacrifice/esy-bash@0.1.0-dev-f2e419601a34c3ce53cbe1f025f490276b9e879f":
+  version "0.1.0-dev-f2e419601a34c3ce53cbe1f025f490276b9e879f"
+  resolved "https://registry.yarnpkg.com/@prometheansacrifice/esy-bash/-/esy-bash-0.1.0-dev-f2e419601a34c3ce53cbe1f025f490276b9e879f.tgz#1d030b892ab18566898f88a4bfc1f790755a5e24"
+  integrity sha512-mGu7EBW0V0gjccr3EXaA6xT1BEvwmwzsDXegEpze9WOddF1omJOhY4i4CuAj7wLJq/dze+15NYWXwM90BnowFQ==
   dependencies:
     download "^7.0.0"
     fs-extra "^8.1.0"
