@@ -62,5 +62,11 @@ let sync = (prefixPath, currentProj) => {
 let update = (prefixPath, activeProjectPaths) => {
   let* () = init(prefixPath);
   let projectsPath = Path.(prefixPath / "projects.json");
-  Fs.writeJsonFile(~json=`List(activeProjectPaths |> List.map(~f=path => `String(Path.show(path)))), projectsPath);
+  Fs.writeJsonFile(
+    ~json=
+      `List(
+        activeProjectPaths |> List.map(~f=path => `String(Path.show(path))),
+      ),
+    projectsPath,
+  );
 };

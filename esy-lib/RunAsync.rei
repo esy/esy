@@ -67,7 +67,7 @@ let ofBosError:
   ) =>
   t('a);
 
-let try_: (~catch: Run.error => t('a), t('a)) => t('a)
+let try_: (~catch: Run.error => t('a), t('a)) => t('a);
 
 /**
  * Convert [option] into [t].

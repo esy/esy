@@ -57,12 +57,11 @@ let ofStringError = r => ofRun(Run.ofStringError(r));
 let ofBosError = r => ofRun(Run.ofBosError(r));
 
 let try_ = (~catch, computation) => {
-  switch%lwt(computation) {
+  switch%lwt (computation) {
   | Ok(value) => return(value)
-  | Error(error) => catch(error);
+  | Error(error) => catch(error)
   };
 };
-
 
 module Syntax = {
   let return = return;
