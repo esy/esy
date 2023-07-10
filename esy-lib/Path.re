@@ -174,3 +174,5 @@ let safePath = {
     |> Str.global_replace(replaceColon, "__c__");
   make;
 };
+
+let equal = Fpath.equal;

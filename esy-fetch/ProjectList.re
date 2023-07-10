@@ -31,12 +31,19 @@ let sync = (prefixPath, currentProj) => {
   let* projects =
     switch (Decode.(list(string, json))) {
     | Ok(projects) =>
-      let projects =
-        if (List.mem(currentProj, ~set=projects)) {
+      let projects = {
+        let f = a => {
+          switch (Path.ofString(a), Path.ofString(currentProj)) {
+          | (Ok(pa), Ok(pb)) => Path.equal(pa, pb)
+          | _ => false
+          };
+        };
+        if (List.exists(~f, projects)) {
           projects;
         } else {
           [currentProj, ...projects];
         };
+      };
       let* projects =
         RunAsync.List.filter(
           ~f=

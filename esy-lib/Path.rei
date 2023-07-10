@@ -59,3 +59,5 @@ let remEmptySeg: t => t;
 let normalize: t => t;
 let normalizePathSepOfFilename: string => string;
 let normalizeAndRemoveEmptySeg: t => t;
+
+let equal: (t, t) => bool;
