@@ -21,7 +21,7 @@
     "prettier": "^1.13.7",
     "invariant": "^2.2.4",
     "rimraf": "^2.6.2",
-    "semver": "^5.5.0",
+    "semver": "^7.5.2",
     "super-resolve": "^1.0.0",
     "tar": "^4.4.4",
     "tar-fs": "^1.16.0",
