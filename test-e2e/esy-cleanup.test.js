@@ -8,6 +8,24 @@ const {createTestSandbox, defineNpmPackage, packageJson, test, isWindows} = help
 
 const testFolder = './tests/';
 
+class Path {
+  constructor(value) {
+    this.path = value.split(/[\/\\]/);
+  }
+  equals(other) {
+    if (this.path === other.path) return true;
+    if (this.path == null || other.path == null) return false;
+    if (this.path.length !== other.path.length) return false;
+    for (var i = 0; i < this.path.length; ++i) {
+      if (this.path[i] !== other.path[i]) return false;
+    }
+    return true;
+  }
+  toString() {
+    return this.path.join('/');
+  }
+}
+
 class EsyInstallCacheEntry {
   constructor(entry) {
     let matches = entry.match(/(?<entryBaseName>[^\-]+-[^\-]+)+-(?<hash>[a-h0-9]+)$/);
@@ -68,7 +86,30 @@ function areSourceCacheEntriesEqual(a, b) {
   }
 }
 
-expect.addEqualityTesters([areInstallCacheEntriesEqual, areSourceCacheEntriesEqual]);
+function arePathsEqual(a, b) {
+  const isAPath = a instanceof Path;
+  const isBPath = b instanceof Path;
+
+  if (isAPath && isBPath) {
+    return a.equals(b);
+  } else if (isAPath !== isBPath) {
+    return false;
+  } else {
+    return undefined;
+  }
+}
+
+expect.addEqualityTesters([
+  areInstallCacheEntriesEqual,
+  areSourceCacheEntriesEqual,
+  arePathsEqual,
+]);
+
+function toPath(l) {
+  if (l instanceof Array) {
+    return l.map((x) => new Path(x));
+  }
+}
 
 describe('cleanup command', () => {
   test(`should add project path to project.json`, async () => {
@@ -79,9 +120,9 @@ describe('cleanup command', () => {
 
     await p.esy('install');
 
-    await expect(fs.readJson(p.esyPrefixPath + '/projects.json')).resolves.toMatchObject([
-      p.projectPath,
-    ]);
+    expect(toPath(await fs.readJson(p.esyPrefixPath + '/projects.json'))).toEqual(
+      toPath([p.projectPath]),
+    );
   });
 
   test(`should skip adding project if it is already added`, async () => {
@@ -92,9 +133,9 @@ describe('cleanup command', () => {
     await fs.writeJson(p.esyPrefixPath + '/projects.json', [p.projectPath]);
     const {stderr} = await p.esy('install');
 
-    await expect(fs.readJson(p.esyPrefixPath + '/projects.json')).resolves.toMatchObject([
-      p.projectPath,
-    ]);
+    expect(toPath(await fs.readJson(p.esyPrefixPath + '/projects.json'))).toEqual(
+      toPath([p.projectPath]),
+    );
   });
 
   test(`should default to all paths in projects.json if not path provided`, async () => {
@@ -181,7 +222,7 @@ describe('cleanup command', () => {
       }),
     );
     await sandbox.esy();
-    expect(require(projectsJsonPath)).toEqual([sandbox.projectPath]);
+    expect(toPath(require(projectsJsonPath))).toEqual(toPath([sandbox.projectPath]));
     expect(
       toEsyInstallCacheEntry(await fs.readdir(path.join(sandbox.esyStorePath, 'i'))),
     ).toEqual(
