@@ -644,14 +644,33 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         solveCudfCommand,
         globalPathVariable,
         (),
-      ) =>
-    paths
+      ) => {
+    open RunAsync.Syntax;
+    let%bind paths =
+      switch (paths) {
+      | [] =>
+        let prefixPath =
+          switch (prefixPath) {
+          | Some(path) => path
+          | None => EsyBuildPackage.Config.storePrefixDefault
+          };
+
+        EsyFetch.ProjectList.get(prefixPath);
+      | _ => return(paths)
+      };
+    let%bind pathsThatExist =
+      paths
+      |> RunAsync.List.filter(
+           /* What the appropriate ~concurrency here? */
+           ~f=Fs.exists,
+         );
+    pathsThatExist
     |> List.map(~f=path =>
          make(
            Some(ProjectArg.ofPath(path)),
-           mainprg,
            "ocaml", /* specifying ocaml package name for multiple paths is unsupported */
            "n.00.0000", /* specifying ocaml version for multiple paths is unsupported */
+           mainprg,
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
@@ -672,12 +691,13 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
          )
        )
     |> RunAsync.List.joinAll;
+  };
 
   Esy_cmdliner.Term.(
     const(parse)
     $ main_name
     $ Arg.(
-        non_empty
+        value
         & pos_all(resolvedPathTerm, [])
         & info(
             [],

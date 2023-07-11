@@ -231,66 +231,6 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   Project.withPackage(proj, pkgarg, f);
 };
 
-let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
-  open RunAsync.Syntax;
-  let mode = BuildSpec.BuildDev;
-  let* (dirsToKeep, allDirs) =
-    RunAsync.List.foldLeft(
-      ~init=(Path.Set.empty, Path.Set.empty),
-      ~f=
-        (acc, projCfg) => {
-          let (dirsToKeep, allDirs) = acc;
-          let* (proj, _) = Project.make(projCfg);
-          let* plan = Project.plan(mode, proj);
-          let* allProjectDependencies =
-            BuildSandbox.Plan.all(plan)
-            |> List.map(~f=task =>
-                 Scope.installPath(task.BuildSandbox.Task.scope)
-                 |> Project.renderSandboxPath(proj.Project.buildCfg)
-               )
-            |> Path.Set.of_list
-            |> RunAsync.return;
-          let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projCfg));
-          let* allDirs' = Fs.listDir(Path.(storePath / Store.installTree));
-          let shortBuildPath =
-            Path.(
-              ProjectConfig.globalStorePrefixPath(projCfg)
-              / Store.version
-              / Store.buildTree
-            );
-          RunAsync.return((
-            Path.Set.union(dirsToKeep, allProjectDependencies),
-            Path.Set.union(
-              allDirs,
-              Path.Set.of_list([
-                Path.(storePath / Store.buildTree),
-                Path.(storePath / Store.stageTree),
-                shortBuildPath,
-                ...allDirs'
-                   |> List.map(~f=x =>
-                        Path.(storePath / Store.installTree / x)
-                      ),
-              ]),
-            ),
-          ));
-        },
-      projCfgs,
-    );
-
-  let buildsToBePurged = Path.Set.diff(allDirs, dirsToKeep);
-
-  if (dryRun) {
-    print_endline("Will be purging the following");
-    Path.Set.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
-    RunAsync.return();
-  } else {
-    let queue = LwtTaskQueue.create(~concurrency=40, ());
-    Path.Set.elements(buildsToBePurged)
-    |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
-    |> RunAsync.List.waitAll;
-  };
-};
-
 let execCommand =
     (
       buildIsInProgress,
@@ -1077,28 +1017,40 @@ let fetch = (proj: Project.t) => {
   };
 };
 
+let addProjectToGCRoot = (proj: Project.t) => {
+  let prefixPath =
+    switch (proj.projcfg.prefixPath) {
+    | Some(prefixPath) => prefixPath
+    | None => EsyBuildPackage.Config.storePrefixDefault
+    };
+  let currentProjectPath = Path.show(proj.projcfg.path);
+  EsyFetch.ProjectList.sync(prefixPath, currentProjectPath);
+};
+
 let solveAndFetch = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   let* digest =
     EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
-  switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
-  | Some(solution) =>
-    switch%bind (
-      EsyFetch.Fetch.maybeInstallationOfSolution(
-        proj.workflow.fetchDepsSubset,
-        proj.installSandbox,
-        solution,
-      )
-    ) {
-    | Some(_installation) => return()
-    | None => fetch(proj)
-    }
-  | None =>
-    let* () = solve(false, None, None, proj);
-    let* () = fetch(proj);
-    return();
-  };
+  let%bind () =
+    switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
+    | Some(solution) =>
+      switch%bind (
+        EsyFetch.Fetch.maybeInstallationOfSolution(
+          proj.workflow.fetchDepsSubset,
+          proj.installSandbox,
+          solution,
+        )
+      ) {
+      | Some(_installation) => return()
+      | None => fetch(proj)
+      }
+    | None =>
+      let* () = solve(false, None, None, proj);
+      let* () = fetch(proj);
+      return();
+    };
+  addProjectToGCRoot(proj);
 };
 
 let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
@@ -2003,7 +1955,7 @@ let commandsConfig = {
         ~doc="Purge unused builds from global cache",
         ~docs="COMMON COMMANDS",
         Term.(
-          const(cleanup)
+          const(Cleanup.main)
           $ ProjectConfig.multipleProjectConfigsTerm(resolvedPathTerm)
           $ Arg.(
               value

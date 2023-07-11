@@ -52,6 +52,8 @@ let make =
   let sourceInstallPath = Path.(sourcePath / "i");
   let* () = Fs.createDir(sourceInstallPath);
 
+  let%bind () = ProjectList.init(prefixPath);
+
   return({
     sourceArchivePath,
     sourceFetchPath,

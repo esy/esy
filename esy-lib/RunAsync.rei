@@ -49,6 +49,12 @@ let runExn: (~err: string=?, t('a)) => 'a;
 let ofRun: Run.t('a) => t('a);
 
 /**
+ * Convert [Lwt.t] into [t].
+ */
+
+let ofLwt: Lwt.t('a) => t('a);
+
+/**
  * Convert an Rresult into [t]
  */
 
@@ -60,6 +66,8 @@ let ofBosError:
     [< | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)],
   ) =>
   t('a);
+
+let try_: (~catch: Run.error => t('a), t('a)) => t('a);
 
 /**
  * Convert [option] into [t].
