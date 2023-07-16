@@ -52,15 +52,20 @@ let codesign = fpath => {
 };
 
 let sign' = path => {
-  let* () = codesign(path);
-  let tmpDir = Filename.get_temp_dir_name();
-  let fileBeingCopied = path |> Fpath.to_string |> Filename.basename;
-  let workAroundFilePath = Fpath.(v(tmpDir) / "workaround" / fileBeingCopied);
-  let* () = mkdir(Fpath.(v(tmpDir) / "workaround"));
-  let* () = copyFile(path, workAroundFilePath);
-  let* () = rm(path);
-  let* () = copyFile(~perm=0o775, workAroundFilePath, path);
-  codesign(path);
+  let catch = _e => {
+    let tmpDir = Filename.get_temp_dir_name();
+    let fileBeingCopied = path |> Fpath.to_string |> Filename.basename;
+    Random.self_init();
+    let suffix = Random.bits() |> string_of_int;
+    let workaroundDir = Fpath.(v(tmpDir) / ("workaround-" ++ suffix));
+    let workAroundFilePath = Fpath.(workaroundDir / fileBeingCopied);
+    let* () = mkdir(workaroundDir);
+    let* () = copyFile(path, workAroundFilePath);
+    let* () = rm(path);
+    let* () = copyFile(~perm=0o775, workAroundFilePath, path);
+    codesign(path);
+  };
+  Run.try_(~catch, codesign(path));
 };
 
 let rec sign =
