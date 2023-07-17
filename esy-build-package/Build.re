@@ -390,9 +390,19 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       if (isBigSurArm) {
         /* Fix for codesigning issues on BigSur on M1 mac.
            See BigSurArm.re for more details */
-        BigSurArm.sign(
-          entries,
-        );
+        let binariesThatFailedToSign = BigSurArm.sign(entries);
+        if (List.length(binariesThatFailedToSign) > 0) {
+          Esy_logs.warn(m =>
+            m("# esy-build-package: Failed to sign the following binaries")
+          );
+          let f = binary => {
+            ignore @@ Esy_logs.warn(m => m("  %a", Path.pp, binary));
+          };
+          List.iter(f, binariesThatFailedToSign);
+          return();
+        } else {
+          return();
+        };
       } else {
         return();
       };

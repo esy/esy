@@ -68,10 +68,15 @@ let sign' = path => {
   Run.try_(~catch, codesign(path));
 };
 
-let rec sign =
-  fun
-  | [] => return()
-  | [h, ...rest] => {
-      let* () = sign'(h);
-      sign(rest);
-    };
+let rec signAcc = (binariesToSign, failures) => {
+  switch (binariesToSign) {
+  | [] => failures
+  | [h, ...rest] =>
+    switch (sign'(h)) {
+    | Ok () => signAcc(rest, failures)
+    | Error(_) => signAcc(rest, [h, ...failures])
+    }
+  };
+};
+
+let sign = binariesToSign => signAcc(binariesToSign, []);
