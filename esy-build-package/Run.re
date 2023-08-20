@@ -359,3 +359,10 @@ module type T = {
       t(list(Fpath.t), [> | `Msg(string)]);
   };
 };
+
+let try_ = (~catch, computation) => {
+  switch (computation) {
+  | Ok(value) => return(value)
+  | Error(error) => catch(error)
+  };
+};
