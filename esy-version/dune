@@ -1,0 +1,12 @@
+(rule
+ (target EsyVersion.re)
+ (deps version.sh)
+ (mode fallback)
+ (action
+  (with-stdout-to
+   %{target}
+   (run bash %{deps} "--reason"))))
+
+(library
+ (name EsyVersion)
+ (modules EsyVersion))
