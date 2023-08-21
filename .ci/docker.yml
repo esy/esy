@@ -3,6 +3,7 @@
 parameters:
   platform: "Docker (on latest Ubuntu)"
   vmImage: ubuntu-latest
+  jobCommand: "build"
 
 jobs:
   - job: Alpine_Build
@@ -27,14 +28,14 @@ jobs:
         inputs:
           containerRegistry: 'Docker Esy (nightly)'
           repository: 'esydev/esy'
-          command: 'buildAndPush'
+          command: ${{parameters.jobCommand}}
           buildContext: '.'
           Dockerfile: 'dockerfiles/alpine.Dockerfile'
           tags: |
             nightly-alpine-latest
             nightly-alpine
 
-      - script: docker container run -itd --network=host --name esy-container esydev/esy:nightly-alpine-latest
+      - script: docker container run --pull=never -itd --network=host --name esy-container esydev/esy:nightly-alpine-latest
         displayName: "Run Docker Container"
 
       - script: docker cp esy-container:/app/_release $PWD/_container_release
