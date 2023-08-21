@@ -21,6 +21,7 @@ in
           root = ../.;
           include = [
             "bin"
+            "esy-version"
             "esy-build"
             "esy-build-package"
             "esy-command-expression"
