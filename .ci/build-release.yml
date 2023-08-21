@@ -35,7 +35,7 @@ jobs:
     parameters:
       platform: Docker
       vmImage: ubuntu-latest
-      jobCommand: dockerJobcommand
+      jobCommand: ${{ variables.dockerJobcommand }}
 
   # Need windows-2019 to do esy import/export-dependencies
   # which assumes you have bsdtar (tar.exe) in your system
