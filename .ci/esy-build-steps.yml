@@ -45,17 +45,17 @@ steps:
   - script: 'node ./test-e2e-slow/run-slow-tests.js'
     displayName: 'esy test:e2e-slow'
     continueOnError: true
+  - bash: |
+      cp _build/default/esy-version/EsyVersion.re esy-version
+      git archive --prefix=./esy-version/ --add-file=./esy-version/EsyVersion.re --prefix=./ --format=tgz HEAD -o source.tgz
+    displayName: "Copy generated EsyVersion.re to source tree"
+    condition: eq(variables['AGENT.OS'], 'Linux')
   - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
     - script: "esy release"
       displayName: "esy release"
   - ${{ if ne(parameters.platform,  'Ubuntu_16_04') }}:
     - script: "esy release --no-env"
       displayName: "esy release --no-env"
-  - bash: |
-      cp _build/default/esy-version/EsyVersion.re esy-version
-      git archive --prefix=./esy-version/ --add-file=./esy-version/EsyVersion.re --prefix=./ --format=tgz HEAD -o source.tgz
-    displayName: "Copy generated EsyVersion.re to source tree"
-    condition: eq(variables['AGENT.OS'], 'Linux')
   - task: PublishBuildArtifacts@1
     condition: eq(variables['AGENT.OS'], 'Linux')
     displayName: "Publish Artifact: Source Tarball"
