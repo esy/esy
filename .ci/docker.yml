@@ -24,7 +24,6 @@ jobs:
 
       - task: Docker@2
         displayName: 'Push esydev/esy:nightly-alpine-latest to Docker Hub'
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
         inputs:
           containerRegistry: 'Docker Esy (nightly)'
           repository: 'esydev/esy'

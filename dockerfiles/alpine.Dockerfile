@@ -23,6 +23,7 @@ RUN make opam-setup
 # (that also cleans up build cache) takes lesser space.
 COPY ./bin /app/bin
 COPY ./esy-shell-expansion /app/esy-shell-expansion
+COPY ./esy-version /app/esy-version
 COPY ./esy-solve /app/esy-solve
 COPY ./esy-fetch /app/esy-fetch
 COPY ./esy-install-npm-release /app/esy-install-npm-release
