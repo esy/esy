@@ -2,9 +2,10 @@
 
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
-const {packageJson, file, dir} = helpers;
-const {version} = require('../../package.json');
+const exec = require('../test/exec.js');
 
+const {packageJson, file, dir} = helpers;
+let version = exec.exec('git describe --tags').trim();
 helpers.skipSuiteOnWindows('needs fixes for path pretty printing');
 
 type ChildProcessError = {
@@ -12,10 +13,13 @@ type ChildProcessError = {
 };
 
 function expectAndReturnRejection(p): Promise<ChildProcessError> {
-  return (p.then(() => expect(true).toBe(false), err => err): any);
+  return (p.then(
+    () => expect(true).toBe(false),
+    (err) => err,
+  ): any);
 }
 
-describe('"esy solve" errors', function() {
+describe('"esy solve" errors', function () {
   it('reports errors about conflict', async () => {
     const p = await helpers.createTestSandbox();
 
@@ -394,8 +398,8 @@ describe('"esy solve" errors', function() {
   });
 });
 
-describe('"resolutions" misconfiguration errors', function() {
-  it('plain resolution', async function() {
+describe('"resolutions" misconfiguration errors', function () {
+  it('plain resolution', async function () {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -421,7 +425,7 @@ describe('"resolutions" misconfiguration errors', function() {
     );
   });
 
-  it('resolution w/ override', async function() {
+  it('resolution w/ override', async function () {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -452,7 +456,7 @@ describe('"resolutions" misconfiguration errors', function() {
     );
   });
 
-  it('link to a non-existent path', async function() {
+  it('link to a non-existent path', async function () {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
@@ -478,7 +482,7 @@ describe('"resolutions" misconfiguration errors', function() {
     );
   });
 
-  it('link to a non-existent manifest', async function() {
+  it('link to a non-existent manifest', async function () {
     const p = await helpers.createTestSandbox();
 
     await p.fixture(
