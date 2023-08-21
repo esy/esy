@@ -1,8 +1,9 @@
 /* @flow */
 
 const cp = require('child_process');
+const {execSync} = cp;
 
-exports.execFile = function(
+exports.execFile = function (
   path: string,
   args: Array<string>,
   options: Object,
@@ -20,4 +21,8 @@ exports.execFile = function(
       }
     });
   });
+};
+
+exports.exec = function exec(cmd) {
+  return execSync(cmd).toString();
 };

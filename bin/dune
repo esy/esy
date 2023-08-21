@@ -15,7 +15,7 @@
    "EsyLib"))
  (libraries lwt lwt.unix esy_cmdliner esy_logs esy_logs_fmt esy_logs_lwt
    esy_logs_cli esy_fmt esy_fmt_cli esy_fmt_tty str astring
-   ppx_deriving_yojson.runtime EsyBuild EsyFetch EsySolve))
+   ppx_deriving_yojson.runtime EsyBuild EsyFetch EsySolve EsyVersion))
 
 (install
  (package esy)
