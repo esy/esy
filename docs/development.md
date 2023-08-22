@@ -8,25 +8,30 @@ To make changes to `esy` and test them locally:
 ```bash
 git clone git://github.com/esy/esy.git
 cd esy
-make bootstrap
 ```
 
-And then run newly built `esy` executable from anywhere like `PATH_TO_REPO/bin/esy`.
+And then,
 
-Run:
-
-```bash
-make
-```
-
-to see the description of development workflow.
+On Linux/MacOS, run newly built `esy` executable from anywhere like `PATH_TO_REPO/_build/default/bin/esy`.
+On Windows, use the cmd wrapper in `PATH_TO_REPO/bin/esy.cmd`. On Windows, esy binary needs [`esy-bash`](https://github.com/esy/esy-bash). `esy` distributed on NPM finds it in the node_modules, but the dev binary finds it via the `ESY__ESY_BASH` variable in the environment.
 
 ## Running Tests
 
-Run all test suites:
+1. Fast tests (no internet connection needed)
+```sh
+yarn jest
+```
 
-```bash
-make test
+2. Slow tests (needs internet connection)
+
+```sh
+node ./test-e2e-slow/run-slow-tests.js
+```
+
+3. Unit tests
+
+```sh
+esy b dune runtest
 ```
 
 ## Issues
@@ -35,19 +40,30 @@ Issues are tracked at [esy/esy](https://github.com/esy/esy).
 
 ## Publishing Releases
 
-On a clean branch off of `origin/master`, run:
+`esy` is primarily distributed via NPM (in fact, at the moment, this
+is the only distribution channel). To create an NPM tarball, one could
+simply run, 
 
-```bash
-make bump-patch-version publish
+```sh
+esy release
 ```
 
-to bump the patch version, tag the release in git repository and publish the
-tarball on npm.
+And the `_release` folder is ready to be installed via NPM. But since
+it would contain only one platform's binaries (the machine on which it
+was built), we combine builds from multiple platforms on the CI.
 
-To publish under custom release tag:
+We use [Azure Pipelines](https://dev.azure.com/esy-dev/esy/_build) for
+CI/CD. Every successful build from `master` branch is automatically
+published to NPM under `@esy-nightly/esy` name. We could,
 
-```bash
-make RELEASE_TAG=next bump-patch-version publish
-```
+1. Download the artifact directly from Azure Pipelines, or
+2. Download the nightly npm tarball.
+
+Once downloaded, one can update the name and version field according
+to the release.
+
+Note, that MacOS M1 isn't available on Azure Pipelines yet. So, this
+build is included by building it locally, and placing the `_release`
+in the `platform-darwin-arm64` folder along side other platforms.
 
 Release tag `next` is used to publish preview releases.
