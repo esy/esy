@@ -1,5 +1,7 @@
 #! /bin/sh
 
+set -e
+
 get_major() {
     version="$1"
     echo "$version" | cut -d. -f1
