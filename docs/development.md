@@ -67,3 +67,30 @@ build is included by building it locally, and placing the `_release`
 in the `platform-darwin-arm64` folder along side other platforms.
 
 Release tag `next` is used to publish preview releases.
+
+## CI
+
+### EsyVersion.re
+
+We infer esy version with git. A script, `version.sh` is present in
+`esy-version/`. This script can output a `let` statement in OCaml or
+Reason containing the version.
+
+```sh
+sh ./esy-version/version.sh --reason
+```
+
+Internally, it uses `git describe --tags`
+
+During development, it's not absolutely necessary to run this script
+because `.git/` is always present and Dune is configured extract
+it. This, however, is not true for CI as we develop for different
+platforms/distribution channels. Case in point, Nix and Docker. Even,
+`esy release` copies the source tree (without `.git/`) in isolation to
+prepare the npm tarball.
+
+Therefore, on the CI, it's necessary to generate `EsyVersion.re` file
+containing the version with the `version.sh` script before running
+any of the build commands. You can see this in `build-platform.yml`
+right after the `git clone` job.
+
