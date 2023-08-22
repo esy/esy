@@ -49,6 +49,7 @@ build-with-opam:
 build-with-esy:
 	$(APP_ESY_INSTALL)/bin/esy @static i --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
 	$(APP_ESY_INSTALL)/bin/esy @static b --ocaml-pkg-name ocaml --ocaml-version 4.12.0 && \
+	cp _esy/static/build/default/esy-version/EsyVersion.re esy-version && \
 	$(APP_ESY_INSTALL)/bin/esy @static release $(RELEASE_ARGS) --ocaml-pkg-name ocaml --ocaml-version 4.12.0
 
 dune-cleanup:
