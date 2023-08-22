@@ -94,3 +94,9 @@ containing the version with the `version.sh` script before running
 any of the build commands. You can see this in `build-platform.yml`
 right after the `git clone` job.
 
+Note: you'll need the CI to fetch tags as it clones. By default, for
+instance, Github Actions only shallow clones the repository, which
+does not fetch tags. Fetching `n` number of commits during the shallow
+clone isn't helpful either. This is why, `fetch-depth` is set to `0`
+in the Nix Github Actions workflow. (`nix.yml`)
+
