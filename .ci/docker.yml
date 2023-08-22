@@ -16,6 +16,9 @@ jobs:
       - template: utils/use-node.yml
       - script: sudo apt install jq gzip
         displayName: Install deps
+        # TODO wrap Factor EsyVersion.re job in a template
+      - bash: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+        displayName: "Generate EsyVersion.re"
       - bash: |
           ESY__PROJECT_NAME=$(jq -r .name package.json)
           ESY__PROJECT_VERSION=$(jq -r .version package.json)

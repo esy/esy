@@ -46,9 +46,6 @@ steps:
     displayName: 'esy test:e2e-slow'
     continueOnError: true
   - bash: |
-      cp _build/default/esy-version/EsyVersion.re esy-version
-    displayName: "Copy generated EsyVersion.re to source tree"
-  - bash: |
       git archive --prefix=./esy-version/ --add-file=./esy-version/EsyVersion.re --prefix=./ --format=tgz HEAD -o source.tgz
     displayName: "Create distribution source tarball"
     condition: eq(variables['AGENT.OS'], 'Linux')
