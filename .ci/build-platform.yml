@@ -11,6 +11,9 @@ jobs:
     steps: 
       - checkout: self
         submodules: true
+        # TODO wrap Factor EsyVersion.re job in a template
+      - bash: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+        displayName: "Generate EsyVersion.re"
       - powershell: $Env:Path
         continueOnError: true
         condition: and(eq(variables['AGENT.OS'], 'Windows_NT'), and(eq(variables['Build.Reason'], 'PullRequest'), and(succeeded(), ne(variables['Build.SourceBranch'], variables['System.PullRequest.TargetBranch']))))

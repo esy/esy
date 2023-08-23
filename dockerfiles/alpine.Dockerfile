@@ -22,6 +22,11 @@ RUN make opam-setup
 # This is because docker caches results of multiple steps - having everything in one step
 # (that also cleans up build cache) takes lesser space.
 COPY ./bin /app/bin
+# We need .git to find esy version.
+# It's possible to do without it, but will need an additional,
+# `esy i && esy b dune build @esy-version/all && cp _build/default/esy-version/EsyVersion.re esy-version/`
+# to generate and copy the EsyVersion.re file
+COPY .git /app/.git
 COPY ./esy-shell-expansion /app/esy-shell-expansion
 COPY ./esy-version /app/esy-version
 COPY ./esy-solve /app/esy-solve
