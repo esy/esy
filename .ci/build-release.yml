@@ -11,7 +11,11 @@ variables:
     dockerJobcommand: "build"
 
 trigger:
-  - master
+  branches:
+    - master
+  tags:
+    include:
+      - '*'
 
 pr:
   - master
