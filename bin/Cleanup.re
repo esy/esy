@@ -90,11 +90,6 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
                Esy_logs_lwt.debug(m => m("%a", Path.pp, entry))
              )
           |> RunAsync.List.waitAll;
-        let* () =
-          RunAsync.ofLwt @@
-          Esy_logs_lwt.app(m =>
-            m("globalStorePath %a", Path.pp, globalStorePath)
-          );
         let allCacheEntriesSoFar = allCacheEntriesSoFar @ allCacheEntries;
 
         let pathsToBeRemoved =
