@@ -2,6 +2,9 @@ name: "Build nix package"
 
 on:
   pull_request:
+    paths:
+      - '!docs/**'
+      - '!site/**'
 
 jobs:
   build:
