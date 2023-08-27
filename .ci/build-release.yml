@@ -14,12 +14,29 @@ trigger:
   branches:
     include:
       - master
+  paths:
+    exclude:
+      - README.html
+      - docs/*
+      - site/*
+      - notes/*
+      - "*.md"
+      - LICENSE
   tags:
     include:
       - '*'
 
 pr:
-  - master
+  branches:
+    - master
+  paths:
+    exclude:
+      - README.html
+      - docs/*
+      - site/*
+      - notes/*
+      - "*.md"
+      - LICENSE
 
 jobs:
   - template: build-platform.yml
