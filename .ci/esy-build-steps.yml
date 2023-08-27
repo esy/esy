@@ -60,4 +60,4 @@ steps:
     displayName: "Publish Artifact: Source Tarball"
     inputs:
       PathtoPublish: "source.tgz"
-      ArtifactName: release
+      ArtifactName: source.tgz
