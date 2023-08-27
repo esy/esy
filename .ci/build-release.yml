@@ -28,7 +28,8 @@ trigger:
 
 pr:
   branches:
-    - master
+    include:
+      - master
   paths:
     exclude:
       - README.html
