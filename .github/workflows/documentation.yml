@@ -28,7 +28,6 @@ jobs:
         working-directory: site
 
       - name: Deploy to GitHub Pages
-        working-directory: site
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
