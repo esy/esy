@@ -123,6 +123,7 @@ Those variables refer to the values defined for the current package:
   `package.json`)
 * `self.root` is the package source root
 * `self.target_dir` is the package build directory
+* `self.jobs` is the number of processors the build system can used parallely. The name `jobs` is inspired by it counterpart in opam.
 * `self.install` is the package installation directory, there are also
   variables defined which refer to common subdirectories of `self.install`:
   * `self.bin`

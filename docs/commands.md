@@ -274,16 +274,16 @@ Import from a build store:
 
 ### `esy cleanup`
 
-Cleans up unused builds from the global cache. It takes paths to esy projects as args and ensures its dependencies are retained during the clean up process.
+Cleans up unused builds from the global cache. It, optionally, takes paths to esy projects as args and ensures its dependencies are retained during the clean up process.
 
 ```bash
-% esy cleanup /path/to/esy/project1 /esy/project/2
+% esy cleanup [/path/to/esy/project1 /esy/project/2]
 ```
 
 It also supports `--dry-run` option to inspect what will get purged.
 
 ```bash
-% esy cleanup --dry-run /path/proj1 /path/proj2
+% esy cleanup --dry-run [/path/proj1 /path/proj2]
 ```
 
 ## Options
