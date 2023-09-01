@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunksite_v_3=self.webpackChunksite_v_3||[]).push([[2535],{5641:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"New release - 0.6.0 \ud83c\udf89","permalink":"/blog/2020/01/12/0.6.0"},{"title":"What\'s new in esy 0.4.x","permalink":"/blog/2018/12/27/0.4.x"}]}')}}]);
