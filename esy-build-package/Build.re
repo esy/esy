@@ -509,7 +509,13 @@ let getEnvAndPath = build => {
 
   let env =
     switch (Bos.OS.Env.var("TERM")) {
-    | Some(term) => Astring.String.Map.add("TERM", term, build.env)
+    | Some(term) =>
+      build.env
+      |> Astring.String.Map.add("TERM", term)
+      |> Astring.String.Map.add(
+           "OPAM_SWITCH_PREFIX",
+           Path.show(build.stagePath),
+         )
     | None => build.env
     };
 
