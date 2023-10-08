@@ -1,0 +1,57 @@
+opam-version: "2.0"
+synopsis: "LSP protocol implementation in OCaml"
+description: """
+
+Implementation of the LSP protocol in OCaml. It is designed to be as portable as
+possible and does not make any assumptions about IO.
+"""
+maintainer: ["Rudi Grinberg <me@rgrinberg.com>"]
+authors: [
+  "Andrey Popp <8mayday@gmail.com>"
+  "Rusty Key <iam@stfoo.ru>"
+  "Louis Roché <louis@louisroche.net>"
+  "Oleksiy Golovko <alexei.golovko@gmail.com>"
+  "Rudi Grinberg <me@rgrinberg.com>"
+  "Sacha Ayoun <sachaayoun@gmail.com>"
+  "cannorin <cannorin@gmail.com>"
+  "Ulugbek Abdullaev <ulugbekna@gmail.com>"
+  "Thibaut Mattio <thibaut.mattio@gmail.com>"
+  "Max Lantas <mnxndev@outlook.com>"
+]
+license: "ISC"
+homepage: "https://github.com/ocaml/ocaml-lsp"
+bug-reports: "https://github.com/ocaml/ocaml-lsp/issues"
+depends: [
+  "dune" {>= "3.0"}
+  "jsonrpc" {= version}
+  "yojson"
+  "ppx_yojson_conv_lib" {>= "v0.14"}
+  "cinaps" {with-test}
+  "ppx_expect" {>= "v0.15.0" & < "0.17.0" & with-test}
+  "uutf" {>= "1.0.2"}
+  "odoc" {with-doc}
+  "ocaml" {>= "4.14"}
+]
+dev-repo: "git+https://github.com/ocaml/ocaml-lsp.git"
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@doc" {with-doc}
+  ]
+]
+url {
+  src:
+    "https://github.com/ocaml/ocaml-lsp/releases/download/1.19.0/lsp-1.19.0.tbz"
+  checksum: [
+    "sha256=e783d9f1a7f89ce1bf4c9148aa34a228368bd149bbcca43de80b459221dee5ec"
+    "sha512=85c233a7a14d38e76b3d28694054b04fb818290d2c4c009e7ce189040e2aab570ee0caaf1a826b064fb1595f29b696932daea9f6812d3dfa9b6f0387e02e254b"
+  ]
+}
+x-commit-hash: "45f5ddac12bb580b4ecaec2d93ee7fac2c903aff"
