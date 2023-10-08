@@ -1,0 +1,34 @@
+opam-version: "2.0"
+maintainer:   "defree@gmail.com"
+authors:      "The Merlin team"
+homepage:     "https://github.com/ocaml/merlin"
+bug-reports:  "https://github.com/ocaml/merlin/issues"
+dev-repo:     "git+https://github.com/ocaml/merlin.git"
+license:      "MIT"
+build: [
+  ["dune" "subst"] {dev}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml" {>= "5.1.1" & < "5.2"}
+  "dune" {>= "2.9.0"}
+  "csexp" {>= "1.5.1"}
+  "menhir"    {dev & >= "20201216"}
+  "menhirLib" {dev & >= "20201216"}
+  "menhirSdk" {dev & >= "20201216"}
+]
+synopsis:
+  "Merlin's libraries"
+description:
+  "These libraries provides access to low-level compiler interfaces and the
+  standard higher-level merlin protocol. The library is provided as-is, is not
+  thoroughly documented, and its public API might break with any new release."
+url {
+  src:
+    "https://github.com/ocaml/merlin/releases/download/v4.13.1-501/merlin-4.13.1-501.tbz"
+  checksum: [
+    "sha256=3557e05f70c5b108210291205a294282be4ed964a4c0ab5e9d9645489d70c1ad"
+    "sha512=e274ed87affabf2c91db81dafadbc519ddb1da2a2ebbe55d2985d82ea32b93a5651a4e6ac718e5c55d179025efaeb5babdb4cb53080eb2c5a65b147c22bd2719"
+  ]
+}
+x-commit-hash: "3dd2198ac1961d0f0c9080b4328461a57af03e89"
