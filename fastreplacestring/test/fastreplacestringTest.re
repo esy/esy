@@ -29,12 +29,12 @@ xHeLlo and HeLlox
   print_endline(input_line(ic));
   print_endline(input_line(ic));
   close_in(ic);
-  %expect
-  {|
+  [%expect
+   {|
     someHELLOstring
     HELLO at the beginning
     at the end HELLO
     HELLO and HELLO
     xHELLO and HELLOx
-  |};
+  |}];
 };
