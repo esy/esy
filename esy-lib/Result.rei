@@ -30,6 +30,8 @@ module Syntax: {
   module Let_syntax: {
     let bind: (~f: 'a => t('b, 'err), t('a, 'err)) => t('b, 'err);
     let map: (~f: 'a => 'b, t('a, 'err)) => t('b, 'err);
-    module Open_on_rhs: {let return: 'a => t('a, 'b);};
+    module Open_on_rhs: {
+      let return: 'a => t('a, 'b);
+    };
   };
 };

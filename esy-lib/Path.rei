@@ -9,7 +9,7 @@ type ext = Fpath.ext;
 
 let v: string => t;
 let (/): (t, string) => t;
-let (/\/): (t, t) => t;
+let (//): (t, t) => t;
 
 let addSeg: (t, string) => t;
 let append: (t, t) => t;
