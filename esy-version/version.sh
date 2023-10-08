@@ -45,7 +45,7 @@ semver_version() {
 	tag="nightly"
     fi
 
-    echo "$version" | sed -e "s/-[0-9]-g/-$tag./"
+    echo "$version" | sed -e "s/-[0-9]-g/+$tag./"
 }
 
 print_usage () {
