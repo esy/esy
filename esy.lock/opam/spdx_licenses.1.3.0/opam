@@ -1,0 +1,27 @@
+opam-version: "2.0"
+synopsis: "A library providing a strict SPDX License Expression parser"
+description: """\
+An OCaml library aiming to provide an up-to-date and strict SPDX License Expression parser.
+It implements the format described in: https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/
+See https://spdx.org/licenses/ for more details."""
+maintainer: "Kate <kit-ty-kate@outlook.com>"
+authors: "Kate <kit-ty-kate@outlook.com>"
+license: "MIT"
+homepage: "https://github.com/kit-ty-kate/spdx_licenses"
+bug-reports: "https://github.com/kit-ty-kate/spdx_licenses/issues"
+depends: [
+  "ocaml" {>= "4.08"}
+  "dune" {>= "2.3"}
+  "alcotest" {with-test & >= "1.4.0"}
+]
+build: ["dune" "build" "-p" name "-j" jobs]
+run-test: ["dune" "runtest" "-p" name "-j" jobs]
+dev-repo: "git+https://github.com/kit-ty-kate/spdx_licenses.git"
+url {
+  src:
+    "https://github.com/kit-ty-kate/spdx_licenses/releases/download/v1.3.0/spdx_licenses-1.3.0.tar.gz"
+  checksum: [
+    "md5=7e9a0c48d477c900ccb5a0ec9a402118"
+    "sha512=6786734d8aaf1c56ecdb19403e13c426f9b41785e775b213db6fc429f4a6a06575954a9ae23d56ea518e944cd55df546d9b8b403c2541872fe73a27b536bbb74"
+  ]
+}

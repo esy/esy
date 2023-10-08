@@ -39,3 +39,4 @@ url {
 }
 available: opam-version >= "2.1.0"
 flags: avoid-version
+x-maintained: false
