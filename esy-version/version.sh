@@ -38,7 +38,14 @@ get_version_reason() {
 
 semver_version() {
     version="$1"
-    echo "$version" | sed -e 's/-g/.g/'
+    tag="$2"
+
+    if [ ! -z "$tag" ]
+    then
+	tag="nightly"
+    fi
+
+    echo "$version" | sed -e "s/-[0-9]-g/-$tag./"
 }
 
 print_usage () {
@@ -74,9 +81,10 @@ case "$1" in
 	OCAML=1
 	shift;
 	;;
-    --semver)
-	SEMVER=1
-	shift;
+    --semver=*)
+	SEMVER_TAG=`echo $1 | sed 's/.*=//'`;
+	SEMVER=1;
+	shift
 	;;
     *)
 	shift;
@@ -93,7 +101,7 @@ fi
 
 if [ ! -z "$SEMVER" ]
 then
-    version=$(semver_version "$version")
+    version=$(semver_version "$version" "$SEMVER_TAG")
 fi
 
 if [ ! -z "$OCAML" ]
