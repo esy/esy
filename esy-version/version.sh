@@ -17,13 +17,14 @@ get_patch() {
     echo "$version" | cut -d. -f3 | cut -d- -f1
 }
 
-next_version() {
+next_patch() {
     version="$1"
     major=$(get_major "$version")
     minor=$(get_minor "$version")
-    next_minor=$((minor + 1))
+    patch=$(get_patch "$version")
+    next_patch=$((patch + 1))
     
-    echo "$major.$next_minor.0"
+    echo "$version" | sed "s/$major.$minor.$patch/$major.$minor.$next_patch/g"
 }
 
 get_version_ocaml() {
@@ -96,7 +97,7 @@ version=$(git describe --tags)
 
 if [ ! -z "$NEXT" ]
 then
-    version=$(next_version "$version")
+    version=$(next_patch "$version")
 fi
 
 if [ ! -z "$SEMVER" ]

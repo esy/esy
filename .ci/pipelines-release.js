@@ -40,7 +40,7 @@ function exec(cmd) {
 
 const args = process.argv.slice(2);
 const version =
-  args[0] != null ? args[0] : exec(`sh ./esy-version/version.sh --semver=nightly`);
+  args[0] != null ? args[0] : exec(`sh ./esy-version/version.sh --semver=nightly --next`);
 const packageJson = JSON.stringify(
   {
     name: '@esy-nightly/esy',
