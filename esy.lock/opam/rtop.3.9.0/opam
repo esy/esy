@@ -35,10 +35,10 @@ build: [
 dev-repo: "git+https://github.com/reasonml/reason.git"
 url {
   src:
-    "https://github.com/reasonml/reason/releases/download/3.10.0/reason-3.10.0.tbz"
+    "https://github.com/reasonml/reason/releases/download/3.9.0/reason-3.9.0.tbz"
   checksum: [
-    "sha256=17ead4c2864af7273f56d0ad62c4564be2eade76d3da87b1d381ed5b44f466cb"
-    "sha512=31c1c0752c426e3a55a9f8eceb157de3536e5a72385a645112236129f2f1ac04e4df42ba2c82616eacc339b4627725e1472903fd4c56c44024cba7635f2602cb"
+    "sha256=bcf0081ecf3d05ce68e82876a1bc2a48497c78225b8b310f2cf24b33f3568416"
+    "sha512=388a0d8970b83423bb79978e4df3a558c27e043fc216a8d288ca7aab9babd8a3db45219ba53c9db09d791c07017f26ceba3a7d714c8ce9bf369d2e8b796d6d81"
   ]
 }
-x-commit-hash: "a3545e5f40bf90f20214a878bd3072b2365d6504"
+x-commit-hash: "0da0be2a8c44a0dd492a4a6b47601cdad1da4194"

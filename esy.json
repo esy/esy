@@ -93,7 +93,7 @@
     "@opam/ppx_let": "*",
     "@opam/ppx_sexp_conv": "*",
     "@opam/re": "*",
-    "@opam/reason": "*",
+    "@opam/reason": "3.9.0",
     "@opam/yojson": "*",
     "ocaml": "5.x"
   },
