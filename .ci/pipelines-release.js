@@ -39,7 +39,8 @@ function exec(cmd) {
 }
 
 const args = process.argv.slice(2);
-const version = args[0] != null ? args[0] : exec(`sh ./esy-version/version.sh`);
+const version =
+  args[0] != null ? args[0] : exec(`sh ./esy-version/version.sh --semver=nightly`);
 const packageJson = JSON.stringify(
   {
     name: '@esy-nightly/esy',
@@ -100,7 +101,7 @@ const placeholderFile = `:; echo "You need to have postinstall enabled"; exit $?
 ECHO You need to have postinstall enabled`;
 fs.mkdirSync(path.join(__dirname, '..', '_release', 'bin'));
 
-Object.keys(bins).forEach(name => {
+Object.keys(bins).forEach((name) => {
   if (bins[name]) {
     const binPath = path.join(__dirname, '..', '_release', bins[name]);
     fs.writeFileSync(binPath, placeholderFile);

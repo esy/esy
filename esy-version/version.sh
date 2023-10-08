@@ -36,6 +36,18 @@ get_version_reason() {
     echo "let version = \"$version\";"
 }
 
+semver_version() {
+    version="$1"
+    tag="$2"
+
+    if [ ! -z "$tag" ]
+    then
+	tag="nightly"
+    fi
+
+    echo "$version" | sed -e "s/-[0-9]-g/-$tag./"
+}
+
 print_usage () {
     echo ""
     echo "version.sh"
@@ -69,6 +81,11 @@ case "$1" in
 	OCAML=1
 	shift;
 	;;
+    --semver=*)
+	SEMVER_TAG=`echo $1 | sed 's/.*=//'`;
+	SEMVER=1;
+	shift
+	;;
     *)
 	shift;
 	;;
@@ -80,6 +97,11 @@ version=$(git describe --tags)
 if [ ! -z "$NEXT" ]
 then
     version=$(next_version "$version")
+fi
+
+if [ ! -z "$SEMVER" ]
+then
+    version=$(semver_version "$version" "$SEMVER_TAG")
 fi
 
 if [ ! -z "$OCAML" ]
