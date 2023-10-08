@@ -31,4 +31,6 @@ module type MEMOIZE = {
 
 module Make:
   (C: MEMOIZEABLE) =>
-   {include MEMOIZE with type key := C.key and type value := C.value;};
+   {
+    include MEMOIZE with type key := C.key and type value := C.value;
+  };

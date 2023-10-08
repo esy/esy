@@ -59,114 +59,107 @@ let%test_module "parsing" =
 
      let%expect_test "1.0.0" = {
        parse("1.0.0");
-       %expect
-       {| (Npm ((major 1) (minor 0) (patch 0) (prerelease ()) (build ()))) |};
+       [%expect
+        {| (Npm ((major 1) (minor 0) (patch 0) (prerelease ()) (build ()))) |}];
      };
 
      let%expect_test "opam:1.0.0" = {
        parse("opam:1.0.0");
-       %expect
-       {| (Opam (Opam 1.0.0)) |};
+       [%expect {| (Opam (Opam 1.0.0)) |}];
      };
 
      let%expect_test "1.0.0" = {
        parse(~tryAsOpam=true, "1.0.0");
-       %expect
-       {| (Opam (Opam 1.0.0)) |};
+       [%expect {| (Opam (Opam 1.0.0)) |}];
      };
 
      let%expect_test "1.0.0" = {
        parse(~tryAsOpam=true, "opam:1.0.0");
-       %expect
-       {| (Opam (Opam 1.0.0)) |};
+       [%expect {| (Opam (Opam 1.0.0)) |}];
      };
 
      let%expect_test "no-source:" = {
        parse("no-source:");
-       %expect
-       {| (Source (Dist NoSource)) |};
+       [%expect {| (Source (Dist NoSource)) |}];
      };
 
      let%expect_test "no-source:" = {
        parse(~tryAsOpam=true, "no-source:");
-       %expect
-       {| (Source (Dist NoSource)) |};
+       [%expect {| (Source (Dist NoSource)) |}];
      };
 
      let%expect_test "user/repo#abc123" = {
        parse("user/repo#abc123");
-       %expect
-       {|
+       [%expect
+        {|
       (Source
-       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |};
+       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |}];
      };
 
      let%expect_test "user/repo#abc123" = {
        parse(~tryAsOpam=true, "user/repo#abc123");
-       %expect
-       {|
+       [%expect
+        {|
       (Source
-       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |};
+       (Dist (Github (user user) (repo repo) (commit abc123) (manifest ())))) |}];
      };
 
      let%expect_test "./some/path" = {
        parse("./some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "./some/path" = {
        parse(~tryAsOpam=true, "./some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "/some/path" = {
        parse("/some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "/some/path" = {
        parse(~tryAsOpam=true, "/some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path /some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "link:/some/path" = {
        parse("link:/some/path");
-       %expect
-       {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |};
+       [%expect
+        {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |}];
      };
 
      let%expect_test "link:/some/path" = {
        parse(~tryAsOpam=true, "link:/some/path");
-       %expect
-       {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |};
+       [%expect
+        {| (Source (Link (path /some/path) (manifest ()) (kind LinkRegular))) |}];
      };
 
      let%expect_test "some/path" = {
        parse("some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "some/path" = {
        parse(~tryAsOpam=true, "some/path");
-       %expect
-       {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |};
+       [%expect
+        {| (Source (Dist (LocalPath ((path some/path) (manifest ()))))) |}];
      };
 
      let%expect_test "some" = {
        parse("some");
-       %expect
-       {| ERROR: parsing "some": : not a path |};
+       [%expect {| ERROR: parsing "some": : not a path |}];
      };
 
      let%expect_test "some" = {
        parse(~tryAsOpam=true, "some");
-       %expect
-       {| (Opam (Opam some)) |};
+       [%expect {| (Opam (Opam some)) |}];
      };
    });
 
