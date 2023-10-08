@@ -35,7 +35,7 @@ const rewritePrefix =
 
 function exec(cmd) {
   console.log(`exec: ${cmd}`);
-  return execSync(cmd).toString();
+  return execSync(cmd).toString().trim();
 }
 
 const args = process.argv.slice(2);
