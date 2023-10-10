@@ -510,12 +510,9 @@ let getEnvAndPath = build => {
   let opamSwitchPrefixK = "OPAM_SWITCH_PREFIX";
   let opamSwitchPrefix =
     switch (Astring.String.Map.find(opamSwitchPrefixK, build.env)) {
-    | Some(opamSwitchPrefix) =>
-      String.split_on_char(System.Environment.sep().[0], opamSwitchPrefix)
-    | None => []
+    | Some(opamSwitchPrefix) => opamSwitchPrefix
+    | None => Path.show(build.stagePath)
     };
-
-  let opamSwitchPrefix = opamSwitchPrefix @ [Path.show(build.stagePath)];
 
   let env =
     switch (Bos.OS.Env.var("TERM")) {
@@ -526,10 +523,7 @@ let getEnvAndPath = build => {
   let env =
     env
     |> Astring.String.Map.remove(opamSwitchPrefixK)
-    |> Astring.String.Map.add(
-         opamSwitchPrefixK,
-         String.concat(System.Environment.sep(), opamSwitchPrefix),
-       );
+    |> Astring.String.Map.add(opamSwitchPrefixK, opamSwitchPrefix);
 
   let env =
     switch (path) {
