@@ -279,6 +279,7 @@ let convertDependencies = manifest => {
         | "test" => Some(OpamVariable.B(test))
         | "doc" => Some(OpamVariable.B(doc))
         | "with-test" => Some(OpamVariable.B(test))
+        | "with-dev-setup" => Some(OpamVariable.B(dev))
         | "with-doc" => Some(OpamVariable.B(doc))
         | "dev" => Some(OpamVariable.B(dev))
         | "version" =>
