@@ -125,7 +125,7 @@ let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
   switch (name) {
   | "ocaml" =>
     module C = SemverVersion.Constraint;
-    let* req =
+    let req =
       switch (relop) {
       | None => return(C.ANY)
       | Some((`Eq, v)) =>
@@ -151,7 +151,26 @@ let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
         let* v = ocamlOpamVersionToOcamlNpmVersion(v);
         return(C.GTE(v));
       };
+    let containsSubstring = (subString, s) => {
+      Str.string_match(Str.regexp(subString), s, 0);
+    };
+    let* req =
+      switch (req) {
+      | Ok(v) => Ok(v)
+      | Error(msg) when containsSubstring("invalid semver version: ", msg) =>
+        /*************************************************************************/
+        /* We encountered packages with constraints like this:                   */
+        /*                                                                       */
+        /* "ocaml" {>= "4.04.1" & < "5.2.0" & != "5.1.0~alpha1"}                 */
+        /*                                                                       */
+        /* 5.1.0~alpha1 is not a valid semver tag but needs to be allowed here.  */
+        /* TODO: We must try to parse this with an opam lib and make sure semver */
+        /* validation fails but is still a valid opam version                    */
+        /*************************************************************************/
 
+        return(C.ANY)
+      | e => e
+      };
     return({InstallManifest.Dep.name, req: Npm(req)});
   | name =>
     module C = OpamPackageVersion.Constraint;
