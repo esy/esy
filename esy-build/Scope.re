@@ -838,6 +838,7 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
   | (Full.Global, "jobs") =>
     Some(string(string_of_int(PackageScope.jobs(scope.self))))
   | (Full.Global, "pinned") => Some(bool(false))
+  | (Full.Global, "with-test")
   | (Full.Global, "dev") =>
     Some(
       bool(
