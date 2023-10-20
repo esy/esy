@@ -21,10 +21,16 @@ ${'\t'}mkdir -p ${sourcesDir};
     let parts = urlStrWithType.split(':');
     let sourceType = parts[0];
     let urlStr = parts.slice(1).join(':');
-    let downloadedTarballFilePath = path.join(sourcesDir, normalisedPackageName);
-    console.log(`${normalisedPackageName}: ${sourcesDir}
+    let downloadedTarballFilePath = path.join(sourcesDir, normalisedPackageName) + '.tgz';
+    if (urlStr.startsWith('http')) {
+      console.log(`${normalisedPackageName}: ${sourcesDir}
 ${'\t'}sh ./boot/fetch-source.sh --checksum-algorithm=${algo} --checksum=${checksum} --output-file=${downloadedTarballFilePath} --url=${urlStr}
 `);
+    } else {
+      console.log(`${normalisedPackageName}: ${sourcesDir}
+${'\t'}echo TODO github fetch
+`);
+    }
   }
   console.log(`fetch-sources: ${Object.keys(sources).map(normalisePackageNames).join(' ')}
 ${'\t'}
