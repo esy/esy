@@ -6,6 +6,7 @@ function normalisePackageNames(n) {
     .replace(/@/g, '__AT__')
     .replace(/\//g, '__s__')
     .replace(/\./g, '__DOT__')
+    .replace(/#/g, '__HASH__')
     .replace(/:/g, '__COLON__');
 }
 
