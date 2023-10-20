@@ -47,7 +47,7 @@ mechanism can be extended to any esy project.
   makeFile /* list(rule) */ = [];
 
   Compile = {
-    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}\n\t${buildCommands.map((command) => command.join(' ')).join(' && ')}`,
+    rule: ({target, deps, buildCommands}) => `${target}: ${deps.join(' ')}\n\t${buildCommands.map((command) => command.join(' ')).join(';\n\t')}`,
   };
 
   Compile.rule({
@@ -134,12 +134,12 @@ mechanism can be extended to any esy project.
 ** Preparing the sources directory
 
 #+begin_src sh
-  mkdir _esy-store/3/
+  mkdir -p _esy-store/3/
   esy i --cache-tarballs-path=_esy-sources
   cd _esy-sources
   for i in $(ls *.tgz);
   do
-      mkdir ${i%.tgz};
+      mkdir -p ${i%.tgz};
       tar -xf ${i} -C ${i%.tgz};
   done
   mkdir -p _esy-store/3/{i,b,s}
