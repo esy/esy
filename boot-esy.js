@@ -21,13 +21,9 @@ ${'\t'}mkdir -p ${sourcesDir};
     let parts = urlStrWithType.split(':');
     let sourceType = parts[0];
     let urlStr = parts.slice(1).join(':');
+    let downloadedTarballFilePath = path.join(sourcesDir, normalisedPackageName);
     console.log(`${normalisedPackageName}: ${sourcesDir}
-${'\t'}curl -o ${path.join(sourcesDir, normalisedPackageName)} ${urlStr}
-${'\t'}echo "${checksum} *${path.join(
-      sourcesDir,
-      normalisedPackageName,
-    )}" | shasum -a ${algo.replace('sha', '')} -c
-${'\t'}tar -xf ${path.join(sourcesDir, normalisedPackageName)} -C sources/
+${'\t'}sh ./boot/fetch-source.sh --checksum-algorithm=${algo} --checksum=${checksum} --output-file=${downloadedTarballFilePath} --url=${urlStr}
 `);
   }
   console.log(`fetch-sources: ${Object.keys(sources).map(normalisePackageNames).join(' ')}
