@@ -17,18 +17,28 @@ ${'\t'}mkdir -p ${sourcesDir};
   for (key in sources) {
     let normalisedPackageName = normalisePackageNames(key);
     let [urlStrWithType, checksumCRC] = sources[key].split('#');
-    let [algo, checksum] = checksumCRC.split(':');
     let parts = urlStrWithType.split(':');
     let sourceType = parts[0];
-    let urlStr = parts.slice(1).join(':');
-    let downloadedTarballFilePath = path.join(sourcesDir, normalisedPackageName) + '.tgz';
-    if (urlStr.startsWith('http')) {
+    if (sourceType === 'archive') {
+      let [algo, checksum] = checksumCRC.split(':');
+      let parts = urlStrWithType.split(':');
+      let sourceType = parts[0];
+      let urlStr = parts.slice(1).join(':');
+      let downloadedTarballFilePath =
+        path.join(sourcesDir, normalisedPackageName) + '.tgz';
       console.log(`${normalisedPackageName}: ${sourcesDir}
 ${'\t'}sh ./boot/fetch-source.sh --checksum-algorithm=${algo} --checksum=${checksum} --output-file=${downloadedTarballFilePath} --url=${urlStr}
 `);
-    } else {
+    } else if (sourceType === 'github') {
+      let matches = sources[key].match(
+        /github:(?<org>[^\/]+)\/(?<repo>[^#:]+)(:(?<manifest>.*))?#(?<commit>.+)$/,
+      );
+      if (!matches) {
+        throw new Error('Could not parse github source');
+      }
+      let {org, repo, manifest, commit} = matches.groups;
       console.log(`${normalisedPackageName}: ${sourcesDir}
-${'\t'}echo TODO github fetch
+${'\t'}sh ./boot/fetch-github.sh --org=${org} --repo=${repo} --manifest=${manifest} --commit=${commit} --clone-dir=sources/${normalisedPackageName}
 `);
     }
   }
