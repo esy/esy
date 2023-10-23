@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -ex
+set -e
 
 # shellcheck disable=SC2001
 #   2001 complains bash variable substitution could be considered instead of echo/sed pattern
