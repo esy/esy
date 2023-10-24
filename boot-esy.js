@@ -82,7 +82,14 @@ const Env = {
   },
   toString(env) {
     return Object.keys(env)
-      .map((key) => `${key}="${env[key]}"`)
+      .filter((key) => key !== 'SHELL') // TODO remove this
+      .map((key) => {
+        let v = env[key];
+        if (v.indexOf(' ') !== -1) {
+          v = `"${v}"`;
+        }
+        return `${key}=${v}`;
+      })
       .join(' ');
   },
 };
@@ -112,11 +119,13 @@ function renderEsyVariables(
     .replace(/%{globalStorePrefix}%/g, globalStorePrefix)
     .replace(/%{localStore}%/g, localStore)
     .replace(/%{store}%/g, store)
-    .replace(/%{project}%/g, project);
+    .replace(/%{project}%/g, project)
+    .replace('/store/s', '/store/i'); //HACK remove and start using rewritePrefix;
 }
 
 function traverse(
   makeFile,
+  curInstallMap,
   {localStore, store, globalStorePrefix, sources, project},
   lockFile,
   packageID,
@@ -132,7 +141,6 @@ function traverse(
     sources,
     project,
   });
-  let renderedEnvStr = Env.toString(renderedEnv);
   let buildsInSource =
     buildPlan.buildType == 'in-source' || buildPlan.buildPlan == '_build';
   let curRoot = renderedEnv['cur__root'].replace(
@@ -145,6 +153,9 @@ function traverse(
   );
   let curToplevel = renderedEnv['cur__toplevel'];
   let curInstall = renderedEnv['cur__install'];
+  let curInstallImmutable = curInstall.replace('/s/', '/i/');
+  renderedEnv['cur__install'] = curInstallImmutable;
+  curInstall = curInstallImmutable; // HACKY but useful
   let curTargetDir = renderedEnv['cur__target_dir'];
   let curStublibs = renderedEnv['cur__stublibs'];
   let curShare = renderedEnv['cur__share'];
@@ -156,7 +167,9 @@ function traverse(
   let curBin = renderedEnv['cur__bin'];
   let envFile = `${curTargetDir}.env`;
 
+  let renderedEnvStr = Env.toString(renderedEnv);
   fs.writeFileSync(envFile, renderedEnvStr);
+  curInstallMap.set(packageName, curInstallImmutable);
 
   let buildCommands = buildPlan.build
     .map((arg) =>
@@ -171,7 +184,14 @@ function traverse(
       ),
     )
     .map((args) => {
-      return ['env', '-i', '-S', `$(cat ${envFile})`].concat(args);
+      return [
+        'env',
+        '-i',
+        '-P',
+        `"${renderedEnv['PATH']}"`,
+        '-S',
+        '$(shell cat ' + envFile + ')',
+      ].concat(args);
     });
   buildCommands = [['cd', curRoot]].concat(buildCommands);
   if (buildsInSource) {
@@ -194,14 +214,20 @@ function traverse(
     ],
   ]
     .concat(buildCommands)
-    .concat([['dune', 'install']])
-    .concat([['mv', curInstall, curInstall.replace('/s/', '/i/')]]);
+    .concat([
+      [
+        'bash',
+        '-c',
+        `"if [ -f *.install ]; then env -i -P \\"${renderedEnv['PATH']}\\"  -S $(shell cat ${envFile}) dune install; fi"`,
+      ],
+    ]);
   return dependencies
     .reduce(
       (makeFile, dep) =>
         makeFile.concat(
           traverse(
             [],
+            curInstallMap,
             {localStore, store, globalStorePrefix, sources, project},
             lockFile,
             dep,
@@ -211,9 +237,14 @@ function traverse(
     )
     .concat([
       {
-        target: packageName,
+        target: curInstallImmutable,
         deps: dependencies.map(Package.nameOfLockEntry),
         buildCommands,
+      },
+      {
+        target: packageName,
+        deps: [curInstallImmutable],
+        buildCommands: [],
       },
     ]);
 }
@@ -232,6 +263,7 @@ function emitBuild(cwd) {
   console.log(
     traverse(
       makeFile,
+      new Map(),
       {localStore, store, globalStorePrefix, sources, project},
       lockFile,
       lockFile.root,
