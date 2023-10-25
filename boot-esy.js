@@ -129,124 +129,119 @@ function traverse(
   {localStore, store, globalStorePrefix, sources, project},
   lockFile,
   packageID,
+  cwd,
 ) {
   let {dependencies} =
     lockFile.node[packageID] || throwError(`Package name not found: ${packageID}`);
   let packageName = Package.nameOfLockEntry(packageID);
-  let buildPlan = esyBuildPlan(packageName);
-  let renderedEnv = Env.render(buildPlan.env, {
-    localStore,
-    store,
-    globalStorePrefix,
-    sources,
-    project,
-  });
-  let buildsInSource =
-    buildPlan.buildType == 'in-source' || buildPlan.buildPlan == '_build';
-  let curRoot = renderedEnv['cur__root'].replace(
-    path.join(process.env['HOME'], '.esy', 'source', 'i'),
-    sources,
-  );
-  let curOriginalRoot = renderedEnv['cur__original_root'].replace(
-    path.join(process.env['HOME'], '.esy', 'source', 'i'),
-    sources,
-  );
-  let curToplevel = renderedEnv['cur__toplevel'];
-  let curInstall = renderedEnv['cur__install'];
-  let curInstallImmutable = curInstall.replace('/s/', '/i/');
-  renderedEnv['cur__install'] = curInstallImmutable;
-  curInstall = curInstallImmutable; // HACKY but useful
-  let curTargetDir = renderedEnv['cur__target_dir'];
-  let curStublibs = renderedEnv['cur__stublibs'];
-  let curShare = renderedEnv['cur__share'];
-  let curSbin = renderedEnv['cur__sbin'];
-  let curMan = renderedEnv['cur__man'];
-  let curLib = renderedEnv['cur__lib'];
-  let curEtc = renderedEnv['cur__etc'];
-  let curDoc = renderedEnv['cur__doc'];
-  let curBin = renderedEnv['cur__bin'];
-  let envFile = `${curTargetDir}.env`;
-
-  let renderedEnvStr = Env.toString(renderedEnv);
-  fs.writeFileSync(envFile, renderedEnvStr);
-  curInstallMap.set(packageName, curInstallImmutable);
-
-  let buildCommands = buildPlan.build
-    .map((arg) =>
-      arg.map((cmd) =>
-        renderEsyVariables(cmd, {
-          localStore,
-          store,
-          globalStorePrefix,
-          sources,
-          project,
-        }),
-      ),
-    )
-    .map((args) => {
-      return [
-        'env',
-        '-i',
-        '-P',
-        `"${renderedEnv['PATH']}"`,
-        '-S',
-        '$(shell cat ' + envFile + ')',
-      ].concat(args);
-    });
-  buildCommands = [['cd', curRoot]].concat(buildCommands);
-  if (buildsInSource) {
-    buildCommands = [['cp', '-R', `${curOriginalRoot}`, curRoot]].concat(buildCommands);
+  if (makeFile.get(packageName)) {
+    return makeFile;
   } else {
-    buildCommands = [['mkdir', '-p', curTargetDir]].concat(buildCommands);
-  }
-  buildCommands = [
-    [
-      'mkdir',
-      '-p',
-      curStublibs,
-      curShare,
-      curSbin,
-      curMan,
-      curLib,
-      curEtc,
-      curDoc,
-      curBin,
-    ],
-  ]
-    .concat(buildCommands)
-    .concat([
-      [
-        'bash',
-        '-c',
-        `"if [ -f *.install ]; then env -i -P \\"${renderedEnv['PATH']}\\"  -S $(shell cat ${envFile}) dune install; fi"`,
-      ],
-    ]);
-  return dependencies
-    .reduce(
-      (makeFile, dep) =>
-        makeFile.concat(
-          traverse(
-            [],
-            curInstallMap,
-            {localStore, store, globalStorePrefix, sources, project},
-            lockFile,
-            dep,
-          ),
+    let buildPlan = esyBuildPlan(packageName);
+    let renderedEnv = Env.render(buildPlan.env, {
+      localStore,
+      store,
+      globalStorePrefix,
+      sources,
+      project,
+    });
+    let buildsInSource =
+      buildPlan.buildType == 'in-source' || buildPlan.buildPlan == '_build';
+    let curRoot = renderedEnv['cur__root'].replace(
+      path.join(process.env['HOME'], '.esy', 'source', 'i'),
+      sources,
+    );
+    let curOriginalRoot = renderedEnv['cur__original_root'].replace(
+      path.join(process.env['HOME'], '.esy', 'source', 'i'),
+      sources,
+    );
+    let curToplevel = renderedEnv['cur__toplevel'];
+    let curInstall = renderedEnv['cur__install'];
+    let curInstallImmutable = curInstall.replace('/s/', '/i/');
+    renderedEnv['cur__install'] = curInstallImmutable;
+    curInstall = curInstallImmutable; // HACKY but useful
+    let curTargetDir = renderedEnv['cur__target_dir'];
+    let curStublibs = renderedEnv['cur__stublibs'];
+    let curShare = renderedEnv['cur__share'];
+    let curSbin = renderedEnv['cur__sbin'];
+    let curMan = renderedEnv['cur__man'];
+    let curLib = renderedEnv['cur__lib'];
+    let curEtc = renderedEnv['cur__etc'];
+    let curDoc = renderedEnv['cur__doc'];
+    let curBin = renderedEnv['cur__bin'];
+    let envFile = `${curTargetDir}.env`;
+    let pathFile = `${curTargetDir}.path`;
+
+    let renderedEnvStr = Env.toString(renderedEnv);
+    fs.writeFileSync(envFile, renderedEnvStr);
+    fs.writeFileSync(pathFile, renderedEnv['PATH']);
+    curInstallMap.set(packageName, curInstallImmutable);
+
+    let buildCommands = buildPlan.build
+      .map((arg) =>
+        arg.map((cmd) =>
+          renderEsyVariables(cmd, {
+            localStore,
+            store,
+            globalStorePrefix,
+            sources,
+            project,
+          }),
         ),
-      makeFile,
-    )
-    .concat([
-      {
-        target: curInstallImmutable,
-        deps: dependencies.map(Package.nameOfLockEntry),
-        buildCommands,
-      },
-      {
-        target: packageName,
-        deps: [curInstallImmutable],
-        buildCommands: [],
-      },
-    ]);
+      )
+      .map((args) => {
+        return [`${cwd}/boot/build-env.sh`, envFile, pathFile, `"${args.join(' ')}"`];
+      });
+    buildCommands = [['cd', curRoot]].concat(buildCommands);
+    if (buildsInSource) {
+      buildCommands = [
+        ['rm', '-rf', curRoot],
+        ['cp', '-R', `${curOriginalRoot}`, curRoot],
+      ].concat(buildCommands);
+    } else {
+      buildCommands = [
+        ['rm', '-rf', curTargetDir],
+        ['mkdir', '-p', curTargetDir],
+      ].concat(buildCommands);
+    }
+    buildCommands = [['bash', `${cwd}/boot/prepare-build.sh`, curInstall]]
+      .concat(buildCommands)
+      .concat([
+        [
+          'bash',
+          `${cwd}/boot/install-artifacts.sh`,
+          envFile,
+          pathFile,
+          path.join(cwd, '_boot/store/i/opam__s__dune-opam__c__2.9.0-a30affc6'), // TODO replace this hardcoded pathj
+          curInstall,
+          packageName,
+        ],
+      ]);
+    makeFile = dependencies.reduce((makeFile, dep) => {
+      return traverse(
+        makeFile,
+        curInstallMap,
+        {localStore, store, globalStorePrefix, sources, project},
+        lockFile,
+        dep,
+        cwd,
+      );
+    }, makeFile);
+
+    makeFile.set(curInstallImmutable, {
+      target: curInstallImmutable,
+      deps: dependencies.map(Package.nameOfLockEntry),
+      buildCommands,
+    });
+
+    makeFile.set(packageName, {
+      target: packageName,
+      deps: [curInstallImmutable],
+      buildCommands: [],
+    });
+
+    return makeFile;
+  }
 }
 
 function emitBuild(cwd) {
@@ -259,14 +254,17 @@ function emitBuild(cwd) {
   const rootProjectBuildPlan = esyBuildPlan();
   const lockFile = require(cwd + '/esy.lock/index.json');
   /* type rule = { target, deps, build } */
-  const makeFile /* list(rule) */ = [];
+  const makeFile /* list(rule) */ = new Map();
   console.log(
-    traverse(
-      makeFile,
-      new Map(),
-      {localStore, store, globalStorePrefix, sources, project},
-      lockFile,
-      lockFile.root,
+    Array.from(
+      traverse(
+        makeFile,
+        new Map(),
+        {localStore, store, globalStorePrefix, sources, project},
+        lockFile,
+        lockFile.root,
+        cwd,
+      ).values(),
     )
       .map(Compile.rule)
       .join('\n\n'),
