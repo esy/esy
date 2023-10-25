@@ -213,7 +213,7 @@ function traverse(
           envFile,
           pathFile,
           path.join(cwd, '_boot/store/i/opam__s__dune-opam__c__2.9.0-a30affc6'), // TODO replace this hardcoded pathj
-          curInstall,
+          curInstallImmutable,
           packageName,
         ],
       ]);
