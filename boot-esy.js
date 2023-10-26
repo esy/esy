@@ -95,7 +95,61 @@ const Env = {
 };
 
 const esyBuildPlanCache = new Map();
-function esyBuildPlan(packageName) {
+function esyBuildPlan(cwd, packageName) {
+  if (packageName === 'setup-esy-installer') {
+    return JSON.parse(` {
+  "id": "setup_esy_installer-fb3bf850",
+  "name": "setup-esy-installer",
+  "version": "github:ManasJayanth/esy-boot-installer#beee8a4775846651c958946ec1d6919e54bd49bc",
+  "sourceType": "immutable",
+  "buildType": "in-source",
+  "build": [
+    [
+      "make", "PREFIX=%{store}%/s/setup_esy_installer-fb3bf850",
+      "esy-installer"
+    ]
+  ],
+  "install": [
+    [ "make", "PREFIX=%{store}%/s/setup_esy_installer-fb3bf850", "install" ]
+  ],
+  "sourcePath": "${cwd}/_boot/sources/esy-boot-installer",
+  "rootPath": "%{globalStorePrefix}%/3/b/setup_esy_installer-fb3bf850",
+  "buildPath": "%{globalStorePrefix}%/3/b/setup_esy_installer-fb3bf850",
+  "stagePath": "%{store}%/s/setup_esy_installer-fb3bf850",
+  "installPath": "%{store}%/i/setup_esy_installer-fb3bf850",
+  "env": {
+    "cur__version": "github:ManasJayanth/esy-boot-installer#beee8a4775846651c958946ec1d6919e54bd49bc",
+    "cur__toplevel": "%{store}%/s/setup_esy_installer-fb3bf850/toplevel",
+    "cur__target_dir": "%{globalStorePrefix}%/3/b/setup_esy_installer-fb3bf850",
+    "cur__stublibs": "%{store}%/s/setup_esy_installer-fb3bf850/stublibs",
+    "cur__share": "%{store}%/s/setup_esy_installer-fb3bf850/share",
+    "cur__sbin": "%{store}%/s/setup_esy_installer-fb3bf850/sbin",
+    "cur__root": "%{globalStorePrefix}%/3/b/setup_esy_installer-fb3bf850",
+     "cur__original_root": "${cwd}/_boot/sources/esy-boot-installer",
+    "cur__name": "setup-esy-installer",
+    "cur__man": "%{store}%/s/setup_esy_installer-fb3bf850/man",
+    "cur__lib": "%{store}%/s/setup_esy_installer-fb3bf850/lib",
+    "cur__jobs": "4",
+    "cur__install": "%{store}%/s/setup_esy_installer-fb3bf850",
+    "cur__etc": "%{store}%/s/setup_esy_installer-fb3bf850/etc",
+    "cur__doc": "%{store}%/s/setup_esy_installer-fb3bf850/doc",
+    "cur__dev": "false",
+    "cur__bin": "%{store}%/s/setup_esy_installer-fb3bf850/bin",
+    "SHELL": "env -i /bin/bash --norc --noprofile",
+    "PATH": "%{store}%/i/ocaml-4.12.0-3a04ec8f/bin::/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "OCAML_TOPLEVEL_PATH": "%{store}%/i/ocaml-4.12.0-3a04ec8f/lib/ocaml",
+    "OCAMLPATH": "%{store}%/i/ocaml-4.12.0-3a04ec8f/lib:",
+    "OCAMLLIB": "%{store}%/i/ocaml-4.12.0-3a04ec8f/lib/ocaml",
+    "OCAMLFIND_LDCONF": "ignore",
+    "OCAMLFIND_DESTDIR": "%{store}%/s/setup_esy_installer-fb3bf850/lib",
+    "MAN_PATH": "%{store}%/i/ocaml-4.12.0-3a04ec8f/man:",
+    "CAML_LD_LIBRARY_PATH": "%{store}%/i/ocaml-4.12.0-3a04ec8f/lib/ocaml/stublibs:%{store}%/i/ocaml-4.12.0-3a04ec8f/lib/ocaml:"
+  },
+  "jbuilderHackEnabled": false,
+  "depspec": "dependencies(self)"
+}`);
+  }
+
   let cmd = 'esy build-plan';
   if (packageName) {
     let cachedResults = esyBuildPlanCache.get(packageName);
@@ -131,13 +185,19 @@ function traverse(
   packageID,
   cwd,
 ) {
-  let {dependencies} =
-    lockFile.node[packageID] || throwError(`Package name not found: ${packageID}`);
+  let dependencies;
+  if (packageID === 'setup-esy-installer@vvv@hhh') {
+    dependencies = Object.keys(lockFile.node).filter((k) => k.startsWith('ocaml@'));
+  } else {
+    dependencies =
+      (lockFile.node[packageID] && lockFile.node[packageID].dependencies) ||
+      throwError(`Package name not found: ${packageID}`);
+  }
   let packageName = Package.nameOfLockEntry(packageID);
   if (makeFile.get(packageName)) {
     return makeFile;
   } else {
-    let buildPlan = esyBuildPlan(packageName);
+    let buildPlan = esyBuildPlan(cwd, packageName);
     let renderedEnv = Env.render(buildPlan.env, {
       localStore,
       store,
@@ -206,17 +266,39 @@ function traverse(
     }
     buildCommands = [['bash', `${cwd}/boot/prepare-build.sh`, curInstall]]
       .concat(buildCommands)
-      .concat([
-        [
-          'bash',
-          `${cwd}/boot/install-artifacts.sh`,
-          envFile,
-          pathFile,
-          path.join(cwd, '_boot/store/i/opam__s__dune-opam__c__2.9.0-a30affc6'), // TODO replace this hardcoded pathj
-          curInstallImmutable,
-          packageName,
-        ],
-      ]);
+      .concat(
+        buildPlan.install && buildPlan.install.length !== 0
+          ? buildPlan.install.map((arg) =>
+              arg.map((cmd) =>
+                renderEsyVariables(cmd, {
+                  localStore,
+                  store,
+                  globalStorePrefix,
+                  sources,
+                  project,
+                }),
+              ),
+            )
+          : [
+              [
+                'bash',
+                `${cwd}/boot/install-artifacts.sh`,
+                envFile,
+                pathFile,
+                path.join(
+                  cwd,
+                  '_boot/store/i/setup_esy_installer-fb3bf850/bin/esy-installer',
+                ), // TODO replace this hardcoded path
+                curInstallImmutable,
+                packageName,
+              ],
+            ],
+      );
+    // A trick to make sure setup-esy-installer is run before everything else, including Dune
+    if (packageName === '@opam/dune') {
+      dependencies.push('setup-esy-installer@vvv@hhh');
+    }
+
     makeFile = dependencies.reduce((makeFile, dep) => {
       return traverse(
         makeFile,
@@ -228,9 +310,11 @@ function traverse(
       );
     }, makeFile);
 
+    let deps = dependencies.map(Package.nameOfLockEntry);
+
     makeFile.set(curInstallImmutable, {
       target: curInstallImmutable,
-      deps: dependencies.map(Package.nameOfLockEntry),
+      deps,
       buildCommands,
     });
 
