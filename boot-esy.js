@@ -268,17 +268,26 @@ function traverse(
       .concat(buildCommands)
       .concat(
         buildPlan.install && buildPlan.install.length !== 0
-          ? buildPlan.install.map((arg) =>
-              arg.map((cmd) =>
-                renderEsyVariables(cmd, {
-                  localStore,
-                  store,
-                  globalStorePrefix,
-                  sources,
-                  project,
-                }),
-              ),
-            )
+          ? buildPlan.install
+              .map((arg) =>
+                arg.map((cmd) =>
+                  renderEsyVariables(cmd, {
+                    localStore,
+                    store,
+                    globalStorePrefix,
+                    sources,
+                    project,
+                  }),
+                ),
+              )
+              .map((args) => {
+                return [
+                  `${cwd}/boot/build-env.sh`,
+                  envFile,
+                  pathFile,
+                  `"${args.join(' ')}"`,
+                ];
+              })
           : [
               [
                 'bash',
