@@ -56,8 +56,8 @@ obvious items) with further explanations:
     ├── esy-solve
     │   This dune library implements solver.
     │
-    ├── esy-install
-    │   This dune library implements installer.
+    ├── esy-fetch
+    │   This dune library implements installer - fetching and installing of package sources
     │
     ├── esy-build-package
     │   This dune library implements package builder. esy library uses this to
@@ -65,10 +65,6 @@ obvious items) with further explanations:
     │
     ├── esy-build-package/bin
     │   This dune executable implements "esy-build-package" command.
-    │
-    ├── esy-installer
-    │   Implementation of installation procedure defined with *.install files.
-    │   This re-implements opam-installer.
     │
     ├── esy-install-npm-release
     │   Sources for `bin/esyInstallRelease.js`.
@@ -79,9 +75,6 @@ obvious items) with further explanations:
     ├── esy-shell-expansion
     │   A simple shell expansion.
     │
-    ├── esy-yarn-lockfile
-    │   Parser for a subset of yarn lockfile format.
-    │
     ├── esy-lib
     │   A collection of utility modules shared between other libraries.
     │
@@ -89,7 +82,10 @@ obvious items) with further explanations:
     │   Sources for https://esy.sh
     │
     ├── esy.lock
+    │   Lock files. Esy uses itself for development
+    │
     ├── package.json
+    │   Manifest for yarn to manage NPM dependencies of this project
     │
     ├── scripts
     │
@@ -97,11 +93,12 @@ obvious items) with further explanations:
     │   Unit tests.
     │
     ├── test-e2e-slow
-    │   End-to-end test suite which takes a significant amount of time.
+    │   End-to-end test suite which takes a significant amount of time since they're 
+    │   not mocked or rarely so.
     │   We execute it on CI by placing `@slowtest` token in commit messages.
     │
     └── test-e2e
-        End-to-end test suite.
+        End-to-end test suite that dont need the network. Heavily mocked
 
 ## Workflow
 
@@ -131,13 +128,33 @@ forget to commit it.
 
 ### Running Tests
 
-Run:
+`esy` has primarily 3 kinds of tests.
+
+1. Unit tests - useful when developing parsers etc
+2. Slow end-to-end tests 
+3. Fast end-to-end tests
+
+
+#### Unit Tests
+
+These are present inline in the `*.re` files. To run them,
 
 ```
-% make test
+esy b dune runtest
 ```
 
-#### Slow tests
+#### Fast end-to-end tests
+
+These are present in `test-e2e` folder and are written in JS. They're run by `jest`
+
+```
+yarn jest
+```
+
+#### Slow end-to-end tests
+They're present in `test-e2e-slow` and are written in JS. They're supposed to mimick the user's workflow
+as closely as possible.
+
 By placing `@slowtest` token in commit messages, we mark the commit ready for the slow tests framework
 (tests that hit the network). They are run with `node test-e2e-slow/run-slow-tests.js`
 
@@ -149,7 +166,7 @@ in the cygwin shall and add them to your github profile.
 1. Enter cygwin installed by esy (not the global one)
 
 ```sh
-.\node_modules\@prometheansacrifice\esy-bash\re\_build\default\bin\EsyBash.exe bash
+.\node_modules\esy-bash\re\_build\default\bin\EsyBash.exe bash
 ```
 
 2. Generate ssh keys
