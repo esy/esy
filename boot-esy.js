@@ -290,7 +290,7 @@ function traverse(
                   `${cwd}/boot/build-env.sh`,
                   envFile,
                   pathFile,
-                  `"${args.join(' ')}"`,
+                  `"${args.map((c) => "'" + c + "'").join(' ')}"`,
                 ];
               })
           : [
