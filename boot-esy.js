@@ -250,7 +250,12 @@ function traverse(
         ),
       )
       .map((args) => {
-        return [`${cwd}/boot/build-env.sh`, envFile, pathFile, `"${args.join(' ')}"`];
+        return [
+          `${cwd}/boot/build-env.sh`,
+          envFile,
+          pathFile,
+          `"${args.map((c) => "'" + c + "'").join(' ')}"`,
+        ];
       });
     buildCommands = [['cd', curRoot]].concat(buildCommands);
     if (buildsInSource) {
