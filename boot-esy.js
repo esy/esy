@@ -254,7 +254,7 @@ function traverse(
           `${cwd}/boot/build-env.sh`,
           envFile,
           pathFile,
-          `"${args.map((c) => "'" + c + "'").join(' ')}"`,
+          `"${args.map((c) => "'" + c.replace(/'/g, '') + "'").join(' ')}"`,
         ];
       });
     buildCommands = [['cd', curRoot]].concat(buildCommands);
@@ -290,7 +290,7 @@ function traverse(
                   `${cwd}/boot/build-env.sh`,
                   envFile,
                   pathFile,
-                  `"${args.map((c) => "'" + c + "'").join(' ')}"`,
+                  `"${args.map((c) => "'" + c.replace(/'/g, '') + "'").join(' ')}"`,
                 ];
               })
           : [
