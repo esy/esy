@@ -67,6 +67,9 @@ let traverse:
 let copyFile: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
 let copyPath: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
 
+// Because copyPath's signature doesn't make it possible to pass an optional argument
+let hardlinkPath: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
+
 let rmPath: Path.t => RunAsync.t(unit);
 let rmPathLwt: Path.t => Lwt.t(unit);
 
