@@ -49,6 +49,7 @@
     "@opam/opam-state": "opam:2.2.0~alpha",
     "@opam/opam-repository": "opam:2.2.0~alpha",
     "@opam/opam-format": "opam:2.2.0~alpha",
+    "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
