@@ -17,7 +17,7 @@ depexts: [
   ["bzip2-devel"] {os-distribution = "rhel"}
   ["bzip2-devel"] {os-distribution = "centos"}
   ["bzip2-devel"] {os-distribution = "ol"}
-  ["libbz2-devel"] {os-family = "suse"}
+  ["libbz2-devel"] {os-family = "suse" | os-family = "opensuse"}
   ["bzip2"] {os-family = "arch"}
   ["bzip2"] {os = "freebsd"}
   ["bzip2"] {os = "openbsd"}
