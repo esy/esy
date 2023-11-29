@@ -52,7 +52,7 @@ jobs:
   - template: build-platform.yml
     parameters:
       platform: macOS
-      vmImage: macOS-latest
+      vmImage: macOS-11 # Because newer macos run solver verbosely for some reason
 
   - template: docker.yml
     parameters:
