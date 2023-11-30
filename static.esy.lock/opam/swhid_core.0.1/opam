@@ -1,0 +1,41 @@
+opam-version: "2.0"
+synopsis: "OCaml library to work with swhids"
+description: """
+swhid_core is an OCaml library to with with Software Heritage persistent identifiers (swhids).
+This is the core library, for most use cases you should use the swhid library instead.
+"""
+maintainer: "Léo Andrès <contact@ndrs.fr>"
+authors: [
+  "Léo Andrès <contact@ndrs.fr>"
+  "Dario Pinto <dario.pinto@ocamlpro.com>"
+]
+license: "ISC"
+homepage: "https://github.com/ocamlpro/swhid_core"
+bug-reports: "https://github.com/ocamlpro/swhid_core/issues"
+depends: [
+  "ocaml" {>= "4.03"}
+  "dune" {>= "1.11"}
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://github.com/ocamlpro/swhid_core.git"
+url {
+  src: "https://github.com/OCamlPro/swhid_core/archive/refs/tags/0.1.tar.gz"
+  checksum: [
+    "sha256=8718b4eb97c9f0acd6d9162a9efa2f6af82474a0bd186f622fda3294f773bccf"
+    "sha512=ec72cc946c662dc8230f4ef8c85bb41df56c3f46bc49276feca434199cd482f11901be902fc5c243244866d4a167474f18245f83ad0b0cf46eb35406ad1f1b5c"
+  ]
+}

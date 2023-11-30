@@ -11,7 +11,7 @@ depexts: [
   #   https://github.com/ocaml/opam/blob/6aefe95e60084e63d01b1c7c028b6b77de1f839f/src/state/opamSysInteract.ml#L84-L123
   # The package name for many Linux/BSD/macOS/cygwin/msys platforms can be searched here (thanks Théo)
   #   https://repology.org specifically https://repology.org/project/automake/versions
-  #   Not listed above but supported by opam are suse, oraclelinix, ol, rhel
+  #   Not listed above but supported by opam are oraclelinix, ol, rhel
   [ "automake" ] {os-family = "alpine"}
   [ "automake" ] {os-family = "amzn"}
   [ "automake" ] {os-family = "arch"}
@@ -25,7 +25,7 @@ depexts: [
   [ "automake" ] {os-family = "homebrew"}
   [ "automake" ] {os-family = "macports"}
   [ "automake" ] {os-family = "mageia"}
-  [ "automake" ] {os-family = "opensuse"}
+  [ "automake" ] {os-family = "suse" | os-family = "opensuse"}
   [ "devel/automake" ] {os-family = "bsd"}
 ]
 synopsis: "Virtual package relying on GNU automake"

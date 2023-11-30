@@ -17,6 +17,7 @@ depexts: [
   ["zlib"] {os-distribution = "homebrew" & os = "macos"}
   ["zlib"] {os-family = "arch"}
   ["zlib"] {os = "win32" & os-distribution = "cygwinports"}
+  ["zlib-devel"] {os-distribution = "cygwin"}
 ]
 synopsis: "Virtual package relying on zlib"
 description:
