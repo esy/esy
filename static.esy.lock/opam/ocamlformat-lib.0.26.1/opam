@@ -1,0 +1,68 @@
+opam-version: "2.0"
+synopsis: "OCaml Code Formatter"
+description:
+  "OCamlFormat is a tool to automatically format OCaml code in a uniform style."
+maintainer: [
+  "Guillaume Petiot <guillaume@tarides.com>"
+  "Jules Aguillon <jules@j3s.fr>"
+  "Emile Trotignon <emile@tarides.com>"
+]
+authors: [
+  "Josh Berdine <jjb@fb.com>"
+  "Hugo Heuzard <hugo.heuzard@gmail.com>"
+  "Etienne Millon <etienne@tarides.com>"
+  "Guillaume Petiot <guillaume@tarides.com>"
+  "Jules Aguillon <jules@j3s.fr>"
+]
+homepage: "https://github.com/ocaml-ppx/ocamlformat"
+bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
+depends: [
+  "ocaml" {>= "4.08"}
+  "alcotest" {with-test & >= "1.3.0"}
+  "base" {>= "v0.12.0"}
+  "dune" {>= "2.8"}
+  "dune-build-info"
+  "either"
+  "fix"
+  "fpath"
+  "menhir" {>= "20201216"}
+  "menhirLib" {>= "20201216"}
+  "menhirSdk" {>= "20201216"}
+  "ocaml-version" {>= "3.5.0"}
+  "ocamlformat-rpc-lib" {with-test & = version}
+  "ocp-indent" {with-test = "false" & >= "1.8.0" | with-test & >= "1.8.1"}
+  "stdio"
+  "uuseg" {>= "10.0.0"}
+  "uutf" {>= "1.0.1"}
+  "csexp" {>= "1.4.0"}
+  "astring"
+  "result"
+  "camlp-streams"
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://github.com/ocaml-ppx/ocamlformat.git"
+# OCamlFormat is distributed under the MIT license. Parts of the OCaml library are vendored for OCamlFormat and distributed under their original LGPL 2.1 license
+license: ["MIT" "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"]
+url {
+  src:
+    "https://github.com/ocaml-ppx/ocamlformat/releases/download/0.26.1/ocamlformat-0.26.1.tbz"
+  checksum: [
+    "sha256=da006e427f15b9ec612fb808d446599bd9b7c3ee25abeb3d555747a70d74c6d7"
+    "sha512=b7413f8dc47ba3a2372e89d59cae54f9a602ab81e31cd14ed986a831111080b79a5a3cc45dac04d8ffae5054c35bf29fe9559f145c76c87a30e191ed5400942a"
+  ]
+}
+x-commit-hash: "6734dfc1992eb782f0a936ce3cd7c78b7c1d39d3"
