@@ -50,12 +50,8 @@ steps:
       git archive --prefix=./esy-version/ --add-file=./esy-version/EsyVersion.re --prefix=./ --format=tgz HEAD -o source.tgz
     displayName: "Create distribution source tarball"
     condition: eq(variables['AGENT.OS'], 'Linux')
-  - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
-    - script: "esy release"
-      displayName: "esy release"
-  - ${{ if ne(parameters.platform,  'Ubuntu_16_04') }}:
-    - script: "esy release --no-env"
-      displayName: "esy release --no-env"
+  - script: "esy npm-release"
+    displayName: "Package esy for NPM"
   - task: PublishBuildArtifacts@1
     condition: eq(variables['AGENT.OS'], 'Linux')
     displayName: "Publish Artifact: Source Tarball"
