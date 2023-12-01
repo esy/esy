@@ -258,7 +258,7 @@ let makeBinWrapper =
     {|
     let windows = Sys.os_type = "Win32";;
     let cwd = Sys.getcwd ();;
-    let path_sep = if windows then '\\' else '/';;
+    let path_sep = '/';;
     let path_sep_str = String.make 1 path_sep;;
 
     let caseInsensitiveEqual i j = String.lowercase_ascii i = String.lowercase_ascii j;;
@@ -370,7 +370,7 @@ let makeBinWrapper =
         EnvHashtbl.replace curEnvMap name value
       in
       Array.iter f env;
-      let f name value items = (name ^ "=" ^ value)::items in
+      let f name value items = (name ^ "=" ^ (normalize value))::items in
       Array.of_list (EnvHashtbl.fold f curEnvMap [])
     ;;
 
