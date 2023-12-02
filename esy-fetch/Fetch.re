@@ -867,26 +867,6 @@ let fetchPackages =
   return(fetched);
 };
 
-/**
-   Creates [Installation.t] from list of packages. See Installation.re for
-   [Installation.t]'s structure.
- */
-let installationOfPkgs = (~rootPackageID, ~sandbox, pkgs) => {
-  open Sandbox;
-  open Package;
-  let rootPackagePath = sandbox.spec.path;
-  let init =
-    Installation.empty |> Installation.add(rootPackageID, rootPackagePath);
-
-  let f = (installation, pkg) => {
-    let id = pkg.id;
-    let path = PackagePaths.installPath(sandbox, pkg);
-    Installation.add(id, path, installation);
-  };
-
-  List.fold_left(~f, ~init, pkgs);
-};
-
 let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
@@ -904,13 +884,29 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
     );
 
   /* Produce _esy/<sandbox>/installation.json */
-  let installation =
-    installationOfPkgs(~rootPackageID=root.Package.id, ~sandbox, pkgs);
-  let* () =
-    Fs.writeJsonFile(
-      ~json=Installation.to_yojson(installation),
-      SandboxSpec.installationPath(sandbox.spec),
-    );
+  let* installation = {
+    let installation = {
+      let f = (installation, pkg) => {
+        let id = pkg.Package.id;
+        let path = PackagePaths.installPath(sandbox, pkg);
+        Installation.add(id, path, installation);
+      };
+
+      let init =
+        Installation.empty
+        |> Installation.add(root.Package.id, sandbox.spec.path);
+
+      List.fold_left(~f, ~init, pkgs);
+    };
+
+    let* () =
+      Fs.writeJsonFile(
+        ~json=Installation.to_yojson(installation),
+        SandboxSpec.installationPath(sandbox.spec),
+      );
+
+    return(installation);
+  };
 
   /* Install all packages. */
   let* () = {
