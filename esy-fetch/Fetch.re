@@ -870,8 +870,6 @@ let fetchPackages =
 /**
    Creates [Installation.t] from list of packages. See Installation.re for
    [Installation.t]'s structure.
-
-   To infer paths, it needs [sandbox] and [rootPackageID]
  */
 let installationOfPkgs = (~rootPackageID, ~sandbox, pkgs) => {
   open Sandbox;
@@ -1075,15 +1073,7 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
 
       return();
     } else {
-      let* () =
-        RunAsync.ofLwt @@
-        Esy_logs_lwt.debug(m => m("Linking NPM dependencies in node_modules"));
-      NodeModuleLinker.link(
-        ~installation,
-        ~solution,
-        ~projectPath=sandbox.spec.path,
-        ~fetchDepsSubset,
-      );
+      return();
     };
 
   let* () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
