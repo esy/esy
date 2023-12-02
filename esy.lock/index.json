@@ -1,5 +1,5 @@
 {
-  "checksum": "68c40baa2b72230911e4e2035d8bfb24",
+  "checksum": "23f36bcf2f228cca8596cff4ecaab800",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a@d41d8cd9": {
@@ -123,7 +123,7 @@
         "@opam/opam-core@opam:2.2.0~alpha@15ae5fff",
         "@opam/ocamlformat@opam:0.26.1@3a835116",
         "@opam/menhir@opam:20210419@462bec41",
-        "@opam/mccs@github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec@d41d8cd9",
+        "@opam/mccs@opam:1.1+16@369ee287",
         "@opam/lwt_ppx@github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61@d41d8cd9",
         "@opam/lwt@github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61@d41d8cd9",
         "@opam/fpath@opam:0.7.3@674d8125", "@opam/dune@opam:3.6.2@e0fa23ed",
@@ -133,7 +133,7 @@
       ],
       "devDependencies": [
         "@reason-native/rely@git:https://github.com/reasonml/reason-native.git:rely.opam#aec0ac68@d41d8cd9",
-        "@opam/utop@opam:2.13.1@dc6689f5", "@opam/rtop@opam:3.8.2@1ff7e533",
+        "@opam/utop@opam:2.13.0@7a0c1620", "@opam/rtop@opam:3.8.2@1ff7e533",
         "@opam/ocaml-lsp-server@opam:1.16.2@6e0031b9"
       ]
     },
@@ -350,20 +350,20 @@
       ],
       "devDependencies": [ "ocaml@4.14.0@d41d8cd9" ]
     },
-    "@opam/utop@opam:2.13.1@dc6689f5": {
-      "id": "@opam/utop@opam:2.13.1@dc6689f5",
+    "@opam/utop@opam:2.13.0@7a0c1620": {
+      "id": "@opam/utop@opam:2.13.0@7a0c1620",
       "name": "@opam/utop",
-      "version": "opam:2.13.1",
+      "version": "opam:2.13.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/b0/b04ec2a394d1a6a28a79444c58f66eab77b7f74401f4714aa6e6f1c2125a6ffd#sha256:b04ec2a394d1a6a28a79444c58f66eab77b7f74401f4714aa6e6f1c2125a6ffd",
-          "archive:https://github.com/ocaml-community/utop/releases/download/2.13.1/utop-2.13.1.tbz#sha256:b04ec2a394d1a6a28a79444c58f66eab77b7f74401f4714aa6e6f1c2125a6ffd"
+          "archive:https://opam.ocaml.org/cache/sha256/88/88450f20006c2d10781abe9841bad2a57e7298b5ecf1be33bbf1eadebd1286d8#sha256:88450f20006c2d10781abe9841bad2a57e7298b5ecf1be33bbf1eadebd1286d8",
+          "archive:https://github.com/ocaml-community/utop/releases/download/2.13.0/utop-2.13.0.tbz#sha256:88450f20006c2d10781abe9841bad2a57e7298b5ecf1be33bbf1eadebd1286d8"
         ],
         "opam": {
           "name": "utop",
-          "version": "2.13.1",
-          "path": "esy.lock/opam/utop.2.13.1"
+          "version": "2.13.0",
+          "path": "esy.lock/opam/utop.2.13.0"
         }
       },
       "overrides": [],
@@ -784,12 +784,12 @@
       },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.14.0@d41d8cd9", "@opam/utop@opam:2.13.1@dc6689f5",
+        "ocaml@4.14.0@d41d8cd9", "@opam/utop@opam:2.13.0@7a0c1620",
         "@opam/reason@opam:3.8.2@19b5db6d", "@opam/dune@opam:3.6.2@e0fa23ed",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@4.14.0@d41d8cd9", "@opam/utop@opam:2.13.1@dc6689f5",
+        "ocaml@4.14.0@d41d8cd9", "@opam/utop@opam:2.13.0@7a0c1620",
         "@opam/reason@opam:3.8.2@19b5db6d", "@opam/dune@opam:3.6.2@e0fa23ed"
       ]
     },
@@ -2430,15 +2430,21 @@
         "@opam/dune@opam:3.6.2@e0fa23ed"
       ]
     },
-    "@opam/mccs@github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec@d41d8cd9": {
-      "id": "@opam/mccs@github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec@d41d8cd9",
+    "@opam/mccs@opam:1.1+16@369ee287": {
+      "id": "@opam/mccs@opam:1.1+16@369ee287",
       "name": "@opam/mccs",
-      "version": "github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
+      "version": "opam:1.1+16",
       "source": {
         "type": "install",
         "source": [
-          "github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec"
-        ]
+          "archive:https://opam.ocaml.org/cache/md5/44/4446765f76586baee995c53c2701974b#md5:4446765f76586baee995c53c2701974b",
+          "archive:https://github.com/ocaml-opam/ocaml-mccs/archive/refs/tags/1.1+16.tar.gz#md5:4446765f76586baee995c53c2701974b"
+        ],
+        "opam": {
+          "name": "mccs",
+          "version": "1.1+16",
+          "path": "esy.lock/opam/mccs.1.1+16"
+        }
       },
       "overrides": [],
       "dependencies": [

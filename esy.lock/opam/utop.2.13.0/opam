@@ -41,10 +41,11 @@ build: [
 dev-repo: "git+https://github.com/ocaml-community/utop.git"
 url {
   src:
-    "https://github.com/ocaml-community/utop/releases/download/2.13.1/utop-2.13.1.tbz"
+    "https://github.com/ocaml-community/utop/releases/download/2.13.0/utop-2.13.0.tbz"
   checksum: [
-    "sha256=b04ec2a394d1a6a28a79444c58f66eab77b7f74401f4714aa6e6f1c2125a6ffd"
-    "sha512=37b116f408a8d8448e5faf99805e3c26a8bc0c149a64e2be75d261b1de9aca176982e95fb0d128e5072f22da99375d0691d23093d4b21d5fb9a26b034c262c51"
+    "sha256=88450f20006c2d10781abe9841bad2a57e7298b5ecf1be33bbf1eadebd1286d8"
+    "sha512=44ead6eac31c62dee60dc796e5dc1160610b8e6b00b862fae8ac297395a26d422237e7d5635f10bce59f4e5fbb16dbbe4596a55d30f8da699b256ac5d35076b2"
   ]
 }
-x-commit-hash: "5b98d2845bf8e46a253593578cf0371d773f6da0"
+x-commit-hash: "97e7ecfb4f2be71dcd270e13155797d0f873f437"
+available: os != "win32"
