@@ -8,8 +8,7 @@
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
     "release": {
-      "rewritePrefix": true,
-      "includePackages": ["root", "esy-zlib"],
+      "rewritePrefix": false,
       "bin": ["esy"]
     },
     "buildsInSource": "_build"
