@@ -46,10 +46,6 @@
     "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/lwt_ppx": "github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/rresult": "opam:0.6.0",
-    "@opam/opam-core": "opam:2.2.0~alpha",
-    "@opam/opam-state": "opam:2.2.0~alpha",
-    "@opam/opam-repository": "opam:2.2.0~alpha",
-    "@opam/opam-format": "opam:2.2.0~alpha",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
