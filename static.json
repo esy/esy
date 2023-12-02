@@ -5,7 +5,6 @@
   "esy": {
     "release": {
       "rewritePrefix": false,
-      "includePackages": ["root", "esy-zlib"],
       "bin": ["esy"]
     }
   },
@@ -13,7 +12,6 @@
     "build": "dune build -p #{self.name} --profile release-static",
     "release": {
       "rewritePrefix": false,
-      "includePackages": ["root", "esy-zlib"],
       "bin": ["esy"]
     },
     "dependencies": {
@@ -21,7 +19,6 @@
     },
     "//": "HACK! We shouldn't have to resolve to no-source like this for npm-release. It shouldn't try to build them in the first place!",
     "resolutions": {
-      "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
       "@opam/base": "opam:v0.15.1",
       "@opam/pastel": "git+https://github.com/reasonml/reason-native.git:pastel.opam#aec0ac68",
       "@opam/cli": "git+https://github.com/reasonml/reason-native.git:cli.opam#aec0ac68",
