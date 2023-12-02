@@ -12,16 +12,6 @@
       "includePackages": ["root", "esy-zlib"],
       "bin": ["esy"]
     },
-    "exportedEnv": {
-      "LD_LIBRARY_PATH": {
-        "scope": "global",
-        "val": "#{esy-zlib.lib : $LD_LIBRARY_PATH}"
-      },
-      "DYLD_LIBRARY_PATH": {
-        "scope": "global",
-        "val": "#{esy-zlib.lib : $DYLD_LIBRARY_PATH}"
-      }
-    },
     "buildsInSource": "_build"
   },
   "//": "Following pesy config can be used to pull cached builds from CI",
@@ -61,11 +51,9 @@
     "@opam/opam-repository": "opam:2.2.0~alpha",
     "@opam/opam-format": "opam:2.2.0~alpha",
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
-    "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
-    "esy-zlib": "*",
     "@opam/mccs": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
