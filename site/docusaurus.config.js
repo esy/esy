@@ -116,9 +116,10 @@ const config = {
         ],
       },
       algolia: {
-        appId: '9KF5JGXJTK',
-        apiKey: '3e1ff16c34309f03bcdedbbeafa22e4f',
-        indexName: 'esy',
+        appId: 'NVSKCZKSMV',
+        apiKey: '00385cc4f847c6a9b1b754fb48baea31',
+        indexName: 'esysh',
+        // TODO figure out how to set insights: true, // Optional, automatically send insights when user interacts with search results
       },
       prism: {
         theme: lightCodeTheme,
