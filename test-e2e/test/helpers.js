@@ -180,9 +180,9 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
   }
   await fs.writeFile(path.join(projectPath, 'test-env'), envSource.join('\n') + '\n');
 
-  async function runJavaScriptInNodeAndReturnJson(script, options) {
+  async function runJavaScriptInNodeAndReturnJson(script) {
     const pnpJs = path.join(projectPath, '_esy', 'default', 'pnp.js');
-    const command = `node ${options?.noPnp ? "" : "-r " + pnpJs} -p "JSON.stringify(${script.replace(
+    const command = `node -r ${pnpJs} -p "JSON.stringify(${script.replace(
       /"/g,
       '\\"',
     )})"`;

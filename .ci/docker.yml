@@ -51,3 +51,10 @@ jobs:
 
       - script: docker save $(esy__project_name) | gzip > $(esy__project_name)-docker-image.tar.gz
         displayName: "Save Docker image as tarball"
+
+      - task: PublishBuildArtifacts@1
+        displayName: "Upload Docker production image (as Azure artifacts)"
+        inputs:
+          PathtoPublish: "$(esy__project_name)-docker-image.tar.gz"
+          ArtifactName: AlpineLinuxDockerBuiltNPM
+

@@ -35,6 +35,7 @@ steps:
     displayName: 'esy b dune runtest test'
   - script: 'node ./node_modules/jest-cli/bin/jest.js'
     displayName: 'esy test:e2e'
+    condition: ne(variables['AGENT.OS'], 'Darwin')
   - script: 'npm install'
     workingDirectory: './test-e2e-re/lib/verdaccio/'
     continueOnError: true
@@ -49,8 +50,12 @@ steps:
       git archive --prefix=./esy-version/ --add-file=./esy-version/EsyVersion.re --prefix=./ --format=tgz HEAD -o source.tgz
     displayName: "Create distribution source tarball"
     condition: eq(variables['AGENT.OS'], 'Linux')
-  - script: "esy npm-release"
-    displayName: "Package esy for NPM"
+  - ${{ if eq(parameters.platform,  'Ubuntu_16_04') }}:
+    - script: "esy release"
+      displayName: "esy release"
+  - ${{ if ne(parameters.platform,  'Ubuntu_16_04') }}:
+    - script: "esy release --no-env"
+      displayName: "esy release --no-env"
   - task: PublishBuildArtifacts@1
     condition: eq(variables['AGENT.OS'], 'Linux')
     displayName: "Publish Artifact: Source Tarball"

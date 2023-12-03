@@ -9,14 +9,7 @@
     "install": "esy-installer esy.install",
     "release": {
       "rewritePrefix": false,
-      "includePackages": ["root", "esy-zlib"],
       "bin": ["esy"]
-    },
-    "exportedEnv": {
-      "DYLD_LIBRARY_PATH": {
-        "scope": "global",
-        "val": "#{esy-zlib.lib : $DYLD_LIBRARY_PATH}"
-      }
     },
     "buildsInSource": "_build"
   },
@@ -52,16 +45,9 @@
     "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/lwt_ppx": "github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/rresult": "opam:0.6.0",
-    "@opam/opam-core": "opam:2.2.0~alpha",
-    "@opam/opam-state": "opam:2.2.0~alpha",
-    "@opam/opam-repository": "opam:2.2.0~alpha",
-    "@opam/opam-format": "opam:2.2.0~alpha",
-    "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
-    "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
-    "esy-zlib": "*",
     "@opam/mccs": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",

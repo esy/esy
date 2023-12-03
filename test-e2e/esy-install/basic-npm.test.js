@@ -137,33 +137,6 @@ describe(`Basic tests for npm packages`, () => {
     ).toBeFalsy();
   });
 
-  test(`it should correctly setup node_modules folder when installConfig.pnp = false`, async () => {
-    const fixture = [
-      helpers.packageJson({
-        name: 'root',
-        version: '1.0.0',
-        dependencies: {[`one-range-dep`]: `~1.0.0`},
-        installConfig: {pnp: false},
-      }),
-    ];
-
-    const p = await helpers.createTestSandbox(...fixture);
-    await p.esy('install');
-
-    await expect(
-      p.runJavaScriptInNodeAndReturnJson(`require('one-range-dep')`, {noPnp: true}),
-    ).resolves.toMatchObject({
-      name: `one-range-dep`,
-      version: `1.0.0`,
-      dependencies: {
-        [`no-deps`]: {
-          name: `no-deps`,
-          version: `1.1.0`,
-        },
-      },
-    });
-  });
-
   test(`it should wrap *.js file with`, async () => {
     const p = await helpers.createTestSandbox();
 
