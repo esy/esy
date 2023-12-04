@@ -7,8 +7,19 @@
     "build": "dune build -p esy",
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
+    "exportedEnv": {
+      "LD_LIBRARY_PATH": {
+        "scope": "global",
+        "val": "#{esy-zlib.lib : $DYLD_LIBRARY_PATH}"
+      },
+      "DYLD_LIBRARY_PATH": {
+        "scope": "global",
+        "val": "#{esy-zlib.lib : $DYLD_LIBRARY_PATH}"
+      }
+    },
     "release": {
       "rewritePrefix": false,
+      "includePackages": ["root", "esy-zlib"],
       "bin": ["esy"]
     },
     "buildsInSource": "_build"
@@ -32,6 +43,7 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
+    "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a",
     "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
     "@opam/uuseg": "opam:14.0.0",
@@ -45,10 +57,16 @@
     "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/lwt_ppx": "github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
     "@opam/rresult": "opam:0.6.0",
+    "@opam/opam-core": "opam:2.2.0~alpha",
+    "@opam/opam-state": "opam:2.2.0~alpha",
+    "@opam/opam-repository": "opam:2.2.0~alpha",
+    "@opam/opam-format": "opam:2.2.0~alpha",
+    "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
     "@opam/mccs": "*",
+    "esy-zlib": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
     "@opam/cudf": "0.9",
