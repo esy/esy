@@ -66,6 +66,7 @@
   },
   "dependencies": {
     "@opam/mccs": "*",
+    "@opam/ppx_blob": "*",
     "esy-zlib": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
