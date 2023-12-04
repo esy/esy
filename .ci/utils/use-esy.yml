@@ -1,7 +1,7 @@
 # steps to install esy globally
 
 steps:
-- script: "yarn global add esy"
+- script: "yarn global add @esy-nightly/esy@0.7.2-56-g0141f968"
   displayName: "Install esy (via yarn)"
   condition: ne(variables['AGENT.OS'], 'Windows_NT')
   
@@ -16,7 +16,7 @@ steps:
   displayName: "Ensure yarn install global tools are available on $PATH"
   condition: ne(variables['AGENT.OS'], 'Windows_NT')
 - script: |
-    npm i -g esy
+    npm i -g @esy-nightly/esy@0.7.2-56-g0141f968
   displayName: "Install esy (via npm)"
   condition: eq(variables['AGENT.OS'], 'Windows_NT')
 
