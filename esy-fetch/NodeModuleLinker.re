@@ -90,7 +90,7 @@ let link = (~installation, ~solution, ~projectPath, ~fetchDepsSubset) => {
   };
   let link = ((src, dest)) => {
     let* () = Fs.createDir(Path.parent(dest));
-    let* () = Fs.hardlinkPath(~src, ~dst=dest);
+    let* () = Fs.copyPath(~src, ~dst=dest);
     let* () =
       RunAsync.ofLwt @@
       Esy_logs_lwt.debug(m =>
