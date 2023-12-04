@@ -117,7 +117,7 @@ const config = {
       },
       algolia: {
         appId: 'NVSKCZKSMV',
-        apiKey: '00385cc4f847c6a9b1b754fb48baea31',
+        apiKey: '55792f72558bc8f2ad2ca591de82f945',
         indexName: 'esysh',
         // TODO figure out how to set insights: true, // Optional, automatically send insights when user interacts with search results
       },
