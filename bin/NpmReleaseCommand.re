@@ -410,6 +410,8 @@ let makeBinWrapper =
       let expandedEnv = Array.append expandedEnv shellEnv in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline (expandFallback storePrefix program)
+      else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----is-no-env" then
+        Format.print_bool no_wrapper
       else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
         Array.iter print_endline expandedEnv
       else (
@@ -430,7 +432,7 @@ let makeBinWrapper =
         else
           if no_wrapper then
             Unix.execv program Sys.argv
-          else 
+          else
             Unix.execve program Sys.argv expandedEnv
       )
     ;;
