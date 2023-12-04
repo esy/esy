@@ -10,7 +10,7 @@
     "exportedEnv": {
       "LD_LIBRARY_PATH": {
         "scope": "global",
-        "val": "#{esy-zlib.lib : $DYLD_LIBRARY_PATH}"
+        "val": "#{esy-zlib.lib : $LD_LIBRARY_PATH}"
       },
       "DYLD_LIBRARY_PATH": {
         "scope": "global",
