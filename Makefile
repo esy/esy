@@ -42,8 +42,7 @@ opam-setup:
 
 # ideally, build-with-opam should depend on opam-setup, but opam-setup cannot be run twice. opam switch create fails when repeated
 build-with-opam:
-	opam exec -- dune build -p esy
-	opam exec -- dune build @install
+	opam exec -- dune build --only-packages=esy --profile release-static @install
 	opam exec -- dune install --prefix $(APP_ESY_INSTALL)
 
 build-with-esy:
@@ -64,6 +63,4 @@ install-esy-artifacts:
 
 docker:
 	make build-with-opam
-	make build-with-esy
-	make dune-cleanup
 	make opam-cleanup
