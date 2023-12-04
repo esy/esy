@@ -428,7 +428,10 @@ let makeBinWrapper =
           | WSTOPPED code -> exit code
         )
         else
-          Unix.execve program Sys.argv expandedEnv
+          if no_wrapper then
+            Unix.execv program Sys.argv
+          else 
+            Unix.execve program Sys.argv expandedEnv
       )
     ;;
   |},
