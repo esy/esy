@@ -12,6 +12,7 @@ jobs:
       - checkout: self
         submodules: true
         # TODO wrap Factor EsyVersion.re job in a template
+        # Also, is the fix for snapshot tests not failing with version mismatches
       - bash: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         displayName: "Generate EsyVersion.re"
       - powershell: $Env:Path
