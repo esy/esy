@@ -151,6 +151,12 @@ var copyPlatformBinaries = (platformPath) => {
     }
     copyFileSync(sourcePath, destPath);
   });
+
+  if (platformPath === 'linux') {
+    fs.chmodSync(path.join(__dirname, 'lib', 'esy', 'esyBuildPackageCommand'), 0755);
+    fs.chmodSync(path.join(__dirname, 'lib', 'esy', 'esySolveCudfCommand'), 0755);
+    fs.chmodSync(path.join(__dirname, 'lib', 'esy', 'esyRewritePrefixCommand'), 0755);
+  }
 };
 
 try {
