@@ -16,12 +16,6 @@ var os = require('os');
 var platform = process.platform;
 
 var packageJson = require('./package.json');
-var binariesToCopy = Object.keys(packageJson.bin)
-  .map(function (name) {
-    return packageJson.bin[name];
-  })
-  .concat(['esyInstallRelease.js']);
-var foldersToCopy = ['bin', '_export'];
 
 function copyRecursive(srcDir, dstDir) {
   var results = [];
@@ -129,10 +123,23 @@ function copyFileSync(sourcePath, destPath) {
 var copyPlatformBinaries = (platformPath) => {
   var platformBuildPath = path.join(__dirname, 'platform-' + platformPath);
 
+  let foldersToCopy, binariesToCopy;
+
+  binariesToCopy = Object.keys(packageJson.bin).map(function (name) {
+    return packageJson.bin[name];
+  });
+
+  if (platformPath === 'linux') {
+    fs.mkdirSync(path.join(__dirname, 'lib'));
+    foldersToCopy = ['bin', 'lib'];
+  } else {
+    foldersToCopy = ['bin', '_export'];
+    binariesToCopy = binariesToCopy.concat(['esyInstallRelease.js']);
+  }
+
   foldersToCopy.forEach((folderPath) => {
     var sourcePath = path.join(platformBuildPath, folderPath);
     var destPath = path.join(__dirname, folderPath);
-
     copyRecursive(sourcePath, destPath);
   });
 
@@ -165,15 +172,17 @@ switch (platform) {
       `npm install @prometheansacrifice/esy-bash@0.1.0-dev-f2e419601a34c3ce53cbe1f025f490276b9e879f --prefix "${__dirname}"`,
     );
     console.log('Native compiler toolchain installed successfully.');
-    break;
+    require('./esyInstallRelease');
     break;
   case 'linux':
+    copyPlatformBinaries(platform);
+    // Statically linked binaries dont need postinstall scripts
+    break;
   case 'darwin':
     copyPlatformBinaries(platform + (process.arch === 'x64' ? '' : '-arm64'));
+    require('./esyInstallRelease');
     break;
   default:
     console.warn('error: no release built for the ' + platform + ' platform');
     process.exit(1);
 }
-
-require('./esyInstallRelease');

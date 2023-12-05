@@ -79,6 +79,7 @@ jobs:
           vmImage: ${{ parameters.vmImage }}
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: ${{ parameters.platform }}"
+        condition: ne(variables['AGENT.OS'], 'Linux')
         inputs:
           PathtoPublish: "_release"
           ArtifactName: ${{ parameters.platform }}
