@@ -1,5 +1,5 @@
 {
-  "checksum": "d72b94175024eb8db3163884ce5937f1",
+  "checksum": "68c40baa2b72230911e4e2035d8bfb24",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a@d41d8cd9": {
@@ -109,9 +109,7 @@
       "source": { "type": "link-dev", "path": ".", "manifest": "esy.json" },
       "overrides": [],
       "dependencies": [
-        "ocaml@4.14.0@d41d8cd9",
-        "esy-zlib@github:esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3@d41d8cd9",
-        "@opam/yojson@opam:2.1.2@9fd14300",
+        "ocaml@4.14.0@d41d8cd9", "@opam/yojson@opam:2.1.2@9fd14300",
         "@opam/reason@opam:3.8.2@19b5db6d", "@opam/re@opam:1.11.0@87deb463",
         "@opam/ppx_sexp_conv@opam:v0.16.0@bae11ff6",
         "@opam/ppx_let@opam:v0.16.0@4b923c35",
