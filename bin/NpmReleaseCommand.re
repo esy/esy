@@ -370,7 +370,13 @@ let makeBinWrapper =
         EnvHashtbl.replace curEnvMap name value
       in
       Array.iter f env;
-      let f name value items = (name ^ "=" ^ (normalize value))::items in
+      let f name value items =
+        let value =
+          if String.equal (String.lowercase_ascii name) "comspec" then value
+          else normalize value
+        in
+        (name ^ "=" ^ value) :: items
+      in
       Array.of_list (EnvHashtbl.fold f curEnvMap [])
     ;;
 
