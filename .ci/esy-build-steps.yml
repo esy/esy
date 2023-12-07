@@ -35,7 +35,6 @@ steps:
     displayName: 'esy b dune runtest test'
   - script: 'node ./node_modules/jest-cli/bin/jest.js'
     displayName: 'esy test:e2e'
-    condition: ne(variables['AGENT.OS'], 'Darwin')
   - script: 'npm install'
     workingDirectory: './test-e2e-re/lib/verdaccio/'
     continueOnError: true
