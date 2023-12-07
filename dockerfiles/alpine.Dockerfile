@@ -1,14 +1,10 @@
-FROM alpine:latest as builder
+FROM esydev/esy-builder:nightly-alpine-latest as builder
 
 WORKDIR /app
-
-RUN apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils libbz2 zlib zlib-dev zlib-static autoconf automake bzip2-dev bzip2-static opam bash
-
 COPY esy.opam /app
 COPY esy.opam.locked /app
-COPY Makefile /app
-WORKDIR /app
-RUN make opam-setup
+COPY ./scripts /app/scripts
+RUN /app/scripts/opam.sh install
 
 # This section useful for debugging the image/container
 # RUN env LD_LIBRARY_PATH=/usr/lib make opam-setup SUDO=''
@@ -48,9 +44,9 @@ COPY static.json /app/static.json
 COPY static.esy.lock /app/static.esy.lock
 COPY ./vendors /app/vendors
 COPY ./fastreplacestring /app/fastreplacestring
-RUN make docker
+RUN /app/scripts/opam.sh build
+RUN /app/scripts/opam.sh install-artifacts
 
 FROM alpine:latest
-
 COPY --from=builder /usr/local /usr/local
 RUN apk add nodejs npm linux-headers curl git perl-utils bash gcc g++ musl-dev make m4 patch
