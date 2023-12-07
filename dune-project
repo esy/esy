@@ -28,10 +28,11 @@ Easy package management for native Reason, OCaml and more
 ")
  (depends
     angstrom
-    cmdliner
-    bos 
+    (uuseg (= 14.0.0))
+    (cmdliner (= dev))
+    (bos (= dev))
     (cudf (= 0.9))
-    (dose3 (= 6.1))
+    (dose3 (= 7.0.0))
     (ocamlgraph (= 2.0.0))
     dune  
     fmt  
