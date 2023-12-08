@@ -28,7 +28,15 @@ const sidebars = {
       'c-workflow',
       'offline',
     ],
-    internals: ['how-it-works', 'development'],
+    contributing: [
+      'contributing/how-it-works',
+      'contributing/building-from-source',
+      'contributing/repository-structure',
+      'contributing/running-tests',
+      'contributing/website-and-docs',
+      'contributing/ci',
+      'contributing/release-process',
+    ],
   },
 };
 
