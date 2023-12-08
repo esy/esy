@@ -31,9 +31,13 @@ module type GRAPH_NODE = {
 
     include S.COMPARABLE with type t := t;
 
-    module Map: {include Map.S with type key := t;};
+    module Map: {
+      include Map.S with type key := t;
+    };
 
-    module Set: {include Set.S with type elt := t;};
+    module Set: {
+      include Set.S with type elt := t;
+    };
   };
 
   let id: t => Id.t;
