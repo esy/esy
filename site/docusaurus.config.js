@@ -123,6 +123,7 @@ const config = {
         // TODO figure out how to set insights: true, // Optional, automatically send insights when user interacts with search results
       },
       prism: {
+        additionalLanguages: ['diff'],
         theme: lightTheme,
         darkTheme: darkTheme,
       },
