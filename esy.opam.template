@@ -1,5 +1,7 @@
 pin-depends: [
-  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
+  ["camlbz2.dev" "git+https://gitlab.com/irill/camlbz2.git#588e186c"]
+  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc3"]
+  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git#90364d00"]
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
