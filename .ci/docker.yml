@@ -26,6 +26,18 @@ jobs:
           echo "##vso[task.setvariable variable=esy__project_version]$ESY__PROJECT_VERSION"
 
       - task: Docker@2
+        displayName: 'Build esydev/esy-builder:nightly-alpine-latest'
+        inputs:
+          containerRegistry: 'Docker Esy (nightly)'
+          repository: 'esydev/esy-builder'
+          command: "build"
+          buildContext: '.'
+          Dockerfile: 'dockerfiles/alpine.dev.Dockerfile'
+          tags: |
+            nightly-alpine-latest
+            nightly-alpine
+
+      - task: Docker@2
         displayName: 'Push esydev/esy:nightly-alpine-latest to Docker Hub'
         inputs:
           containerRegistry: 'Docker Esy (nightly)'
@@ -37,17 +49,9 @@ jobs:
             nightly-alpine-latest
             nightly-alpine
 
-      - script: mkdir -p _container_release/lib _container_release/bin
-        displayName: make directory _container_release
-
-      - script: docker container run --pull=never -itd --network=host --name esy-container esydev/esy:nightly-alpine-latest
-        displayName: "Run Docker Container"
-
       - script: |
-          mkdir -p _container_release/lib _container_release/bin
-          docker cp esy-container:/usr/local/lib/esy/ $PWD/_container_release/lib/esy
-          docker cp esy-container:/usr/local/bin/esy $PWD/_container_release/bin
-          docker cp esy-container:/usr/local/bin/esyInstallRelease.js $PWD/_container_release/bin
+          ./scripts/docker.sh run-container
+          ./scripts/docker.sh cp "_container_release"
         displayName: "Copy esy artifacts from /usr/local/ in the container"
 
       - task: PublishBuildArtifacts@1
