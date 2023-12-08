@@ -41,6 +41,10 @@ Easy package management for native Reason, OCaml and more
     logs  
     lwt  
     reason
+    (rely (= dev))
+    (cli (= dev))
+    (pastel (= dev))
+    (file-context-printer (= dev))
     lwt_ppx
     junit
     (menhir (= 20210419)) 
