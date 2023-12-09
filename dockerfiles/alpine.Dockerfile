@@ -40,8 +40,6 @@ COPY dune-project /app/
 COPY dune-workspace /app/
 COPY esy.json /app/esy.json
 COPY esy.lock /app/esy.lock
-COPY static.json /app/static.json
-COPY static.esy.lock /app/static.esy.lock
 COPY ./vendors /app/vendors
 COPY ./fastreplacestring /app/fastreplacestring
 RUN /app/scripts/opam.sh build
