@@ -17,94 +17,129 @@ let getChildren = (~solution, ~fetchDepsSubset, ~node) => {
   |> List.filter(~f);
 };
 
-let rec getPathsToCopy' =
+let getLocalStorePath = (projectPath, packageID) => {
+  Path.(projectPath / "node_modules" / ".esy" / PackageId.show(packageID));
+};
+
+let linkPaths = (~link=false, src, dest) => {
+  let* () = Fs.createDir(Path.parent(dest));
+  let* () =
+    if (link) {
+      let* () =
+        RunAsync.ofLwt @@
+        Esy_logs_lwt.debug(m =>
+          m("ln -s %s %s\n", Path.show(src), Path.show(dest))
+        );
+      Fs.symlink(~force=true, ~src, dest);
+    } else {
+      let* () =
+        RunAsync.ofLwt @@
+        Esy_logs_lwt.debug(m =>
+          m("cp -R %s %s\n", Path.show(src), Path.show(dest))
+        );
+      Fs.copyPath(~src, ~dst=dest);
+    };
+  RunAsync.return();
+};
+
+// hardlink the children from local store to node_modules
+let rec getPathsToLink' =
         (
           visitedMap,
-          paths,
+          ~projectPath,
           ~solution,
           ~fetchDepsSubset,
           ~installation,
           ~rootPackageID,
           ~queue,
-        )
-        : list((Path.t, Path.t)) => {
+        ) => {
   switch (queue |> Queue.take_opt) {
   | Some((pkgID, nodeModulesPath)) =>
     let visited =
       visitedMap
       |> PackageId.Map.find_opt(pkgID)
       |> Stdlib.Option.value(~default=false);
-    let (visitedMap, queue, paths) =
+    let* (visitedMap, queue) =
       switch (visited) {
       | false =>
-        let name = PackageId.name(pkgID);
         let visitedMap =
           PackageId.Map.update(pkgID, _ => Some(true), visitedMap);
-        let paths =
-          if (PackageId.compare(rootPackageID, pkgID) == 0) {
-            paths;
-          } else {
-            let packageSourceCachePath =
-              Installation.findExn(pkgID, installation);
-            [
-              (packageSourceCachePath, Path.(nodeModulesPath / name)),
-              ...paths,
-            ];
-          };
         let node = Solution.getExn(solution, pkgID);
         let children = getChildren(~solution, ~fetchDepsSubset, ~node);
         let f = childNode => {
-          let nodeModulesPath =
-            if (PackageId.compare(rootPackageID, pkgID) == 0) {
-              Path.(nodeModulesPath / "node_modules");
-            } else {
-              Path.(nodeModulesPath / name / "node_modules");
-            };
-          Queue.add((childNode.Package.id, nodeModulesPath), queue);
+          let name = childNode.Package.name;
+          let nodeModulesPath = Path.(nodeModulesPath / name / "node_modules");
+          let pkgID = childNode.Package.id;
+          let visited =
+            visitedMap
+            |> PackageId.Map.find_opt(pkgID)
+            |> Stdlib.Option.value(~default=false);
+          if (!visited) {
+            Queue.add((pkgID, nodeModulesPath), queue);
+          };
         };
         List.iter(~f, children);
-        (visitedMap, queue, paths);
-      | true => (visitedMap, queue, paths)
+        let f = childNode => {
+          let pkgID = childNode.Package.id;
+          let src = getLocalStorePath(projectPath, pkgID);
+          let dest = Path.(nodeModulesPath / childNode.Package.name);
+          linkPaths(~link=true, src, dest);
+        };
+        let* () = children |> List.map(~f) |> RunAsync.List.waitAll;
+        RunAsync.return((visitedMap, queue));
+      | true => RunAsync.return((visitedMap, queue))
       };
-    getPathsToCopy'(
+    getPathsToLink'(
       visitedMap,
-      paths,
+      ~projectPath,
       ~solution,
       ~fetchDepsSubset,
       ~installation,
       ~rootPackageID,
       ~queue,
     );
-
-  | None => paths
+  | None => RunAsync.return()
   };
 };
 
-let getPathsToCopy = getPathsToCopy'(PackageId.Map.empty, []);
+let getPathsToLink = getPathsToLink'(PackageId.Map.empty);
 
 let link = (~installation, ~solution, ~projectPath, ~fetchDepsSubset) => {
   let root = Solution.root(solution);
   let rootPackageID = root.Package.id;
+  let nodeModulesPath = Path.(projectPath / "node_modules");
   let queue = {
-    [(rootPackageID, projectPath)] |> List.to_seq |> Queue.of_seq;
+    [(rootPackageID, nodeModulesPath)] |> List.to_seq |> Queue.of_seq;
   };
-  let link = ((src, dest)) => {
-    let* () = Fs.createDir(Path.parent(dest));
-    let* () = Fs.copyPath(~src, ~dst=dest);
-    let* () =
-      RunAsync.ofLwt @@
-      Esy_logs_lwt.debug(m =>
-        m("cp -R %s %s\n", Path.show(src), Path.show(dest))
-      );
-    RunAsync.return();
+  let f = ((packageID, globalStorePath)) => {
+    let dest = getLocalStorePath(projectPath, packageID);
+    linkPaths(globalStorePath, dest);
   };
-  let paths =
-    getPathsToCopy(
-      ~solution,
-      ~fetchDepsSubset,
-      ~installation,
-      ~rootPackageID,
-      ~queue,
-    );
-  paths |> List.map(~f=link) |> RunAsync.List.waitAll;
+  let* () =
+    installation
+    |> Installation.entries
+    |> List.filter(~f=((key, _)) =>
+         PackageId.compare(key, rootPackageID) != 0
+       )
+    |> List.map(~f)
+    |> RunAsync.List.waitAll;
+  /* let paths = */
+  /*   getPathsToLink( */
+  /*     ~projectPath, */
+  /*     ~solution, */
+  /*     ~fetchDepsSubset, */
+  /*     ~installation, */
+  /*     ~rootPackageID, */
+  /*     ~queue, */
+  /*   ); */
+  /* let f = ((src, dest)) => linkPaths(~link=true, src, dest); */
+  /* paths |> List.rev |> List.map(~f) |> RunAsync.List.waitAll; */
+  getPathsToLink(
+    ~projectPath,
+    ~solution,
+    ~fetchDepsSubset,
+    ~installation,
+    ~rootPackageID,
+    ~queue,
+  );
 };
