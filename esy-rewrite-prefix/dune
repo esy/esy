@@ -1,0 +1,7 @@
+(library
+ (name RewritePrefix)
+ (libraries EsyRuntime EsyLib)
+ (flags -open EsyLib)
+ (preprocess
+  (pps lwt_ppx))
+ (synopsis "Handles prefix re-writing in binary artifacts"))

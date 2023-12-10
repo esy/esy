@@ -150,11 +150,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
-    | None =>
-      let dir = Path.(exePath() |> parent |> parent);
-      let cmd =
-        Path.(dir / "lib" / "esy" / "esySolveCudfCommand") |> Cmd.ofPath;
-      return(cmd);
+    | None => EsyRuntime.getEsySolveCudfCommand()
     };
 
   let esyOpamOverrideRemote =

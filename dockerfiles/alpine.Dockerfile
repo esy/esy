@@ -35,6 +35,8 @@ COPY ./esy-lib /app/esy-lib
 COPY ./esy-build-package /app/esy-build-package
 COPY ./esy-command-expression /app/esy-command-expression
 COPY ./esy-package-config /app/esy-package-config
+COPY ./esy-rewrite-prefix /app/esy-rewrite-prefix
+COPY ./esy-runtime /app/esy-runtime
 COPY dune /app/
 COPY dune-project /app/
 COPY dune-workspace /app/
