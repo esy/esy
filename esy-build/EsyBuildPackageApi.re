@@ -1,14 +1,5 @@
 open EsyLib;
 
-let esyBuildPackagePath = {
-  let dir = Path.(exePath() |> parent |> parent);
-  Path.(dir / "lib" / "esy" / "esyBuildPackageCommand");
-};
-
-let esyBuildPackageCmd = {
-  esyBuildPackagePath |> Cmd.ofPath;
-};
-
 let run =
     (
       ~stdin=`Null,
@@ -19,6 +10,8 @@ let run =
       plan: EsyBuildPackage.Plan.t,
     ) => {
   open RunAsync.Syntax;
+
+  let* esyBuildPackageCmd = EsyRuntime.getEsyBuildPackageCommand();
 
   let action =
     switch (action) {
@@ -90,7 +83,7 @@ let run =
       ~env=
         ChildProcess.CurrentEnvOverride(
           Astring.String.Map.empty
-          |> Astring.String.Map.add("_", Path.show(esyBuildPackagePath)),
+          |> Astring.String.Map.add("_", Cmd.show(esyBuildPackageCmd)),
         ),
       ~stderr,
       ~stdout,

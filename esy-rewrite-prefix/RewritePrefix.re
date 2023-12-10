@@ -1,33 +1,32 @@
-let cmd = {
-  let dir = Path.(exePath() |> parent |> parent);
-  Path.(dir / "lib" / "esy" / "esyRewritePrefixCommand") |> Cmd.ofPath;
-};
-
 let rewritePrefix = (~origPrefix, ~destPrefix, path) => {
-  let%lwt () =
-    Esy_logs_lwt.debug(m =>
-      m(
-        "rewritePrefix %a: %a -> %a",
-        Path.pp,
-        path,
-        Path.pp,
-        origPrefix,
-        Path.pp,
-        destPrefix,
-      )
+  switch%lwt (EsyRuntime.getRewritePrefixCommand()) {
+  | Error(e) => Lwt.return(Error(e))
+  | Ok(cmd) =>
+    let%lwt () =
+      Esy_logs_lwt.debug(m =>
+        m(
+          "rewritePrefix %a: %a -> %a",
+          Path.pp,
+          path,
+          Path.pp,
+          origPrefix,
+          Path.pp,
+          destPrefix,
+        )
+      );
+    let env = EsyBash.currentEnvWithMingwInPath;
+    ChildProcess.run(
+      ~env=ChildProcess.CustomEnv(env),
+      Cmd.(
+        cmd
+        % "--orig-prefix"
+        % p(origPrefix)
+        % "--dest-prefix"
+        % p(destPrefix)
+        % p(path)
+      ),
     );
-  let env = EsyBash.currentEnvWithMingwInPath;
-  ChildProcess.run(
-    ~env=ChildProcess.CustomEnv(env),
-    Cmd.(
-      cmd
-      % "--orig-prefix"
-      % p(origPrefix)
-      % "--dest-prefix"
-      % p(destPrefix)
-      % p(path)
-    ),
-  );
+  };
 };
 
 let replaceAllButFirstForwardSlashWithBack = s =>

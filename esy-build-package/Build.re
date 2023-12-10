@@ -8,6 +8,65 @@ module Result = EsyLib.Result;
 module System = EsyLib.System;
 open Run;
 
+///////////////////////////////////////
+// The following resolution code has to be copied
+// because esyBuildPackageCommand doesn't use
+// Lwt for some reason. TODO unify this use
+// of io monads or move to eio
+let exePath = () => {
+  switch (System.Platform.host) {
+  | Linux => Unix.readlink("/proc/self/exe")
+  | Darwin
+  | Cygwin
+  | Windows
+  | Unix
+  | Unknown => Sys.argv[0]
+  // TODO cross-platform solution to getting full path of the current executable.
+  // Linux has /proc/self/exe. Macos ?? Windows GetModuleFileName()
+  // https://stackoverflow.com/a/1024937
+  };
+};
+
+let resolveRelativeTo = (~internalCommandName, path) => {
+  let dir = Path.(path |> parent);
+  let path = Path.(dir / internalCommandName);
+  let path =
+    EsyLib.System.Platform.isWindows ? Path.addExt("exe", path) : path;
+  let* exists = Bos.OS.Path.exists(path);
+  let v = exists ? Some(path) : None;
+  Run.return(v);
+};
+
+let getInternalCommand = (internalCommandName, ()) => {
+  let* exePath = exePath() |> Path.ofString;
+  let* v = resolveRelativeTo(~internalCommandName, exePath);
+  let* path =
+    switch (v) {
+    | Some(v) => Run.return(v)
+    | None =>
+      let* path =
+        switch (Sys.getenv_opt("_")) {
+        | Some(v) => Ok(v)
+        | None =>
+          Error(
+            `Msg(
+              "Could not find _ in the environment. We look this variable up to resolve internal commands",
+            ),
+          )
+        };
+      let* path = Path.ofString(path);
+      let* v = resolveRelativeTo(~internalCommandName, path);
+      switch (v) {
+      | Some(v) => Run.return(v)
+      | None =>
+        Run.errorf("Could not find internal command %s", internalCommandName)
+      };
+    };
+  Run.return @@ EsyLib.Cmd.ofPath @@ path;
+};
+
+let getRewritePrefixCommand = getInternalCommand("esyRewritePrefixCommand");
+
 type t = {
   plan: Plan.t,
   storePath: Path.t,
@@ -352,16 +411,15 @@ let commitBuildToStore = (config: Config.t, build: build) => {
           build.installPath,
         )
       );
-      let dir = Path.(exePath() |> parent);
-      let cmd = Path.(dir / "esyRewritePrefixCommand");
+      let* cmd = getRewritePrefixCommand();
       let env =
         EsyLib.EsyBash.currentEnvWithMingwInPath
-        |> EsyLib.StringMap.add("_", Path.show(cmd));
+        |> EsyLib.StringMap.add("_", EsyLib.Cmd.show(cmd));
       let* () =
         Bos.OS.Cmd.run(
           ~env,
           Cmd.(
-            v(p(cmd))
+            (cmd |> EsyLib.Cmd.toBosCmd)
             % "--orig-prefix"
             % p(build.stagePath)
             % "--dest-prefix"
