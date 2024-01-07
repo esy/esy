@@ -521,6 +521,7 @@ let makeScope =
       };
 
       BuildId.make(
+        ~ocamlPkgName=sandbox.cfg.ocamlPkgName,
         ~sandboxEnv=sandbox.sandboxEnv,
         ~packageId=pkg.id,
         ~platform=sandbox.platform,
