@@ -889,6 +889,71 @@ let installationOfPkgs = (~rootPackageID, ~sandbox, pkgs) => {
   List.fold_left(~f, ~init, pkgs);
 };
 
+/**
+
+   - Creates pnp.js for JS packages and a node wrapper that uses it to
+     resolve require()
+
+   [fetched] is a map of packages
+ */
+let install =
+    (~sandbox, ~dependencies, ~solution, ~installation, ~fetched, ~queue, pkg) => {
+  open RunAsync.Syntax;
+  let f = () => {
+    let id = pkg.Package.id;
+
+    let onBeforeLifecycle = path => {
+      /*
+       * This creates <install>/_esy and populates it with a custom
+       * per-package pnp.js (which allows to resolve dependencies out of
+       * stage directory and a node wrapper which uses this pnp.js.
+       */
+      let binPath = Path.(path / "_esy");
+      let* () = Fs.createDir(binPath);
+
+      let* () = {
+        let f = dep => {
+          let* _: list((string, Path.t)) = LinkBin.link(binPath, dep);
+          return();
+        };
+
+        RunAsync.List.mapAndWait(~f, dependencies);
+      };
+
+      let* () =
+        if (pkg.installConfig.pnp == true) {
+          let* () = {
+            let pnpJsPath = Path.(binPath / "pnp.js");
+            let installation = Installation.add(id, path, installation);
+            let data =
+              PnpJs.render(
+                ~basePath=binPath,
+                ~rootPath=path,
+                ~rootId=id,
+                ~solution,
+                ~installation,
+                (),
+              );
+
+            let* () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
+            installNodeWrapper(~binPath, ~pnpJsPath, ());
+          };
+
+          return();
+        } else {
+          return();
+        };
+
+      return();
+    };
+
+    let fetched = Package.Map.find(pkg, fetched);
+    FetchPackage.install(onBeforeLifecycle, sandbox, fetched);
+  };
+
+  LwtTaskQueue.submit(queue, f);
+};
+
 let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
 
@@ -922,63 +987,6 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
 
     let tasks = Memoize.make();
 
-    let install = (pkg, dependencies) => {
-      open RunAsync.Syntax;
-      let f = () => {
-        let id = pkg.Package.id;
-
-        let onBeforeLifecycle = path => {
-          /*
-           * This creates <install>/_esy and populates it with a custom
-           * per-package pnp.js (which allows to resolve dependencies out of
-           * stage directory and a node wrapper which uses this pnp.js.
-           */
-          let binPath = Path.(path / "_esy");
-          let* () = Fs.createDir(binPath);
-
-          let* () = {
-            let f = dep => {
-              let* _: list((string, Path.t)) = LinkBin.link(binPath, dep);
-              return();
-            };
-
-            RunAsync.List.mapAndWait(~f, dependencies);
-          };
-
-          let* () =
-            if (pkg.installConfig.pnp == true) {
-              let* () = {
-                let pnpJsPath = Path.(binPath / "pnp.js");
-                let installation = Installation.add(id, path, installation);
-                let data =
-                  PnpJs.render(
-                    ~basePath=binPath,
-                    ~rootPath=path,
-                    ~rootId=id,
-                    ~solution,
-                    ~installation,
-                    (),
-                  );
-
-                let* () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
-                installNodeWrapper(~binPath, ~pnpJsPath, ());
-              };
-
-              return();
-            } else {
-              return();
-            };
-
-          return();
-        };
-
-        let fetched = Package.Map.find(pkg, fetched);
-        FetchPackage.install(onBeforeLifecycle, sandbox, fetched);
-      };
-
-      LwtTaskQueue.submit(queue, f);
-    };
-
     let rec visit' = (seen, pkg) => {
       let* dependencies =
         RunAsync.List.mapAndJoin(
@@ -987,7 +995,16 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
         );
 
       let%lwt () = report("%a", PackageId.pp, pkg.Package.id);
-      install(pkg, List.filterNone(dependencies));
+      let dependencies = List.filterNone(dependencies);
+      install(
+        ~sandbox,
+        ~dependencies,
+        ~solution,
+        ~installation,
+        ~fetched,
+        ~queue,
+        pkg,
+      );
     }
     and visit = (seen, pkg) => {
       let id = pkg.Package.id;
