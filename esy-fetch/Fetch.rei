@@ -8,18 +8,16 @@ open EsyPackageConfig;
 open EsyPrimitives;
 
 /**
- * Fetch & install solution for the currently configured sandbox using pnp.js
- * installation strategy.
+ * Fetch & install solution for the user project (root)
  */
-
 let fetch:
   (
     FetchDepsSubset.t,
     Sandbox.t,
     Solution.t,
-    option(string),
+    option(string), /* gitUserName */
     option(string)
-  ) =>
+  ) => /* gitPassword */
   RunAsync.t(unit);
 
 /** Check if the solution is installed. */

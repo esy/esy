@@ -1,3 +1,19 @@
+/**
+
+   Spec describing the installation sandbox of a project (root package).
+
+   It contains, a [path] and [manifest].
+
+   [path] - where the project is located so that we can look up
+   manifests describing the packages to install. It is used to
+   calculate [localPrefixPath], [manifestPath] etc.
+
+   [manifest] - opam projects can have multiple manifest
+   files. [manifest] tells us if a project contains just one manifest
+   file or more.
+
+*/
+
 open EsyPackageConfig;
 
 type t = {
