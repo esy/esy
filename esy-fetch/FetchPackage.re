@@ -1,3 +1,4 @@
+open RunAsync.Syntax;
 type fetch = (Package.t, kind)
 and kind =
   | Fetched(DistStorage.fetchedDist)
@@ -13,8 +14,6 @@ type installation = {
 
 /* fetch any of the dists for the package */
 let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
-  open RunAsync.Syntax;
-
   let rec fetchAny = (errs, alternatives) =>
     switch (alternatives) {
     | [dist, ...rest] =>
@@ -60,69 +59,66 @@ let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
   fetchAny([], dists);
 };
 
-let fetch = (sandbox, pkg, gitUsername, gitPassword) =>
+let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
   /*** TODO: need to sync here so no two same tasks are running at the same time */
-  RunAsync.Syntax.(
-    RunAsync.contextf(
-      switch (pkg.Package.source) {
-      | Link({path, _}) =>
-        let path =
-          EsyPackageConfig.DistPath.toPath(sandbox.Sandbox.spec.path, path);
-        return((pkg, Linked(path)));
-      | Install({source: (main, mirrors), opam: _}) =>
-        let* cached =
-          switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
-          | None => return(None)
-          | Some(cachedTarballPath) =>
-            if%bind (Fs.exists(cachedTarballPath)) {
-              let%lwt () =
-                Esy_logs_lwt.debug(m =>
-                  m("fetching %a: found cached tarball", Package.pp, pkg)
-                );
-              let dist = DistStorage.ofCachedTarball(cachedTarballPath);
-              return(Some((pkg, Fetched(dist))));
-            } else {
-              let%lwt () =
-                Esy_logs_lwt.debug(m =>
-                  m("fetching %a: making cached tarball", Package.pp, pkg)
-                );
-              let dists = [main, ...mirrors];
-              let* dist =
-                fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
-              let* dist = DistStorage.cache(dist, cachedTarballPath);
-              return(Some((pkg, Fetched(dist))));
-            }
-          };
-
-        let path = PackagePaths.installPath(sandbox, pkg);
-        if%bind (Fs.exists(path)) {
-          let%lwt () =
-            Esy_logs_lwt.debug(m =>
-              m("fetching %a: installed", Package.pp, pkg)
-            );
-          return((pkg, Installed(path)));
-        } else {
-          switch (cached) {
-          | Some(cached) => return(cached)
-          | None =>
+  RunAsync.contextf(
+    switch (pkg.Package.source) {
+    | Link({path, _}) =>
+      let path =
+        EsyPackageConfig.DistPath.toPath(sandbox.Sandbox.spec.path, path);
+      return((pkg, Linked(path)));
+    | Install({source: (main, mirrors), opam: _}) =>
+      let* cached =
+        switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
+        | None => return(None)
+        | Some(cachedTarballPath) =>
+          if%bind (Fs.exists(cachedTarballPath)) {
             let%lwt () =
               Esy_logs_lwt.debug(m =>
-                m("fetching %a: fetching", Package.pp, pkg)
+                m("fetching %a: found cached tarball", Package.pp, pkg)
+              );
+            let dist = DistStorage.ofCachedTarball(cachedTarballPath);
+            return(Some((pkg, Fetched(dist))));
+          } else {
+            let%lwt () =
+              Esy_logs_lwt.debug(m =>
+                m("fetching %a: making cached tarball", Package.pp, pkg)
               );
             let dists = [main, ...mirrors];
             let* dist = fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
-            return((pkg, Fetched(dist)));
-          };
+            let* dist = DistStorage.cache(dist, cachedTarballPath);
+            return(Some((pkg, Fetched(dist))));
+          }
         };
-      },
-      "fetching %a",
-      Package.pp,
-      pkg,
-    )
+
+      let path = PackagePaths.installPath(sandbox, pkg);
+      if%bind (Fs.exists(path)) {
+        let%lwt () =
+          Esy_logs_lwt.debug(m =>
+            m("fetching %a: installed", Package.pp, pkg)
+          );
+        return((pkg, Installed(path)));
+      } else {
+        switch (cached) {
+        | Some(cached) => return(cached)
+        | None =>
+          let%lwt () =
+            Esy_logs_lwt.debug(m =>
+              m("fetching %a: fetching", Package.pp, pkg)
+            );
+          let dists = [main, ...mirrors];
+          let* dist = fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
+          return((pkg, Fetched(dist)));
+        };
+      };
+    },
+    "fetching %a",
+    Package.pp,
+    pkg,
   );
+};
 
 let copyFiles = (sandbox, pkg, path) => {
-  open RunAsync.Syntax;
   open Package;
 
   let* filesOfOpam =
@@ -147,8 +143,6 @@ let copyFiles = (sandbox, pkg, path) => {
 };
 
 let install' = (sandbox, pkg, fetched) => {
-  open RunAsync.Syntax;
-
   let installPath = PackagePaths.installPath(sandbox, pkg);
 
   let* stagePath = {
@@ -172,15 +166,13 @@ let install' = (sandbox, pkg, fetched) => {
 };
 
 let install = (sandbox, (pkg, fetch)) =>
-  RunAsync.Syntax.(
-    RunAsync.contextf(
-      switch (fetch) {
-      | Linked(path)
-      | Installed(path) => return({pkg, path, packageJsonPath: path})
-      | Fetched(fetched) => install'(sandbox, pkg, fetched)
-      },
-      "installing %a",
-      Package.pp,
-      pkg,
-    )
+  RunAsync.contextf(
+    switch (fetch) {
+    | Linked(path)
+    | Installed(path) => return({pkg, path, packageJsonPath: path})
+    | Fetched(fetched) => install'(sandbox, pkg, fetched)
+    },
+    "installing %a",
+    Package.pp,
+    pkg,
   );
