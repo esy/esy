@@ -4,7 +4,6 @@
 
  */;
 
-open EsyPackageConfig;
 open EsyPrimitives;
 
 /**
@@ -35,6 +34,3 @@ let fetch:
 let maybeInstallationOfSolution:
   (FetchDepsSubset.t, Sandbox.t, Solution.t) =>
   RunAsync.t(option(Installation.t));
-
-let fetchOverrideFiles:
-  (Config.t, SandboxSpec.t, Override.t) => RunAsync.t(list(File.t));
