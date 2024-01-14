@@ -22,7 +22,10 @@ let cases = [
    // { name: "graphics", toolchains: [ocamlVersion] },
    { name: "stdlib-shims", toolchains: [ocamlVersion] },
    { name: "js_of_ocaml", toolchains: [ocamlVersion] },
-   { name: "ppx_tools_versioned", toolchains: [ocamlVersion] },
+   // Disabled because doesn't work with 4.14.1. Contains constraint
+   // ocaml-migrate-parsetree >=1.7.0 & <2.0.0 and 2.3.0 is needed for
+   // 4.14.1.
+   // { name: "ppx_tools_versioned", toolchains: [ocamlVersion] },
    { name: "ppx_deriving_yojson", toolchains: [ocamlVersion] },
    { name: "ppx_cold", toolchains: [ocamlVersion] },
    { name: "zarith", toolchains: [ocamlVersion] },
