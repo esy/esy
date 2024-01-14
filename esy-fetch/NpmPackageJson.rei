@@ -21,7 +21,10 @@ let ofDir: Path.t => RunAsync.t(option(t));
    specified in the [.bin] field.
 
 */
-let bin: (~sourcePath: Path.t, t) => list((string, Path.t));
+let bin: t => list((string, Path.t));
 
-/** returns lifecycle hooks of a package.json */
+/** returns lifecycle hooks of a package.json. Useful with Option monads. */
 let lifecycle: t => option(lifecycle);
+
+/** Updates (functional) basePath of [t] */
+let setBasePath: (Path.t, t) => t;

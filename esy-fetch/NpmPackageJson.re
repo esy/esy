@@ -40,12 +40,18 @@ module Bin = {
 };
 
 [@deriving of_yojson({strict: false})]
-type t = {
+type json = {
   [@default None]
   name: option(string),
   bin: [@default Bin.Empty] Bin.t,
   scripts: [@default None] option(Lifecycle.t),
   esy: [@default None] option(Json.t),
+};
+
+[@deriving of_yojson({strict: false})]
+type t = {
+  basePath: Path.t,
+  json,
 };
 
 type lifecycle =
@@ -62,11 +68,12 @@ let ofDir = path => {
     let filename = Path.(path / "package.json");
     if%bind (Fs.exists(filename)) {
       let* json = Fs.readJsonFile(filename);
-      let* manifest = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
+      let* manifest =
+        RunAsync.ofRun(Json.parseJsonWith(json_of_yojson, json));
       if (Option.isSome(manifest.esy)) {
         return(None);
       } else {
-        return(Some(manifest));
+        return(Some({basePath: path, json: manifest}));
       };
     } else {
       return(None);
@@ -74,13 +81,8 @@ let ofDir = path => {
   };
 };
 
-// Unfortunate that sourcePath has to be supplied here. Error
-// prone. User has to be careful enough to specify the same path as the
-// package.json was found. We could save the sourcePath when this value
-// is constructed with .ofDir()
-let bin = (~sourcePath, pkgJson) => {
-  let makePathToCmd = cmdPath =>
-    Path.(sourcePath /\/ v(cmdPath) |> normalize);
+let bin = ({basePath, json: pkgJson}) => {
+  let makePathToCmd = cmdPath => Path.(basePath /\/ v(cmdPath) |> normalize);
   switch (pkgJson.bin, pkgJson.name) {
   | (Bin.One(cmd), Some(name)) => [(name, makePathToCmd(cmd))]
   | (Bin.One(cmd), None) =>
@@ -94,8 +96,10 @@ let bin = (~sourcePath, pkgJson) => {
   };
 };
 
-let lifecycle = pkgJson =>
+let lifecycle = ({json: pkgJson, _}) =>
   switch (pkgJson.scripts) {
   | Some({Lifecycle.postinstall: None, install: None}) => None
   | lifecycle => lifecycle
   };
+
+let setBasePath = (basePath, {json, _}) => {json, basePath};

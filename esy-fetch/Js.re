@@ -10,7 +10,7 @@ type installation = {
 module LinkBin: {
   /** Creates node wrapper binaries (shell scripts with shebangs like #!/usr/bin/env node ...) in the specified destination path */
   let link:
-    (Path.t, Path.t, NpmPackageJson.t) => RunAsync.t(list((string, Path.t)));
+    (Path.t, NpmPackageJson.t) => RunAsync.t(list((string, Path.t)));
 } = {
   let installNodeBinWrapper = (binPath, (name, origPath)) => {
     let (data, path) =
@@ -101,9 +101,9 @@ module LinkBin: {
     };
   };
 
-  let link = (binPath, path, pkgJson) => {
+  let link = (binPath, pkgJson) => {
     open RunAsync.Syntax;
-    let bins = NpmPackageJson.bin(~sourcePath=path, pkgJson);
+    let bins = NpmPackageJson.bin(pkgJson);
     let* () = RunAsync.List.mapAndWait(~f=installBinWrapper(binPath), bins);
     return(bins);
   };
@@ -326,10 +326,10 @@ let install =
       let* () = Fs.createDir(binPath);
 
       let* () = {
-        let f = ({path, pkgJson, _}) => {
+        let f = ({pkgJson, _}) => {
           let* _: list((string, Path.t)) =
             switch (pkgJson) {
-            | Some(pkgJson) => LinkBin.link(binPath, path, pkgJson)
+            | Some(pkgJson) => LinkBin.link(binPath, pkgJson)
             | None => RunAsync.return([])
             };
           return();
@@ -397,7 +397,9 @@ let install =
                 );
               return();
             };
-          return(pkgJson);
+          pkgJson
+          |> Option.map(~f=NpmPackageJson.setBasePath(installPath))
+          |> return;
         }
       );
 
@@ -457,10 +459,11 @@ let installBinaries =
     let* () = Fs.createDir(binPath);
 
     let* _ = {
-      let f = (seen, {pkg, path, pkgJson}) => {
+      // TODO: can this _path be gotten rid of?
+      let f = (seen, {pkg, pkgJson, path: _}) => {
         switch (pkgJson) {
         | Some(pkgJson) =>
-          let* bins = LinkBin.link(binPath, path, pkgJson);
+          let* bins = LinkBin.link(binPath, pkgJson);
           let f = (seen, (name, _)) =>
             switch (StringMap.find_opt(name, seen)) {
             | None => StringMap.add(name, [pkg], seen)
