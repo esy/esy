@@ -2,7 +2,10 @@ open RunAsync.Syntax;
 open EsyPackageConfig;
 
 type installation = {
-  path: Path.t,
+  // it's useful to cache the package.json, if a package contains one.
+  // We parse package.json before we run the lifecycle hooks, which we
+  // do after download the sources of a package as a part of following
+  // NPM behaviour.
   pkgJson: option(NpmPackageJson.t),
   pkg: Package.t,
 };
@@ -403,7 +406,7 @@ let install =
         }
       );
 
-    RunAsync.return({path: installPath, pkgJson, pkg});
+    RunAsync.return({pkgJson, pkg});
   };
 
   LwtTaskQueue.submit(queue, f);
@@ -439,9 +442,9 @@ let installBinaries =
     let id = pkg.Package.id;
     if (!PackageId.Set.mem(id, seen)) {
       let seen = PackageId.Set.add(id, seen);
-      let* {path, pkgJson, pkg} =
+      let* {pkgJson, pkg} =
         Memoize.compute(tasks, id, () => visit'(seen, pkg));
-      return(Some({path, pkgJson, pkg}));
+      return(Some({pkgJson, pkg}));
     } else {
       return(None);
     };
@@ -459,8 +462,7 @@ let installBinaries =
     let* () = Fs.createDir(binPath);
 
     let* _ = {
-      // TODO: can this _path be gotten rid of?
-      let f = (seen, {pkg, pkgJson, path: _}) => {
+      let f = (seen, {pkg, pkgJson}) => {
         switch (pkgJson) {
         | Some(pkgJson) =>
           let* bins = LinkBin.link(binPath, pkgJson);
