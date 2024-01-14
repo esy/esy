@@ -157,8 +157,8 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
   /* Collect packages which from the solution */
   let (pkgs, root) = collectPackagesOfSolution(fetchDepsSubset, solution);
 
-  /* Fetch all packages and place in the source cache/store */
-  let* fetched =
+  /* Ensure all packages are available on disk. Download if necessary. */
+  let* fetchedKindMap =
     fetchPackages(
       fetchDepsSubset,
       sandbox,
@@ -166,6 +166,22 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
       gitUsername,
       gitPassword,
     );
+
+  let f = pkg => {
+    let fetchedKind = Package.Map.find(pkg, fetchedKindMap);
+    let* stagePath = {
+      let path = PackagePaths.stagePath(sandbox, pkg);
+      let* () = Fs.rmPath(path);
+      return(path);
+    };
+    FetchPackage.install(~fetchedKind, ~stagePath, sandbox, pkg);
+  };
+
+  let fetchConcurrency =
+    Option.orDefault(~default=40, sandbox.Sandbox.cfg.fetchConcurrency);
+
+  /* Ensure downloaded packages are copied to the store */
+  let* () = RunAsync.List.mapAndWait(~concurrency=fetchConcurrency, ~f, pkgs);
 
   /* Produce _esy/<sandbox>/installation.json */
   let installation =
@@ -183,7 +199,7 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
       ~fetchDepsSubset,
       ~sandbox,
       ~installation,
-      ~fetched,
+      ~fetchedKindMap,
     );
 
   let* () = Js.dumpPnp(~solution, ~fetchDepsSubset, ~sandbox, ~installation);

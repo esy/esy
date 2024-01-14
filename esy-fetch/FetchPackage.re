@@ -1,16 +1,10 @@
 open RunAsync.Syntax;
-type fetch = (Package.t, kind)
-and kind =
+type kind =
   | Fetched(DistStorage.fetchedDist)
   | Installed(Path.t)
   | Linked(Path.t);
 
-type installation = {
-  pkg: Package.t,
-  /* pkgJson is needed by LinkBin.link in Js.re */
-  packageJsonPath: Path.t,
-  path: Path.t,
-};
+type installation = unit;
 
 /* fetch any of the dists for the package */
 let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
@@ -66,7 +60,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
     | Link({path, _}) =>
       let path =
         EsyPackageConfig.DistPath.toPath(sandbox.Sandbox.spec.path, path);
-      return((pkg, Linked(path)));
+      return(Linked(path));
     | Install({source: (main, mirrors), opam: _}) =>
       let* cached =
         switch (PackagePaths.cachedTarballPath(sandbox, pkg)) {
@@ -78,7 +72,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
                 m("fetching %a: found cached tarball", Package.pp, pkg)
               );
             let dist = DistStorage.ofCachedTarball(cachedTarballPath);
-            return(Some((pkg, Fetched(dist))));
+            return(Some(Fetched(dist)));
           } else {
             let%lwt () =
               Esy_logs_lwt.debug(m =>
@@ -87,7 +81,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
             let dists = [main, ...mirrors];
             let* dist = fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
             let* dist = DistStorage.cache(dist, cachedTarballPath);
-            return(Some((pkg, Fetched(dist))));
+            return(Some(Fetched(dist)));
           }
         };
 
@@ -97,7 +91,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
           Esy_logs_lwt.debug(m =>
             m("fetching %a: installed", Package.pp, pkg)
           );
-        return((pkg, Installed(path)));
+        return(Installed(path));
       } else {
         switch (cached) {
         | Some(cached) => return(cached)
@@ -108,7 +102,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
             );
           let dists = [main, ...mirrors];
           let* dist = fetch'(sandbox, pkg, dists, gitUsername, gitPassword);
-          return((pkg, Fetched(dist)));
+          return(Fetched(dist));
         };
       };
     },
@@ -142,35 +136,28 @@ let copyFiles = (sandbox, pkg, path) => {
   );
 };
 
-let install' = (sandbox, pkg, fetched) => {
-  let installPath = PackagePaths.installPath(sandbox, pkg);
+let install' = (~stagePath, sandbox, pkg, fetched) => {
+  let* () =
+    RunAsync.ofLwt @@
+    Esy_logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
 
-  let* stagePath = {
-    let path = PackagePaths.stagePath(sandbox, pkg);
-    let* () = Fs.rmPath(path);
-    return(path);
-  };
-
-  let* () = {
-    let%lwt () = Esy_logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
+  let* () =
     RunAsync.contextf(
       DistStorage.unpack(fetched, stagePath),
       "unpacking %a",
       Package.pp,
       pkg,
     );
-  };
 
-  let* () = copyFiles(sandbox, pkg, stagePath);
-  return({pkg, path: installPath, packageJsonPath: stagePath});
+  copyFiles(sandbox, pkg, stagePath);
 };
 
-let install = (sandbox, (pkg, fetch)) =>
+let install = (~fetchedKind, ~stagePath, sandbox, pkg) =>
   RunAsync.contextf(
-    switch (fetch) {
-    | Linked(path)
-    | Installed(path) => return({pkg, path, packageJsonPath: path})
-    | Fetched(fetched) => install'(sandbox, pkg, fetched)
+    switch (fetchedKind) {
+    | Linked(_)
+    | Installed(_) => return()
+    | Fetched(fetched) => install'(~stagePath, sandbox, pkg, fetched)
     },
     "installing %a",
     Package.pp,

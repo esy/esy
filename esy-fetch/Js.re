@@ -304,7 +304,15 @@ module Lifecycle = {
    TODO explain parameters
  */
 let install =
-    (~sandbox, ~dependencies, ~solution, ~installation, ~fetched, ~queue, pkg) => {
+    (
+      ~sandbox,
+      ~dependencies,
+      ~solution,
+      ~installation,
+      ~fetchedKindMap,
+      ~queue,
+      pkg,
+    ) => {
   open RunAsync.Syntax;
   let f = () => {
     let id = pkg.Package.id;
@@ -355,33 +363,41 @@ let install =
       return();
     };
 
-    let fetched = Package.Map.find(pkg, fetched);
-    let* FetchPackage.{packageJsonPath, path: installPath, pkg} =
-      FetchPackage.install(sandbox, fetched);
+    let fetchedKind = Package.Map.find(pkg, fetchedKindMap);
+    let stagePath = PackagePaths.stagePath(sandbox, pkg);
+    let installPath = PackagePaths.installPath(sandbox, pkg);
 
-    let* pkgJson = NpmPackageJson.ofDir(packageJsonPath);
-
-    let* () =
-      switch (Option.bind(~f=NpmPackageJson.lifecycle, pkgJson)) {
-      | Some(lifecycle) =>
-        let* () = onBeforeLifecycle(packageJsonPath);
-        let* () = Lifecycle.run(pkg, packageJsonPath, lifecycle);
-        let* () =
-          PackagePaths.commit(
-            ~needRewrite=true,
-            packageJsonPath,
-            installPath,
-          );
-        return();
-      | None =>
-        let* () =
-          PackagePaths.commit(
-            ~needRewrite=false,
-            packageJsonPath,
-            installPath,
-          );
-        return();
-      };
+    let* pkgJson =
+      FetchPackage.(
+        switch (fetchedKind) {
+        | Linked(installPath)
+        | Installed(installPath) => NpmPackageJson.ofDir(installPath)
+        | Fetched(_) =>
+          let* pkgJson = NpmPackageJson.ofDir(stagePath);
+          let* () =
+            switch (Option.bind(~f=NpmPackageJson.lifecycle, pkgJson)) {
+            | Some(lifecycle) =>
+              let* () = onBeforeLifecycle(stagePath);
+              let* () = Lifecycle.run(pkg, stagePath, lifecycle);
+              let* () =
+                PackagePaths.commit(
+                  ~needRewrite=true,
+                  stagePath,
+                  installPath,
+                );
+              return();
+            | None =>
+              let* () =
+                PackagePaths.commit(
+                  ~needRewrite=false,
+                  stagePath,
+                  installPath,
+                );
+              return();
+            };
+          return(pkgJson);
+        }
+      );
 
     RunAsync.return({path: installPath, pkgJson, pkg});
   };
@@ -390,9 +406,9 @@ let install =
 };
 
 let installBinaries =
-    (~solution, ~fetchDepsSubset, ~sandbox, ~installation, ~fetched) => {
+    (~solution, ~fetchDepsSubset, ~sandbox, ~installation, ~fetchedKindMap) => {
   let (report, finish) = Cli.createProgressReporter(~name="installing", ());
-  let queue = LwtTaskQueue.create(~concurrency=40, ());
+  let queue = LwtTaskQueue.create(~concurrency=40, ()); /* TODO use fetchConcurrency from cli */
 
   let tasks = Memoize.make();
 
@@ -410,7 +426,7 @@ let installBinaries =
       ~dependencies,
       ~solution,
       ~installation,
-      ~fetched,
+      ~fetchedKindMap,
       ~queue,
       pkg,
     );
