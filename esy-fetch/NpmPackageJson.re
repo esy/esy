@@ -74,6 +74,10 @@ let ofDir = path => {
   };
 };
 
+// Unfortunate that sourcePath has to be supplied here. Error
+// prone. User has to be careful enough to specify the same path as the
+// package.json was found. We could save the sourcePath when this value
+// is constructed with .ofDir()
 let bin = (~sourcePath, pkgJson) => {
   let makePathToCmd = cmdPath =>
     Path.(sourcePath /\/ v(cmdPath) |> normalize);

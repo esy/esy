@@ -144,9 +144,11 @@ let install' = (~stagePath, sandbox, pkg, fetched) => {
   let* () =
     RunAsync.contextf(
       DistStorage.unpack(fetched, stagePath),
-      "unpacking %a",
+      "unpacking %a at %a",
       Package.pp,
       pkg,
+      Path.pp,
+      stagePath,
     );
 
   copyFiles(sandbox, pkg, stagePath);

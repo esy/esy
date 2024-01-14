@@ -7,7 +7,11 @@ type installation = {
   pkg: Package.t,
 };
 
-module LinkBin = {
+module LinkBin: {
+  /** Creates node wrapper binaries (shell scripts with shebangs like #!/usr/bin/env node ...) in the specified destination path */
+  let link:
+    (Path.t, Path.t, NpmPackageJson.t) => RunAsync.t(list((string, Path.t)));
+} = {
   let installNodeBinWrapper = (binPath, (name, origPath)) => {
     let (data, path) =
       switch (System.Platform.host) {
@@ -97,17 +101,12 @@ module LinkBin = {
     };
   };
 
-  let link = (binPath, path, pkgJson) =>
-    RunAsync.Syntax.(
-      switch (pkgJson) {
-      | Some(pkgJson) =>
-        let bin = NpmPackageJson.bin(~sourcePath=path, pkgJson);
-        let* () =
-          RunAsync.List.mapAndWait(~f=installBinWrapper(binPath), bin);
-        return(bin);
-      | None => RunAsync.return([])
-      }
-    );
+  let link = (binPath, path, pkgJson) => {
+    open RunAsync.Syntax;
+    let bins = NpmPackageJson.bin(~sourcePath=path, pkgJson);
+    let* () = RunAsync.List.mapAndWait(~f=installBinWrapper(binPath), bins);
+    return(bins);
+  };
 };
 
 /** This installs pnp enabled node wrapper. */
@@ -329,7 +328,10 @@ let install =
       let* () = {
         let f = ({path, pkgJson, _}) => {
           let* _: list((string, Path.t)) =
-            LinkBin.link(binPath, path, pkgJson);
+            switch (pkgJson) {
+            | Some(pkgJson) => LinkBin.link(binPath, path, pkgJson)
+            | None => RunAsync.return([])
+            };
           return();
         };
 
@@ -456,24 +458,28 @@ let installBinaries =
 
     let* _ = {
       let f = (seen, {pkg, path, pkgJson}) => {
-        let* bins = LinkBin.link(binPath, path, pkgJson);
-        let f = (seen, (name, _)) =>
-          switch (StringMap.find_opt(name, seen)) {
-          | None => StringMap.add(name, [pkg], seen)
-          | Some(pkgs) =>
-            let pkgs = [pkg, ...pkgs];
-            Esy_logs.warn(m =>
-              m(
-                "executable '%s' is installed by several packages: @[<h>%a@]@;",
-                name,
-                Fmt.(list(~sep=any(", "), Package.pp)),
-                pkgs,
-              )
-            );
-            StringMap.add(name, pkgs, seen);
-          };
+        switch (pkgJson) {
+        | Some(pkgJson) =>
+          let* bins = LinkBin.link(binPath, path, pkgJson);
+          let f = (seen, (name, _)) =>
+            switch (StringMap.find_opt(name, seen)) {
+            | None => StringMap.add(name, [pkg], seen)
+            | Some(pkgs) =>
+              let pkgs = [pkg, ...pkgs];
+              Esy_logs.warn(m =>
+                m(
+                  "executable '%s' is installed by several packages: @[<h>%a@]@;",
+                  name,
+                  Fmt.(list(~sep=any(", "), Package.pp)),
+                  pkgs,
+                )
+              );
+              StringMap.add(name, pkgs, seen);
+            };
 
-        return(List.fold_left(~f, ~init=seen, bins));
+          return(List.fold_left(~f, ~init=seen, bins));
+        | None => return(seen)
+        };
       };
 
       RunAsync.List.foldLeft(
