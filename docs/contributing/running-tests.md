@@ -59,4 +59,25 @@ eval $(ssh-agent -s)
 ssh-add ~/.ssh/id_rsa
 ```
 
+## Troubleshooting
 
+While running `yarn jest`, snapshots can get outdated as new commits are made. You might see the following multiple times:
+
+```txt
+ ● <test suite> errors › test name
+
+expect(received).toEqual(expected) // deep equality
+- Expected  - 1
++ Received  + 1
+@@ -1,6 +1,6 @@
+- info install 0.7.2-124-g290c33aa (using package.json)
++ info install 0.7.2-115-g20692a3a (using package.json) 
+```
+
+Run,
+
+```sh
+sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+esy
+```
+And then, run the tests again with `yarn jest` as usual.
