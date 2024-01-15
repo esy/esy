@@ -498,11 +498,20 @@ let installBinaries =
         | Some(pkgJson) =>
           let installPath = PackagePaths.installPath(sandbox, pkg);
           let* bins =
-            LinkBin.link(
-              ~srcPackageDir=installPath,
-              ~destBinWrapperDir,
-              ~pkgJson,
-            );
+            if (root.installConfig.pnp) {
+              LinkBin.link(
+                ~srcPackageDir=installPath,
+                ~destBinWrapperDir,
+                ~pkgJson,
+              );
+            } else {
+              LinkBin.link(
+                ~srcPackageDir=
+                  Path.(sandbox.spec.path / "node_modules" / pkg.Package.name),
+                ~destBinWrapperDir,
+                ~pkgJson,
+              );
+            };
           let f = (seen, (name, _)) =>
             switch (StringMap.find_opt(name, seen)) {
             | None => StringMap.add(name, [pkg], seen)
