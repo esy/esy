@@ -11,12 +11,28 @@ type installation = {
 };
 
 module LinkBin: {
-  /** Creates node wrapper binaries (shell scripts with shebangs like #!/usr/bin/env node ...) in the specified destination path */
+  /**
+
+     Creates node wrapper binaries (shell scripts with shebangs like
+     #!/usr/bin/env node ...) in the specified destination path.
+
+     To create wrapper binaries in [destBinWrapperDir], it needs the
+     path, [srcPackageDir] to be embedded in the wrapper
+     script. [srcPackageDir] doesn't necessarily have to be from
+     cache. When pnp = false, [srcPackageDir] points to a path inside
+     [node_modules].
+
+  */
   let link:
-    (Path.t, NpmPackageJson.t) => RunAsync.t(list((string, Path.t)));
+    (
+      ~srcPackageDir: Path.t,
+      ~destBinWrapperDir: Path.t,
+      ~pkgJson: NpmPackageJson.t
+    ) =>
+    RunAsync.t(list((string, Path.t)));
 } = {
-  let installNodeBinWrapper = (binPath, (name, origPath)) => {
-    let (data, path) =
+  let installNodeBinWrapper = (destBinWrapperDir, (name, origPath)) => {
+    let (data, binWrapperPath) =
       switch (System.Platform.host) {
       | Windows =>
         let data =
@@ -28,7 +44,7 @@ module LinkBin: {
             Path.pp,
             origPath,
           );
-        let path = Path.(binPath / name |> addExt(".cmd"));
+        let path = Path.(destBinWrapperDir / name |> addExt(".cmd"));
         (data, path);
       | _ =>
         let data =
@@ -40,14 +56,14 @@ module LinkBin: {
             origPath,
           );
 
-        let path = Path.(binPath / name);
+        let path = Path.(destBinWrapperDir / name);
         (data, path);
       };
 
-    Fs.writeFile(~perm=0o755, ~data, path);
+    Fs.writeFile(~perm=0o755, ~data, binWrapperPath);
   };
 
-  let installBinWrapperAsBatch = (binPath, (name, origPath)) => {
+  let installBinWrapperAsBatch = (destBinWrapperDir, (name, origPath)) => {
     let data =
       Fmt.str({|@ECHO off
 @SETLOCAL
@@ -57,14 +73,14 @@ module LinkBin: {
     Fs.writeFile(
       ~perm=0o755,
       ~data,
-      Path.(binPath / name |> addExt(".cmd")),
+      Path.(destBinWrapperDir / name |> addExt(".cmd")),
     );
   };
 
-  let installBinWrapperAsSymlink = (binPath, (name, origPath)) => {
+  let installBinWrapperAsSymlink = (destBinWrapperDir, (name, origPath)) => {
     open RunAsync.Syntax;
     let* () = Fs.chmod(0o777, origPath);
-    let destPath = Path.(binPath / name);
+    let destPath = Path.(destBinWrapperDir / name);
     if%bind (Fs.exists(destPath)) {
       let* () = Fs.unlink(destPath);
       Fs.symlink(~force=true, ~src=origPath, destPath);
@@ -73,7 +89,7 @@ module LinkBin: {
     };
   };
 
-  let installBinWrapper = (binPath, (name, origPath)) => {
+  let installBinWrapper = (destBinWrapperDir, (name, origPath)) => {
     open RunAsync.Syntax;
     let%lwt () =
       Esy_logs_lwt.debug(m =>
@@ -83,16 +99,18 @@ module LinkBin: {
           origPath,
           name,
           Path.pp,
-          binPath,
+          destBinWrapperDir,
         )
       );
     if%bind (Fs.exists(origPath)) {
       if (Path.hasExt(".js", origPath)) {
-        installNodeBinWrapper(binPath, (name, origPath));
+        installNodeBinWrapper(destBinWrapperDir, (name, origPath));
       } else {
         switch (System.Platform.host) {
-        | Windows => installBinWrapperAsBatch(binPath, (name, origPath))
-        | _ => installBinWrapperAsSymlink(binPath, (name, origPath))
+        | Windows =>
+          installBinWrapperAsBatch(destBinWrapperDir, (name, origPath))
+        | _ =>
+          installBinWrapperAsSymlink(destBinWrapperDir, (name, origPath))
         };
       };
     } else {
@@ -104,10 +122,18 @@ module LinkBin: {
     };
   };
 
-  let link = (binPath, pkgJson) => {
+  let link = (~srcPackageDir, ~destBinWrapperDir, ~pkgJson) => {
     open RunAsync.Syntax;
-    let bins = NpmPackageJson.bin(pkgJson);
-    let* () = RunAsync.List.mapAndWait(~f=installBinWrapper(binPath), bins);
+    let makePathToCmd = ((cmd, cmdPath)) => {
+      let cmdPath = Path.(srcPackageDir /\/ v(cmdPath) |> normalize);
+      (cmd, cmdPath);
+    };
+    let bins = NpmPackageJson.bin(pkgJson) |> List.map(~f=makePathToCmd);
+    let* () =
+      RunAsync.List.mapAndWait(
+        ~f=installBinWrapper(destBinWrapperDir),
+        bins,
+      );
     return(bins);
   };
 };
@@ -319,20 +345,26 @@ let install =
   let f = () => {
     let id = pkg.Package.id;
 
-    let onBeforeLifecycle = path => {
+    let onBeforeLifecycle = stagePath => {
       /*
        * This creates <install>/_esy and populates it with a custom
        * per-package pnp.js (which allows to resolve dependencies out of
        * stage directory and a node wrapper which uses this pnp.js.
        */
-      let binPath = Path.(path / "_esy");
-      let* () = Fs.createDir(binPath);
+      let destBinWrapperDir = Path.(stagePath / "_esy");
+      let* () = Fs.createDir(destBinWrapperDir);
 
       let* () = {
-        let f = ({pkgJson, _}) => {
+        let f = ({pkgJson, pkg}) => {
           let* _: list((string, Path.t)) =
             switch (pkgJson) {
-            | Some(pkgJson) => LinkBin.link(binPath, pkgJson)
+            | Some(pkgJson) =>
+              let installPath = PackagePaths.installPath(sandbox, pkg);
+              LinkBin.link(
+                ~srcPackageDir=installPath,
+                ~destBinWrapperDir,
+                ~pkgJson,
+              );
             | None => RunAsync.return([])
             };
           return();
@@ -344,12 +376,12 @@ let install =
       let* () =
         if (pkg.installConfig.pnp == true) {
           let* () = {
-            let pnpJsPath = Path.(binPath / "pnp.js");
-            let installation = Installation.add(id, path, installation);
+            let pnpJsPath = Path.(destBinWrapperDir / "pnp.js");
+            let installation = Installation.add(id, stagePath, installation);
             let data =
               PnpJs.render(
-                ~basePath=binPath,
-                ~rootPath=path,
+                ~basePath=destBinWrapperDir,
+                ~rootPath=stagePath,
                 ~rootId=id,
                 ~solution,
                 ~installation,
@@ -357,7 +389,7 @@ let install =
               );
 
             let* () = Fs.writeFile(~perm=0o755, ~data, pnpJsPath);
-            installNodeWrapper(~binPath, ~pnpJsPath, ());
+            installNodeWrapper(~binPath=destBinWrapperDir, ~pnpJsPath, ());
           };
 
           return();
@@ -400,9 +432,7 @@ let install =
                 );
               return();
             };
-          pkgJson
-          |> Option.map(~f=NpmPackageJson.setBasePath(installPath))
-          |> return;
+          return(pkgJson);
         }
       );
 
@@ -458,14 +488,21 @@ let installBinaries =
     );
 
   let* () = {
-    let binPath = SandboxSpec.binPath(sandbox.spec);
-    let* () = Fs.createDir(binPath);
+    let destBinWrapperDir /* local sandbox bin dir */ =
+      SandboxSpec.binPath(sandbox.spec);
+    let* () = Fs.createDir(destBinWrapperDir);
 
     let* _ = {
       let f = (seen, {pkg, pkgJson}) => {
         switch (pkgJson) {
         | Some(pkgJson) =>
-          let* bins = LinkBin.link(binPath, pkgJson);
+          let installPath = PackagePaths.installPath(sandbox, pkg);
+          let* bins =
+            LinkBin.link(
+              ~srcPackageDir=installPath,
+              ~destBinWrapperDir,
+              ~pkgJson,
+            );
           let f = (seen, (name, _)) =>
             switch (StringMap.find_opt(name, seen)) {
             | None => StringMap.add(name, [pkg], seen)

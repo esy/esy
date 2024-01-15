@@ -15,16 +15,8 @@ type lifecycle = {
  */
 let ofDir: Path.t => RunAsync.t(option(t));
 
-/**
-
-   Returns a list of binaries commands installable by an NPM package
-   specified in the [.bin] field.
-
-*/
-let bin: t => list((string, Path.t));
+/** Returns [.bin] field as name - command tuples */
+let bin: t => list((string, string));
 
 /** returns lifecycle hooks of a package.json. Useful with Option monads. */
 let lifecycle: t => option(lifecycle);
-
-/** Updates (functional) basePath of [t] */
-let setBasePath: (Path.t, t) => t;

@@ -40,18 +40,12 @@ module Bin = {
 };
 
 [@deriving of_yojson({strict: false})]
-type json = {
+type t = {
   [@default None]
   name: option(string),
   bin: [@default Bin.Empty] Bin.t,
   scripts: [@default None] option(Lifecycle.t),
   esy: [@default None] option(Json.t),
-};
-
-[@deriving of_yojson({strict: false})]
-type t = {
-  basePath: Path.t,
-  json,
 };
 
 type lifecycle =
@@ -68,12 +62,11 @@ let ofDir = path => {
     let filename = Path.(path / "package.json");
     if%bind (Fs.exists(filename)) {
       let* json = Fs.readJsonFile(filename);
-      let* manifest =
-        RunAsync.ofRun(Json.parseJsonWith(json_of_yojson, json));
+      let* manifest = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
       if (Option.isSome(manifest.esy)) {
         return(None);
       } else {
-        return(Some({basePath: path, json: manifest}));
+        return(Some(manifest));
       };
     } else {
       return(None);
@@ -81,25 +74,23 @@ let ofDir = path => {
   };
 };
 
-let bin = ({basePath, json: pkgJson}) => {
-  let makePathToCmd = cmdPath => Path.(basePath /\/ v(cmdPath) |> normalize);
+let bin = pkgJson => {
   switch (pkgJson.bin, pkgJson.name) {
-  | (Bin.One(cmd), Some(name)) => [(name, makePathToCmd(cmd))]
+  | (Bin.One(cmd), Some(name)) => [(name, cmd)]
   | (Bin.One(cmd), None) =>
-    let cmd = makePathToCmd(cmd);
-    let name = Path.basename(cmd);
+    let name = Filename.basename(cmd);
     [(name, cmd)];
   | (Bin.Many(cmds), _) =>
-    let f = (name, cmd, cmds) => [(name, makePathToCmd(cmd)), ...cmds];
+    let f = (name, cmd, cmds) => {
+      [(name, cmd), ...cmds];
+    };
     StringMap.fold(f, cmds, []);
   | (Bin.Empty, _) => []
   };
 };
 
-let lifecycle = ({json: pkgJson, _}) =>
+let lifecycle = pkgJson =>
   switch (pkgJson.scripts) {
   | Some({Lifecycle.postinstall: None, install: None}) => None
   | lifecycle => lifecycle
   };
-
-let setBasePath = (basePath, {json, _}) => {json, basePath};
