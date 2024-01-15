@@ -43,6 +43,7 @@ jobs:
         condition: eq(variables['AGENT.OS'], 'Windows_NT')
         displayName: "Make sure $HOME is same is Agent.BuildDirectory"
       - bash: |
+          rm -rf D:/.esy
           # COMPUTE THE ESY INSTALL CACHE LOCATION AHEAD OF TIME
           DESIRED_LEN="85"
           # Not sure why, windows is has one extra underscore. Observed at https://github.com/ManasJayanth/reason-ocaml-tls-tutorial-meet/commit/3b4a6113cc413cc5cdf0fd8a2521c4c44dd1c0e5
