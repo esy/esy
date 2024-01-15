@@ -29,19 +29,7 @@ let key = pkg => {
 };
 
 let stagePath = (sandbox, pkg) =>
-  /* We are getting EACCESS error on Windows if we try to rename directory
-   * from stage to install after we read a file from there. It seems we are
-   * leaking fds and Windows prevent rename from working.
-   *
-   * For now we are unpacking and running lifecycle directly in a final
-   * directory and in case of an error we do a cleanup by removing the
-   * install directory (so that subsequent installation attempts try to do
-   * install again).
-   */
-  switch (System.Platform.host) {
-  | Windows => Path.(sandbox.Sandbox.cfg.sourceInstallPath / key(pkg))
-  | _ => Path.(sandbox.Sandbox.cfg.sourceStagePath / key(pkg))
-  };
+  Path.(sandbox.Sandbox.cfg.sourceStagePath / key(pkg));
 
 let cachedTarballPath = (sandbox, pkg) =>
   switch (sandbox.Sandbox.cfg.sourceArchivePath, pkg.Package.source) {
@@ -65,9 +53,7 @@ let commit = (~needRewrite, stagePath, installPath) =>
   RunAsync.Syntax.
     /* See distStagePath for details */
     (
-      switch (System.Platform.host) {
-      | Windows => RunAsync.return()
-      | _ =>
+      {
         let* () =
           if (needRewrite) {
             RewritePrefix.rewritePrefix(
