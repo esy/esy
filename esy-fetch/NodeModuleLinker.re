@@ -123,17 +123,6 @@ let link = (~installation, ~solution, ~projectPath, ~fetchDepsSubset) => {
        )
     |> List.map(~f)
     |> RunAsync.List.waitAll;
-  /* let paths = */
-  /*   getPathsToLink( */
-  /*     ~projectPath, */
-  /*     ~solution, */
-  /*     ~fetchDepsSubset, */
-  /*     ~installation, */
-  /*     ~rootPackageID, */
-  /*     ~queue, */
-  /*   ); */
-  /* let f = ((src, dest)) => linkPaths(~link=true, src, dest); */
-  /* paths |> List.rev |> List.map(~f) |> RunAsync.List.waitAll; */
   getPathsToLink(
     ~projectPath,
     ~solution,
