@@ -1,10 +1,11 @@
+/**
+ * Represents a project solution (ie. transitive closure of
+ * dependencies needed by a project)
+ */
+
 open DepSpec;
 open EsyPackageConfig;
 open EsyPrimitives;
-
-/**
- * This module represents a solution.
- */;
 
 type id = PackageId.t;
 type pkg = Package.t;

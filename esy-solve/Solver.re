@@ -9,7 +9,7 @@ let computeOverrideDigest = (sandbox, override) =>
     | OfDist({dist, json: _}) => return(Digestv.ofString(Dist.show(dist)))
     | OfOpamOverride(info) =>
       let* files =
-        EsyFetch.Fetch.fetchOverrideFiles(
+        EsyFetch.Override.fetch(
           sandbox.Sandbox.cfg.installCfg,
           sandbox.spec,
           override,
