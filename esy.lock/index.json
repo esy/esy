@@ -1,5 +1,5 @@
 {
-  "checksum": "d72b94175024eb8db3163884ce5937f1",
+  "checksum": "23b01264fd8cb783f0eb42696f0d89ff",
   "root": "esy@link-dev:./esy.json",
   "node": {
     "yarn-pkg-config@github:esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a@d41d8cd9": {
@@ -119,6 +119,7 @@
         "@opam/ppx_expect@opam:v0.16.0@75d62292",
         "@opam/ppx_deriving_yojson@opam:3.7.0@167442d6",
         "@opam/ppx_deriving@opam:5.2.1@2315fdd0",
+        "@opam/ppx_blob@opam:0.7.2@f89ed130",
         "@opam/opam-state@opam:2.2.0~alpha@638199c6",
         "@opam/opam-format@opam:2.2.0~alpha@def441fc",
         "@opam/opam-file-format@opam:2.1.6@15a161af",
@@ -1423,6 +1424,32 @@
       "devDependencies": [
         "ocaml@4.14.0@d41d8cd9", "@opam/ppxlib@opam:0.31.0@1212d9eb",
         "@opam/dune@opam:3.6.2@e0fa23ed", "@opam/base@opam:v0.16.3@de1ba42e"
+      ]
+    },
+    "@opam/ppx_blob@opam:0.7.2@f89ed130": {
+      "id": "@opam/ppx_blob@opam:0.7.2@f89ed130",
+      "name": "@opam/ppx_blob",
+      "version": "opam:0.7.2",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/sha256/bc/bcb9dcab18a3b40b5d6d9656575001c6379abf29461aa87d9263d25b59f80a02#sha256:bcb9dcab18a3b40b5d6d9656575001c6379abf29461aa87d9263d25b59f80a02",
+          "archive:https://github.com/johnwhitington/ppx_blob/releases/download/0.7.2/ppx_blob-0.7.2.tbz#sha256:bcb9dcab18a3b40b5d6d9656575001c6379abf29461aa87d9263d25b59f80a02"
+        ],
+        "opam": {
+          "name": "ppx_blob",
+          "version": "0.7.2",
+          "path": "esy.lock/opam/ppx_blob.0.7.2"
+        }
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.14.0@d41d8cd9", "@opam/ppxlib@opam:0.31.0@1212d9eb",
+        "@opam/dune@opam:3.6.2@e0fa23ed", "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.14.0@d41d8cd9", "@opam/ppxlib@opam:0.31.0@1212d9eb",
+        "@opam/dune@opam:3.6.2@e0fa23ed"
       ]
     },
     "@opam/ppx_base@opam:v0.16.0@91973750": {

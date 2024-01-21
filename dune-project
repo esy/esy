@@ -59,6 +59,7 @@ Easy package management for native Reason, OCaml and more
     ppx_inline_test  
     ppx_let  
     ppx_sexp_conv  
+    ppx_blob
     re  
     mccs
     yojson  

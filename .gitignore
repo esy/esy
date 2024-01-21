@@ -6,7 +6,8 @@ node_modules
 /coverage
 /lib
 /_export
-/_esy
+# _esy folders can appear deeper. For instance, bin/npm-binary-wrapper is a separate esy project. See README in that folder to understand why
+_esy 
 /_build
 /_release
 /_platformrelease

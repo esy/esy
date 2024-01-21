@@ -1,0 +1,29 @@
+opam-version: "2.0"
+authors: "John Whitington"
+maintainer: "contact@coherentgraphics.co.uk"
+homepage: "https://github.com/johnwhitington/ppx_blob"
+dev-repo: "git+https://github.com/johnwhitington/ppx_blob.git"
+bug-reports: "https://github.com/johnwhitington/ppx_blob/issues/"
+doc: "https://johnwhitington.github.io/ppx_blob/"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+depends: [
+  "ocaml"
+  "dune"
+  "ppxlib"
+  "alcotest" {with-test}
+]
+synopsis: "Include a file as a string at compile time"
+description:
+  "ppx_blob allows you to include a binary blob from a file as a string. Writing `[%blob \"filename\"]` will replace the string with the contents of the file at compile time. This allows the inclusion of arbitary, possibly compressed, data, without the need to respect OCaml's lexical conventions."
+x-commit-hash: "3118ced54a0f4c94dcc51892ccffdd836ac4cbef"
+url {
+  src:
+    "https://github.com/johnwhitington/ppx_blob/releases/download/0.7.2/ppx_blob-0.7.2.tbz"
+  checksum: [
+    "sha256=bcb9dcab18a3b40b5d6d9656575001c6379abf29461aa87d9263d25b59f80a02"
+    "sha512=d1701f640ce3dda2e2f0dce7d3f4a6b33ddfdaf793a9beab73e4f9ac93b2912adb7bb3b7fd1800bab258302aef0f0cdefb1e20ee62e6d882b25f0a64eae390a3"
+  ]
+}

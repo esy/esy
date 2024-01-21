@@ -3,11 +3,14 @@
   (flags
    (-ccopt -static))))
 
+(data_only_dirs npm-bin-wrapper-dev)
+
 (executable
  (name esy)
  (public_name esy)
+ (preprocessor_deps "npm-bin-wrapper-dev/binary_wrapper.ml")
  (preprocess
-  (pps lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
+  (pps ppx_blob lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
  (flags
   (:standard
    (-w -39)

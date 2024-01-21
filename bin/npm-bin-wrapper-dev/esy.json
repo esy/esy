@@ -1,0 +1,19 @@
+{
+  "name": "esy-binary-wrapper",
+  "esy": {
+    "buildsInSource": true,
+    "build": ["ocamlopt str.cmxa unix.cmxa ./package.ml ./binary_wrapper.ml"]
+  },
+  "scripts": {
+    "start": "esy x esy-bin-wrapper"
+  },
+  "//": "Make sure compiler version is the same as the one used by esy",
+  "dependencies": {
+    "ocaml": "4.14.0"
+  },
+  "devDependencies": {
+    "@opam/merlin": "*",
+    "@opam/ocaml-lsp-server": "*",
+    "@opam/ocamlformat": "> 0.21.0"
+  }
+}
