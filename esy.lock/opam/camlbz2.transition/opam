@@ -1,0 +1,12 @@
+opam-version: "2.0"
+license: "LGPL-3.0-or-later with OCaml-LGPL-linking-exception"
+maintainer: [
+  "Pietro Abate" "Johannes Schauer Marin Rodrigues" "Ralf Treinen"
+]
+authors: ["Stefano Zacchiroli" "Johannes Schauer Marin Rodrigues"]
+homepage: "http://www.mancoosi.org/software/"
+dev-repo: "git+https://gitlab.com/irill/camlbz2.git"
+bug-reports: "https://gitlab.com/irill/camlbz2/issues/"
+depends: ["ocaml" "bz2"]
+tags: ["bz2"]
+synopsis: "Transitional package for bz2 (renaming)"

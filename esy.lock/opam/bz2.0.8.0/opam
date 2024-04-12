@@ -1,0 +1,41 @@
+opam-version: "2.0"
+synopsis: "CamlBZ2 OCaml bindings for the libbz2"
+description:
+  "This is CamlBZ2, OCaml bindings for the libbz2 (AKA, bzip2)(de)compression library."
+maintainer: [
+  "Pietro Abate" "Johannes Schauer Marin Rodrigues" "Ralf Treinen"
+]
+authors: ["Stefano Zacchiroli" "Johannes Schauer Marin Rodrigues"]
+license: "LGPL-3.0-or-later with OCaml-LGPL-linking-exception"
+homepage: "http://www.mancoosi.org/software/"
+doc: "https://irill.gitlab.io/camlbz2"
+bug-reports: "https://gitlab.com/irill/camlbz2/issues/"
+depends: [
+  "dune" {>= "2.8"}
+  "conf-libbz2"
+  "stdlib-shims"
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://gitlab.com/irill/camlbz2.git"
+url {
+  src:
+    "https://gitlab.com/irill/camlbz2/-/archive/0.8.0/camlbz2-0.8.0.tar.bz2"
+  checksum: [
+    "md5=5c42ed3df3f485b85ce88e04c6566c59"
+    "sha512=5d8f8ff20676d77aa9c418bd8ba8a3c14aeb6e44e2d458f03ead29f703c97f3f7b5999e2b0a3fc3c78c5a77e7fbd55e5f8c8aeed154f4d46030f7f92f7f1f38a"
+  ]
+}
