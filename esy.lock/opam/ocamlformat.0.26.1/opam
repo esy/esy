@@ -22,7 +22,7 @@ authors: [
 homepage: "https://github.com/ocaml-ppx/ocamlformat"
 bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
 depends: [
-  "ocaml" {>= "4.08"}
+  "ocaml" {>= "4.08" & < "5.2"}
   "cmdliner" {with-test = "false" & >= "1.1.0" | with-test & >= "1.2.0"}
   "dune" {>= "2.8"}
   "ocamlformat-lib" {= version}
