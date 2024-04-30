@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "esy-automake": "esy-packages/esy-automake#e959059ccc1560a1565b16fb63ed7052c663fca0"
+  }
+}

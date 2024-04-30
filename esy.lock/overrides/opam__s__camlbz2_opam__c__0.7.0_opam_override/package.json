@@ -1,0 +1,11 @@
+{
+  "build": [
+    "aclocal -I .",
+    "autoconf",
+    "bash -c \"#{os == 'windows' ? 'patch -p1 < dll_windows.patch' : 'true'}\"",
+    "./configure --prefix=#{self.install}"
+  ],
+  "install": [
+    ["make", "SO=#{os == 'windows' ? 'dll' : 'so'}", "CLIBS=$LDFLAGS", "install"]
+  ]
+}

@@ -46,10 +46,10 @@ build: [
 dev-repo: "git+https://github.com/ocurrent/ocaml-version.git"
 url {
   src:
-    "https://github.com/ocurrent/ocaml-version/releases/download/v3.6.5/ocaml-version-3.6.5.tbz"
+    "https://github.com/ocurrent/ocaml-version/releases/download/v3.6.7/ocaml-version-3.6.7.tbz"
   checksum: [
-    "sha256=8473f697425ccfd61a971098d30720747eb34f3f8ea910fa24eca307eaf9dfd2"
-    "sha512=4d85b6c612f316b68a296ff54beed460705d471d425fe3fa9bab9c94191e05a95d94f0006da578e3cd9e2910ed5291f2efa5198f47617f0c9e9fcf8690718da2"
+    "sha256=d50ffd5b669d33edb0d889c476a71de4888d90008d58336038d210ced28f810c"
+    "sha512=128c2777152d6050a1cc07e520876aa7bef380459dd6a3dbcc8e42352afcbd7ebb8f8ef1751beb865346d49ba6f0c2dc45359f2367e5d4c53906008fc51d95eb"
   ]
 }
-x-commit-hash: "fb47870abcc459bf758e415b6665217ff5ea7c19"
+x-commit-hash: "1fd32aebc48b86a81e3f825229180f530a94729a"

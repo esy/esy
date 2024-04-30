@@ -1,0 +1,29 @@
+opam-version: "2.0"
+maintainer: "https://github.com/ocaml/opam-repository/issues"
+authors: [
+  "Olivier Andrieu"
+  "Stefano Zacchiroli"
+]
+homepage: "https://gitlab.com/irill/camlbz2"
+license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+bug-reports: "https://gitlab.com/irill/camlbz2/issues"
+dev-repo: "git+https://gitlab.com/irill/camlbz2.git"
+build: [
+  ["aclocal" "-I" "."]
+  ["autoconf"]
+  ["./configure" "--prefix" prefix]
+  [make]
+]
+depends: [
+  "ocaml" {< "5.0"}
+  "ocamlfind"
+  "conf-autoconf"
+  "conf-aclocal"
+  "conf-libbz2"
+]
+install: [make "install"]
+synopsis: "Bindings for bzip2"
+url {
+  src: "https://gitlab.com/irill/camlbz2/-/archive/0.7.0/camlbz2-0.7.0.tar.gz"
+  checksum: "md5=45b4f122c103e472aa533870470559dc"
+}
