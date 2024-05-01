@@ -94,3 +94,5 @@ let lifecycle = pkgJson =>
   | Some({Lifecycle.postinstall: None, install: None}) => None
   | lifecycle => lifecycle
   };
+
+let esy = ({esy, _}) => esy;

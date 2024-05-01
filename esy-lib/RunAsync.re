@@ -171,3 +171,12 @@ module List = {
         }
     );
 };
+
+type queue = LwtTaskQueue.t;
+let createQueue = concurrency => {
+  LwtTaskQueue.create(~concurrency, ());
+};
+
+let submitTask = (~queue, taskFn) => {
+  LwtTaskQueue.submit(queue, taskFn);
+};

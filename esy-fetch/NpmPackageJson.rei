@@ -20,3 +20,6 @@ let bin: t => list((string, string));
 
 /** returns lifecycle hooks of a package.json. Useful with Option monads. */
 let lifecycle: t => option(lifecycle);
+
+/** returns if a packageJson contains the esy field or not */
+let esy: t => option(Json.t);

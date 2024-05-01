@@ -7,10 +7,7 @@
    Right now,
 
    Notes:
-   1. As a first attempt, we try to do a file copy. This would leave the
-   door open for an optimising hard linked paths.
-
-   2. At the moment, we don't try to know if a package from NPM is an
+   1. At the moment, we don't try to know if a package from NPM is an
    Reason/OCaml package  or Javascript. They're both installed to
    node_modules folder. We could later address this by looking into
    the manifest, [package.json], and figure if it's JS package or OCaml/Reason.
@@ -27,9 +24,10 @@ open EsyPrimitives;
 */
 let link:
   (
+    ~sandbox: Sandbox.t,
     ~installation: Installation.t,
-    ~solution: Solution.t,
     ~projectPath: Path.t,
-    ~fetchDepsSubset: FetchDepsSubset.t
+    ~fetchDepsSubset: FetchDepsSubset.t,
+    ~solution: Solution.t
   ) =>
   RunAsync.t(unit);

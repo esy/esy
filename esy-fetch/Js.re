@@ -442,7 +442,7 @@ let install =
   LwtTaskQueue.submit(queue, f);
 };
 
-let installBinaries =
+let installPackages =
     (~solution, ~fetchDepsSubset, ~sandbox, ~installation, ~fetchedKindMap) => {
   let (report, finish) = Cli.createProgressReporter(~name="installing", ());
   let queue = LwtTaskQueue.create(~concurrency=40, ()); /* TODO use fetchConcurrency from cli */
@@ -505,12 +505,7 @@ let installBinaries =
                 ~pkgJson,
               );
             } else {
-              LinkBin.link(
-                ~srcPackageDir=
-                  Path.(sandbox.spec.path / "node_modules" / pkg.Package.name),
-                ~destBinWrapperDir,
-                ~pkgJson,
-              );
+              RunAsync.return([]);
             };
           let f = (seen, (name, _)) =>
             switch (StringMap.find_opt(name, seen)) {
@@ -547,43 +542,34 @@ let installBinaries =
   return();
 };
 
-let dumpPnp = (~solution, ~sandbox, ~installation, ~fetchDepsSubset) => {
-  let root = Solution.root(solution);
-  if (root.installConfig.pnp) {
-    /* Produce _esy/<sandbox>/pnp.js */
-    let* () = {
-      let path = SandboxSpec.pnpJsPath(sandbox.Sandbox.spec);
-      let data =
-        PnpJs.render(
-          ~basePath=Path.parent(SandboxSpec.pnpJsPath(sandbox.spec)),
-          ~rootPath=sandbox.spec.path,
-          ~rootId=Solution.root(solution).Package.id,
-          ~solution,
-          ~installation,
-          (),
-        );
-
-      Fs.writeFile(~data, path);
-    };
-
-    /* place <binPath>/node executable with pnp enabled */
-    let* () =
-      installNodeWrapper(
-        ~binPath=SandboxSpec.binPath(sandbox.Sandbox.spec),
-        ~pnpJsPath=SandboxSpec.pnpJsPath(sandbox.spec),
+let dumpPnp = (~solution, ~sandbox, ~installation) => {
+  /* Produce _esy/<sandbox>/pnp.js */
+  let* () = {
+    let path = SandboxSpec.pnpJsPath(sandbox.Sandbox.spec);
+    let data =
+      PnpJs.render(
+        ~basePath=Path.parent(SandboxSpec.pnpJsPath(sandbox.spec)),
+        ~rootPath=sandbox.spec.path,
+        ~rootId=Solution.root(solution).Package.id,
+        ~solution,
+        ~installation,
         (),
       );
 
-    return();
-  } else {
-    let* () =
-      RunAsync.ofLwt @@
-      Esy_logs_lwt.debug(m => m("Linking NPM dependencies in node_modules"));
-    NodeModuleLinker.link(
-      ~installation,
-      ~solution,
-      ~projectPath=sandbox.spec.path,
-      ~fetchDepsSubset,
-    );
+    Fs.writeFile(~data, path);
   };
+
+  /* place <binPath>/node executable with pnp enabled */
+  let* () =
+    installNodeWrapper(
+      ~binPath=SandboxSpec.binPath(sandbox.Sandbox.spec),
+      ~pnpJsPath=SandboxSpec.pnpJsPath(sandbox.spec),
+      (),
+    );
+
+  return();
+};
+
+let linkBins = (~srcPackageDir, ~destBinWrapperDir, ~pkgJson) => {
+  LinkBin.link(~srcPackageDir, ~destBinWrapperDir, ~pkgJson);
 };

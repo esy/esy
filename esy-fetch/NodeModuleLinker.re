@@ -1,9 +1,11 @@
-open EsyPackageConfig;
 open RunAsync.Syntax;
 
-let getChildren = (~solution, ~fetchDepsSubset, ~node) => {
-  let f = (pkg: Solution.pkg) => {
-    switch (pkg.Package.version) {
+/**
+   Makes sure we dont link opam packages in node_modules
+ */
+let getNPMChildren = (~solution, ~fetchDepsSubset, node) => {
+  let f = (pkg: NodeModule.t) => {
+    switch (NodeModule.version(pkg)) {
     | Opam(_) => false
     | Npm(_)
     | Source(_) => true
@@ -17,117 +19,189 @@ let getChildren = (~solution, ~fetchDepsSubset, ~node) => {
   |> List.filter(~f);
 };
 
-let getLocalStorePath = (projectPath, packageID) => {
-  Path.(projectPath / "node_modules" / ".esy" / PackageId.show(packageID));
-};
-
-let linkPaths = (~link=false, src, dest) => {
-  let* () = Fs.createDir(Path.parent(dest));
+let installPkg = (~installation, ~nodeModulesPath, pkg) => {
   let* () =
-    if (link) {
-      let* () =
-        RunAsync.ofLwt @@
-        Esy_logs_lwt.debug(m =>
-          m("ln -s %s %s\n", Path.show(src), Path.show(dest))
-        );
-      Fs.symlink(~force=true, ~src, dest);
-    } else {
-      let* () =
-        RunAsync.ofLwt @@
-        Esy_logs_lwt.debug(m =>
-          m("cp -R %s %s\n", Path.show(src), Path.show(dest))
-        );
-      Fs.copyPath(~src, ~dst=dest);
-    };
-  RunAsync.return();
-};
-
-// hardlink the children from local store to node_modules
-let rec getPathsToLink' =
-        (
-          visitedMap,
-          ~projectPath,
-          ~solution,
-          ~fetchDepsSubset,
-          ~installation,
-          ~rootPackageID,
-          ~queue,
-        ) => {
-  switch (queue |> Queue.take_opt) {
-  | Some((pkgID, nodeModulesPath)) =>
-    let visited =
-      visitedMap
-      |> PackageId.Map.find_opt(pkgID)
-      |> Stdlib.Option.value(~default=false);
-    let* (visitedMap, queue) =
-      switch (visited) {
-      | false =>
-        let visitedMap =
-          PackageId.Map.update(pkgID, _ => Some(true), visitedMap);
-        let node = Solution.getExn(solution, pkgID);
-        let children = getChildren(~solution, ~fetchDepsSubset, ~node);
-        let f = childNode => {
-          let name = childNode.Package.name;
-          let nodeModulesPath = Path.(nodeModulesPath / name / "node_modules");
-          let pkgID = childNode.Package.id;
-          let visited =
-            visitedMap
-            |> PackageId.Map.find_opt(pkgID)
-            |> Stdlib.Option.value(~default=false);
-          if (!visited) {
-            Queue.add((pkgID, nodeModulesPath), queue);
-          };
-        };
-        List.iter(~f, children);
-        let f = childNode => {
-          let pkgID = childNode.Package.id;
-          let src = getLocalStorePath(projectPath, pkgID);
-          let dest = Path.(nodeModulesPath / childNode.Package.name);
-          linkPaths(~link=true, src, dest);
-        };
-        let* () = children |> List.map(~f) |> RunAsync.List.waitAll;
-        RunAsync.return((visitedMap, queue));
-      | true => RunAsync.return((visitedMap, queue))
-      };
-    getPathsToLink'(
-      visitedMap,
-      ~projectPath,
-      ~solution,
-      ~fetchDepsSubset,
-      ~installation,
-      ~rootPackageID,
-      ~queue,
+    RunAsync.ofLwt @@
+    Esy_logs_lwt.debug(m =>
+      m("NodeModuleLinker: installing %a", Package.pp, pkg)
     );
-  | None => RunAsync.return()
+  let pkgID = pkg.Package.id;
+  let src = Installation.findExn(pkgID, installation);
+  let dst = Path.(nodeModulesPath / pkg.Package.name);
+  Fs.hardlinkPath(~src, ~dst);
+};
+
+module Data = {
+  include Package;
+  let sameVersion = (a, b) =>
+    EsyPackageConfig.Version.compare(a.version, b.version);
+};
+
+module HoistingAlgorithm =
+  HoistingAlgorithm.Make(Data, HoistedNodeModulesGraph);
+
+let _debug = (~node) => HoistedNodeModulesGraph.nodePp(node);
+
+let _debugHoist = (~node, ~lineage) =>
+  if (List.length(lineage) > 0) {
+    print_endline(
+      Format.asprintf(
+        "Node %a will be hoisted to %a",
+        Package.pp,
+        node.SolutionGraph.data,
+        SolutionGraph.parentsPp,
+        lineage,
+      ),
+    );
+  } else {
+    print_endline(
+      Format.asprintf(
+        "Node %a will be hoisted to <root>",
+        Package.pp,
+        node.SolutionGraph.data,
+      ),
+    );
+  };
+
+module SolutionGraphLineage = Lineage.Make(SolutionGraph);
+let rec iterateSolution = (~traverse, ~hoistedGraph, iterableSolution) => {
+  switch (SolutionGraph.take(~traverse, iterableSolution)) {
+  | Some((node, nextIterable)) =>
+    let SolutionGraph.{data, parent} = node;
+    let nodeModuleEntry =
+      HoistedNodeModulesGraph.makeNode(~data, ~parent=None);
+    let hoistedGraph =
+      switch (parent) {
+      | Some(_parent) =>
+        let lineage =
+          node
+          |> SolutionGraphLineage.constructLineage
+          |> List.map(~f=solutionGraphNode =>
+               solutionGraphNode.SolutionGraph.data
+             );
+        HoistingAlgorithm.hoistLineage(
+          ~lineage,
+          ~hoistedGraph,
+          nodeModuleEntry,
+        );
+      | None =>
+        Ok(
+          HoistedNodeModulesGraph.addRoot(
+            ~node=nodeModuleEntry,
+            hoistedGraph,
+          ),
+        )
+      };
+    Stdlib.Result.bind(hoistedGraph, hoistedGraph =>
+      iterateSolution(~traverse, ~hoistedGraph, nextIterable)
+    );
+  | None => Ok(hoistedGraph)
   };
 };
 
-let getPathsToLink = getPathsToLink'(PackageId.Map.empty);
-
-let link = (~installation, ~solution, ~projectPath, ~fetchDepsSubset) => {
-  let root = Solution.root(solution);
-  let rootPackageID = root.Package.id;
-  let nodeModulesPath = Path.(projectPath / "node_modules");
-  let queue = Queue.create();
-  Queue.add((rootPackageID, nodeModulesPath), queue);
-  let f = ((packageID, globalStorePath)) => {
-    let dest = getLocalStorePath(projectPath, packageID);
-    linkPaths(globalStorePath, dest);
+module NodeModuleLineage = Lineage.Make(HoistedNodeModulesGraph);
+let rec nodeModulesPathFromParent = (~baseNodeModulesPath, parent) => {
+  switch (HoistedNodeModulesGraph.parent(parent)) {
+  | Some(_grandparent) =>
+    let lineage = NodeModuleLineage.constructLineage(parent); // This lineage is a list starting from oldest ancestor
+    let lineage = List.tl(lineage); // skip root which is just parent id
+    let init = baseNodeModulesPath;
+    let f = (acc, node) => {
+      Path.(
+        acc
+        / NodeModule.name(node.HoistedNodeModulesGraph.data)
+        / "node_modules"
+      );
+    };
+    List.fold_left(lineage, ~f, ~init);
+  | None => /* most likely case. ie all pkgs are directly under root  */ baseNodeModulesPath
   };
-  let* () =
-    installation
-    |> Installation.entries
-    |> List.filter(~f=((key, _)) =>
-         PackageId.compare(key, rootPackageID) != 0
-       )
-    |> List.map(~f)
-    |> RunAsync.List.waitAll;
-  getPathsToLink(
-    ~projectPath,
-    ~solution,
-    ~fetchDepsSubset,
-    ~installation,
-    ~rootPackageID,
-    ~queue,
-  );
+};
+
+let rec iterateHoistedNodeModulesGraph = (~f, ~init, iterableGraph) => {
+  switch (HoistedNodeModulesGraph.take(iterableGraph)) {
+  | Some((node, nextIterable)) =>
+    let init = f(init, node);
+    iterateHoistedNodeModulesGraph(~f, ~init, nextIterable);
+  | None => init
+  };
+};
+
+let link =
+    (~sandbox, ~installation, ~projectPath, ~fetchDepsSubset, ~solution) => {
+  let (report, finish) =
+    Cli.createProgressReporter(~name="NodeModulesLinker: installing", ());
+  let destBinWrapperDir /* local sandbox bin dir */ =
+    SandboxSpec.binPath(sandbox.Sandbox.spec);
+  let taskQueue = RunAsync.createQueue(40);
+  let traverse = getNPMChildren(~fetchDepsSubset, ~solution);
+  let f = (promises, hoistedGraphNode) => {
+    let nodeModulesPath =
+      nodeModulesPathFromParent(
+        ~baseNodeModulesPath=Path.(projectPath / "node_modules"),
+        hoistedGraphNode,
+      );
+    HoistedNodeModulesGraph.(
+      switch (hoistedGraphNode.parent) {
+      | Some(_parentHoistedNodeModulesGraphNode) => [
+          RunAsync.submitTask(
+            ~queue=taskQueue,
+            () => {
+              let%lwt () =
+                report(
+                  "%a",
+                  Package.pp,
+                  HoistedNodeModulesGraph.nodeData(hoistedGraphNode),
+                );
+              let* () =
+                installPkg(
+                  ~installation,
+                  ~nodeModulesPath,
+                  hoistedGraphNode.data,
+                );
+              let pkg = hoistedGraphNode.data;
+              let pkgName = pkg.Package.name;
+              let pkgPath = Path.(nodeModulesPath / pkgName);
+              let* pkgJsonOpt = NpmPackageJson.ofDir(pkgPath);
+              Stdlib.Option.fold(
+                ~some=
+                  pkgJson => {
+                    let* _: list((string, Path.t)) =
+                      Js.linkBins(
+                        ~destBinWrapperDir,
+                        ~pkgJson,
+                        ~srcPackageDir=pkgPath,
+                      );
+                    RunAsync.return();
+                  },
+                ~none=RunAsync.return(),
+                pkgJsonOpt,
+              );
+            },
+          ),
+          ...promises,
+        ]
+
+      | None => promises
+      }
+    );
+  };
+  let hoistedGraphResult =
+    solution
+    |> SolutionGraph.iterator
+    |> iterateSolution(
+         ~traverse,
+         ~hoistedGraph=HoistedNodeModulesGraph.init(~traverse),
+       );
+  switch (hoistedGraphResult) {
+  | Ok(hoistedGraph) =>
+    let* () =
+      hoistedGraph
+      |> HoistedNodeModulesGraph.iterator
+      |> iterateHoistedNodeModulesGraph(~f, ~init=[])
+      |> RunAsync.List.waitAll;
+    let%lwt () = finish();
+    RunAsync.return();
+  | Error(e) => RunAsync.error(e)
+  };
 };

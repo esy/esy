@@ -191,10 +191,9 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
       ~json=Installation.to_yojson(installation),
       SandboxSpec.installationPath(sandbox.spec),
     );
-
   /* JS packages need additional installation steps */
   let* () =
-    Js.installBinaries(
+    Js.installPackages(
       ~solution,
       ~fetchDepsSubset,
       ~sandbox,
@@ -202,7 +201,28 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
       ~fetchedKindMap,
     );
 
-  let* () = Js.dumpPnp(~solution, ~fetchDepsSubset, ~sandbox, ~installation);
+  let* () =
+    if (!root.installConfig.pnp) {
+      let* () =
+        RunAsync.ofLwt @@
+        Esy_logs_lwt.debug(m => m("Linking NPM dependencies in node_modules"));
+      NodeModuleLinker.link(
+        ~sandbox,
+        ~solution,
+        ~installation,
+        ~projectPath=sandbox.spec.path,
+        ~fetchDepsSubset,
+      );
+    } else {
+      RunAsync.return();
+    };
+
+  let* () =
+    if (root.installConfig.pnp) {
+      Js.dumpPnp(~solution, ~sandbox, ~installation);
+    } else {
+      RunAsync.return();
+    };
 
   let* () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
 
