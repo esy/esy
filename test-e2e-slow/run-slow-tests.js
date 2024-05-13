@@ -77,3 +77,4 @@ if (!isWindows) {
   require('./esy-npm-release/legacy.test.js');
 }
 require('./esy-npm-release/no-rewrite.test.js');
+require('./melange-esy.test.js');
