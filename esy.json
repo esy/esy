@@ -43,6 +43,7 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
+    "@opam/camlbz2": "opam:0.7.0",
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a",
     "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
@@ -90,11 +91,11 @@
     "@opam/re": "*",
     "@opam/reason": "3.8.2",
     "@opam/yojson": "*",
-    "ocaml": "4.14.0"
+    "ocaml": "4.14.x"
   },
   "devDependencies": {
     "@reason-native/rely": "*",
-    "@opam/ocaml-lsp-server": "*",
+    "@opam/ocaml-lsp-server": "1.17.0",
     "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
   }

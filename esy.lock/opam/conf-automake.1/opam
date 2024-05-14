@@ -20,6 +20,7 @@ depexts: [
   # Note: although https://repology.org/project/automake/versions states debian has only automake packages
   # with explicit versions, there is an "automake" package, at least on Ubuntu 18.04
   [ "automake" ] {os-family = "debian"}
+  [ "automake" ] {os-family = "ubuntu"}
   [ "automake" ] {os-family = "fedora"}
   [ "sys-devel/automake" ] {os-family = "gentoo"}
   [ "automake" ] {os-family = "homebrew"}

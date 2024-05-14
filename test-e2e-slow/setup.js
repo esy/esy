@@ -6,24 +6,40 @@ const os = require('os');
 const path = require('path');
 const childProcess = require('child_process');
 const rmSync = require('rimraf').sync;
-const isCi = require("is-ci");
+const isCi = require('is-ci');
 
 const isWindows = process.platform === 'win32';
-const ocamlVersion = '4.10.x';
+const ocamlVersion = '4.14.x';
 
-var __ESY__base = path.join(process.cwd(), '_build', 'install', 'default', 'bin');
-
-var __ESY__ = path.join(__ESY__base, 'esy');
+let __ESY__;
+let __ESY__base;
+if (process.platform === 'linux') {
+  const testEsyPrefix = path.join(__dirname, '.test-esy');
+  fs.rmSync(testEsyPrefix, {force: true, recursive: true});
+  fs.mkdirSync(testEsyPrefix, {recursive: true});
+  fs.cpSync(
+    path.resolve(__dirname, '..', '_build', 'install', 'default'),
+    testEsyPrefix,
+    {
+      recursive: true,
+      dereference: true,
+    },
+  );
+  __ESY__base = path.join(testEsyPrefix, 'bin');
+} else {
+  __ESY__base = path.join(process.cwd(), '_build', 'install', 'default', 'bin');
+}
+__ESY__ = path.join(__ESY__base, 'esy');
 
 if (isWindows) {
-  __ESY__ += ".exe";
+  __ESY__ += '.exe';
 }
-process.env.PATH = __ESY__base + (isWindows ? ';': ':') + process.env.PATH;
+process.env.PATH = __ESY__base + (isWindows ? ';' : ':') + process.env.PATH;
 
 function getTempDir() {
   // The appveyor temp folder has some permission issues -
   // so in that environment, we'll run these tests from a root folder.
-  const appVeyorTempFolder = "C:/esy-ci-temp";
+  const appVeyorTempFolder = 'C:/esy-ci-temp';
   if (isCi) {
     if (isWindows) {
       return 'C:/esy-ci-temp';
@@ -72,26 +88,26 @@ function mkdirTemp() {
 // - https://github.com/esy/esy/issues/414
 // - https://github.com/esy/esy/issues/413
 function retry(fn) {
-    if (os.platform() !== "win32") {
-        return fn();
+  if (os.platform() !== 'win32') {
+    return fn();
+  }
+
+  let iterations = 1;
+  let lastException = null;
+  while (iterations <= 3) {
+    try {
+      console.log(' ** Iteration: ' + iterations.toString());
+      let ret = fn();
+      return ret;
+    } catch (ex) {
+      console.warn('Exception: ' + ex.toString());
+      lastException = ex;
     }
 
-    let iterations = 1;
-    let lastException = null;
-    while (iterations <= 3) {
-        try {
-            console.log(" ** Iteration: " + iterations.toString());
-            let ret = fn();
-            return ret;
-        } catch (ex) {
-            console.warn("Exception: " + ex.toString());
-            lastException = ex;
-        }
+    iterations++;
+  }
 
-        iterations++;
-    }
-
-    throw(lastException);
+  throw lastException;
 }
 
 function createSandbox() /* : TestSandbox */ {
@@ -100,12 +116,12 @@ function createSandbox() /* : TestSandbox */ {
   let cwd = sandboxPath;
 
   function exec(...args /* : Array<string> */) {
-    const normalizedArgs = args.map(arg => arg.split("\\").join("/"));
-    const cmd = normalizedArgs.join(" ");
+    const normalizedArgs = args.map((arg) => arg.split('\\').join('/'));
+    const cmd = normalizedArgs.join(' ');
     console.log(`EXEC: ${cmd}`);
     childProcess.execSync(cmd, {
       cwd: cwd,
-      env: {...process.env, ESY__PREFIX: esyPrefixPath, "_": cmd.split(' ')[0]},
+      env: {...process.env, ESY__PREFIX: esyPrefixPath, _: cmd.split(' ')[0]},
       stdio: 'inherit',
     });
   }
@@ -140,7 +156,7 @@ function createSandboxFromGitRepo(url) {
   childProcess.execSync(`git clone ${url} ${sandbox.path}`, {
     cwd: sandbox.path,
     env: {...process.env, ESY__PREFIX: esyPrefixPath},
-    stdio: "inherit",
+    stdio: 'inherit',
   });
   return sandbox;
 }

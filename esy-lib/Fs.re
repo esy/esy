@@ -351,7 +351,10 @@ let rec copyPathLwt = (~hardlinks, ~src, ~dst) => {
   switch (stat.st_kind) {
   | S_REG =>
     if (hardlinks) {
-      Lwt_unix.link(origPathS, destPathS);
+      try%lwt(Lwt_unix.link(origPathS, destPathS)) {
+      | Unix.Unix_error(Unix.EEXIST, _fn, _param) => Lwt.return()
+      | e => Lwt.fail(e)
+      };
     } else {
       let%lwt () = copyFileLwt(~src, ~dst);
       let%lwt () = copyStatLwt(~stat, dst);
@@ -399,6 +402,7 @@ let copyPath' = (~hardlinks, ~src, ~dst) => {
       RunAsync.return();
     }
   ) {
+  | Unix.Unix_error(Unix.EEXIST, _fn, _param) => return()
   | Unix.Unix_error(error, fn, param) =>
     RunAsync.errorf(
       "Function: copyPath' Params: hardlinks %b src: %a dst %a Unix Error: %s Unix Function: %s Unix Param: %s",

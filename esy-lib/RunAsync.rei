@@ -3,6 +3,7 @@
  */;
 
 type t('a) = Lwt.t(Run.t('a));
+type queue;
 
 /**
  * Computation which results in a value.
@@ -132,3 +133,6 @@ module List: {
   let joinAll: list(t('a)) => t(list('a));
   let processSeq: (~f: 'a => t(unit), list('a)) => t(unit);
 };
+
+let createQueue: int => queue;
+let submitTask: (~queue: queue, unit => t('a)) => t('a);

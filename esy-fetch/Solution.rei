@@ -1,10 +1,11 @@
+/**
+ * Represents a project solution (ie. transitive closure of
+ * dependencies needed by a project)
+ */
+
 open DepSpec;
 open EsyPackageConfig;
 open EsyPrimitives;
-
-/**
- * This module represents a solution.
- */;
 
 type id = PackageId.t;
 type pkg = Package.t;
@@ -34,6 +35,11 @@ let findByPath: (DistPath.t, t) => option(pkg);
 let findByName: (string, t) => option(pkg);
 let findByNameVersion: (string, Version.t, t) => option(pkg);
 
+/**
+
+   Returns the children of a node as a list
+
+ */
 let traverse: pkg => list(id);
 
 /**
