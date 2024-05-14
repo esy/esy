@@ -91,7 +91,7 @@
     "@opam/re": "*",
     "@opam/reason": "3.8.2",
     "@opam/yojson": "*",
-    "ocaml": "4.14.0"
+    "ocaml": "4.14.x"
   },
   "devDependencies": {
     "@reason-native/rely": "*",
