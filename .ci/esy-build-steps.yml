@@ -8,7 +8,6 @@ steps:
   
   - template: utils/use-node.yml
   - template: utils/use-esy.yml
-  - template: utils/use-cache-esy-sources.yml
   - template: utils/use-cache-esy-install-tree.yml
     parameters:
       platform: ${{ parameters.platform }}
