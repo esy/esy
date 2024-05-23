@@ -277,7 +277,7 @@ let traverse = (~skipTraverse=?, ~f, path) => {
 
 let copyStatLwt = (~stat, path) =>
   switch (System.Platform.host) {
-  | Windows => Lwt.return() /* copying these stats is not necessary on Windows, and can cause Permission Denied errors */
+  | Windows_mingw => Lwt.return() /* copying these stats is not necessary on Windows, and can cause Permission Denied errors */
   | _ =>
     let path = Path.show(path);
     let%lwt () =

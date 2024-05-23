@@ -8,7 +8,7 @@ let shouldTryAddExeIfNotExist =
     Sys.getenv_opt("ESY_INSTALLER__FORCE_EXE"),
     EsyLib.System.Platform.host,
   ) {
-  | (None | Some("false"), Windows) => true
+  | (None | Some("false"), Windows_mingw) => true
   | (None | Some("false"), Linux | Darwin | Unix | Cygwin) => false
   | (None | Some("false"), Unknown) => true /* won't make it worse, I guess */
   | (Some(_), _) => true
@@ -67,7 +67,7 @@ let installFile =
       let* () =
         if (enableLinkingOptimization && origPerm == perm) {
           switch (EsyLib.System.Platform.host) {
-          | Windows => Run.link(~force=true, ~target=srcPath, dstPath)
+          | Windows_mingw => Run.link(~force=true, ~target=srcPath, dstPath)
           | _ => Run.symlink(~force=true, ~target=srcPath, dstPath)
           };
         } else {

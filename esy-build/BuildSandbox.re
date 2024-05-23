@@ -1025,7 +1025,7 @@ let exec =
     let env = Scope.SandboxEnvironment.render(sandbox.cfg, env);
 
     switch (System.Platform.host) {
-    | System.Platform.Windows =>
+    | System.Platform.Windows_mingw =>
       /*
        * `esy-bash` takes an optional `--env` parameter with the
        * environment variables that should be used for the bash session.
@@ -1229,7 +1229,7 @@ let buildTask =
       Solution.isRoot(sandbox.solution, task.pkg),
       System.Platform.host,
     ) {
-    | (_, System.Platform.Windows) => return()
+    | (_, System.Platform.Windows_mingw) => return()
     | (true, _) => makeSymlinksToStore(sandbox, task)
     | (false, _) => return()
     };
@@ -1512,7 +1512,7 @@ let exportBuild = (cfg, ~outputPrefixPath, buildPath) => {
       Fs.readFile(Path.(buildPath / "_esy" / "storePrefix"));
     let nextStorePrefix =
       switch (System.Platform.host) {
-      | Windows =>
+      | Windows_mingw =>
         /* Keep the slashes segments in the path.  It's important for doing
          * replacement of double backslashes in artifacts.  */
         String.split_on_char('\\', prevStorePrefix)

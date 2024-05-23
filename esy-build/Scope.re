@@ -401,10 +401,10 @@ let make =
     finalEnv: {
       let defaultPath =
         switch (platform, globalPathVariable) {
-        | (Windows, Some(pathVar)) =>
+        | (Windows_mingw, Some(pathVar)) =>
           let esyGlobalPath = Sys.getenv(pathVar);
           "$PATH;" ++ esyGlobalPath;
-        | (Windows, None) =>
+        | (Windows_mingw, None) =>
           let windir = Sys.getenv("WINDIR") ++ "/System32";
           let windir = Path.normalizePathSepOfFilename(windir);
           "$PATH;/usr/local/bin;/usr/bin;/bin;/usr/sbin;/sbin;" ++ windir;
@@ -502,7 +502,7 @@ let render =
     | System.Platform.Darwin
     | System.Platform.Linux
     | System.Platform.Unix
-    | System.Platform.Windows
+    | System.Platform.Windows_mingw
     | System.Platform.Cygwin => "/"
     };
 
@@ -732,7 +732,7 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
     | System.Platform.Darwin => "macos"
     | System.Platform.Linux => "linux"
     | System.Platform.Cygwin => "cygwin"
-    | System.Platform.Windows => "win32"
+    | System.Platform.Windows_mingw => "win32"
     | System.Platform.Unix => "unix"
     | System.Platform.Unknown => "unknown"
     };

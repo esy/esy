@@ -10,7 +10,7 @@ let rewritePrefixInFile' = (~origPrefix, ~destPrefix, path) =>
 let rewritePrefixesInFile = (~origPrefix, ~destPrefix, path) => {
   Result.Syntax.(
     switch (System.Platform.host) {
-    | Windows =>
+    | Windows_mingw =>
       let* _ =
         Result.List.map(
           ~f=

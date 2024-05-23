@@ -4,7 +4,7 @@ module Platform = {
     | Darwin
     | Linux
     | Cygwin
-    | Windows /* mingw msvc */
+    | Windows_mingw /* Mingw. MSVC will be a separate one.*/
     | Unix /* all other unix-y systems */
     | Unknown;
 
@@ -14,7 +14,7 @@ module Platform = {
     | Linux => "linux"
     | Cygwin => "cygwin"
     | Unix => "unix"
-    | Windows => "windows"
+    | Windows_mingw => "windows-mingw"
     | Unknown => "unknown";
 
   let pp = (fmt, v) => Fmt.string(fmt, show(v));
@@ -26,7 +26,7 @@ module Platform = {
     | `String("linux") => Ok(Linux)
     | `String("cygwin") => Ok(Cygwin)
     | `String("unix") => Ok(Unix)
-    | `String("windows") => Ok(Windows)
+    | `String("windows-mingw") => Ok(Windows_mingw)
     | `String("unknown") => Ok(Unknown)
     | `String(v) => Result.errorf("unknown platform: %s", v)
     | _json => Result.error("System.Platform.t: expected string");
@@ -45,7 +45,7 @@ module Platform = {
 
     switch (Sys.os_type) {
     | "Unix" => uname()
-    | "Win32" => Windows
+    | "Win32" => Windows_mingw // This could be MSVC too.
     | "Cygwin" => Cygwin
     | _ => Unknown
     };
@@ -53,7 +53,7 @@ module Platform = {
 
   let isWindows =
     switch (host) {
-    | Windows => true
+    | Windows_mingw => true
     | _ => false
     };
 };
@@ -121,7 +121,7 @@ module Arch = {
 
     switch (Platform.host) {
     // Should be defined at session statup globally
-    | Windows => convert(Sys.getenv("PROCESSOR_ARCHITECTURE"))
+    | Windows_mingw => convert(Sys.getenv("PROCESSOR_ARCHITECTURE"))
     | _ => convert(uname())
     };
   };
@@ -156,9 +156,9 @@ module Environment = {
     switch (name, platform) {
     /* a special case for cygwin + OCAMLPATH: it is expected to use ; as separator */
     | (Some("OCAMLPATH"), Platform.Linux | Darwin | Unix | Unknown) => ":"
-    | (Some("OCAMLPATH"), Cygwin | Windows) => ";"
+    | (Some("OCAMLPATH"), Cygwin | Windows_mingw) => ";"
     | (_, Linux | Darwin | Unix | Unknown | Cygwin) => ":"
-    | (_, Windows) => ";"
+    | (_, Windows_mingw) => ";"
     };
 
   let split = (~platform=?, ~name=?, value) => {
@@ -177,7 +177,7 @@ module Environment = {
       let name = String.sub(item, 0, idx);
       let name =
         switch (Platform.host) {
-        | Platform.Windows => String.uppercase_ascii(name)
+        | Platform.Windows_mingw => String.uppercase_ascii(name)
         | _ => name
         };
 
