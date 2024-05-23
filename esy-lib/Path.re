@@ -39,14 +39,14 @@ let homePath = () =>
   Fpath.v(
     switch (Sys.getenv_opt("HOME"), System.Platform.host) {
     | (Some(dir), _) => dir
-    | (None, System.Platform.Windows) => Sys.getenv("USERPROFILE")
+    | (None, System.Platform.Windows_mingw) => Sys.getenv("USERPROFILE")
     | (None, _) => failwith("Could not find HOME dir")
     },
   );
 let dataPath = () =>
   Fpath.v(
     switch (System.Platform.host) {
-    | System.Platform.Windows => Sys.getenv("LOCALAPPDATA")
+    | System.Platform.Windows_mingw => Sys.getenv("LOCALAPPDATA")
     | _ => Sys.getenv("HOME")
     },
   );

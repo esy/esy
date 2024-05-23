@@ -84,7 +84,7 @@ let rec realpath = (p: Fpath.t) => {
   let p =
     // on win we can get path swith \??\ prefix, remove it
     switch (System.Platform.host) {
-    | Windows =>
+    | Windows_mingw =>
       let p = Path.show(p);
       let len = String.length(p);
       if (len >= 4 && String.sub(p, 0, 4) == "\\??\\") {

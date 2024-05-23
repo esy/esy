@@ -11,7 +11,7 @@ let detect_concurrency_from_env = () => {
 
   switch (System.Platform.host) {
   /* only Win32, as cygwin will have getconf */
-  | Windows => Sys.getenv_opt("NUMBER_OF_PROCESSORS") |> to_int
+  | Windows_mingw => Sys.getenv_opt("NUMBER_OF_PROCESSORS") |> to_int
   | _ =>
     let cmd = Bos.Cmd.(v("getconf") % "_NPROCESSORS_ONLN");
     Bos.OS.Cmd.(run_out(cmd) |> to_string)
@@ -34,7 +34,7 @@ let exePath = () => {
   | Linux => Unix.readlink("/proc/self/exe")
   | Darwin
   | Cygwin
-  | Windows
+  | Windows_mingw
   | Unix
   | Unknown => Sys.argv[0]
   // TODO cross-platform solution to getting full path of the current executable.

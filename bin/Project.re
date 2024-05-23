@@ -472,12 +472,12 @@ let writeAuxCache = proj => {
     let writeCommandExec = binPath => {
       let filename =
         switch (System.Platform.host) {
-        | Windows => "command-exec.bat"
+        | Windows_mingw => "command-exec.bat"
         | _ => "command-exec"
         };
       let data =
         switch (System.Platform.host) {
-        | Windows =>
+        | Windows_mingw =>
           Format.asprintf(
             "@ECHO OFF\r\n@SETLOCAL\r\n\"%a\" exec-command --include-npm-bin --include-current-env --include-build-env --project \"%a\" %%*\r\n",
             Path.pp,

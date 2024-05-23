@@ -131,7 +131,7 @@ let init = (config: config, ~noSandbox) =>
     NoSandbox.sandboxExec(config);
   } else {
     switch (EsyLib.System.Platform.host) {
-    | Windows => Windows.sandboxExec(config)
+    | Windows_mingw => Windows.sandboxExec(config)
     | Darwin => Darwin.sandboxExec(config)
     | _ => NoSandbox.sandboxExec(config)
     };
