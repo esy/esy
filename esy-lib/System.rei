@@ -12,7 +12,7 @@ module Platform: {
     | Darwin
     | Linux
     | Cygwin
-    | Windows_mingw
+    | Windows
     | Unix
     | Unknown;
 

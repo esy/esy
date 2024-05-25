@@ -36,7 +36,7 @@ let getPadding =
       prefixPath,
     ) =>
   switch (system, longPaths) {
-  | (Windows_mingw, false) => Ok("_")
+  | (Windows, false) => Ok("_")
   | _ =>
     let prefixPathLength = String.length(Fpath.to_string(prefixPath));
     let paddingLength =

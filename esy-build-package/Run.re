@@ -64,8 +64,7 @@ let rm = path =>
     Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
   | Ok({Unix.st_kind: S_LNK, _}) =>
     switch (System.Platform.host) {
-    | Windows_mingw =>
-      Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
+    | Windows => Bos.OS.Path.delete(~must_exist=false, ~recurse=true, path)
     | _ =>
       switch (Bos.OS.U.unlink(path)) {
       | Ok () => ok
@@ -110,7 +109,7 @@ let symlink = (~force=?, ~target, dest) => {
      */
   (
     switch (System.Platform.host) {
-    | Windows_mingw =>
+    | Windows =>
       let errorRegex =
         Str.regexp(".*?The operation completed successfully.*?");
       switch (result) {

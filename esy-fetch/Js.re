@@ -34,7 +34,7 @@ module LinkBin: {
   let installNodeBinWrapper = (destBinWrapperDir, (name, origPath)) => {
     let (data, binWrapperPath) =
       switch (System.Platform.host) {
-      | Windows_mingw =>
+      | Windows =>
         let data =
           Format.asprintf(
             {|@ECHO off
@@ -107,7 +107,7 @@ module LinkBin: {
         installNodeBinWrapper(destBinWrapperDir, (name, origPath));
       } else {
         switch (System.Platform.host) {
-        | Windows_mingw =>
+        | Windows =>
           installBinWrapperAsBatch(destBinWrapperDir, (name, origPath))
         | _ =>
           installBinWrapperAsSymlink(destBinWrapperDir, (name, origPath))
@@ -153,7 +153,7 @@ let installNodeWrapper = (~binPath, ~pnpJsPath, ()) =>
 
       let* () =
         switch (System.Platform.host) {
-        | Windows_mingw =>
+        | Windows =>
           let data =
             Format.asprintf(
               {|@ECHO off
@@ -217,7 +217,7 @@ module Lifecycle = {
     try%lwt({
       let installationPath =
         switch (System.Platform.host) {
-        | Windows_mingw => Path.show(sourcePath)
+        | Windows => Path.show(sourcePath)
         | _ => Filename.quote(Path.show(sourcePath))
         };
 
@@ -225,7 +225,7 @@ module Lifecycle = {
       /* We'll add the /d flag to allow switching drives - */
       let changeDirCommand =
         switch (System.Platform.host) {
-        | Windows_mingw => "/d"
+        | Windows => "/d"
         | _ => ""
         };
 
@@ -239,7 +239,7 @@ module Lifecycle = {
 
       let cmd =
         switch (System.Platform.host) {
-        | Windows_mingw => ("", [|"cmd.exe", "/c " ++ script|])
+        | Windows => ("", [|"cmd.exe", "/c " ++ script|])
         | _ => ("/bin/bash", [|"/bin/bash", "-c", script|])
         };
 

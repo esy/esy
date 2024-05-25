@@ -18,7 +18,7 @@ let exePath = () => {
   | Linux => Unix.readlink("/proc/self/exe")
   | Darwin
   | Cygwin
-  | Windows_mingw
+  | Windows
   | Unix
   | Unknown => Sys.argv[0]
   // TODO cross-platform solution to getting full path of the current executable.

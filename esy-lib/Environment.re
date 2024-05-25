@@ -215,7 +215,7 @@ module Make =
         let name = String.sub(item, 0, idx);
         let name =
           switch (System.Platform.host) {
-          | System.Platform.Windows_mingw => String.uppercase_ascii(name)
+          | System.Platform.Windows => String.uppercase_ascii(name)
           | _ => name
           };
 

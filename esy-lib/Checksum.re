@@ -57,7 +57,7 @@ let md5sum =
   | System.Platform.Darwin => Cmd.(v("md5") % "-q")
   | System.Platform.Linux
   | System.Platform.Cygwin
-  | System.Platform.Windows_mingw
+  | System.Platform.Windows
   | System.Platform.Unknown => Cmd.(v("md5sum"))
   };
 let sha1sum = Cmd.(v("shasum") % "--algorithm" % "1");

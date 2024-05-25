@@ -682,7 +682,7 @@ let make =
           ) /* Needs to have ocaml in environment */;
         let* env =
           switch (System.Platform.host) {
-          | Windows_mingw =>
+          | Windows =>
             let currentPath = Sys.getenv("PATH");
             let userPath = EsyBash.getBinPath();
             let normalizedOcamlPath =
@@ -707,7 +707,7 @@ let make =
       let (origPrefix, destPrefix) = {
         let destPrefix =
           switch (releaseCfg.rewritePrefix, System.Platform.host) {
-          | (Rewrite, Windows_mingw) =>
+          | (Rewrite, Windows) =>
             /* Keep the slashes segments in the path.  It's important for doing
              * replacement of double backslashes in artifacts.  */
             String.split_on_char('\\', cfg.storePath |> Path.show)
@@ -774,7 +774,7 @@ let make =
                 let f = ((publicName, _innerName)) => {
                   let binName =
                     switch (System.Platform.host) {
-                    | Windows_mingw =>
+                    | Windows =>
                       if (Path.hasExt("exe", Path.v(publicName))) {
                         publicName;
                       } else {

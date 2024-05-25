@@ -13,7 +13,7 @@ Random.self_init();
 let randBound = 20000;
 let isWindows =
   switch (System.Platform.host) {
-  | Windows_mingw => true
+  | Windows => true
   | _ => false
   };
 

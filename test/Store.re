@@ -8,7 +8,7 @@ let%test "Validate padding length on Windows is always 1, if long paths aren't s
     getPadding(
       ~ocamlPkgName="ocaml",
       ~ocamlVersion="4.10.1000",
-      ~system=System.Platform.Windows_mingw,
+      ~system=System.Platform.Windows,
       ~longPaths=false,
       prefixPath,
     );
@@ -24,7 +24,7 @@ let%test "Validate padding length on Windows is not 1, if long paths are support
     getPadding(
       ~ocamlPkgName="ocaml",
       ~ocamlVersion="4.10.1000",
-      ~system=System.Platform.Windows_mingw,
+      ~system=System.Platform.Windows,
       ~longPaths=true,
       prefixPath,
     );

@@ -49,7 +49,7 @@ let getToolAndLine = ((tool, args)) => {
   /* On Windows, we need the tool to be the empty string to use path resolution */
   /* More info here: http://ocsigen.org/lwt/3.2.1/api/Lwt_process */
   switch (System.Platform.host) {
-  | Windows_mingw => ("", Array.of_list([tool, ...args]))
+  | Windows => ("", Array.of_list([tool, ...args]))
   | _ => (tool, Array.of_list([tool, ...args]))
   };
 };
@@ -89,13 +89,13 @@ let isExecutable = (stats: Unix.stats) => {
  */
 let getAdditionalResolvePaths = path =>
   switch (System.Platform.host) {
-  | Windows_mingw => path @ ["/bin", "/usr/bin"]
+  | Windows => path @ ["/bin", "/usr/bin"]
   | _ => path
   };
 
 let getPotentialExtensions =
   switch (System.Platform.host) {
-  | Windows_mingw =>
+  | Windows =>
     /* TODO(andreypopp): Consider using PATHEXT env variable here. */
     ["", ".exe", ".cmd"]
   | _ => [""]
@@ -107,7 +107,7 @@ let checkIfExecutable = path =>
     /* Windows has a different file policy model than Unix - matching with the Unix permissions won't work */
     /* In particular, the Unix.stat implementation emulates this on Windows by checking the extension for `exe`/`com`/`cmd`/`bat` */
     /* But in our case, since we're deferring to the Cygwin layer, it's possible to have executables that don't confirm to that rule */
-    | Windows_mingw =>
+    | Windows =>
       let* exists = Bos.OS.Path.exists(path);
       switch (exists) {
       | true => Ok(Some(path))

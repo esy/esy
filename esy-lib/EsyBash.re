@@ -47,7 +47,7 @@ let getMingwRuntimePath = () => {
 */
 let normalizePathForCygwin = path =>
   switch (System.Platform.host) {
-  | System.Platform.Windows_mingw =>
+  | System.Platform.Windows =>
     let rootPath = getCygPath();
     let binary = Fpath.to_string(rootPath);
     let ic = Unix.open_process_args_in(binary, [|binary, path|]);
@@ -65,7 +65,7 @@ let toEsyBashCommand = (~env=None, cmd) => {
     };
 
   switch (System.Platform.host) {
-  | Windows_mingw =>
+  | Windows =>
     let commands = Bos.Cmd.to_list(cmd);
     let esyBashPath = getEsyBashPath();
     let allCommands = List.append(environmentFilePath, commands);
@@ -81,7 +81,7 @@ let toEsyBashCommand = (~env=None, cmd) => {
 */
 let normalizePathForWindows = (path: Fpath.t) =>
   switch (System.Platform.host) {
-  | System.Platform.Windows_mingw =>
+  | System.Platform.Windows =>
     let pathAsString = Fpath.to_string(path);
     switch (pathAsString.[0]) {
     /* We assume that if the path coming in to normalize is a leading slash,
@@ -111,7 +111,7 @@ let normalizePathForWindows = (path: Fpath.t) =>
 let currentEnvWithMingwInPath = {
   let current = System.Environment.current;
   switch (System.Platform.host) {
-  | System.Platform.Windows_mingw =>
+  | System.Platform.Windows =>
     let mingw = getMingwRuntimePath();
     let path = [Path.show(mingw), ...System.Environment.path];
     StringMap.add("PATH", System.Environment.join(path), current);
