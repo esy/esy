@@ -6,6 +6,6 @@
     ]
   ],
   "dependencies": {
-    "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a"
+    "esy-pkg-config": "*"
   }
 }
