@@ -265,12 +265,7 @@ let packageOfSource =
       (
         ~name,
         ~source,
-        {
-          EsyFetch.DistResolver.kind,
-          filename: _,
-          data,
-          suggestedPackageName,
-        },
+        {EsyFetch.DistResolver.kind, filename: _, data, suggestedPackageName},
       ) =>
     RunAsync.Syntax.(
       switch (kind) {
