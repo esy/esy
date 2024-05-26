@@ -1,3 +1,4 @@
+open EsyPrimitives;
 open EsyPackageConfig;
 
 module EsyIntrospectionEnv: {let rootPackageConfigPath: string;};
@@ -8,10 +9,10 @@ let make:
   (
     ~sandboxEnv: SandboxEnv.t=?,
     EsyBuildPackage.Config.t,
-    EsyInstall.SandboxSpec.t,
-    EsyInstall.Config.t,
-    EsyInstall.Solution.t,
-    EsyInstall.Installation.t
+    EsyFetch.SandboxSpec.t,
+    EsyFetch.Config.t,
+    EsyFetch.Solution.t,
+    EsyFetch.Installation.t
   ) =>
   RunAsync.t((t, Fpath.set));
 
@@ -20,6 +21,7 @@ let renderExpression: (t, Scope.t, string) => Run.t(string);
 let configure:
   (
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -31,6 +33,7 @@ let configure:
 let env:
   (
     ~forceImmutable: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -42,6 +45,7 @@ let env:
 let exec:
   (
     ~changeDirectoryToPackageRoot: bool=?,
+    ~concurrency: int,
     EnvSpec.t,
     BuildSpec.t,
     BuildSpec.mode,
@@ -54,7 +58,7 @@ let exec:
 module Task: {
   type t = {
     idrepr: BuildId.Repr.t,
-    pkg: EsyInstall.Package.t,
+    pkg: EsyFetch.Package.t,
     scope: Scope.t,
     env: Scope.SandboxEnvironment.t,
     build: list(list(Scope.SandboxValue.t)),
@@ -73,7 +77,7 @@ module Plan: {
 
   type t;
 
-  let spec: t => EsyInstall.Solution.Spec.t;
+  let spec: t => FetchDepsSubset.t;
 
   let get: (t, PackageId.t) => option(Task.t);
   let getByName: (t, string) => option(Task.t);
@@ -84,12 +88,19 @@ module Plan: {
 };
 
 let makePlan:
-  (~forceImmutable: bool=?, BuildSpec.t, BuildSpec.mode, t) => Run.t(Plan.t);
+  (
+    ~forceImmutable: bool=?,
+    ~concurrency: int,
+    BuildSpec.t,
+    BuildSpec.mode,
+    t
+  ) =>
+  Run.t(Plan.t);
 
 /** [shell task ()] shells into [task]'s build environment. */
 
 let buildShell:
-  (BuildSpec.t, BuildSpec.mode, t, PackageId.t) =>
+  (~concurrency: int, BuildSpec.t, BuildSpec.mode, t, PackageId.t) =>
   RunAsync.t(Unix.process_status);
 
 /** [build task ()] builds the [task]. */

@@ -10,17 +10,19 @@ const tmp = require('tmp');
 const zlib = require('zlib');
 const {Minimatch} = require('minimatch');
 
+export {rename} from 'fs-extra';
+
 function stringPatternMatch(
   string: string,
   patterns: Array<string>,
   {matchBase = false, dot = true}: {|matchBase?: boolean, dot?: boolean|} = {},
 ): boolean {
   const compiledPatterns = (Array.isArray(patterns) ? patterns : [patterns]).map(
-    pattern => new Minimatch(pattern, {matchBase, dot}),
+    (pattern) => new Minimatch(pattern, {matchBase, dot}),
   );
 
   // If there's only negated patterns, we assume that everything should match by default
-  let status = compiledPatterns.every(compiledPattern => compiledPattern.negated);
+  let status = compiledPatterns.every((compiledPattern) => compiledPattern.negated);
 
   for (const compiledPattern of compiledPatterns) {
     if (compiledPattern.negated) {
@@ -64,7 +66,7 @@ exports.walk = function walk(
     const paths = [];
 
     const walker = klaw(source, {
-      filter: itemPath => {
+      filter: (itemPath) => {
         if (!filter) {
           return true;
         }
@@ -118,7 +120,7 @@ exports.packToStream = function packToStream(
   const zipperStream = zlib.createGzip();
 
   const packStream = tarFs.pack(source, {
-    map: header => {
+    map: (header) => {
       if (true) {
         header.name = path.resolve('/', header.name);
         header.name = path.relative('/', header.name);
@@ -135,7 +137,7 @@ exports.packToStream = function packToStream(
 
   packStream.pipe(zipperStream);
 
-  packStream.on('error', error => {
+  packStream.on('error', (error) => {
     zipperStream.emit('error', error);
   });
 
@@ -153,11 +155,11 @@ exports.packToFile = function packToFile(
   packStream.pipe(tarballStream);
 
   return new Promise((resolve, reject) => {
-    tarballStream.on('error', error => {
+    tarballStream.on('error', (error) => {
       reject(error);
     });
 
-    packStream.on('error', error => {
+    packStream.on('error', (error) => {
       reject(error);
     });
 
@@ -235,7 +237,7 @@ exports.chmod = function chmod(target: string, mod: number): Promise<void> {
   return fs.chmod(target, mod);
 };
 
-exports.makeFakeBinary = async function(
+exports.makeFakeBinary = async function (
   target: string,
   {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},
 ): Promise<void> {

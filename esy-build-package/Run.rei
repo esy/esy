@@ -150,3 +150,5 @@ module type T = {
       t(list(Fpath.t), [> | `Msg(string)]);
   };
 };
+
+let try_: (~catch: err('e) => t('v, 'e), t('v, 'e)) => t('v, 'e);

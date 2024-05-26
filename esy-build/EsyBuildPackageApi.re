@@ -1,14 +1,5 @@
 open EsyLib;
 
-let esyBuildPackagePath = {
-  let dir = Path.(exePath() |> parent |> parent);
-  Path.(dir / "lib" / "esy" / "esyBuildPackageCommand");
-};
-
-let esyBuildPackageCmd = {
-  esyBuildPackagePath |> Cmd.ofPath;
-};
-
 let run =
     (
       ~stdin=`Null,
@@ -19,6 +10,8 @@ let run =
       plan: EsyBuildPackage.Plan.t,
     ) => {
   open RunAsync.Syntax;
+
+  let* esyBuildPackageCmd = EsyRuntime.getEsyBuildPackageCommand();
 
   let action =
     switch (action) {
@@ -90,7 +83,7 @@ let run =
       ~env=
         ChildProcess.CurrentEnvOverride(
           Astring.String.Map.empty
-          |> Astring.String.Map.add("_", Path.show(esyBuildPackagePath)),
+          |> Astring.String.Map.add("_", Cmd.show(esyBuildPackageCmd)),
         ),
       ~stderr,
       ~stdout,
@@ -143,11 +136,12 @@ let build =
   | (Unix.WSTOPPED(code), Some((logPath, fd))) =>
     UnixLabels.close(fd);
     let* log = Fs.readFile(logPath);
-    RunAsync.withContextOfLog(
+    Run.withContextOfLog(
       ~header="build log:",
       log,
-      errorf("build failed with exit code: %i", code),
-    );
+      Run.errorf("build failed with exit code: %i", code),
+    )
+    |> RunAsync.ofRun;
 
   | (Unix.WEXITED(code), None)
   | (Unix.WSIGNALED(code), None)

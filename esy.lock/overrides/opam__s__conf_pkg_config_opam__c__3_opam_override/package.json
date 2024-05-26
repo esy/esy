@@ -1,0 +1,11 @@
+{
+  "build": [
+    [
+      "pkg-config",
+      "--help"
+    ]
+  ],
+  "dependencies": {
+    "esy-pkg-config": "*"
+  }
+}

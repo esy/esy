@@ -175,20 +175,19 @@ module OpamBuild = {
   };
 };
 
-let discoverManifest = path => {
+let discoverManifest = (path, pkgName) => {
   open RunAsync.Syntax;
 
-  let filenames = [
-    (ManifestSpec.Esy, "esy.json"),
-    (ManifestSpec.Esy, "package.json"),
-  ];
+  let* filenames = ManifestDiscovery.discover(path, pkgName);
+
+  let filenames = List.map(~f=((a, b)) => (a, Path.show(b)), filenames);
 
   let rec tryLoad =
     fun
     | [] => return((None, Path.Set.empty))
     | [(kind, fname), ...rest] => {
         let%lwt () =
-          Logs_lwt.debug(m =>
+          Esy_logs_lwt.debug(m =>
             m("trying %a %a", Path.pp, path, ManifestSpec.pp, (kind, fname))
           );
         let fname = Path.(path / fname);
@@ -205,9 +204,9 @@ let discoverManifest = path => {
   tryLoad(filenames);
 };
 
-let ofPath = (~manifest=?, path: Path.t) => {
+let ofPath = (~manifest=?, path: Path.t, pkgName) => {
   let%lwt () =
-    Logs_lwt.debug(m =>
+    Esy_logs_lwt.debug(m =>
       m(
         "ReadBuildManifest.ofPath %a %a",
         Fmt.(option(ManifestSpec.pp)),
@@ -219,7 +218,7 @@ let ofPath = (~manifest=?, path: Path.t) => {
 
   let manifest =
     switch (manifest) {
-    | None => discoverManifest(path)
+    | None => discoverManifest(path, pkgName)
     | Some(spec) =>
       switch (spec) {
       | (ManifestSpec.Esy, fname) =>
@@ -243,26 +242,27 @@ let ofInstallationLocation =
     (
       spec,
       installCfg,
-      pkg: EsyInstall.Package.t,
-      loc: EsyInstall.Installation.location,
+      pkg: EsyFetch.Package.t,
+      loc: EsyFetch.Installation.location,
     ) =>
   RunAsync.Syntax.(
     switch (pkg.source) {
     | Link({path, manifest, kind: _}) =>
       let dist = Dist.LocalPath({path, manifest});
       let* res =
-        EsyInstall.DistResolver.resolve(
+        EsyFetch.DistResolver.resolve(
           ~gitUsername=None,
           ~gitPassword=None,
           ~cfg=installCfg,
           ~sandbox=spec,
           dist,
+          ~pkgName=pkg.name,
         ); /* Git creds are None. Since link resolutions are local, git creds (which are only used over HTTPS) are not needed */
 
       let overrides =
-        Overrides.merge(pkg.overrides, res.EsyInstall.DistResolver.overrides);
+        Overrides.merge(pkg.overrides, res.EsyFetch.DistResolver.overrides);
       let* manifest =
-        switch (res.EsyInstall.DistResolver.manifest) {
+        switch (res.EsyFetch.DistResolver.manifest) {
         | Some({
             kind: ManifestSpec.Esy,
             filename: _,
@@ -293,7 +293,7 @@ let ofInstallationLocation =
       switch (manifest) {
       | None =>
         if (Overrides.isEmpty(overrides)) {
-          return((None, res.EsyInstall.DistResolver.paths));
+          return((None, res.EsyFetch.DistResolver.paths));
         } else {
           let manifest = BuildManifest.empty(~name=None, ~version=None, ());
           let* manifest =
@@ -303,7 +303,7 @@ let ofInstallationLocation =
               overrides,
             );
 
-          return((Some(manifest), res.EsyInstall.DistResolver.paths));
+          return((Some(manifest), res.EsyFetch.DistResolver.paths));
         }
       | Some((manifest, _warnings)) =>
         let* manifest =
@@ -313,11 +313,11 @@ let ofInstallationLocation =
             overrides,
           );
 
-        return((Some(manifest), res.EsyInstall.DistResolver.paths));
+        return((Some(manifest), res.EsyFetch.DistResolver.paths));
       };
 
     | Install({source: (source, _), opam: _}) =>
-      switch%bind (EsyInstall.Package.opam(pkg)) {
+      switch%bind (EsyFetch.Package.opam(pkg)) {
       | Some((name, version, opamfile)) =>
         let manifest =
           OpamBuild.buildOfOpam(
@@ -336,7 +336,7 @@ let ofInstallationLocation =
         return((Some(manifest), Path.Set.empty));
       | None =>
         let manifest = Dist.manifest(source);
-        let* (manifest, paths) = ofPath(~manifest?, loc);
+        let* (manifest, paths) = ofPath(~manifest?, loc, pkg.name);
         let* manifest =
           switch (manifest) {
           | Some((manifest, _warnings)) =>

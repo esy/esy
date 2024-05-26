@@ -185,6 +185,24 @@ let to_yojson = pkg =>
     ),
   ]);
 
+let to_yojson = pkg =>
+  `Assoc([
+    ("name", `String(pkg.name)),
+    ("version", `String(Version.showSimple(pkg.version))),
+    ("dependencies", Dependencies.to_yojson(pkg.dependencies)),
+    ("devDependencies", Dependencies.to_yojson(pkg.devDependencies)),
+    ("peerDependencies", yojson_of_reqs(pkg.peerDependencies)),
+    (
+      "optDependencies",
+      `List(
+        List.map(
+          ~f=x => `String(x),
+          StringSet.elements(pkg.optDependencies),
+        ),
+      ),
+    ),
+  ]);
+
 module Map =
   Map.Make({
     type nonrec t = t;

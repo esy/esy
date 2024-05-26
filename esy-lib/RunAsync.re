@@ -9,19 +9,13 @@ let errorf = fmt => {
   Format.kfprintf(kerr, Format.str_formatter, fmt);
 };
 
-let context = (v, msg) => {
-  let%lwt v = v;
-  Lwt.return(Run.context(v, msg));
+let context = msg => {
+  Lwt.map(Run.context(msg));
 };
 
 let contextf = (v, fmt) => {
-  let kerr = _ => context(v, Format.flush_str_formatter());
+  let kerr = _ => context(Format.flush_str_formatter(), v);
   Format.kfprintf(kerr, Format.str_formatter, fmt);
-};
-
-let withContextOfLog = (~header=?, content, v) => {
-  let%lwt v = v;
-  Lwt.return(Run.withContextOfLog(~header?, content, v));
 };
 
 let map = (~f, v) => {
@@ -43,21 +37,31 @@ let bind = (~f, v) => {
 };
 
 let both = (a, b) => {
-  let%lwt a = a
-  and b = b;
-  Lwt.return(
-    switch (a, b) {
-    | (Ok(a), Ok(b)) => [@implicit_arity] Ok(a, b)
-    | (Ok(_), Error(err)) => Error(err)
-    | (Error(err), Ok(_)) => Error(err)
-    | (Error(err), Error(_)) => Error(err)
-    },
+  Lwt.bind(a, a =>
+    Lwt.map(
+      b =>
+        switch (a, b) {
+        | (Ok(a), Ok(b)) => [@implicit_arity] Ok(a, b)
+        | (Ok(_), Error(err)) => Error(err)
+        | (Error(err), Ok(_)) => Error(err)
+        | (Error(err), Error(_)) => Error(err)
+        },
+      b,
+    )
   );
 };
 
 let ofRun = Lwt.return;
+let ofLwt = lwt => Lwt.bind(lwt, v => Lwt.return(Ok(v)));
 let ofStringError = r => ofRun(Run.ofStringError(r));
 let ofBosError = r => ofRun(Run.ofBosError(r));
+
+let try_ = (~catch, computation) => {
+  switch%lwt (computation) {
+  | Ok(value) => return(value)
+  | Error(error) => catch(error)
+  };
+};
 
 module Syntax = {
   let return = return;
@@ -87,22 +91,6 @@ let ofOption = (~err=?, v) =>
 let runExn = (~err=?, v) => {
   let v = Lwt_main.run(v);
   Run.runExn(~err?, v);
-};
-
-let cleanup = (comp, handler) => {
-  let res =
-    switch%lwt (comp) {
-    | Ok(res) => return(res)
-    | Error(_) as err =>
-      let%lwt () = handler();
-      Lwt.return(err);
-    };
-
-  try%lwt(res) {
-  | err =>
-    let%lwt () = handler();
-    raise(err);
-  };
 };
 
 module List = {
@@ -182,4 +170,13 @@ module List = {
           processSeq(~f, xs);
         }
     );
+};
+
+type queue = LwtTaskQueue.t;
+let createQueue = concurrency => {
+  LwtTaskQueue.create(~concurrency, ());
+};
+
+let submitTask = (~queue, taskFn) => {
+  LwtTaskQueue.submit(queue, taskFn);
 };

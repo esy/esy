@@ -38,7 +38,7 @@ let rec retryInCaseOfError = (~num, ~desc, f) =>
   | Ok(resp) => RunAsync.return(resp)
   | Error(_) when num > 0 =>
     let%lwt () =
-      Logs_lwt.warn(m =>
+      Esy_logs_lwt.warn(m =>
         m("failed to %s, retrying (attempts left: %i)", desc, num)
       );
 
@@ -90,10 +90,9 @@ let versions = (~fullMetadata=false, ~name, registry, ()) => {
     | Curl.NotFound => return(None)
     | Curl.Success(data) =>
       let* packument =
-        RunAsync.context(
-          Json.parseStringWith(Packument.of_yojson, data) |> RunAsync.ofRun,
-          "parsing packument",
-        );
+        Json.parseStringWith(Packument.of_yojson, data)
+        |> RunAsync.ofRun
+        |> RunAsync.context("parsing packument");
 
       let* versions =
         RunAsync.ofStringError(

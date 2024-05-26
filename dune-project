@@ -4,7 +4,7 @@
 
 (allow_approximate_merlin)
 
-(license MIT)
+(license BSD-2-Clause)
 (maintainers
  "Manas Jayanth <prometheansacrifice@gmail.com>"
  "Andrey Popp <8mayday@gmail.com>")
@@ -28,10 +28,11 @@ Easy package management for native Reason, OCaml and more
 ")
  (depends
     angstrom
-    cmdliner
-    bos 
-    (cudf (= 0.9+dune))  
-    (dose3 (= 6.1))
+    (uuseg (= 14.0.0))
+    (cmdliner (= dev))
+    (bos (= dev))
+    (cudf (= 0.9))
+    (dose3 (= 7.0.0))
     (ocamlgraph (= 2.0.0))
     dune  
     fmt  
@@ -40,6 +41,10 @@ Easy package management for native Reason, OCaml and more
     logs  
     lwt  
     reason
+    (rely (= dev))
+    (cli (= dev))
+    (pastel (= dev))
+    (file-context-printer (= dev))
     lwt_ppx
     junit
     (menhir (= 20210419)) 

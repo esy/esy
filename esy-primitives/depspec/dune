@@ -1,0 +1,12 @@
+(library
+ (name DepSpec)
+ (libraries esy_fmt)
+ (preprocess
+  (pps ppx_deriving.std)))
+
+(ocamllex
+ (modules DepSpecLexer))
+
+(menhir
+ (flags "--explain")
+ (modules DepSpecParser))

@@ -4,9 +4,10 @@
  * Project can be in multiple states and in multiple configurations.
  */;
 
+open EsyPrimitives;
 open EsyBuild;
 open EsyBuild.Scope;
-open EsyInstall;
+open EsyFetch;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -51,8 +52,8 @@ let ocaml: project => RunAsync.t(Fpath.t);
 
 let ocamlfind: project => RunAsync.t(Fpath.t);
 
-let term: Cmdliner.Term.t(project);
-let promiseTerm: Cmdliner.Term.t(RunAsync.t(project));
+let term: Esy_cmdliner.Term.t(project);
+let promiseTerm: Esy_cmdliner.Term.t(RunAsync.t(project));
 
 let withPackage:
   (project, PkgArg.t, Package.t => Lwt.t(Run.t('a))) => RunAsync.t('a);
@@ -66,6 +67,10 @@ let buildDependencies:
     Package.t
   ) =>
   RunAsync.t(unit);
+
+let buildShell:
+  (project, BuildSpec.mode, BuildSandbox.t, Package.t) =>
+  RunAsync.t(Unix.process_status);
 
 let renderSandboxPath: (SandboxPath.ctx, SandboxPath.t) => Path.t;
 

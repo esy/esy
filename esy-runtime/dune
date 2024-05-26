@@ -1,0 +1,5 @@
+(library
+ (name EsyRuntime)
+ (libraries EsyLib EsyVersion)
+ (flags -open EsyLib)
+ (synopsis "Provides helper routines depending on runtime environment"))

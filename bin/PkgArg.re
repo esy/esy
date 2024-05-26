@@ -1,4 +1,4 @@
-open EsyInstall;
+open EsyFetch;
 
 type t =
   | ByPkgSpec(PkgSpec.t)
@@ -24,7 +24,7 @@ let parse = v =>
 let root = ByPkgSpec(Root);
 
 let conv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
   Arg.conv(~docv="PACKAGE", (parse, pp));
 };

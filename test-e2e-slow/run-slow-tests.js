@@ -51,7 +51,18 @@ console.log('Running test suite: e2e (slow tests)');
 
 require('./build-top-100-opam.test.js');
 require('./install-npm.test.js');
-require('./esy.test.js');
+
+if (process.env.AGENT_JOBNAME === 'Windows') {
+  console.log(`
+  ///////////////////////////////////////////////////////////////
+  // These tests take more and 2 hours on Azure Pipelines when //
+  // run completely. Hence disabling the ./esy.test.js	       //
+  ///////////////////////////////////////////////////////////////
+`);
+} else {
+  require('./esy.test.js');
+}
+
 require('./github.test.js');
 
 if (!isWindows) {
@@ -66,3 +77,4 @@ if (!isWindows) {
   require('./esy-npm-release/legacy.test.js');
 }
 require('./esy-npm-release/no-rewrite.test.js');
+require('./melange-esy.test.js');

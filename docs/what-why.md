@@ -27,7 +27,7 @@ esy lets you manage native Reason/OCaml projects with a familiar npm-like workfl
 ## For [opam](https://opam.ocaml.org/) users
 
 esy provides a fast and powerful workflow for local development of opam packages without
-requiring "switches". Opam packages are still accessable, and you can publish
+requiring "switches". Opam packages are still accessible, and you can publish
 your packages to opam repository.
 
 * Manages OCaml compilers and dependencies on a per project basis.

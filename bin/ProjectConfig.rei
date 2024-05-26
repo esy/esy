@@ -9,7 +9,7 @@ type t = {
   mainprg: string,
   path: Path.t,
   esyVersion: string,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   prefixPath: option(Path.t),
   ocamlPkgName: string,
   ocamlVersion: string,
@@ -38,7 +38,7 @@ let show: t => string;
 let pp: Fmt.t(t);
 let to_yojson: t => Json.t;
 
-let promiseTerm: Cmdliner.Term.t(RunAsync.t(t));
-let term: Cmdliner.Term.t(t);
+let promiseTerm: Esy_cmdliner.Term.t(RunAsync.t(t));
+let term: Esy_cmdliner.Term.t(t);
 let multipleProjectConfigsTerm:
-  Cmdliner.Arg.conv(EsyLib.Path.t) => Cmdliner.Term.t(list(t));
+  Esy_cmdliner.Arg.conv(EsyLib.Path.t) => Esy_cmdliner.Term.t(list(t));

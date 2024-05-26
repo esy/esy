@@ -8,6 +8,65 @@ module Result = EsyLib.Result;
 module System = EsyLib.System;
 open Run;
 
+///////////////////////////////////////
+// The following resolution code has to be copied
+// because esyBuildPackageCommand doesn't use
+// Lwt for some reason. TODO unify this use
+// of io monads or move to eio
+let exePath = () => {
+  switch (System.Platform.host) {
+  | Linux => Unix.readlink("/proc/self/exe")
+  | Darwin
+  | Cygwin
+  | Windows
+  | Unix
+  | Unknown => Sys.argv[0]
+  // TODO cross-platform solution to getting full path of the current executable.
+  // Linux has /proc/self/exe. Macos ?? Windows GetModuleFileName()
+  // https://stackoverflow.com/a/1024937
+  };
+};
+
+let resolveRelativeTo = (~internalCommandName, path) => {
+  let dir = Path.(path |> parent);
+  let path = Path.(dir / internalCommandName);
+  let path =
+    EsyLib.System.Platform.isWindows ? Path.addExt("exe", path) : path;
+  let* exists = Bos.OS.Path.exists(path);
+  let v = exists ? Some(path) : None;
+  Run.return(v);
+};
+
+let getInternalCommand = (internalCommandName, ()) => {
+  let* exePath = exePath() |> Path.ofString;
+  let* v = resolveRelativeTo(~internalCommandName, exePath);
+  let* path =
+    switch (v) {
+    | Some(v) => Run.return(v)
+    | None =>
+      let* path =
+        switch (Sys.getenv_opt("_")) {
+        | Some(v) => Ok(v)
+        | None =>
+          Error(
+            `Msg(
+              "Could not find _ in the environment. We look this variable up to resolve internal commands",
+            ),
+          )
+        };
+      let* path = Path.ofString(path);
+      let* v = resolveRelativeTo(~internalCommandName, path);
+      switch (v) {
+      | Some(v) => Run.return(v)
+      | None =>
+        Run.errorf("Could not find internal command %s", internalCommandName)
+      };
+    };
+  Run.return @@ EsyLib.Cmd.ofPath @@ path;
+};
+
+let getRewritePrefixCommand = getInternalCommand("esyRewritePrefixCommand");
+
 type t = {
   plan: Plan.t,
   storePath: Path.t,
@@ -235,7 +294,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
   EsyLib.Perf.measure(
     ~label,
     () => {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m("# esy-build-package: installing using built-in installer")
       );
       let res =
@@ -265,7 +324,7 @@ let withLock = (lockPath: Path.t, f) => {
   };
   try(UnixLabels.(lockf(fd, ~mode=F_TEST, ~len=0))) {
   | _ =>
-    Logs.app(m =>
+    Esy_logs.app(m =>
       m("# esy-build-package: waiting for other process to finish building")
     )
   };
@@ -338,12 +397,12 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     );
   let* () =
     if (Path.compare(build.stagePath, build.installPath) == 0) {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m("# esy-build-package: stage path and install path are the same")
       );
       return();
     } else {
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m(
           "# esy-build-package: rewriting prefix: %a -> %a",
           Path.pp,
@@ -352,16 +411,15 @@ let commitBuildToStore = (config: Config.t, build: build) => {
           build.installPath,
         )
       );
-      let dir = Path.(exePath() |> parent);
-      let cmd = Path.(dir / "esyRewritePrefixCommand");
+      let* cmd = getRewritePrefixCommand();
       let env =
         EsyLib.EsyBash.currentEnvWithMingwInPath
-        |> EsyLib.StringMap.add("_", Path.show(cmd));
+        |> EsyLib.StringMap.add("_", EsyLib.Cmd.show(cmd));
       let* () =
         Bos.OS.Cmd.run(
           ~env,
           Cmd.(
-            v(p(cmd))
+            (cmd |> EsyLib.Cmd.toBosCmd)
             % "--orig-prefix"
             % p(build.stagePath)
             % "--dest-prefix"
@@ -369,7 +427,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
             % p(build.stagePath)
           ),
         );
-      Logs.app(m =>
+      Esy_logs.app(m =>
         m(
           "# esy-build-package: committing: %a -> %a",
           Path.pp,
@@ -390,9 +448,19 @@ let commitBuildToStore = (config: Config.t, build: build) => {
       if (isBigSurArm) {
         /* Fix for codesigning issues on BigSur on M1 mac.
            See BigSurArm.re for more details */
-        BigSurArm.sign(
-          entries,
-        );
+        let binariesThatFailedToSign = BigSurArm.sign(entries);
+        if (List.length(binariesThatFailedToSign) > 0) {
+          Esy_logs.warn(m =>
+            m("# esy-build-package: Failed to sign the following binaries")
+          );
+          let f = binary => {
+            ignore @@ Esy_logs.warn(m => m("  %a", Path.pp, binary));
+          };
+          List.iter(f, binariesThatFailedToSign);
+          return();
+        } else {
+          return();
+        };
       } else {
         return();
       };
@@ -497,11 +565,23 @@ let getEnvAndPath = build => {
     | None => []
     };
 
+  let opamSwitchPrefixK = "OPAM_SWITCH_PREFIX";
+  let opamSwitchPrefix =
+    switch (Astring.String.Map.find(opamSwitchPrefixK, build.env)) {
+    | Some(opamSwitchPrefix) => opamSwitchPrefix
+    | None => Path.show(build.stagePath)
+    };
+
   let env =
     switch (Bos.OS.Env.var("TERM")) {
-    | Some(term) => Astring.String.Map.add("TERM", term, build.env)
+    | Some(term) => build.env |> Astring.String.Map.add("TERM", term)
     | None => build.env
     };
+
+  let env =
+    env
+    |> Astring.String.Map.remove(opamSwitchPrefixK)
+    |> Astring.String.Map.add(opamSwitchPrefixK, opamSwitchPrefix);
 
   let env =
     switch (path) {
@@ -546,16 +626,18 @@ let runCommandInteractive = (build, cmd) => {
 
 let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   let* build = configureBuild(~cfg, plan);
-  Logs.debug(m => m("start %s", build.plan.id));
-  Logs.debug(m => m("building"));
-  Logs.app(m =>
+  Esy_logs.debug(m => m("start %s", build.plan.id));
+  Esy_logs.debug(m => m("building"));
+  Esy_logs.app(m =>
     m(
       "# esy-build-package: building: %s@%s",
       build.plan.name,
       build.plan.version,
     )
   );
-  Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
+  Esy_logs.app(m =>
+    m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath)
+  );
 
   let runBuildAndInstall = (build: build) => {
     let enableLinkingOptimization =
@@ -652,7 +734,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         switch (cmds) {
         | [] => Ok()
         | [cmd, ...cmds] =>
-          Logs.app(m =>
+          Esy_logs.app(m =>
             m("# esy-build-package: running: %s", Cmd.to_string(cmd))
           );
           let* () = runCommand(cmd);

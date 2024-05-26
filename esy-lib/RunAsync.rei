@@ -3,6 +3,7 @@
  */;
 
 type t('a) = Lwt.t(Run.t('a));
+type queue;
 
 /**
  * Computation which results in a value.
@@ -26,27 +27,13 @@ let errorf: format4('a, Format.formatter, unit, t('v)) => 'a;
  * Wrap computation with a context which will be reported in case of error
  */
 
-let context: (t('v), string) => t('v);
+let context: (string, t('v)) => t('v);
 
 /**
  * Same as [context] but defined with a formatter.
  */
 
 let contextf: (t('v), format4('a, Format.formatter, unit, t('v))) => 'a;
-
-/**
- * Same as with the [withContext] but will be formatted as differently, as a
- * single block of text.
- */
-
-let withContextOfLog: (~header: string=?, string, t('a)) => t('a);
-
-/**
- * [cleanup comp handler] executes [handler] in case of any error happens during
- * [comp] execution. Note that [handler] sometimes can fire two times.
- */
-
-let cleanup: (t('a), unit => Lwt.t(unit)) => t('a);
 
 /**
  * Run computation and throw an exception in case of a failure.
@@ -63,6 +50,12 @@ let runExn: (~err: string=?, t('a)) => 'a;
 let ofRun: Run.t('a) => t('a);
 
 /**
+ * Convert [Lwt.t] into [t].
+ */
+
+let ofLwt: Lwt.t('a) => t('a);
+
+/**
  * Convert an Rresult into [t]
  */
 
@@ -74,6 +67,8 @@ let ofBosError:
     [< | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)],
   ) =>
   t('a);
+
+let try_: (~catch: Run.error => t('a), t('a)) => t('a);
 
 /**
  * Convert [option] into [t].
@@ -138,3 +133,6 @@ module List: {
   let joinAll: list(t('a)) => t(list('a));
   let processSeq: (~f: 'a => t(unit), list('a)) => t(unit);
 };
+
+let createQueue: int => queue;
+let submitTask: (~queue: queue, unit => t('a)) => t('a);

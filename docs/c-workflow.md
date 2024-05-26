@@ -1,6 +1,6 @@
 ---
 id: c-workflow
-title: Workflow for C/C++ Packages
+title: "Workflow for C/C++ Packages"
 ---
 
 esy providing a workflow for native development couldn't skip supporting C/C++
@@ -22,6 +22,7 @@ file for our lib.
 
 We do this via `Makefile` with `build` and `install` targets:
 
+```
     define dep_pc
     prefix=$(cur__install)
     exec_prefix=$${prefix}
@@ -42,10 +43,12 @@ We do this via `Makefile` with `build` and `install` targets:
     install:
       ... other install commands ...
       echo "$$dep_pc" > $(cur__install)/lib/dep.pc
+```
 
 Note that we have installed out `dep.pc` into `$cur__install/lib`, we need to
 update `$PKG_CONFIG_PATH` with this in `"esy.exportedEnv"`:
 
+```json
     {
       "name": "dep",
       "version": "1.0.0",
@@ -60,6 +63,7 @@ update `$PKG_CONFIG_PATH` with this in `"esy.exportedEnv"`:
         }
       }
     }
+```
 
 In the `package.json` above `#{self.lib}` is the same value as
 `$cur__install/lib` but represented via esy's command expression syntax.
@@ -78,6 +82,7 @@ library and on `pkg-config` package which is hosted on GitHub at
 
 The entire `package.json` for the project would look like this:
 
+```json
     {
       "name": "my-project",
       "esy": {
@@ -89,6 +94,7 @@ The entire `package.json` for the project would look like this:
         "pkg-config": "esy-packages/pkg-config"
       }
     }
+```
 
 The `Makefile` will contain a call to `pkg-config` to generate command line
 options for C compiler needed to compile against a library `dep` and link it to

@@ -16,15 +16,16 @@ authors: [
   "Bryan Phelps <bryphe@outrunlabs.com>"
   "Eduardo Rafael <theeduardorfs@gmail.com>"
 ]
-license: "MIT"
+license: "BSD-2-Clause"
 homepage: "https://github.com/esy/esy"
 bug-reports: "https://github.com/esy/esy/issues"
 depends: [
   "angstrom"
-  "cmdliner"
-  "bos"
-  "cudf" {= "0.9+dune"}
-  "dose3" {= "6.1"}
+  "uuseg" {= "14.0.0"}
+  "cmdliner" {= "dev"}
+  "bos" {= "dev"}
+  "cudf" {= "0.9"}
+  "dose3" {= "7.0.0"}
   "ocamlgraph" {= "2.0.0"}
   "dune"
   "fmt"
@@ -33,6 +34,10 @@ depends: [
   "logs"
   "lwt"
   "reason"
+  "rely" {= "dev"}
+  "cli" {= "dev"}
+  "pastel" {= "dev"}
+  "file-context-printer" {= "dev"}
   "lwt_ppx"
   "junit"
   "menhir" {= "20210419"}
@@ -69,8 +74,9 @@ build: [
 ]
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
-  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git"]
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc"]
+  ["camlbz2.dev" "git+https://gitlab.com/irill/camlbz2.git#588e186c"]
+  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc3"]
+  ["bos.dev" "git+https://github.com/esy-ocaml/bos.git#90364d00"]
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]

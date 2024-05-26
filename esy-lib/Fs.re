@@ -75,11 +75,11 @@ let chmod = (permission, path: Path.t) =>
     path,
   );
 
-let createDirLwt = (path: Path.t) => {
+let createDirLwt = (~perms=0o777, path: Path.t) => {
   let rec create = path =>
     try%lwt({
       let path = Path.show(path);
-      let%lwt () = Lwt_unix.mkdir(path, 0o777);
+      let%lwt () = Lwt_unix.mkdir(path, perms);
       Lwt.return(`Created);
     }) {
     | Unix.Unix_error(Unix.EEXIST, _, _) => Lwt.return(`AlreadyExists)
@@ -139,6 +139,11 @@ let isDir = (path: Path.t) =>
   | Error(_) => RunAsync.return(false)
   };
 
+let isDirSync = path =>
+  try(Sys.is_directory(Path.show(path))) {
+  | _ => false
+  };
+
 let unlink = (path: Path.t) => {
   let path = Path.show(path);
   let%lwt () = Lwt_unix.unlink(path);
@@ -151,11 +156,11 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
   let targetString = Path.show(target);
   let%bind destExists = exists(target);
   if (skipIfExists && destExists) {
-    let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+    let%lwt () = Esy_logs_lwt.debug(m => m("Dest (%s) exists", targetString));
     RunAsync.return();
   } else {
     let%lwt () =
-      Logs_lwt.debug(m =>
+      Esy_logs_lwt.debug(m =>
         m("rename %a -> %a", Path.pp, src, Path.pp, target)
       );
     try%lwt(
@@ -181,7 +186,7 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
       }
     | Unix.Unix_error(Unix.EXDEV, "rename", filename) =>
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("rename of %s failed with EXDEV, trying `mv`", filename)
         );
       let cmd = Printf.sprintf("mv %s %s", srcString, targetString);
@@ -192,7 +197,8 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
       };
     | Unix.Unix_error(Unix.EACCES, "rename", _) when attempts > 1 =>
       if%bind (exists(target)) {
-        let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+        let%lwt () =
+          Esy_logs_lwt.debug(m => m("Dest (%s) exists", targetString));
         RunAsync.return();
       } else {
         let%lwt () = Lwt_unix.sleep(1.);
@@ -329,25 +335,36 @@ let copyFile = (~src, ~dst) =>
       RunAsync.return();
     }
   ) {
-  | Unix.Unix_error(error, _, _) =>
-    RunAsync.error(Unix.error_message(error))
+  | Unix.Unix_error(error, fn, param) =>
+    RunAsync.errorf(
+      "Error: %s Function: %s Param: %s",
+      Unix.error_message(error),
+      fn,
+      param,
+    )
   };
 
-let rec copyPathLwt = (~src, ~dst) => {
+let rec copyPathLwt = (~hardlinks, ~src, ~dst) => {
   let origPathS = Path.show(src);
   let destPathS = Path.show(dst);
   let%lwt stat = Lwt_unix.lstat(origPathS);
   switch (stat.st_kind) {
   | S_REG =>
-    let%lwt () = copyFileLwt(~src, ~dst);
-    let%lwt () = copyStatLwt(~stat, dst);
-    Lwt.return();
+    if (hardlinks) {
+      try%lwt(Lwt_unix.link(origPathS, destPathS)) {
+      | Unix.Unix_error(Unix.EEXIST, _fn, _param) => Lwt.return()
+      | e => Lwt.fail(e)
+      };
+    } else {
+      let%lwt () = copyFileLwt(~src, ~dst);
+      let%lwt () = copyStatLwt(~stat, dst);
+      Lwt.return();
+    }
   | S_LNK =>
     let%lwt link = Lwt_unix.readlink(origPathS);
     Lwt_unix.symlink(link, destPathS);
   | S_DIR =>
-    let%lwt () = Lwt_unix.mkdir(destPathS, 0o700);
-
+    let%lwt _ = createDirLwt(dst, ~perms=0o700);
     let rec traverseDir = dir =>
       switch%lwt (Lwt_unix.readdir(dir)) {
       | exception End_of_file => Lwt.return()
@@ -355,7 +372,11 @@ let rec copyPathLwt = (~src, ~dst) => {
       | ".." => traverseDir(dir)
       | name =>
         let%lwt () =
-          copyPathLwt(~src=Path.(src / name), ~dst=Path.(dst / name));
+          copyPathLwt(
+            ~hardlinks,
+            ~src=Path.(src / name),
+            ~dst=Path.(dst / name),
+          );
         traverseDir(dir);
       };
 
@@ -372,19 +393,33 @@ let rec copyPathLwt = (~src, ~dst) => {
   };
 };
 
-let copyPath = (~src, ~dst) => {
+let copyPath' = (~hardlinks, ~src, ~dst) => {
   open RunAsync.Syntax;
   let* () = createDir(Path.parent(dst));
   try%lwt(
     {
-      let%lwt () = copyPathLwt(~src, ~dst);
+      let%lwt () = copyPathLwt(~hardlinks, ~src, ~dst);
       RunAsync.return();
     }
   ) {
-  | Unix.Unix_error(error, _, _) =>
-    RunAsync.error(Unix.error_message(error))
+  | Unix.Unix_error(Unix.EEXIST, _fn, _param) => return()
+  | Unix.Unix_error(error, fn, param) =>
+    RunAsync.errorf(
+      "Function: copyPath' Params: hardlinks %b src: %a dst %a Unix Error: %s Unix Function: %s Unix Param: %s",
+      hardlinks,
+      Path.pp,
+      src,
+      Path.pp,
+      dst,
+      Unix.error_message(error),
+      fn,
+      param,
+    )
   };
 };
+
+let copyPath = copyPath'(~hardlinks=false);
+let hardlinkPath = copyPath'(~hardlinks=true);
 
 let rec rmPathLwt = path => {
   let pathS = Path.show(path);

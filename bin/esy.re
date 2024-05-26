@@ -1,11 +1,13 @@
+open EsyPrimitives;
 open EsyBuild;
 open EsyPackageConfig;
+open DepSpec;
 
-module SandboxSpec = EsyInstall.SandboxSpec;
-module Installation = EsyInstall.Installation;
-module Solution = EsyInstall.Solution;
-module SolutionLock = EsyInstall.SolutionLock;
-module Package = EsyInstall.Package;
+module SandboxSpec = EsyFetch.SandboxSpec;
+module Installation = EsyFetch.Installation;
+module Solution = EsyFetch.Solution;
+module SolutionLock = EsyFetch.SolutionLock;
+module Package = EsyFetch.Package;
 
 let splitBy = (line, ch) =>
   switch (String.index(line, ch)) {
@@ -18,7 +20,7 @@ let splitBy = (line, ch) =>
   };
 
 let chdirTerm =
-  Cmdliner.Arg.(
+  Esy_cmdliner.Arg.(
     value
     & flag
     & info(
@@ -28,7 +30,7 @@ let chdirTerm =
   );
 
 let pkgTerm =
-  Cmdliner.Arg.(
+  Esy_cmdliner.Arg.(
     value
     & opt(PkgArg.conv, PkgArg.ByDirectoryPath(Path.currentPath()))
     & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -42,7 +44,7 @@ let cmdAndPkgTerm = {
     );
 
   let pkg =
-    Cmdliner.Arg.(
+    Esy_cmdliner.Arg.(
       value
       & opt(some(PkgArg.conv), None)
       & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -60,27 +62,23 @@ let cmdAndPkgTerm = {
       ))
     };
 
-  Cmdliner.Term.(ret(const(make) $ pkg $ cmd));
+  Esy_cmdliner.Term.(ret(const(make) $ pkg $ cmd));
 };
 
 let depspecConv = {
-  open Cmdliner;
+  open Esy_cmdliner;
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
-    try(
-      return(
-        EsyInstall.DepSpecParser.start(EsyInstall.DepSpecLexer.read, lexbuf),
-      )
-    ) {
-    | EsyInstall.DepSpecLexer.Error(msg) =>
+    try(return(DepSpecParser.start(DepSpecLexer.read, lexbuf))) {
+    | DepSpecLexer.Error(msg) =>
       let msg = Printf.sprintf("error parsing DEPSPEC: %s", msg);
       error(`Msg(msg));
-    | EsyInstall.DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
+    | DepSpecParser.Error => error(`Msg("error parsing DEPSPEC"))
     };
   };
 
-  let pp = EsyInstall.Solution.DepSpec.pp;
+  let pp = FetchDepSpec.pp;
   Arg.conv(~docv="DEPSPEC", (parse, pp));
 };
 
@@ -88,9 +86,9 @@ let modeTerm = {
   let make = release =>
     if (release) {BuildSpec.Build} else {BuildSpec.BuildDev};
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(make)
-    $ Cmdliner.Arg.(
+    $ Esy_cmdliner.Arg.(
         value & flag & info(["release"], ~doc="Build in release mode")
       )
   );
@@ -207,7 +205,7 @@ module Findlib = {
 };
 
 let resolvedPathTerm = {
-  open Cmdliner;
+  open Esy_cmdliner;
   let parse = v =>
     switch (Path.ofString(v)) {
     | Ok(path) =>
@@ -231,66 +229,6 @@ let buildDependencies = (all, mode, pkgarg, proj: Project.t) => {
   };
 
   Project.withPackage(proj, pkgarg, f);
-};
-
-let cleanup = (projCfgs: list(ProjectConfig.t), dryRun) => {
-  open RunAsync.Syntax;
-  let mode = BuildSpec.BuildDev;
-  let* (dirsToKeep, allDirs) =
-    RunAsync.List.foldLeft(
-      ~init=(Path.Set.empty, Path.Set.empty),
-      ~f=
-        (acc, projCfg) => {
-          let (dirsToKeep, allDirs) = acc;
-          let* (proj, _) = Project.make(projCfg);
-          let* plan = Project.plan(mode, proj);
-          let* allProjectDependencies =
-            BuildSandbox.Plan.all(plan)
-            |> List.map(~f=task =>
-                 Scope.installPath(task.BuildSandbox.Task.scope)
-                 |> Project.renderSandboxPath(proj.Project.buildCfg)
-               )
-            |> Path.Set.of_list
-            |> RunAsync.return;
-          let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projCfg));
-          let* allDirs' = Fs.listDir(Path.(storePath / Store.installTree));
-          let shortBuildPath =
-            Path.(
-              ProjectConfig.globalStorePrefixPath(projCfg)
-              / Store.version
-              / Store.buildTree
-            );
-          RunAsync.return((
-            Path.Set.union(dirsToKeep, allProjectDependencies),
-            Path.Set.union(
-              allDirs,
-              Path.Set.of_list([
-                Path.(storePath / Store.buildTree),
-                Path.(storePath / Store.stageTree),
-                shortBuildPath,
-                ...allDirs'
-                   |> List.map(~f=x =>
-                        Path.(storePath / Store.installTree / x)
-                      ),
-              ]),
-            ),
-          ));
-        },
-      projCfgs,
-    );
-
-  let buildsToBePurged = Path.Set.diff(allDirs, dirsToKeep);
-
-  if (dryRun) {
-    print_endline("Will be purging the following");
-    Path.Set.iter(p => p |> Path.show |> print_endline, buildsToBePurged);
-    RunAsync.return();
-  } else {
-    let queue = LwtTaskQueue.create(~concurrency=40, ());
-    Path.Set.elements(buildsToBePurged)
-    |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
-    |> RunAsync.List.waitAll;
-  };
 };
 
 let execCommand =
@@ -442,7 +380,7 @@ let status = (maybeProject: RunAsync.t(Project.t), _asJson, ()) => {
       };
 
       let rootPackageConfigPath =
-        EsyInstall.SandboxSpec.manifestPath(proj.projcfg.spec);
+        EsyFetch.SandboxSpec.manifestPath(proj.projcfg.spec);
 
       return({
         isProject: true,
@@ -497,13 +435,7 @@ let buildShell = (mode, pkgarg, proj: Project.t) => {
         pkg,
       );
 
-    let p =
-      BuildSandbox.buildShell(
-        proj.Project.workflow.buildspec,
-        mode,
-        fetched.Project.sandbox,
-        pkg.id,
-      );
+    let p = Project.buildShell(proj, mode, fetched.Project.sandbox, pkg);
 
     switch%bind (p) {
     | Unix.WEXITED(0) => return()
@@ -664,6 +596,10 @@ let runScript = (script, args, proj: Project.t) => {
         let id = configured.Project.root.pkg.id;
         let* (env, scope) =
           BuildSandbox.configure(
+            ~concurrency=
+              EsyRuntime.concurrency(
+                proj.projcfg.ProjectConfig.buildConcurrency,
+              ),
             envspec,
             proj.workflow.buildspec,
             BuildDev,
@@ -1008,7 +944,7 @@ let getSandboxSolution =
   let* () = {
     let* digest = Sandbox.digest(solvespec, proj.solveSandbox);
 
-    EsyInstall.SolutionLock.toPath(
+    EsyFetch.SolutionLock.toPath(
       ~digest,
       proj.installSandbox,
       solution,
@@ -1021,12 +957,12 @@ let getSandboxSolution =
   let unused = Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
   let%lwt () = {
     let log = resolution =>
-      Logs_lwt.warn(m =>
+      Esy_logs_lwt.warn(m =>
         m(
           "resolution %a is unused (defined in %a)",
           Fmt.(quote(string)),
           resolution,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           proj.installSandbox.spec,
         )
       );
@@ -1057,7 +993,7 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
       EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
     let path = SandboxSpec.solutionLockPath(proj.solveSandbox.spec);
     switch%bind (
-      EsyInstall.SolutionLock.ofPath(~digest, proj.installSandbox, path)
+      EsyFetch.SolutionLock.ofPath(~digest, proj.installSandbox, path)
     ) {
     | Some(_) => return()
     | None => run()
@@ -1070,8 +1006,8 @@ let fetch = (proj: Project.t) => {
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   switch%bind (SolutionLock.ofPath(proj.installSandbox, lockPath)) {
   | Some(solution) =>
-    EsyInstall.Fetch.fetch(
-      proj.workflow.installspec,
+    EsyFetch.Fetch.fetch(
+      proj.workflow.fetchDepsSubset,
       proj.installSandbox,
       solution,
       proj.projcfg.gitUsername,
@@ -1081,28 +1017,40 @@ let fetch = (proj: Project.t) => {
   };
 };
 
+let addProjectToGCRoot = (proj: Project.t) => {
+  let prefixPath =
+    switch (proj.projcfg.prefixPath) {
+    | Some(prefixPath) => prefixPath
+    | None => EsyBuildPackage.Config.storePrefixDefault
+    };
+  let currentProjectPath = Path.show(proj.projcfg.path);
+  EsyFetch.ProjectList.sync(prefixPath, currentProjectPath);
+};
+
 let solveAndFetch = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   let* digest =
     EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
-  switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
-  | Some(solution) =>
-    switch%bind (
-      EsyInstall.Fetch.maybeInstallationOfSolution(
-        proj.workflow.installspec,
-        proj.installSandbox,
-        solution,
-      )
-    ) {
-    | Some(_installation) => return()
-    | None => fetch(proj)
-    }
-  | None =>
-    let* () = solve(false, None, None, proj);
-    let* () = fetch(proj);
-    return();
-  };
+  let%bind () =
+    switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
+    | Some(solution) =>
+      switch%bind (
+        EsyFetch.Fetch.maybeInstallationOfSolution(
+          proj.workflow.fetchDepsSubset,
+          proj.installSandbox,
+          solution,
+        )
+      ) {
+      | Some(_installation) => return()
+      | None => fetch(proj)
+      }
+    | None =>
+      let* () = solve(false, None, None, proj);
+      let* () = fetch(proj);
+      return();
+    };
+  addProjectToGCRoot(proj);
 };
 
 let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
@@ -1143,7 +1091,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let* (addedDependencies, configPath) = {
     let records = {
-      let f = (record: EsyInstall.Package.t, _, map) =>
+      let f = (record: EsyFetch.Package.t, _, map) =>
         StringMap.add(record.name, record, map);
 
       Solution.fold(~f, ~init=StringMap.empty, solution);
@@ -1154,14 +1102,14 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
         switch (StringMap.find(name, records)) {
         | Some(record) =>
           let constr =
-            switch (record.EsyInstall.Package.version) {
+            switch (record.EsyFetch.Package.version) {
             | Version.Npm(version) =>
               SemverVersion.Formula.DNF.show(
                 SemverVersion.caretRangeOfVersion(version),
               )
             | Version.Opam(version) => OpamPackage.Version.to_string(version)
             | Version.Source(_) =>
-              Version.show(record.EsyInstall.Package.version)
+              Version.show(record.EsyFetch.Package.version)
             };
 
           (name, `String(constr));
@@ -1174,7 +1122,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     let* path = {
       let spec = proj.solveSandbox.Sandbox.spec;
       switch (spec.manifest) {
-      | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, fname) =>
+      | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, fname) =>
         return(Path.(spec.SandboxSpec.path / fname))
       | [@implicit_arity] Manifest(Opam, _) => error(opamError)
       | ManifestAggregate(_) => error(opamError)
@@ -1243,7 +1191,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
     /* we can only do this because we keep invariant that the constraint we
      * save in manifest covers the installed version */
-    EsyInstall.SolutionLock.unsafeUpdateChecksum(
+    EsyFetch.SolutionLock.unsafeUpdateChecksum(
       ~digest,
       SandboxSpec.solutionLockPath(solveSandbox.spec),
     );
@@ -1281,7 +1229,7 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
     | None => return()
     | Some(task) =>
       let%lwt () =
-        Logs_lwt.app(m =>
+        Esy_logs_lwt.app(m =>
           m("Exporting %s@%a", pkg.name, Version.pp, pkg.version)
         );
       let buildPath = BuildSandbox.Task.installPath(proj.buildCfg, task);
@@ -1375,7 +1323,7 @@ let importDependencies =
             BuildSandbox.importBuild(proj.buildCfg.storePath, pathTgz);
           } else {
             let%lwt () =
-              Logs_lwt.warn(m =>
+              Esy_logs_lwt.warn(m =>
                 m("no prebuilt artifact found for %a", BuildId.pp, id)
               );
             return();
@@ -1460,35 +1408,35 @@ let printHeader = (~spec=?, name) =>
   | Some(spec) =>
     let needReportProjectPath =
       Path.compare(
-        spec.EsyInstall.SandboxSpec.path,
+        spec.EsyFetch.SandboxSpec.path,
         EsyRuntime.currentWorkingDir,
       )
       != 0;
 
     if (needReportProjectPath) {
-      Logs_lwt.app(m =>
+      Esy_logs_lwt.app(m =>
         m(
           "%s %s (using %a)@;found project at %a",
           name,
           EsyRuntime.version,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           spec,
           Path.ppPretty,
           spec.path,
         )
       );
     } else {
-      Logs_lwt.app(m =>
+      Esy_logs_lwt.app(m =>
         m(
           "%s %s (using %a)",
           name,
           EsyRuntime.version,
-          EsyInstall.SandboxSpec.pp,
+          EsyFetch.SandboxSpec.pp,
           spec,
         )
       );
     };
-  | None => Logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
+  | None => Esy_logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
   };
 
 let default = (chdir, cmdAndPkg, proj: Project.t) => {
@@ -1532,8 +1480,8 @@ let otherSection = "OTHER COMMANDS";
 let makeCommand =
     (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=false, ~name, cmd) => {
   let info =
-    Cmdliner.Term.info(
-      ~exits=Cmdliner.Term.default_exits,
+    Esy_cmdliner.Term.info(
+      ~exits=Esy_cmdliner.Term.default_exits,
       ~docs?,
       ~doc?,
       ~stop_on_pos,
@@ -1549,10 +1497,10 @@ let makeCommand =
         | `No => ()
         };
 
-      Cli.runAsyncToCmdlinerRet(comp);
+      Cli.runAsyncToEsy_cmdlinerRet(comp);
     };
 
-    Cmdliner.Term.(ret(app(const(f), cmd)));
+    Esy_cmdliner.Term.(ret(app(const(f), cmd)));
   };
 
   (cmd, info);
@@ -1560,10 +1508,10 @@ let makeCommand =
 
 let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
   let (term, info) = command;
-  let name = Cmdliner.Term.name(info);
+  let name = Esy_cmdliner.Term.name(info);
   let doc = Printf.sprintf("An alias for $(b,%s) command", name);
   let info =
-    Cmdliner.Term.info(
+    Esy_cmdliner.Term.info(
       alias,
       ~version=EsyRuntime.version,
       ~doc,
@@ -1575,7 +1523,7 @@ let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
 };
 
 let commandsConfig = {
-  open Cmdliner;
+  open Esy_cmdliner;
 
   let makeProjectCommand =
       (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=?, ~name, cmd) => {
@@ -1593,7 +1541,7 @@ let commandsConfig = {
         cmd(project);
       };
 
-      Cmdliner.Term.(pure(run) $ cmd $ Project.term);
+      Esy_cmdliner.Term.(pure(run) $ cmd $ Project.term);
     };
 
     makeCommand(~header=`No, ~docs?, ~doc?, ~stop_on_pos?, ~name, cmd);
@@ -1686,7 +1634,7 @@ let commandsConfig = {
       );
 
     let staticArg =
-      Cmdliner.Arg.(
+      Esy_cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1697,7 +1645,7 @@ let commandsConfig = {
       );
 
     let noEnv =
-      Cmdliner.Arg.(
+      Esy_cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1749,7 +1697,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
               ~docv="COMMAND",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -1764,7 +1712,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Script to execute within the project environment.",
               ~docv="SCRIPT",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2007,7 +1955,7 @@ let commandsConfig = {
         ~doc="Purge unused builds from global cache",
         ~docs="COMMON COMMANDS",
         Term.(
-          const(cleanup)
+          const(Cleanup.main)
           $ ProjectConfig.multipleProjectConfigsTerm(resolvedPathTerm)
           $ Arg.(
               value
@@ -2098,7 +2046,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the environment.",
               ~docv="COMMAND",
-              Cmdliner.Arg.pos_all,
+              Esy_cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2213,12 +2161,12 @@ let () = {
 
         esy --project projectPath
 
-     which we can't parse with cmdliner
+     which we can't parse with Esy_cmdliner
    */
   let argv = {
     let commandNames = {
       let f = (names, (_term, info)) => {
-        let name = Cmdliner.Term.name(info);
+        let name = Esy_cmdliner.Term.name(info);
         StringSet.add(name, names);
       };
       List.fold_left(~f, ~init=StringSet.empty, commands);
@@ -2245,7 +2193,7 @@ let () = {
     Array.of_list(argv);
   };
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     exit @@ eval_choice(~main_on_err=true, ~argv, defaultCommand, commands)
   );
 };

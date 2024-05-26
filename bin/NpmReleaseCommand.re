@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
+open DepSpec;
 
 let esyInstallReleaseJs =
   switch (NodeResolution.resolve("./esyInstallRelease.js")) {
@@ -84,17 +86,17 @@ module OfPackageJson = {
   };
 };
 
-let configure = (spec: EsyInstall.SandboxSpec.t, ()) => {
+let configure = (spec: EsyFetch.SandboxSpec.t, ()) => {
   open RunAsync.Syntax;
   let docs = "https://esy.sh/docs/release.html";
   switch (spec.manifest) {
-  | EsyInstall.SandboxSpec.ManifestAggregate(_)
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Opam, _) =>
+  | EsyFetch.SandboxSpec.ManifestAggregate(_)
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
     errorf(
       "could not create releases without package.json, see %s for details",
       docs,
     )
-  | [@implicit_arity] EsyInstall.SandboxSpec.Manifest(Esy, filename) =>
+  | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
     let* json = Fs.readJsonFile(Path.(spec.path / filename));
     let* pkgJson = RunAsync.ofStringError(OfPackageJson.of_yojson(json));
     switch (pkgJson.OfPackageJson.esy.release) {
@@ -256,7 +258,7 @@ let makeBinWrapper =
     {|
     let windows = Sys.os_type = "Win32";;
     let cwd = Sys.getcwd ();;
-    let path_sep = if windows then '\\' else '/';;
+    let path_sep = '/';;
     let path_sep_str = String.make 1 path_sep;;
 
     let caseInsensitiveEqual i j = String.lowercase_ascii i = String.lowercase_ascii j;;
@@ -368,7 +370,13 @@ let makeBinWrapper =
         EnvHashtbl.replace curEnvMap name value
       in
       Array.iter f env;
-      let f name value items = (name ^ "=" ^ value)::items in
+      let f name value items =
+        let value =
+          if String.equal (String.lowercase_ascii name) "comspec" then value
+          else normalize value
+        in
+        (name ^ "=" ^ value) :: items
+      in
       Array.of_list (EnvHashtbl.fold f curEnvMap [])
     ;;
 
@@ -408,6 +416,8 @@ let makeBinWrapper =
       let expandedEnv = Array.append expandedEnv shellEnv in
       if Array.length Sys.argv = 2 && Sys.argv.(1) = "----where" then
         print_endline (expandFallback storePrefix program)
+      else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----is-no-env" then
+        Format.print_bool no_wrapper
       else if Array.length Sys.argv = 2 && Sys.argv.(1) = "----env" then
         Array.iter print_endline expandedEnv
       else (
@@ -426,7 +436,10 @@ let makeBinWrapper =
           | WSTOPPED code -> exit code
         )
         else
-          Unix.execve program Sys.argv expandedEnv
+          if no_wrapper then
+            Unix.execv program Sys.argv
+          else
+            Unix.execve program Sys.argv expandedEnv
       )
     ;;
   |},
@@ -445,14 +458,14 @@ let envspec = {
   includeEsyIntrospectionEnv: false,
   augmentDeps:
     Some(
-      Solution.DepSpec.(
+      FetchDepSpec.(
         package(self) + dependencies(self) + devDependencies(self)
       ),
     ),
 };
 let buildspec = {
-  BuildSpec.all: Solution.DepSpec.(dependencies(self)),
-  dev: Solution.DepSpec.(dependencies(self)),
+  BuildSpec.all: FetchDepSpec.(dependencies(self)),
+  dev: FetchDepSpec.(dependencies(self)),
 };
 let cleanupLinksFromGlobalStore = (cfg, tasks) => {
   open RunAsync.Syntax;
@@ -477,18 +490,24 @@ let make =
       ~outputPath,
       ~concurrency,
       cfg: EsyBuildPackage.Config.t,
-      spec: EsyInstall.SandboxSpec.t,
+      spec: EsyFetch.SandboxSpec.t,
       sandbox: BuildSandbox.t,
       root,
     ) => {
   open RunAsync.Syntax;
 
-  let%lwt () = Logs_lwt.app(m => m("Creating npm release"));
+  let%lwt () = Esy_logs_lwt.app(m => m("Creating npm release"));
   let* releaseCfg = configure(spec, ()) /* * Construct a task tree with all tasks marked as immutable. This will make * sure all packages are built into a global store and this is required for * the release tarball as only globally stored artefacts can be relocated * between stores (b/c of a fixed path length). */;
 
   let* plan =
     RunAsync.ofRun(
-      BuildSandbox.makePlan(~forceImmutable=true, buildspec, Build, sandbox),
+      BuildSandbox.makePlan(
+        ~forceImmutable=true,
+        ~concurrency,
+        buildspec,
+        Build,
+        sandbox,
+      ),
     );
   let tasks = BuildSandbox.Plan.all(plan);
 
@@ -535,7 +554,7 @@ let make =
     } /* Make sure all packages are built */;
 
   let* () = {
-    let%lwt () = Logs_lwt.app(m => m("Building packages"));
+    let%lwt () = Esy_logs_lwt.app(m => m("Building packages"));
     BuildSandbox.build(
       ~buildLinked=true,
       ~skipStalenessCheck=true,
@@ -561,7 +580,7 @@ let make =
         switch (List.fold_left(~f, ~init=[], specs)) {
         | [] => Lwt.return()
         | unused =>
-          Logs_lwt.warn(m =>
+          Esy_logs_lwt.warn(m =>
             m(
               {|found unused package specs in "esy.release.includePackages": %a|},
               Fmt.(list(~sep=any(", "), PkgSpec.pp)),
@@ -572,12 +591,12 @@ let make =
       | _ => Lwt.return()
       };
 
-    let%lwt () = Logs_lwt.app(m => m("Exporting built packages"));
+    let%lwt () = Esy_logs_lwt.app(m => m("Exporting built packages"));
     let f = (task: BuildSandbox.Task.t) => {
       let id = Scope.id(task.scope);
       if (shouldDeleteFromBinaryRelease(task.pkg.id, id)) {
         let%lwt () =
-          Logs_lwt.app(m =>
+          Esy_logs_lwt.app(m =>
             m("Skipping %a", PackageId.ppNoHash, task.pkg.id)
           );
         return();
@@ -592,7 +611,7 @@ let make =
   };
 
   let* () = {
-    let%lwt () = Logs_lwt.app(m => m("Configuring release"));
+    let%lwt () = Esy_logs_lwt.app(m => m("Configuring release"));
     let binPath = Path.(outputPath / "bin");
     let* () = Fs.createDir(binPath) /* Emit wrappers for released binaries */;
 
@@ -600,6 +619,7 @@ let make =
       let* bindings =
         RunAsync.ofRun(
           BuildSandbox.env(
+            ~concurrency,
             ~forceImmutable=true,
             envspec,
             buildspec,
@@ -833,7 +853,7 @@ let make =
 
   let* () = cleanupLinksFromGlobalStore(cfg, tasks);
 
-  let%lwt () = Logs_lwt.app(m => m("Done!"));
+  let%lwt () = Esy_logs_lwt.app(m => m("Done!"));
   return();
 };
 

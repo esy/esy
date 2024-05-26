@@ -1,6 +1,8 @@
+open EsyPrimitives;
 open EsyPackageConfig;
-open EsyInstall;
+open EsyFetch;
 open EsyBuild;
+open DepSpec;
 
 type project = {
   projcfg: ProjectConfig.t,
@@ -8,7 +10,7 @@ type project = {
   workflow: Workflow.t,
   buildCfg: EsyBuildPackage.Config.t,
   solveSandbox: EsySolve.Sandbox.t,
-  installSandbox: EsyInstall.Sandbox.t,
+  installSandbox: EsyFetch.Sandbox.t,
   scripts: Scripts.t,
   solved: Run.t(solved),
 }
@@ -54,7 +56,7 @@ module TermPp = {
     Fmt.pf(
       fmt,
       "%a%a%a%a%a%a",
-      ppOption("--envspec", Fmt.quote(~mark="'", Solution.DepSpec.pp)),
+      ppOption("--envspec", Fmt.quote(~mark="'", FetchDepSpec.pp)),
       augmentDeps,
       ppFlag("--build-context"),
       buildIsInProgress,
@@ -95,14 +97,14 @@ module OfPackageJson = {
 
   let read = spec =>
     RunAsync.Syntax.(
-      switch (spec.EsyInstall.SandboxSpec.manifest) {
-      | EsyInstall.SandboxSpec.Manifest((Esy, filename)) =>
+      switch (spec.EsyFetch.SandboxSpec.manifest) {
+      | EsyFetch.SandboxSpec.Manifest((Esy, filename)) =>
         let* json = Fs.readJsonFile(Path.(spec.path / filename));
         let* pkgJson = RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
         return(pkgJson.esy);
 
-      | EsyInstall.SandboxSpec.Manifest((Opam, _))
-      | EsyInstall.SandboxSpec.ManifestAggregate(_) => return(empty)
+      | EsyFetch.SandboxSpec.Manifest((Opam, _))
+      | EsyFetch.SandboxSpec.ManifestAggregate(_) => return(empty)
       }
     );
 };
@@ -150,11 +152,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
   let* esySolveCmd =
     switch (projcfg.solveCudfCommand) {
     | Some(cmd) => return(cmd)
-    | None =>
-      let dir = Path.(exePath() |> parent |> parent);
-      let cmd =
-        Path.(dir / "lib" / "esy" / "esySolveCudfCommand") |> Cmd.ofPath;
-      return(cmd);
+    | None => EsyRuntime.getEsySolveCudfCommand()
     };
 
   let esyOpamOverrideRemote =
@@ -195,14 +193,16 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       ~cfg=solveCfg,
       projcfg.spec,
     );
-  let installSandbox = EsyInstall.Sandbox.make(installCfg, projcfg.spec);
+  let installSandbox = EsyFetch.Sandbox.make(installCfg, projcfg.spec);
 
   let%lwt () =
-    Logs_lwt.debug(m => m("solve config: %a", EsySolve.Config.pp, solveCfg));
+    Esy_logs_lwt.debug(m =>
+      m("solve config: %a", EsySolve.Config.pp, solveCfg)
+    );
 
   let%lwt () =
-    Logs_lwt.debug(m =>
-      m("install config: %a", EsyInstall.Config.pp, installCfg)
+    Esy_logs_lwt.debug(m =>
+      m("install config: %a", EsyFetch.Config.pp, installCfg)
     );
 
   let* buildCfg = {
@@ -226,7 +226,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
         ~disableSandbox=false,
         ~globalStorePrefix,
         ~storePath,
-        ~localStorePath=EsyInstall.SandboxSpec.storePath(projcfg.spec),
+        ~localStorePath=EsyFetch.SandboxSpec.storePath(projcfg.spec),
         ~projectPath=projcfg.spec.path,
         ~globalPathVariable=projcfg.globalPathVariable,
         (),
@@ -319,12 +319,12 @@ let makeFetched =
       esy,
     ) => {
   open RunAsync.Syntax;
-  let path = EsyInstall.SandboxSpec.installationPath(projcfg.spec);
+  let path = EsyFetch.SandboxSpec.installationPath(projcfg.spec);
   let* info = FileInfo.ofPath(path);
   files := [info, ...files^];
   switch%bind (
-    EsyInstall.Fetch.maybeInstallationOfSolution(
-      workflow.Workflow.installspec,
+    EsyFetch.Fetch.maybeInstallationOfSolution(
+      workflow.Workflow.fetchDepsSubset,
       installer,
       solution,
     )
@@ -335,7 +335,8 @@ let makeFetched =
       getInstallCommand(projcfg.spec),
     )
   | Some(installation) =>
-    let%lwt () = Logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
+    let%lwt () =
+      Esy_logs_lwt.debug(m => m("%a is up to date", Path.pp, path));
     let* sandbox = {
       let sandboxEnv = OfPackageJson.(esy.sandboxEnv);
       let* (sandbox, filesUsedForPlan) =
@@ -343,7 +344,7 @@ let makeFetched =
           ~sandboxEnv,
           buildCfg,
           projcfg.spec,
-          installer.EsyInstall.Sandbox.cfg,
+          installer.EsyFetch.Sandbox.cfg,
           solution,
           installation,
         );
@@ -367,7 +368,7 @@ let makeFetched =
 };
 
 let makeConfigured =
-    (_projcfg, workflow, solution, _installation, sandbox, _files) => {
+    (projcfg, workflow, solution, _installation, sandbox, _files) => {
   open RunAsync.Syntax;
 
   let* (root, planForDev) =
@@ -376,12 +377,14 @@ let makeConfigured =
         open Run.Syntax;
         let* plan =
           BuildSandbox.makePlan(
+            ~concurrency=
+              EsyRuntime.concurrency(projcfg.ProjectConfig.buildConcurrency),
             workflow.Workflow.buildspec,
             BuildDev,
             sandbox,
           );
 
-        let pkg = EsyInstall.Solution.root(solution);
+        let pkg = EsyFetch.Solution.root(solution);
         let root =
           switch (BuildSandbox.Plan.get(plan, pkg.Package.id)) {
           | None => failwith("missing build for the root package")
@@ -402,6 +405,10 @@ let plan = (mode, proj) =>
       let* fetched = fetched(proj);
       Lwt.return(
         BuildSandbox.makePlan(
+          ~concurrency=
+            EsyRuntime.concurrency(
+              proj.projcfg.ProjectConfig.buildConcurrency,
+            ),
           Workflow.default.buildspec,
           Build,
           fetched.sandbox,
@@ -445,6 +452,10 @@ let writeAuxCache = proj => {
           let header = "# Command environment";
           let* commandEnv =
             BuildSandbox.env(
+              ~concurrency=
+                EsyRuntime.concurrency(
+                  proj.projcfg.ProjectConfig.buildConcurrency,
+                ),
               proj.workflow.commandenvspec,
               proj.workflow.buildspec,
               BuildDev,
@@ -550,7 +561,7 @@ module OfTerm = {
             let* next = FileInfo.ofPath(prev.FileInfo.path);
             let changed = FileInfo.compare(prev, next) != 0;
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m(
                   "checkStaleness %a: %b",
                   Path.pp,
@@ -578,10 +589,11 @@ module OfTerm = {
           );
           let v = {...v, projcfg};
           if%bind (checkStaleness(files)) {
-            let%lwt () = Logs_lwt.debug(m => m("cache is stale, discarding"));
+            let%lwt () =
+              Esy_logs_lwt.debug(m => m("cache is stale, discarding"));
             return(None);
           } else {
-            let%lwt () = Logs_lwt.debug(m => m("using cache"));
+            let%lwt () = Esy_logs_lwt.debug(m => m("using cache"));
             return(Some(v));
           };
         }
@@ -589,14 +601,14 @@ module OfTerm = {
       | Failure(_)
       | End_of_file =>
         let%lwt () =
-          Logs_lwt.debug(m => m("unable to read the cache, skipping..."));
+          Esy_logs_lwt.debug(m => m("unable to read the cache, skipping..."));
         return(None);
       };
 
     try%lwt(Lwt_io.with_file(~mode=Lwt_io.Input, Path.show(cachePath), f)) {
     | Unix.Unix_error(_) =>
       let%lwt () =
-        Logs_lwt.debug(m => m("unable to find the cache, skipping..."));
+        Esy_logs_lwt.debug(m => m("unable to find the cache, skipping..."));
       return(None);
     };
   };
@@ -639,11 +651,13 @@ module OfTerm = {
       };
     };
 
-    Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
+    Esy_cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
   };
 
   let term =
-    Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+    Esy_cmdliner.Term.(
+      ret(const(Cli.runAsyncToEsy_cmdlinerRet) $ promiseTerm)
+    );
 };
 
 include OfTerm;
@@ -656,7 +670,7 @@ let withPackage = (proj, pkgArg: PkgArg.t, f) => {
     switch (pkg) {
     | Some(pkg) =>
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("PkgArg %a resolves to %a", PkgArg.pp, pkgArg, Package.pp, pkg)
         );
       f(pkg);
@@ -749,7 +763,7 @@ let buildDependencies =
   let* fetched = fetched(proj);
   let* solved = solved(proj);
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s build-dependencies \\@;%a%a@]",
         proj.projcfg.ProjectConfig.mainprg,
@@ -778,11 +792,32 @@ let buildDependencies =
   };
 };
 
+let buildShell = (proj, mode, sandbox, pkg) => {
+  let () =
+    Esy_logs.info(m =>
+      m(
+        "running:@[<v>@;%s build-shell \\@;%a@]",
+        proj.projcfg.ProjectConfig.mainprg,
+        PackageId.pp,
+        pkg.Package.id,
+      )
+    );
+
+  BuildSandbox.buildShell(
+    ~concurrency=
+      EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
+    proj.workflow.buildspec,
+    mode,
+    sandbox,
+    pkg.id,
+  );
+};
+
 let buildPackage =
     (~quiet, ~disableSandbox, ~buildOnly, projcfg, sandbox, plan, pkg) => {
   checkSymlinks();
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s build-package (disable-sandbox: %s)\\@;%a@]",
         projcfg.ProjectConfig.mainprg,
@@ -812,7 +847,7 @@ let printEnv =
 
   let f = (pkg: Package.t) => {
     let () =
-      Logs.info(m =>
+      Esy_logs.info(m =>
         m(
           "running:@[<v>@;%s print-env \\@;%a%a@]",
           proj.projcfg.ProjectConfig.mainprg,
@@ -829,6 +864,10 @@ let printEnv =
           open Run.Syntax;
           let* (env, scope) =
             BuildSandbox.configure(
+              ~concurrency=
+                EsyRuntime.concurrency(
+                  proj.projcfg.ProjectConfig.buildConcurrency,
+                ),
               envspec,
               Workflow.default.buildspec,
               mode,
@@ -859,11 +898,11 @@ let printEnv =
                 name,
                 Package.pp,
                 pkg,
-                Solution.DepSpec.pp,
+                FetchDepSpec.pp,
                 depspec,
                 BuildSpec.pp_mode,
                 mode,
-                Fmt.option(Solution.DepSpec.pp),
+                Fmt.option(FetchDepSpec.pp),
                 envspec.EnvSpec.augmentDeps,
                 envspec.buildIsInProgress,
                 envspec.includeBuildEnv,
@@ -907,7 +946,7 @@ let execCommand =
     };
 
   let () =
-    Logs.info(m =>
+    Esy_logs.info(m =>
       m(
         "running:@[<v>@;%s exec-command \\@;%a%a \\@;-- %a@]",
         proj.projcfg.ProjectConfig.mainprg,
@@ -923,6 +962,8 @@ let execCommand =
   let* status =
     BuildSandbox.exec(
       ~changeDirectoryToPackageRoot,
+      ~concurrency=
+        EsyRuntime.concurrency(proj.projcfg.ProjectConfig.buildConcurrency),
       envspec,
       Workflow.default.buildspec,
       mode,

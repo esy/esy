@@ -1,16 +1,17 @@
-open EsyInstall;
+open EsyPrimitives;
 open EsyBuild;
+open DepSpec;
 
 type t = {
   solvespec: EsySolve.SolveSpec.t,
-  installspec: Solution.Spec.t,
+  fetchDepsSubset: FetchDepsSubset.t,
   buildspec: BuildSpec.t,
   execenvspec: EnvSpec.t,
   commandenvspec: EnvSpec.t,
   buildenvspec: EnvSpec.t,
 };
 
-let buildAll: Solution.DepSpec.t;
-let buildDev: Solution.DepSpec.t;
+let buildAll: FetchDepSpec.t;
+let buildDev: FetchDepSpec.t;
 
 let default: t;

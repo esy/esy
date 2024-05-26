@@ -9,7 +9,7 @@ build: [
 ]
 depends: ["conf-which" {build}]
 depexts: [
-  ["autoconf"] {os-family = "debian"}
+  ["autoconf"] {os-family = "debian" | os-family = "ubuntu"}
   ["autoconf"] {os-distribution = "centos"}
   ["autoconf"] {os-distribution = "fedora"}
   ["autoconf"] {os-distribution = "arch"}
@@ -22,7 +22,9 @@ depexts: [
   ["autoconf"] {os-distribution = "alpine"}
   ["autoconf"] {os-distribution = "ol"}
   ["autoconf"] {os-distribution = "rhel"}
-  ["autoconf"] {os-family = "suse"}
+  ["system:autoconf"] {os = "win32" & os-distribution = "cygwinports"}
+  ["autoconf"] {os-distribution = "cygwin"}
+  ["autoconf"] {os-family = "suse" | os-family = "opensuse"}
 ]
 synopsis: "Virtual package relying on autoconf installation"
 description: """

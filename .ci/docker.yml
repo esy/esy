@@ -1,0 +1,64 @@
+---
+# default parameters
+parameters:
+  platform: "Docker (on latest Ubuntu)"
+  vmImage: ubuntu-latest
+  jobCommand: "build"
+
+jobs:
+  - job: Alpine_Build
+    displayName: Alpine Build
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    steps:
+      - checkout: self
+        submodules: true
+      - template: utils/use-node.yml
+      - script: sudo apt install jq gzip
+        displayName: Install deps
+        # TODO wrap Factor EsyVersion.re job in a template
+      - bash: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+        displayName: "Generate EsyVersion.re"
+      - bash: |
+          ESY__PROJECT_NAME=$(jq -r .name package.json)
+          ESY__PROJECT_VERSION=$(jq -r .version package.json)
+          echo "##vso[task.setvariable variable=esy__project_name]$ESY__PROJECT_NAME"
+          echo "##vso[task.setvariable variable=esy__project_version]$ESY__PROJECT_VERSION"
+
+      - task: Docker@2
+        displayName: 'Build esydev/esy-builder:nightly-alpine-latest'
+        inputs:
+          containerRegistry: 'Docker Esy (nightly)'
+          repository: 'esydev/esy-builder'
+          command: "build"
+          buildContext: '.'
+          Dockerfile: 'dockerfiles/alpine.dev.Dockerfile'
+          tags: |
+            nightly-alpine-latest
+            nightly-alpine
+
+      - task: Docker@2
+        displayName: 'Push esydev/esy:nightly-alpine-latest to Docker Hub'
+        inputs:
+          containerRegistry: 'Docker Esy (nightly)'
+          repository: 'esydev/esy'
+          command: ${{parameters.jobCommand}}
+          buildContext: '.'
+          Dockerfile: 'dockerfiles/alpine.Dockerfile'
+          tags: |
+            nightly-alpine-latest
+            nightly-alpine
+
+      - script: |
+          ./scripts/docker.sh run-container
+          ./scripts/docker.sh cp "_container_release"
+        displayName: "Copy esy artifacts from /usr/local/ in the container"
+
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Docker built artifact"
+        inputs:
+          PathtoPublish: "_container_release"
+          ArtifactName: AlpineLinux
+
+      - script: docker save $(esy__project_name) | gzip > $(esy__project_name)-docker-image.tar.gz
+        displayName: "Save Docker image as tarball"

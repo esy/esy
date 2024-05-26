@@ -67,7 +67,7 @@ let toOpamOcamlVersion = version =>
 
 type t = {
   cfg: Config.t,
-  sandbox: EsyInstall.SandboxSpec.t,
+  sandbox: EsyFetch.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
   opamRegistries: list(OpamRegistry.t),
@@ -266,7 +266,7 @@ let packageOfSource =
         ~name,
         ~source,
         {
-          EsyInstall.DistResolver.kind,
+          EsyFetch.DistResolver.kind,
           filename: _,
           data,
           suggestedPackageName,
@@ -310,13 +310,14 @@ let packageOfSource =
     );
 
   let pkg = {
-    let* {EsyInstall.DistResolver.overrides, dist: resolvedDist, manifest, _} =
-      EsyInstall.DistResolver.resolve(
+    let* {EsyFetch.DistResolver.overrides, dist: resolvedDist, manifest, _} =
+      EsyFetch.DistResolver.resolve(
         ~gitUsername,
         ~gitPassword,
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
+        ~pkgName=name,
         Source.toDist(source),
       );
 
@@ -628,7 +629,7 @@ let resolveSource =
     sourceSpec,
     _ => {
       let%lwt () =
-        Logs_lwt.debug(m =>
+        Esy_logs_lwt.debug(m =>
           m("resolving %s@%a", name, SourceSpec.pp, sourceSpec)
         );
       let* source =
@@ -746,7 +747,7 @@ let resolve' =
           name,
           () => {
             let%lwt () =
-              Logs_lwt.debug(m =>
+              Esy_logs_lwt.debug(m =>
                 m("resolving %s %a", name, VersionSpec.pp, spec)
               );
             let* versions = {

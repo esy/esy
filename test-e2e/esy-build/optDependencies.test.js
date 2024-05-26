@@ -62,13 +62,13 @@ describe('Build with optDependencies', () => {
       {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
-        const {stdout} = await p.esy('build-env');
+        const {stdout} = await p.esy('build-env --build-concurrency 16');
         expect(p.normalizePathsForSnapshot(stdout, {id, depid})).toMatchSnapshot();
       }
 
       {
         const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
-        const {stdout} = await p.esy('build-env -p dep');
+        const {stdout} = await p.esy('build-env -p dep --build-concurrency 16');
         expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
       }
     });
@@ -128,7 +128,7 @@ describe('Build with optDependencies', () => {
         const id = JSON.parse((await p.esy('build-plan')).stdout).id;
         const depid = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const optdepid = JSON.parse((await p.esy('build-plan -p optDep')).stdout).id;
-        const {stdout} = await p.esy('build-env');
+        const {stdout} = await p.esy('build-env --build-concurrency 16');
         expect(
           p.normalizePathsForSnapshot(stdout, {id, depid, optdepid}),
         ).toMatchSnapshot();
@@ -137,7 +137,7 @@ describe('Build with optDependencies', () => {
       {
         const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
         const optdepid = JSON.parse((await p.esy('build-plan -p optDep')).stdout).id;
-        const {stdout} = await p.esy('build-env -p dep');
+        const {stdout} = await p.esy('build-env -p dep --build-concurrency 16');
         expect(p.normalizePathsForSnapshot(stdout, {id, optdepid})).toMatchSnapshot();
       }
     });

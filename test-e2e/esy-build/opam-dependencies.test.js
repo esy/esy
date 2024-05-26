@@ -190,6 +190,116 @@ describe('building @opam/* dependencies', () => {
     }
   });
 
+  it('opam filter bug 1518', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          '@opam/pkg': '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineNpmPackage({
+      name: 'ocaml',
+      version: '5.1.1',
+      esy: {},
+    });
+
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'pkg',
+        version: '1.0.0',
+        opam: outdent`
+          opam-version: "2.0"
+          depends: [
+            "ocaml" {>= "4.04.1" & < "5.2.0" & != "5.1.0~alpha1"}
+          ]
+          build: [
+            "true"
+          ]
+        `,
+      },
+      [helpers.dummyExecutable('hello')],
+    );
+
+    await p.esy('install');
+    await p.esy('build');
+
+    {
+      await p.esy();
+    }
+  });
+
+  it('opam filter bug 1517', async () => {
+    const p = await helpers.createTestSandbox();
+
+    await p.fixture(
+      helpers.packageJson({
+        name: 'root',
+        esy: {},
+        dependencies: {
+          '@opam/pkg': '*',
+        },
+      }),
+    );
+
+    await p.defineNpmPackage({
+      name: '@esy-ocaml/substs',
+      version: '0.0.0',
+      esy: {},
+    });
+
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'ocamlformat',
+        version: '0.24.0',
+        opam: outdent`
+          opam-version: "2.0"
+          depends: [
+          ]
+          build: [
+            "true"
+          ]
+        `,
+      },
+      [helpers.dummyExecutable('hello')],
+    );
+
+    await p.defineOpamPackageOfFixture(
+      {
+        name: 'pkg',
+        version: '1.0.0',
+        opam: outdent`
+          opam-version: "2.0"
+          depends: [
+            "ocamlformat" {= "0.24.0" & with-dev-setup}
+          ]
+          build: [
+            "true"
+          ]
+        `,
+      },
+      [helpers.dummyExecutable('hello')],
+    );
+
+    await p.esy('install');
+    await p.esy('build');
+
+    {
+      await p.esy();
+    }
+  });
+
   it('builds opam dependencies with extra-sources', async () => {
     const p = await helpers.createTestSandbox();
 
@@ -223,19 +333,16 @@ describe('building @opam/* dependencies', () => {
           ]
         `,
       },
-      [helpers.dummyExecutable('hello')]
+      [helpers.dummyExecutable('hello')],
     );
 
-
-    await p.defineOpamPackageOfExtraSource(
-      {
-        name: 'lib',
-        version: '1.0.0',
-        opam: outdent`
+    await p.defineOpamPackageOfExtraSource({
+      name: 'lib',
+      version: '1.0.0',
+      opam: outdent`
           opam-version: "2.0"
         `,
-      }
-    );
+    });
 
     await p.esy('install');
     await p.esy('build');
@@ -245,5 +352,4 @@ describe('building @opam/* dependencies', () => {
       expect(stdout.trim()).toEqual('__hello__');
     }
   });
-
 });

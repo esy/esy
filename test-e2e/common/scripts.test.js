@@ -31,6 +31,8 @@ const fixture = [
       build_cmd5: 'esy build echo #{self.name}',
       build_cmd6: [['esy', 'build', 'echo', '#{self.name}']],
       printpwd: 'pwd',
+      echo_cur_jobs: "echo #{$cur__jobs}",
+      echo_self_jobs: "echo #{self.jobs}",
     },
     esy: {
       build: [
@@ -86,6 +88,14 @@ it('executes scripts', async () => {
   );
   await expect(p.esy('cmd5')).resolves.toEqual(
     expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+  );
+
+  await expect(p.esy('--build-concurrency 100 echo_cur_jobs')).resolves.toEqual(
+    expect.objectContaining({stdout: '50' + os.EOL}),
+  );
+
+  await expect(p.esy('--build-concurrency 100 echo_self_jobs')).resolves.toEqual(
+    expect.objectContaining({stdout: '50' + os.EOL}),
   );
 
   await expect(p.esy('b cmd1')).rejects.toThrow();

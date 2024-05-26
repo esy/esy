@@ -6,9 +6,9 @@ open EsyPackageConfig;
 
 let ofInstallationLocation:
   (
-    EsyInstall.SandboxSpec.t,
-    EsyInstall.Config.t,
-    EsyInstall.Package.t,
-    EsyInstall.Installation.location
+    EsyFetch.SandboxSpec.t,
+    EsyFetch.Config.t,
+    EsyFetch.Package.t,
+    EsyFetch.Installation.location
   ) =>
   RunAsync.t((option(BuildManifest.t), Fpath.set));

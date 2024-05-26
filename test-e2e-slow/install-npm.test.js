@@ -46,10 +46,12 @@ const cases = [
   {
     name: 'char-regex',
     test: `
-      require('char-regex');
+      // noop since char-regex@2.0.0 is an esm. This test is just
+      // to make sure the package is fetched correctly.
+      // require('char-regex');
     `,
-    version: '2.0.0'
-  }
+    version: '2.0.0',
+  },
 ];
 
 // All of these tests are blocked by issue #506 on Windows

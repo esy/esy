@@ -1,5 +1,5 @@
 open EsyBuild;
-open Cmdliner;
+open Esy_cmdliner;
 
 module ProjectArg = {
   type t =
@@ -31,7 +31,7 @@ module ProjectArg = {
   let ofPath = p => ByPath(p);
 
   let conv = {
-    open Cmdliner;
+    open Esy_cmdliner;
     let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
     Arg.conv(~docv="PROJECT", (parse, pp));
   };
@@ -200,7 +200,7 @@ type t = {
   mainprg: string,
   path: Path.t,
   esyVersion: string,
-  spec: EsyInstall.SandboxSpec.t,
+  spec: EsyFetch.SandboxSpec.t,
   prefixPath: option(Path.t),
   ocamlPkgName: string,
   ocamlVersion: string,
@@ -379,7 +379,7 @@ let esyOpamOverrideRemoteArg = {
 };
 
 let globalPathVariableArg = {
-  let doc = "Specifies the PATH variable to look for global utils in the build env.";
+  let doc = "Specifies the shell environment variable to use as $PATH to look for global utils in the build env.";
   let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
   Arg.(
     value
@@ -502,13 +502,13 @@ let make =
   open RunAsync.Syntax;
 
   let* projectPath = RunAsync.ofRun(ProjectArg.resolve(project));
-  let* spec = EsyInstall.SandboxSpec.ofPath(projectPath);
+  let* spec = EsyFetch.SandboxSpec.ofPath(projectPath);
 
   let* prefixPath =
     switch (prefixPath) {
     | Some(prefixPath) => return(Some(prefixPath))
     | None =>
-      let* rc = EsyRc.ofPath(spec.EsyInstall.SandboxSpec.path);
+      let* rc = EsyRc.ofPath(spec.EsyFetch.SandboxSpec.path);
       return(rc.EsyRc.prefixPath);
     };
 
@@ -589,7 +589,7 @@ let promiseTerm = {
       globalPathVariable,
     );
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(parse)
     $ main_name
     $ projectPath
@@ -617,7 +617,9 @@ let promiseTerm = {
 };
 
 let term =
-  Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+  Esy_cmdliner.Term.(
+    ret(const(Cli.runAsyncToEsy_cmdlinerRet) $ promiseTerm)
+  );
 
 let promiseTermForMultiplePaths = resolvedPathTerm => {
   let parse =
@@ -642,14 +644,33 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
         solveCudfCommand,
         globalPathVariable,
         (),
-      ) =>
-    paths
+      ) => {
+    open RunAsync.Syntax;
+    let%bind paths =
+      switch (paths) {
+      | [] =>
+        let prefixPath =
+          switch (prefixPath) {
+          | Some(path) => path
+          | None => EsyBuildPackage.Config.storePrefixDefault
+          };
+
+        EsyFetch.ProjectList.get(prefixPath);
+      | _ => return(paths)
+      };
+    let%bind pathsThatExist =
+      paths
+      |> RunAsync.List.filter(
+           /* What the appropriate ~concurrency here? */
+           ~f=Fs.exists,
+         );
+    pathsThatExist
     |> List.map(~f=path =>
          make(
            Some(ProjectArg.ofPath(path)),
-           mainprg,
            "ocaml", /* specifying ocaml package name for multiple paths is unsupported */
            "n.00.0000", /* specifying ocaml version for multiple paths is unsupported */
+           mainprg,
            prefixPath,
            cacheTarballsPath,
            fetchConcurrency,
@@ -670,12 +691,13 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
          )
        )
     |> RunAsync.List.joinAll;
+  };
 
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     const(parse)
     $ main_name
     $ Arg.(
-        non_empty
+        value
         & pos_all(resolvedPathTerm, [])
         & info(
             [],
@@ -705,8 +727,9 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
 };
 
 let multipleProjectConfigsTerm = paths =>
-  Cmdliner.Term.(
+  Esy_cmdliner.Term.(
     ret(
-      const(Cli.runAsyncToCmdlinerRet) $ promiseTermForMultiplePaths(paths),
+      const(Cli.runAsyncToEsy_cmdlinerRet)
+      $ promiseTermForMultiplePaths(paths),
     )
   );

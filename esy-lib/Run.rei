@@ -3,7 +3,11 @@
  */
 
 type t('v) = result('v, error)
-and error;
+and error = (string, context)
+and context = list(contextItem)
+and contextItem =
+  | Line(string)
+  | LogOutput((string, string));
 
 /**
  * Failied computation with an error specified by a message.
@@ -27,7 +31,7 @@ let errorf: format4('a, Format.formatter, unit, t('v)) => 'a;
  * Wrap computation with a context which will be reported in case of error
  */
 
-let context: (t('v), string) => t('v);
+let context: (string, t('v)) => t('v);
 
 /**
  * Same as [context] but defined with a formatter.

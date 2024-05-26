@@ -45,7 +45,7 @@ module Darwin = {
     open Run;
     let configData = renderConfig(config);
     let* configFilename = createTmpFile(configData);
-    Logs.debug(m =>
+    Esy_logs.debug(m =>
       m("sandbox-exec config:@;<0 2>@[<v 2>%a@]", Fmt.lines, configData)
     );
     let prepare = (~env, command) => {
@@ -92,6 +92,8 @@ module Windows = {
        * Just passing the env directly to esy-bash doesn't work,
        * because we need the current PATH/env to pick up node and run the shell
        */
+      let env =
+        Astring.String.Map.add("CYGWIN", "winsymlinks:nativestrict", env);
       let jsonString = convertEnvToJsonString(env);
       let* environmentTempFile = createTmpFile(jsonString);
       let commandAsList = Cmd.to_list(command);

@@ -248,7 +248,7 @@ describe(`Project with "devDependencies"`, () => {
       const devdepid = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
       const depofdevdepid = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
         .id;
-      const {stdout} = await p.esy('build-env');
+      const {stdout} = await p.esy('build-env --build-concurrency 16');
       expect(
         p.normalizePathsForSnapshot(stdout, {id, depid, devdepid, depofdevdepid}),
       ).toMatchSnapshot();
@@ -288,7 +288,7 @@ describe(`Project with "devDependencies"`, () => {
     async function() {
       const p = await createTestSandbox();
       const id = JSON.parse((await p.esy('build-plan -p dep')).stdout).id;
-      const {stdout} = await p.esy('build-env -p dep');
+      const {stdout} = await p.esy('build-env -p dep --build-concurrency 16');
       expect(p.normalizePathsForSnapshot(stdout, {id})).toMatchSnapshot();
     },
   );
@@ -336,7 +336,7 @@ describe(`Project with "devDependencies"`, () => {
       const id = JSON.parse((await p.esy('build-plan -p devDep')).stdout).id;
       const depOfDevDepId = JSON.parse((await p.esy('build-plan -p depOfDevDep')).stdout)
         .id;
-      const {stdout} = await p.esy('build-env -p devDep');
+      const {stdout} = await p.esy('build-env -p devDep --build-concurrency 16');
       expect(p.normalizePathsForSnapshot(stdout, {id, depOfDevDepId})).toMatchSnapshot();
     },
   );

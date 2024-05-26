@@ -19,6 +19,7 @@ let exists: Path.t => RunAsync.t(bool);
 
 /** Check if the path exists and is a directory */
 let isDir: Path.t => RunAsync.t(bool);
+let isDirSync: Path.t => bool;
 
 let unlink: Path.t => RunAsync.t(unit);
 
@@ -65,6 +66,9 @@ let traverse:
 
 let copyFile: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
 let copyPath: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
+
+// Because copyPath's signature doesn't make it possible to pass an optional argument
+let hardlinkPath: (~src: Path.t, ~dst: Path.t) => RunAsync.t(unit);
 
 let rmPath: Path.t => RunAsync.t(unit);
 let rmPathLwt: Path.t => Lwt.t(unit);

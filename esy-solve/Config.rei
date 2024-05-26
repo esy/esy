@@ -12,7 +12,7 @@ let show_checkoutCfg: checkoutCfg => string;
 
 type t =
   pri {
-    installCfg: EsyInstall.Config.t,
+    installCfg: EsyFetch.Config.t,
     esySolveCmd: Cmd.t,
     esyOpamOverride: checkout,
     opamRepositories: list(checkout),

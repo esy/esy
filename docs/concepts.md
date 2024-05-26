@@ -25,7 +25,7 @@ package:
 #### Support for esy.json
 
 Usually a manifest is represented as `package.json` but to allow `package.json`
-to be used exclusively with npm esy allows manifests to be represented as
+to be used exclusively with npm, esy allows manifests to be represented as
 `esy.json` files. In the case both `package.json` and `esy.json` are present in
 the sandbox esy will prefer `esy.json` over `package.json`.
 
@@ -59,7 +59,7 @@ Any package that the root package needs to build the sandbox (either during deve
 ## Regular dependency
 Dependencies that are required when a package is built in release mode. These are specified in the `dependencies` field.
 
-Packages like `@reason-native/console` are a good example of regular dependencies are these dependencies are required to the build a give root package. They differ from development time dependencies (like `@reason-native/rely`) as we'll see next.
+Packages like `@reason-native/console` are a good example of regular dependencies as these dependencies are required to the build a given root package. They differ from development time dependencies (like `@reason-native/rely`) as we'll see next.
 
 
 ## Development time dependency
@@ -68,7 +68,7 @@ Dependencies that are required **only** during development mode are specified in
 Good examples of dev-dependency is `@opam/ocaml-lsp-server` or `@reason-native/rely` as it is only required during development of the root package.
 
 ## Build time dependency
-Some dependencies are needed during the build. `@opam/dune` and autotools packages are a good examples.
+Some dependencies are needed during the build. `@opam/dune` and autotools packages are good examples.
 
 Build time dependencies are meant to be specified as `regular` dependencies as they are needed by the package dependending on it. Build time packages are better compared with runtime packages (instead of dependencies/devDependencies). Once the root package is built, build dependencies are not needed anymore by the root package. Runtime dependencies on the other hand are still needed in the sandbox for the root package to run correctly. `@opam/uchar` is a good example of runtime package. A binary depending on it needs it installed in the sandbox when it is run.
 

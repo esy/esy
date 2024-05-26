@@ -9,7 +9,7 @@ let computeOverrideDigest = (sandbox, override) =>
     | OfDist({dist, json: _}) => return(Digestv.ofString(Dist.show(dist)))
     | OfOpamOverride(info) =>
       let* files =
-        EsyInstall.Fetch.fetchOverrideFiles(
+        EsyFetch.Override.fetch(
           sandbox.Sandbox.cfg.installCfg,
           sandbox.spec,
           override,
@@ -463,7 +463,7 @@ let lockPackage =
     };
 
   return({
-    EsyInstall.Package.id,
+    EsyFetch.Package.id,
     name,
     version,
     source,
@@ -557,7 +557,7 @@ let add = (~gitUsername, ~gitPassword, ~dependencies: Dependencies.t, solver) =>
         | Ok(pkg) => return(Some(pkg))
         | Error(reason) =>
           let%lwt () =
-            Logs_lwt.info(m =>
+            Esy_logs_lwt.info(m =>
               m("skipping package %a: %s", Resolution.pp, resolution, reason)
             );
           return(None);
@@ -961,7 +961,8 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
-    let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
+    let%lwt () =
+      Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
     let* pkg =
       Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
     let* pkg = RunAsync.ofStringError(pkg);
@@ -983,7 +984,7 @@ let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
     | Some(resolution) => make(resolution)
     | None =>
       let%lwt () =
-        Logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
+        Esy_logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
       return((None, None));
     };
   | VersionSpec.Opam(_) =>
@@ -1230,8 +1231,8 @@ let solve =
 
       return(
         {
-          let solution = EsyInstall.Solution.empty(root.EsyInstall.Package.id);
-          EsyInstall.Solution.add(solution, root);
+          let solution = EsyFetch.Solution.empty(root.EsyFetch.Package.id);
+          EsyFetch.Solution.add(solution, root);
         },
       );
     };
@@ -1248,7 +1249,7 @@ let solve =
             allDependenciesByName,
           );
 
-        return(EsyInstall.Solution.add(solution, pkg));
+        return(EsyFetch.Solution.add(solution, pkg));
       };
 
       dependenciesById

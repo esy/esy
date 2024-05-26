@@ -19,7 +19,6 @@ let ofString: string => result(t, [> | `Msg(string)]);
 let currentPath: unit => t;
 let homePath: unit => t;
 let dataPath: unit => t;
-let exePath: unit => t;
 
 let isPrefix: (t, t) => bool;
 let remPrefix: (t, t) => option(t);
@@ -59,3 +58,5 @@ let remEmptySeg: t => t;
 let normalize: t => t;
 let normalizePathSepOfFilename: string => string;
 let normalizeAndRemoveEmptySeg: t => t;
+
+let equal: (t, t) => bool;
