@@ -449,4 +449,5 @@ module.exports = {
   isWindows,
   isLinux,
   isMacos,
+  COMMAND_FAILED: expect.stringMatching('command failed')
 };
