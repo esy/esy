@@ -26,10 +26,9 @@ const TerminalController = (props = {}) => {
 };
 
 const quickStart = `npm install -g esy
-
-# Clone example, install dependencies, then build
-git clone https://github.com/esy-ocaml/hello-reason.git
-cd hello-reason
+# Clone example
+cd example
+# Install dependencies, then build
 esy`;
 function Homepage() {
   const {siteConfig} = useDocusaurusContext();
