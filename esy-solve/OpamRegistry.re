@@ -39,11 +39,11 @@ let readUrlFileOfRegistry = (res, _registry) => {
   };
 };
 
-let make = (~cfg, ()) => {
+let make = (~opamRepository, ~cfg, ()) => {
   let init = () => {
     open RunAsync.Syntax;
     let* repoPath =
-      switch (cfg.Config.opamRepository) {
+      switch (opamRepository) {
       | Config.Local(local) => return(local)
       | Config.Remote(remote, local) =>
         let update = () => {
@@ -54,7 +54,7 @@ let make = (~cfg, ()) => {
           return(local);
         };
 
-        if (cfg.skipRepositoryUpdate) {
+        if (cfg.Config.skipRepositoryUpdate) {
           if%bind (Fs.exists(local)) {
             return(local);
           } else {
