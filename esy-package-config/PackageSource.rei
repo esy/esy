@@ -1,3 +1,9 @@
+/**
+
+   [t] represents the entries in the lock files. That's why this
+   module can be serialised to JSON.
+
+ */
 type t =
   | Link({
       path: DistPath.t,
