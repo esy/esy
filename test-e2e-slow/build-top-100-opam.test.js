@@ -85,7 +85,8 @@ let cases = [
    { name: "batteries", toolchains: [ocamlVersion] },
    { name: "ca-certs", toolchains: [ocamlVersion] },
    { name: "duration", toolchains: [ocamlVersion] },
-   { name: "oasis", toolchains: [ocamlVersion] },
+   // Probably not very popular. Broken because of ocamlbuild 0.14.3+win
+   // { name: "oasis", toolchains: [ocamlVersion] },
    { name: "git", toolchains: [ocamlVersion] },
    { name: "core_kernel", toolchains: [ocamlVersion] },
    { name: "camlzip", toolchains: [ocamlVersion] },
