@@ -11,13 +11,11 @@ let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
   let rec fetchAny = (errs, alternatives) =>
     switch (alternatives) {
     | [dist, ...rest] =>
-      let extraSources = Package.extraSources(pkg);
       let fetched =
         DistStorage.fetch(
           sandbox.Sandbox.cfg,
           sandbox.spec,
           dist,
-          ~extraSources,
           gitUsername,
           gitPassword,
           (),
@@ -130,6 +128,12 @@ let copyFiles = (sandbox, pkg, path) => {
       pkg.Package.overrides,
     );
 
+  let extraSources = Package.extraSources(pkg);
+  let tempPath = SandboxSpec.tempPath(sandbox.spec);
+  let* () =
+    Fs.withTempDir(~tempPath, stagePath => {
+      ExtraSources.fetch(~cachedSourcesPath=path, ~stagePath, extraSources)
+    });
   RunAsync.List.mapAndWait(
     ~f=EsyPackageConfig.File.placeAt(path),
     filesOfOpam @ filesOfOverride,

@@ -67,51 +67,15 @@ let ofCachedTarball = path =>
   Tarball({tarballPath: path, stripComponents: 0});
 let ofDir = path => SourcePath(path);
 
-let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
+let fetch' = (sandbox, dist, gitUsername, gitPassword, ()) => {
   open RunAsync.Syntax;
   let tempPath = SandboxSpec.tempPath(sandbox);
+
   switch (dist) {
   | Dist.LocalPath({path: srcPath, manifest: _}) =>
     let srcPath = DistPath.toPath(sandbox.SandboxSpec.path, srcPath);
     return(SourcePath(srcPath));
-
-  | Dist.NoSource =>
-    switch (extraSources) {
-    | Some(extraSources) =>
-      if (extraSources == []) {
-        return(Empty);
-      } else {
-        let path = CachePaths.fetchedDist(sandbox, dist);
-        let* () = Fs.createDir(path);
-        Fs.withTempDir(
-          ~tempPath,
-          stagePath => {
-            let%bind () = Fs.createDir(stagePath);
-            let%bind _ =
-              RunAsync.List.map(
-                ~f=
-                  ({ExtraSource.url, checksum, relativePath}) => {
-                    open RunAsync.Syntax;
-                    let tarballPath = Path.(stagePath / relativePath);
-                    let* _ = Curl.download(~output=tarballPath, url);
-                    let* _ = Checksum.checkFile(~path=tarballPath, checksum);
-                    let* _ =
-                      Fs.rename(
-                        ~skipIfExists=true,
-                        ~src=tarballPath,
-                        Path.(path / relativePath),
-                      );
-                    RunAsync.return();
-                  },
-                extraSources,
-              );
-            return(Path(path));
-          },
-        );
-      }
-    | None => return(Empty)
-    }
-
+  | Dist.NoSource => return(Empty)
   | Dist.Archive({url, checksum}) =>
     let path = CachePaths.fetchedDist(sandbox, dist);
     Fs.withTempDir(
@@ -172,7 +136,6 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
         let* () = Git.checkout(~ref=github.commit, ~repo=stagePath, ());
         let* () = Git.updateSubmodules(~config, ~repo=stagePath, ());
         let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-        // TODO: handle extraSouces for Git repos
         return(Path(path));
       },
     );
@@ -208,13 +171,11 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
             let packagePath =
               DistPath.toPath(stagePath, DistPath.ofPath(manifestFilePath));
             let* () = Fs.rename(~skipIfExists=true, ~src=packagePath, path);
-            // TODO: handle extraSouces for Git repos
             return(Path(path));
           | Error(`Msg(msg)) => errorf("%s", msg)
           }
         | None =>
           let* () = Fs.rename(~skipIfExists=true, ~src=stagePath, path);
-          // TODO: handle extraSouces for Git repos
           return(Path(path));
         };
       },
@@ -222,10 +183,9 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) => {
   };
 };
 
-let fetch =
-    (_cfg, sandbox, dist, gitUsername, gitPassword, ~extraSources=?, ()) =>
+let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, ()) =>
   RunAsync.contextf(
-    fetch'(sandbox, dist, gitUsername, gitPassword, ~extraSources?, ()),
+    fetch'(sandbox, dist, gitUsername, gitPassword, ()),
     "fetching dist: %a",
     Dist.pp,
     dist,
