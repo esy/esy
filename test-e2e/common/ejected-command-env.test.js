@@ -6,6 +6,12 @@ const fs = require('fs-extra');
 const {createTestSandbox, promiseExec, skipSuiteOnWindows} = require('../test/helpers');
 const fixture = require('./fixture.js');
 
+// This test is not expected to work on Windows
+// because it command-env works only with bash
+// While it's a feature that may help users
+// with MSYS2 or Cygwin, we don't have a validated
+// usecase, where a workaround is not possible.
+// See issue #301 for more details
 skipSuiteOnWindows('#301');
 
 describe('ejected command-env', () => {

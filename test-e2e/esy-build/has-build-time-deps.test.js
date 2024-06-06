@@ -4,8 +4,6 @@ const os = require('os');
 const outdent = require('outdent');
 const helpers = require('../test/helpers');
 
-helpers.skipSuiteOnWindows('Needs investigation');
-
 function makeFixture(p) {
   return [
     helpers.packageJson({

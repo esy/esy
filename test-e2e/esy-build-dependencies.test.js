@@ -5,9 +5,9 @@ const fs = require('fs-extra');
 const os = require('os');
 
 const helpers = require('./test/helpers');
-const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
+const {packageJson, dir, file, isWindows, dummyExecutable, buildCommand} = helpers;
 
-helpers.skipSuiteOnWindows();
+const EOL = isWindows ? "\n": os.EOL;
 
 describe(`'esy build-dependencies' command`, () => {
   let prevEnv = {...process.env};
@@ -74,7 +74,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
     await expect(p.run('dep.cmd', env)).resolves.toEqual({
-      stdout: '__dep__' + os.EOL,
+      stdout: '__dep__' + EOL,
       stderr: '',
     });
   });
@@ -85,7 +85,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
     await expect(p.run('linkedDep.cmd', env)).rejects.toMatchObject({
-      code: 127,
+      code: isWindows ? 1 : 127,
     });
   });
 
@@ -95,7 +95,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies');
     const env = await getCommandEnv(p);
     await expect(p.run('devDep.cmd', env)).resolves.toMatchObject({
-      stdout: '__devDep__' + os.EOL,
+      stdout: '__devDep__' + EOL,
       stderr: '',
     });
   });
@@ -106,7 +106,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies --release');
     const env = await getCommandEnv(p);
     await expect(p.run('devDep.cmd', env)).rejects.toMatchObject({
-      code: 127
+      code: isWindows ? 1 : 127
     });
   });
 
@@ -116,7 +116,7 @@ describe(`'esy build-dependencies' command`, () => {
     await p.esy('build-dependencies --all');
     const env = await getCommandEnv(p);
     await expect(p.run('linkedDep.cmd', env)).resolves.toEqual({
-      stdout: '__linkedDep__' + os.EOL,
+      stdout: '__linkedDep__' + EOL,
       stderr: '',
     });
   });

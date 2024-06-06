@@ -7,8 +7,6 @@ const helpers = require('../test/helpers');
 
 const {symlink, file, dir, packageJson, dummyExecutable} = helpers;
 
-helpers.skipSuiteOnWindows('Needs investigation');
-
 describe('Symlink workflow', () => {
   async function createTestSandbox() {
     const p = await helpers.createTestSandbox();

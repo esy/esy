@@ -4,8 +4,6 @@ const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 const {file, json, dummyExecutable} = helpers;
 
-helpers.skipSuiteOnWindows("esy-solve-cudf isn't ready");
-
 describe('Sandbox overrides', function() {
   it('allows to override sandbox with dependencies', async function() {
     const p = await helpers.createTestSandbox();

@@ -4,8 +4,6 @@ const helpers = require('../test/helpers.js');
 
 const {file, dir, packageJson} = helpers;
 
-helpers.skipSuiteOnWindows();
-
 function makePackage(
   p,
   {
