@@ -6,8 +6,6 @@ const helpers = require('../test/helpers.js');
 
 const {file, packageJson} = helpers;
 
-helpers.skipSuiteOnWindows();
-
 describe('projects with multiple sandboxes', function() {
   it('run installs different deps dependening on a sandbox config', async () => {
     const fixture = [

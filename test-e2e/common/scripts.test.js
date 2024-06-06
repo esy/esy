@@ -4,11 +4,12 @@ const path = require('path');
 const outdent = require('outdent');
 const os = require('os');
 
-const {skipSuiteOnWindows} = require('../test/helpers');
-
-skipSuiteOnWindows('#272');
+const {skipSuiteOnWindows, isWindows} = require('../test/helpers');
 
 const {packageJson, file, dir, createTestSandbox} = require('../test/helpers');
+
+const EOL = isWindows ? "\n": os.EOL;
+const skipOnWindows = isWindows ? it.skip : it;
 
 const fixture = [
   packageJson({
@@ -69,33 +70,33 @@ const fixture = [
   dir('foo'),
 ];
 
-it('executes scripts', async () => {
+skipOnWindows('executes scripts', async () => {
   const p = await createTestSandbox(...fixture);
   await p.esy('install');
   await p.esy('build');
 
   await expect(p.esy('cmd1')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
+    expect.objectContaining({stdout: 'cmd1_result' + EOL}),
   );
   await expect(p.esy('cmd2')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd2_result' + os.EOL}),
+    expect.objectContaining({stdout: 'cmd2_result' + EOL}),
   );
   await expect(p.esy('cmd3')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd_array_result' + os.EOL}),
+    expect.objectContaining({stdout: 'cmd_array_result' + EOL}),
   );
   await expect(p.esy('cmd4')).resolves.toEqual(
-    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+    expect.objectContaining({stdout: 'script_exec_result' + EOL}),
   );
   await expect(p.esy('cmd5')).resolves.toEqual(
-    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+    expect.objectContaining({stdout: 'script_exec_result' + EOL}),
   );
 
   await expect(p.esy('--build-concurrency 100 echo_cur_jobs')).resolves.toEqual(
-    expect.objectContaining({stdout: '50' + os.EOL}),
+    expect.objectContaining({stdout: '50' + EOL}),
   );
 
   await expect(p.esy('--build-concurrency 100 echo_self_jobs')).resolves.toEqual(
-    expect.objectContaining({stdout: '50' + os.EOL}),
+    expect.objectContaining({stdout: '50' + EOL}),
   );
 
   await expect(p.esy('b cmd1')).rejects.toThrow();
@@ -105,32 +106,32 @@ it('executes scripts', async () => {
     expect.objectContaining({stdout: 'script_exec_result\n'}),
   );
   await expect(p.esy('exec_cmd2')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
   await expect(p.esy('exec_cmd3')).resolves.toEqual(
-    expect.objectContaining({stdout: 'script_exec_result' + os.EOL}),
+    expect.objectContaining({stdout: 'script_exec_result' + EOL}),
   );
   await expect(p.esy('exec_cmd4')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
 
   await expect(p.esy('build_cmd')).resolves.toEqual(
-    expect.objectContaining({stdout: 'build_cmd_result' + os.EOL}),
+    expect.objectContaining({stdout: 'build_cmd_result' + EOL}),
   );
   await expect(p.esy('build_cmd2')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
   await expect(p.esy('build_cmd3')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
   await expect(p.esy('build_cmd4')).resolves.toEqual(
-    expect.objectContaining({stdout: 'build_cmd_result' + os.EOL}),
+    expect.objectContaining({stdout: 'build_cmd_result' + EOL}),
   );
   await expect(p.esy('build_cmd5')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
   await expect(p.esy('build_cmd6')).resolves.toEqual(
-    expect.objectContaining({stdout: 'simple-project' + os.EOL}),
+    expect.objectContaining({stdout: 'simple-project' + EOL}),
   );
 });
 
@@ -139,11 +140,11 @@ it('executes scripts even if sandbox is not built', async () => {
   await p.esy('install');
 
   await expect(p.esy('cmd1')).resolves.toEqual(
-    expect.objectContaining({stdout: 'cmd1_result' + os.EOL}),
+    expect.objectContaining({stdout: 'cmd1_result' + EOL}),
   );
 });
 
-it('does execute scripts in a non-root package scope', async () => {
+skipOnWindows('does execute scripts in a non-root package scope', async () => {
   const p = await createTestSandbox(...fixture);
   await p.esy('install');
   await p.esy('build');

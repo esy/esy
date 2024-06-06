@@ -3,8 +3,6 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('complete flow for opam sandboxes', () => {
   async function createTestSandbox(...fixture) {
     const p = await helpers.createTestSandbox(...fixture);

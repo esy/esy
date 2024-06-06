@@ -5,8 +5,6 @@ const path = require('path');
 const helpers = require('../test/helpers');
 const {test, isWindows, isMacos, isLinux} = helpers;
 
-helpers.skipSuiteOnWindows('Needs investigation');
-
 function makePackage(
   p,
   {
@@ -41,6 +39,14 @@ function makePackage(
     ...items,
   );
 }
+
+// We dont know ATM, why EOL on Windows is just '\n'
+const EOL = isWindows ? "\n" : os.EOL;
+const sys32Dir = (function () {
+  const parts = (process.env.WINDIR || '').split(/[\\|\/]/);
+  parts.push("System32");
+  return parts.join("/");
+}());
 
 describe(`Project with "devDependencies"`, () => {
   async function createTestSandbox() {
@@ -127,6 +133,20 @@ describe(`Project with "devDependencies"`, () => {
 
     const {stdout} = await p.esy('build-env --json');
     const env = JSON.parse(stdout);
+    let paths = [
+        `${p.esyStorePath}/i/${depId}/bin`,
+        `${p.esyStorePath}/i/${devdepId}/bin`,
+        `${p.esyStorePath}/i/${depofdevdepId}/bin`,
+        ``,
+        `/usr/local/bin`,
+        `/usr/bin`,
+        `/bin`,
+        `/usr/sbin`,
+        `/sbin`,
+    ];
+    if (isWindows) {
+      paths = paths.concat([sys32Dir]);
+    }
     expect(env).toMatchObject({
       cur__dev: 'true',
       cur__version: '1.0.0',
@@ -144,17 +164,7 @@ describe(`Project with "devDependencies"`, () => {
       cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
       cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-      PATH: [
-        `${p.esyStorePath}/i/${depId}/bin`,
-        `${p.esyStorePath}/i/${devdepId}/bin`,
-        `${p.esyStorePath}/i/${depofdevdepId}/bin`,
-        ``,
-        `/usr/local/bin`,
-        `/usr/bin`,
-        `/bin`,
-        `/usr/sbin`,
-        `/sbin`,
-      ].join(path.delimiter),
+      PATH: paths.join(path.delimiter),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
@@ -168,6 +178,18 @@ describe(`Project with "devDependencies"`, () => {
 
     const {stdout} = await p.esy('build-env --json --release');
     const env = JSON.parse(stdout);
+    let paths = [
+        `${p.esyStorePath}/i/${depId}/bin`,
+        ``,
+        `/usr/local/bin`,
+        `/usr/bin`,
+        `/bin`,
+        `/usr/sbin`,
+        `/sbin`,
+    ];
+    if (isWindows) {
+      paths = paths.concat([sys32Dir]);
+    }
     expect(env).toMatchObject({
       cur__dev: 'false',
       cur__version: '1.0.0',
@@ -185,15 +207,7 @@ describe(`Project with "devDependencies"`, () => {
       cur__etc: `${p.projectPath}/_esy/default/store/i/${id}/etc`,
       cur__doc: `${p.projectPath}/_esy/default/store/i/${id}/doc`,
       cur__bin: `${p.projectPath}/_esy/default/store/i/${id}/bin`,
-      PATH: [
-        `${p.esyStorePath}/i/${depId}/bin`,
-        ``,
-        `/usr/local/bin`,
-        `/usr/bin`,
-        `/bin`,
-        `/usr/sbin`,
-        `/sbin`,
-      ].join(path.delimiter),
+      PATH: paths.join(path.delimiter),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.projectPath}/_esy/default/store/i/${id}/lib`,
       DUNE_BUILD_DIR: `${p.projectPath}/_esy/default/store/b/${id}`,
@@ -261,6 +275,10 @@ describe(`Project with "devDependencies"`, () => {
 
     const {stdout} = await p.esy('build-env --json -p dep');
     const env = JSON.parse(stdout);
+    let paths = [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`];
+    if (isWindows) {
+      paths = paths.concat([sys32Dir]);
+    }
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${depId}/toplevel`,
@@ -275,7 +293,7 @@ describe(`Project with "devDependencies"`, () => {
       cur__etc: `${p.esyStorePath}/s/${depId}/etc`,
       cur__doc: `${p.esyStorePath}/s/${depId}/doc`,
       cur__bin: `${p.esyStorePath}/s/${depId}/bin`,
-      PATH: [``, `/usr/local/bin`, `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`].join(
+      PATH: paths.join(
         path.delimiter,
       ),
       OCAMLFIND_LDCONF: `ignore`,
@@ -301,6 +319,18 @@ describe(`Project with "devDependencies"`, () => {
 
     const {stdout} = await p.esy('build-env --json -p devDep');
     const env = JSON.parse(stdout);
+    let paths = [
+        `${p.esyStorePath}/i/${depOfDevDepId}/bin`,
+        ``,
+        `/usr/local/bin`,
+        `/usr/bin`,
+        `/bin`,
+        `/usr/sbin`,
+        `/sbin`,
+    ];
+    if (isWindows) {
+      paths = paths.concat([sys32Dir]);
+    }
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${devDepId}/toplevel`,
@@ -315,15 +345,7 @@ describe(`Project with "devDependencies"`, () => {
       cur__etc: `${p.esyStorePath}/s/${devDepId}/etc`,
       cur__doc: `${p.esyStorePath}/s/${devDepId}/doc`,
       cur__bin: `${p.esyStorePath}/s/${devDepId}/bin`,
-      PATH: [
-        `${p.esyStorePath}/i/${depOfDevDepId}/bin`,
-        ``,
-        `/usr/local/bin`,
-        `/usr/bin`,
-        `/bin`,
-        `/usr/sbin`,
-        `/sbin`,
-      ].join(path.delimiter),
+      PATH: paths.join(path.delimiter),
       OCAMLFIND_LDCONF: `ignore`,
       OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${devDepId}/lib`,
     });
@@ -442,12 +464,12 @@ describe('Project with "devDependencies" (with "buildDev" config at the root)', 
 
     {
       const {stdout} = await p.esy('build');
-      expect(stdout).toBe(`__devDep__${os.EOL}`);
+      expect(stdout).toBe(`__devDep__${EOL}`);
     }
 
     {
       const {stdout} = await p.esy('x withDevDep.cmd');
-      expect(stdout).toBe(`__devDep__${os.EOL}__withDevDep-dev__${os.EOL}`);
+      expect(stdout).toBe(`__devDep__${EOL}__withDevDep-dev__${EOL}`);
     }
   });
 
@@ -461,7 +483,7 @@ describe('Project with "devDependencies" (with "buildDev" config at the root)', 
 
     {
       const {stdout} = await p.esy('x --release withDevDep.cmd');
-      expect(stdout).toBe(`__withDevDep__${os.EOL}`);
+      expect(stdout).toBe(`__withDevDep__${EOL}`);
     }
   });
 });

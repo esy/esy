@@ -2,8 +2,6 @@
 
 const helpers = require('../test/helpers.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('build opam sandbox', () => {
   it('builds an opam sandbox with a single opam file', async () => {
     const p = await helpers.createTestSandbox();

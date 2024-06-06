@@ -7,8 +7,6 @@ const os = require('os');
 const helpers = require('./test/helpers');
 const fixture = require('./common/fixture.js');
 
-helpers.skipSuiteOnWindows();
-
 describe('esy show', () => {
   it('shows info about packages hosted on npm', async () => {
     const p = await helpers.createTestSandbox();

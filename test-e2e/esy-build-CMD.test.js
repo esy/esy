@@ -4,9 +4,9 @@ const os = require('os');
 const path = require('path');
 
 const helpers = require('./test/helpers');
-const {packageJson, dir, file, dummyExecutable, buildCommand} = helpers;
+const {packageJson, dir, file, dummyExecutable, isWindows, buildCommand} = helpers;
 
-helpers.skipSuiteOnWindows();
+const EOL = isWindows ? '\n': os.EOL;
 
 function createPackage(p, {name, dependencies}: {name: string, dependencies?: Object}) {
   return dir(
@@ -85,7 +85,7 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('build');
 
     await expect(p.esy('build dep.cmd')).resolves.toEqual({
-      stdout: '__dep__' + os.EOL,
+      stdout: '__dep__' + EOL,
       stderr: '',
     });
   });
@@ -96,12 +96,12 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('build');
 
     await expect(p.esy('build -p linkedDep echo "#{self.name}"')).resolves.toEqual({
-      stdout: 'linkedDep' + os.EOL,
+      stdout: 'linkedDep' + EOL,
       stderr: '',
     });
 
     await expect(p.esy('build --package linkedDep echo "#{self.name}"')).resolves.toEqual({
-      stdout: 'linkedDep' + os.EOL,
+      stdout: 'linkedDep' + EOL,
       stderr: '',
     });
   });
@@ -112,7 +112,7 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('build');
 
     await expect(p.esy('build devDep.cmd')).resolves.toMatchObject({
-      stdout: '__devDep__' + os.EOL,
+      stdout: '__devDep__' + EOL,
       stderr: '',
     });
   });
@@ -148,12 +148,12 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('build');
 
     await expect(p.esy('b dep.cmd')).resolves.toEqual({
-      stdout: '__dep__' + os.EOL,
+      stdout: '__dep__' + EOL,
       stderr: '',
     });
 
     await expect(p.esy('b -p linkedDep echo "#{self.name}"')).resolves.toEqual({
-      stdout: 'linkedDep' + os.EOL,
+      stdout: 'linkedDep' + EOL,
       stderr: '',
     });
   });
@@ -163,8 +163,9 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('install');
     await p.esy('build');
 
-    await expect(p.esy(`b bash -c 'echo $root__buildvar'`)).resolves.toEqual({
-      stdout: 'root__buildvar__value' + os.EOL,
+    const cmd = isWindows ? `b bash -c "echo $root__buildvar"`: `b bash -c 'echo $root__buildvar'`;
+    await expect(p.esy(cmd)).resolves.toEqual({
+      stdout: 'root__buildvar__value' + EOL,
       stderr: '',
     });
   });
@@ -175,10 +176,10 @@ describe(`'esy build CMD' invocation`, () => {
     await p.esy('build');
 
     // make sure exit code is preserved
-    await expect(p.esy("b bash -c 'exit 1'")).rejects.toEqual(
+    await expect(p.esy(`b bash -c "exit 1"`)).rejects.toEqual(
       expect.objectContaining({code: 1}),
     );
-    await expect(p.esy("b bash -c 'exit 7'")).rejects.toEqual(
+    await expect(p.esy(`b bash -c "exit 7"`)).rejects.toEqual(
       expect.objectContaining({code: 7}),
     );
   });
@@ -241,7 +242,7 @@ describe(`'esy build CMD' invocation ("buildDev" config at the root)`, () => {
     await p.esy('build');
 
     await expect(p.esy('build dep.cmd')).resolves.toEqual({
-      stdout: '__dep__' + os.EOL,
+      stdout: '__dep__' + EOL,
       stderr: '',
     });
   });
@@ -252,7 +253,7 @@ describe(`'esy build CMD' invocation ("buildDev" config at the root)`, () => {
     await p.esy('build');
 
     await expect(p.esy('build dep.cmd')).resolves.toEqual({
-      stdout: '__dep__' + os.EOL,
+      stdout: '__dep__' + EOL,
       stderr: '',
     });
   });
@@ -263,7 +264,7 @@ describe(`'esy build CMD' invocation ("buildDev" config at the root)`, () => {
     await p.esy('build');
 
     await expect(p.esy('build devDep.cmd')).resolves.toEqual({
-      stdout: '__devDep__' + os.EOL,
+      stdout: '__devDep__' + EOL,
       stderr: '',
     });
   });

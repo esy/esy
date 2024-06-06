@@ -3,8 +3,6 @@
 const helpers = require('./test/helpers');
 const {file, dir, packageJson, dummyExecutable} = helpers;
 
-helpers.skipSuiteOnWindows('Needs esyi to work');
-
 it('Build - default command', async () => {
   let p = await helpers.createTestSandbox();
 
