@@ -1606,19 +1606,7 @@ let importBuild = (storePath, buildPath) => {
       importFromDir(stagePath);
     | `Archive =>
       let stagePath = Path.(storePath / Store.stageTree / buildId);
-      let* () = {
-        let cmd =
-          Cmd.(
-            v("tar")
-            % "-C"
-            % p(Path.parent(stagePath))
-            % "-xz"
-            % "-f"
-            % p(buildPath)
-          );
-        ChildProcess.run(cmd);
-      };
-
+      let* () = Tarball.unpack(~dst=Path.parent(stagePath), buildPath);
       importFromDir(stagePath);
     };
   };
