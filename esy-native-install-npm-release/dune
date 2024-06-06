@@ -5,9 +5,7 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries cmdliner EsyLib EsyBuild)
- (preprocess
-  (pps lwt_ppx ppx_let)))
+ (libraries esy_cmdliner EsyLib EsyBuild))
 
 (install
  (section libexec)

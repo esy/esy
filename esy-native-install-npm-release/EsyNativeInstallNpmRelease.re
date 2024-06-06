@@ -1,6 +1,10 @@
-open Cmdliner;
+open Esy_cmdliner;
+open RunAsync.Syntax;
 
 let esyStoreVersion = Store.version;
+
+let noBuildFoundMsg = "No build found!";
+let releaseAlreadyInstalled = "Release already installed!";
 
 module Path = {
   include Path;
@@ -21,32 +25,30 @@ type rewritePrefix =
 
 let getStorePathForPrefix = (prefix, ocamlPkgName, ocamlVersion) => {
   switch (Store.getPadding(~ocamlPkgName, ~ocamlVersion, Path.v(prefix))) {
-  | Error(err) => Error(err)
+  | Error(`Msg(err)) => Run.error(err)
   | Ok(padding) => Ok(Path.join(prefix, esyStoreVersion ++ padding))
   };
 };
 
-let importBuild = (filePath, rewritePrefix) => {
-  RunAsync.Syntax.(
-    switch (rewritePrefix) {
-    | Rewrite(storePath) =>
-      EsyBuild.BuildSandbox.importBuild(storePath, filePath)
-    | NoRewrite(storePath) =>
-      let buildId =
-        Str.global_replace(
-          Str.regexp(".tar.gz$"),
-          "",
-          Fpath.basename(filePath),
-        );
-      let storeStagePath = Path.(storePath / storeStageTree);
-      let buildStagePath = Path.(storeStagePath / buildId);
-      let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
+let importBuild = (~rewritePrefix, filePath) => {
+  switch (rewritePrefix) {
+  | Rewrite(storePath) =>
+    EsyBuild.BuildSandbox.importBuild(storePath, filePath)
+  | NoRewrite(storePath) =>
+    let buildId =
+      Str.global_replace(
+        Str.regexp(".tar.gz$"),
+        "",
+        Fpath.basename(filePath),
+      );
+    let storeStagePath = Path.(storePath / storeStageTree);
+    let buildStagePath = Path.(storeStagePath / buildId);
+    let buildFinalPath = Path.(storePath / storeInstallTree / buildId);
 
-      let%bind () = Fs.createDir(buildStagePath);
-      let%bind () = Tarball.unpack(filePath, ~dst=storeStagePath);
-      Fs.rename(~src=buildStagePath, buildFinalPath);
-    }
-  );
+    let* () = Fs.createDir(buildStagePath);
+    let* () = Tarball.unpack(filePath, ~dst=storeStagePath);
+    Fs.rename(~src=buildStagePath, buildFinalPath);
+  };
 };
 
 let main = rewritePrefix => {
@@ -57,55 +59,50 @@ let main = rewritePrefix => {
     };
 
   let check = () => {
-    let%lwt buildFound = Fs.exists(releaseExportPath);
-    switch (buildFound) {
-    | Ok(true) =>
+    let* buildFound =
+      releaseExportPath
+      |> Fs.exists
+      |> RunAsync.try_(~catch=_ => RunAsync.return(false));
+    if (buildFound) {
       switch (rewritePrefix) {
       | NoRewrite(_) => Lwt.return(Ok())
       | Rewrite(storePath) =>
-        let%lwt storeFound = Fs.exists(storePath);
-        Lwt.return(
-          switch (storeFound) {
-          | Ok(true) => Error(`ReleaseAlreadyInstalled)
-          | Ok(false) => Ok()
-          | Error(err) => Error(`EsyLibError(err))
-          },
-        );
-      }
-    | Ok(false) => Lwt.return(Error(`NoBuildFound))
-    | Error(err) => Lwt.return(Error(`EsyLibError(err)))
+        let* storeFound =
+          storePath
+          |> Fs.exists
+          |> RunAsync.try_(~catch=_ => RunAsync.return(false));
+        if (storeFound) {
+          RunAsync.error(releaseAlreadyInstalled);
+        } else {
+          RunAsync.return();
+        };
+      };
+    } else {
+      RunAsync.error(noBuildFoundMsg);
     };
   };
   let initStore = () => {
-    Lwt_result.(
-      Fs.createDir(storePath)
-      >>= (
-        _ =>
-          RunAsync.List.waitAll([
-            Fs.createDir(Path.(storePath / storeBuildTree)),
-            Fs.createDir(Path.(storePath / storeInstallTree)),
-            Fs.createDir(Path.(storePath / storeStageTree)),
-          ])
-      )
-      |> Lwt_result.map_err(err => `EsyLibError(err))
-    );
+    let* () = Fs.createDir(storePath);
+    RunAsync.List.waitAll([
+      Fs.createDir(Path.(storePath / storeBuildTree)),
+      Fs.createDir(Path.(storePath / storeInstallTree)),
+      Fs.createDir(Path.(storePath / storeStageTree)),
+    ]);
   };
   let doImport = () => {
     open RunAsync.Syntax;
     let importBuilds = () => {
       open RunAsync.Syntax;
-      let%bind files = Fs.listDir(releaseExportPath);
-
-      RunAsync.List.mapAndJoin(
-        ~f=file => importBuild(file, rewritePrefix),
-        files |> List.map(~f=Path.addSeg(releaseExportPath)),
-      );
+      let* files = Fs.listDir(releaseExportPath);
+      files
+      |> List.map(~f=Path.addSeg(releaseExportPath))
+      |> RunAsync.List.mapAndWait(~f=importBuild(~rewritePrefix));
     };
     let rewriteBinWrappers = () =>
       switch (rewritePrefix) {
       | NoRewrite(_) => Lwt_result.return()
       | Rewrite(storePath) =>
-        let%bind prevStorePath =
+        let* prevStorePath =
           Fs.readFile(Path.(releaseBinPath / "_storePath"));
         RewritePrefix.rewritePrefix(
           ~origPrefix=Path.v(prevStorePath),
@@ -113,60 +110,64 @@ let main = rewritePrefix => {
           releaseBinPath,
         );
       };
-    let%bind _ = importBuilds();
+    let* () = importBuilds();
     rewriteBinWrappers();
   };
-  Lwt_result.(
-    check()
-    >>= initStore
-    >>= (_ => doImport() |> Lwt_result.map_err(err => `EsyLibError(err)))
-    >>= (
-      _ => {
-        switch (System.Platform.host, System.Arch.host) {
-        | (Darwin, Arm64) =>
-          print_endline("Detected macOS arm64. Signing binaries...");
-          Result.Syntax.Let_syntax.bind(
-            EsyBuildPackage.Build.getMachOBins(
-              (module EsyBuildPackage.Run),
-              [],
-              Path.v(releasePackagePath),
-            ),
-            ~f=entries =>
-            EsyBuildPackage.BigSurArm.sign(entries)
-          )
-          |> Lwt.return;
-        | _ => Lwt.return(Ok())
-        };
-      }
-    )
-  );
+  let* () = check();
+  let* () = initStore();
+  let* () = doImport();
+
+  switch (System.Platform.host, System.Arch.host) {
+  | (Darwin, Arm64) =>
+    open RunAsync.Syntax;
+    print_endline("Detected macOS arm64. Signing binaries...");
+    let entries =
+      switch (
+        Path.v(releasePackagePath)
+        |> EsyBuildPackage.Build.getMachOBins(
+             (module EsyBuildPackage.Run),
+             [],
+           )
+      ) {
+      | Ok(entries) => entries
+      | _ => []
+      };
+    let binariesThatFailedToSign = EsyBuildPackage.BigSurArm.sign(entries);
+    if (List.length(binariesThatFailedToSign) > 0) {
+      Esy_logs.warn(m =>
+        m("# esy-build-package: Failed to sign the following binaries")
+      );
+      let f = binary => {
+        ignore @@ Esy_logs.warn(m => m("  %a", Path.pp, binary));
+      };
+      List.iter(~f, binariesThatFailedToSign);
+      return();
+    } else {
+      return();
+    };
+
+  | _ => Lwt.return(Ok())
+  };
 };
 
 let lwt_main = (ocamlPkgName, ocamlVersion, shouldRewritePrefix) => {
+  let rewritePrefix = () => {
+    let* storePath =
+      RunAsync.ofRun @@
+      getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion);
+    RunAsync.return(Rewrite(storePath));
+  };
   let unpaddedStorePath = Path.(v(releasePackagePath) / esyStoreVersion);
 
-  let rewritePrefixResult =
-    shouldRewritePrefix
-      ? getStorePathForPrefix(releasePackagePath, ocamlPkgName, ocamlVersion)
-        |> Result.map(~f=storePath => Rewrite(storePath))
-      : Ok(NoRewrite(unpaddedStorePath));
-
-  let result =
-    rewritePrefixResult
-    |> Result.Syntax.Let_syntax.bind(~f=rewritePrefix => {
-         Lwt_main.run(main(rewritePrefix))
-       });
-  switch (result) {
-  | Ok(_) => print_endline("Done!")
-  | Error(`NoBuildFound) => Printf.eprintf("No build found!")
-  | Error(`ReleaseAlreadyInstalled) =>
-    Printf.eprintf("Release already installed!")
-  | Error(`Msg(msg)) => Printf.eprintf("%s", msg)
-  | Error(`EsyLibError(err)) =>
-    Printf.eprintf("%s", EsyLib.Run.formatError(err))
-  | Error(`CommandError(cmd, _)) => Bos.Cmd.pp(Format.err_formatter, cmd)
-  };
+  {
+    let* rewritePrefix =
+      shouldRewritePrefix
+        ? rewritePrefix() : RunAsync.return(NoRewrite(unpaddedStorePath));
+    main(rewritePrefix);
+  }
+  |> EsyLib.Cli.runAsyncToEsy_cmdlinerRet;
 };
+
 let ocamlPkgName = {
   let doc = "OCaml package name";
   Arg.(
