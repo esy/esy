@@ -17,5 +17,3 @@ let unpack:
 
 let create:
   (~filename: Path.t, ~outpath: string=?, Path.t) => RunAsync.t(unit);
-
-let checkIfZip: Path.t => Lwt.t(bool);
