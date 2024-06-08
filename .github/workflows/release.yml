@@ -1,72 +1,65 @@
-name: Prepare NPM tarball
+name: Build
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '12'
-    - name: Create NPM tarball
-      run: |
-        REST_BASE="https://dev.azure.com/esy-dev"
-        PROJ="esy"
-        ART_NAME="release" # yes, no .zip
+      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1000
+          fetch-tags: true
+      - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+        name: "Generate EsyVersion.re"
+      - name: Install esy
+        run: npm install -g esy
+      - uses: esy/github-action@master
+        with:
+          source-cache-key: 20240515-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+      - uses: esy/github-action@master
+        id: prepare-npm-artifacts
+        with:
+          source-cache-key: 20240515-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+          prepare-npm-artifacts-mode: true
 
-        function fetchLatestBuild() {
-          PREFIX="branchName=refs%2Fheads%2F"
-          BRANCH="$PREFIXmaster"
-          FILTER='deletedFilter=excludeDeleted&statusFilter=completed&resultFilter=succeeded'
-          LATEST='queryOrder=finishTimeDescending&$top=1'
-          REST_BUILDS="$REST_BASE/$PROJ/_apis/build/builds?${FILTER}&${BRANCH}&${LATEST}&api-version=4.1"
-          echo "Rest call for builds: $REST_BUILDS"
-          REST_BUILDS_RESP=$(curl "$REST_BUILDS")
-          if [[ $REST_BUILDS_RESP =~ (\"web\":\{\"href\":\")([^\"]*) ]]; then LATEST_BUILD_PAGE="${BASH_REMATCH[2]}"; else LATEST_BUILD_PAGE=""; fi
-          if [[ $REST_BUILDS_RESP =~ (\"badge\":\{\"href\":\")([^\"]*) ]]; then LATEST_BUILD_BADGE="${BASH_REMATCH[2]}"; else LATEST_BUILD_BADGE=""; fi
-          if [[ $REST_BUILDS_RESP =~ (\"id\":)([^,]*) ]]; then LATEST_BUILD_ID="${BASH_REMATCH[2]}"; else LATEST_BUILD_ID=""; fi
-        }
+  bundle:
+    permissions:
+      contents: write
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+          fetch-tags: true
+      - uses: esy/github-action@master
+        with:
+          source-cache-key: 20240515-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+          bundle-npm-artifacts-mode: true
 
-        fetchLatestBuild
+      - name: Create tarball
+        run: tar cf npm-release.tgz ./_npm-release
 
-        function fetchArtifactURL() {
-          REST_ART="$REST_BASE/$PROJ/_apis/build/builds/$LATEST_BUILD_ID/artifacts?artifactName=$ART_NAME&api-version=4.1"
-          echo "Rest call for artifacts: $REST_ART"
-          if [[ $(curl $REST_ART) =~ (downloadUrl\":\")([^\"]*) ]]; then LATEST_ART_URL="${BASH_REMATCH[2]}"; else LATEST_ART_URL=""; fi
-        }
-
-        function downloadArtifact() {
-          if [ -z "$LATEST_ART_URL" ]
-          then
-            echo "No latest artifact for merge-target branch found at URL $REST_ART"
-          else
-            curl "$LATEST_ART_URL" > "$ART_NAME.zip"
-            PROJECT_DIR=$PWD
-            unzip "$ART_NAME.zip"
-            echo "Using Dependency cache for buildID: $LATEST_BUILD_ID"
-            echo "Build log for build that produced the cache: $LATEST_BUILD_PAGE"
-            echo "Build badge for build that produced the cache: $LATEST_BUILD_BADGE"
-            echo "Build artifact from build that produced the cache: $LATEST_ART_URL"
-          fi
-        }
-        fetchArtifactURL
-        downloadArtifact
-        node scripts/subst-release-version.js
-        cd release
-        npm pack;
-        shasum esy-$(node ../scripts/echo-version).tgz | tee SHA1.txt
-        shasum -a 512 esy-$(node ../scripts/echo-version).tgz | tee SHA512.txt
-      shell: bash
-    - uses: actions/upload-artifact@v2
-      with:
-        name: release
-        path: |
-          release/*.tgz
-          release/SHA1.txt
-          release/SHA512.txt
-
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: npm-release.tgz
 
