@@ -53,6 +53,7 @@ jobs:
           source-cache-key: 20240515-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
           bundle-npm-artifacts-mode: true
+          postinstall-js: .ci/release-postinstall.js
 
       - name: Create tarball
         run: tar cf npm-release.tgz ./_npm-release
