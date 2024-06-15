@@ -10,6 +10,25 @@ type installation = {
   pkg: Package.t,
 };
 
+/**
+
+   Removes the NPM scope from a package name.
+   When NPM packages are installed, binaries are copied
+   to the destination without their namespace. This causes
+   conflicts but is the expected behaviour.
+
+ */
+let skipNPMScope = pkgName => {
+  switch (String.split_on_char('/', pkgName)) {
+  | [] =>
+    failwith(
+      "Internal error: String.split_on_char returns a non-empty list usually, but it didn't for: "
+      ++ pkgName,
+    )
+  | x => List.nth(x, List.length(x) - 1)
+  };
+};
+
 module LinkBin: {
   /**
 
@@ -44,7 +63,8 @@ module LinkBin: {
             Path.pp,
             origPath,
           );
-        let path = Path.(destBinWrapperDir / name |> addExt(".cmd"));
+        let path =
+          Path.(destBinWrapperDir / skipNPMScope(name) |> addExt(".cmd"));
         (data, path);
       | _ =>
         let data =
@@ -56,7 +76,7 @@ module LinkBin: {
             origPath,
           );
 
-        let path = Path.(destBinWrapperDir / name);
+        let path = Path.(destBinWrapperDir / skipNPMScope(name));
         (data, path);
       };
 
