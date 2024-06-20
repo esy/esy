@@ -1,29 +1,34 @@
 #! /bin/sh
 
+print_usage () {
+    echo ""
+    echo "docker.sh"
+    echo "--help              Show this help message"
+    echo "--image             Set image name"
+    echo "--tag               Set image tag"
+    echo "--container-name    Set container name"
+    echo "--dev-path          Set the development path inside the container"
+    echo ""
+}
+
 del_container() {
     IMAGE="$1"
     TAG="$2"
     CONTAINER_NAME="$3"
     docker container stop "$CONTAINER_NAME" && docker container rm "$CONTAINER_NAME"
 }
-# TODO explain the differences and purpose of *-builder image.
-build_dev() {
-    IMAGE="$1"
-    TAG="$2"
-    docker build . -f ./dockerfiles/alpine.dev.Dockerfile -t "$IMAGE-builder:$TAG"
-}
 
 build() {
     IMAGE="$1"
     TAG="$2"
-    docker build . -f ./dockerfiles/alpine.dev.Dockerfile -t "$IMAGE-builder:$TAG"
-    docker build . -f ./dockerfiles/alpine.Dockerfile -t "$IMAGE:$TAG"
+    docker buildx build . -f ./dockerfiles/alpine.Dockerfile -t "$IMAGE:$TAG"
 }
 
 run_container() {
     IMAGE="$1"
     TAG="$2"
     CONTAINER_NAME="$3"
+    BUILD_CONTEXT="$4"
     docker container run --pull=never -itd --network=host --name "$CONTAINER_NAME" "$IMAGE:$TAG"
 }
 
@@ -33,7 +38,6 @@ run_container_dev() {
     CONTAINER_NAME="$3"
     DEV_PATH="$4"
     del_container "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME"
-    docker container run  --pull=never -itd --network=host --name "$CONTAINER_NAME" -v "$PWD:$DEV_PATH" "$IMAGE-builder:$TAG"
     docker exec -it -w "$DEV_PATH" "$CONTAINER_NAME" ./scripts/opam.sh install # Because the image doesn't contain opam dependencies installed. Only contains a switch
 }
 
@@ -55,33 +59,103 @@ IMAGE_NAME="esydev/esy"
 TAG="nightly-alpine-latest"
 CONTAINER_NAME="esy-container"
 DEV_PATH="/root/app"
+HOST_RELEASE_PATH="$PWD/_container_release"
+BUILD_CONTEXT="."
+SUB_COMMAND=""
 
-case "$1" in
-    "build")
+while test $# -ge 1
+do
+    case "$1" in
+	"-h*" | "--help")
+	    print_usage;
+	    exit 0 ;;
+	"--build-context")
+	    shift;
+	    BUILD_CONTEXT="$1"
+	    shift;
+	    ;;
+	"--image")
+	    shift;
+	    IMAGE_NAME="$1"
+	    shift;
+	    ;;
+	"--tag")
+	    shift
+	    TAG="$1"
+	    shift;
+	    ;;
+	"--container-name")
+	    shift;
+	    CONTAINER_NAME="$1"
+	    shift;
+	    ;;
+	"--host-release-path")
+	    shift;
+	    HOST_RELEASE_PATH="$1"
+	    shift;
+	    ;;
+	"--dev-path")
+	    shift;
+	    DEV_PATH="$1"
+	    shift;
+	    ;;
+	"build")
+	    SUB_COMMAND="docker-build"
+	    shift
+	    ;;
+	"run-container")
+	    SUB_COMMAND="docker-run-container"
+	    shift
+	    ;;
+	"run-container:dev")
+	    SUB_COMMAND="docker-run-container:dev"
+	    shift
+	    ;;
+	"cp")
+	    SUB_COMMAND="docker-cp"
+	    shift
+	    ;;
+	"exec")
+	    SUB_COMMAND="docker-exec"
+	    shift
+	    ;;
+	"del-container")
+	    SUB_COMMAND="docker-del-container"
+	    shift;
+	    ;;
+	*)
+	    echo "Unrecognised command/args $1"
+	    print_usage
+	    exit -1
+	    ;;
+    esac
+done
+
+case "$SUB_COMMAND" in
+    "docker-build")
 	build "$IMAGE_NAME" "$TAG"
 	;;
-    "build:dev")
-	build_dev "$IMAGE_NAME" "$TAG"
+    "docker-run-container")
+	run_container "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$BUILD_CONTEXT"
 	;;
-    "run-container")
-	run_container "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME"
-	;;
-    "run-container:dev")
+    "docker-run-container:dev")
 	run_container_dev "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$DEV_PATH"
 	;;
-    "cp")
-	HOST_RELEASE_PATH="$2"
-	if [ -z "$HOST_RELEASE_PATH" ]
-	then
-	    HOST_RELEASE_PATH="$PWD/_container_release"
-	fi
+    "docker-cp")
 	cp "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$DEV_PATH" "$HOST_RELEASE_PATH"
 	;;
-    "exec")
-	shift
+    "docker-exec")
 	docker exec -it -w "$DEV_PATH" "$CONTAINER_NAME"  $*
 	;;
-    "del-container")
+    "docker-del-container")
 	del_container "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME"
+	;;
+    "")
+	print_usage
+	exit -1;
+	;;
+    "*")
+	echo "Unrecognised command: $1"
+	exit -1
 	;;
 esac

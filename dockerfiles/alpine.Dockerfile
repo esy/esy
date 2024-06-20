@@ -1,4 +1,9 @@
-FROM esydev/esy-builder:nightly-alpine-latest as builder
+FROM alpine:latest as builder
+
+RUN apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils libbz2 zlib zlib-dev zlib-static autoconf automake bzip2-dev bzip2-static opam bash
+WORKDIR /app-builder
+COPY ./scripts/opam.sh /app-builder/opam.sh
+RUN /app-builder/opam.sh init
 
 WORKDIR /app
 COPY esy.opam /app
@@ -22,7 +27,6 @@ COPY ./bin /app/bin
 # It's possible to do without it, but will need an additional,
 # `esy i && esy b dune build @esy-version/all && cp _build/default/esy-version/EsyVersion.re esy-version/`
 # to generate and copy the EsyVersion.re file
-COPY .git /app/.git
 COPY ./esy-shell-expansion /app/esy-shell-expansion
 COPY ./esy-version /app/esy-version
 COPY ./esy-solve /app/esy-solve
