@@ -97,7 +97,9 @@ jobs:
   bundle:
     permissions:
       contents: write
-    needs: build
+    needs:
+      - build
+      - static-build
     runs-on: macos-latest
     steps:
       - uses: actions/setup-node@v4
