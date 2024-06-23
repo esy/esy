@@ -50,7 +50,10 @@ steps:
     condition: eq(variables['AGENT.OS'], 'Linux')
   - script: "esy npm-release"
     displayName: "Package esy for NPM"
-    condition: ne(variables['AGENT.OS'], 'Linux')
+    condition: eq(variables['AGENT.OS'], 'Darwin')
+  - script: "esy npm-release --no-env"
+    displayName: "Package esy for NPM"
+    condition: eq(variables['AGENT.OS'], 'Windows_NT')
   - task: PublishBuildArtifacts@1
     condition: eq(variables['AGENT.OS'], 'Linux')
     displayName: "Publish Artifact: Source Tarball"
