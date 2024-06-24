@@ -19,7 +19,7 @@
     },
     "release": {
       "rewritePrefix": false,
-      "includePackages": ["root", "esy-zlib"],
+      "includePackages": ["root"],
       "bin": ["esy"]
     },
     "buildsInSource": "_build"
