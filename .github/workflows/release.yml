@@ -20,6 +20,7 @@ jobs:
         with:
           fetch-depth: 1000
           fetch-tags: true
+          submodules: true
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
       - name: Install esy
@@ -47,6 +48,7 @@ jobs:
         with:
           fetch-depth: 1000
           fetch-tags: true
+          submodules: true
       # - name: Log in to Docker Hub
       #   uses: docker/login-action@v3
       #   with:
@@ -99,6 +101,7 @@ jobs:
         with:
           fetch-depth: 100
           fetch-tags: true
+          submodules: true
       - uses: esy/github-action@master
         with:
           source-cache-key: 20240515-1
