@@ -6,9 +6,9 @@ open RunAsync.Syntax;
 let getNPMChildren = (~solution, ~fetchDepsSubset, node) => {
   let f = (pkg: NodeModule.t) => {
     switch (NodeModule.version(pkg)) {
+    | Source(_)
     | Opam(_) => false
-    | Npm(_)
-    | Source(_) => true
+    | Npm(_) => true
     /*
         Allowing sources here would let us resolve to github urls for
         npm dependencies. Atleast in theory. TODO: test this
