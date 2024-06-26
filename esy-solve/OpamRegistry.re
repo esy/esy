@@ -158,7 +158,6 @@ let findPackagePath = ((name, version), registry) => {
 
 let resolve =
     (
-      ~ocamlVersion=?,
       ~name: OpamPackage.Name.t,
       ~version: OpamPackage.Version.t,
       registry: registry,
@@ -171,20 +170,15 @@ let resolve =
       let scope = OpamVariable.Full.scope(var);
       let name = OpamVariable.Full.variable(var);
       let v =
-        Option.Syntax.(
-          OpamVariable.(
-            switch (scope, OpamVariable.to_string(name)) {
-            | (OpamVariable.Full.Global, "preinstalled") =>
-              return(bool(false))
-            | (OpamVariable.Full.Global, "compiler")
-            | (OpamVariable.Full.Global, "ocaml-version") =>
-              let* ocamlVersion = ocamlVersion;
-              return(string(OpamPackage.Version.to_string(ocamlVersion)));
-            | (OpamVariable.Full.Global, _) => None
-            | (OpamVariable.Full.Self, _) => None
-            | (OpamVariable.Full.Package(_), _) => None
-            }
-          )
+        OpamVariable.(
+          switch (scope, OpamVariable.to_string(name)) {
+          | (OpamVariable.Full.Global, "preinstalled") => Some(bool(false))
+          | (OpamVariable.Full.Global, "compiler")
+          | (OpamVariable.Full.Global, "ocaml-version") => None
+          | (OpamVariable.Full.Global, _) => None
+          | (OpamVariable.Full.Self, _) => None
+          | (OpamVariable.Full.Package(_), _) => None
+          }
         );
       v;
     };
@@ -209,7 +203,7 @@ let isEnabledForEsy = name =>
   | _ => true
   };
 
-let versions = (~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
+let versions = (~name: OpamPackage.Name.t, registry) =>
   RunAsync.Syntax.(
     if (!isEnabledForEsy(name)) {
       return([]);
@@ -220,7 +214,7 @@ let versions = (~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
       | Some(index) =>
         let* resolutions = {
           let getPackageVersion = version =>
-            resolve(~ocamlVersion?, ~name, ~version, registry);
+            resolve(~name, ~version, registry);
 
           RunAsync.List.mapAndJoin(
             ~concurrency=2,
