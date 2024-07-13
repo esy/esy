@@ -27,16 +27,26 @@ jobs:
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
-      - name: Install esy
-        run: npm install -g esy
+      - name: Set ESY__PREFIX (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          echo "ESY__PREFIX=$env:USERPROFILE/.esy" >> "$env:GITHUB_ENV"
+      - name: Set ESY__PREFIX (Non-Windows)
+        if: ${{ runner.os != 'Windows' }}
+        shell: pwsh
+        run: |
+          echo "ESY__PREFIX=HOME/.esy" >> "$GITHUB_ENV"
       - uses: esy/github-action@master
         with:
-          source-cache-key: 20240515-1
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+          esy-prefix: ${{ env.ESY__PREFIX }}
+          source-cache-key: 20240713-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       - uses: esy/github-action@master
         id: prepare-npm-artifacts
         with:
-          source-cache-key: 20240515-1
+          esy-prefix: ${{ env.ESY__PREFIX }}
+          source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
           prepare-npm-artifacts-mode: true
 
@@ -88,10 +98,13 @@ jobs:
           ./scripts/docker.sh run-container --image localhost:5000/esydev/esy
           ./scripts/docker.sh cp --image localhost:5000/esydev/esy --host-release-path "_container_release"
         name: "Copy esy artifacts from /usr/local/ in the container"
-      - uses: actions/upload-artifact@v3
+      - run: |
+          tar czf npm-tarball.tgz _container_release
+          mv npm-tarball.tgz _container_release
+      - uses: actions/upload-artifact@v4
         with:
           name: esy-npm-release-linux-x64-static
-          path: _container_release
+          path: _container_release/
 
 
   bundle:
@@ -114,10 +127,11 @@ jobs:
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
       - uses: esy/github-action@master
         with:
-          source-cache-key: 20240515-1
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+          esy-prefix: ${{ env.ESY__PREFIX }}
+          source-cache-key: 20240713-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
           bundle-npm-artifacts-mode: true
-          postinstall-js: .ci/release-postinstall.js
+          postinstall-js: .ci/gha-release-postinstall.js
 
       - name: Create tarball
         run: tar cf npm-release.tgz ./_npm-release
