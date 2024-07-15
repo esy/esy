@@ -109,7 +109,7 @@ var copyPlatformBinaries = (platformPath) => {
     return packageJson.bin[name];
   });
 
-  if (platformPath === 'linux') {
+  if (platformPath === "platform-esy-npm-release-linux-x64-static") {
     fs.mkdirSync(path.join(__dirname, 'lib'));
     foldersToCopy = ['bin', 'lib'];
   } else {
