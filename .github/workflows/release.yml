@@ -43,6 +43,7 @@ jobs:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       - uses: esy/github-action@master
+        if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
         with:
           esy-prefix: ${{ env.ESY__PREFIX }}
