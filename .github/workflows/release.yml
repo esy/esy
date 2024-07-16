@@ -158,7 +158,6 @@ jobs:
           files: npm-release.tgz
 
       - name: Publish to NPM registry
-        working-directory: _npm-release
         if: github.ref == 'refs/heads/master'
         run: npm publish --tag=dev --access=public ./npm-release.tgz
         env:
