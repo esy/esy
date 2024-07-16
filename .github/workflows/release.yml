@@ -66,11 +66,11 @@ jobs:
           submodules: true
       - run: git fetch --tags
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
       - name: Set environment variable ESY_VERSION
@@ -106,6 +106,20 @@ jobs:
         with:
           name: esy-npm-release-linux-x64-static
           path: _container_release/
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_NO_SUMMARY: true # We disable this till the github action know to filter out `esy~esy~6ELZT5.dockerbuild`
+        with:
+          context: "."
+          file: ./dockerfiles/alpine.Dockerfile
+          load: true
+          push: true
+          tags: |
+            esydev/esy:nightly-alpine-latest
+            esydev/esy:nightly-alpine
+            esydev/esy:${{ steps.esy-version.outputs.ESY_VERSION }}
+
 
 
   bundle:
@@ -143,3 +157,9 @@ jobs:
         with:
           files: npm-release.tgz
 
+      - name: Publish to NPM registry
+        working-directory: _npm-release
+        if: github.ref == 'refs/heads/master'
+        run: npm publish --tag=dev --access=public ./npm-release.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
