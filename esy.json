@@ -1,6 +1,5 @@
 {
-  "name": "esy",
-  "version": "0.6.14",
+  "name": "@esy-nightly/esy",
   "description": "Package builder for esy.",
   "license": "BSD-2-Clause",
   "esy": {
