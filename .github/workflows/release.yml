@@ -31,6 +31,9 @@ jobs:
         with:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
+      # TODO
+      # - run: node .ci/validate-release-postinstall.js
+      #   name: "Validate release-postinstall.js"
       - uses: esy/github-action@master
         if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
