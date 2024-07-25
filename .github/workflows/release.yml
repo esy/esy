@@ -39,7 +39,7 @@ jobs:
         id: prepare-npm-artifacts
         with:
           source-cache-key: 20240713-1
-          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240515-1
+          cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
           prepare-npm-artifacts-mode: true
 
   static-build:
