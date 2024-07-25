@@ -1,5 +1,0 @@
-steps:
-  - task: NodeTool@0
-    displayName: 'Use Node 16.x'
-    inputs:
-      versionSpec: 16.x
