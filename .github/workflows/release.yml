@@ -27,14 +27,14 @@ jobs:
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
-      - uses: esy/github-action@master
+      - uses: esy/github-action@v2-beta.4
         with:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       # TODO
       # - run: node .ci/validate-release-postinstall.js
       #   name: "Validate release-postinstall.js"
-      - uses: esy/github-action@master
+      - uses: esy/github-action@v2-beta.4
         if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
         with:
@@ -131,7 +131,7 @@ jobs:
           submodules: true
       - run: git fetch --tags
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
-      - uses: esy/github-action@master
+      - uses: esy/github-action@v2-beta.4
         with:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
