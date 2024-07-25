@@ -1,3 +1,0 @@
-steps:
-    - script: powershell ./SetLongPathRegistry.ps1
-      displayName: SetLongPathRegistry.ps1
