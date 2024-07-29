@@ -34,6 +34,19 @@ jobs:
       # TODO
       # - run: node .ci/validate-release-postinstall.js
       #   name: "Validate release-postinstall.js"
+      - run: esy dune build @fmt
+        name: "Check code formatting"
+        if: ${{ runner.os == 'Darwin' }}
+      - run: esy dune runtest
+        name: "Dune runtest"
+        if: ${{ matrix.os != 'windows-latest' }}
+      - run: npm i
+        name: 'npm install for  test:e2e'
+      - run: esy b dune runtest
+        name: "Dune runtest"
+        if: ${{ matrix.os == 'windows-latest' }}
+      - run: 'node ./node_modules/jest-cli/bin/jest.js'
+        name: 'test:e2e'
       - uses: esy/github-action@v2-beta.6
         if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
