@@ -9,7 +9,6 @@ type t;
 let make:
   (~cfg: Config.t, ~sandbox: EsyFetch.SandboxSpec.t, unit) => RunAsync.t(t);
 
-let setOCamlVersion: (Version.t, t) => unit;
 let setResolutions: (Resolutions.t, t) => unit;
 let getUnusedResolutions: t => list(string);
 

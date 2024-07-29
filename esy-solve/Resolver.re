@@ -35,36 +35,6 @@ let ensureOpamName = name =>
     }
   );
 
-let toOpamOcamlVersion = version =>
-  switch (version) {
-  | Some(Version.Npm({major, minor, patch, _})) =>
-    let minor =
-      if (minor < 10) {
-        "0" ++ string_of_int(minor);
-      } else {
-        string_of_int(minor);
-      };
-
-    let patch =
-      if (patch < 1000) {
-        patch;
-      } else {
-        patch / 1000;
-      };
-
-    let v = Printf.sprintf("%i.%s.%i", major, minor, patch);
-    let v =
-      switch (OpamPackageVersion.Version.parse(v)) {
-      | Ok(v) => v
-      | Error(msg) => failwith(msg)
-      };
-
-    Some(v);
-  | Some(Version.Opam(v)) => Some(v)
-  | Some(Version.Source(_)) => None
-  | None => None
-  };
-
 type t = {
   cfg: Config.t,
   sandbox: EsyFetch.SandboxSpec.t,
@@ -72,7 +42,6 @@ type t = {
   srcCache: SourceCache.t,
   opamRegistries: list(OpamRegistry.t),
   npmRegistry: NpmRegistry.t,
-  mutable ocamlVersion: option(Version.t),
   mutable resolutions: Resolutions.t,
   resolutionCache: ResolutionCache.t,
   resolutionUsage: Hashtbl.t(Resolution.t, bool),
@@ -123,7 +92,6 @@ let make = (~cfg, ~sandbox, ()) =>
     srcCache: SourceCache.make(),
     opamRegistries: OpamRegistries.make(~cfg, ()),
     npmRegistry: NpmRegistry.make(~url=cfg.Config.npmRegistry, ()),
-    ocamlVersion: None,
     resolutions: Resolutions.empty,
     resolutionCache: ResolutionCache.make(),
     resolutionUsage: Hashtbl.create(10),
@@ -131,9 +99,6 @@ let make = (~cfg, ~sandbox, ()) =>
     sourceSpecToSource: Hashtbl.create(500),
     sourceToSource: Hashtbl.create(500),
   });
-
-let setOCamlVersion = (ocamlVersion, resolver) =>
-  resolver.ocamlVersion = Some(ocamlVersion);
 
 let setResolutions = (resolutions, resolver) =>
   resolver.resolutions = resolutions;
@@ -747,13 +712,7 @@ let resolve' =
               );
             let* versions = {
               let* name = RunAsync.ofRun(requireOpamName(name));
-              let* f =
-                RunAsync.return(
-                  OpamRegistry.versions(
-                    ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
-                    ~name,
-                  ),
-                );
+              let* f = RunAsync.return(OpamRegistry.versions(~name));
               List.fold_left(
                 ~f=
                   (versions, opamRegistry) => {

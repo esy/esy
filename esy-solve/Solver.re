@@ -957,54 +957,6 @@ let solveDependenciesNaively =
   return(sealDependencies());
 };
 
-let solveOCamlReq = (~gitUsername, ~gitPassword, req: Req.t, resolver) => {
-  open RunAsync.Syntax;
-
-  let make = resolution => {
-    let%lwt () =
-      Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let* pkg =
-      Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver);
-    let* pkg = RunAsync.ofStringError(pkg);
-    return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
-  };
-
-  switch (req.spec) {
-  | VersionSpec.Npm(_)
-  | VersionSpec.NpmDistTag(_) =>
-    let* resolutions =
-      Resolver.resolve(
-        ~gitUsername,
-        ~gitPassword,
-        ~name=req.name,
-        ~spec=req.spec,
-        resolver,
-      );
-    switch (findResolutionForRequest(resolver, req, resolutions)) {
-    | Some(resolution) => make(resolution)
-    | None =>
-      let%lwt () =
-        Esy_logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
-      return((None, None));
-    };
-  | VersionSpec.Opam(_) =>
-    error("ocaml version should be either an npm version or source")
-  | VersionSpec.Source(_) =>
-    switch%bind (
-      Resolver.resolve(
-        ~gitUsername,
-        ~gitPassword,
-        ~name=req.name,
-        ~spec=req.spec,
-        resolver,
-      )
-    ) {
-    | [resolution] => make(resolution)
-    | _ => errorf("multiple resolutions for %a, expected one", Req.pp, req)
-    }
-  };
-};
-
 let solve =
     (
       ~gitUsername,
@@ -1023,73 +975,7 @@ let solve =
 
   let* solver = make(solvespec, sandbox);
 
-  let* (dependencies, ocamlVersion) = {
-    let* rootDependencies =
-      RunAsync.ofRun(evalDependencies(solver, sandbox.root));
-
-    let ocamlReq =
-      switch (rootDependencies) {
-      | InstallManifest.Dependencies.OpamFormula(_) => None
-      | InstallManifest.Dependencies.NpmFormula(reqs) =>
-        NpmFormula.find(~name="ocaml", reqs)
-      };
-
-    switch (ocamlReq) {
-    | None => return((rootDependencies, None))
-    | Some(ocamlReq) =>
-      let* (ocamlVersionOrig, ocamlVersion) =
-        RunAsync.contextf(
-          solveOCamlReq(
-            ~gitUsername,
-            ~gitPassword,
-            ocamlReq,
-            sandbox.resolver,
-          ),
-          "resolving %a",
-          Req.pp,
-          ocamlReq,
-        );
-
-      let* dependencies =
-        switch (ocamlVersion, rootDependencies) {
-        | (
-            Some(ocamlVersion),
-            InstallManifest.Dependencies.NpmFormula(reqs),
-          ) =>
-          let ocamlSpec = VersionSpec.ofVersion(ocamlVersion);
-          let ocamlReq = Req.make(~name="ocaml", ~spec=ocamlSpec);
-          let reqs = NpmFormula.override(reqs, [ocamlReq]);
-          return(InstallManifest.Dependencies.NpmFormula(reqs));
-        | (
-            Some(ocamlVersion),
-            InstallManifest.Dependencies.OpamFormula(deps),
-          ) =>
-          let req =
-            switch (ocamlVersion) {
-            | Version.Npm(v) =>
-              InstallManifest.Dep.Npm(SemverVersion.Constraint.EQ(v))
-            | Version.Source(src) =>
-              InstallManifest.Dep.Source(SourceSpec.ofSource(src))
-            | Version.Opam(v) =>
-              InstallManifest.Dep.Opam(OpamPackageVersion.Constraint.EQ(v))
-            };
-
-          let ocamlDep = {InstallManifest.Dep.name: "ocaml", req};
-          return(
-            InstallManifest.Dependencies.OpamFormula(deps @ [[ocamlDep]]),
-          );
-        | (None, deps) => return(deps)
-        };
-
-      return((dependencies, ocamlVersionOrig));
-    };
-  };
-
-  let () =
-    switch (ocamlVersion) {
-    | Some(version) => Resolver.setOCamlVersion(version, sandbox.resolver)
-    | None => ()
-    };
+  let* dependencies = RunAsync.ofRun(evalDependencies(solver, sandbox.root));
 
   let* (solver, dependencies) = {
     let* (solver, dependencies) =
