@@ -91,12 +91,13 @@ module Mock: {module Fs: Run.T;} = {
       switch (fileDescriptor) {
       | InputFile(pathStr) =>
         switch (pathStr) {
+        | "\\a\\binary"
         | "/a/binary" => Bytes.set_int32_ne(buffer, 0, 0xfeedfacfl)
         | "file"
         | "file1"
         | "file2"
         | "file3" => Bytes.set_int32_ne(buffer, 0, 0xffffffffl)
-        | _ => failwith("Not a file")
+        | _ => failwith("Not a file: " ++ pathStr)
         }
       };
     };

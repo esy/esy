@@ -27,14 +27,27 @@ jobs:
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
-      - uses: esy/github-action@v2-beta.6
+      - uses: esy/github-action@v2-beta.8
         with:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       # TODO
       # - run: node .ci/validate-release-postinstall.js
       #   name: "Validate release-postinstall.js"
-      - uses: esy/github-action@v2-beta.6
+      - run: esy dune build @fmt
+        name: "Check code formatting"
+        if: ${{ runner.os == 'Darwin' }}
+      - run: esy dune runtest
+        name: "Dune runtest"
+        if: ${{ matrix.os != 'windows-latest' }}
+      - run: npm i
+        name: 'npm install for  test:e2e'
+      - run: esy b dune runtest
+        name: "Dune runtest"
+        if: ${{ matrix.os == 'windows-latest' }}
+      - run: 'node ./node_modules/jest-cli/bin/jest.js'
+        name: 'test:e2e'
+      - uses: esy/github-action@v2-beta.8
         if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
         with:
@@ -131,7 +144,7 @@ jobs:
           submodules: true
       - run: git fetch --tags
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
-      - uses: esy/github-action@v2-beta.6
+      - uses: esy/github-action@v2-beta.8
         with:
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
