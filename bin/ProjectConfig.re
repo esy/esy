@@ -379,7 +379,7 @@ let esyOpamOverrideRemoteArg = {
 };
 
 let globalPathVariableArg = {
-  let doc = "Specifies the shell environment variable to use as $PATH to look for global utils in the build env.";
+  let doc = "Specifies the shell environment variable to use as PATH to look for global utils in the build env.";
   let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
   Arg.(
     value
