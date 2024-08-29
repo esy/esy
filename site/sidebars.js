@@ -9,6 +9,7 @@ const sidebars = {
       'getting-started',
       'using-repo-sources-workflow',
       'linking-workflow',
+      'ocaml-compiler'
     ],
     reference: [
       'concepts',
@@ -27,6 +28,7 @@ const sidebars = {
       'opam-workflow',
       'c-workflow',
       'offline',
+      'esy-installer'
     ],
     contributing: [
       'contributing/how-it-works',

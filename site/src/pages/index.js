@@ -36,7 +36,7 @@ function Homepage() {
   return (
     <main className={clsx('container', styles.heroBanner)}>
       <section className="row">
-        <section className={clsx('col col--6', styles.title)}>
+        <section className={clsx('col', styles.title)}>
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
           <Link
@@ -45,9 +45,6 @@ function Homepage() {
           >
             Get Started
           </Link>
-        </section>
-        <section className="padding--lg col col--6">
-          <TerminalController lines={quickStart.split('\n')} />
         </section>
       </section>
     </main>

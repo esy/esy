@@ -100,11 +100,37 @@ The `Makefile` will contain a call to `pkg-config` to generate command line
 options for C compiler needed to compile against a library `dep` and link it to
 the final executable:
 
-    build:
-      cc $(shell pkg-config --cflags --libs dep) \
+```makefile
+build:
+	cc $(shell pkg-config --cflags --libs dep) \
          -o $(cur__target_dir)/main main.c
+```
+
+## buildsInSource: "unsafe"
+
+C libraries that use the GNU make as their build system often "build
+in source" - ie artifacts are created alongside the source
+files. `esy`'s `buildsInSource: true` configuration is aimed at building
+such libraries for the esy store - not written with incremental
+development in mind.
+
+This is why, when using `buildsInSource: true` with C libraries can
+lead to long build times - as esy first copies it to build directory
+and then generates the build artifacts alongside the source tree. This
+is perfect for esy store, but slow for incremental development. This
+is particularly noticed, when for instance, one tries to use `esy` to
+build Janestreet's [`flambda-backend`][].
+
+For incremental development, use `buildsInSource: "unsafe"`.
+
+In this mode, `esy` creates artifacts in the source tree as the
+project's build system expects, without the copy step. The
+subsequent build command will see the previous run's artifacts and not
+rebuild them unnecessarily. `buildsInSource: true` would have deleted
+the previous run and copied it again to build the package from scratch.
 
 This is the entire workflow needed to work with C/C++ code with esy.
 
 [pkg-config]: https://www.freedesktop.org/wiki/Software/pkg-config/
 [esy-packages/pkg-config]: https://github.com/esy-packages/pkg-config
+[flamda-backend]: https://github.com/DiningPhilosophersCo/flambda-backend

@@ -30,3 +30,8 @@
     /* height: 760px; */
   }
 }
+@media screen and (min-width: 996px) {
+    .heroBanner {
+	transform: translateY(-25%);
+    }
+}
