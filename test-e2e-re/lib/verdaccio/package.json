@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "kleur": "^3.0.3",
-    "verdaccio": "^5.31.1"
+    "verdaccio": "^5.32.2"
   }
 }
