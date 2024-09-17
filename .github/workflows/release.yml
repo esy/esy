@@ -29,6 +29,8 @@ jobs:
         name: "Generate EsyVersion.re"
       - uses: esy/github-action@v2-beta.8
         with:
+          setup-esy-npm-package: "esy"
+          setup-esy-version: "beta"
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       # TODO
