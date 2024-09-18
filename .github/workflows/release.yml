@@ -29,6 +29,8 @@ jobs:
         name: "Generate EsyVersion.re"
       - uses: esy/github-action@v2-beta.8
         with:
+          setup-esy-npm-package: "esy"
+          setup-esy-version: "beta"
           source-cache-key: 20240713-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20240713-1
       # TODO
@@ -42,9 +44,9 @@ jobs:
         if: ${{ matrix.os != 'windows-latest' }}
       - run: npm i
         name: 'npm install for  test:e2e'
-      # - run: esy b dune runtest
-      #   name: "Dune runtest"
-      #   if: ${{ matrix.os == 'windows-latest' }}
+      - run: esy b dune runtest
+        name: "Dune runtest"
+        if: ${{ matrix.os == 'windows-latest' }}
       - run: 'node ./node_modules/jest-cli/bin/jest.js'
         name: 'test:e2e'
       - uses: esy/github-action@v2-beta.8
