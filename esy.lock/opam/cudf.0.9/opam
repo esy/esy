@@ -27,5 +27,8 @@ describing upgrade scenarios in package-based Free and Open Source
 Software distribution."""
 url {
   src: "https://gitlab.com/irill/cudf/-/archive/v0.9/cudf-v0.9.tar.gz"
-  checksum: "md5=04f49e3227dc78a21fe32c3beab8c56e"
+  checksum: [
+    "sha256=72dc7b9f377963478699291c1243131a387c10dd2f0ade8967c7a0b9586825b6"
+    "md5=04f49e3227dc78a21fe32c3beab8c56e"
+  ]
 }

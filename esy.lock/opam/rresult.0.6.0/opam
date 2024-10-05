@@ -30,6 +30,9 @@ Rresult depends on the compatibility `result` package and is
 distributed under the ISC license.
 """
 url {
-archive: "http://erratique.ch/software/rresult/releases/rresult-0.6.0.tbz"
-checksum: "aba88cffa29081714468c2c7bcdf7fb1"
+  src: "http://erratique.ch/software/rresult/releases/rresult-0.6.0.tbz"
+  checksum: [
+    "sha256=0645f65eae8f34e33b27a13da660e70b3814d099fb4b0e3513eeccbcdf50c9cc"
+    "md5=aba88cffa29081714468c2c7bcdf7fb1"
+  ]
 }
