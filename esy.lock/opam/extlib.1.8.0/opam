@@ -1,0 +1,48 @@
+opam-version: "2.0"
+synopsis: "A complete yet small extension for OCaml standard library"
+description: """\
+The purpose of this library is to add new functions to OCaml standard library
+modules, to modify some functions in order to get better performances or
+safety (tail-recursive) and also to provide new modules which should be useful
+for day to day programming.
+
+Current goal is to maintain compatibility, new software is encouraged to not use extlib since stdlib
+is now seeing many additions and improvements which make many parts of extlib obsolete.
+For tail-recursion safety consider using other libraries e.g. containers."""
+maintainer: "ygrek@autistici.org"
+authors: [
+  "Nicolas Cannasse"
+  "Brian Hurt"
+  "Yamagata Yoriyuki"
+  "Markus Mottl"
+  "Jesse Guardiani"
+  "John Skaller"
+  "Bardur Arantsson"
+  "Janne Hellsten"
+  "Richard W.M. Jones"
+  "ygrek"
+  "Gabriel Scherer"
+  "Pietro Abate"
+]
+license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+homepage: "https://github.com/ygrek/ocaml-extlib"
+doc: "https://ygrek.org/p/extlib/doc/"
+bug-reports: "https://github.com/ygrek/ocaml-extlib/issues"
+depends: [
+  "dune" {>= "1.0"}
+  "ocaml" {>= "4.02"}
+  "cppo" {build & >= "1.0.1"}
+]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+]
+dev-repo: "git+https://github.com/ygrek/ocaml-extlib.git"
+url {
+  src:
+    "https://github.com/ygrek/ocaml-extlib/releases/download/1.8.0/extlib-1.8.0.tar.gz"
+  checksum: [
+    "md5=43fb3bf2989671af1769147b1171d080"
+    "sha512=dedd2bb4a63f2df9e451dbe6aede18d873489a8675f48ded09131f2af4d00dbeaecc8750039b2e4facb9f5f9b1b01c6b7accd392bf8ac5a3f2c801562ce5c4ee"
+  ]
+}

@@ -70,7 +70,7 @@
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
     "@opam/cudf": "0.9",
-    "@opam/dose3": "6.1",
+    "@opam/dose3": "*",
     "@opam/dune": "3.6.2",
     "@opam/fpath": "*",
     "@opam/lwt": "*",
@@ -95,6 +95,7 @@
   "devDependencies": {
     "@reason-native/rely": "*",
     "@opam/ocaml-lsp-server": "1.17.0",
+    "@opam/merlin": "*",
     "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
   }
