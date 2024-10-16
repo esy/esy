@@ -209,4 +209,4 @@ async function read(directory: string, sandbox?: string = 'default'): Promise<?P
   return make(solution.root);
 }
 
-module.exports = {crawl, read};
+module.exports = {crawl, read, readSolution};
