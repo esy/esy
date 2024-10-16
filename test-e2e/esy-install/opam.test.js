@@ -44,7 +44,7 @@ async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, 
     }
 }
 
-describe('opam "available" filter tests', () => {
+describe('opam available filter tests', () => {
 
     it('ensure available field is present in the lock file', async () => {
         const p = await helpers.createTestSandbox();
@@ -65,11 +65,11 @@ describe('opam "available" filter tests', () => {
         });
 
         await defineOpamPackageOfFixture(p, 'pkg1', '1.0.0', 'hello');
+        await p.esy('install');
+      const solution = await helpers.readSolution(p.projectPath);
 
-        await p.esy('solve');
+      expect(JSON.stringify(solution, null, 2)).toEqual('__hello__');
 
-
-      expect(helpers.readSolution(p.rootPath).toEqual('__hello__');
 
     });
 });
