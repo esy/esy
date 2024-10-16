@@ -44,6 +44,36 @@ async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, 
     }
 }
 
+describe('opam available filter tests', () => {
+
+    it('ensure available field is present in the lock file', async () => {
+        const p = await helpers.createTestSandbox();
+
+        await p.fixture(
+            helpers.packageJson({
+                name: 'root',
+                dependencies: {
+                    '@opam/pkg1': '*',
+                }
+            }),
+        );
+
+        await p.defineNpmPackage({
+            name: '@esy-ocaml/substs',
+            version: '0.0.0',
+            esy: {},
+        });
+
+        await defineOpamPackageOfFixture(p, 'pkg1', '1.0.0', 'hello');
+        await p.esy('install');
+      const solution = await helpers.readSolution(p.projectPath);
+
+      expect(JSON.stringify(solution, null, 2)).toEqual('__hello__');
+
+
+    });
+});
+
 describe('installing opam dependencies from multiple registries', () => {
 
     it('fetch & builds opam dependencies from primary opam repo', async () => {
