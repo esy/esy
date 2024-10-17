@@ -21,7 +21,8 @@
         "url": "https://esy.sh"
       },
       "repositoryUrl": {
-        "url": "https://github.com/esy/esy"
+        "url": "https://github.com/esy/esy",
+        "wellKnown": "https://github.com/esy/esy/blob/master/.well-known/funding-manifest-urls"
       },
       "licenses": ["spdx:BSD-2-Clause"],
       "tags": [
