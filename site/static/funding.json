@@ -1,0 +1,82 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "organisation",
+    "role": "maintainer",
+    "name": "Dining Philosophers, LLP",
+    "email": "manas@dining-philosophers.in",
+    "phone": "",
+    "description": "Software development company focussed on open source development",
+    "webpageUrl": {
+      "url": "https://dining-philosophers.in/",
+      "wellKnown": "https://dining-philosophers.in/.well-known/funding-manifest-urls"
+    }
+  },
+  "projects": [
+    {
+      "guid": "esy",
+      "name": "esy",
+      "description": "Package manager for Reason and OCaml projects",
+      "webpageUrl": {
+        "url": "https://esy.sh"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/esy/esy"
+      },
+      "licenses": ["spdx:BSD-2-Clause"],
+      "tags": [
+        "reason",
+        "reasonml",
+        "ocaml",
+        "c",
+        "javascript",
+        "developer-tools",
+        "programming"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "github",
+        "type": "other",
+        "address": "https://github.com/sponsors/DiningPhilosophersCo",
+        "description": "Github Sponsors Page"
+      }
+    ],
+
+    "plans": [
+      {
+        "guid": "dp-open-source-support",
+        "status": "active",
+        "name": "Open Source Tech Support",
+        "description": "We'll join your company chat app for help and support for using our open source products",
+        "amount": 1000,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github"]
+      },
+      {
+        "guid": "dp-open-source-consulting",
+        "status": "active",
+        "name": "Open Source Design and Consulting",
+        "description": "We'll offer consultaning services using our open source projects",
+        "amount": 2000,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github"]
+      },
+      {
+        "guid": "dp-dev-team",
+        "status": "active",
+        "name": "Open source development",
+        "description": "We'll build solutions using open source solutions, taking up upto 100 working hours per month",
+        "amount": 5000,
+        "currency": "USD",
+        "frequency": "monthly",
+        "channels": ["github"]
+      }
+    ],
+    "history": []
+  }
+}
