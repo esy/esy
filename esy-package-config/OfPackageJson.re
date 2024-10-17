@@ -183,6 +183,7 @@ module InstallManifestV1 = {
           },
         installConfig: pkgJson.installConfig,
         extraSources: [],
+        available: None,
       },
       warnings,
     ));
