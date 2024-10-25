@@ -3,7 +3,10 @@
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
 
-async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, executableName, registryIndex) {
+async function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, executableName, registryIndex, available) {
+    const availableV = available ? available : `"true"`;
     if (registryIndex !== undefined) {
         await sandbox.defineOpamPackageOfFixtureInSecondaryRegistry(
             registryIndex,
@@ -12,6 +15,7 @@ async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, 
                 version: packageVersion,
                 opam: outdent`
           opam-version: "2.0"
+          available: ${availableV}
           build: [
             ${helpers.buildCommandInOpam(`${executableName}.js`)}
             ["cp" "${executableName}.cmd" "%{bin}%/${executableName}.cmd"]
@@ -30,6 +34,7 @@ async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, 
                 version: packageVersion,
                 opam: outdent`
               opam-version: "2.0"
+              available: ${availableV}
               build: [
                 ${helpers.buildCommandInOpam(`${executableName}.js`)}
                 ["cp" "${executableName}.cmd" "%{bin}%/${executableName}.cmd"]
@@ -46,17 +51,8 @@ async function defineOpamPackageOfFixture(sandbox, packageName, packageVersion, 
 
 describe('opam available filter tests', () => {
 
-    it('ensure available field is present in the lock file', async () => {
+    it('ensure os available filters are respected', async () => {
         const p = await helpers.createTestSandbox();
-
-        await p.fixture(
-            helpers.packageJson({
-                name: 'root',
-                dependencies: {
-                    '@opam/pkg1': '*',
-                }
-            }),
-        );
 
         await p.defineNpmPackage({
             name: '@esy-ocaml/substs',
@@ -64,13 +60,54 @@ describe('opam available filter tests', () => {
             esy: {},
         });
 
-        await defineOpamPackageOfFixture(p, 'pkg1', '1.0.0', 'hello');
-        await p.esy('install');
-      const solution = await helpers.readSolution(p.projectPath);
+	await defineOpamPackageOfFixture(p, 'pkg1', '1.0.0', 'pkg1', undefined, `os = "macos"`);
+	await defineOpamPackageOfFixture(p, 'pkg2', '1.0.0', 'pkg2', undefined, `os = "win32"`);
+	await defineOpamPackageOfFixture(p, 'pkg3', '1.0.0', 'pkg3', undefined, `os = "linux"`);
+      
+        await p.fixture(
+            helpers.packageJson({
+                name: 'root',
+                dependencies: {
+                    '@opam/pkg1': '*',
+                    '@opam/pkg2': '*',
+                    '@opam/pkg3': '*',
+                }
+            }),
+        );
 
-      expect(JSON.stringify(solution, null, 2)).toEqual('__hello__');
 
 
+	await p.esy();
+
+	// const solution = await helpers.readSolution(p.projectPath);
+	// expect(JSON.stringify(solution, null, 2)).toEqual(''); // Just a wait to print lock file
+
+	if (process.platform === 'darwin') {
+	    {
+		const { stdout } = await p.esy('x pkg1.cmd');
+		expect(stdout.trim()).toEqual('__pkg1__');
+	    }
+	    await expect(p.esy('x pkg2.cmd')).rejects.toThrow();
+	    await expect(p.esy('x pkg3.cmd')).rejects.toThrow();
+	}
+
+	if (process.platform === 'linux') {
+	    {
+		const { stdout } = await p.esy('x pkg3.cmd');
+		expect(stdout.trim()).toEqual('__pkg3__');
+	    }
+	    await expect(p.esy('x pkg1.cmd')).rejects.toThrow();
+	    await expect(p.esy('x pkg2.cmd')).rejects.toThrow();
+	}
+
+	if (process.platform === 'win32') {
+	    {
+		const { stdout } = await p.esy('x pkg2.cmd');
+		expect(stdout.trim()).toEqual('__pkg2__');
+	    }
+	    await expect(p.esy('x pkg1.cmd')).rejects.toThrow();
+	    await expect(p.esy('x pkg3.cmd')).rejects.toThrow();
+	}
     });
 });
 
