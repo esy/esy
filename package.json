@@ -4,6 +4,9 @@
   "optionalDependencies": {
     "@prometheansacrifice/esy-bash": "0.1.0-dev-f2e419601a34c3ce53cbe1f025f490276b9e879f"
   },
+  "scripts": {
+    "test": "jest test-e2e"
+  },
   "devDependencies": {
     "esy-solve-cudf": "^0.1.10",
     "is-ci": "^1.2.1",
