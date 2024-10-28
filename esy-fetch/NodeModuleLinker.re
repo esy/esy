@@ -1,24 +1,5 @@
 open RunAsync.Syntax;
 
-/**
-   Makes sure we dont link opam packages in node_modules
- */
-let getNPMChildren = (~solution, ~fetchDepsSubset, node) => {
-  let f = (pkg: NodeModule.t) => {
-    switch (NodeModule.version(pkg)) {
-    | Source(_)
-    | Opam(_) => false
-    | Npm(_) => true
-    /*
-        Allowing sources here would let us resolve to github urls for
-        npm dependencies. Atleast in theory. TODO: test this
-     */
-    };
-  };
-  Solution.dependenciesBySpec(solution, fetchDepsSubset, node)
-  |> List.filter(~f);
-};
-
 let installPkg = (~installation, ~nodeModulesPath, pkg) => {
   let* () =
     RunAsync.ofLwt @@
@@ -134,7 +115,7 @@ let link =
   let destBinWrapperDir /* local sandbox bin dir */ =
     SandboxSpec.binPath(sandbox.Sandbox.spec);
   let taskQueue = RunAsync.createQueue(40);
-  let traverse = getNPMChildren(~fetchDepsSubset, ~solution);
+  let traverse = JsUtils.getNPMChildren(~fetchDepsSubset, ~solution);
   let f = (promises, hoistedGraphNode) => {
     let nodeModulesPath =
       nodeModulesPathFromParent(

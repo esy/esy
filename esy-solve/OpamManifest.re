@@ -380,7 +380,16 @@ let convertDependencies = manifest => {
          {ExtraSource.url, relativePath, checksum};
        });
 
-  return((dependencies, devDependencies, optDependencies, extraSources));
+  let available =
+    manifest.opam |> OpamFile.OPAM.available |> OpamFilter.to_string;
+
+  return((
+    dependencies,
+    devDependencies,
+    optDependencies,
+    extraSources,
+    available,
+  ));
 };
 
 let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
@@ -389,7 +398,13 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
   let converted = {
     open Result.Syntax;
     let* source = convertOpamUrl(manifest);
-    let* (dependencies, devDependencies, optDependencies, extraSources) =
+    let* (
+      dependencies,
+      devDependencies,
+      optDependencies,
+      extraSources,
+      available,
+    ) =
       convertDependencies(manifest);
     return((
       source,
@@ -397,6 +412,7 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
       devDependencies,
       optDependencies,
       extraSources,
+      available,
     ));
   };
 
@@ -408,6 +424,7 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
       devDependencies,
       optDependencies,
       extraSources,
+      available,
     )) =>
     let opam =
       switch (manifest.opamRepositoryPath) {
@@ -446,6 +463,7 @@ let toInstallManifest = (~source=?, ~name, ~version, manifest) => {
         resolutions: Resolutions.empty,
         installConfig: InstallConfig.empty,
         extraSources,
+        available: Some(available),
       }),
     );
   };

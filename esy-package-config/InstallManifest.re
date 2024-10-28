@@ -150,6 +150,7 @@ type t = {
   kind,
   installConfig: InstallConfig.t,
   extraSources: list(ExtraSource.t),
+  available: option(string),
 }
 and kind =
   | Esy

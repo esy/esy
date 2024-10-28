@@ -33,7 +33,13 @@ type overrides = list(override);
 /* This is checksum of all dependencies/resolutios, used as a checksum. */
 /* Id of the root package. */
 /* Map from ids to nodes. */
-[@deriving yojson]
+[@deriving
+  yojson(
+    {
+      strict : false
+    },
+  )
+]
 type t = {
   [@key "checksum"]
   digest: string,
@@ -52,6 +58,7 @@ and node = {
   installConfig: InstallConfig.t,
   [@default []]
   extraSources: list(ExtraSource.t),
+  available: [@default None] option(string),
 };
 
 let indexFilename = "index.json";
@@ -231,6 +238,7 @@ let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
     devDependencies: pkg.devDependencies,
     installConfig: pkg.installConfig,
     extraSources: pkg.extraSources,
+    available: pkg.available,
   });
 };
 
@@ -258,6 +266,7 @@ let readPackage = (sandbox, node: node) => {
     devDependencies: node.devDependencies,
     installConfig: node.installConfig,
     extraSources: node.extraSources,
+    available: node.available,
   });
 };
 

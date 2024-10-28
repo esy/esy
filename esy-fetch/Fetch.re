@@ -1,5 +1,6 @@
 module Override = Override;
 module Overrides = Overrides;
+
 let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
   let root = Solution.root(solution);
 
@@ -14,7 +15,8 @@ let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
     }
   and collectDependencies = ((seen, topo), pkg) => {
     let dependencies =
-      Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg);
+      Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg)
+      |> List.filter(~f=OpamAvailable.eval);
     List.fold_left(~f=collect, ~init=(seen, topo), dependencies);
   };
 

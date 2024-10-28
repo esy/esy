@@ -160,6 +160,18 @@ module InstallManifestV1 = {
       };
 
     let warnings = [];
+
+    /********************************************************************/
+    /* ----                                                             */
+    /* TODO                                                             */
+    /* ----                                                             */
+    /*                                                                  */
+    /* Parse NPM's `cpu` (for cpu architecture) and `os` and persist it */
+    /* in the lock file.                                                */
+    /*                                                                  */
+    /********************************************************************/
+
+    let available = None;
     return((
       {
         InstallManifest.name,
@@ -183,6 +195,7 @@ module InstallManifestV1 = {
           },
         installConfig: pkgJson.installConfig,
         extraSources: [],
+        available,
       },
       warnings,
     ));
