@@ -466,6 +466,7 @@ let installPackages =
     (~solution, ~fetchDepsSubset, ~sandbox, ~installation, ~fetchedKindMap) => {
   let (report, finish) = Cli.createProgressReporter(~name="installing", ());
   let queue = LwtTaskQueue.create(~concurrency=40, ()); /* TODO use fetchConcurrency from cli */
+  let root = Solution.root(solution);
 
   let tasks = Memoize.make();
 
@@ -473,7 +474,8 @@ let installPackages =
     let* dependencies =
       RunAsync.List.mapAndJoin(
         ~f=visit(seen),
-        Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg),
+        Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg)
+        |> List.filter(~f=OpamAvailable.eval),
       );
 
     let%lwt () = report("%a", PackageId.pp, pkg.Package.id);
@@ -500,16 +502,16 @@ let installPackages =
     };
   };
 
-  let root = Solution.root(solution);
   let* rootDependencies =
     RunAsync.List.mapAndJoin(
       ~f=visit(PackageId.Set.empty),
-      Solution.dependenciesBySpec(solution, fetchDepsSubset, root),
+      Solution.dependenciesBySpec(solution, fetchDepsSubset, root)
+      |> List.filter(~f=OpamAvailable.eval),
     );
 
   let* () = {
     let destBinWrapperDir /* local sandbox bin dir */ =
-      SandboxSpec.binPath(sandbox.spec);
+      SandboxSpec.binPath(sandbox.Sandbox.spec);
     let* () = Fs.createDir(destBinWrapperDir);
 
     let* _ = {

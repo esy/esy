@@ -1,5 +1,6 @@
 module Override = Override;
 module Overrides = Overrides;
+
 let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
   let root = Solution.root(solution);
 
@@ -14,7 +15,8 @@ let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
     }
   and collectDependencies = ((seen, topo), pkg) => {
     let dependencies =
-      Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg);
+      Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg)
+      |> List.filter(~f=OpamAvailable.eval);
     List.fold_left(~f=collect, ~init=(seen, topo), dependencies);
   };
 
@@ -96,12 +98,8 @@ let maybeInstallationOfSolution =
   };
 };
 
-let fetchPackages =
-    (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
+let fetchPackages = (sandbox, pkgs, gitUsername, gitPassword) => {
   open RunAsync.Syntax;
-
-  /* Collect packages which from the solution */
-  let (pkgs, _root) = collectPackagesOfSolution(fetchDepsSubset, solution);
 
   let (report, finish) = Cli.createProgressReporter(~name="fetching", ());
   let* items = {
@@ -159,13 +157,7 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
 
   /* Ensure all packages are available on disk. Download if necessary. */
   let* fetchedKindMap =
-    fetchPackages(
-      fetchDepsSubset,
-      sandbox,
-      solution,
-      gitUsername,
-      gitPassword,
-    );
+    fetchPackages(sandbox, pkgs, gitUsername, gitPassword);
 
   let f = pkg => {
     let fetchedKind = Package.Map.find(pkg, fetchedKindMap);
@@ -182,7 +174,6 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
 
   /* Ensure downloaded packages are copied to the store */
   let* () = RunAsync.List.mapAndWait(~concurrency=fetchConcurrency, ~f, pkgs);
-
   /* Produce _esy/<sandbox>/installation.json */
   let installation =
     installationOfPkgs(~rootPackageID=root.Package.id, ~sandbox, pkgs);
@@ -225,6 +216,5 @@ let fetch = (fetchDepsSubset, sandbox, solution, gitUsername, gitPassword) => {
     };
 
   let* () = Fs.rmPath(SandboxSpec.distPath(sandbox.Sandbox.spec));
-
   return();
 };

@@ -433,6 +433,7 @@ module.exports = {
   getPackageArchivePath: NpmRegistryMock.getPackageArchivePath,
   crawlLayout: PackageGraph.crawl,
   readInstalledPackages: PackageGraph.read,
+  readSolution: PackageGraph.readSolution,
   makeFakeBinary: fsUtils.makeFakeBinary,
   exists: fs.exists,
   readdir: fs.readdir,
