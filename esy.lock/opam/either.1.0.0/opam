@@ -13,6 +13,7 @@ doc: "https://mirage.github.io/either"
 bug-reports: "https://github.com/mirage/either/issues"
 depends: [
   "dune" {>= "2.0"}
+  "ocaml"
 ]
 build: [
   ["dune" "subst"] {dev}

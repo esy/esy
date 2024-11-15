@@ -34,7 +34,6 @@ install: [
   [make "install"]
   ["install" "-m" "0755" "ocaml-stub" "%{bin}%/ocaml"] {ocaml:preinstalled}
 ]
-extra-files: ["0001-Harden-test-for-OCaml-5.patch" "md5=3cddbf72164c29d4e50e077a92a37c6c"]
 # See https://github.com/ocaml/ocamlfind/pull/61
 patches: ["0001-Harden-test-for-OCaml-5.patch"]
 dev-repo: "git+https://github.com/ocaml/ocamlfind.git"
@@ -46,3 +45,11 @@ url {
   ]
 }
 available: os != "win32"
+extra-source "0001-Harden-test-for-OCaml-5.patch" {
+  src:
+    "https://raw.githubusercontent.com/ocaml/opam-source-archives/main/patches/ocamlfind/0001-Harden-test-for-OCaml-5.patch"
+  checksum: [
+    "sha256=6fcca5f2f7abf8d6304da6c385348584013ffb8602722a87fb0bacbab5867fe8"
+    "md5=3cddbf72164c29d4e50e077a92a37c6c"
+  ]
+}

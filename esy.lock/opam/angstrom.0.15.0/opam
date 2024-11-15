@@ -30,5 +30,8 @@ with the unbuffered interface enabling zero-copy IO. Parsers are backtracking by
 default and support unbounded lookahead."""
 url {
   src: "https://github.com/inhabitedtype/angstrom/archive/0.15.0.tar.gz"
-  checksum: "md5=5104768c404ea92fd0a53a5b0f75cd50"
+  checksum: [
+    "sha256=f119ac08d2dfa6687af426b31c047265a2aa7a3418f8b48b1055cb8da8929205"
+    "md5=5104768c404ea92fd0a53a5b0f75cd50"
+  ]
 }

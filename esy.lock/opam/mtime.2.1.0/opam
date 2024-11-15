@@ -1,0 +1,36 @@
+opam-version: "2.0"
+synopsis: "Monotonic wall-clock time for OCaml"
+description: """\
+Mtime has platform independent support for monotonic wall-clock time
+in pure OCaml. This time increases monotonically and is not subject to
+operating system calendar time adjustments. The library has types to
+represent nanosecond precision timestamps and time spans.
+
+The additional Mtime_clock library provide access to a system
+monotonic clock.
+
+Mtime has a no dependency. Mtime_clock depends on your system library
+or JavaScript runtime system. Mtime and its libraries are distributed
+under the ISC license.
+
+Home page: <http://erratique.ch/software/mtime>"""
+maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+authors: "The mtime programmers"
+license: "ISC"
+tags: ["time" "monotonic" "system" "org:erratique"]
+homepage: "https://erratique.ch/software/mtime"
+doc: "https://erratique.ch/software/mtime/doc/"
+bug-reports: "https://github.com/dbuenzli/mtime/issues"
+depends: [
+  "ocaml" {>= "4.08.0"}
+  "ocamlfind" {build}
+  "ocamlbuild" {build & != "0.9.0"}
+  "topkg" {build & >= "1.0.3"}
+]
+build: ["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]
+dev-repo: "git+https://erratique.ch/repos/mtime.git"
+url {
+  src: "https://erratique.ch/software/mtime/releases/mtime-2.1.0.tbz"
+  checksum:
+    "sha512=a6619f1a3f1a5b32b7a9a067b939f94e6c66244eb90762d41f2cb1c9af852dd7d270fedb20e2b9b61875d52ba46e24af6ebf5950d1284b0b75b2fd2c380d9af3"
+}
