@@ -95,6 +95,7 @@
   },
   "devDependencies": {
     "@reason-native/rely": "*",
+    "@opam/merlin": "*",
     "@opam/ocaml-lsp-server": "1.17.0",
     "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
