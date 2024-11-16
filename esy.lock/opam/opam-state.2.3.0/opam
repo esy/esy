@@ -1,13 +1,13 @@
 opam-version: "2.0"
-synopsis: "Repository library for opam 2.2"
+synopsis: "State library for opam 2.3"
 description:
-  "This library includes repository and remote sources handling, including curl/wget, rsync, git, mercurial, darcs backends."
+  "Handling of the ~/.opam hierarchy, repository and switch states."
 maintainer: "opam-devel@lists.ocaml.org"
 authors: [
   "David Allsopp <david@tarides.com>"
   "Vincent Bernardoff <vb@luminar.eu.org>"
   "Raja Boujbel <raja.boujbel@ocamlpro.com>"
-  "Kate Deplaix <kit.ty.kate@disroot.org>"
+  "Kate Deplaix <kit-ty-kate@outlook.com>"
   "Roberto Di Cosmo <roberto@dicosmo.org>"
   "Thomas Gazagnaire <thomas@gazagnaire.org>"
   "Louis Gesbert <louis.gesbert@ocamlpro.com>"
@@ -22,8 +22,10 @@ homepage: "https://opam.ocaml.org"
 bug-reports: "https://github.com/ocaml/opam/issues"
 depends: [
   "ocaml" {>= "4.08.0"}
-  "opam-format" {= version}
-  "dune" {>= "2.0.0"}
+  "opam-repository" {= version}
+  "re" {>= "1.9.0"}
+  "spdx_licenses" {>= "1.0.0"}
+  "dune" {>= "2.8.0"}
 ]
 build: [
   ["./configure" "--disable-checks" "--prefix" prefix]
@@ -31,12 +33,9 @@ build: [
 ]
 dev-repo: "git+https://github.com/ocaml/opam.git"
 url {
-  src: "https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz"
+  src: "https://github.com/ocaml/opam/archive/refs/tags/2.3.0.tar.gz"
   checksum: [
-    "md5=6a69d82228899f73c5e3c04a3fb590f3"
-    "sha512=b7899244ab620213f2997409c9d8ac63e1a7ba99ff36abdd0acf41ae545ca7e0534e5e2f6c01a9700c10abf2df4f07944cc64fb5dd315a566f6c5b6b19464729"
+    "md5=3a99d6d8c0394185f168fa0f085f6bb9"
+    "sha512=596d7b28f0cf9613dc7637aaeac45cc45f411a13286fea1cc81aeb0630c4f8a6dc2095d50db73229a255a3da3d9a08fe0993355a7fc64d3b16fd712789ff5f6e"
   ]
 }
-available: opam-version >= "2.1.0"
-flags: avoid-version
-x-maintained: false
