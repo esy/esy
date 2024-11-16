@@ -1,5 +1,5 @@
 {
-  "checksum": "9be4621c7cad40c1a86d2c80a849adbc",
+  "checksum": "2534e84c916be3aae3777a645bd96262",
   "root": "@esy-nightly/esy@link-dev:./esy.json",
   "node": {
     "ocaml@5.2.0@d41d8cd9": {
@@ -1510,96 +1510,106 @@
       ],
       "available": "true"
     },
-    "@opam/opam-state@opam:2.2.0~alpha@638199c6": {
-      "id": "@opam/opam-state@opam:2.2.0~alpha@638199c6",
+    "@opam/opam-state@opam:2.3.0@1b8790e1": {
+      "id": "@opam/opam-state@opam:2.3.0@1b8790e1",
       "name": "@opam/opam-state",
-      "version": "opam:2.2.0~alpha",
+      "version": "opam:2.3.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/6a/6a69d82228899f73c5e3c04a3fb590f3#md5:6a69d82228899f73c5e3c04a3fb590f3",
-          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz#md5:6a69d82228899f73c5e3c04a3fb590f3"
+          "archive:https://opam.ocaml.org/cache/md5/3a/3a99d6d8c0394185f168fa0f085f6bb9#md5:3a99d6d8c0394185f168fa0f085f6bb9",
+          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.3.0.tar.gz#md5:3a99d6d8c0394185f168fa0f085f6bb9"
         ],
         "opam": {
           "name": "opam-state",
-          "version": "2.2.0~alpha",
-          "path": "esy.lock/opam/opam-state.2.2.0~alpha"
+          "version": "2.3.0",
+          "path": "esy.lock/opam/opam-state.2.3.0"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__opam_state_opam__c__2.3.0_opam_override"
+        }
+      ],
       "dependencies": [
         "ocaml@5.2.0@d41d8cd9", "@opam/spdx_licenses@opam:1.2.0@20bcb021",
         "@opam/re@opam:1.12.0@42f7a5b9",
-        "@opam/opam-repository@opam:2.2.0~alpha@fbc7bf9a",
+        "@opam/opam-repository@opam:2.3.0@c11a86aa",
         "@opam/dune@opam:3.16.1@0e7c9090", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@5.2.0@d41d8cd9", "@opam/spdx_licenses@opam:1.2.0@20bcb021",
         "@opam/re@opam:1.12.0@42f7a5b9",
-        "@opam/opam-repository@opam:2.2.0~alpha@fbc7bf9a",
+        "@opam/opam-repository@opam:2.3.0@c11a86aa",
         "@opam/dune@opam:3.16.1@0e7c9090"
       ],
-      "available": "opam-version >= \"2.1.0\""
+      "available": "true"
     },
-    "@opam/opam-repository@opam:2.2.0~alpha@fbc7bf9a": {
-      "id": "@opam/opam-repository@opam:2.2.0~alpha@fbc7bf9a",
+    "@opam/opam-repository@opam:2.3.0@c11a86aa": {
+      "id": "@opam/opam-repository@opam:2.3.0@c11a86aa",
       "name": "@opam/opam-repository",
-      "version": "opam:2.2.0~alpha",
+      "version": "opam:2.3.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/6a/6a69d82228899f73c5e3c04a3fb590f3#md5:6a69d82228899f73c5e3c04a3fb590f3",
-          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz#md5:6a69d82228899f73c5e3c04a3fb590f3"
+          "archive:https://opam.ocaml.org/cache/md5/3a/3a99d6d8c0394185f168fa0f085f6bb9#md5:3a99d6d8c0394185f168fa0f085f6bb9",
+          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.3.0.tar.gz#md5:3a99d6d8c0394185f168fa0f085f6bb9"
         ],
         "opam": {
           "name": "opam-repository",
-          "version": "2.2.0~alpha",
-          "path": "esy.lock/opam/opam-repository.2.2.0~alpha"
+          "version": "2.3.0",
+          "path": "esy.lock/opam/opam-repository.2.3.0"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__opam_repository_opam__c__2.3.0_opam_override"
+        }
+      ],
       "dependencies": [
-        "ocaml@5.2.0@d41d8cd9",
-        "@opam/opam-format@opam:2.2.0~alpha@def441fc",
+        "ocaml@5.2.0@d41d8cd9", "@opam/opam-format@opam:2.3.0@ac5052a1",
         "@opam/dune@opam:3.16.1@0e7c9090", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
-        "ocaml@5.2.0@d41d8cd9",
-        "@opam/opam-format@opam:2.2.0~alpha@def441fc",
+        "ocaml@5.2.0@d41d8cd9", "@opam/opam-format@opam:2.3.0@ac5052a1",
         "@opam/dune@opam:3.16.1@0e7c9090"
       ],
-      "available": "opam-version >= \"2.1.0\""
+      "available": "true"
     },
-    "@opam/opam-format@opam:2.2.0~alpha@def441fc": {
-      "id": "@opam/opam-format@opam:2.2.0~alpha@def441fc",
+    "@opam/opam-format@opam:2.3.0@ac5052a1": {
+      "id": "@opam/opam-format@opam:2.3.0@ac5052a1",
       "name": "@opam/opam-format",
-      "version": "opam:2.2.0~alpha",
+      "version": "opam:2.3.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/6a/6a69d82228899f73c5e3c04a3fb590f3#md5:6a69d82228899f73c5e3c04a3fb590f3",
-          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz#md5:6a69d82228899f73c5e3c04a3fb590f3"
+          "archive:https://opam.ocaml.org/cache/md5/3a/3a99d6d8c0394185f168fa0f085f6bb9#md5:3a99d6d8c0394185f168fa0f085f6bb9",
+          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.3.0.tar.gz#md5:3a99d6d8c0394185f168fa0f085f6bb9"
         ],
         "opam": {
           "name": "opam-format",
-          "version": "2.2.0~alpha",
-          "path": "esy.lock/opam/opam-format.2.2.0~alpha"
+          "version": "2.3.0",
+          "path": "esy.lock/opam/opam-format.2.3.0"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__opam_format_opam__c__2.3.0_opam_override"
+        }
+      ],
       "dependencies": [
         "ocaml@5.2.0@d41d8cd9", "@opam/re@opam:1.12.0@42f7a5b9",
         "@opam/opam-file-format@opam:2.1.6@15a161af",
-        "@opam/opam-core@opam:2.2.0~alpha@0840069b",
+        "@opam/opam-core@opam:2.3.0@8fd8d84c",
         "@opam/dune@opam:3.16.1@0e7c9090", "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
         "ocaml@5.2.0@d41d8cd9", "@opam/re@opam:1.12.0@42f7a5b9",
         "@opam/opam-file-format@opam:2.1.6@15a161af",
-        "@opam/opam-core@opam:2.2.0~alpha@0840069b",
+        "@opam/opam-core@opam:2.3.0@8fd8d84c",
         "@opam/dune@opam:3.16.1@0e7c9090"
       ],
-      "available": "opam-version >= \"2.1.0\""
+      "available": "true"
     },
     "@opam/opam-file-format@opam:2.1.6@15a161af": {
       "id": "@opam/opam-file-format@opam:2.1.6@15a161af",
@@ -1625,31 +1635,38 @@
       "devDependencies": [ "ocaml@5.2.0@d41d8cd9" ],
       "available": "true"
     },
-    "@opam/opam-core@opam:2.2.0~alpha@0840069b": {
-      "id": "@opam/opam-core@opam:2.2.0~alpha@0840069b",
+    "@opam/opam-core@opam:2.3.0@8fd8d84c": {
+      "id": "@opam/opam-core@opam:2.3.0@8fd8d84c",
       "name": "@opam/opam-core",
-      "version": "opam:2.2.0~alpha",
+      "version": "opam:2.3.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://opam.ocaml.org/cache/md5/6a/6a69d82228899f73c5e3c04a3fb590f3#md5:6a69d82228899f73c5e3c04a3fb590f3",
-          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.2.0-alpha.tar.gz#md5:6a69d82228899f73c5e3c04a3fb590f3"
+          "archive:https://opam.ocaml.org/cache/md5/3a/3a99d6d8c0394185f168fa0f085f6bb9#md5:3a99d6d8c0394185f168fa0f085f6bb9",
+          "archive:https://github.com/ocaml/opam/archive/refs/tags/2.3.0.tar.gz#md5:3a99d6d8c0394185f168fa0f085f6bb9"
         ],
         "opam": {
           "name": "opam-core",
-          "version": "2.2.0~alpha",
-          "path": "esy.lock/opam/opam-core.2.2.0~alpha"
+          "version": "2.3.0",
+          "path": "esy.lock/opam/opam-core.2.3.0"
         }
       },
-      "overrides": [],
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__opam_core_opam__c__2.3.0_opam_override"
+        }
+      ],
       "dependencies": [
         "ocaml@5.2.0@d41d8cd9", "@opam/uutf@opam:1.0.3@47c95a18",
         "@opam/swhid_core@opam:0.1@95e66a86",
         "@opam/sha@opam:1.15.4@665402df", "@opam/re@opam:1.12.0@42f7a5b9",
         "@opam/ocamlgraph@opam:2.1.0@c06ba8fc",
-        "@opam/jsonm@opam:1.0.2@c251a5de", "@opam/dune@opam:3.16.1@0e7c9090",
+        "@opam/jsonm@opam:1.0.2@c251a5de",
+        "@opam/host-system-msvc@opam:1@531e0801",
+        "@opam/dune@opam:3.16.1@0e7c9090",
+        "@opam/conf-msvc64@opam:1@83f73694",
+        "@opam/conf-msvc32@opam:1@3aebb12c",
         "@opam/base-unix@opam:base@87d0b2eb",
-        "@opam/base-bigarray@opam:base@b03491b0",
         "@esy-ocaml/substs@0.0.1@d41d8cd9"
       ],
       "devDependencies": [
@@ -1657,11 +1674,14 @@
         "@opam/swhid_core@opam:0.1@95e66a86",
         "@opam/sha@opam:1.15.4@665402df", "@opam/re@opam:1.12.0@42f7a5b9",
         "@opam/ocamlgraph@opam:2.1.0@c06ba8fc",
-        "@opam/jsonm@opam:1.0.2@c251a5de", "@opam/dune@opam:3.16.1@0e7c9090",
-        "@opam/base-unix@opam:base@87d0b2eb",
-        "@opam/base-bigarray@opam:base@b03491b0"
+        "@opam/jsonm@opam:1.0.2@c251a5de",
+        "@opam/host-system-msvc@opam:1@531e0801",
+        "@opam/dune@opam:3.16.1@0e7c9090",
+        "@opam/conf-msvc64@opam:1@83f73694",
+        "@opam/conf-msvc32@opam:1@3aebb12c",
+        "@opam/base-unix@opam:base@87d0b2eb"
       ],
-      "available": "opam-version >= \"2.1.0\""
+      "available": "true"
     },
     "@opam/ocplib-endian@opam:1.2@008dc942": {
       "id": "@opam/ocplib-endian@opam:1.2@008dc942",
@@ -2139,6 +2159,31 @@
       ],
       "devDependencies": [ "ocaml@5.2.0@d41d8cd9" ],
       "available": "true"
+    },
+    "@opam/msvs-detect@opam:0.7.0@4d94b343": {
+      "id": "@opam/msvs-detect@opam:0.7.0@4d94b343",
+      "name": "@opam/msvs-detect",
+      "version": "opam:0.7.0",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/sha256/4b/4bb71be91e1735c30f2b290214b75a68d900e4c1e6d9bec16e52213849d0824b#sha256:4bb71be91e1735c30f2b290214b75a68d900e4c1e6d9bec16e52213849d0824b",
+          "archive:https://github.com/metastack/msvs-tools/archive/refs/tags/0.7.0.tar.gz#sha256:4bb71be91e1735c30f2b290214b75a68d900e4c1e6d9bec16e52213849d0824b"
+        ],
+        "opam": {
+          "name": "msvs-detect",
+          "version": "0.7.0",
+          "path": "esy.lock/opam/msvs-detect.0.7.0"
+        }
+      },
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__msvs_detect_opam__c__0.7.0_opam_override"
+        }
+      ],
+      "dependencies": [ "@esy-ocaml/substs@0.0.1@d41d8cd9" ],
+      "devDependencies": [],
+      "available": "os = \"win32\""
     },
     "@opam/mew_vi@opam:0.5.0@d256e562": {
       "id": "@opam/mew_vi@opam:0.5.0@d256e562",
@@ -2682,6 +2727,28 @@
       ],
       "available": "arch != \"arm32\" & arch != \"x86_32\""
     },
+    "@opam/host-system-msvc@opam:1@531e0801": {
+      "id": "@opam/host-system-msvc@opam:1@531e0801",
+      "name": "@opam/host-system-msvc",
+      "version": "opam:1",
+      "source": {
+        "type": "install",
+        "source": [ "no-source:" ],
+        "opam": {
+          "name": "host-system-msvc",
+          "version": "1",
+          "path": "esy.lock/opam/host-system-msvc.1"
+        }
+      },
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__host_system_msvc_opam__c__1_opam_override"
+        }
+      ],
+      "dependencies": [ "@esy-ocaml/substs@0.0.1@d41d8cd9" ],
+      "devDependencies": [],
+      "available": "true"
+    },
     "@opam/fpath@opam:0.7.3@ba8dd432": {
       "id": "@opam/fpath@opam:0.7.3@ba8dd432",
       "name": "@opam/fpath",
@@ -3163,6 +3230,56 @@
       ],
       "available": "true"
     },
+    "@opam/conf-msvc64@opam:1@83f73694": {
+      "id": "@opam/conf-msvc64@opam:1@83f73694",
+      "name": "@opam/conf-msvc64",
+      "version": "opam:1",
+      "source": {
+        "type": "install",
+        "source": [ "no-source:" ],
+        "opam": {
+          "name": "conf-msvc64",
+          "version": "1",
+          "path": "esy.lock/opam/conf-msvc64.1"
+        }
+      },
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__conf_msvc64_opam__c__1_opam_override"
+        }
+      ],
+      "dependencies": [
+        "@opam/msvs-detect@opam:0.7.0@4d94b343",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [ "@opam/msvs-detect@opam:0.7.0@4d94b343" ],
+      "available": "os = \"win32\""
+    },
+    "@opam/conf-msvc32@opam:1@3aebb12c": {
+      "id": "@opam/conf-msvc32@opam:1@3aebb12c",
+      "name": "@opam/conf-msvc32",
+      "version": "opam:1",
+      "source": {
+        "type": "install",
+        "source": [ "no-source:" ],
+        "opam": {
+          "name": "conf-msvc32",
+          "version": "1",
+          "path": "esy.lock/opam/conf-msvc32.1"
+        }
+      },
+      "overrides": [
+        {
+          "opamoverride": "esy.lock/overrides/opam__s__conf_msvc32_opam__c__1_opam_override"
+        }
+      ],
+      "dependencies": [
+        "@opam/msvs-detect@opam:0.7.0@4d94b343",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [ "@opam/msvs-detect@opam:0.7.0@4d94b343" ],
+      "available": "os = \"win32\""
+    },
     "@opam/cmdliner@opam:1.3.0@f8c5e0f3": {
       "id": "@opam/cmdliner@opam:1.3.0@f8c5e0f3",
       "name": "@opam/cmdliner",
@@ -3433,24 +3550,6 @@
       ],
       "available": "true"
     },
-    "@opam/base-bigarray@opam:base@b03491b0": {
-      "id": "@opam/base-bigarray@opam:base@b03491b0",
-      "name": "@opam/base-bigarray",
-      "version": "opam:base",
-      "source": {
-        "type": "install",
-        "source": [ "no-source:" ],
-        "opam": {
-          "name": "base-bigarray",
-          "version": "base",
-          "path": "esy.lock/opam/base-bigarray.base"
-        }
-      },
-      "overrides": [],
-      "dependencies": [ "@esy-ocaml/substs@0.0.1@d41d8cd9" ],
-      "devDependencies": [],
-      "available": "true"
-    },
     "@opam/base@opam:v0.17.1@699decbd": {
       "id": "@opam/base@opam:v0.17.1@699decbd",
       "name": "@opam/base",
@@ -3567,10 +3666,10 @@
         "@opam/ppx_expect@opam:v0.17.2@cc4e0659",
         "@opam/ppx_deriving_yojson@opam:3.9.0@c0cee329",
         "@opam/ppx_deriving@opam:6.0.3@07226955",
-        "@opam/opam-state@opam:2.2.0~alpha@638199c6",
-        "@opam/opam-format@opam:2.2.0~alpha@def441fc",
+        "@opam/opam-state@opam:2.3.0@1b8790e1",
+        "@opam/opam-format@opam:2.3.0@ac5052a1",
         "@opam/opam-file-format@opam:2.1.6@15a161af",
-        "@opam/opam-core@opam:2.2.0~alpha@0840069b",
+        "@opam/opam-core@opam:2.3.0@8fd8d84c",
         "@opam/ocamlformat@opam:0.26.2@fc61a2f3",
         "@opam/menhir@opam:20210419@462bec41",
         "@opam/mccs@github:DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec@d41d8cd9",

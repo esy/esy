@@ -1,0 +1,17 @@
+opam-version: "2.0"
+synopsis: "OCaml for Microsoft Visual Studio"
+description: """
+This package is installed if the underlying OCaml compiler is one of the "MSVC"
+native Windows ports of OCaml.
+
+Precisely, this means `ocamlopt -config-var system` is equal to either `win32`
+or `win64`.
+
+This package may be used in depends or conflicts fields of dependent packages
+to indicate either a requirement or an incompatibility with this OCaml port."""
+maintainer: "David Allsopp <david@tarides.com>"
+authors: "David Allsopp"
+license: "CC0-1.0+"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+conflict-class: "ocaml-host-system"
