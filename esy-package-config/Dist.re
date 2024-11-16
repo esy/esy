@@ -317,732 +317,731 @@ module Parse = {
 
        let%expect_test "no-source:" = {
          test("no-source:");
-         %expect
-         {|
+         [%expect {|
            NoSource
-         |};
+         |}];
        };
 
        let%expect_test "path:/some/path" = {
          test("path:/some/path");
-         %expect
-         {|
+         [%expect
+          {|
            (LocalPath ((path /some/path) (manifest ())))
-         |};
+         |}];
        };
 
        let%expect_test "path:./some/path" = {
          test("path:./some/path");
-         %expect
-         {|
+         [%expect
+          {|
            (LocalPath ((path some/path) (manifest ())))
-         |};
+         |}];
        };
 
        let%expect_test "path:some" = {
          test("path:some");
-         %expect
-         {|
+         [%expect
+          {|
            (LocalPath ((path some) (manifest ())))
-         |};
+         |}];
        };
 
        let%expect_test "archive:http://example.com/pkg.tgz#abcdef" = {
          test("archive:http://example.com/pkg.tgz#abdcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |};
+         |}];
        };
 
        let%expect_test "archive:https://example.com/pkg.tgz#abcdef" = {
          test("archive:https://example.com/pkg.tgz#abdcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |};
+         |}];
        };
 
        let%expect_test "github:user/repo#abcdef" = {
          test("github:user/repo#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Github (user user) (repo repo) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "github:user/repo:manifest.opam#abcdef" = {
          test("github:user/repo:manifest.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Github (user user) (repo repo) (commit abcdef)
             (manifest ((Opam manifest.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "github:bryphe/lru:lru.opam#2708c70" = {
          test("github:bryphe/lru:lru.opam#2708c70");
-         %expect
-         {|
+         [%expect
+          {|
          (Github (user bryphe) (repo lru) (commit 2708c70)
           (manifest ((Opam lru.opam))))
-       |};
+       |}];
        };
 
        let%expect_test "github:bryphe/lru%3Alru.opam#2708c70" = {
          test("github:bryphe/lru%3Alru.opam#2708c70");
-         %expect
-         {|
+         [%expect
+          {|
           (Github (user bryphe) (repo lru) (commit 2708c70)
            (manifest ((Opam lru.opam))))
-        |};
+        |}];
        };
 
        let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
          test("git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70");
-         %expect
-         {|
+         [%expect
+          {|
           (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
            (manifest ((Opam lru.opam))))
-        |};
+        |}];
        };
 
        let%expect_test "git:https://github.com/esy/esy.git#abcdef" = {
          test("git:https://github.com/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git:https://github.com/esy/esy.git:esy.opam#abcdef" = {
          test("git:https://github.com/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+https://github.com/esy/esy.git#abcdef" = {
          test("git:git+https://github.com/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
          test("git:git+https://github.com/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:esy/esy.git#abcdef" = {
          test("git:git+ssh://git@github.com:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
          test("git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
          test("git:git@github.com:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
          test("git:git@github.com:esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
          test("git:git@github.com:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
          test("git:git@github.com:esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
          test("git:git+https://github.com:8080/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
         (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
          (manifest ()))
-      |};
+      |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
          test("git:git+ssh://git@github.com:22/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
-     |};
+     |}];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
          test("git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-      |};
+      |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
          test("git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-       |};
+       |}];
        };
 
        /* relaxed parser */
 
        let%expect_test "http://example.com/pkg.tgz#abcdef" = {
          testRelaxed("http://example.com/pkg.tgz#abdcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |};
+         |}];
        };
 
        let%expect_test "https://example.com/pkg.tgz#abcdef" = {
          testRelaxed("https://example.com/pkg.tgz#abdcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |};
+         |}];
        };
 
        let%expect_test "user/repo#abcdef" = {
          testRelaxed("user/repo#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Github (user user) (repo repo) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "user/repo:manifest.opam#abcdef" = {
          testRelaxed("user/repo:manifest.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Github (user user) (repo repo) (commit abcdef)
             (manifest ((Opam manifest.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
          testRelaxed(
            "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70",
          );
-         %expect
-         {|
+         [%expect
+          {|
          (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
           (manifest ((Opam lru.opam))))
-       |};
+       |}];
        };
 
        let%expect_test "git+https://github.com/esy/esy.git#abcdef" = {
          testRelaxed("git+https://github.com/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
          testRelaxed("git+https://github.com/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git+http://github.com/esy/esy.git#abcdef" = {
          testRelaxed("git+http://github.com/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote http://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git+http://github.com/esy/esy.git:esy.opam#abcdef" = {
          testRelaxed("git+http://github.com/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote http://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git://github.com/esy/esy.git#abcdef" = {
          testRelaxed("git://github.com/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git://github.com/esy/esy.git:esy.opam#abcdef" = {
          testRelaxed("git://github.com/esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git+ssh://git@github.com:esy/esy.git#abcdef" = {
          testRelaxed("git+ssh://git@github.com:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |};
+         |}];
        };
 
        let%expect_test "git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
          testRelaxed("git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |};
+         |}];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
          testRelaxed("git:git+https://github.com:8080/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
         (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
          (manifest ()))
-      |};
+      |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
          testRelaxed("git:git+ssh://git@github.com:22/esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
-     |};
+     |}];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
          testRelaxed(
            "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef",
          );
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-      |};
+      |}];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
          testRelaxed(
            "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef",
          );
-         %expect
-         {|
+         [%expect
+          {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-       |};
+       |}];
        };
 
        /* Testing parser: errors */
 
        let%expect_test "github:user/repo#ref" = {
          test("github:user/repo#ref");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo#" = {
          test("github:user/repo#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo:#abc123" = {
          test("github:user/repo:#abc123");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo" = {
          test("github:user/repo");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user" = {
          test("github:user");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:/repo" = {
          test("github:/repo");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/" = {
          test("github:user/");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:/" = {
          test("github:/");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:" = {
          test("github:");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com#ref" = {
          test("git:https://example.com#ref");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com#" = {
          test("git:https://example.com#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com" = {
          test("git:https://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:" = {
          test("git:");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#gibberish" = {
          test("archive:https://example.com#gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#md5:gibberish" = {
          test("archive:https://example.com#md5:gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#" = {
          test("archive:https://example.com#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com" = {
          test("archive:https://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:ftp://example.com" = {
          test("archive:ftp://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |};
+      |}];
        };
 
        /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
          test("git:git+ssh://git@github.com:22:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
           ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-     |};
+     |}];
        };
 
        /* Testing parserRelaxed: errors */
 
        let%expect_test "github:user/repo#ref" = {
          testRelaxed("github:user/repo#ref");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo#" = {
          testRelaxed("github:user/repo#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo:#abc123" = {
          testRelaxed("github:user/repo:#abc123");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/repo" = {
          testRelaxed("github:user/repo");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "github:user" = {
          testRelaxed("github:user");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:/repo" = {
          testRelaxed("github:/repo");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:user/" = {
          testRelaxed("github:user/");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:/" = {
          testRelaxed("github:/");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "github:" = {
          testRelaxed("github:");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com#ref" = {
          testRelaxed("git:https://example.com#ref");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com#" = {
          testRelaxed("git:https://example.com#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:https://example.com" = {
          testRelaxed("git:https://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "git:" = {
          testRelaxed("git:");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#gibberish" = {
          testRelaxed("archive:https://example.com#gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#md5:gibberish" = {
          testRelaxed("archive:https://example.com#md5:gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com#" = {
          testRelaxed("archive:https://example.com#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:https://example.com" = {
          testRelaxed("archive:https://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "archive:ftp://example.com" = {
          testRelaxed("archive:ftp://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |};
+      |}];
        };
 
        let%expect_test "https://example.com#gibberish" = {
          testRelaxed("https://example.com#gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "https://example.com#md5:gibberish" = {
          testRelaxed("https://example.com#md5:gibberish");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "https://example.com#" = {
          testRelaxed("https://example.com#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "https://example.com" = {
          testRelaxed("https://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |};
+      |}];
        };
 
        let%expect_test "ftp://example.com" = {
          testRelaxed("ftp://example.com");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |};
+      |}];
        };
 
        let%expect_test "user/repo#ref" = {
          testRelaxed("user/repo#ref");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
 
        let%expect_test "user/repo#" = {
          testRelaxed("user/repo#");
-         %expect
-         {|
+         [%expect
+          {|
       ERROR: parsing "user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |};
+      |}];
        };
        /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
          testRelaxed("git:git+ssh://git@github.com:22:esy/esy.git#abcdef");
-         %expect
-         {|
+         [%expect
+          {|
           ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-     |};
+     |}];
        };
      });
 };
