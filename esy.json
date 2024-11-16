@@ -3,6 +3,10 @@
   "description": "Package builder for esy.",
   "license": "BSD-2-Clause",
   "esy": {
+    "opamRepositories": [
+      { "type": "remote", "location": "https://github.com/ManasJayanth/opam-overlay.git" },
+      { "type": "remote", "location": "https://github.com/ocaml/opam-repository.git" }
+    ],
     "build": "dune build -p esy",
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
@@ -42,7 +46,6 @@
     "test:e2e-slow": "node test-e2e-slow/run-slow-tests.js"
   },
   "resolutions": {
-    "@opam/ocamlfind": "opam:1.9.5",
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "@opam/camlbz2": "git+https://gitlab.com/dining-philosophersco/camlbz2:bz2.opam#4f94881dd1f21dd55acc73917bbffef279e0d0b",
     "esy-bzip2": "esy-packages/esy-bzip2#048f314334ae2e63b24082a7e4cfca4985b04028",
