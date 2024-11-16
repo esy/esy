@@ -61,10 +61,6 @@
     "@opam/file-context-printer": "git+https://github.com/reasonml/reason-native.git:file-context-printer.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
     "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
     "@opam/rresult": "opam:0.6.0",
-    "@opam/opam-core": "opam:2.2.0~alpha",
-    "@opam/opam-state": "opam:2.2.0~alpha",
-    "@opam/opam-repository": "opam:2.2.0~alpha",
-    "@opam/opam-format": "opam:2.2.0~alpha",
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
     "@opam/parmap": "opam:1.2.1"
   },
