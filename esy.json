@@ -3,6 +3,10 @@
   "description": "Package builder for esy.",
   "license": "BSD-2-Clause",
   "esy": {
+    "opamRepositories": [
+      { "type": "remote", "location": "https://github.com/ManasJayanth/opam-overlay.git" },
+      { "type": "remote", "location": "https://github.com/ocaml/opam-repository.git" }
+    ],
     "build": "dune build -p esy",
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
