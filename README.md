@@ -2,7 +2,7 @@
 
 `package.json` workflow for native development with Reason/OCaml
 
-[![Build Status](https://dev.azure.com/esy-dev/esy/_apis/build/status/build)](https://dev.azure.com/esy-dev/esy/_build/latest?definitionId=1)
+[![Build](https://github.com/esy/esy/actions/workflows/release.yml/badge.svg)](https://github.com/esy/esy/actions/workflows/release.yml)
 
 Esy is a package manager for Reason and OCaml centered around the [NPM] workflow. Reason/OCaml are compiled languages and it can be daunting for developers to setup tools and develop a workflow that is intuitive and well documented. Developing apps that are natively compiled are also hard to reproduce and often require additional tooling. Esy tries address these, by offering a familiar `package.json` centered workflow and light-weight sandboxing.
 
