@@ -933,8 +933,6 @@ let getSandboxSolution =
   open RunAsync.Syntax;
   let* solution =
     Solver.solve(
-      ~gitUsername=proj.projcfg.gitUsername,
-      ~gitPassword=proj.projcfg.gitPassword,
       ~dumpCudfInput,
       ~dumpCudfOutput,
       solvespec,
@@ -1345,16 +1343,16 @@ let show = (_asJson, req, proj: Project.t) => {
   open RunAsync.Syntax;
   let* req = RunAsync.ofStringError(Req.parse(req));
   let* resolver =
-    Resolver.make(~cfg=proj.solveSandbox.cfg, ~sandbox=proj.spec, ());
+    Resolver.make(
+      ~gitUsername=proj.projcfg.gitUsername,
+      ~gitPassword=proj.projcfg.gitPassword,
+      ~cfg=proj.solveSandbox.cfg,
+      ~sandbox=proj.spec,
+      (),
+    );
   let* resolutions =
     RunAsync.contextf(
-      Resolver.resolve(
-        ~gitUsername=proj.projcfg.gitUsername,
-        ~gitPassword=proj.projcfg.gitPassword,
-        ~name=req.name,
-        ~spec=req.spec,
-        resolver,
-      ),
+      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver),
       "resolving %a",
       Req.pp,
       req,
@@ -1383,12 +1381,7 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let* pkg =
         RunAsync.contextf(
-          Resolver.package(
-            ~gitUsername=proj.projcfg.gitUsername,
-            ~gitPassword=proj.projcfg.gitPassword,
-            ~resolution,
-            resolver,
-          ),
+          Resolver.package(~resolution, resolver),
           "resolving metadata %a",
           Resolution.pp,
           resolution,

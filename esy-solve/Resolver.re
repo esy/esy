@@ -79,6 +79,8 @@ type t = {
   npmDistTags: Hashtbl.t(string, StringMap.t(SemverVersion.Version.t)),
   sourceSpecToSource: Hashtbl.t(SourceSpec.t, Source.t),
   sourceToSource: Hashtbl.t(Source.t, Source.t),
+  gitUsername: option(string),
+  gitPassword: option(string),
 };
 
 let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
@@ -117,7 +119,7 @@ let emptyInstall = (~name, ~source, ()) => {
   available: None,
 };
 
-let make = (~cfg, ~sandbox, ()) =>
+let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
   RunAsync.return({
     cfg,
     sandbox,
@@ -132,6 +134,8 @@ let make = (~cfg, ~sandbox, ()) =>
     npmDistTags: Hashtbl.create(500),
     sourceSpecToSource: Hashtbl.create(500),
     sourceToSource: Hashtbl.create(500),
+    gitUsername,
+    gitPassword,
   });
 
 let setOCamlVersion = (ocamlVersion, resolver) =>
@@ -252,15 +256,7 @@ let versionMatchesDep =
   dep.name == name && (checkResolutions() || checkVersion());
 };
 
-let packageOfSource =
-    (
-      ~gitUsername,
-      ~gitPassword,
-      ~name,
-      ~overrides,
-      source: Source.t,
-      resolver,
-    ) => {
+let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
   open RunAsync.Syntax;
 
   let readManifest =
@@ -309,8 +305,8 @@ let packageOfSource =
   let pkg = {
     let* {EsyFetch.DistResolver.overrides, dist: resolvedDist, manifest, _} =
       EsyFetch.DistResolver.resolve(
-        ~gitUsername,
-        ~gitPassword,
+        ~gitUsername=resolver.gitUsername,
+        ~gitPassword=resolver.gitPassword,
         ~cfg=resolver.cfg.installCfg,
         ~sandbox=resolver.sandbox,
         ~overrides,
@@ -481,8 +477,7 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
-let package =
-    (~gitUsername, ~gitPassword, ~resolution: Resolution.t, resolver) => {
+let package = (~resolution: Resolution.t, resolver) => {
   open RunAsync.Syntax;
   let key = (resolution.name, resolution.resolution);
 
@@ -539,8 +534,6 @@ let package =
       }
     | Version.Source(source) =>
       packageOfSource(
-        ~gitUsername,
-        ~gitPassword,
         ~overrides=Overrides.empty,
         ~name=resolution.name,
         source,
@@ -563,8 +556,6 @@ let package =
           let override = Override.ofJson(override);
           let overrides = Overrides.(add(override, empty));
           packageOfSource(
-            ~gitUsername,
-            ~gitPassword,
             ~name=resolution.name,
             ~overrides,
             source,
@@ -588,18 +579,11 @@ let package =
   );
 };
 
-let resolveSource =
-    (
-      ~gitUsername,
-      ~gitPassword,
-      ~name,
-      ~sourceSpec: SourceSpec.t,
-      resolver: t,
-    ) => {
+let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
   open RunAsync.Syntax;
 
   let gitConfig =
-    switch (gitUsername, gitPassword) {
+    switch (resolver.gitUsername, resolver.gitPassword) {
     | (Some(gitUsername), Some(gitPassword)) => [
         (
           "credential.helper",
@@ -687,8 +671,7 @@ let resolveSource =
   );
 };
 
-let resolve' =
-    (~gitUsername, ~gitPassword, ~fullMetadata, ~name, ~spec, resolver) =>
+let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
   RunAsync.Syntax.(
     switch (spec) {
     | VersionSpec.Npm(_)
@@ -801,14 +784,7 @@ let resolve' =
       return(resolutions);
 
     | VersionSpec.Source(sourceSpec) =>
-      let* source =
-        resolveSource(
-          ~gitUsername,
-          ~gitPassword,
-          ~name,
-          ~sourceSpec,
-          resolver,
-        );
+      let* source = resolveSource(~name, ~sourceSpec, resolver);
       let version = Version.Source(source);
       let resolution = {
         Resolution.name,
@@ -820,8 +796,6 @@ let resolve' =
 
 let resolve =
     (
-      ~gitUsername,
-      ~gitPassword,
       ~fullMetadata=false,
       ~name: string,
       ~spec: option(VersionSpec.t)=?,
@@ -845,14 +819,7 @@ let resolve =
         | Some(spec) => spec
         };
 
-      resolve'(
-        ~gitUsername,
-        ~gitPassword,
-        ~fullMetadata,
-        ~name,
-        ~spec,
-        resolver,
-      );
+      resolve'(~fullMetadata, ~name, ~spec, resolver);
     }
   );
 

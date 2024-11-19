@@ -7,7 +7,14 @@ type t;
 /** Make new resolver */
 
 let make:
-  (~cfg: Config.t, ~sandbox: EsyFetch.SandboxSpec.t, unit) => RunAsync.t(t);
+  (
+    ~gitUsername: option(string),
+    ~gitPassword: option(string),
+    ~cfg: Config.t,
+    ~sandbox: EsyFetch.SandboxSpec.t,
+    unit
+  ) =>
+  RunAsync.t(t);
 
 let setOCamlVersion: (Version.t, t) => unit;
 let setResolutions: (Resolutions.t, t) => unit;
@@ -18,14 +25,7 @@ let getUnusedResolutions: t => list(string);
  */
 
 let resolve:
-  (
-    ~gitUsername: option(string),
-    ~gitPassword: option(string),
-    ~fullMetadata: bool=?,
-    ~name: string,
-    ~spec: VersionSpec.t=?,
-    t
-  ) =>
+  (~fullMetadata: bool=?, ~name: string, ~spec: VersionSpec.t=?, t) =>
   RunAsync.t(list(Resolution.t));
 
 /**
@@ -36,12 +36,7 @@ let resolve:
  */
 
 let package:
-  (
-    ~gitUsername: option(string),
-    ~gitPassword: option(string),
-    ~resolution: Resolution.t,
-    t
-  ) =>
+  (~resolution: Resolution.t, t) =>
   RunAsync.t(result(InstallManifest.t, string));
 
 let versionByNpmDistTag:
