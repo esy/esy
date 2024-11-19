@@ -72,7 +72,7 @@
     "@opam/bos": "*",
     "@opam/cudf": "0.9",
     "@opam/dose3": "< 8.0.0",
-    "@opam/dune": "3.6.2",
+    "@opam/dune": "< 4.0.0",
     "@opam/fpath": "*",
     "@opam/lwt": "*",
     "@opam/lwt_ppx": "*",
