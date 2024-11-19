@@ -352,6 +352,16 @@ describe('installing opam dependencies from multiple registries', () => {
         await p.esy('build');
 
         {
+	  await p.esy('x foo.cmd')
+	    .then(() => Promise.reject(
+	      new Error("Running foo.cmd should have failed but didn't")
+	    ))
+	    .catch(e => {
+	        expect(String(e)).toEqual(helpers.COMMAND_NOT_FOUND);
+            });
+        }
+
+        {
             const { stdout: stdoutHello } = await p.esy('x hello.cmd');
 
             expect(stdoutHello.trim()).toEqual('__hello__');

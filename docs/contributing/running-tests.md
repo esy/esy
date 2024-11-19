@@ -26,6 +26,19 @@ These are present in `test-e2e` folder and are written in JS. They're run by `je
 yarn jest
 ```
 
+#### Note
+If you happen to commit anything, even unrelated to esy (say in the README or JS scripts), make sure to
+rebuild esy. This is because some of the tests compare the output against the latest git commit. Otherwise,
+you might see errors like,
+
+```diff
+- Expected  - 1
++ Received  + 1
+- info install 0.7.2-162-ged25563c (using package.json)
++ info install 0.7.2-163-g6ff25127 (using package.json)
+```
+
+
 ## Slow end-to-end tests
 They're present in `test-e2e-slow` and are written in JS. They're supposed to mimick the user's workflow
 as closely as possible.

@@ -20,7 +20,7 @@ it('Exists with a non-zero exit code if build fails', async () => {
   try {
     await p.esy('build');
   } catch (err) {
-    expect(String(err)).toEqual(expect.stringMatching('command failed'));
+    expect(String(err)).toEqual(helpers.COMMAND_FAILED);
     return;
   }
   expect(true).toBeFalsy();
