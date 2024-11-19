@@ -1,3 +1,12 @@
+/**
+   [InstallManifest.t] are metadata needed for the installation phase.
+
+   You'll notice that there's no way to override them with [esy-opam-overrides]
+   repository (which is meant to override [BuildManifest.t].
+   [InstallationManifest.t] is a unified representation of opam files and NPM
+   manifest files, but tend to contain information only relevant to the installation
+   phase.
+*/
 type disj('a) = list('a);
 type conj('a) = list('a);
 
@@ -28,6 +37,10 @@ module Dependencies: {
   let filterDependenciesByName: (~name: string, t) => t;
 };
 
+/**
+   Unified representation of opam and npm manifest files relevant for installation
+   of sources
+*/
 type t = {
   name: string,
   version: Version.t,
