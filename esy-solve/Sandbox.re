@@ -13,12 +13,9 @@ let makeResolution = source => {
   resolution: VersionOverride({version: Source(source), override: None}),
 };
 
-let ofResolution =
-    (~gitUsername, ~gitPassword, cfg, spec, resolver, resolution) => {
+let ofResolution = (cfg, spec, resolver, resolution) => {
   open RunAsync.Syntax;
-  switch%bind (
-    Resolver.package(~gitUsername, ~gitPassword, ~resolution, resolver)
-  ) {
+  switch%bind (Resolver.package(~resolution, resolver)) {
   | Ok(root) =>
     let root = {
       let name =
@@ -43,20 +40,13 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
 
   RunAsync.contextf(
     {
-      let* resolver = Resolver.make(~cfg, ~sandbox=spec, ());
+      let* resolver =
+        Resolver.make(~gitUsername, ~gitPassword, ~cfg, ~sandbox=spec, ());
       switch (spec.manifest) {
       | EsyFetch.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);
         let resolution = makeResolution(source);
-        let* sandbox =
-          ofResolution(
-            ~gitUsername,
-            ~gitPassword,
-            cfg,
-            spec,
-            resolver,
-            resolution,
-          );
+        let* sandbox = ofResolution(cfg, spec, resolver, resolution);
         Resolver.setResolutions(sandbox.resolutions, sandbox.resolver);
         return(sandbox);
       | EsyFetch.SandboxSpec.ManifestAggregate(manifests) =>
@@ -64,14 +54,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
           let f = ((resolutions, deps, devDeps), manifest) => {
             let source = makeSource(manifest);
             let resolution = makeResolution(source);
-            switch%bind (
-              Resolver.package(
-                ~gitUsername,
-                ~gitPassword,
-                ~resolution,
-                resolver,
-              )
-            ) {
+            switch%bind (Resolver.package(~resolution, resolver)) {
             | Error(msg) =>
               errorf("unable to read %a: %s", ManifestSpec.pp, manifest, msg)
             | Ok(pkg) =>
@@ -236,14 +219,7 @@ let digest = (solvespec, sandbox) => {
       switch (resolution) {
       | None => return(digest)
       | Some(resolution) =>
-        switch%bind (
-          Resolver.package(
-            ~gitUsername=None,
-            ~gitPassword=None, /* Doesn't seem to hit git+https. TODO: does it? */
-            ~resolution,
-            sandbox.resolver,
-          )
-        ) {
+        switch%bind (Resolver.package(~resolution, sandbox.resolver)) {
         | Error(_) =>
           errorf("unable to read package: %a", Resolution.pp, resolution)
         | Ok(pkg) => return(linkDigest(pkg, digest))
