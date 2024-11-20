@@ -3,11 +3,6 @@ module Option = EsyLib.Option;
 module File = Bos.OS.File;
 module Dir = Bos.OS.Dir;
 
-type verb =
-  | Normal
-  | Quiet
-  | Verbose;
-
 type commonOpts = {
   ocamlPkgName: string,
   ocamlVersion: string,
