@@ -9,5 +9,5 @@
  (libraries EsyLib angstrom str ppx_deriving_yojson.runtime yojson esy_logs
    opam-format opam-file-format)
  (preprocess
-  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppxlib ppx_expect
+  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppx_expect
     ppx_inline_test ppx_sexp_conv)))

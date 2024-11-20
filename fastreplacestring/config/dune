@@ -4,6 +4,6 @@
  (libraries dune.configurator))
 
 (rule
- (targets dune.flags dune.cflags dune.cxx_flags)
+ (targets inline_test.link_flags dune.flags dune.cflags dune.cxx_flags)
  (action
   (run ./discover.exe)))

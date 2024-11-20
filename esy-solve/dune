@@ -10,5 +10,5 @@
    ppx_deriving_yojson.runtime yojson esy_logs esy_logs_lwt dose3.algo
    opam-format opam-state opam-file-format)
  (preprocess
-  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppxlib ppx_expect
+  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppx_expect
     ppx_inline_test ppx_sexp_conv)))

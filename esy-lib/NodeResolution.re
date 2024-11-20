@@ -1,3 +1,4 @@
+[@ocaml.warning "-69"]; // Because of dune runtest
 module PackageJson = {
   type t = {
     name: string,

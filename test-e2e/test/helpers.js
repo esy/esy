@@ -451,5 +451,5 @@ module.exports = {
   isLinux,
   isMacos,
   COMMAND_FAILED: expect.stringMatching('command failed'),
-  COMMAND_NOT_FOUND: expect.stringMatching('unable to resolve command'),
+  COMMAND_NOT_FOUND: expect.stringMatching(isWindows ? 'command not found': 'unable to resolve command'),
 };
