@@ -4,7 +4,7 @@
  (libraries EsyLib EsyPackageConfig rely.lib esy_logs esy_logs_cli
    esy_cmdliner bos esy_fmt esy_fmt_cli esy_fmt_tty rresult)
  (preprocess
-  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppxlib ppx_expect
+  (pps lwt_ppx ppx_let ppx_deriving.std ppx_deriving_yojson ppx_expect
     ppx_inline_test ppx_sexp_conv))
  (modules
   (:standard \ RunTests)))
