@@ -24,4 +24,14 @@ let () =
       };
 
     C.Flags.write_sexp("dune.cxx_flags", cxx_flags);
+
+
+    let inline_test_flags =
+      switch (C.ocaml_config_var(c, "system")) {
+      /* link statically on windows so we don't have to ship mingw64.dll */
+      | Some("mingw64") => ["-cclib", "-link -static-libstdc++"]
+      | _ => []
+      };
+
+    C.Flags.write_sexp("inline_test.link_flags", inline_test_flags);
   });
