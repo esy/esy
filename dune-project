@@ -1,8 +1,6 @@
-(lang dune 2.0)
+(lang dune 3.16)
 (using menhir 2.0)
 (name esy)
-
-(allow_approximate_merlin)
 
 (license BSD-2-Clause)
 (maintainers
