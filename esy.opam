@@ -34,7 +34,6 @@ depends: [
   "logs"
   "lwt"
   "reason"
-  "rely" {= "dev"}
   "cli" {= "dev"}
   "pastel" {= "dev"}
   "file-context-printer" {= "dev"}

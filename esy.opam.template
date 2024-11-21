@@ -5,5 +5,4 @@ pin-depends: [
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
   ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["rely.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
 ]
