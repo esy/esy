@@ -37,14 +37,14 @@
    tarball URLs. Those representing Github repositories resolve to git URLs. Locallly available,
    package metadata, of course, resolve to file system paths.
 
- 
- 
+
+
  +-----------------+          +-----------------------+            +----------------------+
  |                 |          |                       |            |                      |
  |  @opam/foo-pkg  |--------->|  list(Resolution.t)   |----------->|   InstallManifest.t  |
  |                 |          |                       |            |                      |
  +-----------------+          +-----------------------+            +----------------------+
-                                                                 
+
 
 
  */;
@@ -88,7 +88,6 @@ let package:
 
 let setOCamlVersion: (Version.t, t) => unit;
 let setResolutions: (Resolutions.t, t) => unit;
-
 
 /*************************** utils ****************************/
 

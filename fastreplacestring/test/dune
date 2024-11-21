@@ -1,7 +1,9 @@
 (library
  (name fastreplacestringTest)
  (inline_tests
-  (executable (link_flags (:include ../config/inline_test.link_flags))))
+  (executable
+   (link_flags
+    (:include ../config/inline_test.link_flags))))
  (libraries fastreplacestring)
  (preprocess
   (pps ppx_expect)))
