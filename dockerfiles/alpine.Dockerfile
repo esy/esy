@@ -29,6 +29,7 @@ COPY ./bin /app/bin
 # to generate and copy the EsyVersion.re file
 COPY ./esy-shell-expansion /app/esy-shell-expansion
 COPY ./esy-version /app/esy-version
+COPY ./esy-opam /app/esy-opam
 COPY ./esy-solve /app/esy-solve
 COPY ./esy-fetch /app/esy-fetch
 COPY ./esy-install-npm-release /app/esy-install-npm-release

@@ -47,6 +47,19 @@ let opam = pkg =>
     }
   );
 
+let evaluateOpamPackageAvailability = pkg => {
+  /*
+      Allowing sources here would let us resolve to github urls for
+      npm dependencies. Atleast in theory. TODO: test this
+   */
+  switch (pkg.version, pkg.available) {
+  | (Source(_), Some(availabilityFilter))
+  | (Opam(_), Some(availabilityFilter)) =>
+    EsyOpamLibs.Available.eval(availabilityFilter)
+  | _ => true
+  };
+};
+
 module Map =
   Map.Make({
     type nonrec t = t;

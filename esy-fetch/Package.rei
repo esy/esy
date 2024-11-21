@@ -16,6 +16,7 @@ type t = {
 let id: t => PackageId.t;
 let extraSources: t => list(ExtraSource.t);
 let opam: t => RunAsync.t(option((string, Version.t, OpamFile.OPAM.t)));
+let evaluateOpamPackageAvailability: t => bool;
 
 include S.COMPARABLE with type t := t;
 include S.PRINTABLE with type t := t;

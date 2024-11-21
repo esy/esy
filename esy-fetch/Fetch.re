@@ -16,7 +16,7 @@ let collectPackagesOfSolution = (fetchDepsSubset, solution) => {
   and collectDependencies = ((seen, topo), pkg) => {
     let dependencies =
       Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg)
-      |> List.filter(~f=OpamAvailable.eval);
+      |> List.filter(~f=Package.evaluateOpamPackageAvailability);
     List.fold_left(~f=collect, ~init=(seen, topo), dependencies);
   };
 

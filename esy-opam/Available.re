@@ -41,19 +41,6 @@ let evalAvailabilityFilter = filter => {
   OpamFilter.eval_to_bool(~default=true, env, filter);
 };
 
-let eval = pkg => {
-  /*
-      Allowing sources here would let us resolve to github urls for
-      npm dependencies. Atleast in theory. TODO: test this
-   */
-  switch (NodeModule.version(pkg)) {
-  | Source(_)
-  | Opam(_) =>
-    switch (pkg.Package.available) {
-    | None => true
-    | Some(opamAvailabilityFilter) =>
-      parseOpamFilterString(opamAvailabilityFilter) |> evalAvailabilityFilter
-    }
-  | Npm(_) => true
-  };
+let eval = availabilityFilter => {
+  parseOpamFilterString(availabilityFilter) |> evalAvailabilityFilter;
 };
