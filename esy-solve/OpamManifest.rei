@@ -35,9 +35,3 @@ let ofString:
 let ofPath:
   (~name: OpamTypes.name, ~version: OpamTypes.version, Path.t) =>
   RunAsync.t(t);
-
-/** Convert opam manifest to a package. */
-
-let toInstallManifest:
-  (~source: Source.t=?, ~name: string, ~version: Version.t, t) =>
-  RunAsync.t(result(InstallManifest.t, string));
