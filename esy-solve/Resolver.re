@@ -98,7 +98,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: None,
+  available: AvailablePlatforms.default,
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -116,7 +116,7 @@ let emptyInstall = (~name, ~source, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: None,
+  available: AvailablePlatforms.default,
 };
 
 let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
@@ -391,9 +391,9 @@ let convertOpamUrl = manifest => {
       | [] =>
         errorf(
           "no checksum provided for %s@%s",
-          OpamPackage.Name.to_string(manifest.EsyOpamLibs.OpamManifest.name),
+          OpamPackage.Name.to_string(manifest.OpamManifest.name),
           OpamPackage.Version.to_string(
-            manifest.EsyOpamLibs.OpamManifest.version,
+            manifest.OpamManifest.version,
           ),
         )
       | [hash, ..._] => return(hash)
@@ -459,7 +459,7 @@ let convertDependencies = manifest => {
         | "version" =>
           let version =
             OpamPackage.Version.to_string(
-              manifest.EsyOpamLibs.OpamManifest.version,
+              manifest.OpamManifest.version,
             );
           Some(OpamVariable.S(version));
         | _ => None
@@ -524,7 +524,7 @@ let convertDependencies = manifest => {
         ~test=true,
         ~doc=true,
         ~dev=true,
-        OpamFile.OPAM.depends(manifest.EsyOpamLibs.OpamManifest.opam),
+        OpamFile.OPAM.depends(manifest.OpamManifest.opam),
       );
     return(InstallManifest.Dependencies.OpamFormula(formula));
   };
@@ -537,7 +537,7 @@ let convertDependencies = manifest => {
         ~test=true,
         ~doc=true,
         ~dev=true,
-        OpamFile.OPAM.depopts(manifest.EsyOpamLibs.OpamManifest.opam),
+        OpamFile.OPAM.depopts(manifest.OpamManifest.opam),
       );
 
     return(
@@ -562,8 +562,9 @@ let convertDependencies = manifest => {
          {ExtraSource.url, relativePath, checksum};
        });
 
+  let availableFilter = OpamFile.OPAM.available(manifest.opam);
   let available =
-    manifest.opam |> OpamFile.OPAM.available |> OpamFilter.to_string;
+    AvailablePlatforms.default |> AvailablePlatforms.filter(availableFilter);
 
   return((
     dependencies,
@@ -645,7 +646,7 @@ let opamManifestToInstallManifest = (~source=?, ~name, ~version, manifest) => {
         resolutions: Resolutions.empty,
         installConfig: InstallConfig.empty,
         extraSources,
-        available: Some(available),
+        available,
       }),
     );
   };
@@ -684,7 +685,7 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
           RunAsync.ofRun(
             {
               let version = OpamPackage.Version.of_string("dev");
-              EsyOpamLibs.OpamManifest.ofString(
+              OpamManifest.ofString(
                 ~name=opamname,
                 ~version,
                 data,

@@ -1,4 +1,4 @@
 (library
  (name EsyOpamLibs)
  (flags -open EsyLib)
- (libraries  opam-state EsyLib EsyPackageConfig))
+ (libraries  opam-state EsyLib opam-format))

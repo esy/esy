@@ -24,4 +24,4 @@ let versions:
 
 let version:
   (~name: OpamPackage.Name.t, ~version: OpamPackage.Version.t, t) =>
-  RunAsync.t(option(EsyOpamLibs.OpamManifest.t));
+  RunAsync.t(option(OpamManifest.t));

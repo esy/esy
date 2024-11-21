@@ -113,7 +113,7 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
           kind: Npm,
           installConfig: InstallConfig.empty,
           extraSources: [],
-          available: None,
+          available: AvailablePlatforms.default,
         };
         return({cfg, spec, root, resolutions: root.resolutions, resolver});
       };

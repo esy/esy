@@ -1,3 +1,4 @@
+[@ocaml.warning "-69"];
 open DepSpec;
 open EsyPrimitives;
 open EsyPackageConfig;

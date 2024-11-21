@@ -1,3 +1,4 @@
+[@ocaml.warning "-69"];
 open EsyPrimitives;
 open EsyBuild;
 open EsyPackageConfig;
@@ -996,6 +997,31 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
     | Some(_) => return()
     | None => run()
     };
+  };
+};
+
+let checkSolutionPortability = (proj: Project.t) => {
+  open RunAsync.Syntax;
+  let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
+  switch%bind (SolutionLock.ofPath(proj.installSandbox, lockPath)) {
+  | Some(solution) =>
+    let* unPortableDependencies = EsyFetch.Solution.unPortableDependencies(solution);
+    let%lwt () =
+    switch(unPortableDependencies) {
+    | [] => Esy_logs_lwt.app(m => m("Is portable"));
+    | unsupportedPlatforms => {
+        let%lwt () = Esy_logs_lwt.app(m => m("The following packages are problematic and dont build on specified platform"));
+        let f = ((package, _platform)) => {
+          Esy_logs_lwt.app(m => m("Package %a", Package.pp, package));
+        };
+        List.map(~f, unsupportedPlatforms) |> Lwt.join
+      }
+    };
+    RunAsync.return();
+  | None =>
+    error(
+      "No lock found, therefore not solution to check for its portability.",
+    )
   };
 };
 
@@ -2092,6 +2118,12 @@ let commandsConfig = {
             )
           $ pkgTerm
         ),
+      ),
+      makeProjectCommand(
+        ~name="check-solution-portability",
+        ~doc="Check if lock file is portable on other platforms",
+        ~docs=lowLevelSection,
+        Term.(const(checkSolutionPortability)),
       ),
       makeProjectCommand(
         ~name="solve",

@@ -172,7 +172,7 @@ module InstallManifestV1 = {
     /*                                                                  */
     /********************************************************************/
 
-    let available = None;
+    let available = AvailablePlatforms.default;
     return((
       {
         InstallManifest.name,

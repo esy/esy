@@ -19,16 +19,20 @@ module Platform = {
 
   let pp = (fmt, v) => Fmt.string(fmt, show(v));
 
+  let parse =
+    fun
+    | "darwin" => Ok(Darwin)
+    | "linux" => Ok(Linux)
+    | "cygwin" => Ok(Cygwin)
+    | "unix" => Ok(Unix)
+    | "windows" => Ok(Windows)
+    | "unknown" => Ok(Unknown)
+    | v => Result.errorf("unknown platform: %s", v);
+
   let to_yojson = v => `String(show(v));
   let of_yojson =
     fun
-    | `String("darwin") => Ok(Darwin)
-    | `String("linux") => Ok(Linux)
-    | `String("cygwin") => Ok(Cygwin)
-    | `String("unix") => Ok(Unix)
-    | `String("windows") => Ok(Windows)
-    | `String("unknown") => Ok(Unknown)
-    | `String(v) => Result.errorf("unknown platform: %s", v)
+    | `String(v) => parse(v)
     | _json => Result.error("System.Platform.t: expected string");
 
   let host = {
@@ -83,16 +87,20 @@ module Arch = {
 
   let to_yojson = v => `String(show(v));
 
+  let parse = fun
+      | "x86" => X86_32
+      | "x86_64" => X86_64
+      | "amd64" => X86_64
+      /* Return values for uname on other platforms */
+      | "ppc32" => Ppc32
+      | "ppc64" => Ppc64
+      | "arm32" => Arm32
+      | "arm64" => Arm64
+      | _ => Unknown
+
   let of_yojson =
     fun
-    | `String("x86_32") => Ok(X86_32)
-    | `String("x86_64") => Ok(X86_64)
-    | `String("ppc32") => Ok(Ppc32)
-    | `String("ppc64") => Ok(Ppc64)
-    | `String("arm32") => Ok(Arm32)
-    | `String("arm64") => Ok(Arm64)
-    | `String("unknown") => Ok(Unknown)
-    | `String(v) => Result.errorf("unknown architecture: %s", v)
+    | `String(v) => Ok(parse(v))
     | _json => Result.error("System.Arch.t: expected string");
 
   let host = {
@@ -105,18 +113,8 @@ module Arch = {
     };
 
     let convert = uname => {
-      switch (String.trim(String.lowercase_ascii(uname))) {
       /* Return values for Windows PROCESSOR_ARCHITECTURE environment variable */
-      | "x86" => X86_32
-      | "x86_64" => X86_64
-      | "amd64" => X86_64
-      /* Return values for uname on other platforms */
-      | "ppc32" => Ppc32
-      | "ppc64" => Ppc64
-      | "arm32" => Arm32
-      | "arm64" => Arm64
-      | _ => Unknown
-      };
+      uname |> String.lowercase_ascii |> String.trim |> parse
     };
 
     switch (Platform.host) {

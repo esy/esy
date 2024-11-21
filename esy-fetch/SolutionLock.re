@@ -52,7 +52,7 @@ and node = {
   installConfig: InstallConfig.t,
   [@default []]
   extraSources: list(ExtraSource.t),
-  available: [@default None] option(string),
+  available: option(AvailablePlatforms.t),
 };
 
 let indexFilename = "index.json";
@@ -232,7 +232,7 @@ let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
     devDependencies: pkg.devDependencies,
     installConfig: pkg.installConfig,
     extraSources: pkg.extraSources,
-    available: pkg.available,
+    available: Some(pkg.available),
   });
 };
 
@@ -250,6 +250,49 @@ let readPackage = (sandbox, node: node) => {
     };
 
   let* overrides = readOverrides(sandbox, node.overrides);
+
+  let* available =
+    switch (node.available) {
+    | Some(available) => RunAsync.return @@ available
+    | None =>
+      switch (node.source) {
+      | Link({path, manifest: Some((Opam, filename)), kind: _}) =>
+        let* opamfile = {
+          let path =
+            DistPath.(path / filename |> toPath(sandbox.Sandbox.spec.path));
+          let* data = Fs.readFile(path);
+          let filename =
+            OpamFile.make(OpamFilename.of_string(Path.show(path)));
+          try(return(OpamFile.OPAM.read_from_string(~filename, data))) {
+          | Failure(msg) =>
+            errorf("error parsing opam metadata %a: %s", Path.pp, path, msg)
+          | _ => error("error parsing opam metadata")
+          };
+        };
+        let availableFilter = OpamFile.OPAM.available(opamfile);
+        RunAsync.return @@
+        AvailablePlatforms.filter(availableFilter, AvailablePlatforms.default);
+
+      | Link(_) => RunAsync.return @@ AvailablePlatforms.default
+      | Install({source: _, opam: None}) =>
+        RunAsync.return @@ AvailablePlatforms.default
+      | Install({source: _, opam: Some(opam)}) =>
+        let* opamfile = {
+          let path = Path.(opam.path / "opam");
+          let* data = Fs.readFile(path);
+          let filename =
+            OpamFile.make(OpamFilename.of_string(Path.show(path)));
+          try(return(OpamFile.OPAM.read_from_string(~filename, data))) {
+          | Failure(msg) =>
+            errorf("error parsing opam metadata %a: %s", Path.pp, path, msg)
+          | _ => error("error parsing opam metadata")
+          };
+        };
+        let availableFilter = OpamFile.OPAM.available(opamfile);
+        RunAsync.return @@
+        AvailablePlatforms.filter(availableFilter, AvailablePlatforms.default);
+      }
+    };
   return({
     Package.id: node.id,
     name: node.name,
@@ -260,7 +303,7 @@ let readPackage = (sandbox, node: node) => {
     devDependencies: node.devDependencies,
     installConfig: node.installConfig,
     extraSources: node.extraSources,
-    available: node.available,
+    available,
   });
 };
 

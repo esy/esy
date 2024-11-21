@@ -8,7 +8,7 @@ type t = {
   version: OpamPackage.Version.t,
   opam: OpamFile.OPAM.t,
   url: option(OpamFile.URL.t),
-  override: option(EsyPackageConfig.Override.t),
+  override: option(Override.t),
   opamRepositoryPath: option(Path.t),
 };
 

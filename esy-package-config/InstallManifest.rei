@@ -56,7 +56,7 @@ type t = {
   kind,
   installConfig: InstallConfig.t,
   extraSources: list(ExtraSource.t),
-  available: option(string) /* contains opam filter serialised to be eval'd later */
+  available: AvailablePlatforms.t,
 }
 and kind =
   | Esy

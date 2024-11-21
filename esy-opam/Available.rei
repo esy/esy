@@ -1,8 +1,8 @@
+let evalAvailabilityFilter: (~os: System.Platform.t, ~arch: System.Arch.t, OpamTypes.filter) => bool;
 /**
 
-   Evaluates available field (cached in lock file) and determines if the package is available.
+   [eval(~os, ~arch, filter)] evaluates availability filter, [filter] and
+   determines if the package is available.
 
-   Assumes [available] is currently only an opam filter, which means this function must be a no-op on
-   NPM packages. Atleast till designed takes into account [platform] and [arch] fields in NPM manifests
  */
-let eval: string => bool;
+let eval: (~os: System.Platform.t, ~arch: System.Arch.t, string) => bool;
