@@ -1,4 +1,3 @@
-open EsyPackageConfig;
 
 module File = {
   module Cache =
@@ -46,7 +45,7 @@ type t = {
   version: OpamPackage.Version.t,
   opam: OpamFile.OPAM.t,
   url: option(OpamFile.URL.t),
-  override: option(Override.t),
+  override: option(EsyPackageConfig.Override.t),
   opamRepositoryPath: option(Path.t),
 };
 
@@ -58,8 +57,8 @@ let ofPath = (~name, ~version, path: Path.t) => {
     version,
     opamRepositoryPath: Some(Path.parent(path)),
     opam,
-    url: None,
     override: None,
+    url: None,
   });
 };
 
@@ -71,7 +70,7 @@ let ofString = (~name, ~version, data: string) => {
     version,
     opam,
     url: None,
-    opamRepositoryPath: None,
     override: None,
+    opamRepositoryPath: None,
   });
 };

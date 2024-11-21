@@ -2,14 +2,13 @@
  * Representation of an opam package (opam file, url file, override).
  */;
 
-open EsyPackageConfig;
 
 type t = {
   name: OpamPackage.Name.t,
   version: OpamPackage.Version.t,
   opam: OpamFile.OPAM.t,
   url: option(OpamFile.URL.t),
-  override: option(Override.t),
+  override: option(EsyPackageConfig.Override.t),
   opamRepositoryPath: option(Path.t),
 };
 

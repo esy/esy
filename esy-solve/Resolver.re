@@ -391,8 +391,10 @@ let convertOpamUrl = manifest => {
       | [] =>
         errorf(
           "no checksum provided for %s@%s",
-          OpamPackage.Name.to_string(manifest.OpamManifest.name),
-          OpamPackage.Version.to_string(manifest.OpamManifest.version),
+          OpamPackage.Name.to_string(manifest.EsyOpamLibs.OpamManifest.name),
+          OpamPackage.Version.to_string(
+            manifest.EsyOpamLibs.OpamManifest.version,
+          ),
         )
       | [hash, ..._] => return(hash)
       };
@@ -456,7 +458,9 @@ let convertDependencies = manifest => {
         | "dev" => Some(OpamVariable.B(dev))
         | "version" =>
           let version =
-            OpamPackage.Version.to_string(manifest.OpamManifest.version);
+            OpamPackage.Version.to_string(
+              manifest.EsyOpamLibs.OpamManifest.version,
+            );
           Some(OpamVariable.S(version));
         | _ => None
         };
@@ -520,7 +524,7 @@ let convertDependencies = manifest => {
         ~test=true,
         ~doc=true,
         ~dev=true,
-        OpamFile.OPAM.depends(manifest.OpamManifest.opam),
+        OpamFile.OPAM.depends(manifest.EsyOpamLibs.OpamManifest.opam),
       );
     return(InstallManifest.Dependencies.OpamFormula(formula));
   };
@@ -533,7 +537,7 @@ let convertDependencies = manifest => {
         ~test=true,
         ~doc=true,
         ~dev=true,
-        OpamFile.OPAM.depopts(manifest.OpamManifest.opam),
+        OpamFile.OPAM.depopts(manifest.EsyOpamLibs.OpamManifest.opam),
       );
 
     return(
@@ -680,7 +684,11 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
           RunAsync.ofRun(
             {
               let version = OpamPackage.Version.of_string("dev");
-              OpamManifest.ofString(~name=opamname, ~version, data);
+              EsyOpamLibs.OpamManifest.ofString(
+                ~name=opamname,
+                ~version,
+                data,
+              );
             },
           );
         opamManifestToInstallManifest(

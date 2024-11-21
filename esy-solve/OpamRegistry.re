@@ -16,12 +16,12 @@ and registry = {
   repoPath: Path.t,
   overrides: OpamOverrides.t,
   pathsCache: OpamPathsByVersion.t,
-  opamCache: OpamManifest.File.Cache.t,
+  opamCache: EsyOpamLibs.OpamManifest.File.Cache.t,
 };
 
 let readOpamFileOfRegistry = (res, registry) => {
   let path = Path.(OpamResolution.path(res) / "opam");
-  OpamManifest.File.ofPath(
+  EsyOpamLibs.OpamManifest.File.ofPath(
     ~upgradeIfOpamVersionIsLessThan=?registry.version,
     ~cache=registry.opamCache,
     path,
@@ -79,7 +79,7 @@ let make = (~opamRepository, ~cfg, ()) => {
       version: OpamFile.Repo.opam_version(repo),
       repoPath,
       pathsCache: OpamPathsByVersion.make(),
-      opamCache: OpamManifest.File.Cache.make(),
+      opamCache: EsyOpamLibs.OpamManifest.File.Cache.make(),
       overrides,
     });
   };
@@ -252,7 +252,7 @@ let version = (~name: OpamPackage.Name.t, ~version, registry) =>
             };
 
           return({
-            OpamManifest.name,
+            EsyOpamLibs.OpamManifest.name,
             version,
             opam,
             url,
@@ -266,7 +266,7 @@ let version = (~name: OpamPackage.Name.t, ~version, registry) =>
         | Some(override) =>
           let manifest = {
             ...manifest,
-            OpamManifest.override: Some(override),
+            EsyOpamLibs.OpamManifest.override: Some(override),
           };
           return(Some(manifest));
         };
