@@ -27,7 +27,7 @@
    Right now, overrides are not optional in [SourceOverride]s. This could be improved. Doing
    so would allow for NPM packages to be linked in from Github directly. Not sure, if we can
    do this reliably right now.
-   
+
    Thus, resolutions are either Version overrides or source overrides, with overrides
    represented as optional JSON objects.
 

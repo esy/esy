@@ -33,13 +33,7 @@ type overrides = list(override);
 /* This is checksum of all dependencies/resolutios, used as a checksum. */
 /* Id of the root package. */
 /* Map from ids to nodes. */
-[@deriving
-  yojson(
-    {
-      strict : false
-    },
-  )
-]
+[@deriving yojson({strict: false})]
 type t = {
   [@key "checksum"]
   digest: string,
