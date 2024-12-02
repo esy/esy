@@ -2,7 +2,6 @@
  * Representation of an opam package (opam file, url file, override).
  */;
 
-
 type t = {
   name: OpamPackage.Name.t,
   version: OpamPackage.Version.t,

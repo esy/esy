@@ -32,7 +32,15 @@ let ofResolution = (cfg, spec, resolver, resolution) => {
   };
 };
 
-let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
+let make =
+    (
+      ~os=?,
+      ~arch=?,
+      ~gitUsername,
+      ~gitPassword,
+      ~cfg,
+      spec: EsyFetch.SandboxSpec.t,
+    ) => {
   open RunAsync.Syntax;
   let path = DistPath.make(~base=spec.path, spec.path);
   let makeSource = manifest =>
@@ -41,7 +49,15 @@ let make = (~gitUsername, ~gitPassword, ~cfg, spec: EsyFetch.SandboxSpec.t) => {
   RunAsync.contextf(
     {
       let* resolver =
-        Resolver.make(~gitUsername, ~gitPassword, ~cfg, ~sandbox=spec, ());
+        Resolver.make(
+          ~os?,
+          ~arch?,
+          ~gitUsername,
+          ~gitPassword,
+          ~cfg,
+          ~sandbox=spec,
+          (),
+        );
       switch (spec.manifest) {
       | EsyFetch.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);

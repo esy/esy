@@ -39,6 +39,8 @@ type t = {
   digest: string,
   root: PackageId.t,
   node: PackageId.Map.t(node),
+  [@default None]
+  platformSpecific: option(AvailablePlatforms.Map.t(PackageId.Map.t(node))),
 }
 and node = {
   id: PackageId.t,
@@ -52,6 +54,7 @@ and node = {
   installConfig: InstallConfig.t,
   [@default []]
   extraSources: list(ExtraSource.t),
+  [@default None]
   available: option(AvailablePlatforms.t),
 };
 
@@ -347,18 +350,46 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
 
           switch (lock) {
           | Ok(lock) =>
+            let currentPlatform = (System.Platform.host, System.Arch.host);
+            let* node =
+              switch (lock.platformSpecific) {
+              | Some(platformSpecificNode) =>
+                switch (
+                  AvailablePlatforms.Map.find_opt(
+                    currentPlatform,
+                    platformSpecificNode,
+                  )
+                ) {
+                | Some(node) =>
+                  /* TODO: investigate why SolutionLock.ofPath needs to be called multiple times
+                     When I logged, I noticed SolutionLock.ofPath
+                     gets called multiple times atleast in the [default] command, and
+                     possibly so in other commands too. */
+                  /* let%lwt () = */
+                  /*   Esy_logs_lwt.app(m => */
+                  /*     m( */
+                  /*       "Found platform specfic solution %a. Using it instead of default", */
+                  /*       AvailablePlatforms.ppEntry, */
+                  /*       currentPlatform, */
+                  /*     ) */
+                  /*   ); */
+                  RunAsync.return(node)
+                | None => RunAsync.return(lock.node)
+                }
+              | None => RunAsync.return(lock.node)
+              };
             switch (digest) {
             | None =>
-              let* solution = solutionOfLock(sandbox, lock.root, lock.node);
+              let* solution = solutionOfLock(sandbox, lock.root, node);
               return(Some(solution));
             | Some(digest) =>
               if (String.compare(lock.digest, Digestv.toHex(digest)) == 0) {
-                let* solution = solutionOfLock(sandbox, lock.root, lock.node);
+                let* solution = solutionOfLock(sandbox, lock.root, node);
                 return(Some(solution));
               } else {
                 return(None);
               }
-            }
+            };
           | Error(err) =>
             let path =
               Option.orDefault(
@@ -389,6 +420,7 @@ let toPath =
       ~digest,
       sandbox,
       solution: Solution.t,
+      platformSpecificSolutions,
       path: Path.t,
       gitUsername,
       gitPassword,
@@ -399,7 +431,32 @@ let toPath =
   let* () = Fs.rmPath(path);
   let* (root, node) =
     lockOfSolution(sandbox, solution, gitUsername, gitPassword);
-  let lock = {digest: Digestv.toHex(digest), node, root: root.Package.id};
+  let* platformSpecificSolutionsList =
+    platformSpecificSolutions
+    |> AvailablePlatforms.Map.bindings
+    |> List.map(~f=((k, solution)) => {
+         let* (_root, node) =
+           // TODO: check if this root matches with solution global root
+           lockOfSolution(sandbox, solution, gitUsername, gitPassword);
+         RunAsync.return((k, node));
+       })
+    |> RunAsync.List.joinAll;
+  let platformSpecificSolutions =
+    List.fold_left(
+      ~f=
+        (acc, kv) => {
+          let (k, v) = kv;
+          AvailablePlatforms.Map.add(k, v, acc);
+        },
+      ~init=AvailablePlatforms.Map.empty,
+      platformSpecificSolutionsList,
+    );
+  let lock = {
+    digest: Digestv.toHex(digest),
+    node,
+    root: root.Package.id,
+    platformSpecific: Some(platformSpecificSolutions),
+  };
   let* () = Fs.createDir(path);
   let* () =
     Fs.writeJsonFile(~json=to_yojson(lock), Path.(path / indexFilename));

@@ -1,21 +1,38 @@
-module Set = Set.Make({
-  [@deriving ord]
-  type t = (System.Platform.t, System.Arch.t);
-});
+[@deriving ord]
+type available = (System.Platform.t, System.Arch.t);
+
+module Set =
+  Set.Make({
+    [@deriving ord]
+    type t = available;
+  });
 
 type t = Set.t;
 
 let of_yojson =
   fun
-| `List(availablePlatforms) => {
-    let f = acc => fun
-    | `List([`String(os), `String(arch)]) as json => switch((acc, System.Platform.parse(os), System.Arch.parse(arch))) {
-        | (Ok(acc), Ok(os), arch) => Ok(Set.add((os, arch), acc))
-        | _ => Result.errorf("AvailablePlatforms.parse couldn't parse: %a", Json.Print.ppRegular, json); 
-      }
-    | json => Result.errorf("AvailablePlatforms.parse couldn't parse: %a", Json.Print.ppRegular, json); 
-    List.fold_left(~f, ~init=Ok(Set.empty), availablePlatforms);
-  }
+  | `List(availablePlatforms) => {
+      let f = acc => (
+        fun
+        | `List([`String(os), `String(arch)]) as json =>
+          switch (acc, System.Platform.parse(os), System.Arch.parse(arch)) {
+          | (Ok(acc), Ok(os), arch) => Ok(Set.add((os, arch), acc))
+          | _ =>
+            Result.errorf(
+              "AvailablePlatforms.parse couldn't parse: %a",
+              Json.Print.ppRegular,
+              json,
+            )
+          }
+        | json =>
+          Result.errorf(
+            "AvailablePlatforms.parse couldn't parse: %a",
+            Json.Print.ppRegular,
+            json,
+          )
+      );
+      List.fold_left(~f, ~init=Ok(Set.empty), availablePlatforms);
+    }
   | json =>
     Result.errorf(
       "Unexpected JSON %a where AvailablePlatforms.t was expected",
@@ -29,15 +46,21 @@ let to_yojson = platforms => {
   `List(platforms |> Set.elements |> List.map(~f));
 };
 
-let default: t = Set.of_list([
-  (System.Platform.Windows, System.Arch.X86_64),
-  (System.Platform.Linux, System.Arch.X86_64),
-  (System.Platform.Darwin, System.Arch.Arm64),
-]);
+let default: t =
+  Set.of_list([
+    (System.Platform.Windows, System.Arch.X86_64),
+    (System.Platform.Linux, System.Arch.X86_64),
+    (System.Platform.Darwin, System.Arch.X86_64),
+    (System.Platform.Darwin, System.Arch.Arm64),
+  ]);
 
 let filter = (availabilityFilter, platforms) => {
   let f = ((os, arch)) => {
-    EsyOpamLibs.Available.evalAvailabilityFilter(~os, ~arch, availabilityFilter);
+    EsyOpamLibs.Available.evalAvailabilityFilter(
+      ~os,
+      ~arch,
+      availabilityFilter,
+    );
   };
   Set.filter(f, platforms);
 };
@@ -47,12 +70,13 @@ let missing = (~expected, ~actual) => Set.diff(expected, actual);
 let isEmpty = v => Set.is_empty(v);
 let empty = Set.empty;
 let add = (~os, ~arch, v) => Set.add((os, arch), v);
+let toList = Set.elements;
 
 let ppEntry = (ppf, (os, arch)) =>
   Fmt.pf(ppf, "%a %a", System.Platform.pp, os, System.Arch.pp, arch);
 
 let pp = (ppf, v) => {
-  let sep = Fmt.any(", ");
+  let sep = Fmt.any("@");
   Fmt.hbox(Fmt.list(~sep, ppEntry), ppf, Set.elements(v));
 };
 

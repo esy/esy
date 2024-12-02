@@ -1,4 +1,5 @@
-let evalAvailabilityFilter: (~os: System.Platform.t, ~arch: System.Arch.t, OpamTypes.filter) => bool;
+let evalAvailabilityFilter:
+  (~os: System.Platform.t, ~arch: System.Arch.t, OpamTypes.filter) => bool;
 /**
 
    [eval(~os, ~arch, filter)] evaluates availability filter, [filter] and

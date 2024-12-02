@@ -3,6 +3,7 @@ let toPath:
     ~digest: Digestv.t,
     Sandbox.t,
     Solution.t,
+    EsyPackageConfig.AvailablePlatforms.Map.t(Solution.t),
     Fpath.t,
     option(string) /* git username */,
     option(string)

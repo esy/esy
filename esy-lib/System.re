@@ -87,16 +87,17 @@ module Arch = {
 
   let to_yojson = v => `String(show(v));
 
-  let parse = fun
-      | "x86" => X86_32
-      | "x86_64" => X86_64
-      | "amd64" => X86_64
-      /* Return values for uname on other platforms */
-      | "ppc32" => Ppc32
-      | "ppc64" => Ppc64
-      | "arm32" => Arm32
-      | "arm64" => Arm64
-      | _ => Unknown
+  let parse =
+    fun
+    | "x86" => X86_32
+    | "x86_64" => X86_64
+    | "amd64" => X86_64
+    /* Return values for uname on other platforms */
+    | "ppc32" => Ppc32
+    | "ppc64" => Ppc64
+    | "arm32" => Arm32
+    | "arm64" => Arm64
+    | _ => Unknown;
 
   let of_yojson =
     fun
@@ -114,7 +115,7 @@ module Arch = {
 
     let convert = uname => {
       /* Return values for Windows PROCESSOR_ARCHITECTURE environment variable */
-      uname |> String.lowercase_ascii |> String.trim |> parse
+      uname |> String.lowercase_ascii |> String.trim |> parse;
     };
 
     switch (Platform.host) {

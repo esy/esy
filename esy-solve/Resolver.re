@@ -81,6 +81,8 @@ type t = {
   sourceToSource: Hashtbl.t(Source.t, Source.t),
   gitUsername: option(string),
   gitPassword: option(string),
+  os: option(System.Platform.t),
+  arch: option(System.Arch.t),
 };
 
 let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
@@ -119,7 +121,7 @@ let emptyInstall = (~name, ~source, ()) => {
   available: AvailablePlatforms.default,
 };
 
-let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
+let make = (~os=?, ~arch=?, ~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
   RunAsync.return({
     cfg,
     sandbox,
@@ -136,6 +138,8 @@ let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
     sourceToSource: Hashtbl.create(500),
     gitUsername,
     gitPassword,
+    os,
+    arch,
   });
 
 let setOCamlVersion = (ocamlVersion, resolver) =>
@@ -392,9 +396,7 @@ let convertOpamUrl = manifest => {
         errorf(
           "no checksum provided for %s@%s",
           OpamPackage.Name.to_string(manifest.OpamManifest.name),
-          OpamPackage.Version.to_string(
-            manifest.OpamManifest.version,
-          ),
+          OpamPackage.Version.to_string(manifest.OpamManifest.version),
         )
       | [hash, ..._] => return(hash)
       };
@@ -482,9 +484,7 @@ let convertDependencies = (~os, ~arch, manifest) => {
           }
         | "version" =>
           let version =
-            OpamPackage.Version.to_string(
-              manifest.OpamManifest.version,
-            );
+            OpamPackage.Version.to_string(manifest.OpamManifest.version);
           Some(OpamVariable.S(version));
         | _ => None
         };
@@ -715,11 +715,7 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
           RunAsync.ofRun(
             {
               let version = OpamPackage.Version.of_string("dev");
-              OpamManifest.ofString(
-                ~name=opamname,
-                ~version,
-                data,
-              );
+              OpamManifest.ofString(~name=opamname, ~version, data);
             },
           );
         opamManifestToInstallManifest(
@@ -1168,6 +1164,8 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
               let* f =
                 RunAsync.return(
                   OpamRegistry.versions(
+                    ~os=?resolver.os,
+                    ~arch=?resolver.arch,
                     ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
                     ~name,
                   ),

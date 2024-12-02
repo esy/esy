@@ -60,4 +60,6 @@ let collect: (t, FetchDepSpec.t, PackageId.t) => PackageId.Set.t;
    Returns a list of dependencies that don't,ca build on other platforms. The default list of platforms
    (os, arch) tuples are list in [DefaultPlatforms]
 */
-let unPortableDependencies: t => RunAsync.t(list((pkg, AvailablePlatforms.t)));
+let unPortableDependencies:
+  (~expected: AvailablePlatforms.t, t) =>
+  RunAsync.t(list((pkg, AvailablePlatforms.t)));

@@ -928,60 +928,151 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
   );
 };
 
-let getSandboxSolution =
-    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, proj: Project.t) => {
-  open EsySolve;
-  open RunAsync.Syntax;
-  let* solution =
-    Solver.solve(
-      ~dumpCudfInput,
-      ~dumpCudfOutput,
-      solvespec,
-      proj.solveSandbox,
-    );
-  let lockPath = SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
-  let* () = {
-    let* digest = Sandbox.digest(solvespec, proj.solveSandbox);
-
-    EsyFetch.SolutionLock.toPath(
-      ~digest,
-      proj.installSandbox,
-      solution,
-      lockPath,
-      proj.projcfg.gitUsername,
-      proj.projcfg.gitPassword,
-    );
-  };
-
-  let unused = Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
-  let%lwt () = {
-    let log = resolution =>
-      Esy_logs_lwt.warn(m =>
-        m(
-          "resolution %a is unused (defined in %a)",
-          Fmt.(quote(string)),
-          resolution,
-          EsyFetch.SandboxSpec.pp,
-          proj.installSandbox.spec,
-        )
-      );
-
-    Lwt_list.iter_s(log, unused);
-  };
-
-  return(solution);
-};
-
 let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
   open RunAsync.Syntax;
+  let* expectedPlatforms =
+    switch (proj.spec.manifest) {
+    | EsyFetch.SandboxSpec.ManifestAggregate(_)
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
+      let%lwt () =
+        Esy_logs_lwt.warn(m =>
+          m(
+            "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
+            AvailablePlatforms.pp,
+            AvailablePlatforms.default,
+          )
+        );
+      RunAsync.return(AvailablePlatforms.default);
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
+      let* json = Fs.readJsonFile(Path.(proj.spec.path / filename));
+      RunAsync.ofRun(OfPackageJson.available(json));
+    };
+
   let run = () => {
-    let* _: Solution.t =
-      getSandboxSolution(
+    let* solution =
+      EsySolve.Solver.solve(
         ~dumpCudfInput,
         ~dumpCudfOutput,
         proj.workflow.solvespec,
-        proj,
+        proj.solveSandbox,
       );
+
+    let* unPortableDependencies =
+      EsyFetch.Solution.unPortableDependencies(
+        ~expected=expectedPlatforms,
+        solution,
+      );
+    let* platformSpecificSolutions =
+      switch (unPortableDependencies) {
+      | [] => RunAsync.return(AvailablePlatforms.Map.empty)
+      | unPortableDependencies =>
+        let%lwt () =
+          Esy_logs_lwt.app(m =>
+            m(
+              "The following packages are problematic and dont build on specified platform",
+            )
+          );
+        let unSupportedPlatforms = ref(AvailablePlatforms.empty);
+        let f = ((package, platforms)) => {
+          unSupportedPlatforms :=
+            AvailablePlatforms.union(platforms, unSupportedPlatforms^);
+          Esy_logs_lwt.app(m =>
+            m(
+              "Package %a. Unsupported Platforms: %a",
+              Package.pp,
+              package,
+              AvailablePlatforms.pp,
+              platforms,
+            )
+          );
+        };
+        let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
+        let f = ((os, arch)) => {
+          let%lwt () =
+            Esy_logs_lwt.app(m =>
+              m(
+                "Solving for os: %a arch: %a",
+                System.Platform.pp,
+                os,
+                System.Arch.pp,
+                arch,
+              )
+            );
+          let* solveSandbox =
+            EsySolve.Sandbox.make(
+              ~gitUsername=proj.projcfg.gitUsername,
+              ~gitPassword=proj.projcfg.gitPassword,
+              ~cfg=proj.solveSandbox.cfg,
+              ~os,
+              ~arch,
+              proj.projcfg.spec,
+            );
+
+          let* solution =
+            RunAsync.contextf(
+              EsySolve.Solver.solve(
+                ~dumpCudfInput,
+                ~dumpCudfOutput,
+                proj.workflow.solvespec,
+                solveSandbox,
+              ),
+              "While solving for %a",
+              AvailablePlatforms.ppEntry,
+              (os, arch),
+            );
+          let k = (os, arch);
+          return((k, solution));
+        };
+        let* solutions =
+          AvailablePlatforms.toList(unSupportedPlatforms^)
+          |> List.map(~f)
+          |> RunAsync.List.joinAll;
+        List.fold_left(
+          ~f=
+            (acc, (k, solution)) => {
+              AvailablePlatforms.Map.add(k, solution, acc)
+            },
+          ~init=AvailablePlatforms.Map.empty,
+          solutions,
+        )
+        |> RunAsync.return;
+      };
+
+    let lockPath =
+      SandboxSpec.solutionLockPath(proj.solveSandbox.EsySolve.Sandbox.spec);
+
+    let* () = {
+      let* digest =
+        EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+
+      EsyFetch.SolutionLock.toPath(
+        ~digest,
+        proj.installSandbox,
+        solution,
+        platformSpecificSolutions, // TODO prompt and solve for each platform if necessary
+        lockPath,
+        proj.projcfg.gitUsername,
+        proj.projcfg.gitPassword,
+      );
+    };
+
+    let unused =
+      EsySolve.Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
+    let%lwt () = {
+      let log = resolution =>
+        Esy_logs_lwt.warn(m =>
+          m(
+            "resolution %a is unused (defined in %a)",
+            Fmt.(quote(string)),
+            resolution,
+            EsyFetch.SandboxSpec.pp,
+            proj.installSandbox.spec,
+          )
+        );
+
+      Lwt_list.iter_s(log, unused);
+    };
+
     return();
   };
 
@@ -1003,20 +1094,61 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
 let checkSolutionPortability = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
+  let* expectedPlatforms =
+    switch (proj.spec.manifest) {
+    | EsyFetch.SandboxSpec.ManifestAggregate(_)
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
+      let%lwt () =
+        Esy_logs_lwt.warn(m =>
+          m(
+            "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
+            AvailablePlatforms.pp,
+            AvailablePlatforms.default,
+          )
+        );
+      RunAsync.return(AvailablePlatforms.default);
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
+      let* json = Fs.readJsonFile(Path.(proj.spec.path / filename));
+      RunAsync.ofRun(OfPackageJson.available(json));
+    };
+
   switch%bind (SolutionLock.ofPath(proj.installSandbox, lockPath)) {
   | Some(solution) =>
-    let* unPortableDependencies = EsyFetch.Solution.unPortableDependencies(solution);
+    let* unPortableDependencies =
+      EsyFetch.Solution.unPortableDependencies(
+        ~expected=expectedPlatforms,
+        solution,
+      );
     let%lwt () =
-    switch(unPortableDependencies) {
-    | [] => Esy_logs_lwt.app(m => m("Is portable"));
-    | unsupportedPlatforms => {
-        let%lwt () = Esy_logs_lwt.app(m => m("The following packages are problematic and dont build on specified platform"));
-        let f = ((package, _platform)) => {
-          Esy_logs_lwt.app(m => m("Package %a", Package.pp, package));
+      switch (unPortableDependencies) {
+      | [] =>
+        Esy_logs_lwt.app(m =>
+          m(
+            "Portable to %a",
+            AvailablePlatforms.pp,
+            AvailablePlatforms.default,
+          )
+        )
+      | unsupportedPlatforms =>
+        let%lwt () =
+          Esy_logs_lwt.app(m =>
+            m(
+              "The following packages are problematic and dont build on specified platform",
+            )
+          );
+        let f = ((package, platforms)) => {
+          Esy_logs_lwt.app(m =>
+            m(
+              "Package %a. Unsupported Platforms: %a",
+              Package.pp,
+              package,
+              AvailablePlatforms.pp,
+              platforms,
+            )
+          );
         };
-        List.map(~f, unsupportedPlatforms) |> Lwt.join
-      }
-    };
+        List.map(~f, unsupportedPlatforms) |> Lwt.join;
+      };
     RunAsync.return();
   | None =>
     error(
@@ -1110,7 +1242,44 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let proj = {...proj, solveSandbox};
 
-  let* solution = getSandboxSolution(proj.workflow.solvespec, proj);
+  let* solution = {
+    let* solution = Solver.solve(proj.workflow.solvespec, proj.solveSandbox);
+    let lockPath =
+      SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
+    let* () = {
+      let* digest =
+        Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+
+      EsyFetch.SolutionLock.toPath(
+        ~digest,
+        proj.installSandbox,
+        solution,
+        AvailablePlatforms.Map.empty,
+        lockPath,
+        proj.projcfg.gitUsername,
+        proj.projcfg.gitPassword,
+      );
+    };
+
+    let unused = Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
+    let%lwt () = {
+      let log = resolution =>
+        Esy_logs_lwt.warn(m =>
+          m(
+            "resolution %a is unused (defined in %a)",
+            Fmt.(quote(string)),
+            resolution,
+            EsyFetch.SandboxSpec.pp,
+            proj.installSandbox.spec,
+          )
+        );
+
+      Lwt_list.iter_s(log, unused);
+    };
+
+    return(solution);
+  };
+
   let* () = fetch(proj);
 
   let* (addedDependencies, configPath) = {
@@ -1370,6 +1539,8 @@ let show = (_asJson, req, proj: Project.t) => {
   let* req = RunAsync.ofStringError(Req.parse(req));
   let* resolver =
     Resolver.make(
+      /* ~os,  TODO: obtain optional cli args */
+      /* ~arch, TODO: obtain optional cli args */
       ~gitUsername=proj.projcfg.gitUsername,
       ~gitPassword=proj.projcfg.gitPassword,
       ~cfg=proj.solveSandbox.cfg,

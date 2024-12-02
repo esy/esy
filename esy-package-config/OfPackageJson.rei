@@ -1,5 +1,8 @@
 type warning = string;
 
+/** Parse available platforms from esy.json/pacakge.json */
+let available: Json.t => Run.t(AvailablePlatforms.t);
+
 /** Parse [InstallManifest.t] out of package.json data.
   */
 
