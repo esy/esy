@@ -47,7 +47,8 @@ let cases = [
    { name: "ppx_yojson_conv_lib", toolchains: [ocamlVersion] },
    { name: "ounit", toolchains: [ocamlVersion] },
    { name: "utop", toolchains: [ocamlVersion] },
-   { name: "opam-depext", toolchains: [ocamlVersion] },
+   // Not available on Windows
+   // { name: "opam-depext", toolchains: [ocamlVersion] },
    { name: "elpi", toolchains: [ocamlVersion] },
    { name: "biniou", toolchains: [ocamlVersion] },
    { name: "ppx_deriving", toolchains: [ocamlVersion] },
@@ -55,7 +56,8 @@ let cases = [
    { name: "bos", toolchains: [ocamlVersion] },
    { name: "lwt", toolchains: [ocamlVersion] },
    { name: "psq", toolchains: [ocamlVersion] },
-   { name: "ppx_tools", toolchains: [ocamlVersion] },
+   // Because it doesn't run on ocaml 5
+   // { name: "ppx_tools", toolchains: [ocamlVersion] },
    { name: "ppx_inline_test", toolchains: [ocamlVersion] },
    { name: "yojson", toolchains: [ocamlVersion] },
    { name: "ocamlfind", toolchains: [ocamlVersion] },
@@ -75,7 +77,6 @@ let cases = [
    { name: "charInfo_width", toolchains: [ocamlVersion] },
    // TODO needs esy-cairo
    // { name: "lablgtk3", toolchains: [ocamlVersion] },
-   { name: "jbuilder", toolchains: [ocamlVersion] },
    { name: "sexplib", toolchains: [ocamlVersion] },
    { name: "opam-file-format", toolchains: [ocamlVersion] },
    { name: "pcre", toolchains: [ocamlVersion] },
@@ -132,7 +133,8 @@ let cases = [
    { name: 'libtorch', toolchains: [ocamlVersion] },
    { name: 'cloudi', toolchains: [ocamlVersion] },
    { name: 'dune-deps', version: "1.3.0", toolchains: [ocamlVersion] },
-   { name: 'pgocaml', version: "4.3.0", toolchains: [ocamlVersion] },
+   { name: 'pgocaml', version: "*", toolchains: [ocamlVersion] },
+   { name: 'eio_main', version: "*", toolchains: [ocamlVersion] }
 ];
 
 let reposUpdated = false;
