@@ -443,10 +443,11 @@ let opamHashToChecksum = opamHash => {
   let contents = OpamHash.contents(opamHash);
   (kind, contents);
 };
-let convertDependencies = manifest => {
+
+let convertDependencies = (~os, ~arch, manifest) => {
   open Result.Syntax;
 
-  let filterOpamFormula = (~build, ~post, ~test, ~doc, ~dev, f) => {
+  let filterOpamFormula = (~os, ~arch, ~build, ~post, ~test, ~doc, ~dev, f) => {
     let f = {
       let env = var => {
         switch (OpamVariable.Full.to_string(var)) {
@@ -456,6 +457,29 @@ let convertDependencies = manifest => {
         | "with-dev-setup" => Some(OpamVariable.B(dev))
         | "with-doc" => Some(OpamVariable.B(doc))
         | "dev" => Some(OpamVariable.B(dev))
+        | "arch" =>
+          switch (arch) {
+          | Some(arch) => Some(OpamVariable.S(System.Arch.show(arch)))
+          | None => None
+          }
+        | "os" =>
+          switch (os) {
+          | Some(os) =>
+            open System.Platform;
+            // We could have avoided the following altogether if the System.Platform implementation
+            // matched opam's. TODO
+            let sys =
+              switch (os) {
+              | Darwin => "macos"
+              | Linux => "linux"
+              | Cygwin => "cygwin"
+              | Unix => "unix"
+              | Windows => "win32"
+              | Unknown => "unknown"
+              };
+            Some(OpamVariable.S(sys));
+          | None => None
+          }
         | "version" =>
           let version =
             OpamPackage.Version.to_string(
@@ -486,8 +510,9 @@ let convertDependencies = manifest => {
     };
   };
 
-  let filterAndConvertOpamFormula = (~build, ~post, ~test, ~doc, ~dev, f) => {
-    let* f = filterOpamFormula(~build, ~post, ~test, ~doc, ~dev, f);
+  let filterAndConvertOpamFormula = (~os, ~build, ~post, ~test, ~doc, ~dev, f) => {
+    let* f =
+      filterOpamFormula(~os, ~arch, ~build, ~post, ~test, ~doc, ~dev, f);
     convertOpamFormula(f);
   };
 
@@ -498,6 +523,7 @@ let convertDependencies = manifest => {
   let* dependencies = {
     let* formula =
       filterAndConvertOpamFormula(
+        ~os,
         ~build=true,
         ~post=false,
         ~test=false,
@@ -519,6 +545,7 @@ let convertDependencies = manifest => {
   let* devDependencies = {
     let* formula =
       filterAndConvertOpamFormula(
+        ~os,
         ~build=false,
         ~post=false,
         ~test=true,
@@ -532,6 +559,8 @@ let convertDependencies = manifest => {
   let* optDependencies = {
     let* formula =
       filterOpamFormula(
+        ~os,
+        ~arch,
         ~build=false,
         ~post=false,
         ~test=true,
@@ -575,7 +604,8 @@ let convertDependencies = manifest => {
   ));
 };
 
-let opamManifestToInstallManifest = (~source=?, ~name, ~version, manifest) => {
+let opamManifestToInstallManifest =
+    (~source=?, ~os, ~arch, ~name, ~version, manifest) => {
   open RunAsync.Syntax;
 
   let converted = {
@@ -588,7 +618,7 @@ let opamManifestToInstallManifest = (~source=?, ~name, ~version, manifest) => {
       extraSources,
       available,
     ) =
-      convertDependencies(manifest);
+      convertDependencies(~os, ~arch, manifest);
     return((
       source,
       dependencies,
@@ -693,6 +723,8 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
             },
           );
         opamManifestToInstallManifest(
+          ~os=resolver.os,
+          ~arch=resolver.arch,
           ~name,
           ~version=Version.Source(source),
           ~source,
@@ -924,6 +956,8 @@ let package = (~resolution: Resolution.t, resolver) => {
       | Some(manifest) =>
         let* pkg_result =
           opamManifestToInstallManifest(
+            ~os=resolver.os,
+            ~arch=resolver.arch,
             ~name=resolution.name,
             ~version=Version.Opam(version),
             manifest,

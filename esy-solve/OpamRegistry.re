@@ -192,6 +192,15 @@ let resolve =
 
     let* opam = readOpamFileOfRegistry(res, registry);
     let formula = OpamFile.OPAM.available(opam);
+    let%lwt () =
+      Esy_logs_lwt.debug(m =>
+        m(
+          "Evaluating filter %s for opam package %s version %s",
+          OpamFilter.to_string(formula),
+          OpamPackage.Name.to_string(name),
+          OpamPackage.Version.to_string(version),
+        )
+      );
     let available = OpamFilter.eval_to_bool(~default=true, env, formula);
     return(available);
   };
