@@ -1,3 +1,4 @@
+open EsyPackageConfig;
 module String = Astring.String;
 
 module OpamPathsByVersion =
@@ -158,6 +159,8 @@ let findPackagePath = ((name, version), registry) => {
 
 let resolve =
     (
+      ~os=?,
+      ~arch=?,
       ~ocamlVersion=?,
       ~name: OpamPackage.Name.t,
       ~version: OpamPackage.Version.t,
@@ -176,6 +179,24 @@ let resolve =
             switch (scope, OpamVariable.to_string(name)) {
             | (OpamVariable.Full.Global, "preinstalled") =>
               return(bool(false))
+            | (OpamVariable.Full.Global, "os") =>
+              open System.Platform;
+              let* os = os;
+              // We could have avoided the following altogether if the System.Platform implementation
+              // matched opam's. TODO
+              let sys =
+                switch (os) {
+                | Darwin => "macos"
+                | Linux => "linux"
+                | Cygwin => "cygwin"
+                | Unix => "unix"
+                | Windows => "win32"
+                | Unknown => "unknown"
+                };
+              return(string(sys));
+            | (OpamVariable.Full.Global, "arch") =>
+              let* arch = arch;
+              return(string(System.Arch.show(arch)));
             | (OpamVariable.Full.Global, "compiler")
             | (OpamVariable.Full.Global, "ocaml-version") =>
               let* ocamlVersion = ocamlVersion;
@@ -191,6 +212,15 @@ let resolve =
 
     let* opam = readOpamFileOfRegistry(res, registry);
     let formula = OpamFile.OPAM.available(opam);
+    let%lwt () =
+      Esy_logs_lwt.debug(m =>
+        m(
+          "Evaluating filter %s for opam package %s version %s",
+          OpamFilter.to_string(formula),
+          OpamPackage.Name.to_string(name),
+          OpamPackage.Version.to_string(version),
+        )
+      );
     let available = OpamFilter.eval_to_bool(~default=true, env, formula);
     return(available);
   };
@@ -209,7 +239,8 @@ let isEnabledForEsy = name =>
   | _ => true
   };
 
-let versions = (~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
+let versions =
+    (~os=?, ~arch=?, ~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
   RunAsync.Syntax.(
     if (!isEnabledForEsy(name)) {
       return([]);
@@ -220,7 +251,7 @@ let versions = (~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
       | Some(index) =>
         let* resolutions = {
           let getPackageVersion = version =>
-            resolve(~ocamlVersion?, ~name, ~version, registry);
+            resolve(~os?, ~arch?, ~ocamlVersion?, ~name, ~version, registry);
 
           RunAsync.List.mapAndJoin(
             ~concurrency=2,

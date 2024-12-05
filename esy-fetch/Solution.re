@@ -119,3 +119,17 @@ let findByNameVersion = (name, version, solution) => {
   let%map (_id, pkg) = Graph.findBy(solution, f);
   pkg;
 };
+
+let unPortableDependencies = (~expected, solution) => {
+  open Package;
+  let f = pkg => {
+    let missingPlatforms =
+      AvailablePlatforms.missing(~expected, ~actual=pkg.available);
+    if (AvailablePlatforms.isEmpty(missingPlatforms)) {
+      None;
+    } else {
+      Some((pkg, missingPlatforms));
+    };
+  };
+  nodes(solution) |> List.filter_map(~f) |> RunAsync.return;
+};

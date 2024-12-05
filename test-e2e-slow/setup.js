@@ -9,7 +9,7 @@ const rmSync = require('rimraf').sync;
 const isCi = require('is-ci');
 
 const isWindows = process.platform === 'win32';
-const ocamlVersion = '4.14.x';
+const ocamlVersion = '5.x';
 
 let __ESY__;
 let __ESY__base;

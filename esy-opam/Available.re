@@ -12,18 +12,19 @@ let parseOpamFilterString = filterString => {
   opamFile.available;
 };
 
-let evalAvailabilityFilter = filter => {
+let evalAvailabilityFilter = (~os, ~arch, filter) => {
   let env = (var: OpamVariable.Full.t) => {
     let scope = OpamVariable.Full.scope(var);
     let name = OpamVariable.Full.variable(var);
     switch (scope, OpamVariable.to_string(name)) {
     | (OpamVariable.Full.Global, "arch") =>
-      Some(OpamVariable.string(System.Arch.show(System.Arch.host)))
+      Some(OpamVariable.string(System.Arch.show(arch)))
     | (OpamVariable.Full.Global, "os") =>
+      open System.Platform;
       // We could have avoided the following altogether if the System.Platform implementation
       // matched opam's. TODO
       let sys =
-        switch (System.Platform.host) {
+        switch (os) {
         | Darwin => "macos"
         | Linux => "linux"
         | Cygwin => "cygwin"
@@ -41,19 +42,7 @@ let evalAvailabilityFilter = filter => {
   OpamFilter.eval_to_bool(~default=true, env, filter);
 };
 
-let eval = pkg => {
-  /*
-      Allowing sources here would let us resolve to github urls for
-      npm dependencies. Atleast in theory. TODO: test this
-   */
-  switch (NodeModule.version(pkg)) {
-  | Source(_)
-  | Opam(_) =>
-    switch (pkg.Package.available) {
-    | None => true
-    | Some(opamAvailabilityFilter) =>
-      parseOpamFilterString(opamAvailabilityFilter) |> evalAvailabilityFilter
-    }
-  | Npm(_) => true
-  };
+let eval = (~os, ~arch, availabilityFilter) => {
+  parseOpamFilterString(availabilityFilter)
+  |> evalAvailabilityFilter(~os, ~arch);
 };

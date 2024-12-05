@@ -1,3 +1,4 @@
+[@ocaml.warning "-69"];
 open EsyBuildPackage;
 module Option = EsyLib.Option;
 module File = Bos.OS.File;

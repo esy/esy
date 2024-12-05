@@ -81,6 +81,8 @@ type t = {
   sourceToSource: Hashtbl.t(Source.t, Source.t),
   gitUsername: option(string),
   gitPassword: option(string),
+  os: option(System.Platform.t),
+  arch: option(System.Arch.t),
 };
 
 let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
@@ -98,7 +100,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: None,
+  available: AvailablePlatforms.default,
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -116,10 +118,10 @@ let emptyInstall = (~name, ~source, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: None,
+  available: AvailablePlatforms.default,
 };
 
-let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
+let make = (~os=?, ~arch=?, ~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
   RunAsync.return({
     cfg,
     sandbox,
@@ -136,6 +138,8 @@ let make = (~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
     sourceToSource: Hashtbl.create(500),
     gitUsername,
     gitPassword,
+    os,
+    arch,
   });
 
 let setOCamlVersion = (ocamlVersion, resolver) =>
@@ -256,6 +260,427 @@ let versionMatchesDep =
   dep.name == name && (checkResolutions() || checkVersion());
 };
 
+let ocamlOpamVersionToOcamlNpmVersion = v => {
+  let v = OpamPackage.Version.to_string(v);
+  let parsed =
+    Astring.(
+      String.cuts(
+        ~sep=".",
+        String.trim(
+          ~drop=
+            fun
+            | '~' =>
+              /* Note: also drop `~~` from versions:
+               * https://opam.ocaml.org/doc/Manual.html
+               */
+              true
+            | c => Char.Ascii.is_white(c),
+          v,
+        ),
+      )
+    );
+  let npmVersion =
+    switch (parsed) {
+    | [major, minor, patch] =>
+      try({
+        let int_patch = int_of_string(patch);
+        String.concat(".", [major, minor, string_of_int(int_patch * 1000)]);
+      }) {
+      | _ => String.concat(".", parsed)
+      }
+    | other => String.concat(".", other)
+    };
+  SemverVersion.Version.parse(npmVersion);
+};
+let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
+  open Result.Syntax;
+  let name =
+    switch (OpamPackage.Name.to_string(name)) {
+    | "ocaml" => "ocaml"
+    | name => "@opam/" ++ name
+    };
+
+  switch (name) {
+  | "ocaml" =>
+    module C = SemverVersion.Constraint;
+    let req =
+      switch (relop) {
+      | None => return(C.ANY)
+      | Some((`Eq, v)) =>
+        switch (OpamPackage.Version.to_string(v)) {
+        | "broken" => error("package is marked as broken")
+        | _ =>
+          let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+          return(C.EQ(v));
+        }
+      | Some((`Neq, v)) =>
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+        return(C.NEQ(v));
+      | Some((`Lt, v)) =>
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+        return(C.LT(v));
+      | Some((`Gt, v)) =>
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+        return(C.GT(v));
+      | Some((`Leq, v)) =>
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+        return(C.LTE(v));
+      | Some((`Geq, v)) =>
+        let* v = ocamlOpamVersionToOcamlNpmVersion(v);
+        return(C.GTE(v));
+      };
+    let containsSubstring = (subString, s) => {
+      Str.string_match(Str.regexp(subString), s, 0);
+    };
+    let* req =
+      switch (req) {
+      | Ok(v) => Ok(v)
+      | Error(msg) when containsSubstring("invalid semver version: ", msg) =>
+        /*************************************************************************/
+        /* We encountered packages with constraints like this:                   */
+        /*                                                                       */
+        /* "ocaml" {>= "4.04.1" & < "5.2.0" & != "5.1.0~alpha1"}                 */
+        /*                                                                       */
+        /* 5.1.0~alpha1 is not a valid semver tag but needs to be allowed here.  */
+        /* TODO: We must try to parse this with an opam lib and make sure semver */
+        /* validation fails but is still a valid opam version                    */
+        /*************************************************************************/
+
+        return(C.ANY)
+      | e => e
+      };
+    return({InstallManifest.Dep.name, req: Npm(req)});
+  | name =>
+    module C = OpamPackageVersion.Constraint;
+    let req =
+      switch (relop) {
+      | None => C.ANY
+      | Some((`Eq, v)) => C.EQ(v)
+      | Some((`Neq, v)) => C.NEQ(v)
+      | Some((`Lt, v)) => C.LT(v)
+      | Some((`Gt, v)) => C.GT(v)
+      | Some((`Leq, v)) => C.LTE(v)
+      | Some((`Geq, v)) => C.GTE(v)
+      };
+
+    return({InstallManifest.Dep.name, req: Opam(req)});
+  };
+};
+
+let convertOpamFormula = f => {
+  let cnf = OpamFormula.to_cnf(f);
+  Result.List.map(~f=Result.List.map(~f=convertOpamAtom), cnf);
+};
+
+let convertOpamUrl = manifest => {
+  open Result.Syntax;
+
+  let convChecksum = hash =>
+    switch (OpamHash.kind(hash)) {
+    | `MD5 => (Checksum.Md5, OpamHash.contents(hash))
+    | `SHA256 => (Checksum.Sha256, OpamHash.contents(hash))
+    | `SHA512 => (Checksum.Sha512, OpamHash.contents(hash))
+    };
+
+  let convUrl = (url: OpamUrl.t) =>
+    switch (url.backend) {
+    | `http => return(OpamUrl.to_string(url))
+    | _ =>
+      errorf("unsupported dist for opam package: %s", OpamUrl.to_string(url))
+    };
+
+  let sourceOfOpamUrl = url => {
+    let* hash =
+      switch (OpamFile.URL.checksum(url)) {
+      | [] =>
+        errorf(
+          "no checksum provided for %s@%s",
+          OpamPackage.Name.to_string(manifest.OpamManifest.name),
+          OpamPackage.Version.to_string(manifest.OpamManifest.version),
+        )
+      | [hash, ..._] => return(hash)
+      };
+
+    let mirrors = {
+      let urls = [OpamFile.URL.url(url), ...OpamFile.URL.mirrors(url)];
+
+      let f = (mirrors, url) =>
+        switch (convUrl(url)) {
+        | Ok(url) => [
+            Dist.Archive({url, checksum: convChecksum(hash)}),
+            ...mirrors,
+          ]
+        | Error(_) => mirrors
+        };
+
+      List.fold_left(~f, ~init=[], urls);
+    };
+
+    let main = {
+      let url =
+        "https://opam.ocaml.org/cache/"
+        ++ String.concat("/", OpamHash.to_path(hash));
+      Dist.Archive({url, checksum: convChecksum(hash)});
+    };
+
+    return((main, mirrors));
+  };
+
+  switch (manifest.url) {
+  | Some(url) => sourceOfOpamUrl(url)
+  | None =>
+    let main = Dist.NoSource;
+    Ok((main, []));
+  };
+};
+let convOpamKind = kind =>
+  switch (kind) {
+  | `MD5 => Checksum.Md5
+  | `SHA256 => Sha256
+  | `SHA512 => Sha512
+  };
+
+let opamHashToChecksum = opamHash => {
+  let kind = OpamHash.kind(opamHash) |> convOpamKind;
+  let contents = OpamHash.contents(opamHash);
+  (kind, contents);
+};
+
+let convertDependencies = (~os, ~arch, manifest) => {
+  open Result.Syntax;
+
+  let filterOpamFormula = (~os, ~arch, ~build, ~post, ~test, ~doc, ~dev, f) => {
+    let f = {
+      let env = var => {
+        switch (OpamVariable.Full.to_string(var)) {
+        | "test" => Some(OpamVariable.B(test))
+        | "doc" => Some(OpamVariable.B(doc))
+        | "with-test" => Some(OpamVariable.B(test))
+        | "with-dev-setup" => Some(OpamVariable.B(dev))
+        | "with-doc" => Some(OpamVariable.B(doc))
+        | "dev" => Some(OpamVariable.B(dev))
+        | "arch" =>
+          switch (arch) {
+          | Some(arch) => Some(OpamVariable.S(System.Arch.show(arch)))
+          | None => None
+          }
+        | "os" =>
+          switch (os) {
+          | Some(os) =>
+            open System.Platform;
+            // We could have avoided the following altogether if the System.Platform implementation
+            // matched opam's. TODO
+            let sys =
+              switch (os) {
+              | Darwin => "macos"
+              | Linux => "linux"
+              | Cygwin => "cygwin"
+              | Unix => "unix"
+              | Windows => "win32"
+              | Unknown => "unknown"
+              };
+            Some(OpamVariable.S(sys));
+          | None => None
+          }
+        | "version" =>
+          let version =
+            OpamPackage.Version.to_string(manifest.OpamManifest.version);
+          Some(OpamVariable.S(version));
+        | _ => None
+        };
+      };
+
+      OpamFilter.partial_filter_formula(env, f);
+    };
+
+    try(
+      return(
+        OpamFilter.filter_deps(
+          ~default=true,
+          ~build,
+          ~post,
+          ~test,
+          ~doc,
+          ~dev,
+          f,
+        ),
+      )
+    ) {
+    | Failure(msg) => Error(msg)
+    };
+  };
+
+  let filterAndConvertOpamFormula = (~os, ~build, ~post, ~test, ~doc, ~dev, f) => {
+    let* f =
+      filterOpamFormula(~os, ~arch, ~build, ~post, ~test, ~doc, ~dev, f);
+    convertOpamFormula(f);
+  };
+
+  /*
+   *  post=false since PR#1319
+   *  See: https://github.com/esy/esy/pull/1319
+   */
+  let* dependencies = {
+    let* formula =
+      filterAndConvertOpamFormula(
+        ~os,
+        ~build=true,
+        ~post=false,
+        ~test=false,
+        ~doc=false,
+        ~dev=false,
+        OpamFile.OPAM.depends(manifest.opam),
+      );
+
+    let esySubstsDep = {
+      InstallManifest.Dep.name: "@esy-ocaml/substs",
+      req: Npm(SemverVersion.Constraint.ANY),
+    };
+
+    let formula = formula @ [[esySubstsDep]];
+
+    return(InstallManifest.Dependencies.OpamFormula(formula));
+  };
+
+  let* devDependencies = {
+    let* formula =
+      filterAndConvertOpamFormula(
+        ~os,
+        ~build=false,
+        ~post=false,
+        ~test=true,
+        ~doc=true,
+        ~dev=true,
+        OpamFile.OPAM.depends(manifest.OpamManifest.opam),
+      );
+    return(InstallManifest.Dependencies.OpamFormula(formula));
+  };
+
+  let* optDependencies = {
+    let* formula =
+      filterOpamFormula(
+        ~os,
+        ~arch,
+        ~build=false,
+        ~post=false,
+        ~test=true,
+        ~doc=true,
+        ~dev=true,
+        OpamFile.OPAM.depopts(manifest.OpamManifest.opam),
+      );
+
+    return(
+      formula
+      |> OpamFormula.atoms
+      |> List.map(~f=((name, _)) =>
+           "@opam/" ++ OpamPackage.Name.to_string(name)
+         )
+      |> StringSet.of_list,
+    );
+  };
+
+  let extraSources =
+    manifest.opam
+    |> OpamFile.OPAM.extra_sources
+    |> List.map(~f=((basename, u)) => {
+         let relativePath = OpamFilename.Base.to_string(basename);
+         let url = OpamUrl.to_string(OpamFile.URL.url(u));
+         let checksum =
+           OpamFile.URL.checksum(u) |> List.hd |> opamHashToChecksum;
+
+         {ExtraSource.url, relativePath, checksum};
+       });
+
+  let availableFilter = OpamFile.OPAM.available(manifest.opam);
+  let available =
+    AvailablePlatforms.default |> AvailablePlatforms.filter(availableFilter);
+
+  return((
+    dependencies,
+    devDependencies,
+    optDependencies,
+    extraSources,
+    available,
+  ));
+};
+
+let opamManifestToInstallManifest =
+    (~source=?, ~os, ~arch, ~name, ~version, manifest) => {
+  open RunAsync.Syntax;
+
+  let converted = {
+    open Result.Syntax;
+    let* source = convertOpamUrl(manifest);
+    let* (
+      dependencies,
+      devDependencies,
+      optDependencies,
+      extraSources,
+      available,
+    ) =
+      convertDependencies(~os, ~arch, manifest);
+    return((
+      source,
+      dependencies,
+      devDependencies,
+      optDependencies,
+      extraSources,
+      available,
+    ));
+  };
+
+  switch (converted) {
+  | Error(err) => return(Error(err))
+  | Ok((
+      sourceFromOpam,
+      dependencies,
+      devDependencies,
+      optDependencies,
+      extraSources,
+      available,
+    )) =>
+    let opam =
+      switch (manifest.opamRepositoryPath) {
+      | Some(path) =>
+        Some(OpamResolution.make(manifest.name, manifest.version, path))
+      | None => None
+      };
+
+    let source =
+      switch (source) {
+      | None => PackageSource.Install({source: sourceFromOpam, opam})
+      | Some(Source.Link({path, manifest, kind})) =>
+        Link({path, manifest, kind})
+      | Some(Source.Dist(source)) => Install({source: (source, []), opam})
+      };
+
+    let overrides =
+      switch (manifest.override) {
+      | None => Overrides.empty
+      | Some(override) => Overrides.(add(override, empty))
+      };
+
+    return(
+      Ok({
+        InstallManifest.name,
+        version,
+        originalVersion: None,
+        originalName: None,
+        kind: InstallManifest.Esy,
+        source,
+        overrides,
+        dependencies,
+        devDependencies,
+        optDependencies,
+        peerDependencies: NpmFormula.empty,
+        resolutions: Resolutions.empty,
+        installConfig: InstallConfig.empty,
+        extraSources,
+        available,
+      }),
+    );
+  };
+};
 let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
   open RunAsync.Syntax;
 
@@ -293,7 +718,9 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
               OpamManifest.ofString(~name=opamname, ~version, data);
             },
           );
-        OpamManifest.toInstallManifest(
+        opamManifestToInstallManifest(
+          ~os=resolver.os,
+          ~arch=resolver.arch,
           ~name,
           ~version=Version.Source(source),
           ~source,
@@ -524,7 +951,9 @@ let package = (~resolution: Resolution.t, resolver) => {
       ) {
       | Some(manifest) =>
         let* pkg_result =
-          OpamManifest.toInstallManifest(
+          opamManifestToInstallManifest(
+            ~os=resolver.os,
+            ~arch=resolver.arch,
             ~name=resolution.name,
             ~version=Version.Opam(version),
             manifest,
@@ -735,6 +1164,8 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
               let* f =
                 RunAsync.return(
                   OpamRegistry.versions(
+                    ~os=?resolver.os,
+                    ~arch=?resolver.arch,
                     ~ocamlVersion=?toOpamOcamlVersion(resolver.ocamlVersion),
                     ~name,
                   ),

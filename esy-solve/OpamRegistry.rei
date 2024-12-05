@@ -14,6 +14,8 @@ let make: (~opamRepository: Config.checkout, ~cfg: Config.t, unit) => t;
 
 let versions:
   (
+    ~os: System.Platform.t=?,
+    ~arch: System.Arch.t=?,
     ~ocamlVersion: OpamPackageVersion.Version.t=?,
     ~name: OpamPackage.Name.t,
     t

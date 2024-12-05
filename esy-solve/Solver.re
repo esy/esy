@@ -635,7 +635,7 @@ let solveDependencies =
     kind: Esy,
     installConfig: InstallConfig.empty,
     extraSources: [],
-    available: None,
+    available: AvailablePlatforms.default,
   };
 
   let universe = Universe.add(~pkg=dummyRoot, solver.universe);

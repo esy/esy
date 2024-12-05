@@ -474,8 +474,7 @@ let installPackages =
     let* dependencies =
       RunAsync.List.mapAndJoin(
         ~f=visit(seen),
-        Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg)
-        |> List.filter(~f=OpamAvailable.eval),
+        Solution.dependenciesBySpec(solution, fetchDepsSubset, pkg),
       );
 
     let%lwt () = report("%a", PackageId.pp, pkg.Package.id);
@@ -505,8 +504,7 @@ let installPackages =
   let* rootDependencies =
     RunAsync.List.mapAndJoin(
       ~f=visit(PackageId.Set.empty),
-      Solution.dependenciesBySpec(solution, fetchDepsSubset, root)
-      |> List.filter(~f=OpamAvailable.eval),
+      Solution.dependenciesBySpec(solution, fetchDepsSubset, root),
     );
 
   let* () = {

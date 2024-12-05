@@ -60,17 +60,38 @@ describe('opam available filter tests', () => {
             esy: {},
         });
 
-	await defineOpamPackageOfFixture(p, 'pkg1', '1.0.0', 'pkg1', undefined, `os = "macos"`);
-	await defineOpamPackageOfFixture(p, 'pkg2', '1.0.0', 'pkg2', undefined, `os = "win32"`);
-	await defineOpamPackageOfFixture(p, 'pkg3', '1.0.0', 'pkg3', undefined, `os = "linux"`);
+	await defineOpamPackageOfFixture(p, 'dep-macos', '1.0.0', 'depMacos', undefined, `os = "macos"`);
+	await defineOpamPackageOfFixture(p, 'dep-win32', '1.0.0', 'depWin32', undefined, `os = "win32"`);
+	await defineOpamPackageOfFixture(p, 'dep-linux', '1.0.0', 'depLinux', undefined, `os = "linux"`);
       
+        await p.defineOpamPackageOfFixture(
+            {
+                name: "pkg-main",
+                version: "1.0.0",
+                opam: outdent`
+              opam-version: "2.0"
+              depends: [
+                "dep-macos" {= version & os = "macos"}
+                "dep-win32" {= version & os = "win32"}
+                "dep-linux" {= version & os = "linux"}
+              ]
+              build: [
+                ${helpers.buildCommandInOpam("pkg-main.js")}
+                ["cp" "pkg-main.cmd" "%{bin}%/pkg-main.cmd"]
+                ["cp" "pkg-main.js" "%{bin}%/pkg-main.js"]
+              ]
+             `,
+            },
+            [
+                helpers.dummyExecutable("pkg-main"),
+            ],
+        );
         await p.fixture(
             helpers.packageJson({
                 name: 'root',
+	        available: [["windows", "x86_64"], ["linux", "x86_64"], ["darwin", "arm64"],["darwin", "x86_64"]],
                 dependencies: {
-                    '@opam/pkg1': '*',
-                    '@opam/pkg2': '*',
-                    '@opam/pkg3': '*',
+                    '@opam/pkg-main': '*',
                 }
             }),
         );
@@ -78,35 +99,203 @@ describe('opam available filter tests', () => {
 
 
 	await p.esy();
-
 	// const solution = await helpers.readSolution(p.projectPath);
 	// expect(JSON.stringify(solution, null, 2)).toEqual(''); // Just a wait to print lock file
 
 	if (process.platform === 'darwin') {
 	    {
-		const { stdout } = await p.esy('x pkg1.cmd');
-		expect(stdout.trim()).toEqual('__pkg1__');
+		const { stdout } = await p.esy('x depMacos.cmd');
+		expect(stdout.trim()).toEqual('__depMacos__');
 	    }
-	    await expect(p.esy('x pkg2.cmd')).rejects.toThrow();
-	    await expect(p.esy('x pkg3.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depLinux.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depWin32.cmd')).rejects.toThrow();
 	}
 
 	if (process.platform === 'linux') {
 	    {
-		const { stdout } = await p.esy('x pkg3.cmd');
-		expect(stdout.trim()).toEqual('__pkg3__');
+		const { stdout } = await p.esy('x depLinux.cmd');
+		expect(stdout.trim()).toEqual('__depLinux__');
 	    }
-	    await expect(p.esy('x pkg1.cmd')).rejects.toThrow();
-	    await expect(p.esy('x pkg2.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depWin32.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depMacos.cmd')).rejects.toThrow();
 	}
 
 	if (process.platform === 'win32') {
 	    {
-		const { stdout } = await p.esy('x pkg2.cmd');
-		expect(stdout.trim()).toEqual('__pkg2__');
+		const { stdout } = await p.esy('x depWin32.cmd');
+		expect(stdout.trim()).toEqual('__depWin32__');
 	    }
-	    await expect(p.esy('x pkg1.cmd')).rejects.toThrow();
-	    await expect(p.esy('x pkg3.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depMacos.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depLinux.cmd')).rejects.toThrow();
+	}
+    });
+
+    it('ensure default solution works on the platforms when only one dependency is platform specific', async () => {
+        const p = await helpers.createTestSandbox();
+
+        await p.defineNpmPackage({
+            name: '@esy-ocaml/substs',
+            version: '0.0.0',
+            esy: {},
+        });
+
+	await defineOpamPackageOfFixture(p, 'dep-macos', '1.0.0', 'depMacos', undefined, `os = "macos"`);
+	await defineOpamPackageOfFixture(p, 'dep-win32', '1.0.0', 'depWin32', undefined, `true`);
+	await defineOpamPackageOfFixture(p, 'dep-linux', '1.0.0', 'depLinux', undefined, `true`);
+      
+        await p.defineOpamPackageOfFixture(
+            {
+                name: "pkg-main",
+                version: "1.0.0",
+                opam: outdent`
+              opam-version: "2.0"
+              depends: [
+                "dep-macos" {= version & os = "macos"}
+                "dep-win32"
+                "dep-linux"
+              ]
+              build: [
+                ${helpers.buildCommandInOpam("pkg-main.js")}
+                ["cp" "pkg-main.cmd" "%{bin}%/pkg-main.cmd"]
+                ["cp" "pkg-main.js" "%{bin}%/pkg-main.js"]
+              ]
+             `,
+            },
+            [
+                helpers.dummyExecutable("pkg-main"),
+            ],
+        );
+
+        await p.fixture(
+            helpers.packageJson({
+                name: 'root',
+                dependencies: {
+                    '@opam/pkg-main': '*',
+                }
+            }),
+        );
+
+	await p.esy();
+
+      // Since the multiplat solver config only guarantees solutions for windows-x64,
+      // For other platforms, default solution is used.
+      // Which means, unavailable packages could become available there
+	if (process.platform === 'darwin') {
+	    {
+		const { stdout } = await p.esy('x depMacos.cmd');
+		expect(stdout.trim()).toEqual('__depMacos__');
+	    }
+	    {
+		const { stdout } = await p.esy('x depLinux.cmd');
+		expect(stdout.trim()).toEqual('__depLinux__');
+	    }
+	    {
+		const { stdout } = await p.esy('x depWin32.cmd');
+		expect(stdout.trim()).toEqual('__depWin32__');
+	    }
+	}
+
+	if (process.platform === 'linux') {
+	    {
+		const { stdout } = await p.esy('x depLinux.cmd');
+		expect(stdout.trim()).toEqual('__depLinux__');
+	    }
+	    {
+		const { stdout } = await p.esy('x depWin32.cmd');
+		expect(stdout.trim()).toEqual('__depWin32__');
+	    }
+            await expect(p.esy('x depMacos.cmd')).rejects.toThrow();
+	}
+
+	if (process.platform === 'win32') {
+	    {
+		const { stdout } = await p.esy('x depLinux.cmd');
+		expect(stdout.trim()).toEqual('__depLinux__');
+	    }
+	    {
+		const { stdout } = await p.esy('x depWin32.cmd');
+		expect(stdout.trim()).toEqual('__depWin32__');
+	    }
+            await expect(p.esy('x depMacos.cmd')).rejects.toThrow();
+	}
+    });
+ 
+    it('ensure package.json/esy.json config is respected', async () => {
+        const p = await helpers.createTestSandbox();
+
+        await p.defineNpmPackage({
+            name: '@esy-ocaml/substs',
+            version: '0.0.0',
+            esy: {},
+        });
+
+	await defineOpamPackageOfFixture(p, 'dep-macos', '1.0.0', 'depMacos', undefined, `os = "macos"`);
+	await defineOpamPackageOfFixture(p, 'dep-win32', '1.0.0', 'depWin32', undefined, `os = "win32"`);
+	await defineOpamPackageOfFixture(p, 'dep-linux', '1.0.0', 'depLinux', undefined, `os = "linux"`);
+      
+        await p.defineOpamPackageOfFixture(
+            {
+                name: "pkg-main",
+                version: "1.0.0",
+                opam: outdent`
+              opam-version: "2.0"
+              depends: [
+                "dep-macos" {= version & os = "macos"}
+                "dep-win32" {= version & os = "win32"}
+                "dep-linux" {= version & os = "linux"}
+              ]
+              build: [
+                ${helpers.buildCommandInOpam("pkg-main.js")}
+                ["cp" "pkg-main.cmd" "%{bin}%/pkg-main.cmd"]
+                ["cp" "pkg-main.js" "%{bin}%/pkg-main.js"]
+              ]
+             `,
+            },
+            [
+                helpers.dummyExecutable("pkg-main"),
+            ],
+        );
+
+        await p.fixture(
+            helpers.packageJson({
+                name: 'root',
+      	        available: [["windows", "x86_64"]],
+                dependencies: {
+                    '@opam/pkg-main': '*',
+                }
+            }),
+        );
+
+	await p.esy();
+
+      // Since the multiplat solver config only guarantees solutions for windows-x64,
+      // For other platforms, default solution is used.
+      // Which means, unavailable packages could become available there
+	if (process.platform === 'darwin') {
+	    {
+		const { stdout } = await p.esy('x depMacos.cmd');
+		expect(stdout.trim()).toEqual('__depMacos__');
+	    }
+            await expect(p.esy('x depLinux.cmd'));
+	    await expect(p.esy('x depWin32.cmd'));
+	}
+
+	if (process.platform === 'linux') {
+	    {
+		const { stdout } = await p.esy('x depLinux.cmd');
+		expect(stdout.trim()).toEqual('__depLinux__');
+	    }
+	    await expect(p.esy('x depWin32.cmd'));
+	    await expect(p.esy('x depMacos.cmd'));
+	}
+
+	if (process.platform === 'win32') {
+	    {
+		const { stdout } = await p.esy('x depWin32.cmd');
+		expect(stdout.trim()).toEqual('__depWin32__');
+	    }
+	    await expect(p.esy('x depMacos.cmd')).rejects.toThrow();
+	    await expect(p.esy('x depLinux.cmd')).rejects.toThrow();
 	}
     });
 });

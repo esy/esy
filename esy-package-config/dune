@@ -8,12 +8,14 @@
    "EsyLib"))
  (libraries
   EsyLib
+  EsyOpamLibs
   angstrom
   str
   ppx_deriving_yojson.runtime
   yojson
   esy_logs
   opam-format
+  opam-state
   opam-file-format)
  (preprocess
   (pps

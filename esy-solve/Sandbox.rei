@@ -16,6 +16,8 @@ type t = {
 
 let make:
   (
+    ~os: System.Platform.t=?,
+    ~arch: System.Arch.t=?,
     ~gitUsername: option(string),
     ~gitPassword: option(string),
     ~cfg: Config.t,

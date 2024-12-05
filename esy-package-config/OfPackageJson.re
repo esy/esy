@@ -6,6 +6,28 @@ module BuildType = {
   include BuildType.AsInPackageJson;
 };
 
+module Available = {
+  [@deriving of_yojson({strict: false})]
+  type t = {
+    [@default AvailablePlatforms.default]
+    available: AvailablePlatforms.t,
+  };
+};
+
+let available = json => {
+  open Run.Syntax;
+  let* {available} =
+    Json.parseJsonWith(
+      Available.of_yojson,
+      json,
+      /* switch (Available.of_yojson(json)) { */
+      /* | Ok({available}) => Ok(available) */
+      /* | Error(warning) => Error([warning]) */
+      /* }; */
+    );
+  Run.return(available);
+};
+
 module InstallManifestV1 = {
   module EsyPackageJson = {
     [@deriving of_yojson({strict: false})]
@@ -172,7 +194,7 @@ module InstallManifestV1 = {
     /*                                                                  */
     /********************************************************************/
 
-    let available = None;
+    let available = AvailablePlatforms.default;
     return((
       {
         InstallManifest.name,
