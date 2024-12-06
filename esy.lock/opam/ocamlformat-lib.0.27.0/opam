@@ -1,0 +1,68 @@
+opam-version: "2.0"
+synopsis: "OCaml Code Formatter"
+description:
+  "OCamlFormat is a tool to automatically format OCaml code in a uniform style."
+maintainer: [
+  "Guillaume Petiot <guillaume@tarides.com>"
+  "Jules Aguillon <jules@j3s.fr>"
+  "Emile Trotignon <emile@tarides.com>"
+]
+authors: [
+  "Josh Berdine <jjb@fb.com>"
+  "Hugo Heuzard <hugo.heuzard@gmail.com>"
+  "Etienne Millon <etienne@tarides.com>"
+  "Guillaume Petiot <guillaume@tarides.com>"
+  "Jules Aguillon <jules@j3s.fr>"
+]
+homepage: "https://github.com/ocaml-ppx/ocamlformat"
+bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
+depends: [
+  "ocaml" {>= "4.08"}
+  "alcotest" {with-test & >= "1.3.0"}
+  "base" {>= "v0.12.0"}
+  "cmdliner" {>= "1.1.0"}
+  "dune" {>= "2.8"}
+  "dune-build-info"
+  "either"
+  "fix"
+  "fpath" {>= "0.7.3"}
+  "menhir" {>= "20201216"}
+  "menhirLib" {>= "20201216"}
+  "menhirSdk" {>= "20201216"}
+  "ocaml-version" {>= "3.5.0"}
+  "ocamlformat-rpc-lib" {with-test & = version}
+  "ocp-indent" {with-test = "false" & >= "1.8.0" | with-test & >= "1.8.1"}
+  "stdio"
+  "uuseg" {>= "10.0.0"}
+  "uutf" {>= "1.0.1"}
+  "csexp" {>= "1.4.0"}
+  "astring"
+  "camlp-streams"
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+]
+dev-repo: "git+https://github.com/ocaml-ppx/ocamlformat.git"
+# OCamlFormat is distributed under the MIT license. Parts of the OCaml library are vendored for OCamlFormat and distributed under their original LGPL 2.1 license
+license: ["MIT" "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"]
+url {
+  src:
+    "https://github.com/ocaml-ppx/ocamlformat/releases/download/0.27.0/ocamlformat-0.27.0.tbz"
+  checksum: [
+    "sha256=ddbf484c076d08f99400ee84b790ec231f5c8fcbd5d3324a6400d5388e846d15"
+    "sha512=4d2a8965a7b7ad45f8f4e76c01cf38bfa68462b07dfa7bdb2db23bd3e3017b214e6780f036679fa8595dde4167a01d957e3af8837274320449014e306773f917"
+  ]
+}
+x-commit-hash: "5bac2e7f71d9b0a06bd1908dda9b13da1649eee1"
