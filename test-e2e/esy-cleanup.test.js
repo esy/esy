@@ -206,7 +206,7 @@ describe('cleanup command', () => {
     );
     expect(
       toEsyInstallCacheEntry(
-        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i')),
+        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i')),
       ),
     ).toEqual(
       toEsyInstallCacheEntry(['dep__1.0.0__b35a2f2d', 'depdep__1.0.0__37e7a60c']),
@@ -234,7 +234,7 @@ describe('cleanup command', () => {
     );
     expect(
       toEsyInstallCacheEntry(
-        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i')),
+        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i')),
       ),
     ).toEqual(
       toEsyInstallCacheEntry([
@@ -249,7 +249,7 @@ describe('cleanup command', () => {
     ).toEqual(toEsyInstallCacheEntry(['depdep-2.0.0-d88993ca']));
     expect(
       toEsyInstallCacheEntry(
-        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i')),
+        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i')),
       ),
     ).toEqual(toEsyInstallCacheEntry(['depdep__2.0.0__8560b5e1']));
     await sandbox.esy('cleanup');
@@ -258,7 +258,7 @@ describe('cleanup command', () => {
     ).toEqual(toEsyInstallCacheEntry(['depdep-2.0.0-d88993ca']));
     expect(
       toEsyInstallCacheEntry(
-        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i')),
+        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i')),
       ),
     ).toEqual(toEsyInstallCacheEntry(['depdep__2.0.0__8560b5e1']));
     await fs.rename(projectsJsonPath, `${projectsJsonPath}.bak`);
@@ -268,7 +268,7 @@ describe('cleanup command', () => {
     ).toEqual(toEsyInstallCacheEntry(['depdep-2.0.0-d88993ca']));
     expect(
       toEsyInstallCacheEntry(
-        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i')),
+        await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i')),
       ),
     ).toEqual(toEsyInstallCacheEntry(['depdep__2.0.0__8560b5e1']));
     // TODO: when the last/one-and-only project gets removed,
@@ -282,6 +282,6 @@ describe('cleanup command', () => {
     // await fs.remove(sandbox.projectPath);
     // await sandbox.esy('cleanup');
     // expect(await fs.readdir(path.join(sandbox.esyStorePath, 'i'))).toEqual([]);
-    // expect(await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', 'i'))).toEqual([]);
+    // expect(await fs.readdir(path.join(sandbox.esyPrefixPath, 'source', '1', 'i'))).toEqual([]);
   });
 });

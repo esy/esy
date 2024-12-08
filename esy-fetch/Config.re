@@ -28,10 +28,11 @@ let make =
       ),
     );
 
+  let version = "1";
   let sourcePath =
     switch (cacheSourcesPath) {
     | Some(path) => path
-    | None => Path.(prefixPath / "source")
+    | None => Path.(prefixPath / "source" / version)
     };
   let* () = Fs.createDir(sourcePath);
 

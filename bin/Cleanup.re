@@ -15,7 +15,10 @@ let getAllCacheEntries = globalStorePath => {
 };
 
 let getAllSourceEntries = prefixPath => {
-  let basePath = Path.(prefixPath / "source" / "i");
+  // TODO: EsyFetch.Config.make need not have been effectful
+  // The mkdir() that is being run in the next line is unnecessary
+  /* let* EsyFetch.Config.{ sourceInstallPath: basePath } = EsyFetch.Config.make(~prefixPath, ()); */
+  let basePath = Path.(prefixPath / "source" / "1" / "i");
   let* allCacheEntries' = Fs.listDir(basePath); /* TODO: probably use esy installsandbox to get this path */
   allCacheEntries' |> List.map(~f=x => Path.(basePath / x)) |> RunAsync.return;
 };
@@ -94,12 +97,14 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
 
         let pathsToBeRemoved =
           pathsToBeRemoved
-          @ [
-            // staging area before installed artifacts can be installed
-            Path.(globalStorePath / Store.stageTree),
-            // Older versions used the longer ~/.esy/3____.../b to store build cache
-            Path.(globalStorePath / Store.buildTree),
-          ];
+          @ Path.[
+              //  Old sources cache path
+              ProjectConfig.globalStorePrefixPath(projCfg) / "source" / "i",
+              // staging area before installed artifacts can be installed
+              globalStorePath / Store.stageTree,
+              // Older versions used the longer ~/.esy/3____.../b to store build cache
+              globalStorePath / Store.buildTree,
+            ];
 
         // Getting cached sources needed by the project
         let* (project, _) = Project.make(projCfg);
@@ -186,7 +191,11 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
       } else {
         let queue = LwtTaskQueue.create(~concurrency=40, ());
         Path.Set.elements(buildsToBePurged)
-        |> List.map(~f=p => LwtTaskQueue.submit(queue, () => Fs.rmPath(p)))
+        |> List.map(~f=p =>
+             LwtTaskQueue.submit(queue, ()
+               /* RunAsync.try_(~catch=_ => RunAsync.return(), Fs.rmPath(p)) */
+               => Fs.rmPath(p))
+           )
         |> RunAsync.List.waitAll;
       };
     }
