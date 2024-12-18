@@ -60,8 +60,8 @@ const config = {
         },
         items: [
           {
-            to: 'docs/getting-started',
-            label: 'Getting started',
+            to: 'docs/what-why',
+            label: 'Documentation',
             position: 'left',
           },
           {
