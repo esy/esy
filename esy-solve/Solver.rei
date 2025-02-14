@@ -10,6 +10,7 @@ let solve:
   (
     ~dumpCudfInput: option(EsyLib.DumpToFile.t)=?,
     ~dumpCudfOutput: option(EsyLib.DumpToFile.t)=?,
+    ~opamRegistries: list(OpamRegistry.t),
     SolveSpec.t,
     Sandbox.t
   ) =>

@@ -170,7 +170,7 @@ module Explanation = {
     Fmt.pf(fmt, "@[<v>No solution found:@;@;%a@]", ppReasons, reasons);
   };
 
-  let collectReasons = (cudfMapping, solver, reasons) => {
+  let collectReasons = (cudfMapping, solver, reasons, opamRegistries) => {
     open RunAsync.Syntax;
 
     /* Find a pair of requestor, path for the current package.
@@ -282,7 +282,13 @@ module Explanation = {
                   Universe.CudfName.make(name),
                 );
               let%lwt available =
-                switch%lwt (Resolver.resolve(~name, solver.sandbox.resolver)) {
+                switch%lwt (
+                  Resolver.resolve(
+                    ~name,
+                    ~opamRegistries,
+                    solver.sandbox.resolver,
+                  )
+                ) {
                 | Ok(available) => Lwt.return(available)
                 | Error(_) => Lwt.return([])
                 };
@@ -310,7 +316,7 @@ module Explanation = {
     return(Reason.Set.elements(reasons));
   };
 
-  let explain = (cudfMapping, solver, cudf) =>
+  let explain = (cudfMapping, solver, cudf, opamRegistries) =>
     RunAsync.Syntax.(
       switch (Dose_algo.Depsolver.check_request(~explain=true, cudf)) {
       | Dose_algo.Depsolver.Sat(_)
@@ -323,7 +329,8 @@ module Explanation = {
           Some({result: Dose_algo.Diagnostic.Failure(reasons), _}),
         ) =>
         let reasons = reasons();
-        let* reasons = collectReasons(cudfMapping, solver, reasons);
+        let* reasons =
+          collectReasons(cudfMapping, solver, reasons, opamRegistries);
         return(Some(reasons));
       | Dose_algo.Depsolver.Error(err) => error(err)
       }
@@ -468,7 +475,7 @@ let make = (solvespec, sandbox: Sandbox.t) => {
   return({solvespec, universe: universe^, sandbox});
 };
 
-let add = (~dependencies: Dependencies.t, solver) => {
+let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
   open RunAsync.Syntax;
 
   let universe = ref(solver.universe);
@@ -516,6 +523,7 @@ let add = (~dependencies: Dependencies.t, solver) => {
           ~fullMetadata=true,
           ~name=req.name,
           ~spec=req.spec,
+          ~opamRegistries,
           solver.sandbox.resolver,
         ),
         "resolving %a",
@@ -527,7 +535,11 @@ let add = (~dependencies: Dependencies.t, solver) => {
       let fetchPackage = resolution => {
         let* pkg =
           RunAsync.contextf(
-            Resolver.package(~resolution, solver.sandbox.resolver),
+            Resolver.package(
+              ~resolution,
+              ~opamRegistries,
+              ~resolver=solver.sandbox.resolver,
+            ),
             "resolving metadata %a",
             Resolution.pp,
             resolution,
@@ -589,6 +601,7 @@ let solveDependencies =
       ~strategy,
       ~dumpCudfInput,
       ~dumpCudfOutput,
+      ~opamRegistries,
       dependencies,
       solver,
     ) => {
@@ -727,7 +740,9 @@ let solveDependencies =
 
   | None =>
     let cudf = (preamble, cudfUniverse, request);
-    switch%bind (Explanation.explain(cudfMapping, solver, cudf)) {
+    switch%bind (
+      Explanation.explain(cudfMapping, solver, cudf, opamRegistries)
+    ) {
     | Some(reasons) => return(Error(reasons))
     | None => return(Error(Explanation.empty))
     };
@@ -738,6 +753,7 @@ let solveDependenciesNaively =
     (
       ~installed: InstallManifest.Set.t,
       ~root: InstallManifest.t,
+      ~opamRegistries,
       dependencies: Dependencies.t,
       solver: t,
     ) => {
@@ -781,6 +797,7 @@ let solveDependenciesNaively =
     let%lwt () = report("%a", Req.pp, req);
     let* resolutions =
       Resolver.resolve(
+        ~opamRegistries,
         ~name=req.name,
         ~spec=req.spec,
         solver.sandbox.resolver,
@@ -789,7 +806,13 @@ let solveDependenciesNaively =
       findResolutionForRequest(solver.sandbox.resolver, req, resolutions)
     ) {
     | Some(resolution) =>
-      switch%bind (Resolver.package(~resolution, solver.sandbox.resolver)) {
+      switch%bind (
+        Resolver.package(
+          ~resolution,
+          ~resolver=solver.sandbox.resolver,
+          ~opamRegistries,
+        )
+      ) {
       | Ok(pkg) => return(Some(pkg))
       | Error(reason) =>
         errorf("invalid package %a: %s", Resolution.pp, resolution, reason)
@@ -917,13 +940,13 @@ let solveDependenciesNaively =
   return(sealDependencies());
 };
 
-let solveOCamlReq = (req: Req.t, resolver) => {
+let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
     let%lwt () =
       Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let* pkg = Resolver.package(~resolution, resolver);
+    let* pkg = Resolver.package(~resolution, ~opamRegistries, ~resolver);
     let* pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
@@ -932,7 +955,12 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Npm(_)
   | VersionSpec.NpmDistTag(_) =>
     let* resolutions =
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver);
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries,
+        resolver,
+      );
     switch (findResolutionForRequest(resolver, req, resolutions)) {
     | Some(resolution) => make(resolution)
     | None =>
@@ -943,7 +971,14 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Opam(_) =>
     error("ocaml version should be either an npm version or source")
   | VersionSpec.Source(_) =>
-    switch%bind (Resolver.resolve(~name=req.name, ~spec=req.spec, resolver)) {
+    switch%bind (
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries,
+        resolver,
+      )
+    ) {
     | [resolution] => make(resolution)
     | _ => errorf("multiple resolutions for %a, expected one", Req.pp, req)
     }
@@ -951,7 +986,13 @@ let solveOCamlReq = (req: Req.t, resolver) => {
 };
 
 let solve =
-    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, sandbox: Sandbox.t) => {
+    (
+      ~dumpCudfInput=None,
+      ~dumpCudfOutput=None,
+      ~opamRegistries,
+      solvespec,
+      sandbox: Sandbox.t,
+    ) => {
   open RunAsync.Syntax;
 
   let getResultOrExplain =
@@ -977,7 +1018,7 @@ let solve =
     | Some(ocamlReq) =>
       let* (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf(
-          solveOCamlReq(ocamlReq, sandbox.resolver),
+          solveOCamlReq(ocamlReq, opamRegistries, sandbox.resolver),
           "resolving %a",
           Req.pp,
           ocamlReq,
@@ -1025,7 +1066,8 @@ let solve =
     };
 
   let* (solver, dependencies) = {
-    let* (solver, dependencies) = add(~dependencies, solver);
+    let* (solver, dependencies) =
+      add(~dependencies, ~opamRegistries, solver);
     return((solver, dependencies));
   };
 
@@ -1038,6 +1080,7 @@ let solve =
         ~strategy=Strategy.trendy,
         ~dumpCudfInput,
         ~dumpCudfOutput,
+        ~opamRegistries,
         dependencies,
         solver,
       );
@@ -1050,6 +1093,7 @@ let solve =
     solveDependenciesNaively(
       ~installed,
       ~root=sandbox.root,
+      ~opamRegistries,
       dependencies,
       solver,
     );

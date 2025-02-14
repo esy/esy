@@ -5,6 +5,7 @@
 open EsyPackageConfig;
 
 type t;
+type registry;
 
 /** Configure a new opam registry instance. */
 
@@ -18,7 +19,7 @@ let versions:
     ~arch: System.Arch.t=?,
     ~ocamlVersion: OpamPackageVersion.Version.t=?,
     ~name: OpamPackage.Name.t,
-    t
+    registry
   ) =>
   RunAsync.t(list(OpamResolution.t));
 
@@ -27,3 +28,6 @@ let versions:
 let version:
   (~name: OpamPackage.Name.t, ~version: OpamPackage.Version.t, t) =>
   RunAsync.t(option(OpamManifest.t));
+
+/** Git clone the registry if necessary */
+let initRegistry: t => RunAsync.t(registry);

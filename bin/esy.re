@@ -949,10 +949,12 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
     };
 
   let run = () => {
+    let opamRegistries = proj.opamRegistries;
     let* solution =
       EsySolve.Solver.solve(
         ~dumpCudfInput,
         ~dumpCudfOutput,
+        ~opamRegistries,
         proj.workflow.solvespec,
         proj.solveSandbox,
       );
@@ -1008,11 +1010,13 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
               proj.projcfg.spec,
             );
 
+          let opamRegistries = proj.opamRegistries;
           let* solution =
             RunAsync.contextf(
               EsySolve.Solver.solve(
                 ~dumpCudfInput,
                 ~dumpCudfOutput,
+                ~opamRegistries,
                 proj.workflow.solvespec,
                 solveSandbox,
               ),
@@ -1043,7 +1047,11 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
 
     let* () = {
       let* digest =
-        EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+        EsySolve.Sandbox.digest(
+          proj.workflow.solvespec,
+          opamRegistries,
+          proj.solveSandbox,
+        );
 
       EsyFetch.SolutionLock.toPath(
         ~digest,
@@ -1080,7 +1088,11 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
     run();
   } else {
     let* digest =
-      EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+      EsySolve.Sandbox.digest(
+        proj.workflow.solvespec,
+        proj.opamRegistries,
+        proj.solveSandbox,
+      );
     let path = SandboxSpec.solutionLockPath(proj.solveSandbox.spec);
     switch%bind (
       EsyFetch.SolutionLock.ofPath(~digest, proj.installSandbox, path)
@@ -1187,7 +1199,11 @@ let solveAndFetch = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   let* digest =
-    EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+    EsySolve.Sandbox.digest(
+      proj.workflow.solvespec,
+      proj.opamRegistries,
+      proj.solveSandbox,
+    );
   let%bind () =
     switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
     | Some(solution) =>
@@ -1243,12 +1259,21 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
   let proj = {...proj, solveSandbox};
 
   let* solution = {
-    let* solution = Solver.solve(proj.workflow.solvespec, proj.solveSandbox);
+    let* solution =
+      Solver.solve(
+        proj.workflow.solvespec,
+        ~opamRegistries=proj.opamRegistries,
+        proj.solveSandbox,
+      );
     let lockPath =
       SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
     let* () = {
       let* digest =
-        Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+        Sandbox.digest(
+          proj.workflow.solvespec,
+          proj.opamRegistries,
+          proj.solveSandbox,
+        );
 
       EsyFetch.SolutionLock.toPath(
         ~digest,
@@ -1380,7 +1405,11 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
     let proj = {...proj, solveSandbox};
     let* digest =
-      EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+      EsySolve.Sandbox.digest(
+        proj.workflow.solvespec,
+        proj.opamRegistries,
+        proj.solveSandbox,
+      );
 
     /* we can only do this because we keep invariant that the constraint we
      * save in manifest covers the installed version */
@@ -1537,19 +1566,25 @@ let show = (_asJson, req, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
   let* req = RunAsync.ofStringError(Req.parse(req));
+  let EsySolve.Sandbox.{cfg, _} = proj.solveSandbox;
   let* resolver =
     Resolver.make(
       /* ~os,  TODO: obtain optional cli args */
       /* ~arch, TODO: obtain optional cli args */
       ~gitUsername=proj.projcfg.gitUsername,
       ~gitPassword=proj.projcfg.gitPassword,
-      ~cfg=proj.solveSandbox.cfg,
+      ~cfg,
       ~sandbox=proj.spec,
       (),
     );
   let* resolutions =
     RunAsync.contextf(
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver),
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries=proj.opamRegistries,
+        resolver,
+      ),
       "resolving %a",
       Req.pp,
       req,
@@ -1578,7 +1613,11 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let* pkg =
         RunAsync.contextf(
-          Resolver.package(~resolution, resolver),
+          Resolver.package(
+            ~resolution,
+            ~opamRegistries=proj.opamRegistries,
+            ~resolver,
+          ),
           "resolving metadata %a",
           Resolution.pp,
           resolution,

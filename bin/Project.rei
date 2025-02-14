@@ -11,6 +11,7 @@ open EsyFetch;
 
 type project = {
   projcfg: ProjectConfig.t,
+  opamRegistries: list(EsySolve.OpamRegistry.t),
   spec: SandboxSpec.t,
   workflow: Workflow.t,
   buildCfg: EsyBuildPackage.Config.t,

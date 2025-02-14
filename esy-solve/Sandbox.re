@@ -13,9 +13,9 @@ let makeResolution = source => {
   resolution: VersionOverride({version: Source(source), override: None}),
 };
 
-let ofResolution = (cfg, spec, resolver, resolution) => {
+let ofResolution = (cfg, spec, resolver, opamRegistries, resolution) => {
   open RunAsync.Syntax;
-  switch%bind (Resolver.package(~resolution, resolver)) {
+  switch%bind (Resolver.package(~resolution, ~resolver, ~opamRegistries)) {
   | Ok(root) =>
     let root = {
       let name =
@@ -45,6 +45,7 @@ let make =
   let path = DistPath.make(~base=spec.path, spec.path);
   let makeSource = manifest =>
     Source.Link({path, manifest: Some(manifest), kind: LinkDev});
+  let opamRegistries = OpamRegistries.make(~cfg, ());
 
   RunAsync.contextf(
     {
@@ -62,7 +63,8 @@ let make =
       | EsyFetch.SandboxSpec.Manifest(manifest) =>
         let source = makeSource(manifest);
         let resolution = makeResolution(source);
-        let* sandbox = ofResolution(cfg, spec, resolver, resolution);
+        let* sandbox =
+          ofResolution(cfg, spec, resolver, opamRegistries, resolution);
         Resolver.setResolutions(sandbox.resolutions, sandbox.resolver);
         return(sandbox);
       | EsyFetch.SandboxSpec.ManifestAggregate(manifests) =>
@@ -70,7 +72,9 @@ let make =
           let f = ((resolutions, deps, devDeps), manifest) => {
             let source = makeSource(manifest);
             let resolution = makeResolution(source);
-            switch%bind (Resolver.package(~resolution, resolver)) {
+            switch%bind (
+              Resolver.package(~resolution, ~opamRegistries, ~resolver)
+            ) {
             | Error(msg) =>
               errorf("unable to read %a: %s", ManifestSpec.pp, manifest, msg)
             | Ok(pkg) =>
@@ -138,7 +142,7 @@ let make =
   );
 };
 
-let digest = (solvespec, sandbox) => {
+let digest = (solvespec, opamRegistries, sandbox) => {
   open RunAsync.Syntax;
 
   let ppDependencies = (fmt, deps) => {
@@ -235,7 +239,13 @@ let digest = (solvespec, sandbox) => {
       switch (resolution) {
       | None => return(digest)
       | Some(resolution) =>
-        switch%bind (Resolver.package(~resolution, sandbox.resolver)) {
+        switch%bind (
+          Resolver.package(
+            ~resolution,
+            ~opamRegistries,
+            ~resolver=sandbox.resolver,
+          )
+        ) {
         | Error(_) =>
           errorf("unable to read package: %a", Resolution.pp, resolution)
         | Ok(pkg) => return(linkDigest(pkg, digest))
