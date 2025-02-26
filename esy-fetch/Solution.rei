@@ -61,5 +61,5 @@ let collect: (t, FetchDepSpec.t, PackageId.t) => PackageId.Set.t;
    (os, arch) tuples are list in [DefaultPlatforms]
 */
 let unPortableDependencies:
-  (~expected: AvailablePlatforms.t, t) =>
-  RunAsync.t(list((pkg, AvailablePlatforms.t)));
+  (~expected: EsyOpamLibs.AvailablePlatforms.t, t) =>
+  RunAsync.t(list((pkg, EsyOpamLibs.AvailablePlatforms.t)));

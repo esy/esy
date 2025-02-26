@@ -99,7 +99,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: AvailablePlatforms.default,
+  available: EsyOpamLibs.AvailablePlatforms.default,
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -117,7 +117,7 @@ let emptyInstall = (~name, ~source, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: AvailablePlatforms.default,
+  available: EsyOpamLibs.AvailablePlatforms.default,
 };
 
 let make = (~os=?, ~arch=?, ~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
@@ -591,7 +591,7 @@ let convertDependencies = (~os, ~arch, manifest) => {
 
   let availableFilter = OpamFile.OPAM.available(manifest.opam);
   let available =
-    AvailablePlatforms.default |> AvailablePlatforms.filter(availableFilter);
+    EsyOpamLibs.AvailablePlatforms.default |> EsyOpamLibs.AvailablePlatforms.filter(availableFilter);
 
   return((
     dependencies,

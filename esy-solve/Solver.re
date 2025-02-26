@@ -1,4 +1,5 @@
 open EsyPackageConfig;
+open RunAsync.Syntax;
 
 module Dependencies = InstallManifest.Dependencies;
 
@@ -648,7 +649,7 @@ let solveDependencies =
     kind: Esy,
     installConfig: InstallConfig.empty,
     extraSources: [],
-    available: AvailablePlatforms.default,
+    available: EsyOpamLibs.AvailablePlatforms.default,
   };
 
   let universe = Universe.add(~pkg=dummyRoot, solver.universe);
@@ -985,7 +986,7 @@ let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
   };
 };
 
-let solve =
+let solve' =
     (
       ~dumpCudfInput=None,
       ~dumpCudfOutput=None,
@@ -993,8 +994,6 @@ let solve =
       solvespec,
       sandbox: Sandbox.t,
     ) => {
-  open RunAsync.Syntax;
-
   let getResultOrExplain =
     fun
     | Ok(dependencies) => return(dependencies)
@@ -1233,4 +1232,112 @@ let solve =
   };
 
   return(solution);
+};
+
+let solve =
+    (
+      ~os as _=?,
+      ~arch as _=?,
+      ~dumpCudfInput=None,
+      ~dumpCudfOutput=None,
+      ~opamRegistries,
+      ~expectedPlatforms,
+      ~gitUsername,
+      ~gitPassword,
+      ~esyFetchSandboxSpec,
+      solvespec,
+      sandbox: Sandbox.t,
+    ) => {
+  let* baseSolution =
+    solve'(
+      ~dumpCudfInput,
+      ~dumpCudfOutput,
+      ~opamRegistries,
+      solvespec,
+      sandbox,
+    );
+
+  let* unPortableDependencies =
+    EsyFetch.Solution.unPortableDependencies(
+      ~expected=expectedPlatforms,
+      baseSolution,
+    );
+  let%lwt () =
+    Esy_logs_lwt.app(m =>
+      m(
+        "The following packages are problematic and dont build on specified platform",
+      )
+    );
+  let unSupportedPlatforms = ref(EsyOpamLibs.AvailablePlatforms.empty);
+  let f = ((package, platforms)) => {
+    unSupportedPlatforms :=
+      EsyOpamLibs.AvailablePlatforms.union(platforms, unSupportedPlatforms^);
+    Esy_logs_lwt.app(m =>
+      m(
+        "Package %a. Unsupported Platforms: %a",
+        EsyFetch.Package.pp,
+        package,
+        EsyOpamLibs.AvailablePlatforms.pp,
+        platforms,
+      )
+    );
+  };
+  let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
+
+  let* platformSpecificSolutions =
+    if (EsyOpamLibs.AvailablePlatforms.isEmpty(unSupportedPlatforms^)) {
+      RunAsync.return(EsyOpamLibs.AvailablePlatforms.Map.empty);
+    } else {
+      let f = ((os, arch)) => {
+        let%lwt () =
+          Esy_logs_lwt.app(m =>
+            m(
+              "Solving for os: %a arch: %a",
+              System.Platform.pp,
+              os,
+              System.Arch.pp,
+              arch,
+            )
+          );
+        let* solveSandbox =
+          Sandbox.make(
+            ~gitUsername,
+            ~gitPassword,
+            ~cfg=sandbox.cfg,
+            ~os,
+            ~arch,
+            esyFetchSandboxSpec,
+          );
+
+        let* solution =
+          RunAsync.contextf(
+            solve'(
+              ~dumpCudfInput,
+              ~dumpCudfOutput,
+              ~opamRegistries,
+              solvespec,
+              solveSandbox,
+            ),
+            "While solving for %a",
+            EsyOpamLibs.AvailablePlatforms.ppEntry,
+            (os, arch),
+          );
+        let k = (os, arch);
+        return((k, solution));
+      };
+      let* platformSpecificSolutions =
+        EsyOpamLibs.AvailablePlatforms.toList(unSupportedPlatforms^)
+        |> List.map(~f)
+        |> RunAsync.List.joinAll;
+      RunAsync.return @@
+      List.fold_left(
+        ~f=
+          (acc, (k, solution)) => {
+            EsyOpamLibs.AvailablePlatforms.Map.add(k, solution, acc)
+          },
+        ~init=EsyOpamLibs.AvailablePlatforms.Map.empty,
+        platformSpecificSolutions,
+      );
+    };
+  RunAsync.return((baseSolution, platformSpecificSolutions));
 };

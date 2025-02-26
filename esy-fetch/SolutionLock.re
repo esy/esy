@@ -40,7 +40,7 @@ type t = {
   root: PackageId.t,
   node: PackageId.Map.t(node),
   [@default None]
-  platformSpecific: option(AvailablePlatforms.Map.t(PackageId.Map.t(node))),
+  platformSpecific: option(EsyOpamLibs.AvailablePlatforms.Map.t(PackageId.Map.t(node))),
 }
 and node = {
   id: PackageId.t,
@@ -55,7 +55,7 @@ and node = {
   [@default []]
   extraSources: list(ExtraSource.t),
   [@default None]
-  available: option(AvailablePlatforms.t),
+  available: option(EsyOpamLibs.AvailablePlatforms.t),
 };
 
 let indexFilename = "index.json";
@@ -274,11 +274,11 @@ let readPackage = (sandbox, node: node) => {
         };
         let availableFilter = OpamFile.OPAM.available(opamfile);
         RunAsync.return @@
-        AvailablePlatforms.filter(availableFilter, AvailablePlatforms.default);
+        EsyOpamLibs.AvailablePlatforms.filter(availableFilter, EsyOpamLibs.AvailablePlatforms.default);
 
-      | Link(_) => RunAsync.return @@ AvailablePlatforms.default
+      | Link(_) => RunAsync.return @@ EsyOpamLibs.AvailablePlatforms.default
       | Install({source: _, opam: None}) =>
-        RunAsync.return @@ AvailablePlatforms.default
+        RunAsync.return @@ EsyOpamLibs.AvailablePlatforms.default
       | Install({source: _, opam: Some(opam)}) =>
         let* opamfile = {
           let path = Path.(opam.path / "opam");
@@ -293,7 +293,7 @@ let readPackage = (sandbox, node: node) => {
         };
         let availableFilter = OpamFile.OPAM.available(opamfile);
         RunAsync.return @@
-        AvailablePlatforms.filter(availableFilter, AvailablePlatforms.default);
+        EsyOpamLibs.AvailablePlatforms.filter(availableFilter, EsyOpamLibs.AvailablePlatforms.default);
       }
     };
   return({
@@ -355,7 +355,7 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
               switch (lock.platformSpecific) {
               | Some(platformSpecificNode) =>
                 switch (
-                  AvailablePlatforms.Map.find_opt(
+                  EsyOpamLibs.AvailablePlatforms.Map.find_opt(
                     currentPlatform,
                     platformSpecificNode,
                   )
@@ -433,7 +433,7 @@ let toPath =
     lockOfSolution(sandbox, solution, gitUsername, gitPassword);
   let* platformSpecificSolutionsList =
     platformSpecificSolutions
-    |> AvailablePlatforms.Map.bindings
+    |> EsyOpamLibs.AvailablePlatforms.Map.bindings
     |> List.map(~f=((k, solution)) => {
          let* (_root, node) =
            // TODO: check if this root matches with solution global root
@@ -446,9 +446,9 @@ let toPath =
       ~f=
         (acc, kv) => {
           let (k, v) = kv;
-          AvailablePlatforms.Map.add(k, v, acc);
+          EsyOpamLibs.AvailablePlatforms.Map.add(k, v, acc);
         },
-      ~init=AvailablePlatforms.Map.empty,
+      ~init=EsyOpamLibs.AvailablePlatforms.Map.empty,
       platformSpecificSolutionsList,
     );
   let lock = {

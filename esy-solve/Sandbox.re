@@ -133,7 +133,7 @@ let make =
           kind: Npm,
           installConfig: InstallConfig.empty,
           extraSources: [],
-          available: AvailablePlatforms.default,
+          available: EsyOpamLibs.AvailablePlatforms.default,
         };
         return({cfg, spec, root, resolutions: root.resolutions, resolver});
       };

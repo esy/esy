@@ -9,8 +9,8 @@ module BuildType = {
 module Available = {
   [@deriving of_yojson({strict: false})]
   type t = {
-    [@default AvailablePlatforms.default]
-    available: AvailablePlatforms.t,
+    [@default EsyOpamLibs.AvailablePlatforms.default]
+    available: EsyOpamLibs.AvailablePlatforms.t,
   };
 };
 
@@ -194,7 +194,7 @@ module InstallManifestV1 = {
     /*                                                                  */
     /********************************************************************/
 
-    let available = AvailablePlatforms.default;
+    let available = EsyOpamLibs.AvailablePlatforms.default;
     return((
       {
         InstallManifest.name,

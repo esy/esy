@@ -56,7 +56,7 @@ let default: t =
 
 let filter = (availabilityFilter, platforms) => {
   let f = ((os, arch)) => {
-    EsyOpamLibs.Available.evalAvailabilityFilter(
+    Available.evalAvailabilityFilter(
       ~os,
       ~arch,
       availabilityFilter,
