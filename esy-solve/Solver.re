@@ -480,8 +480,18 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
   open RunAsync.Syntax;
 
   let universe = ref(solver.universe);
-  let (report, finish) =
-    Cli.createProgressReporter(~name="resolving esy packages", ());
+  let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+  let name =
+    switch (os, arch) {
+    | (Some(os), Some(arch)) =>
+      Printf.sprintf(
+        "resolving esy packages for os: %s arch: %s",
+        System.Platform.show(os),
+        System.Arch.show(arch),
+      )
+    | _ => "resolving esy packages"
+    };
+  let (report, finish) = Cli.createProgressReporter(~name, ());
 
   let rec addPackage = (manifest: InstallManifest.t) =>
     if (!Universe.mem(~pkg=manifest, universe^)) {
@@ -700,8 +710,18 @@ let solveDependencies =
       };
 
       let filenameOut = Path.(path / "out.cudf");
-      let (report, finish) =
-        Cli.createProgressReporter(~name="solving esy constraints", ());
+      let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+      let name =
+        switch (os, arch) {
+        | (Some(os), Some(arch)) =>
+          Printf.sprintf(
+            "solving esy constraints for os: %s arch: %s",
+            System.Platform.show(os),
+            System.Arch.show(arch),
+          )
+        | _ => "solving esy constraints"
+        };
+      let (report, finish) = Cli.createProgressReporter(~name, ());
       let%lwt () = report("running solver");
       let* () = runSolver(filenameIn, filenameOut);
       let%lwt () = finish();
@@ -760,8 +780,18 @@ let solveDependenciesNaively =
     ) => {
   open RunAsync.Syntax;
 
-  let (report, finish) =
-    Cli.createProgressReporter(~name="resolving npm packages", ());
+  let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+  let name =
+    switch (os, arch) {
+    | (Some(os), Some(arch)) =>
+      Printf.sprintf(
+        "resolving npm packages for os: %s arch: %s",
+        System.Platform.show(os),
+        System.Arch.show(arch),
+      )
+    | _ => "resolving npm packages"
+    };
+  let (report, finish) = Cli.createProgressReporter(~name, ());
 
   let installed = {
     let tbl = Hashtbl.create(100);

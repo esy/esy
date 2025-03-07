@@ -67,6 +67,8 @@ let make:
   ) =>
   RunAsync.t(t);
 
+let platform: t => (option(System.Platform.t), option(System.Arch.t));
+
 /**
  * Resolve package request into a list of resolutions
  */

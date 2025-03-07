@@ -591,7 +591,8 @@ let convertDependencies = (~os, ~arch, manifest) => {
 
   let availableFilter = OpamFile.OPAM.available(manifest.opam);
   let available =
-    EsyOpamLibs.AvailablePlatforms.default |> EsyOpamLibs.AvailablePlatforms.filter(availableFilter);
+    EsyOpamLibs.AvailablePlatforms.default
+    |> EsyOpamLibs.AvailablePlatforms.filter(availableFilter);
 
   return((
     dependencies,
@@ -1102,6 +1103,8 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
     },
   );
 };
+
+let platform = ({os, arch, _}) => (os, arch);
 
 let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
   RunAsync.Syntax.(
