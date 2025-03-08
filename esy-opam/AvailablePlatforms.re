@@ -56,11 +56,7 @@ let default: t =
 
 let filter = (availabilityFilter, platforms) => {
   let f = ((os, arch)) => {
-    Available.evalAvailabilityFilter(
-      ~os,
-      ~arch,
-      availabilityFilter,
-    );
+    Available.evalAvailabilityFilter(~os, ~arch, availabilityFilter);
   };
   Set.filter(f, platforms);
 };

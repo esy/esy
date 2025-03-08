@@ -124,7 +124,10 @@ let unPortableDependencies = (~expected, solution) => {
   open Package;
   let f = pkg => {
     let missingPlatforms =
-      EsyOpamLibs.AvailablePlatforms.missing(~expected, ~actual=pkg.available);
+      EsyOpamLibs.AvailablePlatforms.missing(
+        ~expected,
+        ~actual=pkg.available,
+      );
     if (EsyOpamLibs.AvailablePlatforms.isEmpty(missingPlatforms)) {
       None;
     } else {

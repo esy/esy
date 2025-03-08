@@ -40,7 +40,8 @@ type t = {
   root: PackageId.t,
   node: PackageId.Map.t(node),
   [@default None]
-  platformSpecific: option(EsyOpamLibs.AvailablePlatforms.Map.t(PackageId.Map.t(node))),
+  platformSpecific:
+    option(EsyOpamLibs.AvailablePlatforms.Map.t(PackageId.Map.t(node))),
 }
 and node = {
   id: PackageId.t,
@@ -274,7 +275,10 @@ let readPackage = (sandbox, node: node) => {
         };
         let availableFilter = OpamFile.OPAM.available(opamfile);
         RunAsync.return @@
-        EsyOpamLibs.AvailablePlatforms.filter(availableFilter, EsyOpamLibs.AvailablePlatforms.default);
+        EsyOpamLibs.AvailablePlatforms.filter(
+          availableFilter,
+          EsyOpamLibs.AvailablePlatforms.default,
+        );
 
       | Link(_) => RunAsync.return @@ EsyOpamLibs.AvailablePlatforms.default
       | Install({source: _, opam: None}) =>
@@ -293,7 +297,10 @@ let readPackage = (sandbox, node: node) => {
         };
         let availableFilter = OpamFile.OPAM.available(opamfile);
         RunAsync.return @@
-        EsyOpamLibs.AvailablePlatforms.filter(availableFilter, EsyOpamLibs.AvailablePlatforms.default);
+        EsyOpamLibs.AvailablePlatforms.filter(
+          availableFilter,
+          EsyOpamLibs.AvailablePlatforms.default,
+        );
       }
     };
   return({
