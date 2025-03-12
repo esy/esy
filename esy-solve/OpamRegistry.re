@@ -240,18 +240,30 @@ let isEnabledForEsy = name =>
   };
 
 let versions =
-    (~os=?, ~arch=?, ~ocamlVersion=?, ~name: OpamPackage.Name.t, registry) =>
+    (
+      ~os=?,
+      ~arch=?,
+      ~ocamlVersion=?,
+      ~name: OpamPackage.Name.t,
+      fetchedRegistry: registry,
+    ) =>
   RunAsync.Syntax.(
     if (!isEnabledForEsy(name)) {
       return([]);
     } else {
-      let* registry = initRegistry(registry);
-      switch%bind (getPackageVersionIndex(registry, ~name)) {
+      switch%bind (getPackageVersionIndex(fetchedRegistry, ~name)) {
       | None => return([])
       | Some(index) =>
         let* resolutions = {
           let getPackageVersion = version =>
-            resolve(~os?, ~arch?, ~ocamlVersion?, ~name, ~version, registry);
+            resolve(
+              ~os?,
+              ~arch?,
+              ~ocamlVersion?,
+              ~name,
+              ~version,
+              fetchedRegistry,
+            );
 
           RunAsync.List.mapAndJoin(
             ~concurrency=2,

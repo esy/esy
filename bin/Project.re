@@ -6,6 +6,7 @@ open DepSpec;
 
 type project = {
   projcfg: ProjectConfig.t,
+  opamRegistries: list(EsySolve.OpamRegistry.t),
   spec: SandboxSpec.t,
   workflow: Workflow.t,
   buildCfg: EsyBuildPackage.Config.t,
@@ -194,6 +195,7 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       projcfg.spec,
     );
   let installSandbox = EsyFetch.Sandbox.make(installCfg, projcfg.spec);
+  let opamRegistries = EsySolve.OpamRegistries.make(~cfg=solveCfg, ());
 
   let%lwt () =
     Esy_logs_lwt.debug(m =>
@@ -243,12 +245,14 @@ let makeProject = (makeSolved, projcfg: ProjectConfig.t) => {
       solveSandbox,
       installSandbox,
       files,
+      opamRegistries,
       esy,
     );
   return((
     {
       projcfg,
       buildCfg,
+      opamRegistries,
       spec: projcfg.spec,
       scripts,
       solved,
@@ -276,13 +280,19 @@ let makeSolved =
       solver,
       installer,
       files,
+      opamRegistries,
       esy,
     ) => {
   open RunAsync.Syntax;
   let path = SandboxSpec.solutionLockPath(projcfg.spec);
   let* info = FileInfo.ofPath(Path.(path / "index.json"));
   files := [info, ...files^];
-  let* digest = EsySolve.Sandbox.digest(Workflow.default.solvespec, solver);
+  let* digest =
+    EsySolve.Sandbox.digest(
+      Workflow.default.solvespec,
+      opamRegistries,
+      solver,
+    );
 
   switch%bind (SolutionLock.ofPath(~digest, installer, path)) {
   | Some(solution) =>

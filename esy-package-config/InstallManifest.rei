@@ -56,7 +56,7 @@ type t = {
   kind,
   installConfig: InstallConfig.t,
   extraSources: list(ExtraSource.t),
-  available: AvailablePlatforms.t,
+  available: EsyOpamLibs.AvailablePlatforms.t,
 }
 and kind =
   | Esy

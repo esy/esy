@@ -1,4 +1,5 @@
 open EsyPackageConfig;
+open RunAsync.Syntax;
 
 module Dependencies = InstallManifest.Dependencies;
 
@@ -170,7 +171,7 @@ module Explanation = {
     Fmt.pf(fmt, "@[<v>No solution found:@;@;%a@]", ppReasons, reasons);
   };
 
-  let collectReasons = (cudfMapping, solver, reasons) => {
+  let collectReasons = (cudfMapping, solver, reasons, opamRegistries) => {
     open RunAsync.Syntax;
 
     /* Find a pair of requestor, path for the current package.
@@ -282,7 +283,13 @@ module Explanation = {
                   Universe.CudfName.make(name),
                 );
               let%lwt available =
-                switch%lwt (Resolver.resolve(~name, solver.sandbox.resolver)) {
+                switch%lwt (
+                  Resolver.resolve(
+                    ~name,
+                    ~opamRegistries,
+                    solver.sandbox.resolver,
+                  )
+                ) {
                 | Ok(available) => Lwt.return(available)
                 | Error(_) => Lwt.return([])
                 };
@@ -310,7 +317,7 @@ module Explanation = {
     return(Reason.Set.elements(reasons));
   };
 
-  let explain = (cudfMapping, solver, cudf) =>
+  let explain = (cudfMapping, solver, cudf, opamRegistries) =>
     RunAsync.Syntax.(
       switch (Dose_algo.Depsolver.check_request(~explain=true, cudf)) {
       | Dose_algo.Depsolver.Sat(_)
@@ -323,7 +330,8 @@ module Explanation = {
           Some({result: Dose_algo.Diagnostic.Failure(reasons), _}),
         ) =>
         let reasons = reasons();
-        let* reasons = collectReasons(cudfMapping, solver, reasons);
+        let* reasons =
+          collectReasons(cudfMapping, solver, reasons, opamRegistries);
         return(Some(reasons));
       | Dose_algo.Depsolver.Error(err) => error(err)
       }
@@ -468,12 +476,22 @@ let make = (solvespec, sandbox: Sandbox.t) => {
   return({solvespec, universe: universe^, sandbox});
 };
 
-let add = (~dependencies: Dependencies.t, solver) => {
+let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
   open RunAsync.Syntax;
 
   let universe = ref(solver.universe);
-  let (report, finish) =
-    Cli.createProgressReporter(~name="resolving esy packages", ());
+  let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+  let name =
+    switch (os, arch) {
+    | (Some(os), Some(arch)) =>
+      Printf.sprintf(
+        "resolving esy packages for os: %s arch: %s",
+        System.Platform.show(os),
+        System.Arch.show(arch),
+      )
+    | _ => "resolving esy packages"
+    };
+  let (report, finish) = Cli.createProgressReporter(~name, ());
 
   let rec addPackage = (manifest: InstallManifest.t) =>
     if (!Universe.mem(~pkg=manifest, universe^)) {
@@ -516,6 +534,7 @@ let add = (~dependencies: Dependencies.t, solver) => {
           ~fullMetadata=true,
           ~name=req.name,
           ~spec=req.spec,
+          ~opamRegistries,
           solver.sandbox.resolver,
         ),
         "resolving %a",
@@ -527,7 +546,11 @@ let add = (~dependencies: Dependencies.t, solver) => {
       let fetchPackage = resolution => {
         let* pkg =
           RunAsync.contextf(
-            Resolver.package(~resolution, solver.sandbox.resolver),
+            Resolver.package(
+              ~resolution,
+              ~opamRegistries,
+              ~resolver=solver.sandbox.resolver,
+            ),
             "resolving metadata %a",
             Resolution.pp,
             resolution,
@@ -589,6 +612,7 @@ let solveDependencies =
       ~strategy,
       ~dumpCudfInput,
       ~dumpCudfOutput,
+      ~opamRegistries,
       dependencies,
       solver,
     ) => {
@@ -635,7 +659,7 @@ let solveDependencies =
     kind: Esy,
     installConfig: InstallConfig.empty,
     extraSources: [],
-    available: AvailablePlatforms.default,
+    available: EsyOpamLibs.AvailablePlatforms.default,
   };
 
   let universe = Universe.add(~pkg=dummyRoot, solver.universe);
@@ -686,8 +710,18 @@ let solveDependencies =
       };
 
       let filenameOut = Path.(path / "out.cudf");
-      let (report, finish) =
-        Cli.createProgressReporter(~name="solving esy constraints", ());
+      let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+      let name =
+        switch (os, arch) {
+        | (Some(os), Some(arch)) =>
+          Printf.sprintf(
+            "solving esy constraints for os: %s arch: %s",
+            System.Platform.show(os),
+            System.Arch.show(arch),
+          )
+        | _ => "solving esy constraints"
+        };
+      let (report, finish) = Cli.createProgressReporter(~name, ());
       let%lwt () = report("running solver");
       let* () = runSolver(filenameIn, filenameOut);
       let%lwt () = finish();
@@ -727,7 +761,9 @@ let solveDependencies =
 
   | None =>
     let cudf = (preamble, cudfUniverse, request);
-    switch%bind (Explanation.explain(cudfMapping, solver, cudf)) {
+    switch%bind (
+      Explanation.explain(cudfMapping, solver, cudf, opamRegistries)
+    ) {
     | Some(reasons) => return(Error(reasons))
     | None => return(Error(Explanation.empty))
     };
@@ -738,13 +774,24 @@ let solveDependenciesNaively =
     (
       ~installed: InstallManifest.Set.t,
       ~root: InstallManifest.t,
+      ~opamRegistries,
       dependencies: Dependencies.t,
       solver: t,
     ) => {
   open RunAsync.Syntax;
 
-  let (report, finish) =
-    Cli.createProgressReporter(~name="resolving npm packages", ());
+  let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+  let name =
+    switch (os, arch) {
+    | (Some(os), Some(arch)) =>
+      Printf.sprintf(
+        "resolving npm packages for os: %s arch: %s",
+        System.Platform.show(os),
+        System.Arch.show(arch),
+      )
+    | _ => "resolving npm packages"
+    };
+  let (report, finish) = Cli.createProgressReporter(~name, ());
 
   let installed = {
     let tbl = Hashtbl.create(100);
@@ -781,6 +828,7 @@ let solveDependenciesNaively =
     let%lwt () = report("%a", Req.pp, req);
     let* resolutions =
       Resolver.resolve(
+        ~opamRegistries,
         ~name=req.name,
         ~spec=req.spec,
         solver.sandbox.resolver,
@@ -789,7 +837,13 @@ let solveDependenciesNaively =
       findResolutionForRequest(solver.sandbox.resolver, req, resolutions)
     ) {
     | Some(resolution) =>
-      switch%bind (Resolver.package(~resolution, solver.sandbox.resolver)) {
+      switch%bind (
+        Resolver.package(
+          ~resolution,
+          ~resolver=solver.sandbox.resolver,
+          ~opamRegistries,
+        )
+      ) {
       | Ok(pkg) => return(Some(pkg))
       | Error(reason) =>
         errorf("invalid package %a: %s", Resolution.pp, resolution, reason)
@@ -917,13 +971,13 @@ let solveDependenciesNaively =
   return(sealDependencies());
 };
 
-let solveOCamlReq = (req: Req.t, resolver) => {
+let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
     let%lwt () =
       Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let* pkg = Resolver.package(~resolution, resolver);
+    let* pkg = Resolver.package(~resolution, ~opamRegistries, ~resolver);
     let* pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
@@ -932,7 +986,12 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Npm(_)
   | VersionSpec.NpmDistTag(_) =>
     let* resolutions =
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver);
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries,
+        resolver,
+      );
     switch (findResolutionForRequest(resolver, req, resolutions)) {
     | Some(resolution) => make(resolution)
     | None =>
@@ -943,17 +1002,28 @@ let solveOCamlReq = (req: Req.t, resolver) => {
   | VersionSpec.Opam(_) =>
     error("ocaml version should be either an npm version or source")
   | VersionSpec.Source(_) =>
-    switch%bind (Resolver.resolve(~name=req.name, ~spec=req.spec, resolver)) {
+    switch%bind (
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries,
+        resolver,
+      )
+    ) {
     | [resolution] => make(resolution)
     | _ => errorf("multiple resolutions for %a, expected one", Req.pp, req)
     }
   };
 };
 
-let solve =
-    (~dumpCudfInput=None, ~dumpCudfOutput=None, solvespec, sandbox: Sandbox.t) => {
-  open RunAsync.Syntax;
-
+let solve' =
+    (
+      ~dumpCudfInput=None,
+      ~dumpCudfOutput=None,
+      ~opamRegistries,
+      solvespec,
+      sandbox: Sandbox.t,
+    ) => {
   let getResultOrExplain =
     fun
     | Ok(dependencies) => return(dependencies)
@@ -977,7 +1047,7 @@ let solve =
     | Some(ocamlReq) =>
       let* (ocamlVersionOrig, ocamlVersion) =
         RunAsync.contextf(
-          solveOCamlReq(ocamlReq, sandbox.resolver),
+          solveOCamlReq(ocamlReq, opamRegistries, sandbox.resolver),
           "resolving %a",
           Req.pp,
           ocamlReq,
@@ -1025,7 +1095,8 @@ let solve =
     };
 
   let* (solver, dependencies) = {
-    let* (solver, dependencies) = add(~dependencies, solver);
+    let* (solver, dependencies) =
+      add(~dependencies, ~opamRegistries, solver);
     return((solver, dependencies));
   };
 
@@ -1038,6 +1109,7 @@ let solve =
         ~strategy=Strategy.trendy,
         ~dumpCudfInput,
         ~dumpCudfOutput,
+        ~opamRegistries,
         dependencies,
         solver,
       );
@@ -1050,6 +1122,7 @@ let solve =
     solveDependenciesNaively(
       ~installed,
       ~root=sandbox.root,
+      ~opamRegistries,
       dependencies,
       solver,
     );
@@ -1189,4 +1262,112 @@ let solve =
   };
 
   return(solution);
+};
+
+let solve =
+    (
+      ~os as _=?,
+      ~arch as _=?,
+      ~dumpCudfInput=None,
+      ~dumpCudfOutput=None,
+      ~opamRegistries,
+      ~expectedPlatforms,
+      ~gitUsername,
+      ~gitPassword,
+      ~esyFetchSandboxSpec,
+      solvespec,
+      sandbox: Sandbox.t,
+    ) => {
+  let* baseSolution =
+    solve'(
+      ~dumpCudfInput,
+      ~dumpCudfOutput,
+      ~opamRegistries,
+      solvespec,
+      sandbox,
+    );
+
+  let* unPortableDependencies =
+    EsyFetch.Solution.unPortableDependencies(
+      ~expected=expectedPlatforms,
+      baseSolution,
+    );
+  let%lwt () =
+    Esy_logs_lwt.app(m =>
+      m(
+        "The following packages are problematic and dont build on specified platform",
+      )
+    );
+  let unSupportedPlatforms = ref(EsyOpamLibs.AvailablePlatforms.empty);
+  let f = ((package, platforms)) => {
+    unSupportedPlatforms :=
+      EsyOpamLibs.AvailablePlatforms.union(platforms, unSupportedPlatforms^);
+    Esy_logs_lwt.app(m =>
+      m(
+        "Package %a. Unsupported Platforms: %a",
+        EsyFetch.Package.pp,
+        package,
+        EsyOpamLibs.AvailablePlatforms.pp,
+        platforms,
+      )
+    );
+  };
+  let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
+
+  let* platformSpecificSolutions =
+    if (EsyOpamLibs.AvailablePlatforms.isEmpty(unSupportedPlatforms^)) {
+      RunAsync.return(EsyOpamLibs.AvailablePlatforms.Map.empty);
+    } else {
+      let f = ((os, arch)) => {
+        let%lwt () =
+          Esy_logs_lwt.app(m =>
+            m(
+              "Solving for os: %a arch: %a",
+              System.Platform.pp,
+              os,
+              System.Arch.pp,
+              arch,
+            )
+          );
+        let* solveSandbox =
+          Sandbox.make(
+            ~gitUsername,
+            ~gitPassword,
+            ~cfg=sandbox.cfg,
+            ~os,
+            ~arch,
+            esyFetchSandboxSpec,
+          );
+
+        let* solution =
+          RunAsync.contextf(
+            solve'(
+              ~dumpCudfInput,
+              ~dumpCudfOutput,
+              ~opamRegistries,
+              solvespec,
+              solveSandbox,
+            ),
+            "While solving for %a",
+            EsyOpamLibs.AvailablePlatforms.ppEntry,
+            (os, arch),
+          );
+        let k = (os, arch);
+        return((k, solution));
+      };
+      let* platformSpecificSolutions =
+        EsyOpamLibs.AvailablePlatforms.toList(unSupportedPlatforms^)
+        |> List.map(~f)
+        |> RunAsync.List.joinAll;
+      RunAsync.return @@
+      List.fold_left(
+        ~f=
+          (acc, (k, solution)) => {
+            EsyOpamLibs.AvailablePlatforms.Map.add(k, solution, acc)
+          },
+        ~init=EsyOpamLibs.AvailablePlatforms.Map.empty,
+        platformSpecificSolutions,
+      );
+    };
+  RunAsync.return((baseSolution, platformSpecificSolutions));
 };

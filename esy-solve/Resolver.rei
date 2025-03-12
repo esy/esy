@@ -67,12 +67,20 @@ let make:
   ) =>
   RunAsync.t(t);
 
+let platform: t => (option(System.Platform.t), option(System.Arch.t));
+
 /**
  * Resolve package request into a list of resolutions
  */
 
 let resolve:
-  (~fullMetadata: bool=?, ~name: string, ~spec: VersionSpec.t=?, t) =>
+  (
+    ~spec: VersionSpec.t=?,
+    ~fullMetadata: bool=?,
+    ~name: string,
+    ~opamRegistries: list(OpamRegistry.t),
+    t
+  ) =>
   RunAsync.t(list(Resolution.t));
 
 /**
@@ -83,7 +91,11 @@ let resolve:
  */
 
 let package:
-  (~resolution: Resolution.t, t) =>
+  (
+    ~resolution: Resolution.t,
+    ~opamRegistries: list(OpamRegistry.t),
+    ~resolver: t
+  ) =>
   RunAsync.t(result(InstallManifest.t, string));
 
 /********************** getters / setters ***********************/

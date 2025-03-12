@@ -1,4 +1,6 @@
 (library
  (name EsyOpamLibs)
  (flags -open EsyLib)
- (libraries opam-state EsyLib opam-format))
+ (libraries opam-state EsyLib opam-format)
+ (preprocess
+  (pps ppx_deriving.std)))

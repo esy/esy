@@ -70,7 +70,6 @@ type t = {
   sandbox: EsyFetch.SandboxSpec.t,
   pkgCache: PackageCache.t,
   srcCache: SourceCache.t,
-  opamRegistries: list(OpamRegistry.t),
   npmRegistry: NpmRegistry.t,
   mutable ocamlVersion: option(Version.t),
   mutable resolutions: Resolutions.t,
@@ -100,7 +99,7 @@ let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: AvailablePlatforms.default,
+  available: EsyOpamLibs.AvailablePlatforms.default,
 };
 
 let emptyInstall = (~name, ~source, ()) => {
@@ -118,7 +117,7 @@ let emptyInstall = (~name, ~source, ()) => {
   kind: Esy,
   installConfig: InstallConfig.empty,
   extraSources: [],
-  available: AvailablePlatforms.default,
+  available: EsyOpamLibs.AvailablePlatforms.default,
 };
 
 let make = (~os=?, ~arch=?, ~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
@@ -127,7 +126,6 @@ let make = (~os=?, ~arch=?, ~gitUsername, ~gitPassword, ~cfg, ~sandbox, ()) =>
     sandbox,
     pkgCache: PackageCache.make(),
     srcCache: SourceCache.make(),
-    opamRegistries: OpamRegistries.make(~cfg, ()),
     npmRegistry: NpmRegistry.make(~url=cfg.Config.npmRegistry, ()),
     ocamlVersion: None,
     resolutions: Resolutions.empty,
@@ -593,7 +591,8 @@ let convertDependencies = (~os, ~arch, manifest) => {
 
   let availableFilter = OpamFile.OPAM.available(manifest.opam);
   let available =
-    AvailablePlatforms.default |> AvailablePlatforms.filter(availableFilter);
+    EsyOpamLibs.AvailablePlatforms.default
+    |> EsyOpamLibs.AvailablePlatforms.filter(availableFilter);
 
   return((
     dependencies,
@@ -904,7 +903,12 @@ let applyOverride = (pkg, override: Override.install) => {
   pkg;
 };
 
-let package = (~resolution: Resolution.t, resolver) => {
+let package =
+    (
+      ~resolution: Resolution.t,
+      ~opamRegistries: list(OpamRegistry.t),
+      ~resolver: t,
+    ) => {
   open RunAsync.Syntax;
   let key = (resolution.name, resolution.resolution);
 
@@ -946,7 +950,7 @@ let package = (~resolution: Resolution.t, resolver) => {
               };
             };
           };
-          aux(resolver.opamRegistries);
+          aux(opamRegistries);
         }
       ) {
       | Some(manifest) =>
@@ -1100,7 +1104,9 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
   );
 };
 
-let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
+let platform = ({os, arch, _}) => (os, arch);
+
+let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
   RunAsync.Syntax.(
     switch (spec) {
     | VersionSpec.Npm(_)
@@ -1150,6 +1156,12 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
       return(resolutions);
 
     | VersionSpec.Opam(_) =>
+      let f = registry => {
+        let* fetchedRegistry = OpamRegistry.initRegistry(registry);
+        return(fetchedRegistry);
+      };
+      let* fetchedOpamRepositories =
+        opamRegistries |> List.map(~f) |> RunAsync.List.joinAll;
       let* resolutions =
         ResolutionCache.compute(
           resolver.resolutionCache,
@@ -1172,13 +1184,13 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
                 );
               List.fold_left(
                 ~f=
-                  (versions, opamRegistry) => {
+                  (versions, fetchedOpamRegistry) => {
                     let* versions = versions;
-                    let* versions' = f(opamRegistry);
+                    let* versions' = f(fetchedOpamRegistry);
                     RunAsync.return(versions @ versions');
                   },
                 ~init=RunAsync.return([]),
-                resolver.opamRegistries,
+                fetchedOpamRepositories,
               );
             };
 
@@ -1227,10 +1239,11 @@ let resolve' = (~fullMetadata, ~name, ~spec, resolver) =>
 
 let resolve =
     (
+      ~spec: option(VersionSpec.t)=?,
       ~fullMetadata=false,
       ~name: string,
-      ~spec: option(VersionSpec.t)=?,
-      resolver: t,
+      ~opamRegistries: list(OpamRegistry.t),
+      resolver,
     ) =>
   RunAsync.Syntax.(
     switch (Resolutions.find(resolver.resolutions, name)) {
@@ -1250,7 +1263,7 @@ let resolve =
         | Some(spec) => spec
         };
 
-      resolve'(~fullMetadata, ~name, ~spec, resolver);
+      resolve'(~fullMetadata, ~name, ~spec, ~opamRegistries, resolver);
     }
   );
 

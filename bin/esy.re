@@ -938,112 +938,41 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
         Esy_logs_lwt.warn(m =>
           m(
             "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
-            AvailablePlatforms.pp,
-            AvailablePlatforms.default,
+            EsyOpamLibs.AvailablePlatforms.pp,
+            EsyOpamLibs.AvailablePlatforms.default,
           )
         );
-      RunAsync.return(AvailablePlatforms.default);
+      RunAsync.return(EsyOpamLibs.AvailablePlatforms.default);
     | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
       let* json = Fs.readJsonFile(Path.(proj.spec.path / filename));
       RunAsync.ofRun(OfPackageJson.available(json));
     };
 
   let run = () => {
-    let* solution =
+    let opamRegistries = proj.opamRegistries;
+    let* (solution, platformSpecificSolutions) =
       EsySolve.Solver.solve(
         ~dumpCudfInput,
         ~dumpCudfOutput,
+        ~opamRegistries,
+        ~expectedPlatforms,
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~esyFetchSandboxSpec=proj.projcfg.spec,
         proj.workflow.solvespec,
         proj.solveSandbox,
       );
-
-    let* unPortableDependencies =
-      EsyFetch.Solution.unPortableDependencies(
-        ~expected=expectedPlatforms,
-        solution,
-      );
-    let* platformSpecificSolutions =
-      switch (unPortableDependencies) {
-      | [] => RunAsync.return(AvailablePlatforms.Map.empty)
-      | unPortableDependencies =>
-        let%lwt () =
-          Esy_logs_lwt.app(m =>
-            m(
-              "The following packages are problematic and dont build on specified platform",
-            )
-          );
-        let unSupportedPlatforms = ref(AvailablePlatforms.empty);
-        let f = ((package, platforms)) => {
-          unSupportedPlatforms :=
-            AvailablePlatforms.union(platforms, unSupportedPlatforms^);
-          Esy_logs_lwt.app(m =>
-            m(
-              "Package %a. Unsupported Platforms: %a",
-              Package.pp,
-              package,
-              AvailablePlatforms.pp,
-              platforms,
-            )
-          );
-        };
-        let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
-        let f = ((os, arch)) => {
-          let%lwt () =
-            Esy_logs_lwt.app(m =>
-              m(
-                "Solving for os: %a arch: %a",
-                System.Platform.pp,
-                os,
-                System.Arch.pp,
-                arch,
-              )
-            );
-          let* solveSandbox =
-            EsySolve.Sandbox.make(
-              ~gitUsername=proj.projcfg.gitUsername,
-              ~gitPassword=proj.projcfg.gitPassword,
-              ~cfg=proj.solveSandbox.cfg,
-              ~os,
-              ~arch,
-              proj.projcfg.spec,
-            );
-
-          let* solution =
-            RunAsync.contextf(
-              EsySolve.Solver.solve(
-                ~dumpCudfInput,
-                ~dumpCudfOutput,
-                proj.workflow.solvespec,
-                solveSandbox,
-              ),
-              "While solving for %a",
-              AvailablePlatforms.ppEntry,
-              (os, arch),
-            );
-          let k = (os, arch);
-          return((k, solution));
-        };
-        let* solutions =
-          AvailablePlatforms.toList(unSupportedPlatforms^)
-          |> List.map(~f)
-          |> RunAsync.List.joinAll;
-        List.fold_left(
-          ~f=
-            (acc, (k, solution)) => {
-              AvailablePlatforms.Map.add(k, solution, acc)
-            },
-          ~init=AvailablePlatforms.Map.empty,
-          solutions,
-        )
-        |> RunAsync.return;
-      };
 
     let lockPath =
       SandboxSpec.solutionLockPath(proj.solveSandbox.EsySolve.Sandbox.spec);
 
     let* () = {
       let* digest =
-        EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+        EsySolve.Sandbox.digest(
+          proj.workflow.solvespec,
+          opamRegistries,
+          proj.solveSandbox,
+        );
 
       EsyFetch.SolutionLock.toPath(
         ~digest,
@@ -1080,7 +1009,11 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
     run();
   } else {
     let* digest =
-      EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+      EsySolve.Sandbox.digest(
+        proj.workflow.solvespec,
+        proj.opamRegistries,
+        proj.solveSandbox,
+      );
     let path = SandboxSpec.solutionLockPath(proj.solveSandbox.spec);
     switch%bind (
       EsyFetch.SolutionLock.ofPath(~digest, proj.installSandbox, path)
@@ -1102,11 +1035,11 @@ let checkSolutionPortability = (proj: Project.t) => {
         Esy_logs_lwt.warn(m =>
           m(
             "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
-            AvailablePlatforms.pp,
-            AvailablePlatforms.default,
+            EsyOpamLibs.AvailablePlatforms.pp,
+            EsyOpamLibs.AvailablePlatforms.default,
           )
         );
-      RunAsync.return(AvailablePlatforms.default);
+      RunAsync.return(EsyOpamLibs.AvailablePlatforms.default);
     | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
       let* json = Fs.readJsonFile(Path.(proj.spec.path / filename));
       RunAsync.ofRun(OfPackageJson.available(json));
@@ -1125,8 +1058,8 @@ let checkSolutionPortability = (proj: Project.t) => {
         Esy_logs_lwt.app(m =>
           m(
             "Portable to %a",
-            AvailablePlatforms.pp,
-            AvailablePlatforms.default,
+            EsyOpamLibs.AvailablePlatforms.pp,
+            EsyOpamLibs.AvailablePlatforms.default,
           )
         )
       | unsupportedPlatforms =>
@@ -1142,7 +1075,7 @@ let checkSolutionPortability = (proj: Project.t) => {
               "Package %a. Unsupported Platforms: %a",
               Package.pp,
               package,
-              AvailablePlatforms.pp,
+              EsyOpamLibs.AvailablePlatforms.pp,
               platforms,
             )
           );
@@ -1187,7 +1120,11 @@ let solveAndFetch = (proj: Project.t) => {
   open RunAsync.Syntax;
   let lockPath = SandboxSpec.solutionLockPath(proj.projcfg.spec);
   let* digest =
-    EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+    EsySolve.Sandbox.digest(
+      proj.workflow.solvespec,
+      proj.opamRegistries,
+      proj.solveSandbox,
+    );
   let%bind () =
     switch%bind (SolutionLock.ofPath(~digest, proj.installSandbox, lockPath)) {
     | Some(solution) =>
@@ -1242,19 +1179,50 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
   let proj = {...proj, solveSandbox};
 
+  let* expectedPlatforms =
+    switch (proj.spec.manifest) {
+    | EsyFetch.SandboxSpec.ManifestAggregate(_)
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
+      let%lwt () =
+        Esy_logs_lwt.warn(m =>
+          m(
+            "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
+            EsyOpamLibs.AvailablePlatforms.pp,
+            EsyOpamLibs.AvailablePlatforms.default,
+          )
+        );
+      RunAsync.return(EsyOpamLibs.AvailablePlatforms.default);
+    | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Esy, filename) =>
+      let* json = Fs.readJsonFile(Path.(proj.spec.path / filename));
+      RunAsync.ofRun(OfPackageJson.available(json));
+    };
+
   let* solution = {
-    let* solution = Solver.solve(proj.workflow.solvespec, proj.solveSandbox);
+    let* (solution, _TODO_platformSpecificSolutions) =
+      Solver.solve(
+        ~expectedPlatforms,
+        ~opamRegistries=proj.opamRegistries,
+        ~gitUsername=proj.projcfg.gitUsername,
+        ~gitPassword=proj.projcfg.gitPassword,
+        ~esyFetchSandboxSpec=proj.projcfg.spec,
+        proj.workflow.solvespec,
+        proj.solveSandbox,
+      );
     let lockPath =
       SandboxSpec.solutionLockPath(proj.solveSandbox.Sandbox.spec);
     let* () = {
       let* digest =
-        Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+        Sandbox.digest(
+          proj.workflow.solvespec,
+          proj.opamRegistries,
+          proj.solveSandbox,
+        );
 
       EsyFetch.SolutionLock.toPath(
         ~digest,
         proj.installSandbox,
         solution,
-        AvailablePlatforms.Map.empty,
+        EsyOpamLibs.AvailablePlatforms.Map.empty,
         lockPath,
         proj.projcfg.gitUsername,
         proj.projcfg.gitPassword,
@@ -1380,7 +1348,11 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
     let proj = {...proj, solveSandbox};
     let* digest =
-      EsySolve.Sandbox.digest(proj.workflow.solvespec, proj.solveSandbox);
+      EsySolve.Sandbox.digest(
+        proj.workflow.solvespec,
+        proj.opamRegistries,
+        proj.solveSandbox,
+      );
 
     /* we can only do this because we keep invariant that the constraint we
      * save in manifest covers the installed version */
@@ -1537,19 +1509,25 @@ let show = (_asJson, req, proj: Project.t) => {
   open EsySolve;
   open RunAsync.Syntax;
   let* req = RunAsync.ofStringError(Req.parse(req));
+  let EsySolve.Sandbox.{cfg, _} = proj.solveSandbox;
   let* resolver =
     Resolver.make(
       /* ~os,  TODO: obtain optional cli args */
       /* ~arch, TODO: obtain optional cli args */
       ~gitUsername=proj.projcfg.gitUsername,
       ~gitPassword=proj.projcfg.gitPassword,
-      ~cfg=proj.solveSandbox.cfg,
+      ~cfg,
       ~sandbox=proj.spec,
       (),
     );
   let* resolutions =
     RunAsync.contextf(
-      Resolver.resolve(~name=req.name, ~spec=req.spec, resolver),
+      Resolver.resolve(
+        ~name=req.name,
+        ~spec=req.spec,
+        ~opamRegistries=proj.opamRegistries,
+        resolver,
+      ),
       "resolving %a",
       Req.pp,
       req,
@@ -1578,7 +1556,11 @@ let show = (_asJson, req, proj: Project.t) => {
     | [resolution, ..._] =>
       let* pkg =
         RunAsync.contextf(
-          Resolver.package(~resolution, resolver),
+          Resolver.package(
+            ~resolution,
+            ~opamRegistries=proj.opamRegistries,
+            ~resolver,
+          ),
           "resolving metadata %a",
           Resolution.pp,
           resolution,

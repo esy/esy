@@ -24,4 +24,4 @@ let make:
     EsyFetch.SandboxSpec.t
   ) =>
   RunAsync.t(t);
-let digest: (SolveSpec.t, t) => RunAsync.t(Digestv.t);
+let digest: (SolveSpec.t, list(OpamRegistry.t), t) => RunAsync.t(Digestv.t);
