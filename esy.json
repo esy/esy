@@ -47,6 +47,8 @@
   },
   "resolutions": {
     "@opam/camlbz2": "opam:0.7.0",
+    "@opam/lwt": "ManasJayanth/lwt:lwt.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
+    "@opam/lwt_ppx": "ManasJayanth/lwt:lwt_ppx.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "@opam/camlbz2": "git+https://gitlab.com/dining-philosophersco/camlbz2:bz2.opam#4f94881dd1f21dd55acc73917bbffef279e0d0b",
     "esy-bzip2": "esy-packages/esy-bzip2#048f314334ae2e63b24082a7e4cfca4985b04028",
