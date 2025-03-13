@@ -67,7 +67,9 @@ module type S = {
 
 module Make =
        (V: Abstract.STRING)
-       : {include S with type value = V.t and type ctx = V.ctx;} => {
+       : {
+         include S with type value = V.t and type ctx = V.ctx;
+       } => {
   type value = V.t;
   type ctx = V.ctx;
 

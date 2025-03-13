@@ -3,6 +3,10 @@
   "description": "Package builder for esy.",
   "license": "BSD-2-Clause",
   "esy": {
+    "opamRepositories": [
+      { "type": "remote", "location": "https://github.com/ManasJayanth/opam-overlay.git" },
+      { "type": "remote", "location": "https://github.com/ocaml/opam-repository.git" }
+    ],
     "build": "dune build -p esy",
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
@@ -43,33 +47,32 @@
   },
   "resolutions": {
     "@opam/camlbz2": "opam:0.7.0",
+    "@opam/lwt": "ManasJayanth/lwt:lwt.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
+    "@opam/lwt_ppx": "ManasJayanth/lwt:lwt_ppx.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
     "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
+    "@opam/camlbz2": "git+https://gitlab.com/dining-philosophersco/camlbz2:bz2.opam#4f94881dd1f21dd55acc73917bbffef279e0d0b",
+    "esy-bzip2": "esy-packages/esy-bzip2#048f314334ae2e63b24082a7e4cfca4985b04028",
     "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a",
     "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
     "@opam/uuseg": "opam:14.0.0",
-    "@opam/bos": "github:esy-ocaml/bos:opam#9c7956dda6c0d82afcd599c26f8f7efcc373b70e",
+    "@opam/bos": "github:esy-ocaml/bos:opam#90364d003f7adc37826cf958b67536a7afdfeba",
     "@opam/bigstringaf": "opam:0.6.1",
     "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
-    "@opam/pastel": "git+https://github.com/reasonml/reason-native.git:pastel.opam#aec0ac68",
-    "@opam/cli": "git+https://github.com/reasonml/reason-native.git:cli.opam#aec0ac68",
-    "@opam/file-context-printer": "git+https://github.com/reasonml/reason-native.git:file-context-printer.opam#aec0ac68",
-    "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#aec0ac68",
-    "@opam/lwt": "github:ocsigen/lwt:lwt.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
-    "@opam/lwt_ppx": "github:ocsigen/lwt:lwt_ppx.opam#9943ba77a5508feaea5e1fb60b011db4179f9c61",
+    "@opam/pastel": "git+https://github.com/reasonml/reason-native.git:pastel.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
+    "@opam/cli": "git+https://github.com/reasonml/reason-native.git:cli.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
+    "@opam/file-context-printer": "git+https://github.com/reasonml/reason-native.git:file-context-printer.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
+    "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
     "@opam/rresult": "opam:0.6.0",
-    "@opam/opam-core": "opam:2.2.0~alpha",
-    "@opam/opam-state": "opam:2.2.0~alpha",
-    "@opam/opam-repository": "opam:2.2.0~alpha",
-    "@opam/opam-format": "opam:2.2.0~alpha",
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
+    "@opam/ppxlib": "*",
     "@opam/mccs": "*",
     "esy-zlib": "*",
     "@opam/angstrom": "0.15.0",
     "@opam/bos": "*",
-    "@opam/cudf": "0.9",
+    "@opam/cudf": "*",
     "@opam/dose3": "< 8.0.0",
     "@opam/dune": "< 4.0.0",
     "@opam/fpath": "*",
@@ -88,14 +91,14 @@
     "@opam/ppx_let": "*",
     "@opam/ppx_sexp_conv": "*",
     "@opam/re": "*",
-    "@opam/reason": "3.8.2",
+    "@opam/reason": "*",
     "@opam/yojson": "*",
-    "ocaml": "4.14.x"
+    "ocaml": "5.x"
   },
   "devDependencies": {
     "@reason-native/rely": "*",
     "@opam/merlin": "*",
-    "@opam/ocaml-lsp-server": "1.17.0",
+    "@opam/ocaml-lsp-server": "*",
     "@opam/rtop": "*",
     "@opam/utop": "^2.4.2"
   }
