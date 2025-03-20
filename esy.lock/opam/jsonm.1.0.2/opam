@@ -36,3 +36,4 @@ url {
   checksum:
     "sha512=0072f5c31080202ed1cb996a8530d72c882723f26b597f784441033f59338ba8c0cbabf901794d5b1ae749a54af4d7ebf7b47987db43488c7f6ac7fe191a042f"
 }
+x-maintenance-intent: ["(latest)"]

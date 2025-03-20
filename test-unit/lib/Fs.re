@@ -1,7 +1,9 @@
 open EsyBuildPackage;
 open Run;
 
-module Mock: {module Fs: Run.T;} = {
+module Mock: {
+  module Fs: Run.T;
+} = {
   let createExe = () => {
     let bytes = Bytes.create(4);
     Bytes.set_int32_ne(bytes, 0, 0xfeedfacfl);

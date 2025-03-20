@@ -19,7 +19,7 @@ depends: [
   "cppo" {>= "1.1.0" & build}
   "ocamlfind"
   "ppx_derivers"
-  "ppxlib" {>= "0.32.0"}
+  "ppxlib" {>= "0.32.0" & < "0.36.0"}
   "ounit2" {with-test}
 ]
 synopsis: "Type-driven code generation for OCaml"

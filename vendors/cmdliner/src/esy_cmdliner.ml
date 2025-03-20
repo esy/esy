@@ -111,7 +111,7 @@ module Term = struct
     ('a, [ term_escape
          | `Exn of exn * Printexc.raw_backtrace
          | `Parse of string
-         | `Std_help of Manpage.format | `Std_version ]) Pervasives.result
+         | `Std_help of Manpage.format | `Std_version ]) Stdlib.result
 
   let run ~catch ei cl f = try (f ei cl :> 'a eval_result) with
   | exn when catch ->
@@ -284,9 +284,9 @@ module Term = struct
   | `Ok n -> n
   | r -> exit_status_of_result ?term_err r
 
-  let exit ?term_err r = Pervasives.exit (exit_status_of_result ?term_err r)
+  let exit ?term_err r = Stdlib.exit (exit_status_of_result ?term_err r)
   let exit_status ?term_err r =
-    Pervasives.exit (exit_status_of_status_result ?term_err r)
+    Stdlib.exit (exit_status_of_status_result ?term_err r)
 
 end
 
