@@ -16,7 +16,7 @@ depends: [
   "dune"                    {>= "3.11.0"}
   "dune-configurator"
 ]
-available: arch != "arm32" & arch != "x86_32"
+available: arch != "x86_32"
 synopsis: "Full standard library replacement for OCaml"
 description: "
 Full standard library replacement for OCaml

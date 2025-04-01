@@ -43,12 +43,12 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/ocurrent/ocaml-version.git"
-x-maintenance-intent: [ "(latest)" ]
 url {
   src:
-    "https://github.com/ocurrent/ocaml-version/releases/download/v3.7.3/ocaml-version-3.7.3.tbz"
+    "https://github.com/ocurrent/ocaml-version/releases/download/v4.0.0/ocaml-version-4.0.0.tbz"
   checksum: [
-    "md5=19a39d2f0d3cbcd35a97131ac254bacb"
-    "sha512=f38cc6e78ed0e3590757ce083baf8954c98243486264de1742006a9f96fdc15080d38e1cd6475bb6a989e2e12204bffa66617ecb93719498470820ab4fd3ad5c"
+    "md5=6734fe7a4f8ac3bea39a0bcf40a31a82"
+    "sha512=093a7aadb382a21ab5ae2a1d87bc06f9ecb4584ae6a8a2b492ffdf23dc4ae2788ce19cdf2ea87191dc7ee391ae2d26b734342880742f73cb700933d8cf6856e5"
   ]
 }
+x-maintenance-intent: ["(latest)"]
