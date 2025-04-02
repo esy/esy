@@ -13,7 +13,7 @@ depends: [
   "ocaml" {>= "5.1.0"}
   "dune"  {>= "3.11.0"}
 ]
-available: arch != "arm32" & arch != "x86_32"
+available: arch != "x86_32"
 synopsis: "Jane Street C header files"
 description: "
 C header files shared between the various Jane Street packages

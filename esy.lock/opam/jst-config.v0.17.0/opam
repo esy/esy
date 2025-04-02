@@ -16,7 +16,7 @@ depends: [
   "dune"              {>= "3.11.0"}
   "dune-configurator"
 ]
-available: arch != "arm32" & arch != "x86_32"
+available: arch != "x86_32"
 synopsis: "Compile-time configuration for Jane Street libraries"
 description: "
 Defines compile-time constants used in Jane Street libraries such as Base, Core, and
