@@ -3,7 +3,7 @@ open RunAsync.Syntax;
 let installPkg = (~installation, ~nodeModulesPath, pkg) => {
   let* () =
     RunAsync.ofLwt @@
-    Esy_logs_lwt.debug(m =>
+    Logs_lwt.debug(m =>
       m("NodeModuleLinker: installing %a", Package.pp, pkg)
     );
   let pkgID = pkg.Package.id;

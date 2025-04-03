@@ -11,16 +11,16 @@ type commonOpts = {
   globalStorePrefix: option(Fpath.t),
   localStorePath: option(Fpath.t),
   projectPath: option(Fpath.t),
-  logLevel: option(Esy_logs.level),
+  logLevel: option(Logs.level),
   disableSandbox: bool,
   globalPathVariable: option(string),
 };
 
 let setupLog = (style_renderer, level) => {
   let style_renderer = Option.orDefault(~default=`None, style_renderer);
-  Esy_fmt_tty.setup_std_outputs(~style_renderer, ());
-  Esy_logs.set_level(level);
-  Esy_logs.set_reporter(Esy_logs_fmt.reporter());
+  Fmt_tty.setup_std_outputs(~style_renderer, ());
+  Logs.set_level(level);
+  Logs.set_reporter(Logs_fmt.reporter());
   level;
 };
 
@@ -80,7 +80,7 @@ let shell = (copts: commonOpts) => {
   let* plan = Plan.ofFile(planPath);
 
   let ppBanner = (build: Build.t) => {
-    open Esy_fmt;
+    open Fmt;
 
     let ppList = (ppItems, ppf, (title, items)) => {
       let pp =
@@ -94,22 +94,22 @@ let shell = (copts: commonOpts) => {
     let ppBanner = (ppf, ()) => {
       Format.open_vbox(0);
       fmt("Package: %s@%s", ppf, plan.Plan.name, plan.Plan.version);
-      Esy_fmt.cut(ppf, ());
-      Esy_fmt.cut(ppf, ());
-      ppList(Esy_fmt.list(Cmd.pp), ppf, ("Build Commands:", build.build));
-      Esy_fmt.cut(ppf, ());
-      Esy_fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
+      ppList(Fmt.list(Cmd.pp), ppf, ("Build Commands:", build.build));
+      Fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
       ppList(
-        Esy_fmt.option(Esy_fmt.list(Cmd.pp)),
+        Fmt.option(Fmt.list(Cmd.pp)),
         ppf,
         ("Install Commands:", build.install),
       );
-      Esy_fmt.cut(ppf, ());
+      Fmt.cut(ppf, ());
       Format.close_box();
     };
 
     Format.force_newline();
-    ppBanner(Esy_fmt.stdout, ());
+    ppBanner(Fmt.stdout, ());
     Format.force_newline();
     Format.print_flush();
   };
@@ -180,27 +180,24 @@ let help = (_copts, man_format, cmds, topic) =>
   | None => `Help((`Pager, None)) /* help about the program. */
   | Some(topic) =>
     let topics = ["topics", "patterns", "environment", ...cmds];
-    let (conv, _) =
-      Esy_cmdliner.Arg.enum(List.rev_map(s => (s, s), topics));
+    let conv = Cmdliner.Arg.enum(List.rev_map(s => (s, s), topics)) |> Cmdliner.Arg.Conv.parser;
     switch (conv(topic)) {
-    | `Error(e) => `Error((false, e))
-    | `Ok(t) when t == "topics" =>
+    | Error(e) => `Error((false, e))
+    | Ok(t) when t == "topics" =>
       List.iter(print_endline, topics);
       `Ok();
-    | `Ok(t) when List.mem(t, cmds) => `Help((man_format, Some(t)))
-    | `Ok(_) =>
+    | Ok(t) when List.mem(t, cmds) => `Help((man_format, Some(t)))
+    | Ok(_) =>
       let page = (
         (topic, 7, "", "", ""),
         [`S(topic), `P("Say something")],
       );
-      `Ok(
-        Esy_cmdliner.Manpage.print(man_format, Format.std_formatter, page),
-      );
+      `Ok(Cmdliner.Manpage.print(man_format, Format.std_formatter, page));
     };
   };
 
 let () = {
-  open Esy_cmdliner;
+  open Cmdliner;
   /* Help sections common to all commands */
   let help_secs = [
     `S(Manpage.s_common_options),
@@ -224,7 +221,7 @@ let () = {
     let docs = Manpage.s_common_options;
     let projectPath = {
       let doc = "Specifies esy project path.";
-      let env = Arg.env_var("ESY__PROJECT_PATH", ~doc);
+      let env = Cmd.Env.info("ESY__PROJECT_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
@@ -233,7 +230,7 @@ let () = {
     };
     let globalStorePrefix = {
       let doc = "Specifies esy global store prefix.";
-      let env = Arg.env_var("ESY__GLOBAL_STORE_PREFIX", ~doc);
+      let env = Cmd.Env.info("ESY__GLOBAL_STORE_PREFIX", ~doc);
       Arg.(
         value
         & opt(some(path), None)
@@ -242,7 +239,7 @@ let () = {
     };
     let localStorePath = {
       let doc = "Specifies esy sandbox path.";
-      let env = Arg.env_var("ESY__LOCAL_STORE_PATH", ~doc);
+      let env = Cmd.Env.info("ESY__LOCAL_STORE_PATH", ~doc);
       Arg.(
         value
         & opt(some(path), None)
@@ -251,7 +248,7 @@ let () = {
     };
     let planPath = {
       let doc = "Specifies path to build plan.";
-      let env = Arg.env_var("ESY__PLAN", ~doc);
+      let env = Cmd.Env.info("ESY__PLAN", ~doc);
       Arg.(
         value
         & opt(some(path), None)
@@ -260,7 +257,7 @@ let () = {
     };
     let ocamlPkgName = {
       let doc = "Specifies the name of the ocaml compiler package (not supported on opam projects yet)";
-      let env = Arg.env_var("ESY__OCAML_PKG_NAME", ~doc);
+      let env = Cmd.Env.info("ESY__OCAML_PKG_NAME", ~doc);
       Arg.(
         required
         & opt(some(string), None)
@@ -269,7 +266,7 @@ let () = {
     };
     let ocamlVersion = {
       let doc = "Specifies the version of the ocaml compiler package (not supported on opam projects yet)";
-      let env = Arg.env_var("ESY__OCAML_VERSION", ~doc);
+      let env = Cmd.Env.info("ESY__OCAML_VERSION", ~doc);
       Arg.(
         required
         & opt(some(string), None)
@@ -282,7 +279,7 @@ let () = {
     };
     let globalPathVariable = {
       let doc = "Specifies the PATH variable to look for global utils in the build env.";
-      let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
+      let env = Cmd.Env.info("ESY__GLOBAL_PATH", ~doc);
       Arg.(
         value
         & opt(some(string), None)
@@ -292,8 +289,8 @@ let () = {
     let setupLogT =
       Term.(
         const(setupLog)
-        $ Esy_fmt_cli.style_renderer()
-        $ Esy_logs_cli.level(~env=Arg.env_var("ESY__LOG"), ())
+        $ Fmt_cli.style_renderer()
+        $ Logs_cli.level(~env=Cmd.Env.info("ESY__LOG"), ())
       );
     let parse =
         (
@@ -334,61 +331,44 @@ let () = {
   };
   /* Command terms */
   let default_cmd = {
-    let doc = "esy package builder";
-    let sdocs = Manpage.s_common_options;
-    let exits = Term.default_exits;
-    let man = help_secs;
     let cmd = opts => runToCompletion(build(opts));
-    (
-      Term.(ret(const(cmd) $ commonOptsT)),
-      Term.info(
-        "esy-build-package",
-        ~version="v0.1.0",
-        ~doc,
-        ~sdocs,
-        ~exits,
-        ~man,
-      ),
-    );
+    Term.(ret(const(cmd) $ commonOptsT));
   };
   let build_cmd = {
     let doc = "build package";
     let sdocs = Manpage.s_common_options;
-    let exits = Term.default_exits;
     let man = help_secs;
     let cmd = (opts, buildOnly) => runToCompletion(build(~buildOnly, opts));
     let buildOnlyT = {
       let doc = "Only run build commands (skipping install commands).";
       Arg.(value & flag & info(["build-only"], ~doc));
     };
-    (
+    Cmd.v(
+      Cmd.info("build", ~doc, ~sdocs, ~man),
       Term.(ret(const(cmd) $ commonOptsT $ buildOnlyT)),
-      Term.info("build", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let shell_cmd = {
     let doc = "shell into build environment";
     let sdocs = Manpage.s_common_options;
-    let exits = Term.default_exits;
     let man = help_secs;
     let cmd = opts => runToCompletion(shell(opts));
-    (
+    Cmd.v(
+      Cmd.info("shell", ~doc, ~sdocs, ~man),
       Term.(ret(const(cmd) $ commonOptsT)),
-      Term.info("shell", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let exec_cmd = {
     let doc = "execute command inside build environment";
     let sdocs = Manpage.s_common_options;
-    let exits = Term.default_exits;
     let man = help_secs;
     let command_t =
       Arg.(non_empty & pos_all(string, []) & info([], ~docv="COMMAND"));
     let cmd = (opts, command) =>
       runToCompletion(~forceExitOnError=true, exec(opts, command));
-    (
+    Cmd.v(
+      Cmd.info("exec", ~doc, ~sdocs, ~man),
       Term.(ret(const(cmd) $ commonOptsT $ command_t)),
-      Term.info("exec", ~doc, ~sdocs, ~exits, ~man),
     );
   };
   let help_cmd = {
@@ -406,7 +386,8 @@ let () = {
       ),
       `Blocks(help_secs),
     ];
-    (
+    Cmd.v(
+      Cmd.info("help", ~doc, ~man),
       Term.(
         ret(
           const(help)
@@ -416,9 +397,15 @@ let () = {
           $ topic,
         )
       ),
-      Term.info("help", ~doc, ~exits=Term.default_exits, ~man),
     );
   };
   let cmds = [build_cmd, shell_cmd, exec_cmd, help_cmd];
-  Term.(exit @@ eval_choice(default_cmd, cmds));
+  let doc = "esy package builder";
+  let sdocs = Manpage.s_common_options;
+  let man = help_secs;
+  let info =
+    Cmd.info("esy-build-package", ~version="v0.1.0", ~doc, ~sdocs, ~man);
+  Cmd.group(~default=default_cmd, info, cmds)
+  |> Cmd.eval(~argv=Sys.argv)
+  |> exit;
 };

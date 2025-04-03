@@ -77,7 +77,7 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
           projCfg |> ProjectConfig.storePath |> RunAsync.ofRun;
         let* () =
           RunAsync.ofLwt @@
-          Esy_logs_lwt.debug(m =>
+          Logs_lwt.debug(m =>
             m("globalStorePath %a", Path.pp, globalStorePath)
           );
 
@@ -85,12 +85,12 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
         /* configuration - prefix paths could different. */
         let* allCacheEntries = getAllCacheEntries(globalStorePath);
         let* () =
-          RunAsync.ofLwt @@ Esy_logs_lwt.debug(m => m("allCacheEntries\n"));
+          RunAsync.ofLwt @@ Logs_lwt.debug(m => m("allCacheEntries\n"));
         let* () =
           allCacheEntries
           |> List.map(~f=entry =>
                RunAsync.ofLwt @@
-               Esy_logs_lwt.debug(m => m("%a", Path.pp, entry))
+               Logs_lwt.debug(m => m("%a", Path.pp, entry))
              )
           |> RunAsync.List.waitAll;
         let allCacheEntriesSoFar = allCacheEntriesSoFar @ allCacheEntries;
@@ -202,6 +202,6 @@ let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
   ) {
   | Ok () => RunAsync.return()
   | Error((msg, _context)) =>
-    RunAsync.ofLwt @@ Esy_logs_lwt.app(m => m("%s", msg))
+    RunAsync.ofLwt @@ Logs_lwt.app(m => m("%s", msg))
   };
 };

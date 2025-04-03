@@ -32,9 +32,7 @@ let skipSuiteOnWindows = (~blockingIssue="Needs investigation", ()) =>
   if (isWindows) {
     describeOnly("", ({testOnly, _}) =>
       testOnly("does not work on windows", _ =>
-        Esy_logs.debug(m =>
-          m("[SKIP] Needs to be unblocked: %s", blockingIssue)
-        )
+        Logs.debug(m => m("[SKIP] Needs to be unblocked: %s", blockingIssue))
       )
     );
   };

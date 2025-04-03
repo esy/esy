@@ -9,4 +9,4 @@ let root: t;
 
 let pp: Fmt.t(t);
 let parse: string => result(t, string);
-let conv: Esy_cmdliner.Arg.conv(t);
+let conv: Cmdliner.Arg.conv(t);

@@ -18,7 +18,7 @@ depends: [
   "ppx_optcomp"         {>= "v0.17" & < "v0.18"}
   "dune"                {>= "3.11.0"}
 ]
-available: arch != "x86_32"
+available: arch != "arm32" & arch != "x86_32"
 synopsis: "Reports the current time"
 description: "
 Provides a single function to report the current time in nanoseconds

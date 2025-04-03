@@ -58,9 +58,8 @@ let rewritePrefix = (~origPrefix, ~destPrefix, rootPath) => {
 };
 
 module CLI = {
-  open Esy_cmdliner;
+  open Cmdliner;
 
-  let exits = Term.default_exits;
   let docs = Manpage.s_common_options;
   let sdocs = Manpage.s_common_options;
   let version = "%{VERSION}%";
@@ -95,7 +94,7 @@ module CLI = {
   let defaultCommand = {
     let doc = "Rewrite prefix in a directory";
     let info =
-      Term.info("esy-rewrite-prefix", ~version, ~doc, ~sdocs, ~exits);
+      Cmdliner.Cmd.info("esy-rewrite-prefix", ~version, ~doc, ~sdocs);
     let cmd = (origPrefix, destPrefix, path) =>
       switch (rewritePrefix(~origPrefix, ~destPrefix, path)) {
       | Ok () => `Ok()
@@ -104,12 +103,12 @@ module CLI = {
         `Error((false, "error running command: " ++ Bos.Cmd.to_string(cmd)))
       };
 
-    (Term.(ret(const(cmd) $ origPrefix $ destPrefix $ path)), info);
+    Cmdliner.Cmd.v(info, Term.(ret(const(cmd) $ origPrefix $ destPrefix $ path)));
   };
 
   let run = () => {
     Printexc.record_backtrace(true);
-    Term.(exit(eval(~argv=Sys.argv, defaultCommand)));
+    exit(Cmd.eval(~argv=Sys.argv, defaultCommand));
   };
 };
 

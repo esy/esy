@@ -8,7 +8,7 @@ module Id = {
 
   let pp = fmt =>
     fun
-    | Self => Esy_fmt.any("self", fmt, ());
+    | Self => Fmt.any("self", fmt, ());
 
   let self = Self;
 };

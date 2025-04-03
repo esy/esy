@@ -39,7 +39,7 @@ let placeAt = (path, file) => {
   let src = Path.(file.root /\/ file.name);
   let dst = Path.(path /\/ file.name);
   let () =
-    Esy_logs.debug(m =>
+    Logs.debug(m =>
       m(
         "Copying file from %s to %s",
         Path.showPretty(src),

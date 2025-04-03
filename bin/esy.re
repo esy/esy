@@ -21,7 +21,7 @@ let splitBy = (line, ch) =>
   };
 
 let chdirTerm =
-  Esy_cmdliner.Arg.(
+  Cmdliner.Arg.(
     value
     & flag
     & info(
@@ -31,7 +31,7 @@ let chdirTerm =
   );
 
 let pkgTerm =
-  Esy_cmdliner.Arg.(
+  Cmdliner.Arg.(
     value
     & opt(PkgArg.conv, PkgArg.ByDirectoryPath(Path.currentPath()))
     & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -45,7 +45,7 @@ let cmdAndPkgTerm = {
     );
 
   let pkg =
-    Esy_cmdliner.Arg.(
+    Cmdliner.Arg.(
       value
       & opt(some(PkgArg.conv), None)
       & info(["p", "package"], ~doc="Package to work on", ~docv="PACKAGE")
@@ -63,11 +63,11 @@ let cmdAndPkgTerm = {
       ))
     };
 
-  Esy_cmdliner.Term.(ret(const(make) $ pkg $ cmd));
+  Cmdliner.Term.(ret(const(make) $ pkg $ cmd));
 };
 
 let depspecConv = {
-  open Esy_cmdliner;
+  open Cmdliner;
   open Result.Syntax;
   let parse = v => {
     let lexbuf = Lexing.from_string(v);
@@ -87,9 +87,9 @@ let modeTerm = {
   let make = release =>
     if (release) {BuildSpec.Build} else {BuildSpec.BuildDev};
 
-  Esy_cmdliner.Term.(
+  Cmdliner.Term.(
     const(make)
-    $ Esy_cmdliner.Arg.(
+    $ Cmdliner.Arg.(
         value & flag & info(["release"], ~doc="Build in release mode")
       )
   );
@@ -206,7 +206,7 @@ module Findlib = {
 };
 
 let resolvedPathTerm = {
-  open Esy_cmdliner;
+  open Cmdliner;
   let parse = v =>
     switch (Path.ofString(v)) {
     | Ok(path) =>
@@ -935,7 +935,7 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
     | EsyFetch.SandboxSpec.ManifestAggregate(_)
     | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
       let%lwt () =
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m(
             "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
             EsyOpamLibs.AvailablePlatforms.pp,
@@ -989,7 +989,7 @@ let solve = (force, dumpCudfInput, dumpCudfOutput, proj: Project.t) => {
       EsySolve.Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
     let%lwt () = {
       let log = resolution =>
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m(
             "resolution %a is unused (defined in %a)",
             Fmt.(quote(string)),
@@ -1032,7 +1032,7 @@ let checkSolutionPortability = (proj: Project.t) => {
     | EsyFetch.SandboxSpec.ManifestAggregate(_)
     | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
       let%lwt () =
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m(
             "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
             EsyOpamLibs.AvailablePlatforms.pp,
@@ -1055,7 +1055,7 @@ let checkSolutionPortability = (proj: Project.t) => {
     let%lwt () =
       switch (unPortableDependencies) {
       | [] =>
-        Esy_logs_lwt.app(m =>
+        Logs_lwt.app(m =>
           m(
             "Portable to %a",
             EsyOpamLibs.AvailablePlatforms.pp,
@@ -1064,13 +1064,13 @@ let checkSolutionPortability = (proj: Project.t) => {
         )
       | unsupportedPlatforms =>
         let%lwt () =
-          Esy_logs_lwt.app(m =>
+          Logs_lwt.app(m =>
             m(
               "The following packages are problematic and dont build on specified platform",
             )
           );
         let f = ((package, platforms)) => {
-          Esy_logs_lwt.app(m =>
+          Logs_lwt.app(m =>
             m(
               "Package %a. Unsupported Platforms: %a",
               Package.pp,
@@ -1184,7 +1184,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     | EsyFetch.SandboxSpec.ManifestAggregate(_)
     | [@implicit_arity] EsyFetch.SandboxSpec.Manifest(Opam, _) =>
       let%lwt () =
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m(
             "Could not find esy.json/package.json. Assuming the default list of available platforms: %a",
             EsyOpamLibs.AvailablePlatforms.pp,
@@ -1232,7 +1232,7 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
     let unused = Resolver.getUnusedResolutions(proj.solveSandbox.resolver);
     let%lwt () = {
       let log = resolution =>
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m(
             "resolution %a is unused (defined in %a)",
             Fmt.(quote(string)),
@@ -1394,7 +1394,7 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
     | None => return()
     | Some(task) =>
       let%lwt () =
-        Esy_logs_lwt.app(m =>
+        Logs_lwt.app(m =>
           m("Exporting %s@%a", pkg.name, Version.pp, pkg.version)
         );
       let buildPath = BuildSandbox.Task.installPath(proj.buildCfg, task);
@@ -1488,7 +1488,7 @@ let importDependencies =
             BuildSandbox.importBuild(proj.buildCfg.storePath, pathTgz);
           } else {
             let%lwt () =
-              Esy_logs_lwt.warn(m =>
+              Logs_lwt.warn(m =>
                 m("no prebuilt artifact found for %a", BuildId.pp, id)
               );
             return();
@@ -1586,7 +1586,7 @@ let printHeader = (~spec=?, name) =>
       != 0;
 
     if (needReportProjectPath) {
-      Esy_logs_lwt.app(m =>
+      Logs_lwt.app(m =>
         m(
           "%s %s (using %a)@;found project at %a",
           name,
@@ -1598,7 +1598,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     } else {
-      Esy_logs_lwt.app(m =>
+      Logs_lwt.app(m =>
         m(
           "%s %s (using %a)",
           name,
@@ -1608,7 +1608,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     };
-  | None => Esy_logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
+  | None => Logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
   };
 
 let default = (chdir, cmdAndPkg, proj: Project.t) => {
@@ -1651,12 +1651,12 @@ let otherSection = "OTHER COMMANDS";
 
 let makeCommand =
     (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=false, ~name, cmd) => {
+  ignore @@ stop_on_pos;
   let info =
-    Esy_cmdliner.Term.info(
-      ~exits=Esy_cmdliner.Term.default_exits,
+    Cmdliner.Cmd.info(
       ~docs?,
       ~doc?,
-      ~stop_on_pos,
+      /* ~stop_on_pos, */
       ~version=EsyRuntime.version,
       name,
     );
@@ -1669,33 +1669,34 @@ let makeCommand =
         | `No => ()
         };
 
-      Cli.runAsyncToEsy_cmdlinerRet(comp);
+      Cli.runAsyncToCmdlinerRet(comp);
     };
 
-    Esy_cmdliner.Term.(ret(app(const(f), cmd)));
+    Cmdliner.Term.(ret(app(const(f), cmd)));
   };
 
   (cmd, info);
 };
 
 let makeAlias = (~docs=aliasesSection, ~stop_on_pos=false, command, alias) => {
+  ignore @@ stop_on_pos;
   let (term, info) = command;
-  let name = Esy_cmdliner.Term.name(info);
+  let name = Cmdliner.Cmd.name(Cmdliner.Cmd.v(info, term));
   let doc = Printf.sprintf("An alias for $(b,%s) command", name);
   let info =
-    Esy_cmdliner.Term.info(
+    Cmdliner.Cmd.info(
       alias,
       ~version=EsyRuntime.version,
       ~doc,
       ~docs,
-      ~stop_on_pos,
+      /* ~stop_on_pos, */
     );
 
   (term, info);
 };
 
 let commandsConfig = {
-  open Esy_cmdliner;
+  open Cmdliner;
 
   let makeProjectCommand =
       (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=?, ~name, cmd) => {
@@ -1713,7 +1714,7 @@ let commandsConfig = {
         cmd(project);
       };
 
-      Esy_cmdliner.Term.(pure(run) $ cmd $ Project.term);
+      Cmdliner.Term.(const(run) $ cmd $ Project.term);
     };
 
     makeCommand(~header=`No, ~docs?, ~doc?, ~stop_on_pos?, ~name, cmd);
@@ -1806,7 +1807,7 @@ let commandsConfig = {
       );
 
     let staticArg =
-      Esy_cmdliner.Arg.(
+      Cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1817,7 +1818,7 @@ let commandsConfig = {
       );
 
     let noEnv =
-      Esy_cmdliner.Arg.(
+      Cmdliner.Arg.(
         value
         & flag
         & info(
@@ -1869,7 +1870,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the sandbox environment.",
               ~docv="COMMAND",
-              Esy_cmdliner.Arg.pos_all,
+              Cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -1884,7 +1885,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Script to execute within the project environment.",
               ~docv="SCRIPT",
-              Esy_cmdliner.Arg.pos_all,
+              Cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2218,7 +2219,7 @@ let commandsConfig = {
           $ Cli.cmdTerm(
               ~doc="Command to execute within the environment.",
               ~docv="COMMAND",
-              Esy_cmdliner.Arg.pos_all,
+              Cmdliner.Arg.pos_all,
             )
         ),
       ),
@@ -2339,12 +2340,12 @@ let () = {
 
         esy --project projectPath
 
-     which we can't parse with Esy_cmdliner
+     which we can't parse with cmdliner
    */
   let argv = {
     let commandNames = {
-      let f = (names, (_term, info)) => {
-        let name = Esy_cmdliner.Term.name(info);
+      let f = (names, (term, info)) => {
+        let name = Cmdliner.Cmd.name(Cmdliner.Cmd.v(info, term));
         StringSet.add(name, names);
       };
       List.fold_left(~f, ~init=StringSet.empty, commands);
@@ -2371,7 +2372,10 @@ let () = {
     Array.of_list(argv);
   };
 
-  Esy_cmdliner.Term.(
-    exit @@ eval_choice(~main_on_err=true, ~argv, defaultCommand, commands)
-  );
+  let (defaultTerm, defaultInfo) = defaultCommand;
+  commands
+  |> List.map(~f=((term, info)) => Cmdliner.Cmd.v(info, term))
+  |> Cmdliner.Cmd.group(~default=defaultTerm, defaultInfo)
+  |> Cmdliner.Cmd.eval(~main_on_err=true, ~stop_on_pos=true, ~argv)
+  |> exit;
 };

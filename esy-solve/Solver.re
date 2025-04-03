@@ -560,7 +560,7 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
         | Ok(pkg) => return(Some(pkg))
         | Error(reason) =>
           let%lwt () =
-            Esy_logs_lwt.info(m =>
+            Logs_lwt.info(m =>
               m("skipping package %a: %s", Resolution.pp, resolution, reason)
             );
           return(None);
@@ -975,9 +975,9 @@ let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
   open RunAsync.Syntax;
 
   let make = resolution => {
-    let%lwt () =
-      Esy_logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let* pkg = Resolver.package(~resolution, ~opamRegistries, ~resolver);
+    let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
+    let* pkg =
+      Resolver.package(~opamRegistries, ~resolution, ~resolver);
     let* pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
@@ -996,7 +996,7 @@ let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
     | Some(resolution) => make(resolution)
     | None =>
       let%lwt () =
-        Esy_logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
+        Logs_lwt.warn(m => m("no version found for %a", Req.pp, req));
       return((None, None));
     };
   | VersionSpec.Opam(_) =>
@@ -1293,7 +1293,7 @@ let solve =
       baseSolution,
     );
   let%lwt () =
-    Esy_logs_lwt.app(m =>
+    Logs_lwt.app(m =>
       m(
         "The following packages are problematic and dont build on specified platform",
       )
@@ -1302,7 +1302,7 @@ let solve =
   let f = ((package, platforms)) => {
     unSupportedPlatforms :=
       EsyOpamLibs.AvailablePlatforms.union(platforms, unSupportedPlatforms^);
-    Esy_logs_lwt.app(m =>
+    Logs_lwt.app(m =>
       m(
         "Package %a. Unsupported Platforms: %a",
         EsyFetch.Package.pp,
@@ -1320,7 +1320,7 @@ let solve =
     } else {
       let f = ((os, arch)) => {
         let%lwt () =
-          Esy_logs_lwt.app(m =>
+          Logs_lwt.app(m =>
             m(
               "Solving for os: %a arch: %a",
               System.Platform.pp,

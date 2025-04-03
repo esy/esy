@@ -1043,7 +1043,7 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
     sourceSpec,
     _ => {
       let%lwt () =
-        Esy_logs_lwt.debug(m =>
+        Logs_lwt.debug(m =>
           m("resolving %s@%a", name, SourceSpec.pp, sourceSpec)
         );
       let* source =
@@ -1168,7 +1168,7 @@ let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
           name,
           () => {
             let%lwt () =
-              Esy_logs_lwt.debug(m =>
+              Logs_lwt.debug(m =>
                 m("resolving %s %a", name, VersionSpec.pp, spec)
               );
             let* versions = {
