@@ -3,10 +3,12 @@
 const path = require('path');
 const outdent = require('outdent');
 const helpers = require('../test/helpers.js');
+const exec = require('../test/exec.js');
 const {packageJson, dir} = helpers;
 
 helpers.skipSuiteOnWindows('needs fixes for path pretty printing');
 
+let version = exec.exec('git describe --tags').trim();
 type ChildProcessError = {
   stderr: string,
 };
@@ -80,11 +82,13 @@ describe('build errors', function() {
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
+      info esy build ${version} (using package.json)
       error: command failed: 'false' (exited with 1)
       esy-build-package: exiting with errors above...
       error: build failed with exit code: 1
         
       esy: exiting due to errors above
+
       `,
     );
   });
@@ -124,6 +128,7 @@ describe('build errors', function() {
           
         building dep@path:dep
       esy: exiting due to errors above
+
       `,
     );
   });
