@@ -85,7 +85,7 @@ describe('build errors', function() {
       info esy build ${version} (using package.json)
       error: command failed: 'false' (exited with 1)
       esy-build-package: exiting with errors above...
-      error: build failed with exit code: 1
+      error: build failed with exit code: 124
         
       esy: exiting due to errors above
 
@@ -118,7 +118,7 @@ describe('build errors', function() {
     const err = await expectAndReturnRejection(p.esy('build'));
     expect(err.stderr).toMatch(
       outdent`
-      error: build failed with exit code: 1
+      error: build failed with exit code: 124
         build log:
           # esy-build-package: building: dep@path:dep
           # esy-build-package: pwd: ${depBuildPlan.sourcePath}
