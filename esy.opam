@@ -21,10 +21,10 @@ homepage: "https://github.com/esy/esy"
 bug-reports: "https://github.com/esy/esy/issues"
 depends: [
   "angstrom"
-  "uuseg" {= "14.0.0"}
+  "uuseg"
   "cmdliner" {= "dev"}
   "bos" {= "dev"}
-  "cudf" {= "0.9"}
+  "cudf"
   "dose3" {= "7.0.0"}
   "ocamlgraph" {= "2.0.0"}
   "dune" {>= "3.16"}
@@ -53,8 +53,8 @@ depends: [
   "re"
   "mccs"
   "yojson"
-  "ocaml" {= "4.12.0"}
-  "extlib" {= "1.7.8"}
+  "ocaml" {= "5.2.0"}
+  "extlib"
   "odoc" {with-doc}
 ]
 build: [
@@ -73,10 +73,11 @@ build: [
 ]
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
+  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c"]
   ["camlbz2.dev" "git+https://gitlab.com/irill/camlbz2.git#588e186c"]
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc3"]
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git#90364d00"]
-  ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
+  ["cli.dev" "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"]
+  ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"]
+  ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"]
+  ["rely.dev" "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"]
 ]

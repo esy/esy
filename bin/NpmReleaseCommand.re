@@ -496,7 +496,7 @@ let make =
     ) => {
   open RunAsync.Syntax;
 
-  let%lwt () = Esy_logs_lwt.app(m => m("Creating npm release"));
+  let%lwt () = Logs_lwt.app(m => m("Creating npm release"));
   let* releaseCfg = configure(spec, ()) /* * Construct a task tree with all tasks marked as immutable. This will make * sure all packages are built into a global store and this is required for * the release tarball as only globally stored artefacts can be relocated * between stores (b/c of a fixed path length). */;
 
   let* plan =
@@ -554,7 +554,7 @@ let make =
     } /* Make sure all packages are built */;
 
   let* () = {
-    let%lwt () = Esy_logs_lwt.app(m => m("Building packages"));
+    let%lwt () = Logs_lwt.app(m => m("Building packages"));
     BuildSandbox.build(
       ~buildLinked=true,
       ~skipStalenessCheck=true,
@@ -580,7 +580,7 @@ let make =
         switch (List.fold_left(~f, ~init=[], specs)) {
         | [] => Lwt.return()
         | unused =>
-          Esy_logs_lwt.warn(m =>
+          Logs_lwt.warn(m =>
             m(
               {|found unused package specs in "esy.release.includePackages": %a|},
               Fmt.(list(~sep=any(", "), PkgSpec.pp)),
@@ -591,12 +591,12 @@ let make =
       | _ => Lwt.return()
       };
 
-    let%lwt () = Esy_logs_lwt.app(m => m("Exporting built packages"));
+    let%lwt () = Logs_lwt.app(m => m("Exporting built packages"));
     let f = (task: BuildSandbox.Task.t) => {
       let id = Scope.id(task.scope);
       if (shouldDeleteFromBinaryRelease(task.pkg.id, id)) {
         let%lwt () =
-          Esy_logs_lwt.app(m =>
+          Logs_lwt.app(m =>
             m("Skipping %a", PackageId.ppNoHash, task.pkg.id)
           );
         return();
@@ -611,7 +611,7 @@ let make =
   };
 
   let* () = {
-    let%lwt () = Esy_logs_lwt.app(m => m("Configuring release"));
+    let%lwt () = Logs_lwt.app(m => m("Configuring release"));
     let binPath = Path.(outputPath / "bin");
     let* () = Fs.createDir(binPath) /* Emit wrappers for released binaries */;
 
@@ -853,7 +853,7 @@ let make =
 
   let* () = cleanupLinksFromGlobalStore(cfg, tasks);
 
-  let%lwt () = Esy_logs_lwt.app(m => m("Done!"));
+  let%lwt () = Logs_lwt.app(m => m("Done!"));
   return();
 };
 

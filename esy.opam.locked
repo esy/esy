@@ -34,18 +34,31 @@ build: [
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git#90364d00"]
-  ["cli.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#e9316bc3"]
-  ["file-context-printer.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["pastel.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
-  ["rely.dev" "git+https://github.com/reasonml/reason-native.git#aec0ac68"]
+  [
+  "cli.dev"
+  "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"
+]
+  [
+  "cmdliner.dev"
+  "git+https://github.com/esy-ocaml/cmdliner.git#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c"
+]
+  [
+  "file-context-printer.dev"
+  "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"
+]
+  [
+  "pastel.dev"
+  "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"
+]
 ]
 depends: [
   "angstrom" {= "0.16.1"}
   "astring" {= "0.8.5"}
-  "base" {= "v0.15.1"}
+  "base" {= "v0.17.1"}
   "base-bigarray" {= "base"}
   "base-bytes" {= "base"}
+  "base-domains" {= "base"}
+  "base-nnp" {= "base"}
   "base-threads" {= "base"}
   "base-unix" {= "base"}
   "base64" {= "3.5.1"}
@@ -54,28 +67,28 @@ depends: [
   "cli" {= "dev"}
   "cmdliner" {= "dev"}
   "conf-c++" {= "1.0"}
-  "cppo" {= "1.7.0"}
+  "cppo" {= "1.8.0"}
   "csexp" {= "1.5.2"}
-  "cudf" {= "0.9"}
+  "cudf" {= "0.10"}
   "dose3" {= "7.0.0"}
-  "dune" {= "3.16.1"}
-  "dune-build-info" {= "3.16.1"}
-  "dune-configurator" {= "3.16.1"}
-  "extlib" {= "1.7.8"}
+  "dune" {= "3.17.2"}
+  "dune-build-info" {= "3.17.2"}
+  "dune-configurator" {= "3.17.2"}
+  "extlib" {= "1.8.0"}
   "file-context-printer" {= "dev"}
   "fix" {= "20230505"}
-  "fmt" {= "0.9.0"}
+  "fmt" {= "0.10.0"}
   "fpath" {= "0.7.3"}
-  "jane-street-headers" {= "v0.15.0"}
+  "jane-street-headers" {= "v0.17.0"}
   "jsonm" {= "1.0.2"}
-  "jst-config" {= "v0.15.1"}
-  "junit" {= "2.0.2"}
+  "jst-config" {= "v0.17.0"}
+  "junit" {= "2.2.0"}
   "lambda-term" {= "3.3.2"}
-  "logs" {= "0.7.0"}
-  "lwt" {= "5.9.0"}
-  "lwt_ppx" {= "5.8.0"}
+  "logs" {= "0.8.0"}
+  "lwt" {= "5.9.1"}
+  "lwt_ppx" {= "5.9.1"}
   "lwt_react" {= "1.2.0"}
-  "mccs" {= "1.1+18"}
+  "mccs" {= "1.1+19"}
   "menhir" {= "20210419"}
   "menhirLib" {= "20210419"}
   "menhirSdk" {= "20210419"}
@@ -83,15 +96,13 @@ depends: [
   "mew" {= "0.1.0"}
   "mew_vi" {= "0.5.0"}
   "mtime" {= "2.1.0"}
-  "ocaml" {= "4.12.0"}
-  "ocaml-variants" {= "4.12.0+options"}
-  "ocaml-option-flambda" {= "1"}
-  "ocaml-compiler-libs" {= "v0.12.4"}
-  "ocaml-config" {= "2"}
+  "ocaml" {= "5.2.0"}
+  "ocaml-compiler-libs" {= "v0.17.0"}
+  "ocaml-config" {= "3"}
   "ocaml-syntax-shims" {= "1.0.0"}
-  "ocaml-version" {= "3.5.0"}
-  "ocamlbuild" {= "0.15.0"}
-  "ocamlfind" {= "1.9.6"}
+  "ocaml_intrinsics_kernel" {= "v0.17.1"}
+  "ocamlbuild" {= "0.16.1"}
+  "ocamlfind" {= "1.9.8"}
   "ocamlgraph" {= "2.0.0"}
   "ocplib-endian" {= "1.2"}
   "opam-core" {= "2.3.0"}
@@ -100,43 +111,45 @@ depends: [
   "opam-repository" {= "2.3.0"}
   "opam-state" {= "2.3.0"}
   "pastel" {= "dev"}
-  "ppx_assert" {= "v0.15.0"}
-  "ppx_base" {= "v0.15.0"}
-  "ppx_cold" {= "v0.15.0"}
-  "ppx_compare" {= "v0.15.0"}
+  "ppx_assert" {= "v0.17.0"}
+  "ppx_base" {= "v0.17.0"}
+  "ppx_cold" {= "v0.17.0"}
+  "ppx_compare" {= "v0.17.0"}
   "ppx_derivers" {= "1.2.1"}
   "ppx_deriving" {= "6.0.3"}
-  "ppx_deriving_yojson" {= "3.9.0"}
-  "ppx_enumerate" {= "v0.15.0"}
-  "ppx_expect" {= "v0.15.1"}
-  "ppx_hash" {= "v0.15.0"}
-  "ppx_here" {= "v0.15.0"}
-  "ppx_inline_test" {= "v0.15.1"}
-  "ppx_let" {= "v0.15.0"}
-  "ppx_optcomp" {= "v0.15.0"}
-  "ppx_sexp_conv" {= "v0.15.1"}
-  "ppxlib" {= "0.33.0"}
+  "ppx_deriving_yojson" {= "3.9.1"}
+  "ppx_enumerate" {= "v0.17.0"}
+  "ppx_expect" {= "v0.17.2"}
+  "ppx_globalize" {= "v0.17.0"}
+  "ppx_hash" {= "v0.17.0"}
+  "ppx_here" {= "v0.17.0"}
+  "ppx_inline_test" {= "v0.17.0"}
+  "ppx_let" {= "v0.17.0"}
+  "ppx_optcomp" {= "v0.17.0"}
+  "ppx_sexp_conv" {= "v0.17.0"}
+  "ppxlib" {= "0.35.0"}
+  "ppxlib_jane" {= "v0.17.0"}
   "ptime" {= "1.2.0"}
   "re" {= "1.12.0"}
   "react" {= "1.2.2"}
-  "reason" {= "3.13.0"}
+  "reason" {= "3.15.0"}
   "result" {= "1.5"}
   "rresult" {= "0.7.0"}
   "seq" {= "base"}
-  "sexplib0" {= "v0.15.1"}
+  "sexplib0" {= "v0.17.0"}
   "sha" {= "1.15.4"}
-  "spdx_licenses" {= "1.2.0"}
-  "stdio" {= "v0.15.0"}
+  "spdx_licenses" {= "1.3.0"}
+  "stdio" {= "v0.17.0"}
   "stdlib-shims" {= "0.3.0"}
   "swhid_core" {= "0.1"}
-  "time_now" {= "v0.15.0"}
-  "topkg" {= "1.0.7"}
+  "time_now" {= "v0.17.0"}
+  "topkg" {= "1.0.8"}
   "trie" {= "1.0.0"}
   "tyxml" {= "4.6.0"}
   "uchar" {= "0.0.2"}
-  "uucp" {= "14.0.0"}
-  "uuseg" {= "14.0.0"}
-  "uutf" {= "1.0.3"}
+  "uucp" {= "16.0.0"}
+  "uuseg" {= "16.0.0"}
+  "uutf" {= "1.0.4"}
   "yojson" {= "2.2.2"}
   "zed" {= "3.2.3"}
 ]

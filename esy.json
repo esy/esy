@@ -3,10 +3,6 @@
   "description": "Package builder for esy.",
   "license": "BSD-2-Clause",
   "esy": {
-    "opamRepositories": [
-      { "type": "remote", "location": "https://github.com/ManasJayanth/opam-overlay.git" },
-      { "type": "remote", "location": "https://github.com/ocaml/opam-repository.git" }
-    ],
     "build": "dune build -p esy",
     "buildDev": "dune build -p esy",
     "install": "esy-installer esy.install",
@@ -53,8 +49,7 @@
     "@opam/camlbz2": "git+https://gitlab.com/dining-philosophersco/camlbz2:bz2.opam#4f94881dd1f21dd55acc73917bbffef279e0d0b",
     "esy-bzip2": "esy-packages/esy-bzip2#048f314334ae2e63b24082a7e4cfca4985b04028",
     "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a",
-    "@opam/ocp-indent": "OCamlPro/ocp-indent:ocp-indent.opam#7c4d434132cebc15a8213c8be9e7323692eb0a2b",
-    "@opam/uuseg": "opam:14.0.0",
+    "@opam/ocp-indent": "dbuenzli/ocp-indent:ocp-indent.opam#db685f89ccd40a363eb39f4d870e48dbb6a72f7d",
     "@opam/bos": "github:esy-ocaml/bos:opam#90364d003f7adc37826cf958b67536a7afdfeba",
     "@opam/bigstringaf": "opam:0.6.1",
     "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
@@ -64,6 +59,7 @@
     "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
     "@opam/rresult": "opam:0.6.0",
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
+    "@opam/cmdliner": "esy-ocaml/cmdliner:cmdliner.opam#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
@@ -75,11 +71,14 @@
     "@opam/cudf": "*",
     "@opam/dose3": "< 8.0.0",
     "@opam/dune": "< 4.0.0",
+    "@opam/cmdliner": "*",
+    "@opam/fmt": "*",
     "@opam/fpath": "*",
+    "@opam/lambda-term": "*",
+    "@opam/logs": "*",
     "@opam/lwt": "*",
     "@opam/lwt_ppx": "*",
     "@opam/menhir": "20210419",
-    "@opam/ocamlformat": "*",
     "@opam/opam-core": "*",
     "@opam/opam-file-format": "*",
     "@opam/opam-format": "*",

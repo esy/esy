@@ -6,23 +6,9 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries
-  EsyPrimitives
-  RewritePrefix
-  EsyLib
-  EsyOpamLibs
-  EsyPackageConfig
-  angstrom
-  str
-  cudf
-  ppx_deriving_yojson.runtime
-  yojson
-  esy_logs
-  esy_logs_lwt
-  dose3.algo
-  opam-format
-  opam-state
-  opam-file-format)
+ (libraries EsyPrimitives RewritePrefix EsyLib EsyPackageConfig angstrom str cudf
+   ppx_deriving_yojson.runtime yojson logs logs.lwt dose3.algo opam-format
+   opam-state opam-file-format)
  (preprocess
   (pps
    lwt_ppx

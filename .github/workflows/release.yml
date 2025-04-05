@@ -103,7 +103,7 @@ jobs:
 
       - run: |
           ./scripts/docker.sh run-container --image localhost:5000/esydev/esy
-          ./scripts/docker.sh cp --image localhost:5000/esydev/esy --host-release-path "_container_release"
+          ./scripts/docker.sh cp-artifacts --image localhost:5000/esydev/esy --host-release-path "_container_release"
         name: "Copy esy artifacts from /usr/local/ in the container"
       - run: |
           tar czf npm-tarball.tgz _container_release

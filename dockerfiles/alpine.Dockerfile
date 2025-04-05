@@ -1,4 +1,4 @@
-FROM alpine:latest as builder
+FROM alpine:latest AS builder
 
 RUN apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils libbz2 zlib zlib-dev zlib-static autoconf automake bzip2-dev bzip2-static opam bash
 WORKDIR /app-builder
@@ -47,7 +47,6 @@ COPY dune-project /app/
 COPY dune-workspace /app/
 COPY esy.json /app/esy.json
 COPY esy.lock /app/esy.lock
-COPY ./vendors /app/vendors
 COPY ./fastreplacestring /app/fastreplacestring
 RUN /app/scripts/opam.sh build
 RUN /app/scripts/opam.sh install-artifacts

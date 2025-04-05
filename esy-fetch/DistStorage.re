@@ -210,7 +210,7 @@ let unpack = (fetched, path) =>
       return();
     | Tarball({tarballPath, stripComponents}) =>
       let%lwt () =
-        Esy_logs_lwt.debug(m =>
+        Logs_lwt.debug(m =>
           m(
             "tarballPath %s, path %s",
             Fpath.to_string(tarballPath),

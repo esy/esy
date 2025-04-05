@@ -156,11 +156,11 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
   let targetString = Path.show(target);
   let%bind destExists = exists(target);
   if (skipIfExists && destExists) {
-    let%lwt () = Esy_logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+    let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
     RunAsync.return();
   } else {
     let%lwt () =
-      Esy_logs_lwt.debug(m =>
+      Logs_lwt.debug(m =>
         m("rename %a -> %a", Path.pp, src, Path.pp, target)
       );
     try%lwt(
@@ -186,7 +186,7 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
       }
     | Unix.Unix_error(Unix.EXDEV, "rename", filename) =>
       let%lwt () =
-        Esy_logs_lwt.debug(m =>
+        Logs_lwt.debug(m =>
           m("rename of %s failed with EXDEV, trying `mv`", filename)
         );
       let cmd = Printf.sprintf("mv %s %s", srcString, targetString);
@@ -197,8 +197,7 @@ let rec rename = (~attempts=8, ~skipIfExists=false, ~src, target) => {
       };
     | Unix.Unix_error(Unix.EACCES, "rename", _) when attempts > 1 =>
       if%bind (exists(target)) {
-        let%lwt () =
-          Esy_logs_lwt.debug(m => m("Dest (%s) exists", targetString));
+        let%lwt () = Logs_lwt.debug(m => m("Dest (%s) exists", targetString));
         RunAsync.return();
       } else {
         let%lwt () = Lwt_unix.sleep(1.);

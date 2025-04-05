@@ -26,7 +26,7 @@ let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
       };
     | [] =>
       let%lwt () =
-        Esy_logs_lwt.err(m => {
+        Logs_lwt.err(m => {
           let ppErr = (fmt, (source, err)) =>
             Fmt.pf(
               fmt,
@@ -66,14 +66,14 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
         | Some(cachedTarballPath) =>
           if%bind (Fs.exists(cachedTarballPath)) {
             let%lwt () =
-              Esy_logs_lwt.debug(m =>
+              Logs_lwt.debug(m =>
                 m("fetching %a: found cached tarball", Package.pp, pkg)
               );
             let dist = DistStorage.ofCachedTarball(cachedTarballPath);
             return(Some(Fetched(dist)));
           } else {
             let%lwt () =
-              Esy_logs_lwt.debug(m =>
+              Logs_lwt.debug(m =>
                 m("fetching %a: making cached tarball", Package.pp, pkg)
               );
             let dists = [main, ...mirrors];
@@ -86,7 +86,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
       let path = PackagePaths.installPath(sandbox, pkg);
       if%bind (Fs.exists(path)) {
         let%lwt () =
-          Esy_logs_lwt.debug(m =>
+          Logs_lwt.debug(m =>
             m("fetching %a: installed", Package.pp, pkg)
           );
         return(Installed(path));
@@ -95,7 +95,7 @@ let fetch = (sandbox, pkg, gitUsername, gitPassword) => {
         | Some(cached) => return(cached)
         | None =>
           let%lwt () =
-            Esy_logs_lwt.debug(m =>
+            Logs_lwt.debug(m =>
               m("fetching %a: fetching", Package.pp, pkg)
             );
           let dists = [main, ...mirrors];
@@ -143,7 +143,7 @@ let copyFiles = (sandbox, pkg, path) => {
 let install' = (~stagePath, sandbox, pkg, fetched) => {
   let* () =
     RunAsync.ofLwt @@
-    Esy_logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
+    Logs_lwt.debug(m => m("unpacking %a", Package.pp, pkg));
 
   let* () =
     RunAsync.contextf(

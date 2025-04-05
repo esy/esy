@@ -6,17 +6,8 @@
    (-w -39)
    "-open"
    "EsyLib"))
- (libraries
-  EsyLib
-  EsyOpamLibs
-  angstrom
-  str
-  ppx_deriving_yojson.runtime
-  yojson
-  esy_logs
-  opam-format
-  opam-state
-  opam-file-format)
+ (libraries EsyLib EsyOpamLibs angstrom str ppx_deriving_yojson.runtime yojson logs
+   opam-format opam-file-format)
  (preprocess
   (pps
    lwt_ppx

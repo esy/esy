@@ -86,28 +86,22 @@ let createProgressReporter = (~name, ()) => {
 
   let finish = () => {
     let%lwt () = ProgressReporter.clearStatus();
-    Esy_logs_lwt.app(m => m("%s: done", name));
+    Logs_lwt.app(m => m("%s: done", name));
   };
 
   (progress, finish);
 };
 
 let pathConv = {
-  open Esy_cmdliner;
+  open Cmdliner;
   let parse = Path.ofString;
   let print = Path.pp;
   Arg.conv(~docv="PATH", (parse, print));
 };
 
-let cmdConv = {
-  open Esy_cmdliner;
-  let parse = v => Ok(Cmd.v(v));
-  let print = Cmd.pp;
-  Arg.conv(~docv="COMMAND", (parse, print));
-};
 
 let checkoutConv = {
-  open Esy_cmdliner;
+  open Cmdliner;
   let parse = v => {
     switch (Astring.String.cut(~sep=":", v)) {
     | Some((remote, "")) => Ok(`Remote(remote))
@@ -128,10 +122,15 @@ let checkoutConv = {
   Arg.conv(~docv="VAL", (parse, print));
 };
 
+let cmdConv = {
+  let parse = v => Ok(Cmd.v(v));
+  let print = Cmd.pp;
+  Cmdliner.Arg.conv(~docv="COMMAND", (parse, print));
+};
+
 let cmdTerm = (~doc, ~docv, makeconv) => {
-  open Esy_cmdliner;
   let commandTerm =
-    Arg.(non_empty & makeconv(string, []) & info([], ~doc, ~docv));
+    Cmdliner.Arg.(non_empty & makeconv(string, []) & info([], ~doc, ~docv));
 
   let parse = command =>
     switch (command) {
@@ -141,13 +140,12 @@ let cmdTerm = (~doc, ~docv, makeconv) => {
       `Ok(cmd);
     };
 
-  Term.(ret(const(parse) $ commandTerm));
+  Cmdliner.Term.(ret(const(parse) $ commandTerm));
 };
 
 let cmdOptionTerm = (~doc, ~docv) => {
-  open Esy_cmdliner;
   let commandTerm =
-    Arg.(value & pos_all(string, []) & info([], ~doc, ~docv));
+    Cmdliner.Arg.(value & pos_all(string, []) & info([], ~doc, ~docv));
 
   let d = command =>
     switch (command) {
@@ -157,17 +155,17 @@ let cmdOptionTerm = (~doc, ~docv) => {
       `Ok(Some(cmd));
     };
 
-  Term.(ret(const(d) $ commandTerm));
+  Cmdliner.Term.(ret(const(d) $ commandTerm));
 };
 
 let setupLogTerm = {
-  let pp_header = (ppf, (lvl: Esy_logs.level, _header)) =>
+  let pp_header = (ppf, (lvl: Logs.level, _header)) =>
     switch (lvl) {
-    | Esy_logs.App => Fmt.(styled(`Blue, any("info ")))(ppf, ())
-    | Esy_logs.Error => Fmt.(styled(`Red, any("error ")))(ppf, ())
-    | Esy_logs.Warning => Fmt.(styled(`Yellow, any("warn ")))(ppf, ())
-    | Esy_logs.Info => Fmt.(styled(`Blue, any("info ")))(ppf, ())
-    | Esy_logs.Debug => Fmt.(any("debug "))(ppf, ())
+    | Logs.App => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Logs.Error => Fmt.(styled(`Red, any("error ")))(ppf, ())
+    | Logs.Warning => Fmt.(styled(`Yellow, any("warn ")))(ppf, ())
+    | Logs.Info => Fmt.(styled(`Blue, any("info ")))(ppf, ())
+    | Logs.Debug => Fmt.(any("debug "))(ppf, ())
     };
 
   let lwt_reporter = () => {
@@ -186,13 +184,13 @@ let setupLogTerm = {
     let mutex = Lwt_mutex.create();
     let (app, app_flush) = buf_fmt(~like=Fmt.stderr);
     let (dst, dst_flush) = buf_fmt(~like=Fmt.stderr);
-    let reporter = Esy_logs_fmt.reporter(~pp_header, ~app, ~dst, ());
+    let reporter = Logs_fmt.reporter(~pp_header, ~app, ~dst, ());
     let report = (src, level, ~over, k, msgf) => {
       let k = () => {
         let write = () => {
           let%lwt () =
             switch (level) {
-            | Esy_logs.App =>
+            | Logs.App =>
               let msg = app_flush();
               let%lwt () = Lwt_io.write(Lwt_io.stderr, msg);
               let%lwt () = Lwt_io.flush(Lwt_io.stderr);
@@ -229,10 +227,10 @@ let setupLogTerm = {
         k();
       };
 
-      reporter.Esy_logs.report(src, level, ~over=() => (), k, msgf);
+      reporter.Logs.report(src, level, ~over=() => (), k, msgf);
     };
 
-    {Esy_logs.report: report};
+    {Logs.report: report};
   };
 
   let setupLog = (style_renderer, level) => {
@@ -242,28 +240,25 @@ let setupLogTerm = {
       | Some(renderer) => renderer
       };
 
-    Esy_fmt_tty.setup_std_outputs(~style_renderer, ());
-    Esy_logs.set_level(level);
-    Esy_logs.set_reporter(lwt_reporter());
+    Fmt_tty.setup_std_outputs(~style_renderer, ());
+    Logs.set_level(level);
+    Logs.set_reporter(lwt_reporter());
   };
 
-  Esy_cmdliner.(
+  Cmdliner.(
     Term.(
       const(setupLog)
-      $ Esy_fmt_cli.style_renderer(
-          ~docs=Esy_cmdliner.Manpage.s_common_options,
-          (),
-        )
-      $ Esy_logs_cli.level(
-          ~docs=Esy_cmdliner.Manpage.s_common_options,
-          ~env=Arg.env_var("ESY__LOG"),
+      $ Fmt_cli.style_renderer(~docs=Cmdliner.Manpage.s_common_options, ())
+      $ Logs_cli.level(
+          ~docs=Cmdliner.Manpage.s_common_options,
+          ~env=Cmd.Env.info("ESY__LOG"),
           (),
         )
     )
   );
 };
 
-let runAsyncToEsy_cmdlinerRet = res =>
+let runAsyncToCmdlinerRet = res =>
   switch (Lwt_main.run(res)) {
   | Ok(v) => `Ok(v)
   | Error(error) =>

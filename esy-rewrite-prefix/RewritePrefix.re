@@ -3,7 +3,7 @@ let rewritePrefix = (~origPrefix, ~destPrefix, path) => {
   | Error(e) => Lwt.return(Error(e))
   | Ok(cmd) =>
     let%lwt () =
-      Esy_logs_lwt.debug(m =>
+      Logs_lwt.debug(m =>
         m(
           "rewritePrefix %a: %a -> %a",
           Path.pp,

@@ -41,7 +41,6 @@ in
             "dune-workspace"
             "esy.opam"
             "esy.opam.locked"
-            "vendors"
           ];
         };
 

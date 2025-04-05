@@ -112,7 +112,7 @@ module LinkBin: {
   let installBinWrapper = (destBinWrapperDir, (name, origPath)) => {
     open RunAsync.Syntax;
     let%lwt () =
-      Esy_logs_lwt.debug(m =>
+      Logs_lwt.debug(m =>
         m(
           "Fetch:installBinWrapper: %a / %s -> %a",
           Path.pp,
@@ -135,7 +135,7 @@ module LinkBin: {
       };
     } else {
       let%lwt () =
-        Esy_logs_lwt.warn(m =>
+        Logs_lwt.warn(m =>
           m("missing %a defined as binary", Path.pp, origPath)
         );
       return();
@@ -218,7 +218,7 @@ exec '%s' -r '%a' "$@"
 module Lifecycle = {
   let runScript = (~env=?, ~lifecycleName, pkg, sourcePath, script) => {
     let%lwt () =
-      Esy_logs_lwt.app(m =>
+      Logs_lwt.app(m =>
         m(
           "%a: running %a lifecycle",
           Package.pp,
@@ -286,12 +286,12 @@ module Lifecycle = {
           switch%lwt (p#status) {
           | Unix.WEXITED(0) =>
             let%lwt () =
-              Esy_logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
+              Logs_lwt.debug(m => m("log at %a", Path.pp, logFilePath));
             RunAsync.return();
           | _ =>
             let%lwt output = readAndCloseFile(logFilePath);
             let%lwt () =
-              Esy_logs_lwt.err(m =>
+              Logs_lwt.err(m =>
                 m(
                   "@[<v>command failed: %s@\noutput:@[<v 2>@\n%s@]@]",
                   script,
@@ -532,7 +532,7 @@ let installPackages =
             | None => StringMap.add(name, [pkg], seen)
             | Some(pkgs) =>
               let pkgs = [pkg, ...pkgs];
-              Esy_logs.warn(m =>
+              Logs.warn(m =>
                 m(
                   "executable '%s' is installed by several packages: @[<h>%a@]@;",
                   name,

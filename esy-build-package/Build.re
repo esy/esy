@@ -294,7 +294,7 @@ let install = (~enableLinkingOptimization, ~prefixPath, installFilename) => {
   EsyLib.Perf.measure(
     ~label,
     () => {
-      Esy_logs.app(m =>
+      Logs.app(m =>
         m("# esy-build-package: installing using built-in installer")
       );
       let res =
@@ -324,7 +324,7 @@ let withLock = (lockPath: Path.t, f) => {
   };
   try(UnixLabels.(lockf(fd, ~mode=F_TEST, ~len=0))) {
   | _ =>
-    Esy_logs.app(m =>
+    Logs.app(m =>
       m("# esy-build-package: waiting for other process to finish building")
     )
   };
@@ -397,12 +397,12 @@ let commitBuildToStore = (config: Config.t, build: build) => {
     );
   let* () =
     if (Path.compare(build.stagePath, build.installPath) == 0) {
-      Esy_logs.app(m =>
+      Logs.app(m =>
         m("# esy-build-package: stage path and install path are the same")
       );
       return();
     } else {
-      Esy_logs.app(m =>
+      Logs.app(m =>
         m(
           "# esy-build-package: rewriting prefix: %a -> %a",
           Path.pp,
@@ -427,7 +427,7 @@ let commitBuildToStore = (config: Config.t, build: build) => {
             % p(build.stagePath)
           ),
         );
-      Esy_logs.app(m =>
+      Logs.app(m =>
         m(
           "# esy-build-package: committing: %a -> %a",
           Path.pp,
@@ -450,11 +450,11 @@ let commitBuildToStore = (config: Config.t, build: build) => {
            See BigSurArm.re for more details */
         let binariesThatFailedToSign = BigSurArm.sign(entries);
         if (List.length(binariesThatFailedToSign) > 0) {
-          Esy_logs.warn(m =>
+          Logs.warn(m =>
             m("# esy-build-package: Failed to sign the following binaries")
           );
           let f = binary => {
-            ignore @@ Esy_logs.warn(m => m("  %a", Path.pp, binary));
+            ignore @@ Logs.warn(m => m("  %a", Path.pp, binary));
           };
           List.iter(f, binariesThatFailedToSign);
           return();
@@ -626,18 +626,16 @@ let runCommandInteractive = (build, cmd) => {
 
 let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
   let* build = configureBuild(~cfg, plan);
-  Esy_logs.debug(m => m("start %s", build.plan.id));
-  Esy_logs.debug(m => m("building"));
-  Esy_logs.app(m =>
+  Logs.debug(m => m("start %s", build.plan.id));
+  Logs.debug(m => m("building"));
+  Logs.app(m =>
     m(
       "# esy-build-package: building: %s@%s",
       build.plan.name,
       build.plan.version,
     )
   );
-  Esy_logs.app(m =>
-    m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath)
-  );
+  Logs.app(m => m("# esy-build-package: pwd: %a", Fpath.pp, build.rootPath));
 
   let runBuildAndInstall = (build: build) => {
     let enableLinkingOptimization =
@@ -734,7 +732,7 @@ let build = (~buildOnly=true, ~cfg: Config.t, plan: Plan.t) => {
         switch (cmds) {
         | [] => Ok()
         | [cmd, ...cmds] =>
-          Esy_logs.app(m =>
+          Logs.app(m =>
             m("# esy-build-package: running: %s", Cmd.to_string(cmd))
           );
           let* () = runCommand(cmd);

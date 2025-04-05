@@ -23,3 +23,6 @@ test-e2e-re/lib/verdaccio/storage
 # script files to automate local testing
 dev.sh
 dev.ps1
+
+# emacs
+*~

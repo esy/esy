@@ -1,5 +1,5 @@
 open EsyBuild;
-open Esy_cmdliner;
+open Cmdliner;
 
 module ProjectArg = {
   type t =
@@ -31,7 +31,7 @@ module ProjectArg = {
   let ofPath = p => ByPath(p);
 
   let conv = {
-    open Esy_cmdliner;
+    open Cmdliner;
     let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
     Arg.conv(~docv="PROJECT", (parse, pp));
   };
@@ -218,7 +218,7 @@ type t = {
   npmRegistry: option(string),
   solveTimeout: option(float),
   skipRepositoryUpdate: bool,
-  solveCudfCommand: option(Cmd.t),
+  solveCudfCommand: option(EsyLib.Cmd.t),
   globalPathVariable: option(string),
 };
 
@@ -254,7 +254,7 @@ let commonOptionsSection = Manpage.s_common_options;
 
 let ocamlPkgName = {
   let doc = "Specifies the name of the ocaml compiler package (not supported on opam projects yet)";
-  let env = Arg.env_var("ESY__OCAML_PKG_NAME", ~doc);
+  let env = Cmd.Env.info("ESY__OCAML_PKG_NAME", ~doc);
   Arg.(
     value
     & opt(string, "ocaml")
@@ -264,7 +264,7 @@ let ocamlPkgName = {
 
 let ocamlVersion = {
   let doc = "Specifies the version of the ocaml compiler package (not supported on opam projects yet)";
-  let env = Arg.env_var("ESY__OCAML_VERSION", ~doc);
+  let env = Cmd.Env.info("ESY__OCAML_VERSION", ~doc);
   Arg.(
     value
     & opt(string, "n.00.0000")
@@ -273,7 +273,7 @@ let ocamlVersion = {
 };
 let projectPath = {
   let doc = "Specifies esy project.";
-  let env = Arg.env_var("ESY__PROJECT", ~doc);
+  let env = Cmd.Env.info("ESY__PROJECT", ~doc);
   Arg.(
     value
     & opt(some(ProjectArg.conv), None)
@@ -283,7 +283,7 @@ let projectPath = {
 
 let prefixPath = {
   let doc = "Specifies esy prefix path.";
-  let env = Arg.env_var("ESY__PREFIX", ~doc);
+  let env = Cmd.Env.info("ESY__PREFIX", ~doc);
   Arg.(
     value
     & opt(some(Cli.pathConv), None)
@@ -294,7 +294,7 @@ let prefixPath = {
 let opamRepositoryArg = {
   let doc = "Specifies an opam repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
   let docv = "REMOTE[:LOCAL]";
-  let env = Arg.env_var("ESYI__OPAM_REPOSITORY", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_REPOSITORY", ~doc);
   Arg.(
     value
     & opt(some(Cli.checkoutConv), None)
@@ -311,7 +311,7 @@ let opamRepositoryArg = {
 let esyOpamOverrideArg = {
   let doc = "Specifies an opam override repository to use. $(b,DEPRECATED): use opam-override-repository-local and opam-override-repository-remote instead";
   let docv = "REMOTE[:LOCAL]";
-  let env = Arg.env_var("ESYI__OPAM_OVERRIDE", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_OVERRIDE", ~doc);
   Arg.(
     value
     & opt(some(Cli.checkoutConv), None)
@@ -327,7 +327,7 @@ let esyOpamOverrideArg = {
 
 let opamRepositoryLocalArg = {
   let doc = "Specifies a local opam repository to use.";
-  let env = Arg.env_var("ESYI__OPAM_REPOSITORY_LOCAL", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_REPOSITORY_LOCAL", ~doc);
   Arg.(
     value
     & opt(some(Cli.pathConv), None)
@@ -336,7 +336,7 @@ let opamRepositoryLocalArg = {
 };
 let opamRepositoryRemoteArg = {
   let doc = "Specifies a remote opam repository to use.";
-  let env = Arg.env_var("ESYI__OPAM_REPOSITORY_REMOTE", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_REPOSITORY_REMOTE", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -351,7 +351,7 @@ let opamRepositoryRemoteArg = {
 
 let esyOpamOverrideLocalArg = {
   let doc = "Specifies a local opam override repository to use.";
-  let env = Arg.env_var("ESYI__OPAM_OVERRIDE_LOCAL", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_OVERRIDE_LOCAL", ~doc);
   Arg.(
     value
     & opt(some(Cli.pathConv), None)
@@ -365,7 +365,7 @@ let esyOpamOverrideLocalArg = {
 };
 let esyOpamOverrideRemoteArg = {
   let doc = "Specifies a remote opam override repository to use.";
-  let env = Arg.env_var("ESYI__OPAM_OVERRIDE_REMOTE", ~doc);
+  let env = Cmd.Env.info("ESYI__OPAM_OVERRIDE_REMOTE", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -380,7 +380,7 @@ let esyOpamOverrideRemoteArg = {
 
 let globalPathVariableArg = {
   let doc = "Specifies the shell environment variable to use as PATH to look for global utils in the build env.";
-  let env = Arg.env_var("ESY__GLOBAL_PATH", ~doc);
+  let env = Cmd.Env.info("ESY__GLOBAL_PATH", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -399,7 +399,7 @@ let cacheTarballsPath = {
 
 let npmRegistryArg = {
   let doc = "Specifies npm registry to use.";
-  let env = Arg.env_var("NPM_CONFIG_REGISTRY", ~doc);
+  let env = Cmd.Env.info("NPM_CONFIG_REGISTRY", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -427,7 +427,7 @@ let skipRepositoryUpdateArg = {
 
 let fetchConcurrencyArg = {
   let doc = "Specifies number of concurrent fetch tasks.";
-  let env = Arg.env_var("ESY__FETCH_CONCURRENCY", ~doc);
+  let env = Cmd.Env.info("ESY__FETCH_CONCURRENCY", ~doc);
   Arg.(
     value
     & opt(some(int), None)
@@ -437,7 +437,7 @@ let fetchConcurrencyArg = {
 
 let gitUsername = {
   let doc = "Specifies username of the git repositories being fetched. Note: this username will be used for all repositories in the dependencies tree. This option is useful in environments where ssh isn't available.";
-  let env = Arg.env_var("ESY__GIT_USERNAME", ~doc);
+  let env = Cmd.Env.info("ESY__GIT_USERNAME", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -447,7 +447,7 @@ let gitUsername = {
 
 let gitPassword = {
   let doc = "Specifies password of the git repositories being fetched. Note: Will be used everywhere (ref: username option). If your git repository services provides personal access token, it recommended you use them.";
-  let env = Arg.env_var("ESY__GIT_PASSWORD", ~doc);
+  let env = Cmd.Env.info("ESY__GIT_PASSWORD", ~doc);
   Arg.(
     value
     & opt(some(string), None)
@@ -457,7 +457,7 @@ let gitPassword = {
 
 let buildConcurrencyArg = {
   let doc = "Specifies number of concurrent build tasks";
-  let env = Arg.env_var("ESY__BUILD_CONCURRENCY", ~doc);
+  let env = Cmd.Env.info("ESY__BUILD_CONCURRENCY", ~doc);
   Arg.(
     value
     & opt(some(int), None)
@@ -467,7 +467,7 @@ let buildConcurrencyArg = {
 
 let solveCudfCommandArg = {
   let doc = "Set command which is used for solving CUDF problems.";
-  let env = Arg.env_var("ESY__SOLVE_CUDF_COMMAND", ~doc);
+  let env = Cmd.Env.info("ESY__SOLVE_CUDF_COMMAND", ~doc);
   Arg.(
     value
     & opt(some(Cli.cmdConv), None)
@@ -589,7 +589,7 @@ let promiseTerm = {
       globalPathVariable,
     );
 
-  Esy_cmdliner.Term.(
+  Cmdliner.Term.(
     const(parse)
     $ main_name
     $ projectPath
@@ -617,9 +617,7 @@ let promiseTerm = {
 };
 
 let term =
-  Esy_cmdliner.Term.(
-    ret(const(Cli.runAsyncToEsy_cmdlinerRet) $ promiseTerm)
-  );
+  Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
 
 let promiseTermForMultiplePaths = resolvedPathTerm => {
   let parse =
@@ -693,7 +691,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
     |> RunAsync.List.joinAll;
   };
 
-  Esy_cmdliner.Term.(
+  Cmdliner.Term.(
     const(parse)
     $ main_name
     $ Arg.(
@@ -727,9 +725,8 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
 };
 
 let multipleProjectConfigsTerm = paths =>
-  Esy_cmdliner.Term.(
+  Cmdliner.Term.(
     ret(
-      const(Cli.runAsyncToEsy_cmdlinerRet)
-      $ promiseTermForMultiplePaths(paths),
+      const(Cli.runAsyncToCmdlinerRet) $ promiseTermForMultiplePaths(paths),
     )
   );

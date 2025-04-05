@@ -348,7 +348,7 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
     RunAsync.contextf(
       {
         let%lwt () =
-          Esy_logs_lwt.debug(m => m("SolutionLock.ofPath %a", Path.pp, path));
+          Logs_lwt.debug(m => m("SolutionLock.ofPath %a", Path.pp, path));
         if%bind (Fs.exists(path)) {
           let%lwt lock = {
             let* json = Fs.readJsonFile(Path.(path / indexFilename));
@@ -373,7 +373,7 @@ let ofPath = (~digest=?, sandbox: Sandbox.t, path: Path.t) =>
                      gets called multiple times atleast in the [default] command, and
                      possibly so in other commands too. */
                   /* let%lwt () = */
-                  /*   Esy_logs_lwt.app(m => */
+                  /*   Logs_lwt.app(m => */
                   /*     m( */
                   /*       "Found platform specfic solution %a. Using it instead of default", */
                   /*       AvailablePlatforms.ppEntry, */
@@ -434,7 +434,7 @@ let toPath =
     ) => {
   open RunAsync.Syntax;
   let%lwt () =
-    Esy_logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
+    Logs_lwt.debug(m => m("SolutionLock.toPath %a", Path.pp, path));
   let* () = Fs.rmPath(path);
   let* (root, node) =
     lockOfSolution(sandbox, solution, gitUsername, gitPassword);

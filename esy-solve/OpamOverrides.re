@@ -28,7 +28,7 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     | Config.Remote(remote, local) =>
       let update = () => {
         let%lwt () =
-          Esy_logs_lwt.app(m => m("checking %s for updates...", remote));
+          Logs_lwt.app(m => m("checking %s for updates...", remote));
         let* () =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,

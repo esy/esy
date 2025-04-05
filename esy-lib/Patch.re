@@ -6,7 +6,7 @@ let runPatch = cmd => {
     | Unix.WEXITED(0) => RunAsync.return()
     | _ =>
       let%lwt () =
-        Esy_logs_lwt.err(m =>
+        Logs_lwt.err(m =>
           m(
             "@[<v>command failed: %a@\nstderr:@[<v 2>@\n%a@]@\nstdout:@[<v 2>@\n%a@]@]",
             Cmd.pp,

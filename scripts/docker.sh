@@ -45,11 +45,18 @@ cp() {
     IMAGE="$1"
     TAG="$2"
     CONTAINER_NAME="$3"
+    CONTAINER_PATH="$4"
+    HOST_PATH="$5"
+    docker cp "$CONTAINER_NAME:$CONTAINER_PATH" "$HOST_PATH"
+}
+
+cp_artifacts() {
+    IMAGE="$1"
+    TAG="$2"
+    CONTAINER_NAME="$3"
     DEV_PATH="$4"
     HOST_RELEASE_PATH="$5"
     mkdir -p "$HOST_RELEASE_PATH/lib" "$HOST_RELEASE_PATH/bin"
-    docker exec -it -w "$DEV_PATH" "$CONTAINER_NAME" ./scripts/opam.sh build
-    docker exec -it -w "$DEV_PATH" "$CONTAINER_NAME" ./scripts/opam.sh install-artifacts
     docker cp "$CONTAINER_NAME:/usr/local/lib/esy" "$HOST_RELEASE_PATH/lib/esy"
     docker cp "$CONTAINER_NAME:/usr/local/bin/esy" "$HOST_RELEASE_PATH/bin"
     docker cp "$CONTAINER_NAME:/usr/local/bin/esyInstallRelease.js" "$HOST_RELEASE_PATH/bin"
@@ -58,7 +65,7 @@ cp() {
 IMAGE_NAME="esydev/esy"
 TAG="nightly-alpine-latest"
 CONTAINER_NAME="esy-container"
-DEV_PATH="/root/app"
+DEV_PATH="/app"
 HOST_RELEASE_PATH="$PWD/_container_release"
 BUILD_CONTEXT="."
 SUB_COMMAND=""
@@ -114,10 +121,17 @@ do
 	"cp")
 	    SUB_COMMAND="docker-cp"
 	    shift
+	    break;
+	    ;;
+	"cp-artifacts")
+	    SUB_COMMAND="docker-cp-artifacts"
+	    shift
+	    break;
 	    ;;
 	"exec")
 	    SUB_COMMAND="docker-exec"
 	    shift
+	    break
 	    ;;
 	"del-container")
 	    SUB_COMMAND="docker-del-container"
@@ -134,15 +148,21 @@ done
 case "$SUB_COMMAND" in
     "docker-build")
 	build "$IMAGE_NAME" "$TAG"
+	break
 	;;
     "docker-run-container")
 	run_container "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$BUILD_CONTEXT"
+	break
 	;;
     "docker-run-container:dev")
 	run_container_dev "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$DEV_PATH"
+	break
 	;;
     "docker-cp")
-	cp "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$DEV_PATH" "$HOST_RELEASE_PATH"
+	cp "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$1" "$2"
+	;;
+    "docker-cp-artifacts")
+	cp_artifacts "$IMAGE_NAME" "$TAG" "$CONTAINER_NAME" "$DEV_PATH" "$HOST_RELEASE_PATH"
 	;;
     "docker-exec")
 	docker exec -it -w "$DEV_PATH" "$CONTAINER_NAME"  $*

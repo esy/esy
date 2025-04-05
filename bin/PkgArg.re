@@ -24,7 +24,7 @@ let parse = v =>
 let root = ByPkgSpec(Root);
 
 let conv = {
-  open Esy_cmdliner;
+  open Cmdliner;
   let parse = v => Rresult.R.error_to_msg(~pp_error=Fmt.string, parse(v));
   Arg.conv(~docv="PACKAGE", (parse, pp));
 };
