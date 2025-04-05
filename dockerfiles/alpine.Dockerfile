@@ -1,4 +1,4 @@
-FROM alpine:latest as builder
+FROM alpine:latest AS builder
 
 RUN apk add pkgconfig yarn make m4 git gcc g++ musl-dev perl perl-utils libbz2 zlib zlib-dev zlib-static autoconf automake bzip2-dev bzip2-static opam bash
 WORKDIR /app-builder
