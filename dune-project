@@ -26,10 +26,10 @@ Easy package management for native Reason, OCaml and more
 ")
  (depends
     angstrom
-    (uuseg (= 14.0.0))
+    uuseg
     (cmdliner (= dev))
     (bos (= dev))
-    (cudf (= 0.9))
+    cudf
     (dose3 (= 7.0.0))
     (ocamlgraph (= 2.0.0))
     dune  
@@ -58,6 +58,6 @@ Easy package management for native Reason, OCaml and more
     re  
     mccs
     yojson  
-    (ocaml (= 4.12.0))
-    (extlib (= 1.7.8))))
+    (ocaml (= 5.2.0))
+    extlib))
 

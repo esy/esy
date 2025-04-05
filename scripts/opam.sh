@@ -16,8 +16,8 @@ install_artifacts() {
     opam exec -- dune install --prefix "$PREFIX"
 }
 
-OPAM_COMPILER_BASE_PACKAGES="--packages=ocaml-variants.4.12.0+options,ocaml-option-flambda"
-# MUSL_STATIC_PACKAGES=",ocaml-option-musl,ocaml-option-static"
+OPAM_COMPILER_BASE_PACKAGES="--packages=ocaml-variants.5.2.0+options,ocaml-option-flambda"
+MUSL_STATIC_PACKAGES=",ocaml-option-musl,ocaml-option-static"
 
 case "$1" in
     "init")

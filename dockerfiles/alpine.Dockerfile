@@ -47,7 +47,6 @@ COPY dune-project /app/
 COPY dune-workspace /app/
 COPY esy.json /app/esy.json
 COPY esy.lock /app/esy.lock
-COPY ./vendors /app/vendors
 COPY ./fastreplacestring /app/fastreplacestring
 RUN /app/scripts/opam.sh build
 RUN /app/scripts/opam.sh install-artifacts
