@@ -168,6 +168,6 @@ let download = (~output, url) => {
     );
   switch%bind (runCurl(cmd)) {
   | Success(_) => RunAsync.return()
-  | NotFound => RunAsync.error("not found")
+  | NotFound => RunAsync.error("Tarball URL not found")
   };
 };
