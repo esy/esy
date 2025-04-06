@@ -184,12 +184,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ()) => {
 };
 
 let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, ()) =>
-  RunAsync.contextf(
-    fetch'(sandbox, dist, gitUsername, gitPassword, ()),
-    "fetching dist: %a",
-    Dist.pp,
-    dist,
-  );
+  fetch'(sandbox, dist, gitUsername, gitPassword, ())
 
 /* unpack fetched dist into directory */
 let unpack = (fetched, path) =>
