@@ -30,7 +30,7 @@ let fetch' = (sandbox, pkg, dists, gitUsername, gitPassword) => {
           let ppErr = (fmt, (source, err)) =>
             Fmt.pf(
               fmt,
-              "source: %a@\nerror: %a",
+              "source: %a@\n%a",
               EsyPackageConfig.Dist.pp,
               source,
               Run.ppError,
