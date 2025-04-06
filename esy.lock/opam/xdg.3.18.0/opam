@@ -1,6 +1,7 @@
 opam-version: "2.0"
-synopsis: "Communicate with dune using rpc"
-description: "Library to connect and control a running dune instance"
+synopsis: "XDG Base Directory Specification"
+description:
+  "https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html"
 maintainer: ["Jane Street Group, LLC <opensource@janestreet.com>"]
 authors: ["Jane Street Group, LLC <opensource@janestreet.com>"]
 license: "MIT"
@@ -9,16 +10,10 @@ doc: "https://dune.readthedocs.io/"
 bug-reports: "https://github.com/ocaml/dune/issues"
 depends: [
   "dune" {>= "3.12"}
-  "csexp"
-  "ordering"
-  "dyn"
-  "xdg"
-  "stdune" {= version}
-  "pp" {>= "1.1.0"}
+  "ocaml" {>= "4.08"}
   "odoc" {with-doc}
 ]
 dev-repo: "git+https://github.com/ocaml/dune.git"
-x-maintenance-intent: ["(latest)"]
 build: [
   ["dune" "subst"] {dev}
   ["rm" "-rf" "vendor/csexp"]
@@ -36,10 +31,10 @@ build: [
 ]
 url {
   src:
-    "https://github.com/ocaml/dune/releases/download/3.17.2/dune-3.17.2.tbz"
+    "https://github.com/ocaml/dune/releases/download/3.18.0/dune-3.18.0.tbz"
   checksum: [
-    "sha256=9deafeed0ecfe9e65e642cd8e6197f0864f73fcd7b94b5b199ae4d2e07a2ea64"
-    "sha512=1e85bb297a12c9571b8645541d85a719deffb619d5e4f48dbf4566ac14e9f385d8a05342698a6f9c81ba17325b1da4ad004a5772d66cd88ed135c43d43e88f9e"
+    "sha256=b7450daeadc3786f6d229f1b8be98a3de1d8d7017446d8c43a3940aa37db2ffb"
+    "sha512=e28d1ac9b25307ca167721760e1cec09f41bd602b88c8a882c1febdf20b5d5db55d38b69ce62cab4ad6552c408a230e465afc1654afe0adb2a7551007c278417"
   ]
 }
-x-commit-hash: "fedec664a6ba500f94ba4558112f52d5719bed4d"
+x-commit-hash: "a6da88b2f54d2043047cef727618842811d8a6a5"
