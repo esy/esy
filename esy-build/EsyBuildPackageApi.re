@@ -125,6 +125,7 @@ let build =
   };
 
   let* (status, log) = run(~logPath?, ~args, cfg, `Build, plan);
+  let packageName = plan.name == "root" ? "Your project" : plan.name;
   switch (status, log) {
   | (Unix.WEXITED(0), Some((_, fd))) =>
     UnixLabels.close(fd);
@@ -139,14 +140,14 @@ let build =
     Run.withContextOfLog(
       ~header="build log:",
       log,
-      Run.errorf("build failed with exit code: %i", code),
+      Run.errorf("%s failed to build. Exit code: %i", packageName, code),
     )
     |> RunAsync.ofRun;
 
   | (Unix.WEXITED(code), None)
   | (Unix.WSIGNALED(code), None)
   | (Unix.WSTOPPED(code), None) =>
-    errorf("build failed with exit code: %i", code)
+    RunAsync.errorf("%s failed to build. Exit code: %i", packageName, code)
   };
 };
 
