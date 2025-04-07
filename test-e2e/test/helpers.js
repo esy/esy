@@ -291,7 +291,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
     return data;
   }
-
   return {
     cd,
     rootPath,

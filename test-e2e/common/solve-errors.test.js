@@ -22,7 +22,6 @@ function expectAndReturnRejection(p): Promise<ChildProcessError> {
 describe('"esy solve" errors', function () {
   it('reports errors about conflict', async () => {
     const p = await helpers.createTestSandbox();
-
     await p.defineNpmPackage({
       name: 'conflict',
       version: '1.0.0',
@@ -56,20 +55,19 @@ describe('"esy solve" errors', function () {
       ),
     );
 
+    console.log(await p.esy('install --skip-repository-update'));
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
+      error No solution found
      
-      Conflicting constraints:
-        root -> dep -> conflict@=1.0.0
-        root -> conflict@=2.0.0
+        Conflicting constraints:
+          root -> dep -> conflict@=1.0.0
+          root -> conflict@=2.0.0
      
-        
-      esy: exiting due to errors above
       `,
     );
   });
@@ -106,14 +104,11 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-     
-      Conflicting constraints:
-        root -> conflict@path:conflict
-        root -> dep -> conflict@path:conflict-other
-     
-        
-      esy: exiting due to errors above
+      error No solution found
+            
+            Conflicting constraints:
+              root -> conflict@path:conflict
+              root -> dep -> conflict@path:conflict-other
       `,
     );
   });
@@ -174,14 +169,11 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-
-      Conflicting constraints:
-        root -> dep -> @opam/conflict@<opam:2.0.0
-        root -> @opam/conflict@=opam:2.0.0
-
-        
-      esy: exiting due to errors above
+      error No solution found
+            
+            Conflicting constraints:
+              root -> dep -> @opam/conflict@<opam:2.0.0
+              root -> @opam/conflict@=opam:2.0.0
       `,
     );
   });
@@ -233,18 +225,15 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-
-      No package matching:
-     
-        root -> dep -> @opam/missing@>opam:1.0.0
-        
-        Versions available:
-        
-          @opam/missing@opam:1.0.0
-     
-        
-      esy: exiting due to errors above
+      error No solution found
+            
+            No package matching:
+            
+              root -> dep -> @opam/missing@>opam:1.0.0
+              
+              Versions available:
+              
+                @opam/missing@opam:1.0.0
       `,
     );
   });
@@ -287,15 +276,11 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-
-      No package matching:
-     
-        root -> dep -> @opam/missing@>opam:1.0.0
-        
-     
-        
-      esy: exiting due to errors above
+      error No solution found
+            
+            No package matching:
+            
+              root -> dep -> @opam/missing@>opam:1.0.0
       `,
     );
   });
@@ -328,15 +313,14 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-
-      No package matching:
-     
-        root -> missing@>1.0.0
-        
-
-        resolving request missing@>1.0.0
-      esy: exiting due to errors above
+      error No solution found
+            
+            No package matching:
+            
+              root -> missing@>1.0.0
+              
+            
+              resolving request missing@>1.0.0
       `,
     );
   });
@@ -360,15 +344,14 @@ describe('"esy solve" errors', function () {
       info install ${version} (using package.json)
       info resolving esy packages: done
       info solving esy constraints: done
-      error: No solution found:
-
-      No package matching:
-     
-        root -> missing@>1.0.0
-        
-
-        resolving request missing@>1.0.0
-      esy: exiting due to errors above
+      error No solution found
+            
+            No package matching:
+            
+              root -> missing@>1.0.0
+              
+            
+              resolving request missing@>1.0.0
       `,
     );
   });
@@ -390,9 +373,8 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      error: path 'missing' does not exist
-        resolving missing@path:missing
-      esy: exiting due to errors above
+      error path 'missing' does not exist
+              resolving missing@path:missing
       `,
     );
   });
@@ -417,10 +399,11 @@ describe('"resolutions" misconfiguration errors', function () {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      error: parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-        reading package metadata from link-dev:./package.json
-        loading root package metadata
-      esy: exiting due to errors above
+      esy: 
+           
+           parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+               reading package metadata from link-dev:./package.json
+               loading root package metadata
       `,
     );
   });
@@ -448,10 +431,11 @@ describe('"resolutions" misconfiguration errors', function () {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      error: parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-        reading package metadata from link-dev:./package.json
-        loading root package metadata
-      esy: exiting due to errors above
+      esy: 
+           
+           parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+               reading package metadata from link-dev:./package.json
+               loading root package metadata
       `,
     );
   });
@@ -475,9 +459,8 @@ describe('"resolutions" misconfiguration errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      error: somepath/pkg doesn't exist
-        reading package metadata from link:somepath/pkg
-      esy: exiting due to errors above
+      error somepath/pkg doesn't exist
+              reading package metadata from link:somepath/pkg
       `,
     );
   });
@@ -502,9 +485,8 @@ describe('"resolutions" misconfiguration errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      error: unable to read manifests from some.json
-        reading package metadata from link:somepath/some.json
-      esy: exiting due to errors above
+      error unable to read manifests from some.json
+              reading package metadata from link:somepath/some.json
       `,
     );
   });
