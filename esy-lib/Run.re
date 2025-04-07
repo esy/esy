@@ -18,23 +18,16 @@ let ppContextItem = fmt =>
 let ppContext = (fmt, context) =>
   Fmt.(list(~sep=any("@\n"), ppContextItem))(fmt, List.rev(context));
 
-let ppError = (fmt, (msg, context)) =>
-  Fmt.pf(
-    fmt,
-    "@[<v 2>@[<h>%a@]@\n%a@]",
-    Fmt.text,
-    msg,
-    ppContext,
-    context,
-  );
+let ppError = (fmt, (msg, context)) => {
+  switch (context) {
+  | [] => Fmt.pf(fmt, "@[<v 2>@[<h>%a@]@]", Fmt.text, msg)
+  | context =>
+    Fmt.pf(fmt, "@[<v 2>@[<h>%a@]@\n%a@]", Fmt.text, msg, ppContext, context)
+  };
+};
 
 let ppErrorSimple = (fmt, (msg, _context)) =>
-  Fmt.pf(
-    fmt,
-    "@[<h 2>%a@]",
-    Fmt.text,
-    msg,
-  );
+  Fmt.pf(fmt, "@[<h 2>%a@]", Fmt.text, msg);
 
 let return = v => Ok(v);
 
