@@ -55,7 +55,6 @@ describe('"esy solve" errors', function () {
       ),
     );
 
-    console.log(await p.esy('install --skip-repository-update'));
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
@@ -63,11 +62,10 @@ describe('"esy solve" errors', function () {
       info resolving esy packages: done
       info solving esy constraints: done
       error No solution found
-     
-        Conflicting constraints:
-          root -> dep -> conflict@=1.0.0
-          root -> conflict@=2.0.0
-     
+            
+            Conflicting constraints:
+              root -> dep -> conflict@=1.0.0
+              root -> conflict@=2.0.0
       `,
     );
   });
