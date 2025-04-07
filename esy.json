@@ -60,7 +60,7 @@
     "@reason-native/rely": "git+https://github.com/reasonml/reason-native.git:rely.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8",
     "@opam/rresult": "opam:0.6.0",
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
-    "@opam/cmdliner": "esy-ocaml/cmdliner:cmdliner.opam#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c",
+    "@opam/cmdliner": "esy-ocaml/cmdliner:cmdliner.opam#a1a75b3beb8fc7fbdd52e3edb29dc1198448c37a",
     "@opam/sexplib0": "janestreet/sexplib0:sexplib0.opam#0ac31c25e9c2111085546d5b9b0c83ed446aa9bd",
     "@opam/parmap": "opam:1.2.1"
   },
