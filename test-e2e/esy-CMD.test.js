@@ -75,7 +75,7 @@ describe(`'esy CMD' invocation`, () => {
     const p = await createTestSandbox();
     await expect(p.esy('dep.cmd')).rejects.toMatchObject({
       message: expect.stringMatching(
-        'error: project is missing a lock, run `esy install`',
+        'error Project is missing lock files. Run `esy install`',
       ),
     });
   });
@@ -281,7 +281,7 @@ describe(`'esy CMD' invocation`, () => {
     {
       await expect(p.esy('dep.cmd')).rejects.toMatchObject({
         message: expect.stringMatching(
-          'error: project is missing a lock, run `esy install`',
+          'error Project is missing lock files. Run `esy install`',
         ),
       });
     }
@@ -297,7 +297,7 @@ describe(`'esy CMD' invocation`, () => {
     {
       await expect(p.esy('@dev dep.cmd')).rejects.toMatchObject({
         message: expect.stringMatching(
-          'error: project is missing a lock, run `esy \'@dev\' install`',
+          'error Project is missing lock files. Run `esy \'@dev\' install`',
         ),
       });
     }

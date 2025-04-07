@@ -308,7 +308,7 @@ let makeSolved =
     return({solution, fetched});
   | None =>
     errorf(
-      "project is missing a lock, run `%s`",
+      "Project is missing lock files. Run `%s`",
       getInstallCommand(projcfg.spec),
     )
   };
@@ -660,8 +660,8 @@ module OfTerm = {
     Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
   };
 
-  let term =
-    Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm));
+  let term = promiseTerm;
+    /* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
 };
 
 include OfTerm;
