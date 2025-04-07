@@ -21,11 +21,19 @@ let ppContext = (fmt, context) =>
 let ppError = (fmt, (msg, context)) =>
   Fmt.pf(
     fmt,
-    "@[<v 2>@[<h>error: %a@]@\n%a@]",
+    "@[<v 2>@[<h>%a@]@\n%a@]",
     Fmt.text,
     msg,
     ppContext,
     context,
+  );
+
+let ppErrorSimple = (fmt, (msg, _context)) =>
+  Fmt.pf(
+    fmt,
+    "@[<h 2>%a@]",
+    Fmt.text,
+    msg,
   );
 
 let return = v => Ok(v);

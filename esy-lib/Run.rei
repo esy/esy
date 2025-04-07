@@ -52,6 +52,7 @@ let withContextOfLog: (~header: string=?, string, t('a)) => t('a);
 let formatError: error => string;
 
 let ppError: Fmt.t(error);
+let ppErrorSimple: Fmt.t(error);
 
 /**
  * Run computation and raise an exception in case of failure.
