@@ -282,6 +282,5 @@ let runAsyncToCmdlinerRet = res =>
   | Ok(v) => `Ok(v)
   | Error(error) =>
     Lwt_main.run(ProgressReporter.clearStatus());
-    Format.fprintf(Format.err_formatter, "@[%a@]@.", Run.ppError, error);
-    `Error((false, "exiting due to errors above"));
+    `Error((false, Format.asprintf( "\n\n%a", Run.ppError, error)));
   };

@@ -1669,10 +1669,17 @@ let makeCommand =
         | `No => ()
         };
 
-      Cli.runAsyncToCmdlinerRet(comp);
+      let comp = Lwt_main.run @@ comp;
+      switch (comp) {
+      | Ok() => ()
+      | Error(error) =>
+        Lwt_main.run(EsyLib.Cli.ProgressReporter.clearStatus());
+        Logs.err(m => m( "\n\n%a", Run.ppError, error));
+      };
+      0;
     };
 
-    Cmdliner.Term.(ret(app(const(f), cmd)));
+    Cmdliner.Term.(const(f) $ cmd);
   };
 
   (cmd, info);
@@ -1710,7 +1717,6 @@ let commandsConfig = {
             )
           | `No => ()
           };
-
         cmd(project);
       };
 
@@ -2376,6 +2382,6 @@ let () = {
   commands
   |> List.map(~f=((term, info)) => Cmdliner.Cmd.v(info, term))
   |> Cmdliner.Cmd.group(~default=defaultTerm, defaultInfo)
-  |> Cmdliner.Cmd.eval(~main_on_err=true, ~stop_on_pos=true, ~argv)
+  |> Cmdliner.Cmd.eval'(~main_on_err=true, ~stop_on_pos=true, ~argv)
   |> exit;
 };
