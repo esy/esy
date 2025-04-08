@@ -277,10 +277,10 @@ let setupLogTerm = {
   );
 };
 
-let runAsyncToCmdlinerRet = res =>
-  switch (Lwt_main.run(res)) {
-  | Ok(v) => `Ok(v)
-  | Error(error) =>
-    Lwt_main.run(ProgressReporter.clearStatus());
-    `Error((false, Format.asprintf( "\n\n%a", Run.ppError, error)));
-  };
+/* let runAsyncToCmdlinerRet = res => */
+/*   switch (Lwt_main.run(res)) { */
+/*   | Ok(v) => `Ok(v) */
+/*   | Error(error) => */
+/*     Lwt_main.run(ProgressReporter.clearStatus()); */
+/*     `Error((false, error)); */
+/*   }; */

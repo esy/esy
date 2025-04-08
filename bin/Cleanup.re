@@ -23,7 +23,8 @@ let getAllSourceEntries = prefixPath => {
   allCacheEntries' |> List.map(~f=x => Path.(basePath / x)) |> RunAsync.return;
 };
 
-let main = (projCfgs: list(ProjectConfig.t), dryRun) => {
+let main = (projCfgs: RunAsync.t(list(ProjectConfig.t)), dryRun) => {
+  let* projCfgs = projCfgs;
   let* prefixPath = {
     let* prefixPathViaEsyRc =
       RunAsync.try_(
