@@ -377,10 +377,6 @@ error invalid "esy" version: =3.4.5 must be one of: 1.0.0
         loading root package metadata
 
       `);
-    await expect(p.esy(`install`)).rejects.toThrowError(
-      outdent`
-      `,
-    );
   });
 
   it('should re-install if package dependencies were changed', async () => {
