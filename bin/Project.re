@@ -308,7 +308,7 @@ let makeSolved =
     return({solution, fetched});
   | None =>
     errorf(
-      "project is missing a lock, run `%s`",
+      "Project is missing lock files. Run `%s`",
       getInstallCommand(projcfg.spec),
     )
   };
