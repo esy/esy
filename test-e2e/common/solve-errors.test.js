@@ -12,12 +12,7 @@ type ChildProcessError = {
   stderr: string,
 };
 
-function expectAndReturnRejection(p): Promise<ChildProcessError> {
-  return (p.then(
-    () => expect(true).toBe(false),
-    (err) => err,
-  ): any);
-}
+const { expectAndReturnRejection } = helpers;
 
 describe('"esy solve" errors', function () {
   it('reports errors about conflict', async () => {

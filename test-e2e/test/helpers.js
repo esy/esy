@@ -416,6 +416,13 @@ function createDefineTest(params) {
   return deftest;
 }
 
+function expectAndReturnRejection(p): Promise<ChildProcessError> {
+  return (p.then(
+    () => expect(true).toBe(false),
+    (err) => err,
+  ): any);
+}
+
 module.exports = {
   test: createDefineTest({disabled: false, focused: false}),
   normalizeEOL,
@@ -451,4 +458,5 @@ module.exports = {
   isMacos,
   COMMAND_FAILED: expect.stringMatching('command failed'),
   COMMAND_NOT_FOUND: expect.stringMatching(isWindows ? 'command not found': 'unable to resolve command'),
+  expectAndReturnRejection
 };
