@@ -397,11 +397,9 @@ describe('"resolutions" misconfiguration errors', function () {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      esy: 
-           
-           parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-               reading package metadata from link-dev:./package.json
-               loading root package metadata
+      error parsing "github:author/pkg": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+              reading package metadata from link-dev:./package.json
+              loading root package metadata
       `,
     );
   });
@@ -429,11 +427,9 @@ describe('"resolutions" misconfiguration errors', function () {
     const err = await expectAndReturnRejection(p.esy('install --skip-repository-update'));
     expect(err.stderr.trim()).toEqual(
       outdent`
-      esy: 
-           
-           parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-               reading package metadata from link-dev:./package.json
-               loading root package metadata
+      error parsing "author/pkg#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
+              reading package metadata from link-dev:./package.json
+              loading root package metadata
       `,
     );
   });

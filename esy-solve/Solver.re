@@ -168,7 +168,7 @@ module Explanation = {
       Fmt.pf(fmt, "@[<v>%a@;@]", Fmt.list(~sep, Reason.pp), reasons);
     };
 
-    Fmt.pf(fmt, "@[<v>No solution found:@;@;%a@]", ppReasons, reasons);
+    Fmt.pf(fmt, "@[<v>No solution found@;@;%a@]", ppReasons, reasons);
   };
 
   let collectReasons = (cudfMapping, solver, reasons, opamRegistries) => {
