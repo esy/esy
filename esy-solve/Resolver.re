@@ -713,7 +713,7 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
         let* manifest =
           RunAsync.ofRun(
             {
-              let version = OpamPackage.Version.of_string("dev");
+              let version = Obj.magic @@ Source.show(source); // OpamPackage.Version.of_string("dev");
               OpamManifest.ofString(~name=opamname, ~version, data);
             },
           );
