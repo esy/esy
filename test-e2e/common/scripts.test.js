@@ -150,7 +150,7 @@ skipOnWindows('does execute scripts in a non-root package scope', async () => {
   await p.esy('build');
 
   await expect(p.esy('-p dep cmd1')).rejects.toMatchObject({
-    message: expect.stringMatching('error: unable to resolve command: cmd1'),
+    message: expect.stringMatching('error unable to resolve command: cmd1'),
   });
 });
 
@@ -178,6 +178,6 @@ it('run-script fails when script is not found', async () => {
   await p.esy('install');
 
   await expect(p.esy('run-script non-existent')).rejects.toMatchObject({
-    message: expect.stringMatching("error: Script 'non-existent' not found"),
+    message: expect.stringMatching("error Script 'non-existent' not found"),
   });
 });
