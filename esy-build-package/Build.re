@@ -29,6 +29,8 @@ let exePath = () => {
 
 let resolveRelativeTo = (~internalCommandName, path) => {
   let dir = Path.(path |> parent);
+  // Why does it quoted?
+  let dir = Path.show(dir) |> Str.global_replace(Str.regexp("'"), "") |> Path.v;
   let path = Path.(dir / internalCommandName);
   let path =
     EsyLib.System.Platform.isWindows ? Path.addExt("exe", path) : path;
