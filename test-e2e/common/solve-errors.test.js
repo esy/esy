@@ -54,7 +54,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -95,7 +95,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -160,7 +160,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -216,7 +216,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -267,7 +267,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -304,7 +304,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             
@@ -335,7 +335,7 @@ describe('"esy solve" errors', function () {
     expect(err.stderr.trim()).toEqual(
       outdent`
       info install ${version} (using package.json)
-      info resolving esy packages: done
+      info evaluating esy package metadata: done
       info solving esy constraints: done
       error No solution found
             

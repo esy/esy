@@ -86,7 +86,7 @@ let createProgressReporter = (~name, ()) => {
 
   let finish = () => {
     let%lwt () = ProgressReporter.clearStatus();
-    Logs_lwt.app(m => m("%s: done", name));
+    Logs_lwt.app(m => m("%s: %s", name, <Pastel color={Pastel.Green}> "done" </Pastel>));
   };
 
   (progress, finish);

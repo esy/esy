@@ -44,7 +44,7 @@ let readJsonFile = (path: Path.t) => {
   let* data = readFile(path);
   try(return(Yojson.Safe.from_string(data))) {
   | Yojson.Json_error(msg) =>
-    errorf("error reading JSON file: %a@\n%s", Path.pp, path, msg)
+    errorf("while reading JSON file: %a@\n%s", Path.pp, path, msg)
   };
 };
 

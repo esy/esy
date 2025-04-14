@@ -72,7 +72,7 @@ let ppEntry = (ppf, (os, arch)) =>
   Fmt.pf(ppf, "%a %a", System.Platform.pp, os, System.Arch.pp, arch);
 
 let pp = (ppf, v) => {
-  let sep = Fmt.any("@");
+  let sep = Fmt.any(", ");
   Fmt.hbox(Fmt.list(~sep, ppEntry), ppf, Set.elements(v));
 };
 

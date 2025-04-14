@@ -1530,7 +1530,8 @@ let show = (_asJson, req, proj: RunAsync.t(Project.t)) => {
         ~opamRegistries=proj.opamRegistries,
         resolver,
       ),
-      "resolving %a",
+      "%s %a",
+      <Pastel dim=true> "resolving" </Pastel>,
       Req.pp,
       req,
     );

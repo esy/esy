@@ -27,8 +27,11 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     | Config.Local(path) => return(path)
     | Config.Remote(remote, local) =>
       let update = () => {
-        let%lwt () =
-          Logs_lwt.app(m => m("checking %s for updates...", remote));
+        let%lwt () = Logs_lwt.app(m => m("%s %s %s",
+        <Pastel dim=true> "checking" </Pastel>,
+        remote,
+        <Pastel dim=true>"for updates..."</Pastel>
+        ));
         let* () =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,
