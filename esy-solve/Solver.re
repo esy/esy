@@ -1292,12 +1292,6 @@ let solve =
       ~expected=expectedPlatforms,
       baseSolution,
     );
-  let%lwt () =
-    Logs_lwt.app(m =>
-      m(
-        "The following packages are problematic and dont build on specified platform",
-      )
-    );
   let unSupportedPlatforms = ref(EsyOpamLibs.AvailablePlatforms.empty);
   let f = ((package, platforms)) => {
     unSupportedPlatforms :=
@@ -1312,7 +1306,15 @@ let solve =
       )
     );
   };
-  let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
+
+  let%lwt () =
+    switch(unPortableDependencies) {
+    | [] => Lwt.return();
+    | unPortableDependencies =>
+      let%lwt () =
+      Logs_lwt.app(m => m("The following packages are problematic and dont build on specified platform"));
+      List.map(~f, unPortableDependencies) |> Lwt.join;
+    };
 
   let* platformSpecificSolutions =
     if (EsyOpamLibs.AvailablePlatforms.isEmpty(unSupportedPlatforms^)) {
