@@ -1,5 +1,5 @@
 {
-  "checksum": "87afafe06cc74e52f2981ad20ec007d4",
+  "checksum": "ff811e6d850f176a8b1e389f2888441e",
   "root": "@esy-nightly/esy@link-dev:./esy.json",
   "node": {
     "ocaml@5.2.0@d41d8cd9": {
@@ -4079,6 +4079,7 @@
         "@opam/ppx_expect@opam:v0.17.2@ab3d03a8",
         "@opam/ppx_deriving_yojson@opam:3.9.1@a0df7828",
         "@opam/ppx_deriving@opam:6.0.3@8c6919fd",
+        "@opam/pastel@git:https://github.com/reasonml/reason-native.git:pastel.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8@d41d8cd9",
         "@opam/opam-state@opam:2.3.0@1b8790e1",
         "@opam/opam-format@opam:2.3.0@ac5052a1",
         "@opam/opam-file-format@opam:2.1.6@15a161af",
@@ -8159,6 +8160,7 @@
           "@opam/ppx_expect@opam:v0.17.2@ab3d03a8",
           "@opam/ppx_deriving_yojson@opam:3.9.1@a0df7828",
           "@opam/ppx_deriving@opam:6.0.3@8c6919fd",
+          "@opam/pastel@git:https://github.com/reasonml/reason-native.git:pastel.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8@d41d8cd9",
           "@opam/opam-state@opam:2.3.0@1b8790e1",
           "@opam/opam-format@opam:2.3.0@ac5052a1",
           "@opam/opam-file-format@opam:2.1.6@15a161af",
@@ -12239,6 +12241,7 @@
           "@opam/ppx_expect@opam:v0.17.2@ab3d03a8",
           "@opam/ppx_deriving_yojson@opam:3.9.1@a0df7828",
           "@opam/ppx_deriving@opam:6.0.3@8c6919fd",
+          "@opam/pastel@git:https://github.com/reasonml/reason-native.git:pastel.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8@d41d8cd9",
           "@opam/opam-state@opam:2.3.0@1b8790e1",
           "@opam/opam-format@opam:2.3.0@ac5052a1",
           "@opam/opam-file-format@opam:2.1.6@15a161af",
@@ -16319,6 +16322,7 @@
           "@opam/ppx_expect@opam:v0.17.2@ab3d03a8",
           "@opam/ppx_deriving_yojson@opam:3.9.1@a0df7828",
           "@opam/ppx_deriving@opam:6.0.3@8c6919fd",
+          "@opam/pastel@git:https://github.com/reasonml/reason-native.git:pastel.opam#20b1997b6451d9715dfdbeec86a9d274c7430ed8@d41d8cd9",
           "@opam/opam-state@opam:2.3.0@1b8790e1",
           "@opam/opam-format@opam:2.3.0@ac5052a1",
           "@opam/opam-file-format@opam:2.1.6@15a161af",

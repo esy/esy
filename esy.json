@@ -65,6 +65,7 @@
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
+    "@opam/pastel": "*",
     "@opam/ppxlib": "*",
     "@opam/mccs": "*",
     "esy-zlib": "*",
