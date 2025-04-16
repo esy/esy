@@ -40,7 +40,7 @@ pin-depends: [
 ]
   [
   "cmdliner.dev"
-  "git+https://github.com/esy-ocaml/cmdliner.git#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c"
+  "git+https://github.com/esy-ocaml/cmdliner.git#a1a75b3beb8fc7fbdd52e3edb29dc1198448c37a"
 ]
   [
   "file-context-printer.dev"
