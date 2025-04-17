@@ -103,7 +103,10 @@ module CLI = {
         `Error((false, "error running command: " ++ Bos.Cmd.to_string(cmd)))
       };
 
-    Cmdliner.Cmd.v(info, Term.(ret(const(cmd) $ origPrefix $ destPrefix $ path)));
+    Cmdliner.Cmd.v(
+      info,
+      Term.(ret(const(cmd) $ origPrefix $ destPrefix $ path)),
+    );
   };
 
   let run = () => {

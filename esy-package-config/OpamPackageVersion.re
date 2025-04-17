@@ -40,9 +40,15 @@ let caretRange = v =>
     open Result.Syntax;
     let ve =
       if (v.major == 0) {
-        {...v, minor: v.minor + 1};
+        {
+          ...v,
+          minor: v.minor + 1,
+        };
       } else {
-        {...v, major: v.major + 1};
+        {
+          ...v,
+          major: v.major + 1,
+        };
       };
 
     let* v = Version.ofSemver(v);
@@ -55,7 +61,10 @@ let tildaRange = v =>
   switch (SemverVersion.Version.parse(v)) {
   | Ok(v) =>
     open Result.Syntax;
-    let ve = {...v, minor: v.minor + 1};
+    let ve = {
+      ...v,
+      minor: v.minor + 1,
+    };
     let* v = Version.ofSemver(v);
     let* ve = Version.ofSemver(ve);
     [@implicit_arity] Ok(v, ve);

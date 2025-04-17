@@ -21,7 +21,12 @@ let ofDir = base => {
         if%bind (Fs.isDir(Path.(root / name))) {
           loop(Path.(sub / name));
         } else {
-          return([{name: Path.(sub / name), root: base}]);
+          return([
+            {
+              name: Path.(sub / name),
+              root: base,
+            },
+          ]);
         };
 
       let* lists = RunAsync.List.mapAndJoin(~concurrency=20, ~f, files);

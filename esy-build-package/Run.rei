@@ -5,7 +5,10 @@
  */
 
 type err('b) =
-  [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
+  [>
+    | `Msg(string)
+    | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+  ] as 'b;
 
 /** Computation which might succeed or fail. */
 type t('v, 'e) = result('v, err('e));
@@ -19,7 +22,13 @@ let ( let* ): (result('a, 'c), 'a => result('b, 'c)) => result('b, 'c);
 
 let coerceFromMsgOnly: result('a, [ | `Msg(string)]) => t('a, _);
 let coerceFromClosed:
-  result('a, [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)]) =>
+  result(
+    'a,
+    [
+      | `Msg(string)
+      | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+    ],
+  ) =>
   t('a, _);
 
 /** Run computation and fail with exception in case of err, only to be used for

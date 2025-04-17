@@ -15,7 +15,11 @@ let make = (name, version, digest) => {
     | None => None
     };
 
-  {name, version, digest};
+  {
+    name,
+    version,
+    digest,
+  };
 };
 let name = ({name, _}) => name;
 let version = ({version, _}) => version;
@@ -52,10 +56,18 @@ let parse = v => {
   switch (split(v)) {
   | Some((version, digest)) =>
     let* version = parseVersion(version);
-    return({name, version, digest: Some(digest)});
+    return({
+      name,
+      version,
+      digest: Some(digest),
+    });
   | None =>
     let* version = parseVersion(v);
-    return({name, version, digest: None});
+    return({
+      name,
+      version,
+      digest: None,
+    });
   };
 };
 

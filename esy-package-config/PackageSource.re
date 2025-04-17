@@ -85,17 +85,34 @@ let of_yojson = json => {
       };
 
     let* opam = fieldOptWith(~name="opam", opam_of_yojson, json);
-    Ok(Install({source, opam}));
+    Ok(
+      Install({
+        source,
+        opam,
+      }),
+    );
   | "link" =>
     let* path = fieldWith(~name="path", DistPath.of_yojson, json);
     let* manifest =
       fieldOptWith(~name="manifest", ManifestSpec.of_yojson, json);
-    Ok(Link({path, manifest, kind: LinkRegular}));
+    Ok(
+      Link({
+        path,
+        manifest,
+        kind: LinkRegular,
+      }),
+    );
   | "link-dev" =>
     let* path = fieldWith(~name="path", DistPath.of_yojson, json);
     let* manifest =
       fieldOptWith(~name="manifest", ManifestSpec.of_yojson, json);
-    Ok(Link({path, manifest, kind: LinkDev}));
+    Ok(
+      Link({
+        path,
+        manifest,
+        kind: LinkDev,
+      }),
+    );
   | typ => errorf("unknown source type: %s", typ)
   };
 };

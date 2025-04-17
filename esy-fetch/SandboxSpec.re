@@ -129,7 +129,10 @@ let ofPath = path => {
         };
       };
 
-    return({path, manifest});
+    return({
+      path,
+      manifest,
+    });
   };
 
   let ofFile = path => {

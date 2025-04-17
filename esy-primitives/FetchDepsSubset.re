@@ -7,5 +7,8 @@ type t = {
 
 let everything = {
   let all = FetchDepSpec.(dependencies(self) + devDependencies(self));
-  {all, dev: all};
+  {
+    all,
+    dev: all,
+  };
 };

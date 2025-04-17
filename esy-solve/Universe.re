@@ -31,7 +31,10 @@ type t = {
 
 type univ = t;
 
-let empty = resolver => {pkgs: StringMap.empty, resolver};
+let empty = resolver => {
+  pkgs: StringMap.empty,
+  resolver,
+};
 
 let add = (~pkg, univ: t) => {
   let {InstallManifest.name, version, _} = pkg;
@@ -43,7 +46,10 @@ let add = (~pkg, univ: t) => {
 
   let pkgs =
     StringMap.add(name, Version.Map.add(version, pkg, versions), univ.pkgs);
-  {...univ, pkgs};
+  {
+    ...univ,
+    pkgs,
+  };
 };
 
 let mem = (~pkg, univ: t) =>

@@ -41,9 +41,18 @@ let isVisited = (visitedMap, node) => {
 let iterator = solution => {
   let queue = Queue.create();
   let root = Solution.root(solution);
-  Queue.push({data: root, parent: None}, queue);
+  Queue.push(
+    {
+      data: root,
+      parent: None,
+    },
+    queue,
+  );
   let visited = PackageId.Map.empty;
-  {queue, visited};
+  {
+    queue,
+    visited,
+  };
 };
 let take = (~traverse, iterable) => {
   let {queue, visited} = iterable;
@@ -51,12 +60,24 @@ let take = (~traverse, iterable) => {
     let {data: pkg, _} = node;
     let f = childNode =>
       if (!isVisited(visited, childNode)) {
-        Queue.push({parent: Some(lazy(node)), data: childNode}, queue);
+        Queue.push(
+          {
+            parent: Some(lazy(node)),
+            data: childNode,
+          },
+          queue,
+        );
       };
     pkg |> traverse |> List.iter(~f);
     let visited =
       PackageId.Map.update(pkg.Package.id, _ => Some(true), visited);
-    (node, {queue, visited});
+    (
+      node,
+      {
+        queue,
+        visited,
+      },
+    );
   };
   queue |> Queue.take_opt |> Option.map(~f=dequeue);
 };

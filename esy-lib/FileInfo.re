@@ -9,10 +9,16 @@ let ofPath = (path: Path.t) =>
     RunAsync.contextf(
       switch%lwt (Lwt_unix.stat(Path.show(path))) {
       | {st_kind: Unix.S_REG, st_mtime, _} =>
-        return({path, mtime: Some(st_mtime)})
+        return({
+          path,
+          mtime: Some(st_mtime),
+        })
       | {st_kind: _, _} => error("expected a regular file")
       | exception ([@implicit_arity] Unix.Unix_error(Unix.ENOENT, "stat", _)) =>
-        return({path, mtime: None})
+        return({
+          path,
+          mtime: None,
+        })
       },
       "reading file info for %a",
       Path.pp,

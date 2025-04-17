@@ -7,13 +7,23 @@ module Let_syntax = Result.Syntax.Let_syntax;
 let ( let* ) = Result.Syntax.( let* );
 
 type err('b) =
-  [> | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)] as 'b;
+  [>
+    | `Msg(string)
+    | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+  ] as 'b;
 
 type t('v, 'e) = result('v, err('e));
 
 let coerceFromMsgOnly = x => (x: result(_, [ | `Msg(string)]) :> t(_, _));
 let coerceFromClosed = x => (
-  x: result(_, [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)]) :>
+  x:
+    result(
+      _,
+      [
+        | `Msg(string)
+        | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+      ],
+    ) :>
     t(_, _)
 );
 

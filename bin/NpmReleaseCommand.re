@@ -678,8 +678,8 @@ let make =
               )
             % "unix.cmxa"
             % "str.cmxa"
-            % EsyLib.Path.normalizePathSepOfFilename(p(mlPath))
-          ) /* Needs to have ocaml in environment */;
+            % EsyLib.Path.normalizePathSepOfFilename(p(mlPath)) /* Needs to have ocaml in environment */
+          );
         let* env =
           switch (System.Platform.host) {
           | Windows =>

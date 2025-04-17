@@ -1,8 +1,18 @@
 (library
  (name TestE2E)
  (ocamlopt_flags -linkall -g)
- (libraries EsyLib EsyPackageConfig rely.lib logs logs.cli cmdliner bos fmt
-   fmt.cli fmt.tty rresult)
+ (libraries
+  EsyLib
+  EsyPackageConfig
+  rely.lib
+  logs
+  logs.cli
+  cmdliner
+  bos
+  fmt
+  fmt.cli
+  fmt.tty
+  rresult)
  (preprocess
   (pps
    lwt_ppx

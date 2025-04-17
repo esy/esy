@@ -35,20 +35,35 @@ let cache = (fetched, tarballPath) =>
       let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let* () = Fs.rmPath(unpackPath);
-      return(Tarball({tarballPath, stripComponents: 0}));
+      return(
+        Tarball({
+          tarballPath,
+          stripComponents: 0,
+        }),
+      );
     | SourcePath(path) =>
       let* tempTarballPath = Fs.randomPathVariation(tarballPath);
       let* () = Tarball.create(~filename=tempTarballPath, path);
       let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
-      return(Tarball({tarballPath, stripComponents: 0}));
+      return(
+        Tarball({
+          tarballPath,
+          stripComponents: 0,
+        }),
+      );
     | Path(path) =>
       let* tempTarballPath = Fs.randomPathVariation(tarballPath);
       let* () = Tarball.create(~filename=tempTarballPath, path);
       let* () =
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let* () = Fs.rmPath(path);
-      return(Tarball({tarballPath, stripComponents: 0}));
+      return(
+        Tarball({
+          tarballPath,
+          stripComponents: 0,
+        }),
+      );
     | Tarball(info) =>
       let* tempTarballPath = Fs.randomPathVariation(tarballPath);
       let* unpackPath = Fs.randomPathVariation(info.tarballPath);
@@ -59,12 +74,20 @@ let cache = (fetched, tarballPath) =>
         Fs.rename(~skipIfExists=true, ~src=tempTarballPath, tarballPath);
       let* () = Fs.rmPath(info.tarballPath);
       let* () = Fs.rmPath(unpackPath);
-      return(Tarball({tarballPath, stripComponents: 0}));
+      return(
+        Tarball({
+          tarballPath,
+          stripComponents: 0,
+        }),
+      );
     }
   );
 
 let ofCachedTarball = path =>
-  Tarball({tarballPath: path, stripComponents: 0});
+  Tarball({
+    tarballPath: path,
+    stripComponents: 0,
+  });
 let ofDir = path => SourcePath(path);
 
 let fetch' = (sandbox, dist, gitUsername, gitPassword, ()) => {
@@ -87,7 +110,12 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ()) => {
         let* () = Checksum.checkFile(~path=tarballPath, checksum);
         let* () = Fs.createDir(Path.parent(path));
         let* () = Fs.rename(~skipIfExists=true, ~src=tarballPath, path);
-        return(Tarball({tarballPath: path, stripComponents: 1}));
+        return(
+          Tarball({
+            tarballPath: path,
+            stripComponents: 1,
+          }),
+        );
       },
     );
 
@@ -184,7 +212,7 @@ let fetch' = (sandbox, dist, gitUsername, gitPassword, ()) => {
 };
 
 let fetch = (_cfg, sandbox, dist, gitUsername, gitPassword, ()) =>
-  fetch'(sandbox, dist, gitUsername, gitPassword, ())
+  fetch'(sandbox, dist, gitUsername, gitPassword, ());
 
 /* unpack fetched dist into directory */
 let unpack = (fetched, path) =>

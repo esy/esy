@@ -5,7 +5,14 @@ let empty = StringMap.empty;
 let find = (resolutions, name) => StringMap.find_opt(name, resolutions);
 
 let add = (name, resolution, resolutions) =>
-  StringMap.add(name, {Resolution.name, resolution}, resolutions);
+  StringMap.add(
+    name,
+    {
+      Resolution.name,
+      resolution,
+    },
+    resolutions,
+  );
 
 let entries = StringMap.values;
 
@@ -47,11 +54,18 @@ let of_yojson = {
 
       return({
         Resolution.name,
-        resolution: VersionOverride({version, override: None}),
+        resolution:
+          VersionOverride({
+            version,
+            override: None,
+          }),
       });
     | `Assoc(_) =>
       let* resolution = Resolution.resolution_of_yojson(json);
-      return({Resolution.name, resolution});
+      return({
+        Resolution.name,
+        resolution,
+      });
     | _ => Error("expected string")
     };
 

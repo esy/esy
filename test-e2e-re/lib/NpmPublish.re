@@ -16,7 +16,10 @@ let toString = data => {
 };
 
 let make = (~name, ~version, ()) => {
-  {name, version: Version.parseExn(version)};
+  {
+    name,
+    version: Version.parseExn(version),
+  };
 };
 /* When using npm, i've seemed to hit quite few issues */
 let npmPublish = Cmd.(v("yarn") % "publish");
@@ -40,7 +43,10 @@ let publish = (package, registry) => {
   let* _ = OS.Dir.create(root);
 
   let fixture =
-    Fixture.FixtureFile({name: "package.json", data: toString(package)});
+    Fixture.FixtureFile({
+      name: "package.json",
+      data: toString(package),
+    });
   let* () = Fixture.layout(root, fixture);
   let* () = putRc(root, registry);
 

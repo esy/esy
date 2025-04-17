@@ -14,13 +14,27 @@ type t = StringMap.t(item);
 
 let empty = StringMap.empty;
 
-let set = (name, value) => {name, value: Set(value)};
-let unset = name => {name, value: Unset};
+let set = (name, value) => {
+  name,
+  value: Set(value),
+};
+let unset = name => {
+  name,
+  value: Unset,
+};
 
 let item_of_yojson = (name, json) =>
   switch (json) {
-  | `String(value) => Ok({name, value: Set(value)})
-  | `Null => Ok({name, value: Unset})
+  | `String(value) =>
+    Ok({
+      name,
+      value: Set(value),
+    })
+  | `Null =>
+    Ok({
+      name,
+      value: Unset,
+    })
   | _ => Error("expected string")
   };
 

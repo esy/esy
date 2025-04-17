@@ -126,7 +126,12 @@ let versions = (~fullMetadata=false, ~name, registry, ()) => {
             |> Result.List.map(~f);
           },
         );
-      return(Some({versions, distTags: packument.Packument.distTags}));
+      return(
+        Some({
+          versions,
+          distTags: packument.Packument.distTags,
+        }),
+      );
     };
   };
 

@@ -136,7 +136,14 @@ module Parse = {
 
       let* manifest = gitOrGithubManifest;
       let* commit = commitSHA;
-      return(Github({user, repo, commit, manifest}));
+      return(
+        Github({
+          user,
+          repo,
+          commit,
+          manifest,
+        }),
+      );
     }
     <?> "<author>/<repo>(:<manifest>)?#<commit>";
 
@@ -147,10 +154,22 @@ module Parse = {
     | [] => fail("missing or incorrect <remote>")
     | [remote] =>
       let* commit = commitSHA;
-      return(Git({remote, commit, manifest: None}));
+      return(
+        Git({
+          remote,
+          commit,
+          manifest: None,
+        }),
+      );
     | [remote, path] =>
       let* commit = commitSHA;
-      return(Git({remote: remote ++ ":" ++ path, commit, manifest: None}));
+      return(
+        Git({
+          remote: remote ++ ":" ++ path,
+          commit,
+          manifest: None,
+        }),
+      );
     | [remote, path, manifest] =>
       let* commit = commitSHA;
       let* manifest =
@@ -185,7 +204,13 @@ module Parse = {
         );
       let* manifest = gitOrGithubManifest;
       let* commit = commitSHA;
-      return(Git({remote: proto ++ remote, commit, manifest}));
+      return(
+        Git({
+          remote: proto ++ remote,
+          commit,
+          manifest,
+        }),
+      );
     };
 
     let viaSSH = string("git+ssh://") *> commit *> gitViaSSH;
@@ -212,7 +237,13 @@ module Parse = {
 
       let* manifest = gitOrGithubManifest;
       let* commit = commitSHA;
-      return(Git({remote: proto ++ ":" ++ remote, commit, manifest}));
+      return(
+        Git({
+          remote: proto ++ ":" ++ remote,
+          commit,
+          manifest,
+        }),
+      );
     }
     <?> "<remote>(:<manifest>)?#<commit>";
 
@@ -237,7 +268,12 @@ module Parse = {
         *> Checksum.parser
         <|> fail("missing or incorrect <checksum>");
 
-      return(Archive({url: proto ++ "://" ++ host, checksum}));
+      return(
+        Archive({
+          url: proto ++ "://" ++ host,
+          checksum,
+        }),
+      );
     }
     <?> "https?://<host>/<path>#<checksum>";
 
@@ -255,7 +291,10 @@ module Parse = {
           (path, Some(manifest));
         | (false, Error(_)) => (path, None)
         };
-      {path: DistPath.ofPath(path), manifest};
+      {
+        path: DistPath.ofPath(path),
+        manifest,
+      };
     };
 
     let path =
@@ -327,7 +366,8 @@ module Parse = {
          [%expect
           {|
            (LocalPath ((path /some/path) (manifest ())))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "path:./some/path" = {
@@ -335,7 +375,8 @@ module Parse = {
          [%expect
           {|
            (LocalPath ((path some/path) (manifest ())))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "path:some" = {
@@ -343,7 +384,8 @@ module Parse = {
          [%expect
           {|
            (LocalPath ((path some) (manifest ())))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "archive:http://example.com/pkg.tgz#abcdef" = {
@@ -351,7 +393,8 @@ module Parse = {
          [%expect
           {|
            (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "archive:https://example.com/pkg.tgz#abcdef" = {
@@ -359,7 +402,8 @@ module Parse = {
          [%expect
           {|
            (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "github:user/repo#abcdef" = {
@@ -367,7 +411,8 @@ module Parse = {
          [%expect
           {|
            (Github (user user) (repo repo) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "github:user/repo:manifest.opam#abcdef" = {
@@ -376,7 +421,8 @@ module Parse = {
           {|
            (Github (user user) (repo repo) (commit abcdef)
             (manifest ((Opam manifest.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "github:bryphe/lru:lru.opam#2708c70" = {
@@ -385,7 +431,8 @@ module Parse = {
           {|
          (Github (user bryphe) (repo lru) (commit 2708c70)
           (manifest ((Opam lru.opam))))
-       |}];
+       |}
+         ];
        };
 
        let%expect_test "github:bryphe/lru%3Alru.opam#2708c70" = {
@@ -394,7 +441,8 @@ module Parse = {
           {|
           (Github (user bryphe) (repo lru) (commit 2708c70)
            (manifest ((Opam lru.opam))))
-        |}];
+        |}
+         ];
        };
 
        let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
@@ -403,7 +451,8 @@ module Parse = {
           {|
           (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
            (manifest ((Opam lru.opam))))
-        |}];
+        |}
+         ];
        };
 
        let%expect_test "git:https://github.com/esy/esy.git#abcdef" = {
@@ -411,7 +460,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:https://github.com/esy/esy.git:esy.opam#abcdef" = {
@@ -420,7 +470,8 @@ module Parse = {
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com/esy/esy.git#abcdef" = {
@@ -428,7 +479,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
@@ -437,7 +489,8 @@ module Parse = {
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:esy/esy.git#abcdef" = {
@@ -445,7 +498,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
@@ -454,7 +508,8 @@ module Parse = {
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
@@ -462,7 +517,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
@@ -471,7 +527,8 @@ module Parse = {
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git#abcdef" = {
@@ -479,7 +536,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git@github.com:esy/esy.git:esy.opam#abcdef" = {
@@ -488,7 +546,8 @@ module Parse = {
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
@@ -497,7 +556,8 @@ module Parse = {
           {|
         (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
          (manifest ()))
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
@@ -505,7 +565,8 @@ module Parse = {
          [%expect
           {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
-     |}];
+     |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
@@ -514,7 +575,8 @@ module Parse = {
           {|
        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
@@ -523,7 +585,8 @@ module Parse = {
           {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-       |}];
+       |}
+         ];
        };
 
        /* relaxed parser */
@@ -533,7 +596,8 @@ module Parse = {
          [%expect
           {|
            (Archive (url http://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "https://example.com/pkg.tgz#abcdef" = {
@@ -541,7 +605,8 @@ module Parse = {
          [%expect
           {|
            (Archive (url https://example.com/pkg.tgz) (checksum (Sha1 abdcdef)))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "user/repo#abcdef" = {
@@ -549,7 +614,8 @@ module Parse = {
          [%expect
           {|
            (Github (user user) (repo repo) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "user/repo:manifest.opam#abcdef" = {
@@ -558,7 +624,8 @@ module Parse = {
           {|
            (Github (user user) (repo repo) (commit abcdef)
             (manifest ((Opam manifest.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:https://github.com/bryphe/lru.git%3Alru.opam#2708c70" = {
@@ -569,7 +636,8 @@ module Parse = {
           {|
          (Git (remote https://github.com/bryphe/lru.git) (commit 2708c70)
           (manifest ((Opam lru.opam))))
-       |}];
+       |}
+         ];
        };
 
        let%expect_test "git+https://github.com/esy/esy.git#abcdef" = {
@@ -577,7 +645,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git+https://github.com/esy/esy.git:esy.opam#abcdef" = {
@@ -586,7 +655,8 @@ module Parse = {
           {|
            (Git (remote https://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git+http://github.com/esy/esy.git#abcdef" = {
@@ -594,7 +664,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote http://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git+http://github.com/esy/esy.git:esy.opam#abcdef" = {
@@ -603,7 +674,8 @@ module Parse = {
           {|
            (Git (remote http://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git://github.com/esy/esy.git#abcdef" = {
@@ -611,7 +683,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote git://github.com/esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git://github.com/esy/esy.git:esy.opam#abcdef" = {
@@ -620,7 +693,8 @@ module Parse = {
           {|
            (Git (remote git://github.com/esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git+ssh://git@github.com:esy/esy.git#abcdef" = {
@@ -628,7 +702,8 @@ module Parse = {
          [%expect
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef) (manifest ()))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git+ssh://git@github.com:esy/esy.git:esy.opam#abcdef" = {
@@ -637,7 +712,8 @@ module Parse = {
           {|
            (Git (remote git@github.com:esy/esy.git) (commit abcdef)
             (manifest ((Opam esy.opam))))
-         |}];
+         |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git#abcdef" = {
@@ -646,7 +722,8 @@ module Parse = {
           {|
         (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
          (manifest ()))
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
@@ -654,7 +731,8 @@ module Parse = {
          [%expect
           {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef) (manifest ()))
-     |}];
+     |}
+         ];
        };
 
        let%expect_test "git:git+https://github.com:8080/esy/esy.git:esy.opam#abcdef" = {
@@ -665,7 +743,8 @@ module Parse = {
           {|
        (Git (remote https://github.com:8080/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git:esy.opam#abcdef" = {
@@ -676,7 +755,8 @@ module Parse = {
           {|
        (Git (remote git@github.com:22/esy/esy.git) (commit abcdef)
         (manifest ((Opam esy.opam))))
-       |}];
+       |}
+         ];
        };
 
        /* Testing parser: errors */
@@ -686,7 +766,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo#" = {
@@ -694,7 +775,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo:#abc123" = {
@@ -702,7 +784,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo" = {
@@ -710,7 +793,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user" = {
@@ -718,7 +802,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:/repo" = {
@@ -726,7 +811,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/" = {
@@ -734,7 +820,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:/" = {
@@ -742,7 +829,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:" = {
@@ -750,7 +838,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com#ref" = {
@@ -758,7 +847,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com#" = {
@@ -766,7 +856,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com" = {
@@ -774,7 +865,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:" = {
@@ -782,7 +874,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#gibberish" = {
@@ -790,7 +883,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#md5:gibberish" = {
@@ -798,7 +892,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#" = {
@@ -806,7 +901,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com" = {
@@ -814,7 +910,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:ftp://example.com" = {
@@ -822,7 +919,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |}];
+      |}
+         ];
        };
 
        /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
@@ -831,7 +929,8 @@ module Parse = {
          [%expect
           {|
           ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-     |}];
+     |}
+         ];
        };
 
        /* Testing parserRelaxed: errors */
@@ -841,7 +940,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo#" = {
@@ -849,7 +949,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo:#abc123" = {
@@ -857,7 +958,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo:#abc123": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/repo" = {
@@ -865,7 +967,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user" = {
@@ -873,7 +976,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:/repo" = {
@@ -881,7 +985,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:/repo": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:user/" = {
@@ -889,7 +994,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:user/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:/" = {
@@ -897,7 +1003,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:/": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "github:" = {
@@ -905,7 +1012,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "github:": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <author>/<repo>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com#ref" = {
@@ -913,7 +1021,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com#ref": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com#" = {
@@ -921,7 +1030,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com#": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:https://example.com" = {
@@ -929,7 +1039,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:https://example.com": <remote>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "git:" = {
@@ -937,7 +1048,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "git:": <remote>(:<manifest>)?#<commit>: missing on incorrect <remote>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#gibberish" = {
@@ -945,7 +1057,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#md5:gibberish" = {
@@ -953,7 +1066,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com#" = {
@@ -961,7 +1075,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:https://example.com" = {
@@ -969,7 +1084,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "archive:ftp://example.com" = {
@@ -977,7 +1093,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "archive:ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "https://example.com#gibberish" = {
@@ -985,7 +1102,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "https://example.com#gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "https://example.com#md5:gibberish" = {
@@ -993,7 +1111,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "https://example.com#md5:gibberish": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "https://example.com#" = {
@@ -1001,7 +1120,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "https://example.com#": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "https://example.com" = {
@@ -1009,7 +1129,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "https://example.com": https?://<host>/<path>#<checksum>: missing or incorrect <checksum>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "ftp://example.com" = {
@@ -1017,7 +1138,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "ftp://example.com": https?://<host>/<path>#<checksum>: incorrect protocol: expected http: or https:
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "user/repo#ref" = {
@@ -1025,7 +1147,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "user/repo#ref": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
 
        let%expect_test "user/repo#" = {
@@ -1033,7 +1156,8 @@ module Parse = {
          [%expect
           {|
       ERROR: parsing "user/repo#": <author>/<repo>(:<manifest>)?#<commit>: missing or incorrect <commit>
-      |}];
+      |}
+         ];
        };
        /* scp like url doesn't support port Ref: https://git-scm.com/docs/git-clone#_git_urls*/
        let%expect_test "git:git+ssh://git@github.com:22/esy/esy.git#abcdef" = {
@@ -1041,7 +1165,8 @@ module Parse = {
          [%expect
           {|
           ERROR: parsing "git:git+ssh://git@github.com:22:esy/esy.git#abcdef": <remote>(:<manifest>)?#<commit>: missing or incorrect <manifest>
-     |}];
+     |}
+         ];
        };
      });
 };

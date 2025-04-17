@@ -51,9 +51,10 @@ module Print: {
   let pp:
     (
       ~ppListBox: (~indent: int=?, Fmt.t(list(t))) => Fmt.t(list(t))=?,
-      ~ppAssocBox: (~indent: int=?, Fmt.t(list((string, t)))) =>
-                   Fmt.t(list((string, t)))
-                     =?
+      ~ppAssocBox:
+        (~indent: int=?, Fmt.t(list((string, t)))) =>
+        Fmt.t(list((string, t)))
+          =?
     ) =>
     Fmt.t(t);
 

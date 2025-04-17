@@ -43,7 +43,11 @@ let initialize = () => {
     return();
   };
 
-  return({registryPath, overridePath, remove});
+  return({
+    registryPath,
+    overridePath,
+    remove,
+  });
 };
 
 let defineOpamPackage = (registry, spec) => {

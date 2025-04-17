@@ -124,7 +124,10 @@ module PackageInformation = {
 
         StringOrNullMap.add(
           version,
-          {packageLocation, packageDependencies},
+          {
+            packageLocation,
+            packageDependencies,
+          },
           versions,
         );
       };
@@ -184,7 +187,14 @@ module LocatorsByLocations = {
         let path = pnpRelativePath(basePath, loc);
         let name = PackageId.name(id);
         let reference = Version.show(PackageId.version(id));
-        StringMap.add(path, Pkg({name, reference}), map);
+        StringMap.add(
+          path,
+          Pkg({
+            name,
+            reference,
+          }),
+          map,
+        );
       };
 
     let topLevelLocatorPath = pnpRelativePath(basePath, rootPath);
@@ -194,7 +204,10 @@ module LocatorsByLocations = {
       );
 
     let map = List.fold_left(~f, ~init, Installation.entries(installation));
-    {topLevelLocatorPath, map};
+    {
+      topLevelLocatorPath,
+      map,
+    };
   };
 };
 

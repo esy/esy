@@ -119,7 +119,10 @@ let currentEnvWithMingwInPath = {
   };
 };
 
-type error = [ | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)];
+type error = [
+  | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)
+  | `Msg(string)
+];
 
 /**
  * Helper utility to run a command with 'esy-bash'.

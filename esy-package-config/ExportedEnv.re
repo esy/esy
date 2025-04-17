@@ -65,7 +65,12 @@ let item_of_yojson = (name, json) => {
     | Some(value) => Set(value)
     | None => Unset
     };
-  return({name, value, scope, exclusive});
+  return({
+    name,
+    value,
+    scope,
+    exclusive,
+  });
 };
 
 let of_yojson =

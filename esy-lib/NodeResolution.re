@@ -11,7 +11,11 @@ module PackageJson = {
         let name = member("name", data) |> to_string;
         let main = member("main", data) |> to_string_option;
         let browser = member("browser", data) |> to_string_option;
-        Result.Ok({name, main, browser});
+        Result.Ok({
+          name,
+          main,
+          browser,
+        });
       }) {
       | Type_error(_) => Result.Error("Error parsing package.json")
       }

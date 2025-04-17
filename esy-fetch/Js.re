@@ -456,7 +456,10 @@ let install =
         }
       );
 
-    RunAsync.return({pkgJson, pkg});
+    RunAsync.return({
+      pkgJson,
+      pkg,
+    });
   };
 
   LwtTaskQueue.submit(queue, f);
@@ -495,7 +498,12 @@ let installPackages =
       let seen = PackageId.Set.add(id, seen);
       let* {pkgJson, pkg} =
         Memoize.compute(tasks, id, () => visit'(seen, pkg));
-      return(Some({pkgJson, pkg}));
+      return(
+        Some({
+          pkgJson,
+          pkg,
+        }),
+      );
     } else {
       return(None);
     };

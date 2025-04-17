@@ -58,11 +58,17 @@ module Make =
     nodes: Node.Id.Map.t(Node.t),
   };
 
-  let empty = root => {nodes: Node.Id.Map.empty, root};
+  let empty = root => {
+    nodes: Node.Id.Map.empty,
+    root,
+  };
 
   let add = (graph, node) => {
     let nodes = Node.Id.Map.add(Node.id(node), node, graph.nodes);
-    {...graph, nodes};
+    {
+      ...graph,
+      nodes,
+    };
   };
 
   let get = (graph, id) => Node.Id.Map.find_opt(id, graph.nodes);

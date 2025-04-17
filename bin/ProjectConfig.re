@@ -616,8 +616,8 @@ let promiseTerm = {
   );
 };
 
-let term = promiseTerm
-  /* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
+let term = promiseTerm;
+/* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
 
 let promiseTermForMultiplePaths = resolvedPathTerm => {
   let parse =
@@ -724,7 +724,7 @@ let promiseTermForMultiplePaths = resolvedPathTerm => {
   );
 };
 
-let multipleProjectConfigsTerm = paths => promiseTermForMultiplePaths(paths)
+let multipleProjectConfigsTerm = paths => promiseTermForMultiplePaths(paths);
 /* let multipleProjectConfigsTerm = paths => */
 /*   Cmdliner.Term.( */
 /*     ret( */

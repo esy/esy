@@ -438,7 +438,12 @@ let add = (~direct, ~dep, scope) =>
 
     let dependencies = [dep, ...scope.dependencies];
     let children = PackageId.Map.add(dep.pkg.id, direct, scope.children);
-    {...scope, directDependencies, dependencies, children};
+    {
+      ...scope,
+      directDependencies,
+      dependencies,
+      children,
+    };
   | (true, Some(false)) =>
     let directDependencies = {
       let name = dep.pkg.name;
@@ -446,7 +451,11 @@ let add = (~direct, ~dep, scope) =>
     };
 
     let children = PackageId.Map.add(dep.pkg.id, direct, scope.children);
-    {...scope, directDependencies, children};
+    {
+      ...scope,
+      directDependencies,
+      children,
+    };
   | (true, Some(true))
   | (false, Some(false))
   | (false, Some(true)) => scope
@@ -482,7 +491,10 @@ let exposeUserEnvWith = (makeBinding, name, scope) => {
       [binding, ...scope.finalEnv];
     };
 
-  {...scope, finalEnv};
+  {
+    ...scope,
+    finalEnv,
+  };
 };
 
 let renderEnv = (env, name) =>

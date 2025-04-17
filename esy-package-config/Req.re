@@ -54,7 +54,10 @@ module Parse = {
           )
         };
 
-      return({name, spec});
+      return({
+        name,
+        spec,
+      });
     | Some('@') =>
       let* () = advance(1);
       let* nextChar = peek_char;
@@ -72,13 +75,22 @@ module Parse = {
             )
           };
 
-        return({name, spec});
+        return({
+          name,
+          spec,
+        });
       | (Some(_), `opam(name)) =>
         let* spec = VersionSpec.parserOpam;
-        return({name, spec});
+        return({
+          name,
+          spec,
+        });
       | (Some(_), `npm(name)) =>
         let* spec = VersionSpec.parserNpm;
-        return({name, spec});
+        return({
+          name,
+          spec,
+        });
       };
     | _ => fail("cannot parse request")
     };
@@ -578,11 +590,32 @@ let%test_module "parsing" =
        /* npm tags */
        (
          "pkg@latest",
-         {name: "pkg", spec: VersionSpec.NpmDistTag("latest")},
+         {
+           name: "pkg",
+           spec: VersionSpec.NpmDistTag("latest"),
+         },
        ),
-       ("pkg@next", {name: "pkg", spec: VersionSpec.NpmDistTag("next")}),
-       ("pkg@alpha", {name: "pkg", spec: VersionSpec.NpmDistTag("alpha")}),
-       ("pkg@beta", {name: "pkg", spec: VersionSpec.NpmDistTag("beta")}),
+       (
+         "pkg@next",
+         {
+           name: "pkg",
+           spec: VersionSpec.NpmDistTag("next"),
+         },
+       ),
+       (
+         "pkg@alpha",
+         {
+           name: "pkg",
+           spec: VersionSpec.NpmDistTag("alpha"),
+         },
+       ),
+       (
+         "pkg@beta",
+         {
+           name: "pkg",
+           spec: VersionSpec.NpmDistTag("beta"),
+         },
+       ),
        (
          "fastreplacestring@esy-ocaml/FastReplaceString#95f408b",
          {
@@ -631,7 +664,10 @@ let%test_module "parsing" =
      };
    });
 
-let make = (~name, ~spec) => {name, spec};
+let make = (~name, ~spec) => {
+  name,
+  spec,
+};
 
 module Set =
   Set.Make({
