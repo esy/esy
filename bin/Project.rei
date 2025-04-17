@@ -53,7 +53,6 @@ let ocaml: project => RunAsync.t(Fpath.t);
 
 let ocamlfind: project => RunAsync.t(Fpath.t);
 
-let term: Cmdliner.Term.t(RunAsync.t(project));
 let promiseTerm: Cmdliner.Term.t(RunAsync.t(project));
 
 let withPackage:
