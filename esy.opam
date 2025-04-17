@@ -73,7 +73,7 @@ build: [
 ]
 dev-repo: "git+https://github.com/esy/esy.git"
 pin-depends: [
-  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#d39e7d1f1a4b4bc54fd61163ae077ee9a291af6c"]
+  ["cmdliner.dev" "git+https://github.com/esy-ocaml/cmdliner.git#a1a75b3beb8fc7fbdd52e3edb29dc1198448c37a"]
   ["camlbz2.dev" "git+https://gitlab.com/irill/camlbz2.git#588e186c"]
   ["bos.dev" "git+https://github.com/esy-ocaml/bos.git#90364d00"]
   ["cli.dev" "git+https://github.com/reasonml/reason-native.git#20b1997b6451d9715dfdbeec86a9d274c7430ed8"]

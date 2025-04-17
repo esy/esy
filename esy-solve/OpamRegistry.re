@@ -49,7 +49,7 @@ let make = (~opamRepository, ~cfg, ()) => {
       | Config.Remote(remote, local) =>
         let update = () => {
           let%lwt () =
-            Logs_lwt.app(m => m("checking %s for updates...", remote));
+            Logs_lwt.app(m => m("%a %s %a...", Fmt.(styled(`Faint, string)), "checking", remote, Fmt.(styled(`Faint, string)), "for updates"));
           let* () =
             Git.ShallowClone.update(~branch="master", ~dst=local, remote);
           return(local);

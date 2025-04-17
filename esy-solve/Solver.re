@@ -168,7 +168,7 @@ module Explanation = {
       Fmt.pf(fmt, "@[<v>%a@;@]", Fmt.list(~sep, Reason.pp), reasons);
     };
 
-    Fmt.pf(fmt, "@[<v>No solution found:@;@;%a@]", ppReasons, reasons);
+    Fmt.pf(fmt, "@[<v>No solution found@;@;%a@]", ppReasons, reasons);
   };
 
   let collectReasons = (cudfMapping, solver, reasons, opamRegistries) => {
@@ -481,15 +481,17 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
 
   let universe = ref(solver.universe);
   let (os, arch) = Resolver.platform(solver.sandbox.resolver);
+  let message = "evaluating esy package metadata";
   let name =
     switch (os, arch) {
     | (Some(os), Some(arch)) =>
-      Printf.sprintf(
-        "resolving esy packages for os: %s arch: %s",
-        System.Platform.show(os),
-        System.Arch.show(arch),
-      )
-    | _ => "resolving esy packages"
+      <Pastel>
+        <Pastel dim=true> message </Pastel>
+        " "
+        {System.Platform.show(os)}
+        {System.Arch.show(arch)}
+      </Pastel>
+    | _ => message
     };
   let (report, finish) = Cli.createProgressReporter(~name, ());
 
@@ -503,7 +505,8 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
         let* () =
           RunAsync.contextf(
             addDependencies(dependencies),
-            "resolving %a",
+            "%s %a",
+            <Pastel dim=true> "resolving" </Pastel>,
             InstallManifest.pp,
             manifest,
           );
@@ -714,11 +717,12 @@ let solveDependencies =
       let name =
         switch (os, arch) {
         | (Some(os), Some(arch)) =>
-          Printf.sprintf(
-            "solving esy constraints for os: %s arch: %s",
-            System.Platform.show(os),
-            System.Arch.show(arch),
-          )
+           <Pastel>
+            <Pastel dim=true> "solving esy constraints for" </Pastel>
+            " "
+            {System.Platform.show(os)}
+            {System.Arch.show(arch)}
+           </Pastel> 
         | _ => "solving esy constraints"
         };
       let (report, finish) = Cli.createProgressReporter(~name, ());
@@ -784,11 +788,12 @@ let solveDependenciesNaively =
   let name =
     switch (os, arch) {
     | (Some(os), Some(arch)) =>
-      Printf.sprintf(
-        "resolving npm packages for os: %s arch: %s",
-        System.Platform.show(os),
-        System.Arch.show(arch),
-      )
+      <Pastel>
+        <Pastel dim=true> "resolving npm packages for" </Pastel>
+        " "
+        {System.Platform.show(os)}
+        {System.Arch.show(arch)}
+      </Pastel>
     | _ => "resolving npm packages"
     };
   let (report, finish) = Cli.createProgressReporter(~name, ());
@@ -1292,27 +1297,31 @@ let solve =
       ~expected=expectedPlatforms,
       baseSolution,
     );
-  let%lwt () =
-    Logs_lwt.app(m =>
-      m(
-        "The following packages are problematic and dont build on specified platform",
-      )
-    );
   let unSupportedPlatforms = ref(EsyOpamLibs.AvailablePlatforms.empty);
   let f = ((package, platforms)) => {
     unSupportedPlatforms :=
       EsyOpamLibs.AvailablePlatforms.union(platforms, unSupportedPlatforms^);
     Logs_lwt.app(m =>
       m(
-        "Package %a. Unsupported Platforms: %a",
+        "@[<h>%s %a. %s: %a@]",
+        <Pastel dim=true> "package" </Pastel>,
         EsyFetch.Package.pp,
         package,
+        <Pastel dim=true> "unsupported platforms" </Pastel>,
         EsyOpamLibs.AvailablePlatforms.pp,
         platforms,
       )
     );
   };
-  let%lwt () = List.map(~f, unPortableDependencies) |> Lwt.join;
+
+  let%lwt () =
+    switch(unPortableDependencies) {
+    | [] => Lwt.return();
+    | unPortableDependencies =>
+      let%lwt () =
+      Logs_lwt.app(m => m("@[<h>following packages don't build everywhere@]"));
+      List.map(~f, unPortableDependencies) |> Lwt.join;
+    };
 
   let* platformSpecificSolutions =
     if (EsyOpamLibs.AvailablePlatforms.isEmpty(unSupportedPlatforms^)) {
@@ -1322,7 +1331,8 @@ let solve =
         let%lwt () =
           Logs_lwt.app(m =>
             m(
-              "Solving for os: %a arch: %a",
+              "%s os: %a arch: %a",
+              <Pastel dim=true> "solving for" </Pastel>,
               System.Platform.pp,
               os,
               System.Arch.pp,

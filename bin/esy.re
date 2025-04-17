@@ -1418,7 +1418,7 @@ let exportDependencies = (mode: EsyBuild.BuildSpec.mode, proj: Project.t) => {
   );
 };
 
-let importBuild = (fromPath, buildPaths, projcfg: ProjectConfig.t) => {
+let importBuild = (fromPath, buildPaths, projcfg) => {
   open RunAsync.Syntax;
   let* buildPaths =
     switch (fromPath) {
@@ -1436,6 +1436,7 @@ let importBuild = (fromPath, buildPaths, projcfg: ProjectConfig.t) => {
     | None => return(buildPaths)
     };
 
+  let* projcfg = projcfg;
   let* storePath = RunAsync.ofRun(ProjectConfig.storePath(projcfg));
 
   RunAsync.List.mapAndWait(
@@ -1505,9 +1506,10 @@ let importDependencies =
   );
 };
 
-let show = (_asJson, req, proj: Project.t) => {
-  open EsySolve;
+let show = (_asJson, req, proj: RunAsync.t(Project.t)) => {
   open RunAsync.Syntax;
+  open EsySolve;
+  let* proj = proj;
   let* req = RunAsync.ofStringError(Req.parse(req));
   let EsySolve.Sandbox.{cfg, _} = proj.solveSandbox;
   let* resolver =
@@ -1528,7 +1530,8 @@ let show = (_asJson, req, proj: Project.t) => {
         ~opamRegistries=proj.opamRegistries,
         resolver,
       ),
-      "resolving %a",
+      "%s %a",
+      <Pastel dim=true> "resolving" </Pastel>,
       Req.pp,
       req,
     );
@@ -1586,7 +1589,7 @@ let printHeader = (~spec=?, name) =>
       != 0;
 
     if (needReportProjectPath) {
-      Logs_lwt.app(m =>
+      Logs.app(m =>
         m(
           "%s %s (using %a)@;found project at %a",
           name,
@@ -1598,7 +1601,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     } else {
-      Logs_lwt.app(m =>
+      Logs.app(m =>
         m(
           "%s %s (using %a)",
           name,
@@ -1608,7 +1611,7 @@ let printHeader = (~spec=?, name) =>
         )
       );
     };
-  | None => Logs_lwt.app(m => m("%s %s", name, EsyRuntime.version))
+  | None => Logs.app(m => m("%s %s", name, EsyRuntime.version))
   };
 
 let default = (chdir, cmdAndPkg, proj: Project.t) => {
@@ -1617,7 +1620,7 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
   let%lwt fetched = Project.fetched(proj);
   switch (fetched, cmdAndPkg) {
   | (Ok(_), None) =>
-    let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
+    printHeader(~spec=proj.projcfg.spec, "esy");
     build(BuildDev, PkgArg.root, disableSandbox, None, proj);
   | (Ok(_), Some((None, cmd))) =>
     switch (Scripts.find(Cmd.getTool(cmd), proj.scripts)) {
@@ -1629,7 +1632,7 @@ let default = (chdir, cmdAndPkg, proj: Project.t) => {
   | (Ok(_), Some((Some(pkgarg), cmd))) =>
     devExec(chdir, pkgarg, proj, cmd, ())
   | (Error(_), None) =>
-    let%lwt () = printHeader(~spec=proj.projcfg.spec, "esy");
+    printHeader(~spec=proj.projcfg.spec, "esy");
     let* () = solveAndFetch(proj);
     let* (proj, files) = Project.make(proj.projcfg);
     let* () = Project.write(proj, files);
@@ -1665,14 +1668,35 @@ let makeCommand =
     let f = comp => {
       let () =
         switch (header) {
-        | `Standard => Lwt_main.run(printHeader(name))
+        | `Standard => printHeader(name)
         | `No => ()
         };
 
-      Cli.runAsyncToCmdlinerRet(comp);
+      let comp = Lwt_main.run @@ comp;
+      switch (comp) {
+      | Ok() => 0
+      | Error(error) =>
+        Lwt_main.run(EsyLib.Cli.ProgressReporter.clearStatus());
+        Format.fprintf(
+          Format.err_formatter,
+          "%s %a\n",
+          <Pastel color=Pastel.Red> "error" </Pastel>,
+          Run.ppError,
+          error,
+        );
+        /*
+          For some reason, the following would intermittently not print error logs.
+          Esp, the following tests in solve-errors.test.js
+
+              link to a non-existent path (277 ms)
+              link to a non-existent manifest (278 ms
+         */
+        /* Logs.err(m => m("%a", Run.ppError, error)); */
+        1;
+      };
     };
 
-    Cmdliner.Term.(ret(app(const(f), cmd)));
+    Cmdliner.Term.(const(f) $ cmd);
   };
 
   (cmd, info);
@@ -1702,15 +1726,12 @@ let commandsConfig = {
       (~header=`Standard, ~docs=?, ~doc=?, ~stop_on_pos=?, ~name, cmd) => {
     let cmd = {
       let run = (cmd, project) => {
-        let () =
-          switch (header) {
-          | `Standard =>
-            Lwt_main.run(
-              printHeader(~spec=project.Project.projcfg.spec, name),
-            )
-          | `No => ()
-          };
-
+        open RunAsync.Syntax;
+        let* project = project;
+        switch (header) {
+        | `Standard => printHeader(~spec=project.Project.projcfg.spec, name);
+        | `No => ()
+        };
         cmd(project);
       };
 
@@ -1744,10 +1765,7 @@ let commandsConfig = {
           ) => {
         let () =
           switch (cmd) {
-          | None =>
-            Lwt_main.run(
-              printHeader(~spec=proj.Project.projcfg.spec, "esy build"),
-            )
+          | None => printHeader(~spec=proj.Project.projcfg.spec, "esy build")
           | Some(_) => ()
           };
 
@@ -2376,6 +2394,6 @@ let () = {
   commands
   |> List.map(~f=((term, info)) => Cmdliner.Cmd.v(info, term))
   |> Cmdliner.Cmd.group(~default=defaultTerm, defaultInfo)
-  |> Cmdliner.Cmd.eval(~main_on_err=true, ~stop_on_pos=true, ~argv)
+  |> Cmdliner.Cmd.eval'(~main_on_err=true, ~stop_on_pos=true, ~argv)
   |> exit;
 };

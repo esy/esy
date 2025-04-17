@@ -5,6 +5,7 @@ const helpers = require('../test/helpers.js');
 const path = require('path');
 const fs = require('../test/fs.js');
 const {test, isWindows} = helpers;
+const { expectAndReturnRejection } = helpers;
 
 describe(`Basic tests`, () => {
   test(`it should correctly install a single dependency that contains no sub-dependencies`, async () => {
@@ -345,14 +346,14 @@ describe(`Basic tests`, () => {
       }),
     ];
     const p = await helpers.createTestSandbox(...fixture);
-    await expect(p.esy(`install`)).rejects.toThrowError(
+    const err = await expectAndReturnRejection(p.esy(`install`));
+    expect(err.stderr).toEqual(
       outdent`
-        error: invalid "esy" version: ^3.0.0 must be one of: 1.0.0
-          reading package metadata from link-dev:./package.json
-          loading root package metadata
-        esy: exiting due to errors above
-      `,
-    );
+error invalid "esy" version: ^3.0.0 must be one of: 1.0.0
+        reading package metadata from link-dev:./package.json
+        loading root package metadata
+
+      `);
   });
 
   test.disableIf(isWindows)(`it should fail on incorrect esy version in dependencies (incorrect version)`, async () => {
@@ -368,14 +369,14 @@ describe(`Basic tests`, () => {
       }),
     ];
     const p = await helpers.createTestSandbox(...fixture);
-    await expect(p.esy(`install`)).rejects.toThrowError(
+    const err = await expectAndReturnRejection(p.esy(`install`));
+    expect(err.stderr).toEqual(
       outdent`
-        error: invalid "esy" version: =3.4.5 must be one of: 1.0.0
-          reading package metadata from link-dev:./package.json
-          loading root package metadata
-        esy: exiting due to errors above
-      `,
-    );
+error invalid "esy" version: =3.4.5 must be one of: 1.0.0
+        reading package metadata from link-dev:./package.json
+        loading root package metadata
+
+      `);
   });
 
   it('should re-install if package dependencies were changed', async () => {

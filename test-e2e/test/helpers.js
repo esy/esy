@@ -291,7 +291,6 @@ async function createTestSandbox(...fixture: Fixture): Promise<TestSandbox> {
     }
     return data;
   }
-
   return {
     cd,
     rootPath,
@@ -417,6 +416,13 @@ function createDefineTest(params) {
   return deftest;
 }
 
+function expectAndReturnRejection(p): Promise<ChildProcessError> {
+  return (p.then(
+    () => expect(true).toBe(false),
+    (err) => err,
+  ): any);
+}
+
 module.exports = {
   test: createDefineTest({disabled: false, focused: false}),
   normalizeEOL,
@@ -450,6 +456,7 @@ module.exports = {
   isWindows,
   isLinux,
   isMacos,
-  COMMAND_FAILED: expect.stringMatching('command failed'),
+  COMMAND_FAILED: expect.stringMatching('Command failed'),
   COMMAND_NOT_FOUND: expect.stringMatching(isWindows ? 'command not found': 'unable to resolve command'),
+  expectAndReturnRejection
 };
