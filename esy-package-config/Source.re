@@ -21,7 +21,11 @@ let manifest = (src: t) =>
 let toDist = (src: t) =>
   switch (src) {
   | Dist(dist) => dist
-  | Link({path, manifest, kind: _}) => Dist.LocalPath({path, manifest})
+  | Link({path, manifest, kind: _}) =>
+    Dist.LocalPath({
+      path,
+      manifest,
+    })
   };
 
 let show' = (~showPath) =>
@@ -115,7 +119,12 @@ module Parse = {
   };
 
   let makeLink = kind => {
-    let make = (path, manifest) => Link({path, manifest, kind});
+    let make = (path, manifest) =>
+      Link({
+        path,
+        manifest,
+        kind,
+      });
 
     pathLike(make);
   };
@@ -179,7 +188,8 @@ let%test_module "parsing" =
      let%expect_test "github:user/repo#abc123" = {
        parse("github:user/repo#abc123");
        [%expect
-        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}];
+        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}
+       ];
      };
 
      let%expect_test "github:user/repo:lwt.opam#abc123" = {
@@ -188,13 +198,15 @@ let%test_module "parsing" =
         {|
       (Dist
        (Github (user user) (repo repo) (commit abc123)
-        (manifest ((Opam lwt.opam))))) |}];
+        (manifest ((Opam lwt.opam))))) |}
+       ];
      };
 
      let%expect_test "gh:user/repo#abc123" = {
        parse("gh:user/repo#abc123");
        [%expect
-        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}];
+        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}
+       ];
      };
 
      let%expect_test "gh:user/repo:lwt.opam#abc123" = {
@@ -203,13 +215,15 @@ let%test_module "parsing" =
         {|
       (Dist
        (Github (user user) (repo repo) (commit abc123)
-        (manifest ((Opam lwt.opam))))) |}];
+        (manifest ((Opam lwt.opam))))) |}
+       ];
      };
 
      let%expect_test "git:http://example.com/repo#abc123" = {
        parse("git:http://example.com/repo#abc123");
        [%expect
-        {| (Dist (Git (remote http://example.com/repo) (commit abc123) (manifest ()))) |}];
+        {| (Dist (Git (remote http://example.com/repo) (commit abc123) (manifest ()))) |}
+       ];
      };
 
      let%expect_test "git:http://example.com/repo:lwt.opam#abc123" = {
@@ -218,7 +232,8 @@ let%test_module "parsing" =
         {|
       (Dist
        (Git (remote http://example.com/repo) (commit abc123)
-        (manifest ((Opam lwt.opam))))) |}];
+        (manifest ((Opam lwt.opam))))) |}
+       ];
      };
 
      let%expect_test "git:git://example.com/repo:lwt.opam#abc123" = {
@@ -227,25 +242,29 @@ let%test_module "parsing" =
         {|
       (Dist
        (Git (remote git://example.com/repo) (commit abc123)
-        (manifest ((Opam lwt.opam))))) |}];
+        (manifest ((Opam lwt.opam))))) |}
+       ];
      };
 
      let%expect_test "archive:http://example.com#abc123" = {
        parse("archive:http://example.com#abc123");
        [%expect
-        {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}];
+        {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}
+       ];
      };
 
      let%expect_test "archive:https://example.com#abc123" = {
        parse("archive:https://example.com#abc123");
        [%expect
-        {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}];
+        {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}
+       ];
      };
 
      let%expect_test "archive:https://example.com#md5:abc123" = {
        parse("archive:https://example.com#md5:abc123");
        [%expect
-        {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}];
+        {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}
+       ];
      };
 
      let%expect_test "path:/some/path" = {
@@ -256,18 +275,22 @@ let%test_module "parsing" =
      let%expect_test "path:/some/path/lwt.opam" = {
        parse("path:/some/path/lwt.opam");
        [%expect
-        {| (Dist (LocalPath ((path /some/path) (manifest ((Opam lwt.opam)))))) |}];
+        {| (Dist (LocalPath ((path /some/path) (manifest ((Opam lwt.opam)))))) |}
+       ];
      };
 
      let%expect_test "link:/some/path" = {
        parse("link:/some/path");
-       [%expect {| (Link (path /some/path) (manifest ()) (kind LinkRegular)) |}];
+       [%expect
+        {| (Link (path /some/path) (manifest ()) (kind LinkRegular)) |}
+       ];
      };
 
      let%expect_test "link:/some/path/lwt.opam" = {
        parse("link:/some/path/lwt.opam");
        [%expect
-        {| (Link (path /some/path) (manifest ((Opam lwt.opam))) (kind LinkRegular)) |}];
+        {| (Link (path /some/path) (manifest ((Opam lwt.opam))) (kind LinkRegular)) |}
+       ];
      };
 
      let%expect_test "path:some" = {
@@ -290,7 +313,8 @@ let%test_module "parsing" =
      let%expect_test "user/repo#abc123" = {
        parseRelaxed("user/repo#abc123");
        [%expect
-        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}];
+        {| (Dist (Github (user user) (repo repo) (commit abc123) (manifest ()))) |}
+       ];
      };
 
      let%expect_test "user/repo:lwt.opam#abc123" = {
@@ -299,25 +323,29 @@ let%test_module "parsing" =
         {|
       (Dist
        (Github (user user) (repo repo) (commit abc123)
-        (manifest ((Opam lwt.opam))))) |}];
+        (manifest ((Opam lwt.opam))))) |}
+       ];
      };
 
      let%expect_test "http://example.com#abc123" = {
        parseRelaxed("http://example.com#abc123");
        [%expect
-        {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}];
+        {| (Dist (Archive (url http://example.com) (checksum (Sha1 abc123)))) |}
+       ];
      };
 
      let%expect_test "https://example.com#abc123" = {
        parseRelaxed("https://example.com#abc123");
        [%expect
-        {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}];
+        {| (Dist (Archive (url https://example.com) (checksum (Sha1 abc123)))) |}
+       ];
      };
 
      let%expect_test "https://example.com#md5:abc123" = {
        parseRelaxed("https://example.com#md5:abc123");
        [%expect
-        {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}];
+        {| (Dist (Archive (url https://example.com) (checksum (Md5 abc123)))) |}
+       ];
      };
 
      let%expect_test "http://localhost:56886/dep/-/dep-1.0.0.tgz#fabe490fb72a10295d554037341d8c7d5497cde9" = {
@@ -328,7 +356,8 @@ let%test_module "parsing" =
         {|
       (Dist
        (Archive (url http://localhost:56886/dep/-/dep-1.0.0.tgz)
-        (checksum (Sha1 fabe490fb72a10295d554037341d8c7d5497cde9)))) |}];
+        (checksum (Sha1 fabe490fb72a10295d554037341d8c7d5497cde9)))) |}
+       ];
      };
 
      let%expect_test "/some/path" = {

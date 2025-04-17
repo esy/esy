@@ -3,4 +3,7 @@ type t = {
   spec: SandboxSpec.t,
 };
 
-let make = (cfg, spec) => {cfg, spec};
+let make = (cfg, spec) => {
+  cfg,
+  spec,
+};

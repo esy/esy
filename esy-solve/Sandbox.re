@@ -10,7 +10,11 @@ type t = {
 
 let makeResolution = source => {
   Resolution.name: "root",
-  resolution: VersionOverride({version: Source(source), override: None}),
+  resolution:
+    VersionOverride({
+      version: Source(source),
+      override: None,
+    }),
 };
 
 let ofResolution = (cfg, spec, resolver, opamRegistries, resolution) => {
@@ -24,10 +28,19 @@ let ofResolution = (cfg, spec, resolver, opamRegistries, resolution) => {
         | None => EsyFetch.SandboxSpec.projectName(spec)
         };
 
-      {...root, name};
+      {
+        ...root,
+        name,
+      };
     };
 
-    return({cfg, spec, root, resolutions: root.resolutions, resolver});
+    return({
+      cfg,
+      spec,
+      root,
+      resolutions: root.resolutions,
+      resolver,
+    });
   | Error(msg) => errorf("unable to construct sandbox: %s", msg)
   };
 };
@@ -44,7 +57,11 @@ let make =
   open RunAsync.Syntax;
   let path = DistPath.make(~base=spec.path, spec.path);
   let makeSource = manifest =>
-    Source.Link({path, manifest: Some(manifest), kind: LinkDev});
+    Source.Link({
+      path,
+      manifest: Some(manifest),
+      kind: LinkDev,
+    });
   let opamRegistries = OpamRegistries.make(~cfg, ());
 
   RunAsync.contextf(
@@ -123,7 +140,10 @@ let make =
           originalVersion: None,
           originalName: None,
           source:
-            PackageSource.Install({source: (NoSource, []), opam: None}),
+            PackageSource.Install({
+              source: (NoSource, []),
+              opam: None,
+            }),
           overrides: Overrides.empty,
           dependencies: InstallManifest.Dependencies.OpamFormula(deps),
           devDependencies: InstallManifest.Dependencies.OpamFormula(devDeps),
@@ -135,7 +155,13 @@ let make =
           extraSources: [],
           available: EsyOpamLibs.AvailablePlatforms.default,
         };
-        return({cfg, spec, root, resolutions: root.resolutions, resolver});
+        return({
+          cfg,
+          spec,
+          root,
+          resolutions: root.resolutions,
+          resolver,
+        });
       };
     },
     "loading root package metadata",

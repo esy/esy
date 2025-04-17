@@ -36,5 +36,6 @@ xHeLlo and HeLlox
     at the end HELLO
     HELLO and HELLO
     xHELLO and HELLOx
-  |}];
+  |}
+  ];
 };

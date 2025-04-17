@@ -140,7 +140,12 @@ let writeOverride = (sandbox, pkg, gitUsername, gitPassword, override) =>
         DistPath.ofPath(
           Path.tryRelativize(~root=sandbox.spec.path, lockPath),
         );
-      return(OfPath({path, manifest}));
+      return(
+        OfPath({
+          path,
+          manifest,
+        }),
+      );
     }
   );
 
@@ -151,7 +156,12 @@ let readOverride = (sandbox, override) =>
     | OfOpamOverride({path}) =>
       let path = DistPath.toPath(sandbox.Sandbox.spec.path, path);
       let* json = Fs.readJsonFile(Path.(path / "package.json"));
-      return(Override.OfOpamOverride({json, path}));
+      return(
+        Override.OfOpamOverride({
+          json,
+          path,
+        }),
+      );
     | OfPath(local) =>
       let filename =
         switch (local.manifest) {
@@ -168,7 +178,12 @@ let readOverride = (sandbox, override) =>
           DistPath.(local.path / filename),
         );
       let* json = PackageOverride.ofPath(path);
-      return(Override.OfDist({dist, json}));
+      return(
+        Override.OfDist({
+          dist,
+          json,
+        }),
+      );
     }
   );
 
@@ -200,7 +215,10 @@ let writeOpam = (sandbox, opam: PackageSource.opam) => {
   } else {
     let* () = Fs.copyPath(~src=opam.path, ~dst);
     let path = Path.tryRelativize(~root=sandboxPath, dst);
-    return({...opam, path});
+    return({
+      ...opam,
+      path,
+    });
   };
 };
 
@@ -208,7 +226,10 @@ let readOpam = (sandbox, opam: PackageSource.opam) => {
   open RunAsync.Syntax;
   let sandboxPath = sandbox.Sandbox.spec.path;
   let opampath = Path.(sandboxPath /\/ opam.path);
-  return({...opam, path: opampath});
+  return({
+    ...opam,
+    path: opampath,
+  });
 };
 
 let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
@@ -216,12 +237,28 @@ let writePackage = (sandbox, pkg: Package.t, gitUsername, gitPassword) => {
   let* source =
     switch (pkg.source) {
     | Link({path, manifest, kind}) =>
-      return(PackageSource.Link({path, manifest, kind}))
+      return(
+        PackageSource.Link({
+          path,
+          manifest,
+          kind,
+        }),
+      )
     | Install({source, opam: None}) =>
-      return(PackageSource.Install({source, opam: None}))
+      return(
+        PackageSource.Install({
+          source,
+          opam: None,
+        }),
+      )
     | Install({source, opam: Some(opam)}) =>
       let* opam = writeOpam(sandbox, opam);
-      return(PackageSource.Install({source, opam: Some(opam)}));
+      return(
+        PackageSource.Install({
+          source,
+          opam: Some(opam),
+        }),
+      );
     };
 
   let* overrides =
@@ -245,12 +282,28 @@ let readPackage = (sandbox, node: node) => {
   let* source =
     switch (node.source) {
     | Link({path, manifest, kind}) =>
-      return(PackageSource.Link({path, manifest, kind}))
+      return(
+        PackageSource.Link({
+          path,
+          manifest,
+          kind,
+        }),
+      )
     | Install({source, opam: None}) =>
-      return(PackageSource.Install({source, opam: None}))
+      return(
+        PackageSource.Install({
+          source,
+          opam: None,
+        }),
+      )
     | Install({source, opam: Some(opam)}) =>
       let* opam = readOpam(sandbox, opam);
-      return(PackageSource.Install({source, opam: Some(opam)}));
+      return(
+        PackageSource.Install({
+          source,
+          opam: Some(opam),
+        }),
+      );
     };
 
   let* overrides = readOverrides(sandbox, node.overrides);
@@ -480,6 +533,9 @@ let unsafeUpdateChecksum = (~digest, path) => {
     RunAsync.ofRun(Json.parseJsonWith(of_yojson, json));
   };
 
-  let lock = {...lock, digest: Digestv.toHex(digest)};
+  let lock = {
+    ...lock,
+    digest: Digestv.toHex(digest),
+  };
   Fs.writeJsonFile(~json=to_yojson(lock), Path.(path / indexFilename));
 };

@@ -781,7 +781,14 @@ let lsBuilds = (includeTransitive, mode, pkgarg, proj: Project.t) => {
   let computeTermNode = (task, children) => {
     let* built = BuildSandbox.isBuilt(fetched.Project.sandbox, task);
     let* line = formatPackageInfo(~built, task);
-    return(Some(TermTree.Node({line, children})));
+    return(
+      Some(
+        TermTree.Node({
+          line,
+          children,
+        }),
+      ),
+    );
   };
 
   makeLsCommand(~computeTermNode, ~includeTransitive, mode, pkgarg, proj);
@@ -813,10 +820,20 @@ let lsLibs = (includeTransitive, mode, pkgarg, proj: Project.t) => {
       libs
       |> List.map(~f=lib => {
            let line = Chalk.yellow(lib);
-           TermTree.Node({line, children: []});
+           TermTree.Node({
+             line,
+             children: [],
+           });
          });
 
-    return(Some(TermTree.Node({line, children: libs @ children})));
+    return(
+      Some(
+        TermTree.Node({
+          line,
+          children: libs @ children,
+        }),
+      ),
+    );
   };
 
   makeLsCommand(~computeTermNode, ~includeTransitive, mode, pkgarg, proj);
@@ -845,7 +862,12 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
     Findlib.(
       if (String.length(meta.archive) === 0) {
         let description = Chalk.dim(meta.description);
-        return([TermTree.Node({line: description, children: []})]);
+        return([
+          TermTree.Node({
+            line: description,
+            children: [],
+          }),
+        ]);
       } else {
         Path.ofString(meta.location ++ Path.dirSep ++ meta.archive)
         |> (
@@ -861,7 +883,10 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
 
                 let toTermNode = name => {
                   let line = Chalk.cyan(name);
-                  TermTree.Node({line, children: []});
+                  TermTree.Node({
+                    line,
+                    children: [],
+                  });
                 };
 
                 lines
@@ -911,11 +936,23 @@ let lsModules = (only, mode, pkgarg, proj: Project.t) => {
              let line = Chalk.yellow(lib);
              let* children = formatLibraryModules(~task, lib);
 
-             return(TermTree.Node({line, children}));
+             return(
+               TermTree.Node({
+                 line,
+                 children,
+               }),
+             );
            })
         |> RunAsync.List.joinAll;
 
-      return(Some(TermTree.Node({line, children: libs @ children})));
+      return(
+        Some(
+          TermTree.Node({
+            line,
+            children: libs @ children,
+          }),
+        ),
+      );
     };
   };
 
@@ -1171,13 +1208,25 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
 
     let root =
       devDependency
-        ? {...solveSandbox.root, devDependencies: combinedDeps}
-        : {...solveSandbox.root, dependencies: combinedDeps};
+        ? {
+          ...solveSandbox.root,
+          devDependencies: combinedDeps,
+        }
+        : {
+          ...solveSandbox.root,
+          dependencies: combinedDeps,
+        };
 
-    return({...solveSandbox, root});
+    return({
+      ...solveSandbox,
+      root,
+    });
   };
 
-  let proj = {...proj, solveSandbox};
+  let proj = {
+    ...proj,
+    solveSandbox,
+  };
 
   let* expectedPlatforms =
     switch (proj.spec.manifest) {
@@ -1346,7 +1395,10 @@ let add = (reqs: list(string), devDependency: bool, proj: Project.t) => {
         solveSandbox.spec,
       );
 
-    let proj = {...proj, solveSandbox};
+    let proj = {
+      ...proj,
+      solveSandbox,
+    };
     let* digest =
       EsySolve.Sandbox.digest(
         proj.workflow.solvespec,
@@ -1674,7 +1726,7 @@ let makeCommand =
 
       let comp = Lwt_main.run @@ comp;
       switch (comp) {
-      | Ok() => 0
+      | Ok () => 0
       | Error(error) =>
         Lwt_main.run(EsyLib.Cli.ProgressReporter.clearStatus());
         Format.fprintf(
@@ -1729,7 +1781,7 @@ let commandsConfig = {
         open RunAsync.Syntax;
         let* project = project;
         switch (header) {
-        | `Standard => printHeader(~spec=project.Project.projcfg.spec, name);
+        | `Standard => printHeader(~spec=project.Project.projcfg.spec, name)
         | `No => ()
         };
         cmd(project);

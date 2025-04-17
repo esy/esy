@@ -75,7 +75,11 @@ module Version = {
     | (_, _) => true
     };
 
-  let stripPrerelease = v => {...v, prerelease: [], build: []};
+  let stripPrerelease = v => {
+    ...v,
+    prerelease: [],
+    build: [],
+  };
 
   module Parse = {
     open Re;
@@ -177,7 +181,13 @@ module Version = {
         | None => []
         };
 
-      Ok({major, minor, patch, prerelease, build});
+      Ok({
+        major,
+        minor,
+        patch,
+        prerelease,
+        build,
+      });
     | None =>
       switch (Re.exec_opt(Parse.version2, version)) {
       | Some(m) =>
@@ -195,7 +205,13 @@ module Version = {
           | None => []
           };
 
-        Ok({major, minor, patch: 0, prerelease, build});
+        Ok({
+          major,
+          minor,
+          patch: 0,
+          prerelease,
+          build,
+        });
       | None =>
         switch (Re.exec_opt(Parse.version1, version)) {
         | Some(m) =>
@@ -212,7 +228,13 @@ module Version = {
             | None => []
             };
 
-          Ok({major, minor: 0, patch: 0, prerelease, build});
+          Ok({
+            major,
+            minor: 0,
+            patch: 0,
+            prerelease,
+            build,
+          });
         | None =>
           let msg = Printf.sprintf("invalid semver version: '%s'", version);
           Error(msg);

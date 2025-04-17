@@ -14,7 +14,10 @@ module PackageOverride = {
     let* override =
       Json.Decode.fieldWith(~name="override", Json.of_yojson, json);
 
-    return({dist, override});
+    return({
+      dist,
+      override,
+    });
   };
 };
 
@@ -41,7 +44,12 @@ let rebase = (~base: Dist.t, source: Dist.t) =>
     switch (source, base) {
     | (Dist.LocalPath(info), Dist.LocalPath({path: basePath, _})) =>
       let path = DistPath.rebase(~base=basePath, info.path);
-      return(Dist.LocalPath({...info, path}));
+      return(
+        Dist.LocalPath({
+          ...info,
+          path,
+        }),
+      );
     | (Dist.LocalPath(_), _) =>
       Exn.failf("unable to rebase %a onto %a", Dist.pp, source, Dist.pp, base)
     | (source, _) => return(source)
@@ -108,12 +116,26 @@ let ofGithub = (~manifest=?, user, repo, ref) => {
                   err,
                 )
               );
-            return(Manifest({data, filename, kind, suggestedPackageName}));
+            return(
+              Manifest({
+                data,
+                filename,
+                kind,
+                suggestedPackageName,
+              }),
+            );
           }
         | ManifestSpec.Opam =>
           let suggestedPackageName =
             suggestPackageName(~fallback=repo, (kind, filename));
-          return(Manifest({data, filename, kind, suggestedPackageName}));
+          return(
+            Manifest({
+              data,
+              filename,
+              kind,
+              suggestedPackageName,
+            }),
+          );
         }
       }
     };
@@ -160,12 +182,26 @@ let ofPath = (~pkgName, ~manifest=?, path: Path.t) => {
               );
 
             return(
-              Some(Manifest({data, filename, kind, suggestedPackageName})),
+              Some(
+                Manifest({
+                  data,
+                  filename,
+                  kind,
+                  suggestedPackageName,
+                }),
+              ),
             );
           }
         | ManifestSpec.Opam =>
           return(
-            Some(Manifest({data, filename, kind, suggestedPackageName})),
+            Some(
+              Manifest({
+                data,
+                filename,
+                kind,
+                suggestedPackageName,
+              }),
+            ),
           )
         };
       } else {

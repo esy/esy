@@ -90,8 +90,7 @@ let main = (projCfgs: RunAsync.t(list(ProjectConfig.t)), dryRun) => {
         let* () =
           allCacheEntries
           |> List.map(~f=entry =>
-               RunAsync.ofLwt @@
-               Logs_lwt.debug(m => m("%a", Path.pp, entry))
+               RunAsync.ofLwt @@ Logs_lwt.debug(m => m("%a", Path.pp, entry))
              )
           |> RunAsync.List.waitAll;
         let allCacheEntriesSoFar = allCacheEntriesSoFar @ allCacheEntries;

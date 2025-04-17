@@ -75,4 +75,8 @@ let install = override => {
 };
 
 let ofJson = json => OfJson({json: json});
-let ofDist = (json, dist) => OfDist({json, dist});
+let ofDist = (json, dist) =>
+  OfDist({
+    json,
+    dist,
+  });

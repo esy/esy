@@ -18,7 +18,11 @@ module ProgressReporter: {
   let reporter = {
     let isatty = Unix.isatty(Unix.stderr);
     let enabled = !isCi && isatty;
-    {status: None, statusLock: Lwt_mutex.create(), enabled};
+    {
+      status: None,
+      statusLock: Lwt_mutex.create(),
+      enabled,
+    };
   };
 
   let hide = s =>
@@ -86,7 +90,9 @@ let createProgressReporter = (~name, ()) => {
 
   let finish = () => {
     let%lwt () = ProgressReporter.clearStatus();
-    Logs_lwt.app(m => m("%s: %s", name, <Pastel color={Pastel.Green}> "done" </Pastel>));
+    Logs_lwt.app(m =>
+      m("%s: %s", name, <Pastel color=Pastel.Green> "done" </Pastel>)
+    );
   };
 
   (progress, finish);
@@ -98,7 +104,6 @@ let pathConv = {
   let print = Path.pp;
   Arg.conv(~docv="PATH", (parse, print));
 };
-
 
 let checkoutConv = {
   open Cmdliner;
@@ -234,30 +239,28 @@ let setupLogTerm = {
   };
 
   let setupLog = (style_renderer, level) => {
-
-
-  /**********************************************************************/
-  /*   Because, Fmt_cli accept renderer as is without checking if       */
-  /*   terminal is dumb. It's then our responsibility to check if the   */
-  /*   terminal is dumb or not. This is why we default to None, so that */
-  /*   we fallback to Fmt_cli's default behaviour which is what we want */
-  /*   anyways                                                          */
-  /*                                                                    */
-  /* let style_renderer = match style_renderer with                     */
-  /* | Some r -> r                                                      */
-  /* | None ->                                                          */
-  /*     let dumb =                                                     */
-  /*       try match Sys.getenv "TERM" with                             */
-  /*       | "dumb" | "" -> true                                        */
-  /*       | _ -> false                                                 */
-  /*       with                                                         */
-  /*       Not_found -> true                                            */
-  /*     in                                                             */
-  /**********************************************************************/
+    /**********************************************************************/
+    /*   Because, Fmt_cli accept renderer as is without checking if       */
+    /*   terminal is dumb. It's then our responsibility to check if the   */
+    /*   terminal is dumb or not. This is why we default to None, so that */
+    /*   we fallback to Fmt_cli's default behaviour which is what we want */
+    /*   anyways                                                          */
+    /*                                                                    */
+    /* let style_renderer = match style_renderer with                     */
+    /* | Some r -> r                                                      */
+    /* | None ->                                                          */
+    /*     let dumb =                                                     */
+    /*       try match Sys.getenv "TERM" with                             */
+    /*       | "dumb" | "" -> true                                        */
+    /*       | _ -> false                                                 */
+    /*       with                                                         */
+    /*       Not_found -> true                                            */
+    /*     in                                                             */
+    /**********************************************************************/
 
     switch (style_renderer) {
-    | None => Fmt_tty.setup_std_outputs(());
-    | Some(style_renderer) => Fmt_tty.setup_std_outputs(~style_renderer, ());
+    | None => Fmt_tty.setup_std_outputs()
+    | Some(style_renderer) => Fmt_tty.setup_std_outputs(~style_renderer, ())
     };
 
     Logs.set_level(level);

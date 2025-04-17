@@ -3,7 +3,11 @@ open EsyPackageConfig;
 [@deriving yojson]
 type t = PackageSource.opam;
 
-let make = (name, version, path) => {PackageSource.name, version, path};
+let make = (name, version, path) => {
+  PackageSource.name,
+  version,
+  path,
+};
 
 let name = ({PackageSource.name, _}) => OpamPackage.Name.to_string(name);
 let version = ({PackageSource.version, _}) => Version.Opam(version);

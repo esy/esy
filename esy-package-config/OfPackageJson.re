@@ -87,7 +87,12 @@ module InstallManifestV1 = {
         ) =>
         let path = DistPath.rebase(~base=basePath, path);
         let spec =
-          VersionSpec.Source(SourceSpec.LocalPath({path, manifest}));
+          VersionSpec.Source(
+            SourceSpec.LocalPath({
+              path,
+              manifest,
+            }),
+          );
         return(Req.make(~name=req.name, ~spec));
       | (_, VersionSpec.Source(SourceSpec.LocalPath(_))) =>
         errorf(
@@ -177,9 +182,16 @@ module InstallManifestV1 = {
     let source =
       switch (source) {
       | Source.Link({path, manifest, kind}) =>
-        PackageSource.Link({path, manifest, kind})
+        PackageSource.Link({
+          path,
+          manifest,
+          kind,
+        })
       | Source.Dist(dist) =>
-        PackageSource.Install({source: (dist, []), opam: None})
+        PackageSource.Install({
+          source: (dist, []),
+          opam: None,
+        })
       };
 
     let warnings = [];

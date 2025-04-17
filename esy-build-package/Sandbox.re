@@ -6,7 +6,10 @@ type pattern =
 
 type config = {allowWrite: list(pattern)};
 
-type err = [ | `Msg(string) | `CommandError(Cmd.t, Bos.OS.Cmd.status)];
+type err = [
+  | `Msg(string)
+  | `CommandError(Cmd.t, Bos.OS.Cmd.status)
+];
 
 type sandbox =
   (~env: Bos.OS.Env.t, Cmd.t) =>

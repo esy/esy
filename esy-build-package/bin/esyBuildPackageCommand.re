@@ -180,7 +180,9 @@ let help = (_copts, man_format, cmds, topic) =>
   | None => `Help((`Pager, None)) /* help about the program. */
   | Some(topic) =>
     let topics = ["topics", "patterns", "environment", ...cmds];
-    let conv = Cmdliner.Arg.enum(List.rev_map(s => (s, s), topics)) |> Cmdliner.Arg.Conv.parser;
+    let conv =
+      Cmdliner.Arg.enum(List.rev_map(s => (s, s), topics))
+      |> Cmdliner.Arg.Conv.parser;
     switch (conv(topic)) {
     | Error(e) => `Error((false, e))
     | Ok(t) when t == "topics" =>

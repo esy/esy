@@ -6,7 +6,10 @@ and record = {
   version: OpamPackage.Version.Map.t(Path.t),
 };
 
-let emptyRecord = {default: None, version: OpamPackage.Version.Map.empty};
+let emptyRecord = {
+  default: None,
+  version: OpamPackage.Version.Map.empty,
+};
 
 let parseOverridePattern = pattern =>
   switch (Astring.String.cut(~sep=".", pattern)) {
@@ -27,11 +30,15 @@ let init = (~cfg, ()): RunAsync.t(t) => {
     | Config.Local(path) => return(path)
     | Config.Remote(remote, local) =>
       let update = () => {
-        let%lwt () = Logs_lwt.app(m => m("%s %s %s",
-        <Pastel dim=true> "checking" </Pastel>,
-        remote,
-        <Pastel dim=true>"for updates..."</Pastel>
-        ));
+        let%lwt () =
+          Logs_lwt.app(m =>
+            m(
+              "%s %s %s",
+              <Pastel dim=true> "checking" </Pastel>,
+              remote,
+              <Pastel dim=true> "for updates..." </Pastel>,
+            )
+          );
         let* () =
           Git.ShallowClone.update(
             ~branch=Config.esyOpamOverrideVersion,
@@ -67,7 +74,10 @@ let init = (~cfg, ()): RunAsync.t(t) => {
           };
         let override =
           switch (version) {
-          | None => {...override, default: Some(path)}
+          | None => {
+              ...override,
+              default: Some(path),
+            }
           | Some(version) => {
               ...override,
               version:
@@ -93,7 +103,11 @@ let find = (~name: OpamPackage.Name.t, ~version, overrides) =>
       | (Some(path), _)
       | (None, Some(path)) =>
         let* json = Fs.readJsonFile(Path.(path / "package.json"));
-        let override = Override.OfOpamOverride({json, path});
+        let override =
+          Override.OfOpamOverride({
+            json,
+            path,
+          });
         return(Some(override));
       | (None, None) => return(None)
       };

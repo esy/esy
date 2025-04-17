@@ -53,18 +53,16 @@ let commit = (~needRewrite, stagePath, installPath) =>
   RunAsync.Syntax.
     /* See distStagePath for details */
     (
-      {
-        let* () =
-          if (needRewrite) {
-            RewritePrefix.rewritePrefix(
-              ~origPrefix=stagePath,
-              ~destPrefix=installPath,
-              stagePath,
-            );
-          } else {
-            return();
-          };
+      let* () =
+        if (needRewrite) {
+          RewritePrefix.rewritePrefix(
+            ~origPrefix=stagePath,
+            ~destPrefix=installPath,
+            stagePath,
+          );
+        } else {
+          return();
+        };
 
-        Fs.rename(~skipIfExists=true, ~src=stagePath, installPath);
-      }
+      Fs.rename(~skipIfExists=true, ~src=stagePath, installPath)
     );

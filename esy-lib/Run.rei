@@ -65,7 +65,10 @@ let ofStringError: result('a, string) => t('a);
 let ofBosError:
   result(
     'a,
-    [< | `Msg(string) | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)],
+    [<
+      | `Msg(string)
+      | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)
+    ],
   ) =>
   t('a);
 

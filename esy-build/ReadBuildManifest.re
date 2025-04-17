@@ -26,31 +26,46 @@ let applyOverride = (manifest: BuildManifest.t, override: Override.build) => {
   let manifest =
     switch (buildType) {
     | None => manifest
-    | Some(buildType) => {...manifest, buildType}
+    | Some(buildType) => {
+        ...manifest,
+        buildType,
+      }
     };
 
   let manifest =
     switch (build) {
     | None => manifest
-    | Some(commands) => {...manifest, build: EsyCommands(commands)}
+    | Some(commands) => {
+        ...manifest,
+        build: EsyCommands(commands),
+      }
     };
 
   let manifest =
     switch (buildDev) {
     | None => manifest
-    | commands => {...manifest, buildDev: commands}
+    | commands => {
+        ...manifest,
+        buildDev: commands,
+      }
     };
 
   let manifest =
     switch (install) {
     | None => manifest
-    | Some(commands) => {...manifest, install: EsyCommands(commands)}
+    | Some(commands) => {
+        ...manifest,
+        install: EsyCommands(commands),
+      }
     };
 
   let manifest =
     switch (exportedEnv) {
     | None => manifest
-    | Some(exportedEnv) => {...manifest, exportedEnv}
+    | Some(exportedEnv) => {
+        ...manifest,
+        exportedEnv,
+      }
     };
 
   let manifest =
@@ -65,7 +80,10 @@ let applyOverride = (manifest: BuildManifest.t, override: Override.build) => {
   let manifest =
     switch (buildEnv) {
     | None => manifest
-    | Some(buildEnv) => {...manifest, buildEnv}
+    | Some(buildEnv) => {
+        ...manifest,
+        buildEnv,
+      }
     };
 
   let manifest =
@@ -248,7 +266,11 @@ let ofInstallationLocation =
   RunAsync.Syntax.(
     switch (pkg.source) {
     | Link({path, manifest, kind: _}) =>
-      let dist = Dist.LocalPath({path, manifest});
+      let dist =
+        Dist.LocalPath({
+          path,
+          manifest,
+        });
       let* res =
         EsyFetch.DistResolver.resolve(
           ~gitUsername=None,

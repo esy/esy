@@ -39,7 +39,12 @@ let resolution_of_yojson = json =>
     switch (json) {
     | `String(v) =>
       let* version = Version.parse(v);
-      return(VersionOverride({version, override: None}));
+      return(
+        VersionOverride({
+          version,
+          override: None,
+        }),
+      );
     | `Assoc(_) =>
       let* version =
         Json.Decode.fieldOptWith(~name="version", Version.of_yojson, json);
@@ -55,8 +60,19 @@ let resolution_of_yojson = json =>
       | (Some(_), Some(_)) =>
         Error("expected only version or source but both were provided")
       | (Some(version), None) =>
-        return(VersionOverride({version, override: Some(override)}))
-      | (None, Some(source)) => return(SourceOverride({source, override}))
+        return(
+          VersionOverride({
+            version,
+            override: Some(override),
+          }),
+        )
+      | (None, Some(source)) =>
+        return(
+          SourceOverride({
+            source,
+            override,
+          }),
+        )
       | (None, None) => Error("expected version or source")
       };
     | _ => Error("expected string or object")

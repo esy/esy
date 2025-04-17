@@ -49,7 +49,16 @@ let make = (~opamRepository, ~cfg, ()) => {
       | Config.Remote(remote, local) =>
         let update = () => {
           let%lwt () =
-            Logs_lwt.app(m => m("%a %s %a...", Fmt.(styled(`Faint, string)), "checking", remote, Fmt.(styled(`Faint, string)), "for updates"));
+            Logs_lwt.app(m =>
+              m(
+                "%a %s %a...",
+                Fmt.(styled(`Faint, string)),
+                "checking",
+                remote,
+                Fmt.(styled(`Faint, string)),
+                "for updates",
+              )
+            );
           let* () =
             Git.ShallowClone.update(~branch="master", ~dst=local, remote);
           return(local);
@@ -84,7 +93,11 @@ let make = (~opamRepository, ~cfg, ()) => {
       overrides,
     });
   };
-  {init, lock: Lwt_mutex.create(), registry: None};
+  {
+    init,
+    lock: Lwt_mutex.create(),
+    registry: None,
+  };
 };
 
 let initRegistry = (registry: t) => {

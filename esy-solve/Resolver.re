@@ -86,10 +86,22 @@ type t = {
 
 let emptyLink = (~name, ~path, ~manifest, ~kind, ()) => {
   InstallManifest.name,
-  version: Version.Source(Source.Link({path, manifest, kind})),
+  version:
+    Version.Source(
+      Source.Link({
+        path,
+        manifest,
+        kind,
+      }),
+    ),
   originalVersion: None,
   originalName: None,
-  source: PackageSource.Link({path, manifest: None, kind}),
+  source:
+    PackageSource.Link({
+      path,
+      manifest: None,
+      kind,
+    }),
   overrides: Overrides.empty,
   dependencies: InstallManifest.Dependencies.NpmFormula([]),
   devDependencies: InstallManifest.Dependencies.NpmFormula([]),
@@ -107,7 +119,11 @@ let emptyInstall = (~name, ~source, ()) => {
   version: Version.Source(Dist(source)),
   originalVersion: None,
   originalName: None,
-  source: PackageSource.Install({source: (source, []), opam: None}),
+  source:
+    PackageSource.Install({
+      source: (source, []),
+      opam: None,
+    }),
   overrides: Overrides.empty,
   dependencies: InstallManifest.Dependencies.NpmFormula([]),
   devDependencies: InstallManifest.Dependencies.NpmFormula([]),
@@ -347,7 +363,10 @@ let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
         return(C.ANY)
       | e => e
       };
-    return({InstallManifest.Dep.name, req: Npm(req)});
+    return({
+      InstallManifest.Dep.name,
+      req: Npm(req),
+    });
   | name =>
     module C = OpamPackageVersion.Constraint;
     let req =
@@ -361,7 +380,10 @@ let convertOpamAtom = ((name, relop): OpamFormula.atom) => {
       | Some((`Geq, v)) => C.GTE(v)
       };
 
-    return({InstallManifest.Dep.name, req: Opam(req)});
+    return({
+      InstallManifest.Dep.name,
+      req: Opam(req),
+    });
   };
 };
 
@@ -405,7 +427,10 @@ let convertOpamUrl = manifest => {
       let f = (mirrors, url) =>
         switch (convUrl(url)) {
         | Ok(url) => [
-            Dist.Archive({url, checksum: convChecksum(hash)}),
+            Dist.Archive({
+              url,
+              checksum: convChecksum(hash),
+            }),
             ...mirrors,
           ]
         | Error(_) => mirrors
@@ -418,7 +443,10 @@ let convertOpamUrl = manifest => {
       let url =
         "https://opam.ocaml.org/cache/"
         ++ String.concat("/", OpamHash.to_path(hash));
-      Dist.Archive({url, checksum: convChecksum(hash)});
+      Dist.Archive({
+        url,
+        checksum: convChecksum(hash),
+      });
     };
 
     return((main, mirrors));
@@ -586,7 +614,11 @@ let convertDependencies = (~os, ~arch, manifest) => {
          let checksum =
            OpamFile.URL.checksum(u) |> List.hd |> opamHashToChecksum;
 
-         {ExtraSource.url, relativePath, checksum};
+         {
+           ExtraSource.url,
+           relativePath,
+           checksum,
+         };
        });
 
   let availableFilter = OpamFile.OPAM.available(manifest.opam);
@@ -647,10 +679,22 @@ let opamManifestToInstallManifest =
 
     let source =
       switch (source) {
-      | None => PackageSource.Install({source: sourceFromOpam, opam})
+      | None =>
+        PackageSource.Install({
+          source: sourceFromOpam,
+          opam,
+        })
       | Some(Source.Link({path, manifest, kind})) =>
-        Link({path, manifest, kind})
-      | Some(Source.Dist(source)) => Install({source: (source, []), opam})
+        Link({
+          path,
+          manifest,
+          kind,
+        })
+      | Some(Source.Dist(source)) =>
+        Install({
+          source: (source, []),
+          opam,
+        })
       };
 
     let overrides =
@@ -744,7 +788,13 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
       switch (source, resolvedDist) {
       | (Source.Dist(_), _) => return(Source.Dist(resolvedDist))
       | (Source.Link({kind, _}), Dist.LocalPath({path, manifest})) =>
-        return(Source.Link({path, manifest, kind}))
+        return(
+          Source.Link({
+            path,
+            manifest,
+            kind,
+          }),
+        )
       | (Source.Link(_), dist) =>
         errorf("unable to link to %a", Dist.pp, dist)
       };
@@ -770,7 +820,11 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
 
     let pkg =
       switch (pkg) {
-      | Ok(pkg) => Ok({...pkg, InstallManifest.overrides})
+      | Ok(pkg) =>
+        Ok({
+          ...pkg,
+          InstallManifest.overrides,
+        })
       | err => err
       };
 
@@ -850,7 +904,12 @@ let applyOverride = (pkg, override: Override.install) => {
               | VersionSpec.NpmDistTag(_) =>
                 failwith("cannot override opam with npm dist tag")
               | VersionSpec.Source(spec) => [
-                  [{InstallManifest.Dep.name: req.name, req: Source(spec)}],
+                  [
+                    {
+                      InstallManifest.Dep.name: req.name,
+                      req: Source(spec),
+                    },
+                  ],
                   ...edits,
                 ]
               }
@@ -896,7 +955,10 @@ let applyOverride = (pkg, override: Override.install) => {
         StringMap.fold(f, resolutions, Resolutions.empty);
       };
 
-      {...pkg, InstallManifest.resolutions};
+      {
+        ...pkg,
+        InstallManifest.resolutions,
+      };
     | None => pkg
     };
 
@@ -1054,11 +1116,27 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
           let* commit = Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
-            return(Source.Dist(Github({user, repo, commit, manifest})))
+            return(
+              Source.Dist(
+                Github({
+                  user,
+                  repo,
+                  commit,
+                  manifest,
+                }),
+              ),
+            )
           | (None, Some(ref)) =>
             if (Git.isCommitLike(ref)) {
               return(
-                Source.Dist(Github({user, repo, commit: ref, manifest})),
+                Source.Dist(
+                  Github({
+                    user,
+                    repo,
+                    commit: ref,
+                    manifest,
+                  }),
+                ),
               );
             } else {
               errorResolvingSource("cannot resolve commit");
@@ -1070,10 +1148,26 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
           let* commit = Git.lsRemote(~config=gitConfig, ~ref?, ~remote, ());
           switch (commit, ref) {
           | (Some(commit), _) =>
-            return(Source.Dist(Git({remote, commit, manifest})))
+            return(
+              Source.Dist(
+                Git({
+                  remote,
+                  commit,
+                  manifest,
+                }),
+              ),
+            )
           | (None, Some(ref)) =>
             if (Git.isCommitLike(ref)) {
-              return(Source.Dist(Git({remote, commit: ref, manifest})));
+              return(
+                Source.Dist(
+                  Git({
+                    remote,
+                    commit: ref,
+                    manifest,
+                  }),
+                ),
+              );
             } else {
               errorResolvingSource("cannot resolve commit");
             }
@@ -1087,12 +1181,26 @@ let resolveSource = (~name, ~sourceSpec: SourceSpec.t, resolver: t) => {
             "archive sources without checksums are not implemented: " ++ url,
           )
         | SourceSpec.Archive({url, checksum: Some(checksum)}) =>
-          return(Source.Dist(Archive({url, checksum})))
+          return(
+            Source.Dist(
+              Archive({
+                url,
+                checksum,
+              }),
+            ),
+          )
 
         | SourceSpec.LocalPath({path, manifest}) =>
           let abspath = DistPath.toPath(resolver.sandbox.path, path);
           if%bind (Fs.exists(abspath)) {
-            return(Source.Dist(LocalPath({path, manifest})));
+            return(
+              Source.Dist(
+                LocalPath({
+                  path,
+                  manifest,
+                }),
+              ),
+            );
           } else {
             errorf("path '%a' does not exist", Path.ppPretty, abspath);
           };
@@ -1123,7 +1231,11 @@ let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
               let version = Version.Npm(version);
               {
                 Resolution.name,
-                resolution: VersionOverride({version, override: None}),
+                resolution:
+                  VersionOverride({
+                    version,
+                    override: None,
+                  }),
               };
             };
 
@@ -1198,7 +1310,11 @@ let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
               let version = OpamResolution.version(resolution);
               {
                 Resolution.name,
-                resolution: VersionOverride({version, override: None}),
+                resolution:
+                  VersionOverride({
+                    version,
+                    override: None,
+                  }),
               };
             };
 
@@ -1231,7 +1347,11 @@ let resolve' = (~fullMetadata, ~name, ~spec, ~opamRegistries, resolver) =>
       let version = Version.Source(source);
       let resolution = {
         Resolution.name,
-        resolution: VersionOverride({version, override: None}),
+        resolution:
+          VersionOverride({
+            version,
+            override: None,
+          }),
       };
       return([resolution]);
     }

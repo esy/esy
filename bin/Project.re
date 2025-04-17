@@ -305,7 +305,10 @@ let makeSolved =
         files,
         esy,
       );
-    return({solution, fetched});
+    return({
+      solution,
+      fetched,
+    });
   | None =>
     errorf(
       "Project is missing lock files. Run `%s`",
@@ -370,7 +373,11 @@ let makeFetched =
         sandbox,
         files,
       );
-    return({installation, sandbox, configured});
+    return({
+      installation,
+      sandbox,
+      configured,
+    });
   };
 };
 
@@ -402,7 +409,10 @@ let makeConfigured =
       },
     );
 
-  return({planForDev, root});
+  return({
+    planForDev,
+    root,
+  });
 };
 
 let plan = (mode, proj) =>
@@ -594,7 +604,10 @@ module OfTerm = {
           let%lwt (v, files) = (
             Lwt_io.read_value(ic): Lwt.t((project, list(FileInfo.t)))
           );
-          let v = {...v, projcfg};
+          let v = {
+            ...v,
+            projcfg,
+          };
           if%bind (checkStaleness(files)) {
             let%lwt () = Logs_lwt.debug(m => m("cache is stale, discarding"));
             return(None);
@@ -661,7 +674,7 @@ module OfTerm = {
   };
 
   let term = promiseTerm;
-    /* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
+  /* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
 };
 
 include OfTerm;

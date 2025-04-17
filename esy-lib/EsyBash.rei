@@ -8,7 +8,10 @@ let normalizePathForWindows: Path.t => Path.t;
 
 let currentEnvWithMingwInPath: StringMap.t(string);
 
-type error = [ | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status) | `Msg(string)];
+type error = [
+  | `CommandError(Bos.Cmd.t, Bos.OS.Cmd.status)
+  | `Msg(string)
+];
 
 let run: Bos.Cmd.t => result(unit, [> error]);
 

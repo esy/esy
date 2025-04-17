@@ -276,7 +276,14 @@ let parseString = (s: string): list(part) => {
            ((result, modifiers), part) =>
              switch (part) {
              | Str.Text(value) => (
-                 result @ [{value, modifiers, isModifier: false}],
+                 result
+                 @ [
+                   {
+                     value,
+                     modifiers,
+                     isModifier: false,
+                   },
+                 ],
                  modifiers,
                )
              | Str.Delim(value) =>
@@ -297,7 +304,17 @@ let parseString = (s: string): list(part) => {
                      ++ codeString,
                    );
                  };
-               (result @ [{value, modifiers, isModifier: true}], modifiers);
+               (
+                 result
+                 @ [
+                   {
+                     value,
+                     modifiers,
+                     isModifier: true,
+                   },
+                 ],
+                 modifiers,
+               );
              },
          ~init=([], IntSet.empty),
        );

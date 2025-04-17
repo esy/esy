@@ -80,7 +80,10 @@ and layoutMany = p =>
     };
 
 let packageJson = entry => {
-  FixtureFile({name: "package.json", data: PackageJson.toString(entry)});
+  FixtureFile({
+    name: "package.json",
+    data: PackageJson.toString(entry),
+  });
 };
 
 let defaultProject = () => {

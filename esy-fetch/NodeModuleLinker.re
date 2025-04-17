@@ -3,9 +3,7 @@ open RunAsync.Syntax;
 let installPkg = (~installation, ~nodeModulesPath, pkg) => {
   let* () =
     RunAsync.ofLwt @@
-    Logs_lwt.debug(m =>
-      m("NodeModuleLinker: installing %a", Package.pp, pkg)
-    );
+    Logs_lwt.debug(m => m("NodeModuleLinker: installing %a", Package.pp, pkg));
   let pkgID = pkg.Package.id;
   let src = Installation.findExn(pkgID, installation);
   let dst = Path.(nodeModulesPath / pkg.Package.name);

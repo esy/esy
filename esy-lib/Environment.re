@@ -110,15 +110,27 @@ module Make =
 
     let prefixValue = (~origin=?, name, value) => {
       let value = Binding.Prefix(value);
-      {Binding.name, value, origin};
+      {
+        Binding.name,
+        value,
+        origin,
+      };
     };
 
     let suffixValue = (~origin=?, name, value) => {
       let value = Binding.Suffix(value);
-      {Binding.name, value, origin};
+      {
+        Binding.name,
+        value,
+        origin,
+      };
     };
 
-    let remove = (~origin=?, name) => {Binding.name, value: Remove, origin};
+    let remove = (~origin=?, name) => {
+      Binding.name,
+      value: Remove,
+      origin,
+    };
 
     let map = (~f, bindings) => {
       let f = binding => {
@@ -135,7 +147,10 @@ module Make =
           | Binding.Remove => Binding.Remove
           };
 
-        {...binding, value};
+        {
+          ...binding,
+          value,
+        };
       };
 
       List.map(~f, bindings);
@@ -153,7 +168,11 @@ module Make =
           | Binding.Remove => Binding.Remove
           };
 
-        {Binding.name, value, origin};
+        {
+          Binding.name,
+          value,
+          origin,
+        };
       };
 
       List.map(~f, bindings);
@@ -222,7 +241,11 @@ module Make =
           };
 
         let value = String.sub(item, idx + 1, String.length(item) - idx - 1);
-        {Binding.name, value: ExpandedValue(V.v(value)), origin: None};
+        {
+          Binding.name,
+          value: ExpandedValue(V.v(value)),
+          origin: None,
+        };
       };
 
       /* Filter bash function which are being exported in env */

@@ -263,30 +263,28 @@ let renderOpamSubstsAsCommands = (_opamEnv, substs) => {
 
 let renderOpamPatchesToCommands = (opamEnv, patches) =>
   Run.Syntax.(
-    {
-      let evalFilter =
-        fun
-        | (path, None) => return((path, true))
-        | (path, Some(filter)) => {
-            let* filter =
-              try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
-              | Failure(msg) => error(msg)
-              };
-            return((path, filter));
-          };
+    let evalFilter =
+      fun
+      | (path, None) => return((path, true))
+      | (path, Some(filter)) => {
+          let* filter =
+            try(return(OpamFilter.eval_to_bool(opamEnv, filter))) {
+            | Failure(msg) => error(msg)
+            };
+          return((path, filter));
+        };
 
-      let* filtered = Result.List.map(~f=evalFilter, patches);
+    let* filtered = Result.List.map(~f=evalFilter, patches);
 
-      let toCommand = ((path, _)) => {
-        let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
-        List.map(~f=Scope.SandboxValue.v, cmd);
-      };
+    let toCommand = ((path, _)) => {
+      let cmd = ["patch", "--strip", "1", "--input", Path.show(path)];
+      List.map(~f=Scope.SandboxValue.v, cmd);
+    };
 
-      return(
-        filtered |> List.filter(~f=((_, v)) => v) |> List.map(~f=toCommand),
-      )
-      |> Run.context("processing patch field");
-    }
+    return(
+      filtered |> List.filter(~f=((_, v)) => v) |> List.map(~f=toCommand),
+    )
+    |> Run.context("processing patch field")
   );
 
 module Reason = {
@@ -791,7 +789,11 @@ let makePlan = (~forceImmutable=false, ~concurrency, buildspec, mode, sandbox) =
     visit(PackageId.Map.empty, [root.id]);
   };
 
-  return({Plan.mode, tasks, buildspec});
+  return({
+    Plan.mode,
+    tasks,
+    buildspec,
+  });
 };
 
 let task = (~concurrency, buildspec, mode, sandbox, id) => {
@@ -1363,7 +1365,11 @@ let build' =
       let* () =
         BuildInfo.toFile(
           infoPath,
-          {BuildInfo.idInfo: task.idrepr, timeSpent, sourceModTime},
+          {
+            BuildInfo.idInfo: task.idrepr,
+            timeSpent,
+            sourceModTime,
+          },
         );
       return();
     };

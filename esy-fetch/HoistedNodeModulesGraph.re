@@ -131,7 +131,10 @@ let roots = roots => roots;
 let empty = Map.empty;
 let ofRoots = roots => roots;
 let nodeUpdateChildren = (dataField, newNode, parent) => {
-  let newNode = {...newNode, parent: Some(lazy(parent))};
+  let newNode = {
+    ...newNode,
+    parent: Some(lazy(parent)),
+  };
   {
     ...parent,
     children: lazy(Map.add(dataField, newNode, Lazy.force(parent.children))),
@@ -181,7 +184,10 @@ let iterator = graph => {
   |> Map.bindings
   |> List.iter(~f=((_data, root)) => {Queue.push(root, queue)});
   let visited = Map.empty;
-  {queue, visited};
+  {
+    queue,
+    visited,
+  };
 };
 
 let take = iterable => {
@@ -198,7 +204,13 @@ let take = iterable => {
     |> List.map(~f=((_k, v)) => v)
     |> List.iter(~f);
     let visited = Map.update(pkg, _ => Some(true), visited);
-    (node, {queue, visited});
+    (
+      node,
+      {
+        queue,
+        visited,
+      },
+    );
   };
   queue |> Queue.take_opt |> Option.map(~f=dequeue);
 };

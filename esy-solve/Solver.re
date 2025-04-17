@@ -107,7 +107,11 @@ module Reason: {
       Conflict(right, left);
     };
 
-  let missing = (~available=[], chain) => Missing({chain, available});
+  let missing = (~available=[], chain) =>
+    Missing({
+      chain,
+      available,
+    });
 
   let ppTrace = (fmt, path) => {
     let ppPkgName = (fmt, pkg) => {
@@ -244,7 +248,10 @@ module Explanation = {
                   maybeEvalDependencies(requestor),
                 );
 
-              {Reason.constr, trace: [requestor, ...path]};
+              {
+                Reason.constr,
+                trace: [requestor, ...path],
+              };
             };
 
             let right = {
@@ -256,7 +263,10 @@ module Explanation = {
                   maybeEvalDependencies(requestor),
                 );
 
-              {Reason.constr, trace: [requestor, ...path]};
+              {
+                Reason.constr,
+                trace: [requestor, ...path],
+              };
             };
 
             let conflict = Reason.conflict(left, right);
@@ -299,7 +309,14 @@ module Explanation = {
                   ~name,
                   maybeEvalDependencies(pkg),
                 );
-              let missing = Reason.missing(~available, {constr, trace});
+              let missing =
+                Reason.missing(
+                  ~available,
+                  {
+                    constr,
+                    trace,
+                  },
+                );
               if (!Reason.Set.mem(missing, reasons)) {
                 return(Reason.Set.add(missing, reasons));
               } else {
@@ -451,9 +468,15 @@ let lockPackage =
     switch (source) {
     | PackageSource.Link(link) => PackageSource.Link(link)
     | Install({source, opam: None}) =>
-      PackageSource.Install({source, opam: None})
+      PackageSource.Install({
+        source,
+        opam: None,
+      })
     | Install({source, opam: Some(opam)}) =>
-      PackageSource.Install({source, opam: Some(opam)})
+      PackageSource.Install({
+        source,
+        opam: Some(opam),
+      })
     };
 
   return({
@@ -473,7 +496,11 @@ let lockPackage =
 let make = (solvespec, sandbox: Sandbox.t) => {
   open RunAsync.Syntax;
   let universe = ref(Universe.empty(sandbox.resolver));
-  return({solvespec, universe: universe^, sandbox});
+  return({
+    solvespec,
+    universe: universe^,
+    sandbox,
+  });
 };
 
 let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
@@ -591,7 +618,13 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
   let%lwt () = finish();
 
   /* TODO: return rewritten deps */
-  return(({...solver, universe: universe^}, dependencies));
+  return((
+    {
+      ...solver,
+      universe: universe^,
+    },
+    dependencies,
+  ));
 };
 
 let printCudfDoc = doc => {
@@ -717,12 +750,12 @@ let solveDependencies =
       let name =
         switch (os, arch) {
         | (Some(os), Some(arch)) =>
-           <Pastel>
+          <Pastel>
             <Pastel dim=true> "solving esy constraints for" </Pastel>
             " "
             {System.Platform.show(os)}
             {System.Arch.show(arch)}
-           </Pastel> 
+          </Pastel>
         | _ => "solving esy constraints"
         };
       let (report, finish) = Cli.createProgressReporter(~name, ());
@@ -864,7 +897,10 @@ let solveDependenciesNaively =
         switch%bind (resolveOfOutside(req)) {
         | None =>
           let explanation = [
-            Reason.missing({constr: Dependencies.NpmFormula([req]), trace}),
+            Reason.missing({
+              constr: Dependencies.NpmFormula([req]),
+              trace,
+            }),
           ];
           errorf("%a", Explanation.pp, explanation);
         | Some(pkg) => return(pkg)
@@ -981,8 +1017,7 @@ let solveOCamlReq = (req: Req.t, opamRegistries, resolver) => {
 
   let make = resolution => {
     let%lwt () = Logs_lwt.info(m => m("using %a", Resolution.pp, resolution));
-    let* pkg =
-      Resolver.package(~opamRegistries, ~resolution, ~resolver);
+    let* pkg = Resolver.package(~opamRegistries, ~resolution, ~resolver);
     let* pkg = RunAsync.ofStringError(pkg);
     return((pkg.InstallManifest.originalVersion, Some(pkg.version)));
   };
@@ -1082,7 +1117,10 @@ let solve' =
               InstallManifest.Dep.Opam(OpamPackageVersion.Constraint.EQ(v))
             };
 
-          let ocamlDep = {InstallManifest.Dep.name: "ocaml", req};
+          let ocamlDep = {
+            InstallManifest.Dep.name: "ocaml",
+            req,
+          };
           return(
             InstallManifest.Dependencies.OpamFormula(deps @ [[ocamlDep]]),
           );
@@ -1315,11 +1353,13 @@ let solve =
   };
 
   let%lwt () =
-    switch(unPortableDependencies) {
-    | [] => Lwt.return();
+    switch (unPortableDependencies) {
+    | [] => Lwt.return()
     | unPortableDependencies =>
       let%lwt () =
-      Logs_lwt.app(m => m("@[<h>following packages don't build everywhere@]"));
+        Logs_lwt.app(m =>
+          m("@[<h>following packages don't build everywhere@]")
+        );
       List.map(~f, unPortableDependencies) |> Lwt.join;
     };
 

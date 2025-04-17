@@ -87,7 +87,10 @@ module Repr = {
 
   let convOpamCommand = ((args, filter): OpamTypes.command) => {
     let args = List.map(~f=convOpamArg, args);
-    {args, commandfilter: convFilter(filter)};
+    {
+      args,
+      commandfilter: convFilter(filter),
+    };
   };
 
   let convCommands = commands =>
@@ -147,7 +150,14 @@ module Repr = {
       };
     };
 
-    {packageId, build, platform, arch, sandboxEnv, dependencies};
+    {
+      packageId,
+      build,
+      platform,
+      arch,
+      sandboxEnv,
+      dependencies,
+    };
   };
 
   let toString = repr => {
