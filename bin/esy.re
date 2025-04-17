@@ -1677,8 +1677,22 @@ let makeCommand =
       | Ok() => 0
       | Error(error) =>
         Lwt_main.run(EsyLib.Cli.ProgressReporter.clearStatus());
-        Logs.err(m => m("%a", Run.ppError, error));
-        -1;
+        Format.fprintf(
+          Format.err_formatter,
+          "%s %a\n",
+          <Pastel color=Pastel.Red> "error" </Pastel>,
+          Run.ppError,
+          error,
+        );
+        /*
+          For some reason, the following would intermittently not print error logs.
+          Esp, the following tests in solve-errors.test.js
+
+              link to a non-existent path (277 ms)
+              link to a non-existent manifest (278 ms
+         */
+        /* Logs.err(m => m("%a", Run.ppError, error)); */
+        1;
       };
     };
 
