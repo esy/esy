@@ -674,7 +674,6 @@ module OfTerm = {
   };
 
   let term = promiseTerm;
-  /* Cmdliner.Term.(ret(const(Cli.runAsyncToCmdlinerRet) $ promiseTerm)); */
 };
 
 include OfTerm;
