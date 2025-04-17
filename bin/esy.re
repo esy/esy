@@ -1787,7 +1787,7 @@ let commandsConfig = {
         cmd(project);
       };
 
-      Cmdliner.Term.(const(run) $ cmd $ Project.term);
+      Cmdliner.Term.(const(run) $ cmd $ Project.promiseTerm);
     };
 
     makeCommand(~header=`No, ~docs?, ~doc?, ~stop_on_pos?, ~name, cmd);
@@ -1996,7 +1996,7 @@ let commandsConfig = {
                   ~doc="Package to display information about",
                 )
             )
-          $ Project.term
+          $ Project.promiseTerm
         ),
       ),
       makeCommand(

@@ -672,8 +672,6 @@ module OfTerm = {
 
     Cmdliner.Term.(const(parse) $ ProjectConfig.promiseTerm);
   };
-
-  let term = promiseTerm;
 };
 
 include OfTerm;
