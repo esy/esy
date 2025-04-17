@@ -39,6 +39,5 @@ let pp: Fmt.t(t);
 let to_yojson: t => Json.t;
 
 let promiseTerm: Cmdliner.Term.t(RunAsync.t(t));
-let term: Cmdliner.Term.t(RunAsync.t(t));
 let multipleProjectConfigsTerm:
   Cmdliner.Arg.conv(EsyLib.Path.t) => Cmdliner.Term.t(RunAsync.t(list(t)));

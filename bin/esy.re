@@ -2050,7 +2050,7 @@ let commandsConfig = {
           $ Arg.(
               value & pos_all(resolvedPathTerm, []) & info([], ~docv="BUILD")
             )
-          $ ProjectConfig.term
+          $ ProjectConfig.promiseTerm
         ),
       ),
       makeProjectCommand(

@@ -616,8 +616,6 @@ let promiseTerm = {
   );
 };
 
-let term = promiseTerm;
-
 let promiseTermForMultiplePaths = resolvedPathTerm => {
   let parse =
       (
