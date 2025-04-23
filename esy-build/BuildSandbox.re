@@ -1337,7 +1337,9 @@ let build' =
     let start = Unix.gettimeofday();
     let%lwt () =
       if (!quiet) {
-        Logs_lwt.app(m => m("building %a", Task.pp, task));
+        Logs_lwt.app(m =>
+          m("%s %a", <Pastel dim=true> "building" </Pastel>,Task.pp, task)
+        );
       } else {
         Lwt.return();
       };
@@ -1346,7 +1348,15 @@ let build' =
     let* () = buildTask(~logPath, sandbox, task);
     let%lwt () =
       if (!quiet) {
-        Logs_lwt.app(m => m("building %a: done", Task.pp, task));
+        Logs_lwt.app(m =>
+          m(
+            "%s %a: %s",
+            <Pastel dim=true> "building" </Pastel>,
+            Task.pp,
+            task,
+            <Pastel color=Pastel.Green> "done" </Pastel>,
+          )
+        );
       } else {
         Lwt.return();
       };
