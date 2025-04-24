@@ -516,6 +516,7 @@ let add = (~dependencies: Dependencies.t, ~opamRegistries, solver) => {
         <Pastel dim=true> message </Pastel>
         " "
         {System.Platform.show(os)}
+        " "
         {System.Arch.show(arch)}
       </Pastel>
     | _ => message
@@ -754,6 +755,7 @@ let solveDependencies =
             <Pastel dim=true> "solving esy constraints for" </Pastel>
             " "
             {System.Platform.show(os)}
+            " "
             {System.Arch.show(arch)}
           </Pastel>
         | _ => "solving esy constraints"
@@ -825,6 +827,7 @@ let solveDependenciesNaively =
         <Pastel dim=true> "resolving npm packages for" </Pastel>
         " "
         {System.Platform.show(os)}
+        " "
         {System.Arch.show(arch)}
       </Pastel>
     | _ => "resolving npm packages"

@@ -757,7 +757,18 @@ let packageOfSource = (~name, ~overrides, source: Source.t, resolver) => {
         let* manifest =
           RunAsync.ofRun(
             {
-              let version = OpamPackage.Version.of_string("dev");
+             /*******************************/
+             /* error No solution found     */
+             /*                             */
+             /*    No package matching:     */
+             /*                             */
+             /*      foo@=opam:dev          */
+             /*                             */
+             /*      Versions available:    */
+             /*                             */
+             /*  foo@link:/path/to/foo.opam */
+             /*******************************/
+              let version = Obj.magic @@ Source.show(source);
               OpamManifest.ofString(~name=opamname, ~version, data);
             },
           );
