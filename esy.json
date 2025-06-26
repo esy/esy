@@ -46,11 +46,8 @@
     "@opam/camlbz2": "opam:0.7.0",
     "@opam/lwt": "ManasJayanth/lwt:lwt.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
     "@opam/lwt_ppx": "ManasJayanth/lwt:lwt_ppx.opam#86b39ce25853cd4f5a509acbda924abbfd8a55c4",
-    "esy-zlib": "esy-packages/esy-zlib#404929fd8b7ed83ed6a528d751840faff957b4b3",
     "@opam/camlbz2": "git+https://gitlab.com/dining-philosophersco/camlbz2:bz2.opam#4f94881dd1f21dd55acc73917bbffef279e0d0b",
     "esy-bzip2": "esy-packages/esy-bzip2#048f314334ae2e63b24082a7e4cfca4985b04028",
-    "yarn-pkg-config": "esy-ocaml/yarn-pkg-config#6dddf01eec5056c76fee2095e07757d9c53096a",
-    "@opam/ocp-indent": "dbuenzli/ocp-indent:ocp-indent.opam#db685f89ccd40a363eb39f4d870e48dbb6a72f7d",
     "@opam/bos": "github:esy-ocaml/bos:opam#90364d003f7adc37826cf958b67536a7afdfeba",
     "@opam/bigstringaf": "opam:0.6.1",
     "@opam/astring": "github:dune-universe/astring:astring.opam#d907613e73186310aa89f13812aa974dbfc282d6",
@@ -62,6 +59,9 @@
     "@opam/mccs": "DiningPhilosophersCo/ocaml-mccs#89c55abd3e488070d797d7e7c0bcbb11e00febec",
     "@opam/cmdliner": "esy-ocaml/cmdliner:cmdliner.opam#a1a75b3beb8fc7fbdd52e3edb29dc1198448c37a",
     "@opam/sexplib0": "janestreet/sexplib0:sexplib0.opam#0ac31c25e9c2111085546d5b9b0c83ed446aa9bd",
+    "@opam/opam-core": "opam:2.3.0",
+    "@opam/opam-format": "opam:2.3.0",
+    "@opam/opam-state": "opam:2.3.0",
     "@opam/parmap": "opam:1.2.1"
   },
   "dependencies": {
