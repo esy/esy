@@ -1,0 +1,17 @@
+opam-version: "2.0"
+synopsis: "MSYS2 MINGW64 Environment"
+description: """
+This package selects the MINGW64 MSYS2 Environment.
+
+Toolchain: gcc (mingw-w64)
+Architecture: x86_64
+C Runtime Library: msvcrt
+C++ Runtime Library: libstdc++"""
+maintainer: "David Allsopp <david@tarides.com>"
+authors: "David Allsopp"
+license: "CC0-1.0+"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+flags: compiler
+depends: "msys2" {post}
+conflict-class: "msys2-env"

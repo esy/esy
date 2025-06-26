@@ -1,0 +1,83 @@
+opam-version: "2.0"
+synopsis: "MSYS2 Environment Settings"
+description: """
+After installation, the package's variables indicate which MSYS2 Environment is
+active.
+
+- msys2:msystem (exported as MSYSTEM) is the MSYS2 Environment Name.
+- msys2:carch (exported as MSYSTEM_CARCH) is the compiler's target architecture
+  (i686, x86_64 or aarch64),
+- msys2:chost (exported as MSYSTEM_CHOST and MINGW_CHOST) is the compiler's
+  target triplet ("%{msys2:carch}%-w64-mingw32").
+- msys2:root (exported as MSYSTEM_PREFIX and MINGW_PREFIX) is the Unix path to
+  the root of the MSYS2 Environment.
+- msys2:package-prefix (exported as MINGW_PACKAGE_PREFIX) is the prefix used for
+  MSYS2 Pacman packages for this Environment.
+
+Additionally, Path, MANPATH and INFOPATH are all updated with the appropriate
+directories from msys2:root. PKG_CONFIG_PATH, PKG_CONFIG_SYSTEM_INCLUDE_PATH,
+PKG_CONFIG_SYSTEM_LIBRARY_PATH and ACLOCAL_PATH are all _set_ to the appropriate
+values for msys2:root. Finally, CONFIG_SITE is exported as /etc/config.site as
+per MSYS2's own configuration.
+
+See https://www.msys2.org/docs/environments/ for further information."""
+maintainer: "David Allsopp <david@tarides.com>"
+authors: "David Allsopp"
+license: "CC0-1.0+"
+homepage: "https://opam.ocaml.org"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+flags: compiler
+available: os = "win32" & os-distribution = "msys2"
+dev-repo: "git+https://github.com/dra27/msys2-opam.git"
+build: [
+  ["sh" "./gen_config.sh" name
+        "CLANG32" {msys2-clang32:installed}
+        "CLANG64" {msys2-clang64:installed}
+        "CLANGARM64" {msys2-clangarm64:installed}
+        "MINGW32" {msys2-mingw32:installed}
+        "MINGW64" {msys2-mingw64:installed}
+        "UCRT64" {msys2-ucrt64:installed}]
+]
+depends:
+  ("msys2-clang32" |
+   "msys2-clang64" |
+   "msys2-clangarm64" |
+   "msys2-mingw32" |
+   "msys2-mingw64" |
+   "msys2-ucrt64")
+setenv: [
+  [ CONFIG_SITE = "/etc/config.site" ]
+  [ MSYSTEM = "%{_:msystem}%" ]
+  [ MSYSTEM_CARCH = "%{_:carch}%" ]
+  [ MSYSTEM_CHOST = "%{_:chost}%" ]
+  [ MSYSTEM_PREFIX = "%{_:root}%" ]
+  [ MINGW_CHOST = "%{_:chost}%" ]
+  [ MINGW_PREFIX = "%{_:root}%" ]
+  [ MINGW_PACKAGE_PREFIX = "%{_:package-prefix}%" ]
+  [ PATH += "%{_:native-root}%/bin" ]
+  [ MANPATH += "%{_:root}%/local/man" ]
+  [ MANPATH += "%{_:root}%/share/man" ]
+  [ INFOPATH += "%{_:root}%/local/info" ]
+  [ INFOPATH += "%{_:root}%/share/info" ]
+  [ PKG_CONFIG_PATH = "%{_:root}%/lib/pkgconfig:%{_:root}%/share/pkgconfig" ]
+  [ PKG_CONFIG_SYSTEM_INCLUDE_PATH = "%{_:root}%/include" ]
+  [ PKG_CONFIG_SYSTEM_LIBRARY_PATH = "%{_:root}%/lib" ]
+  [ ACLOCAL_PATH = "%{_:root}%/share/aclocal:%{_:root}%/usr/share/aclocal" ]
+]
+x-env-path-rewrite: [
+  [ PATH ";" "target-quoted" ]
+  [ MANPATH ":" "host" ]
+  [ INFOPATH ":" "host" ]
+  [ PKG_CONFIG_PATH false ]
+  [ PKG_CONFIG_SYSTEM_INCLUDE_PATH false ]
+  [ PKG_CONFIG_SYSTEM_LIBRARY_PATH false ]
+  [ ACLOCAL_PATH false ]
+]
+url {
+  src:
+    "https://github.com/dra27/msys2-opam/archive/refs/tags/0.1.0.tar.gz"
+  checksum: [
+    "sha256=9532eb3711376d8437d95abbf91875755a933882ec58b4b5f2318e8a1d6f312c"
+    "sha512=bcf3adbec1dfe065785f36e27fa84a7de72dea71d0cb0a63b2fb9fd89fac9db5455caa6aafeec7ce98317438677aacb77e6e28b24ba67481b19ebe45dca98cc4"
+  ]
+}

@@ -783,6 +783,7 @@ let toOpamEnv = (~buildIsInProgress, scope: t, name: OpamVariable.Full.t) => {
     /* some specials for ocaml */
     | (Some("ocaml"), "native") => Some(bool(true))
     | (Some("ocaml"), "native-dynlink") => Some(bool(true))
+    | (Some("ocaml"), "preinstalled") => Some(bool(false))
     | (Some("ocaml"), "version") =>
       open Option.Syntax;
       let* ocamlVersion = ocamlVersion;

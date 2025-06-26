@@ -1,0 +1,19 @@
+opam-version: "2.0"
+synopsis: "Virtual package for GCC on x86_64 mingw-w64 (64-bit x86_64)"
+description: "Ensures the x86_64 version of GCC from the mingw-w64 project is available"
+maintainer: "David Allsopp <david@tarides.com>"
+authors: "David Allsopp"
+license: "GPL-3.0-or-later"
+homepage: "https://www.mingw-w64.org"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+flags: conf
+available: os = "win32"
+depends: [
+  "msys2" {build & os = "win32" & os-distribution = "msys2"}
+  "msys2-mingw64" {os = "win32" & os-distribution = "msys2"}
+]
+build: ["x86_64-w64-mingw32-gcc" "--version"]
+depexts: [
+  ["mingw64-x86_64-gcc-core"] {os = "win32" & os-distribution = "cygwin"}
+  ["mingw-w64-x86_64-gcc"] {os = "win32" & os-distribution = "msys2"}
+]

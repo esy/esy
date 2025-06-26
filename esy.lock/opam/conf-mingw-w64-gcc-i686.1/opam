@@ -1,0 +1,19 @@
+opam-version: "2.0"
+synopsis: "Virtual package for GCC on i686 mingw-w64 (32-bit x86)"
+description: "Ensures the i686 version of GCC from the mingw-w64 project is available"
+maintainer: "David Allsopp <david@tarides.com>"
+authors: "David Allsopp"
+license: "GPL-3.0-or-later"
+homepage: "https://www.mingw-w64.org"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+flags: conf
+available: os = "win32"
+depends: [
+  "msys2" {build & os = "win32" & os-distribution = "msys2"}
+  "msys2-mingw32" {os = "win32" & os-distribution = "msys2"}
+]
+build: ["i686-w64-mingw32-gcc" "--version"]
+depexts: [
+  ["mingw64-i686-gcc-core"] {os = "win32" & os-distribution = "cygwin"}
+  ["mingw-w64-i686-gcc"] {os = "win32" & os-distribution = "msys2"}
+]
