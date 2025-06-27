@@ -128,7 +128,7 @@ function exe(name) {
 var STORE_BUILD_TREE = 'b';
 var STORE_INSTALL_TREE = 'i';
 var STORE_STAGE_TREE = 's';
-var ESY_STORE_VERSION = 3;
+var ESY_STORE_VERSION = 4;
 var MAX_SHEBANG_LENGTH = 127;
 var OCAMLRUN_STORE_PATH = 'ocaml-n.00.0000-########/bin/ocamlrun';
 var ESY_STORE_PADDING_LENGTH =
@@ -138,7 +138,7 @@ var ESY_STORE_PADDING_LENGTH =
 
 function getStorePathForPrefix(prefix) {
   if (isWindows && process.env['ESY__WINDOWS_SHORT_PATHS']) {
-    return path.join(prefix, '3_');
+    return path.join(prefix, '4_');
   } else {
     var prefixLength = path.join(prefix, String(ESY_STORE_VERSION)).length;
     var paddingLength = ESY_STORE_PADDING_LENGTH - prefixLength;

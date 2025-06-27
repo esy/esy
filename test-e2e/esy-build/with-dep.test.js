@@ -182,7 +182,7 @@ describe('Build with dep', () => {
         expect(env).toMatchObject({
           cur__version: '1.0.0',
           cur__toplevel: `${p.esyStorePath}/s/${depId}/toplevel`,
-          cur__target_dir: `${p.esyPrefixPath}/3/b/${depId}`,
+          cur__target_dir: `${p.esyPrefixPath}/4/b/${depId}`,
           cur__stublibs: `${p.esyStorePath}/s/${depId}/stublibs`,
           cur__share: `${p.esyStorePath}/s/${depId}/share`,
           cur__sbin: `${p.esyStorePath}/s/${depId}/sbin`,
@@ -205,7 +205,7 @@ describe('Build with dep', () => {
           ].join(path.delimiter),
           OCAMLFIND_LDCONF: `ignore`,
           OCAMLFIND_DESTDIR: `${p.esyStorePath}/s/${depId}/lib`,
-          DUNE_BUILD_DIR: `${p.esyPrefixPath}/3/b/${depId}`,
+          DUNE_BUILD_DIR: `${p.esyPrefixPath}/4/b/${depId}`,
         });
       }),
     );
