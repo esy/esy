@@ -6,7 +6,9 @@ let buildTree = "b";
 
 let stageTree = "s";
 
-let version = "3";
+// Must be updated every time we make changes to how artifacts are installed
+// otherwise users complain that they don't see a fix/patch working
+let version = "4"; 
 
 let maxStorePaddingLength = (~ocamlPkgName, ~ocamlVersion, ()) => {
   /*

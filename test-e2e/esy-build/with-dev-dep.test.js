@@ -282,7 +282,7 @@ describe(`Project with "devDependencies"`, () => {
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${depId}/toplevel`,
-      cur__target_dir: `${p.esyPrefixPath}/3/b/${depId}`,
+      cur__target_dir: `${p.esyPrefixPath}/4/b/${depId}`,
       cur__stublibs: `${p.esyStorePath}/s/${depId}/stublibs`,
       cur__share: `${p.esyStorePath}/s/${depId}/share`,
       cur__sbin: `${p.esyStorePath}/s/${depId}/sbin`,
@@ -334,7 +334,7 @@ describe(`Project with "devDependencies"`, () => {
     expect(env).toMatchObject({
       cur__version: '1.0.0',
       cur__toplevel: `${p.esyStorePath}/s/${devDepId}/toplevel`,
-      cur__target_dir: `${p.esyPrefixPath}/3/b/${devDepId}`,
+      cur__target_dir: `${p.esyPrefixPath}/4/b/${devDepId}`,
       cur__stublibs: `${p.esyStorePath}/s/${devDepId}/stublibs`,
       cur__share: `${p.esyStorePath}/s/${devDepId}/share`,
       cur__sbin: `${p.esyStorePath}/s/${devDepId}/sbin`,

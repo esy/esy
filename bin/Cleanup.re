@@ -102,7 +102,7 @@ let main = (projCfgs: RunAsync.t(list(ProjectConfig.t)), dryRun) => {
               ProjectConfig.globalStorePrefixPath(projCfg) / "source" / "i",
               // staging area before installed artifacts can be installed
               globalStorePath / Store.stageTree,
-              // Older versions used the longer ~/.esy/3____.../b to store build cache
+              // Older versions used the longer ~/.esy/4____.../b to store build cache
               globalStorePath / Store.buildTree,
             ];
 

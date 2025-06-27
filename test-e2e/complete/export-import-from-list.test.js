@@ -74,7 +74,7 @@ it('export import build - from list', async () => {
     expect.stringMatching('subdep-1.0.0'),
   ];
 
-  const delResult = await del(path.join(p.esyPrefixPath, '3_*', 'i', '*'), {force: true});
+  const delResult = await del(path.join(p.esyPrefixPath, '4_*', 'i', '*'), {force: true});
   expect(delResult).toEqual(expect.arrayContaining(expected));
 
   await p.esy('import-build --from ./list.txt');
