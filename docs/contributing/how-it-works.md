@@ -199,7 +199,7 @@ The padding is needed to allow relocating built artifacts between stores.
 The cache looks like:
 
 ```bash
-% tree ~/.esy/3_*
+% tree ~/.esy/4_*
 ├── b
 │   ├── ocaml-4.6.1-4f6b0960
 │   ├── ocaml-4.6.1-4f6b0960.info

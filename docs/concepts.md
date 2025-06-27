@@ -123,7 +123,7 @@ Install stores are where final, ready to be consumed, artifacts are stored. The 
 
 Like build artifacts, install stores can be both local and global.
 
-By default the global install store can be found at `~/.esy/3__../i` and the local one can be found at `<project root>/_esy/default/store/i/<build_id>`
+By default the global install store can be found at `~/.esy/4__../i` and the local one can be found at `<project root>/_esy/default/store/i/<build_id>`
 
 #### Package stage location
 
