@@ -1,6 +1,6 @@
 type t =
   | Local(Fpath.t)
-  | Remote(string);
+  | Remote(string, option(string));
 
 include S.COMPARABLE with type t := t;
 include S.JSONABLE with type t := t;

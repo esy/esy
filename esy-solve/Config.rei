@@ -23,7 +23,7 @@ type t =
 /** This described how a reposoitory should be used */
 and checkout =
   | Local(Path.t)
-  | Remote(string, Path.t);
+  | Remote(string, option(string), Path.t);
 
 let pp: Fmt.t(t);
 let show: t => string;

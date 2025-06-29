@@ -28,20 +28,23 @@ let init = (~cfg, ()): RunAsync.t(t) => {
   let* repoPath =
     switch (cfg.Config.esyOpamOverride) {
     | Config.Local(path) => return(path)
-    | Config.Remote(remote, local) =>
+    | Config.Remote(remote, branchOpt, local) =>
+      let branch = Option.orDefault(~default=Config.esyOpamOverrideVersion, branchOpt);
       let update = () => {
         let%lwt () =
           Logs_lwt.app(m =>
             m(
-              "%s %s %s",
+              "%s %s %s %s %s",
               <Pastel dim=true> "checking" </Pastel>,
               remote,
+              <Pastel dim=true> "branch" </Pastel>,
+              branch,
               <Pastel dim=true> "for updates..." </Pastel>,
             )
           );
         let* () =
           Git.ShallowClone.update(
-            ~branch=Config.esyOpamOverrideVersion,
+            ~branch,
             ~dst=local,
             remote,
           );

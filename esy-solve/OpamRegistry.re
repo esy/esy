@@ -46,21 +46,22 @@ let make = (~opamRepository, ~cfg, ()) => {
     let* repoPath =
       switch (opamRepository) {
       | Config.Local(local) => return(local)
-      | Config.Remote(remote, local) =>
+      | Config.Remote(remote, branchOpt, local) =>
+        let branch = Option.orDefault(~default="master", branchOpt);
         let update = () => {
           let%lwt () =
             Logs_lwt.app(m =>
-              m(
-                "%a %s %a...",
-                Fmt.(styled(`Faint, string)),
-                "checking",
-                remote,
-                Fmt.(styled(`Faint, string)),
-                "for updates",
-              )
-            );
+            m(
+              "%s %s %s %s %s",
+              <Pastel dim=true> "checking" </Pastel>,
+              remote,
+              <Pastel dim=true> "branch" </Pastel>,
+              branch,
+              <Pastel dim=true> "for updates..." </Pastel>,
+            )
+          );
           let* () =
-            Git.ShallowClone.update(~branch="master", ~dst=local, remote);
+            Git.ShallowClone.update(~branch, ~dst=local, remote);
           return(local);
         };
 
