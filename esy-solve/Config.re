@@ -17,23 +17,41 @@ type t = {
 }
 and checkout =
   | Local(Path.t)
-  | Remote(string, Path.t);
+  | Remote(string, option(string), Path.t);
 
 let esyOpamOverrideVersion = "6";
 
+let parseRemote = str => switch(String.split_on_char('#', str)) {
+  | [remote, branch] => Ok((remote, Some(branch)))
+  | [remote] => Ok((remote, None))
+  | _ => Error(`Msg("Internal error: unable to parse " ++ str ++ " into remote and branch"))
+}
+
 let configureDeprecatedCheckout = (~defaultRemote, ~defaultLocal) =>
   fun
-  | Some(`RemoteLocal(remote, local)) => Remote(remote, local)
-  | Some(`Remote(remote)) => Remote(remote, defaultLocal)
+  | Some(`RemoteLocal(remote, local)) => switch(parseRemote(remote)) {
+      | Ok((remote, branchOpt)) => Remote(remote, branchOpt, local)
+      | Error(`Msg(msg)) => failwith(msg)
+    }
+  | Some(`Remote(remote)) => switch(parseRemote(remote)) {
+      | Ok((remote, branchOpt)) => Remote(remote, branchOpt, defaultLocal)
+      | Error(`Msg(msg)) => failwith(msg)
+    }
   | Some(`Local(local)) => Local(local)
-  | None => Remote(defaultRemote, defaultLocal);
+  | None => Remote(defaultRemote, None, defaultLocal);
 
 let configureCheckout = (~defaultRemote, ~defaultLocal) =>
   fun
-  | (None, None) => Remote(defaultRemote, defaultLocal)
+  | (None, None) => Remote(defaultRemote, None, defaultLocal)
   | (None, Some(local)) => Local(local)
-  | (Some(remote), None) => Remote(remote, defaultLocal)
-  | (Some(remote), Some(local)) => Remote(remote, local);
+  | (Some(remote), None) => switch(parseRemote(remote)) {
+      | Ok((remote, branchOpt)) => Remote(remote, branchOpt, defaultLocal)
+      | Error(`Msg(msg)) => failwith(msg)
+    }
+  | (Some(remote), Some(local)) => switch(parseRemote(remote)) {
+      | Ok((remote, branchOpt)) => Remote(remote, branchOpt, local)
+      | Error(`Msg(msg)) => failwith(msg)
+    };
 
 let make =
     (
@@ -71,11 +89,18 @@ let make =
     List.map(
       ~f=
         opamRepository => {
+          let hash = s => s |> Digestv.ofString |> Digestv.toHex;
           switch (opamRepository) {
-          | OpamRepository.Remote(location) =>
-            let hash = s => s |> Digestv.ofString |> Digestv.toHex;
+          | OpamRepository.Remote(location, Some(branch)) => 
             Remote(
               location,
+              Some(branch),
+              Path.(prefixPath / ("opam-repository-" ++ hash(location ++ branch))),
+            );
+          | OpamRepository.Remote(location, None) =>
+            Remote(
+              location,
+              None,
               Path.(prefixPath / ("opam-repository-" ++ hash(location))),
             );
           | Local(location) => Local(location)

@@ -2,7 +2,7 @@
 [@deriving (show, ord)]
 type t =
   | Local(Fpath.t)
-  | Remote(string);
+  | Remote(string, option(string));
 
 let of_yojson = (json: Json.t) =>
   switch (json) {
@@ -13,7 +13,12 @@ let of_yojson = (json: Json.t) =>
     | Error(`Msg(_)) => Error("invalid path " ++ location)
     };
   | `Assoc([("type", `String("remote")), ("location", `String(location))]) =>
-    Ok(Remote(location))
+    switch(String.split_on_char('#', location)) {
+    | [url, branch] =>
+      Ok(Remote(url, Some(branch)))
+    | [url] => Ok(Remote(url, None))
+    | _ => Error("Couldn't parse input repository field: " ++ location)
+    }
   | _ =>
     Error(
       "expected an object of the form { type: 'local' | 'remote', location: string }",
@@ -27,6 +32,7 @@ let to_yojson = v =>
       ("type", `String("local")),
       ("location", `String(Fpath.to_string(location))),
     ])
-  | Remote(location) =>
+  | Remote(location, Some(branch)) => failwith(location ++ branch)
+  | Remote(location, None) =>
     `Assoc([("type", `String("remote")), ("location", `String(location))])
   };
