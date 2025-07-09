@@ -27,7 +27,7 @@ jobs:
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
       - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
         name: "Generate EsyVersion.re"
-      - uses: esy/github-action@v2-beta.9
+      - uses: esy/github-action@master
         with:
           setup-esy-npm-package: "esy"
           setup-esy-version: "0.9.1"
@@ -50,13 +50,15 @@ jobs:
       - run: 'node ./node_modules/jest-cli/bin/jest.js'
         name: 'test:e2e'
         if: ${{ runner.os != 'Darwin' && (runner.arch != 'X64' && runner.arch != 'x86_64') }}
-      - uses: esy/github-action@v2-beta.9
+      - uses: esy/github-action@master
         if: ${{ runner.os != 'Linux' }}
         id: prepare-npm-artifacts
         with:
           source-cache-key: 20250707-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20250707-1
           prepare-npm-artifacts-mode: true
+          ocaml-static-compiler-version: 5.2.0-musl.static.flambda
+          ocaml-compiler-version: 5.2.0
 
   static-build:
     runs-on: ubuntu-latest
@@ -147,11 +149,13 @@ jobs:
           submodules: true
       - run: git fetch --tags
         name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
-      - uses: esy/github-action@v2-beta.9
+      - uses: esy/github-action@master
         with:
           source-cache-key: 20250707-1
           cache-key: ${{ hashFiles('esy.lock/index.json') }}-20250707-1
           bundle-npm-artifacts-mode: true
+          ocaml-static-compiler-version: 5.2.0-musl.static.flambda
+          ocaml-compiler-version: 5.2.0
           postinstall-js: .ci/gha-release-postinstall.js
 
       - name: Create tarball
