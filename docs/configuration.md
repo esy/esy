@@ -199,6 +199,49 @@ Packages can configure their own build environment.
 Note that build environment doesn't propagate to dependencies, only current
 package's build process can access it.
 
+### `esy.opamRepositories`
+
+If you wish to provide an overlay of packages, maybe because you
+patched a package and your changes haven't been merged yet, you can do
+so, by specifying your opam repository in addition to the upstream, in
+the `opamRepositories` field.
+
+#### Example
+
+```json
+{
+  "esy":
+    "opamRepositories": [
+      {
+        "type": "remote",
+        "location": "https://github.com/ocaml/opam-repository.git"
+      },
+      {
+        "type": "remote",
+        "location": "https://github.com/ocaml/opam-repository-archive.git"
+      }
+    ]
+}
+```
+
+The git URLs can also have a branch name at the end.
+
+```json
+{
+  "esy":
+    "opamRepositories": [
+      {
+        "type": "remote",
+        "location": "https://github.com/ocaml/opam-repository.git#master"
+      },
+      {
+        "type": "remote",
+        "location": "https://github.com/ocaml/opam-repository-archive.git#main#main"
+      }
+    ]
+}
+```
+
 ### `esy.buildEnv`
 
 To add a new environment variable to the build environment of the current
