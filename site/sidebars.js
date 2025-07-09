@@ -23,6 +23,7 @@ const sidebars = {
     ],
     community: ['community'],
     'advanced workflow': [
+      'portable-reason-ocaml',
       'multiple-sandboxes',
       'npm-release',
       'opam-workflow',
