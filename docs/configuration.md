@@ -17,8 +17,11 @@ with the following fields:
 - [`esy.buildsInSource`](#esybuildsinsource)
 - [`esy.exportedEnv`](#esyexportedenv)
 - [`esy.buildEnv`](#esybuildenv)
-- [`resolutions`](#resolutions)
+- [`esy.opamRepositories`](#esyopamrepositories)
 - [`scripts`](#scripts)
+- [`dependencies`](#dependencies)
+- [`devDependencies`](#devdependencies)
+- [`resolutions`](#resolutions)
 
 ## Specify Build & Install Commands
 
@@ -192,12 +195,7 @@ Note the usage of [esy variable substitution
 syntax](#variable-substitution-syntax) to define the value of the
 `$CAML_LD_LIBRARY_PATH` variable.
 
-## Build Environment
-
-Packages can configure their own build environment.
-
-Note that build environment doesn't propagate to dependencies, only current
-package's build process can access it.
+## Multiple opam repositories
 
 ### `esy.opamRepositories`
 
@@ -241,6 +239,13 @@ The git URLs can also have a branch name at the end.
     ]
 }
 ```
+
+## Build Environment
+
+Packages can configure their own build environment.
+
+Note that build environment doesn't propagate to dependencies, only current
+package's build process can access it.
 
 ### `esy.buildEnv`
 
