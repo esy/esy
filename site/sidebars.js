@@ -9,7 +9,8 @@ const sidebars = {
       'getting-started',
       'using-repo-sources-workflow',
       'linking-workflow',
-      'ocaml-compiler'
+      'ocaml-compiler',
+      'github-actions'
     ],
     reference: [
       'concepts',
