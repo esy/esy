@@ -363,29 +363,35 @@ let rec copyPathLwt = (~hardlinks, ~src, ~dst) => {
     let%lwt link = Lwt_unix.readlink(origPathS);
     Lwt_unix.symlink(link, destPathS);
   | S_DIR =>
-    let%lwt _ = createDirLwt(dst, ~perms=0o700);
-    let rec traverseDir = dir =>
-      switch%lwt (Lwt_unix.readdir(dir)) {
-      | exception End_of_file => Lwt.return()
-      | "."
-      | ".." => traverseDir(dir)
-      | name =>
-        let%lwt () =
-          copyPathLwt(
-            ~hardlinks,
-            ~src=Path.(src / name),
-            ~dst=Path.(dst / name),
-          );
-        traverseDir(dir);
-      };
+    /* Skip .git directories to avoid permission issues with read-only files */
+    let basename = Path.basename(src);
+    if (basename == ".git") {
+      Lwt.return();
+    } else {
+      let%lwt _ = createDirLwt(dst, ~perms=0o700);
+      let rec traverseDir = dir =>
+        switch%lwt (Lwt_unix.readdir(dir)) {
+        | exception End_of_file => Lwt.return()
+        | "."
+        | ".." => traverseDir(dir)
+        | name =>
+          let%lwt () =
+            copyPathLwt(
+              ~hardlinks,
+              ~src=Path.(src / name),
+              ~dst=Path.(dst / name),
+            );
+          traverseDir(dir);
+        };
 
-    let%lwt dir = Lwt_unix.opendir(origPathS);
-    let%lwt () =
-      Lwt.finalize(() => traverseDir(dir), () => Lwt_unix.closedir(dir));
+      let%lwt dir = Lwt_unix.opendir(origPathS);
+      let%lwt () =
+        Lwt.finalize(() => traverseDir(dir), () => Lwt_unix.closedir(dir));
 
-    let%lwt () = copyStatLwt(~stat, dst);
+      let%lwt () = copyStatLwt(~stat, dst);
 
-    Lwt.return();
+      Lwt.return();
+    };
   | _ =>
     /* XXX: Skips special files: should be an error instead? */
     Lwt.return()
