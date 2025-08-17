@@ -1,0 +1,13 @@
+(executable
+ (name esyNativeInstallNpmRelease)
+ (flags
+  (:standard
+   (-w -39)
+   "-open"
+   "EsyLib"))
+ (libraries esy_cmdliner EsyLib EsyBuild))
+
+(install
+ (section libexec)
+ (files
+  (esyNativeInstallNpmRelease.exe as esyNativeInstallNpmRelease)))
