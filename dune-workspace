@@ -1,2 +1,11 @@
 (lang dune 2.0)
-(env (release-static (flags (:standard -ccopt -static))))
+; -Wl,--no-export-dynamic is required alongside -static on x86_64 musl.
+; ocamlopt links native executables with -Wl,-E (export-dynamic) by default,
+; and the combination of -static-pie + -Wl,-E makes ld leave an unresolved
+; dynamic TLS relocation (R_X86_64_TPOFF64) for OCaml 5's thread-local
+; Caml_state. musl's static-PIE startup self-relocator cannot apply TLS
+; relocations (it runs before the thread pointer is set up), so the binary
+; segfaults before main. Dropping -Wl,-E keeps a fully static PIE that
+; resolves the TLS access at link time. See
+; https://discuss.ocaml.org/t/segfaults-on-static-compilation-with-alpine-3-23-fix-no-pie/17800
+(env (release-static (flags (:standard -ccopt -static -ccopt -Wl,--no-export-dynamic))))
