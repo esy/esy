@@ -131,12 +131,84 @@ jobs:
 
 
 
+  static-build-arm64:
+    runs-on: ubuntu-24.04-arm
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1000
+          fetch-tags: false # https://github.com/actions/checkout/issues/1467
+          submodules: true
+      - run: git fetch --tags
+        name: Fetch tags manually as a workaround. See https://github.com/actions/checkout/issues/1467
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - run: sh ./esy-version/version.sh --reason > ./esy-version/EsyVersion.re
+        name: "Generate EsyVersion.re"
+      - name: Set environment variable ESY_VERSION
+        run: echo "ESY_VERSION=$(sh ./esy-version/version.sh)" >> $GITHUB_OUTPUT
+        id: esy-version
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_NO_SUMMARY: true # We disable this till the github action know to filter out `esy~esy~6ELZT5.dockerbuild`
+        with:
+          context: "."
+          file: ./dockerfiles/alpine.Dockerfile
+          platforms: linux/arm64
+          load: true
+          push: true
+          tags: |
+            localhost:5000/esydev/esy:nightly-alpine-arm64-latest
+            localhost:5000/esydev/esy:nightly-alpine-arm64
+            localhost:5000/esydev/esy:${{ steps.esy-version.outputs.ESY_VERSION }}-arm64
+
+      - run: |
+          ./scripts/docker.sh run-container --image localhost:5000/esydev/esy --tag nightly-alpine-arm64-latest
+          ./scripts/docker.sh cp-artifacts --image localhost:5000/esydev/esy --tag nightly-alpine-arm64-latest --host-release-path "_container_release"
+        name: "Copy esy artifacts from /usr/local/ in the container"
+      - run: |
+          tar czf npm-tarball.tgz _container_release
+          mv npm-tarball.tgz _container_release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esy-npm-release-linux-arm64-static
+          path: _container_release/
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_NO_SUMMARY: true # We disable this till the github action know to filter out `esy~esy~6ELZT5.dockerbuild`
+        with:
+          context: "."
+          file: ./dockerfiles/alpine.Dockerfile
+          platforms: linux/arm64
+          load: true
+          push: true
+          tags: |
+            esydev/esy:nightly-alpine-arm64-latest
+            esydev/esy:nightly-alpine-arm64
+            esydev/esy:${{ steps.esy-version.outputs.ESY_VERSION }}-arm64
+
   bundle:
     permissions:
       contents: write
     needs:
       - build
       - static-build
+      - static-build-arm64
     runs-on: macos-latest
     steps:
       - uses: actions/setup-node@v4
