@@ -2,6 +2,7 @@
 
 ## 0.6.12 @ latest
 
+- Fix intermittent `symlink ... build: File exists` failures on macOS by making `Fs.symlink ~force` idempotent when the link already points at the desired target by @ManasJayanth
 - Feature: Allow subfolders in github source URLs by @EduardoRFS in #1196
 - Fix EACCES during `esy i --cache-tarballs-path` by @ManasJayanth in #1182
 - Feature: Allow spaces in usernames on Windows by bumping esy-bash to 3.20 by @Et7f3 in #1340

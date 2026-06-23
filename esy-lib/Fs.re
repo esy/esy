@@ -614,11 +614,21 @@ let symlink = (~force=false, ~src, dst) => {
   switch%lwt (symlink'(src, dst)) {
   | Ok () => return()
   | Error(Unix.EEXIST) when force =>
-    /* try rm path but ignore errors */
-    let%lwt _: Run.t(unit) = rmPath(dst);
-    switch%lwt (symlink'(src, dst)) {
-    | Ok () => return()
-    | Error(err) => mkError(err)
+    /* The destination already exists. If it is already a symlink pointing
+     * to `src` there is nothing to do — treat it as success. This keeps the
+     * operation idempotent and tolerant of concurrent writers. It also avoids
+     * the remove-then-recreate dance below, which is racy and, on macOS, can
+     * follow a symlink-to-directory during the recursive remove and leave the
+     * link in place, making the retry fail again with EEXIST. */
+    switch%lwt (readlinkOpt(dst)) {
+    | Ok(Some(existing)) when Path.equal(existing, src) => return()
+    | _ =>
+      /* try rm path but ignore errors */
+      let%lwt _: Run.t(unit) = rmPath(dst);
+      switch%lwt (symlink'(src, dst)) {
+      | Ok () => return()
+      | Error(err) => mkError(err)
+      };
     };
   | Error(err) => mkError(err)
   };
