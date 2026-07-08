@@ -1,5 +1,6 @@
 (library
  (name EsyCommandExpression)
+ (inline_tests)
  (preprocess
   (pps ppx_inline_test lwt_ppx ppx_let ppx_deriving_yojson ppx_deriving.std))
  (flags
